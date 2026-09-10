@@ -10,6 +10,62 @@ Accidental findings during the build. Raw, dated, unpolished. Grant proposals an
 
 ---
 
+### 2026-09-10 — Prose is the half that rots, and we have two clean measurements of it in one round
+
+Yesterday's entry argued that a controlled surface makes checks reliable. Today's repair round produced the other half of the case, and it is an observation rather than an argument: **where a claim exists in a machine-checkable form as well as in prose, the prose is the half that goes wrong.**
+
+Two instances, same page, same round, found by a fresh reader who was given only the prose.
+
+**One.** The page declares a configuration floor: a sweep run's disclosed bound must be at least `2 × closure_latency + journal_write_bound`. The forty-line schedule enumerator that had already refuted two earlier forms of the same page's window inequality was filtering on something else — `max(completion_bound, closure_latency + journal_write_bound) + closure_latency` — because the holder a run waits out may be an ordinary invocation, whose lease is the longer of the two. The reader found the inconsistency by reasoning about the prose alone. Re-run over the same 432 parameter tuples:
+
+| floor | tuples admitted | window-inequality breaches among them |
+|---|---|---|
+| the prose's | 324 | **15** |
+| the enumerator's | 288 | **0** |
+
+So the sentence was not merely weaker. It admitted fifteen deployments the page's central liveness claim does not hold for.
+
+**Two.** The same round's most-repeated finding — two gates running — is that a duplicate-detection key has no exemption for the one deployment mode the page itself *instructs* to produce duplicates. The formal model's corresponding invariant reads `ServiceIdentity => ~secondOpened` and has since the gate that added it. **The branch was in the model the whole time.**
+
+In both cases the machine-readable artifact was right, the sentence was wrong, and the sentence was the *newer* of the two. That last detail is the one that matters. Nobody was careless with the prose. The prose rotted because nothing was reading it — no parser, no checker, no fixture, no failing run. A model that drifts gets caught the next time it is checked; a paragraph that drifts gets caught the next time somebody happens to read two paragraphs together and notice.
+
+Three things follow.
+
+**A round-end discipline, immediately.** Diff the prose against the model, the enumerator and the fixtures — in the direction of *does the page still say what the code checks*. This is the opposite of the usual direction and it is cheap, because the artifacts are few.
+
+**A sharper reason for controlled language than the parser one.** The argument yesterday was *a controlled surface can be checked*. The stronger argument is *an unchecked surface decays*, and controlling it is how a sentence acquires a reader that never gets bored. The English is not being restricted for the machine's benefit. It is being restricted so that the sentence is inside something that will notice when it stops being true.
+
+**And a caution about what this does not show.** Both instances are cases where a second, formal artifact already existed. That is the easy case. The hard case — the load-bearing sentence with no model behind it — is most of the corpus, and for those the only reader is the next fresh gate. Which is exactly the argument for moving more of them inside a form something can read.
+
+---
+
+### 2026-09-10 — The linter's own track record is an argument for a controlled language, and it is unanimous
+
+Proposed by the author, relayed from an outside reader: Grace should move its load-bearing logic toward a **controlled natural language** — *semantically a superset of Cucumber, syntactically a much smaller subset of English*. Ordinary English keeps explanation, rationale and examples; normative behaviour moves to a fixed set of canonical sentence shapes. **Short sentences. One obligation per sentence. One canonical term for one meaning. No rhetorical prose inside load-bearing logic.** The point is not terseness — *the semantics are not simpler, the language is* — and the payoff is that the more primitive the normative syntax, the less intelligence the parser needs. Today the linter infers intent from unrestricted English, which is fragile; under a controlled dialect it recognizes known forms and emits a normalized representation that can feed the linter, the models, the acceptance checks and eventually generated code.
+
+**The striking thing is that the evidence for this proposal was already sitting in the linter's history, and nobody had looked at it that way.** Eleven checks have been through the promotion pipeline. Sorting them not by what they check but by *what surface they parse*:
+
+| outcome | parses a **controlled** form | infers from **free** prose |
+|---|---|---|
+| promoted, gating | **6** — the Ledger block, the Status line, the Terms registry, the signature fence, numbered steps, a bolded count claim | 0 |
+| rejected in triage | 0 | **5** — own-export-vs-transcribed, what-a-step-carries, is-it-landed-elsewhere, does-a-path-have-a-bucket, is-this-name-retired |
+
+**Six of six and five of five.** Every check this corpus has ever promoted parses a place where the language was already controlled; every check it has ever rejected was trying to read ordinary English. The rejections were each argued on their own terms at the time — the CONTAINS/CLAIMS boundary, population, whether the decidable form covers the defect — and the single sentence that predicts all five is *it was reading free prose*. The corpus has been running an unblinded experiment on this question for months and only now read the result.
+
+**And the corpus already has three controlled sub-languages, which is why they work.** The Ledger block, the Status line and the Terms registry are all fixed-shape, and their checks are the most reliable in the suite — the Terms registry check caught a defect the round itself had introduced in three consecutive rounds. Signature fences are a fourth. What the proposal asks for is not a new idea in this corpus; it is the existing idea applied to the part of the document that carries the obligations.
+
+**Measuring the proposed vocabulary against the corpus splits it cleanly into earned and unearned**, which matters because the author's own rule is that forms should be *discovered* — a construction appears in prose, survives pressure testing, acquires a stable meaning, gets recognizable tells, becomes mechanically checkable, and only then joins the dialect. Across 57 pattern files:
+
+- **Earned, present in 45–57 files**: `MUST`, `MUST NOT` / *never*, `BEFORE`, `AFTER`, `EXACTLY ONE OF` / *at most one*, `IS DERIVED FROM`, `ONLY IF`. These are already the corpus's working vocabulary; canonicalizing them is writing down what is there.
+- **Structural, and already half-controlled**: `COMPOSES` (a `## Composes` section in all 26 compositions) and `BINDS` (557 `x = y` spans in 37 files). The containers exist; only the sentence shapes are free.
+- **Not yet earned, 2–14 files**: `IS VALID UNTIL` (3 occurrences), `IS AUTHORITATIVE FOR` (11), `RECOVERED BY` (14), `UNRECOVERABLE` (15), `WITHIN <duration> OF` (28).
+
+**One of those unearned forms is the one the corpus most needs, and that tension is worth stating rather than resolving quietly.** `IS AUTHORITATIVE FOR` appears eleven times in seven files — and *authoritative ownership of an obligation* is the concept three consecutive gates have been about, the subject of the DRY rule the campaign just froze, and the thing every recent propagation failure is an instance of. So the concept is thoroughly earned and the **phrasing** is not. That is a real exception to discovery-over-invention: the construction has to be introduced rather than found, because the reviews proved the concept without ever settling the words. **Introducing a form is riskier than discovering one** — nothing has pressure-tested the phrasing — so it should be introduced at one site, used until it either stabilizes or is found wanting, and only then propagated. The §*Which closing stands* block on the Recoverable Invocation draft is the first such site: it names what it owns and lists its citers, which is `IS AUTHORITATIVE FOR` written out longhand.
+
+**What this does not claim.** Not every sentence must lower into TLA+ or code. The boundary that matters is that the *protocol-bearing* part becomes structured enough to lower mechanically while genuine semantic judgement stays in readable English. The division of labour the campaign already arrived at empirically — formal layer for concurrency and timing, linter for internal consistency, fresh reader for semantics — gains a fourth member: **controlled Grace English for normative statements and bindings, ordinary English for everything else.**
+
+---
+
 ### 2026-08-27 — Every derived fact has a validity duration, every claim has a lifetime, and the corpus writes down neither
 
 Named by an outside reader of the methodology debt #19 rounds, relayed by the author: *"a derivation can be perfectly valid structurally and still cease to be usable once its evidentiary substrate expires."* Worth recording rather than nodding at, because **the campaign kept finding this dimension without looking for it**, in three classes framed as being about entirely different things.
