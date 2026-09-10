@@ -1,6 +1,6 @@
 # GRACE lang v0.27 — review, Torvalds pass
 
-**Status: applied 2026-09-10.** Findings 1, 2, 9 and 10 are fixed in the review and in `roadmap.md`, `discoveries.md` and `pressure-testing.md`; 3 to 8 are the review's Decisions A to F. P1 now lives in `pressure-testing.md` §*Measure the form, not the word*; P5 is unplaced.
+**Status: applied 2026-09-10.** Findings 1, 2, 9 and 10 are fixed in the review and in `roadmap.md`, `discoveries.md` and `pressure-testing.md`; 3 to 8 were decided the same day and are the review's *Changes for v0.28*. P1 now lives in `pressure-testing.md` §*Measure the form, not the word*; P5 is unplaced.
 
 Audit of `grace-lang-v027-review.md` as committed in `102da92`, re-checked 2026-09-10. Counts: whole word, any case, over `atoms/` + `compositions/` + Recoverable Invocation (57 files) unless marked. Unpathed quotes: that commit's review.
 
