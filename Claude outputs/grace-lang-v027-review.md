@@ -1,6 +1,6 @@
 # GRACE lang v0.27 — review
 
-Against the corpus as of 2026-09-10. File set: the 56 Markdown files in `atoms/` and `compositions/` (53 patterns, 3 index pages), with the Recoverable Invocation draft counted apart. Counts are whole word. Quotations match the file they name. Revised after [`grace-lang-v027-review-torvalds.md`](./grace-lang-v027-review-torvalds.md); decisions settled 2026-09-10.
+Against the corpus as of 2026-09-10. File set: the 56 Markdown files in `atoms/` and `compositions/` (53 patterns, 3 index files), with the Recoverable Invocation draft counted apart. Counts are whole word. Quotations match the file they name. Revised after a Torvalds pass, which lives in git history; decisions settled 2026-09-10.
 
 **Verdict.** The core holds: §4, §8, §13, I15–I17. §1's admission test was ambiguous and missing its second half. Of three claimed gaps, one was real. Eight changes for v0.28.
 
@@ -58,7 +58,7 @@ Promoted from §2's example.
 
 *Why.* §13 restricts the verb after a modal to declared record verbs, so it already rejects `The actor MUST be granted invite_actor.` I4 is a second owner. Not moved to §20, for the same reason.
 
-### 8. One site is one page
+### 8. One site is one spec
 
 `pressure-testing.md` owns the rule and now says so. The draft's two `IS AUTHORITATIVE FOR` sections conform.
 
