@@ -1,75 +1,70 @@
 # GRACE lang v0.27 — review
 
-Against the corpus as of 2026-09-10 (56 pattern files). Reviewed as a spec, not as a proposal: the strong parts are stated briefly, the actionable parts at length.
+Against the corpus as of 2026-09-10. File set: the 56 Markdown files in `atoms/` and `compositions/` (53 patterns, 3 index pages), with the Recoverable Invocation draft counted apart. Counts are whole word. Quotations match the file they name. Revised after [`grace-lang-v027-review-torvalds.md`](./grace-lang-v027-review-torvalds.md).
+
+**Verdict.** The core holds: §4, §8, §13, I15–I17. §1's admission test is ambiguous and missing its second half. Of three claimed gaps, one is real. Seven decisions below.
 
 ---
 
-## 1. §1 rests on a measurement that was wrong, and the correction improves the section
+## Fixes
 
-Debt #21 recorded seven candidate forms as *earned now — 45–57 of 57 files each*. **That count was case-insensitive.** It measured the English words. Re-measured for the uppercase token in its controlled role:
+### 1. §1: admit by concept, and only where the prose has failed
 
-| form | UPPERCASE files | any-case files |
-|---|---|---|
-| `MUST` | **3** | 54 |
-| `MUST NOT` | **1** | 40 |
-| `MAY` | **1** | 54 |
-| `EVERY` | **0** | 55 |
-| `EXACTLY ONE` | **0** | 47 |
-| `WITHIN` | **0** | 47 |
-| `ONLY IF` | **0** | 28 |
-| `ONLY AFTER` | **0** | 20 |
-| `ONLY UNDER` | **0** | 15 |
-| `IS AUTHORITATIVE FOR` | **0** | 6 |
-| `IS DERIVED FROM` | **0** | 6 |
+§1 admits forms *earned by repeated use*. Read as the token in its controlled role, the grammar is empty: uppercase `MUST` is in 3 files, `MUST NOT` and `MAY` in 1, the rest in 0 (table: `roadmap.md` debt #21). Read as the concept, every form qualifies, PROVISIONAL included.
 
-The three files with an uppercase `MUST` are Attributed Permissions Admin, Audit Trail and Multi-Party Approval — and APA's arrived the same morning.
+The token reading is circular: a form's token appears only after the form is admitted. So it is the concept. But recurrence alone admits noise: `before` is in 55 of 56 files, mostly narrative.
 
-**So §1's test is ambiguous, and the whole admission list depends on which way it resolves.** *"only forms already earned by repeated use"* — read as *the token in its role*, nothing in §21 qualifies and the grammar is empty. Read as *the concept*, everything qualifies including all four PROVISIONAL entries.
+```
+§21 MAY admit a form ONLY IF its concept recurs across specifications AND satisfies contested.
+```
 
-It has to be the concept, for a reason worth putting in the document: **requiring the token to pre-exist is circular.** A controlled form exists to replace the free-prose expression of a recurring idea; its token appears only once someone admits it.
+Terms › `contested`: its free-prose expression drifted, was read two ways, or produced a finding.
 
-**But then §1 needs its second half, which §19 implies and §1 omits.** Not *does this concept recur* but **does its free-prose expression drift or produce findings?** `before` is in 55 files and most are narrative. `only if` is in 28 carrying real conditions. Recurrence alone is not a case for control — the commonest words in this corpus carry the least obligation.
+For counts, §1 cites `pressure-testing.md` §*Measure the form, not the word*. It does not restate it.
 
-**Suggested §1 addition:** *A form is earned when its concept recurs across specifications AND its free-prose expression has drifted, been read two ways, or produced a finding. Recurrence alone is not evidence. A count of a candidate form states its own case-sensitivity.*
+### 2. `IS AUTHORITATIVE FOR` is introduced, not discovered. Label it.
+
+Concept earned: three consecutive gates turned on it, and DRY on responsibility depends on it. Phrasing invented: 6 of 56 files in any case, 0 as the form. The draft writes it three times, in §*Where the allowance goes* and §*Instance start*. §1 claims every admitted form is earned. Label this one and the claim holds everywhere else.
 
 ---
 
-## 2. Two items in §18/§21 to reconsider against that test
+## Keep
 
-**`IS AUTHORITATIVE FOR` is a deliberate introduction, not a discovery — label it.** Six files of any-case use, zero of the form. The *concept* is earned (three consecutive gates turned on it, and the DRY-on-responsibility rule depends on it); the *phrasing* is invented. Admitting it is right, and the frozen rule already covers the case — introduce at one site, propagate after use. But §1 currently claims every admitted form is earned, so this is an unlabelled exception. Naming it as the one deliberate introduction preserves §1's force everywhere else.
-
-**`ONLY IF` is PROVISIONAL at 28 files while `ONLY UNDER` is admitted at 15.** Under either reading of §1 that is inverted, and I can find no justification in the document. Either admit `ONLY IF` or state what disqualifies it.
-
----
-
-## 3. Three things v0.27 cannot express, which deserve PROVISIONAL slots rather than silence
-
-A gap that is named is a gap the next author can work around. A gap that is silent gets filled with prose.
-
-**Disjunction.** `OR` is forbidden (I9), and closed value sets do not cover the common case: Beacon's own route gate is *`invite_actor` or `grant_permission`*. Two `MUST` rules are conjunction, not disjunction, so this is currently inexpressible. The right resolution is probably **push the disjunction into a declared vocabulary term** — consistent with *one canonical term for one meaning*, and it keeps I9 intact. That needs stating, or authors hit it immediately and reach for prose.
-
-**The degraded guarantee.** This corpus's most distinctive pattern: *"with `journal_fence = none` this invariant degrades from closed to escalated."* Recoverable Invocation carries three, Attributed Permissions Admin one. v0.27 can express the weak rule and the strong rule, but nothing expresses that one **is the degradation of** the other — so reverse diff sees two unrelated rules, and a reader of the strong form never learns it is conditional. Suggested slot: `PROVISIONAL: R25 DEGRADES TO R25b WHEN fence = none`.
-
-**`≥`.** `EXCEEDS` is strict-greater only. Instance start has five conditions, four strict and one not: `run_bound ≥ max(completion_bound, closure_latency + journal_write_bound) + closure_latency` is unwritable. Suggested slot: `PROVISIONAL: AT LEAST`.
-
-*(Arithmetic itself is already handled well — §2's example puts `max(...)` inside a declared term. Worth promoting to a stated rule: **arithmetic lives in term declarations, never in rules.**)*
+- **§4, forbidden arrows.** `WHY ↛ Normative` keeps rationale from carrying obligations. It is not the fix for prose drifting from a model: both drifted sentences in gate 12 were normative (Configuration's `run_bound` floor, R1; check 2's second key, F1). The round-end prose-versus-model diff is (`pressure-testing.md` §*Where a claim lives in both a controlled form and a prose form, the prose is the half that rots*).
+- **I15–I17, anti-inference.** I16's instance is gate 12 F5: an outage answered `not-known`, absence standing in for coverage. I17's is gate 12 F4: two open intents on one act, each entry read alone as clean.
+- **§8, BEFORE/AFTER asymmetry.** `MUST NOT … BEFORE` is safety, checkable at any instant. Positive `MUST … BEFORE` smuggles a liveness claim into an ordering claim. Liveness goes through `WITHIN`. The draft's Invariant 4 splits the same way.
+- **§13, closed vocabulary with declared record verbs.** Instance: Attributed Permissions Admin revoked grants while its evaluation answered per pair, so a revoked grant read as a revoked permission. Repaired by [Revoke Permission] (its Decisions, 2026-09-10).
 
 ---
 
-## 4. I4 should be dropped from the parser-enforced list
+## Decisions
 
-`I4. Normative prose uses active voice.` It is the only item on that list a parser cannot actually enforce, and it is the exact *infer intent from prose* shape the linter has rejected five times out of five. It is also redundant: given I2 (explicit subject) and §5's `subject modal verb object`, passive voice is structurally impossible.
+**A. `ONLY IF` and `ONLY UNDER`.** Judge by fix 1's rule, not by count. `ONLY IF` carries gate 12 F1's repair — "The second key holds ONLY IF the act kind declares a `service_identity`." (`recoverable-invocation.md`) — so it is contested. `ONLY UNDER` has no controlled use and no finding.
+Proposed: admit `ONLY IF`; `ONLY UNDER` goes PROVISIONAL.
 
-Listing one unenforceable rule beside twenty-two enforceable ones weakens the claim the others make. Move it to §20 Strict Caveman as style guidance, where it already effectively lives.
+**B. Disjunction.** Writable without `OR`. `(a ∨ b) → s` is two rules. Only `s → (a ∨ b)` needs a term, and a term is a declaration, not a slot. All four uppercase `OR`s in the corpus sit in query filters; none is in an obligation.
+Proposed, with no PROVISIONAL slot:
 
----
+```
+EVERY disjunctive condition MUST name a declared term.
+```
 
-## 5. What is strong, and why
+Beacon's `/people` gate: Terms › `people_manager`: an actor holding `invite_actor` or `grant_permission`. Then `/people MAY serve an actor ONLY IF the actor satisfies people_manager.`
 
-**§4's forbidden arrows are the direct fix for a defect measured today.** Two of this round's findings were prose that had drifted away from a machine-checkable form which was correct all along — a configuration floor the schedule enumerator had been filtering on correctly for two rounds, and a report-only branch that has been in the formal model's invariant since the gate that wrote it. Neither rotted through carelessness; both rotted because nothing was reading them. `WHY ↛ Normative` removes the second source of truth entirely, which is the only structural fix for that class.
+**C. `≥`.** Writable. Put the `max(…)` in a term, `run_floor`, then `run_floor MUST NOT EXCEED run_bound.` The draft already spells it a second way, `NOT STRICTLY` (instance-start condition 4). `AT LEAST` would be a third.
+Proposed: `MUST NOT EXCEED`; the draft's five `STRICTLY` lines move to `EXCEEDS` forms. If §5 rejects `MUST NOT EXCEED`, fix the grammar, not the vocabulary.
 
-**I15–I17 are the anti-inference invariants and they name this corpus's actual defect shapes.** Gate 12's F1 was an absence being read as coverage — I16 forbids it outright. The duplicate-key finding was multiple outcomes read as exclusive — I17 forbids it unless `EXACTLY ONE` says so.
+**D. Degraded guarantee.** The one real gap. Instance: gate 12 F1. Check 2's second key had no `service_identity = none` branch; check 3 had one. The strong rule never said it was conditional. The repair put the condition on the strong rule (`ONLY IF`, decision A). The pairing is still prose, so reverse diff sees two unrelated rules.
+Proposed:
 
-**§8's BEFORE/AFTER asymmetry is the subtlest thing in the document and I believe it is right.** `MUST NOT … BEFORE` is pure safety — checkable at any instant, no claim that anything happens. Positive `MUST … BEFORE` smuggles a liveness claim (that the thing happens at all) into an ordering claim, and says nothing about the case where the later event never occurs. Routing all liveness through `WITHIN bound` gives it exactly one bounded form. That is the same split Invariant 4 had to be rewritten to make explicit, arrived at independently.
+```
+PROVISIONAL: <strong rule> DEGRADES TO <weak rule>.
+```
 
-**§13's closed vocabulary with declared record verbs** forecloses the failure where a noun acquires behaviour by association — the shape behind *the store is a bag, the answer is a set, and nobody said which the screen shows*.
+The condition stays on the strong rule. Writing it into the slot as well makes two owners.
+
+**E. Arithmetic.** §2's example puts `max(…)` in a declared term. Promoted to a rule (arithmetic lives in term declarations, never in rules), it fails all five instance-start conditions in the draft. Either the draft owes five terms, or a numbered condition may carry one inequality.
+
+**F. I4, active voice.** Passive passes I2 and §5: `The actor MUST be granted invite_actor.` If §13 closes the verb slot to declared record verbs, §13 already rejects that: delete I4. If it does not, I4 is the only guard: keep it, enforced on the token after the modal. Needs §13's text. Moving I4 to §20 is wrong either way; it makes a second owner.
+
+**G. One site.** `pressure-testing.md` says to "introduce the form at exactly one site". The draft carries `IS AUTHORITATIVE FOR` in two sections. Is a site a page or a section?
