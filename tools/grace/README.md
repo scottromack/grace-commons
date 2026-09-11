@@ -23,6 +23,29 @@ Standard library only. One finding per line, `path:line: [CODE] message`. Non-ga
 | **C-copula / C-verb** | A copula after the modal; a verb after the modal the spec's record-verb declaration does not carry (Closed vocabulary 8). |
 | **F-bracket** | A bracketed range in a rule — read as a term marker by the corpus linter, and arithmetic besides. |
 | **X-ref** | A reference to a label, by one of the spec's own label names, that no rule carries (Hard invariant 12). A heading-numbered group — `Invariant 2`, `Check 5` — counts as carried when a rule under it exists; another spec's `Invariant N` is left to the corpus linter. |
+| **D-decl-modal / D-decl-selfref / D-decl-unresolved** *(advisory)* | What a declaration carries. A definition is not a rule, so a modal in one is an obligation in a definition's clothes (Closed vocabulary 12, Closed vocabulary 14); a definition that computes over itself, or over a datum the spec declares nowhere (Closed vocabulary 4). A declaration may carry the arithmetic a rule may not (Closed vocabulary 9, Closed vocabulary 11), which is where complexity goes when a rule cannot hold it — and, until these landed, the one place nothing read. |
+| **K-check-bare** *(advisory)* | A `Check` or `External check` rule naming no rule. The auditor is the last reader nobody audits: a check whose failure nobody can state passes forever, and Lease's Check 6.1 was vacuous against the very rule it rested on for a day (CR-8). Landed 2026-09-11 against a baseline of 83, most of them checks citing an invariant in prose rather than by label. |
 | **W-or-word / W-watch-word / W-term-unused** *(advisory)* | A lower-case `or` inside an obligation; `after`, `before`, `until`, `while`, `unless` inside a rule (§18's watch list); a `Terms ›` declaration nothing uses. |
 
 A code span inside a rule is read as quoted text, never as the rule's own tokens — the grammar's meta-rules mention the tokens they govern (`GRACE-lang.md` §18, provisional).
+
+## What re-opens when a rule changes
+
+`check.py` resolves a citation forward — a reference names a rule that exists.
+[`cites.py`](cites.py) walks it backward, which is the reading nobody was doing:
+
+```
+python3 tools/grace/cites.py 'Fence 5'          # what rests on this rule
+python3 tools/grace/cites.py 'fence'            # what rests on this term
+python3 tools/grace/cites.py --changed HEAD~1   # what a commit's edits re-open
+```
+
+A rule rests on a label it cites and on every term it uses; a term rests on the
+terms its own definition computes over, walked to the end of the chain. Rules
+are the last hop and never a step in the walk — rule to rule to rule re-opens
+the whole document, which is the same as re-opening nothing.
+
+The tool names a reading and decides nothing (`GRACE-lang.md` Principle 8). It
+exists because of a specific failure: Lease's `Check 6.1` measured a margin
+Fence 5 set, Fence 5 was repaired, and nothing put the check back in front of a
+reader — the citation graph was there, and only ever read forward (CR-8).

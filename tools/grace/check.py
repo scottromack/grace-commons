@@ -42,7 +42,15 @@ ARITH = re.compile(r"[+×−]|\s-\s")
 MARKER = re.compile(r"\[([^\]\[]+)\]")
 CODE_SPAN = re.compile(r"`[^`]*`")
 SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
-ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after"}
+ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
+            "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
+            "K-check-bare"}
+# A declaration may carry arithmetic and comparison where a rule may not
+# (Closed vocabulary 9, Closed vocabulary 11) — which is where complexity
+# goes when a rule cannot hold it, and the one place nothing read it.
+DECL_ARITH = re.compile(r"[−+×÷]|\bmax\(|\bmin\(")
+DECL_TOKEN = re.compile(r"[a-z_][a-z0-9_]*")
+DECL_SKIP = {"max", "min", "of", "the", "a", "an", "and", "or", "per", "less", "true", "false"}
 RESERVED_VERBS = {"EXCEED"}
 
 
@@ -347,13 +355,79 @@ def scan(path: Path) -> list[Finding]:
                 seen.add(ref)
                 add(k, "X-ref", f"reference to {ref}, which no rule in this spec carries (Hard invariant 12)")
 
+    # what a declaration carries: an obligation, or a name that resolves nowhere
+    decls = declared_terms(text)
+    # every name the spec declares anywhere: a Terms › name, a name inside a
+    # vocabulary declaration (the records, bounds, cadences and value-set
+    # lines), a signature block's action and argument names.
+    CATEGORIES = {"actors", "records", "record verbs", "value sets", "bounds",
+                  "cadences", "terms", "qualifiers", "composing patterns", "cited"}
+    universe = set(decls)
+    for name in decls:
+        universe.update(DECL_TOKEN.findall(name))
+    # a name a constituent owns is cited, never redeclared (Closed vocabulary
+    # 15-17): a token the spec uses as a code span elsewhere is a name, and
+    # this checker resolves no cross-spec registry
+    for line in lines:
+        if TERM_DECL.match(line):
+            continue
+        for span in re.findall(r"`([^`]+)`", line):
+            if DECL_TOKEN.fullmatch(span):
+                universe.add(span)
+    for line in lines:
+        m = TERM_DECL.match(line)
+        if m and m.group(1) in CATEGORIES:
+            universe.update(x for span in re.findall(r"`([^`]+)`", m.group(2))
+                            for x in DECL_TOKEN.findall(span))
+        sm = re.match(r"^([a-z_][a-z0-9_]*)\(([^)]*)\)\s*(?:→|->)(.*)$", line.strip())
+        if sm:
+            universe.add(sm.group(1))
+            universe.update(DECL_TOKEN.findall(sm.group(2)))
+            universe.update(DECL_TOKEN.findall(sm.group(3)))
+    for name, k in decls.items():
+        body = TERM_DECL.match(lines[k - 1]).group(2)
+        bare = CODE_SPAN.sub(" ", body)
+        if MODAL.search(bare):
+            add(k, "D-decl-modal",
+                f"Terms › `{name}` carries a modal — a definition is not a rule "
+                f"(Closed vocabulary 12, Closed vocabulary 14)")
+        for span in re.findall(r"`([^`]+)`", body):
+            if not DECL_ARITH.search(span):
+                continue
+            if re.search(r"(?<![\w-])" + re.escape(name) + r"(?![\w-])", span):
+                add(k, "D-decl-selfref", f"Terms › `{name}` computes over `{name}`")
+                continue
+            for ident in DECL_TOKEN.findall(span):
+                # a datum this corpus would declare looks like a datum: prose
+                # inside a code span, and a bare English word, are neither
+                if ident in DECL_SKIP or "_" not in ident:
+                    continue
+                if ident not in universe:
+                    add(k, "D-decl-unresolved",
+                        f"Terms › `{name}` computes over `{ident}`, which this spec declares nowhere "
+                        f"(Closed vocabulary 4)")
+
+    # a check that names no rule (advisory): the auditor is the last reader
+    # nobody audits, and a check whose failure nobody can state passes forever
+    if names:
+        for label, line_no in [(r.label, r.line) for r in rules]:
+            parts = LABEL_PARTS.match(label)
+            if not parts or parts.group("name") not in ("Check", "External check"):
+                continue
+            text_of_rule = next((r.text for r in rules if r.label == label), "")
+            if not name_re.search(text_of_rule):
+                add(line_no, "K-check-bare",
+                    f"{label} names no rule — a check whose failure nobody can state (CR-8)")
+
     # declared terms nothing uses (advisory)
     for name, k in declared_terms(text).items():
         if name in {"actors", "records", "record verbs", "cited", "value sets", "bounds", "cadences", "qualifiers", "terms", "composing patterns"}:
             continue  # the vocabulary's own categories (Closed vocabulary 1, Closed vocabulary 2)
         pat = re.escape(name)
-        uses = len(re.findall(pat, text))
-        if uses <= 1:
+        # a declaration that mentions its own name is not a use of it
+        elsewhere = "\n".join(x for j, x in enumerate(lines, start=1) if j != k)
+        uses = len(re.findall(pat, elsewhere))
+        if uses < 1:
             add(k, "W-term-unused", f"Terms › `{name}` is declared and used nowhere")
     return findings
 

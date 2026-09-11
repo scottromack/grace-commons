@@ -41,7 +41,7 @@ State 3: The host MUST NOT store a transition for a passed instant.
 
 Terms › `lease state`: `free` | `held` — held by one holder until one instant.
 
-Terms › `question`: a [Take], a [Try Take], a [Remaining] or a [Release] call, and a waiter's standing wait — the occasions State 2 derives at.
+Terms › `question`: a [Take], a [Try Take], a [Remaining] or a [Release] call, and a waiter's standing waiting term — the occasions State 2 derives at.
 
 WHY:
 There is no third state, and the passing of the instant is compared against a reading at the moment a question is asked. That is the atom's one storage claim, and it is what makes the concept implementable over a host that offers nothing but compare-and-set with an expiry.
@@ -59,8 +59,7 @@ release(key, holder) → released | not-held
 Operation 1: [Take] MUST wait for the key to become free.
 Operation 2: [Take] MUST succeed at the instant the key becomes free.
 Operation 3: [Take] MUST NOT wait longer than the arrival term.
-Operation 4: IF the arrival term elapses with the key held THEN [Take] MUST answer unavailable.
-NOTE: watch event versus state — an elapse is an event standing in a condition, and no condition operator carries it.
+Operation 4: IF a waiter's waiting term EXCEEDS the arrival term THEN [Take] MUST answer unavailable.
 Operation 5: The host MUST NOT extend a waiter's bound.
 Operation 6: [Try Take] MUST NOT wait.
 Operation 7: [Try Take] MUST answer EXACTLY ONE OF taken(expires_at), held.
@@ -74,6 +73,8 @@ Operation 14: An implementer MUST NOT treat not-held as a failure.
 ```
 
 Terms › `remaining term`: the part of a holder's term not yet elapsed, as the host reads the part.
+
+Terms › `waiting term`: the term a waiter has stood at [Take], as the host reads the term.
 
 Terms › `arrival term`: the remaining term of the holder that held the key at the moment the waiter arrived.
 
@@ -115,8 +116,7 @@ WHY:
 
 - **Invariant 1 — One holder.**
   ```text
-  Invariant 1.1: At every instant a key MUST stand in EXACTLY ONE OF free, held by one holder.
-NOTE: watch temporal quantification — the rule holds at every instant rather than at a transition, and no quantifier carries that.
+  Invariant 1.1: A key MUST stand in EXACTLY ONE OF free, held by one holder.
   Invariant 1.2: Two takes on one key with no intervening release and no intervening expiry MUST NOT succeed together.
   ```
 - **Invariant 2 — The terminus is the instant.**
@@ -162,23 +162,23 @@ This atom writes no records, so its acceptance checks are conformance checks aga
 ### Conformance checks
 
 ```text
-Check 1.1: An auditor MUST confirm that two concurrent takes on one key, with no release and no expiry between the takes, yield EXACTLY ONE expires_at.
-Check 1.2: An auditor MUST confirm that the other take answers EXACTLY ONE OF unavailable, held.
-Check 2.1: An auditor MUST confirm that a key held by a party that never releases becomes takeable at the instant.
-Check 2.2: An auditor MUST confirm that such a key does not become takeable earlier.
-Check 3.1: An auditor MUST confirm that a host leaves the key of a killed holder held through the instant.
-Check 3.2: An auditor MUST fail a host that frees the key of a killed holder earlier, whatever the host knows about the holder.
-Check 4.1: An auditor MUST confirm that [Take] answers a waiter WITHIN the waiter's arrival term.
-Check 4.2: An auditor MUST confirm that [Take] answers a second waiter WITHIN the second waiter's own arrival term.
-Check 5.1: An auditor MUST confirm that [Remaining] answers none and [Release] answers not-held to every party that is not the current holder, a former holder whose term has passed included.
-Check 5.2: An auditor MUST confirm that neither answer writes anything.
-Check 6.1: An auditor MUST confirm that the allowance does not exceed the fence margin of any handed instant.
-Check 6.2: An auditor MUST confirm that an instant derived from another is minted with the allowance rather than inheriting the allowance.
+Check 1.1: An auditor MUST confirm that two concurrent takes on one key, with no release and no expiry between the takes, yield EXACTLY ONE expires_at (Invariant 1.1, Invariant 1.2).
+Check 1.2: An auditor MUST confirm that the other take answers EXACTLY ONE OF unavailable, held (Operation 1, Operation 7).
+Check 2.1: An auditor MUST confirm that a key held by a party that never releases becomes takeable at the instant (Invariant 2.1).
+Check 2.2: An auditor MUST confirm that such a key does not become takeable earlier (Invariant 2.2).
+Check 3.1: An auditor MUST confirm that a host leaves the key of a killed holder held through the instant (Invariant 3.1).
+Check 3.2: An auditor MUST fail a host that frees the key of a killed holder earlier, whatever the host knows about the holder (Invariant 3.2).
+Check 4.1: An auditor MUST confirm that [Take] answers a waiter WITHIN the waiter's arrival term (Invariant 4.1, Operation 3).
+Check 4.2: An auditor MUST confirm that [Take] answers a second waiter WITHIN the second waiter's own arrival term (Invariant 4.2, Operation 5).
+Check 5.1: An auditor MUST confirm that [Remaining] answers none and [Release] answers not-held to every party that is not the current holder, a former holder whose term has passed included (Invariant 5.1, Operation 9, Operation 12).
+Check 5.2: An auditor MUST confirm that neither answer writes anything (Invariant 5.1).
+Check 6.1: An auditor MUST confirm that the allowance does not exceed the fence margin of any handed instant (Fence 5, Invariant 6.1).
+Check 6.2: An auditor MUST confirm that an instant derived from another is minted with the allowance rather than inheriting the allowance (Fence 8, Fence 9, Invariant 6.2).
 ```
 
 Terms › `fence margin`: `expires_at − fence`.
 
-NOTE: Check 1 checks Invariant 1; Check 2 Invariant 2; Check 3 Invariant 3; Check 4 Invariant 4; Check 5 Invariant 5; Check 6 Invariant 6.
+NOTE: EVERY check names the rule the check tests. A check that names none is a check whose failure nobody can state (CR-8).
 
 ## Non-goals
 
@@ -238,7 +238,7 @@ Terms › `cadences`: empty.
 
 Terms › `qualifiers`: empty.
 
-Terms › `terms`: `key`, `holder`, `lease state`, `question`, `remaining term`, `arrival term`, `asking party`, `the holder`, `fence`, `fence ceiling`, `effect instant`, `allowance`, `fenced party`, `fence margin`, and `expires_at` ([Expires At]).
+Terms › `terms`: `key`, `holder`, `lease state`, `question`, `waiting term`, `remaining term`, `arrival term`, `asking party`, `the holder`, `fence`, `fence ceiling`, `effect instant`, `allowance`, `fenced party`, `fence margin`, and `expires_at` ([Expires At]).
 
 #### Lease
 
