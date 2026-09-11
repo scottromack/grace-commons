@@ -41,6 +41,8 @@ State 3: The host MUST NOT store a transition for a passed instant.
 
 Terms › `lease state`: `free` | `held` — held by one holder until one instant.
 
+Terms › `question`: a [Take], a [Try Take], a [Remaining] or a [Release] call, and a waiter's standing wait — the occasions State 2 derives at.
+
 WHY:
 There is no third state, and the passing of the instant is compared against a reading at the moment a question is asked. That is the atom's one storage claim, and it is what makes the concept implementable over a host that offers nothing but compare-and-set with an expiry.
 
@@ -58,6 +60,7 @@ Operation 1: [Take] MUST wait for the key to become free.
 Operation 2: [Take] MUST succeed at the instant the key becomes free.
 Operation 3: [Take] MUST NOT wait longer than the arrival term.
 Operation 4: IF the arrival term elapses with the key held THEN [Take] MUST answer unavailable.
+NOTE: watch event versus state — an elapse is an event standing in a condition, and no condition operator carries it.
 Operation 5: The host MUST NOT extend a waiter's bound.
 Operation 6: [Try Take] MUST NOT wait.
 Operation 7: [Try Take] MUST answer EXACTLY ONE OF taken(expires_at), held.
@@ -69,6 +72,8 @@ Operation 12: IF the asking party != the holder THEN [Release] MUST answer not-h
 Operation 13: [Release] MUST NOT reach another holder's grant.
 Operation 14: An implementer MUST NOT treat not-held as a failure.
 ```
+
+Terms › `remaining term`: the part of a holder's term not yet elapsed, as the host reads the part.
 
 Terms › `arrival term`: the remaining term of the holder that held the key at the moment the waiter arrived.
 
@@ -95,23 +100,26 @@ Fence 9: A holder MUST NOT derive a second fence bare from a minted fence.
 
 Terms › `fence`: `expires_at` less the allowance, handed to a third party as a deadline (a [Fence]) — refuse this holder's work if it would take effect after this instant.
 
+Terms › `effect instant`: the instant a work item takes effect, read on the fenced party's own clock at the moment of judgement; never a property the work item carries.
+
 Terms › `allowance`: the declared cross-seam allowance between the granting host's clock and the judging party's clock.
 
 Terms › `fenced party`: the third party a fence is handed to.
 
 WHY:
-`expires_at` is the point of the atom ([Expires At]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9).
+`expires_at` is the point of the atom ([Expires At]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
 
 ### Invariants
 
 - **Invariant 1 — One holder.**
   ```text
   Invariant 1.1: At every instant a key MUST stand in EXACTLY ONE OF free, held by one holder.
+NOTE: watch temporal quantification — the rule holds at every instant rather than at a transition, and no quantifier carries that.
   Invariant 1.2: Two takes on one key with no intervening release and no intervening expiry MUST NOT succeed together.
   ```
 - **Invariant 2 — The terminus is the instant.**
   ```text
-  Invariant 2.1: A grant MUST end at EXACTLY ONE OF the holder's release, the instant passing.
+  Invariant 2.1: A grant MUST end at EXACTLY ONE OF release, instant.
   Invariant 2.2: The host MUST NOT end a grant on any other event.
   ```
   WHY: a holder's death, a network partition, a host restart, a supervisor's judgement — none ends a grant.
@@ -193,7 +201,7 @@ The atom does not detect death and no implementation may pretend to (Invariant 3
 
 ```text
 Composition note 1: A composing pattern MUST name this atom as an instance capability requirement.
-Composition note 2: The deployment MUST supply a host offering the four operations with the semantics above.
+Composition note 2: The deployment MUST supply a host offering the signature block's operations under Operation 1–14.
 Composition note 3: The deployment MUST share the host across every node of the instance.
 Composition note 4: A composing pattern MUST own which key protects which work.
 Composition note 5: A composing pattern MUST own how long the grant lasts.
@@ -220,7 +228,7 @@ Terms › `records`: empty — the atom writes nothing.
 
 Terms › `record verbs`: identify, compare, normalize, hold, derive, store, wait, succeed, answer, extend, compute, end, reach, treat, return, pass, refuse, judge, mint, apply, stand, report, equal, take, offer, admit, carry, make, roll, isolate, write, record, choose, state, check, name, supply, share, own, invent, confirm, fail.
 
-Terms › `value sets`: `lease state` = free | held. take answers = expires_at | unavailable. try_take answers = taken(expires_at) | held. remaining answers = duration | none. release answers = released | not-held.
+Terms › `value sets`: `lease state` = free | held. grant terminus = release | instant. take answers = expires_at | unavailable. try_take answers = taken(expires_at) | held. remaining answers = duration | none. release answers = released | not-held.
 
 Terms › `bounds`: `duration` (the term a take asks for); the allowance.
 
@@ -228,7 +236,7 @@ Terms › `cadences`: empty.
 
 Terms › `qualifiers`: empty.
 
-Terms › `terms`: `key`, `holder`, `lease state`, `arrival term`, `asking party`, `the holder`, `fence`, `allowance`, `fenced party`, `fence margin`, and `expires_at` ([Expires At]).
+Terms › `terms`: `key`, `holder`, `lease state`, `question`, `remaining term`, `arrival term`, `asking party`, `the holder`, `fence`, `effect instant`, `allowance`, `fenced party`, `fence margin`, and `expires_at` ([Expires At]).
 
 #### Lease
 
