@@ -165,7 +165,7 @@ Three scenarios the composition must survive in regulated contexts, beyond happy
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this composition does not cover:
 
@@ -328,7 +328,7 @@ These checks can be answered by reading the composition's stored records directl
 - **Trace every commitment to its originating idempotency token** (within the window), and verify no two distinct commitments share a token (Invariant 3).
 - **Verify the cache-the-failure rule and the one-writer rule.** Every complete `token_results` entry contains the original outcome, success or rejection, written by one invocation — an entry carrying `recovery = true` names the re-entry arm as its writer, and no entry carries two results. For [Place Hold], no two commitments share a token: the records-observable form of *not invoked a second time*, since the constituent records no rejected or absent invocations, and non-invocation of a resolving action leaves no record at all — that half is routed to the externally-clearable tier below.
 
-### Externally-clearable checks
+### External checks
 
 These questions arise around the composition but require deployment configuration or external evidence to answer:
 

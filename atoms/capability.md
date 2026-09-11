@@ -43,7 +43,7 @@ The fields set on [Allocate] — [Allocator Ref], [Scope], [Max Redemptions], [A
 
 Tokens are not reused after a capability reaches a terminal state (a stored terminal, or — for a lapsed [Allocated] record that reads [Expired] — once it has lapsed).
 
-### Inputs and Outputs
+### Inputs
 
 **Actions.** Action signatures take only their domain arguments — the clock reading and the token's random material are **not** parameters. They are **pipeline-injected at the I/O seam**: the execution contract reads the clock once and supplies it (the pipeline's `clock_t`, the injected [Now]) to the action, and [Allocate]'s fresh token (the `id_t`) is drawn from the deployment's entropy source at the same seam — neither is read inside a transition, neither is trusted from the caller. The injected [Now] is consumed for two clearly separated purposes: stamping immutable timestamps on a write ([Allocated At], [Redeemed At], [Revoked At] — execution time), and evaluating the pure expiry derivation in a guard or in [Read]'s projection (no write). See the Logic-confinement note in Decision points.
 
@@ -71,7 +71,7 @@ There is **no `expire` action**. A lapsed capability needs no write to read [Exp
 
 **String input policy (applies to every string input above).** Values are treated byte-exact: no trimming, no Unicode normalization, no case folding is applied before storage or comparison — [Allocator Ref] equality (including the audit queries in Feedback and the Regulated scenarios) is byte-for-byte, so callers own canonicalization; two refs differing only in normalization form are two distinct allocators to this atom. A whitespace-only string counts as empty and is rejected wherever non-empty is required. The deployment sets a maximum length per string input (including [Scope]); a value exceeding it is rejected as [Invalid Request].
 
-**Outputs:**
+### Outputs
 
 - The current set of capability records. For each: [Capability Token], [Allocator Ref], [Scope], [Max Redemptions], [Remaining Redemptions], [Allocated At], [Expires At], [Status] (the **stored** status: [Allocated], [Redeemed], or [Revoked]), [Redeemed At] (set when status transitions to [Redeemed]; null otherwise), [Revoked At] (nullable), [Revoked By Ref] (nullable), [Revocation Reason] (nullable), and the derived [Effective Status] (the stored [Status], except [Expired] when [Status] = [Allocated] ∧ [Now] ≥ [Expires At]).
 - [Allocate] returns a new [Capability Token] on success, or a rejection.
@@ -131,7 +131,7 @@ Each capability record carries:
 
 ### Decision points
 
-**Logic confinement (clock and id).** The clock and the token are **pipeline-injected at the I/O seam, not action parameters** — neither appears in a signature, and neither is produced inside a transition. The execution contract reads the clock once and supplies it (the pipeline's `clock_t`, referred to as [Now] here) to the action; [Allocate]'s [Capability Token] is the injected `id_t`, its cryptographically random material drawn from the deployment's entropy source at the same seam (see Behavior). A guard's expiry test is a **pure function of the stored record and the injected [Now]** — the record is lapsed exactly when [Status] = [Allocated] ∧ [Now] ≥ [Expires At] — and it **writes nothing**. The only clock *writes* are the immutable timestamp stamps inside a committed transition ([Allocated At], [Redeemed At], [Revoked At]), each set from the same injected [Now]. Expiry itself never writes; it is surfaced only by [Read]'s [Effective Status] projection and by [Redeem]'s derived `invalid(expired)`. Rejection priority for the [Redeem] outcomes: `not-known` → `exhausted` → `revoked` → `expired`. For [Revoke]: [Not Known] → [Already Terminal] (a stored terminal *or* a lapsed window) → [Invalid Request] → [Storage Failure].
+**Logic confinement.** The clock and the token are **pipeline-injected at the I/O seam, not action parameters** — neither appears in a signature, and neither is produced inside a transition. The execution contract reads the clock once and supplies it (the pipeline's `clock_t`, referred to as [Now] here) to the action; [Allocate]'s [Capability Token] is the injected `id_t`, its cryptographically random material drawn from the deployment's entropy source at the same seam (see Behavior). A guard's expiry test is a **pure function of the stored record and the injected [Now]** — the record is lapsed exactly when [Status] = [Allocated] ∧ [Now] ≥ [Expires At] — and it **writes nothing**. The only clock *writes* are the immutable timestamp stamps inside a committed transition ([Allocated At], [Redeemed At], [Revoked At]), each set from the same injected [Now]. Expiry itself never writes; it is surfaced only by [Read]'s [Effective Status] projection and by [Redeem]'s derived `invalid(expired)`. Rejection priority for the [Redeem] outcomes: `not-known` → `exhausted` → `revoked` → `expired`. For [Revoke]: [Not Known] → [Already Terminal] (a stored terminal *or* a lapsed window) → [Invalid Request] → [Storage Failure].
 
 **At [Allocate]:**
 - [Allocator Ref] and [Scope] must be non-null and non-empty; otherwise [Invalid Request].
@@ -278,7 +278,7 @@ Three scenarios the atom must survive in regulated contexts:
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this atom does not cover:
 

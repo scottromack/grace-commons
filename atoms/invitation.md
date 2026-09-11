@@ -45,7 +45,7 @@ The fields set on [Initiate] — [Inviter Ref], [Invitee Ref], [Context], [Initi
 
 Tokens are not reused after an invitation reaches a terminal state.
 
-### Inputs and Outputs
+### Inputs
 
 **Actions:** The current clock reading and the token are **pipeline-injected at the I/O seam** (the execution contract's `clock_t` and `id_t`, supplied at Step 3 — not read inside the transition, not trusted from the caller, and **not** action parameters). The injected clock is consumed for two clearly separated purposes: stamping immutable timestamps on a write (execution time), and evaluating the pure expiry derivation in a guard (no write). It therefore appears in no signature below. See the Logic-confinement note in Decision points.
 
@@ -72,7 +72,7 @@ There is **no `expire` action**. A lapsed invitation needs no write to become [E
 - [Reason] — caller-supplied reason for revocation. Non-null and non-empty required.
 - [Now] *(not a parameter — pipeline-injected)* — the clock reading (`clock_t`), supplied by the pipeline at the I/O seam, not passed by the caller and not present in any action signature. It is **not** caller-trusted and is **not** read inside any transition. It is used only to stamp immutable write timestamps (execution time) and to evaluate the pure expiry derivation in a guard and in [Read]'s [Effective Status] projection (no write).
 
-**Outputs:**
+### Outputs
 
 - The current set of invitation records. For each: [Invitation Token], [Inviter Ref], [Invitee Ref] (nullable), [Context], [Initiated At], [Expires At], [Status] (the stored status: [Pending], [Accepted], [Declined], or [Revoked]), [Accepting Identity Ref] (nullable), [Accepted At] (nullable), [Declined At] (nullable), [Revoked At] (nullable), [Revoked By Ref] (nullable), [Revocation Reason] (nullable), and the derived [Effective Status] (the stored [Status], except [Expired] when [Status] = [Pending] ∧ [Now] ≥ [Expires At]).
 - [Initiate] returns a new [Invitation Token] on success, or a rejection.
@@ -137,7 +137,7 @@ Each invitation record carries:
 
 ### Decision points
 
-**Logic confinement (clock and id).** The clock and the token are **pipeline-injected at the I/O seam**, never produced inside a transition and never action parameters. The execution contract reads the clock once and supplies [Now] (`clock_t`) at the seam (Step 3); it likewise supplies the fresh [Invitation Token] (the injected `id_t`) to [Initiate]. Neither appears in any signature above — they are consumed *inside* the atom by exactly two confined uses. First, the **pure expiry guard**: a guard's expiry test is a **pure function of the stored record and the injected [Now]** — `is_expired(record, now) ≜ record.status = Pending ∧ now ≥ record.expires_at` — and it **writes nothing**. Second, the **timestamp stamps**: the only clock *writes* are the immutable timestamps inside a committed transition ([Initiated At], [Accepted At], [Declined At], [Revoked At]), each stamped from the same injected [Now]. Expiry itself never writes; it is surfaced only by [Read]'s [Effective Status] projection (which consumes the same injected clock). Rejection priority for the resolving writes: [Not Known] → `already-resolved(state)` → `expired` → [Invalid Request] → [Storage Failure].
+**Logic confinement.** The clock and the token are **pipeline-injected at the I/O seam**, never produced inside a transition and never action parameters. The execution contract reads the clock once and supplies [Now] (`clock_t`) at the seam (Step 3); it likewise supplies the fresh [Invitation Token] (the injected `id_t`) to [Initiate]. Neither appears in any signature above — they are consumed *inside* the atom by exactly two confined uses. First, the **pure expiry guard**: a guard's expiry test is a **pure function of the stored record and the injected [Now]** — `is_expired(record, now) ≜ record.status = Pending ∧ now ≥ record.expires_at` — and it **writes nothing**. Second, the **timestamp stamps**: the only clock *writes* are the immutable timestamps inside a committed transition ([Initiated At], [Accepted At], [Declined At], [Revoked At]), each stamped from the same injected [Now]. Expiry itself never writes; it is surfaced only by [Read]'s [Effective Status] projection (which consumes the same injected clock). Rejection priority for the resolving writes: [Not Known] → `already-resolved(state)` → `expired` → [Invalid Request] → [Storage Failure].
 
 **At `initiate(inviter_ref, invitee_ref, context, ttl)`:**
 - [Inviter Ref] and [Context] must be non-null and non-empty; otherwise [Invalid Request].
@@ -288,7 +288,7 @@ Three scenarios the atom must survive in regulated contexts:
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this atom does not cover:
 

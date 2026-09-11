@@ -293,7 +293,7 @@ Three scenarios the composition must survive in regulated contexts:
 
 A derived implementation of Attributed Permissions Admin is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state plus the two constituent stores, can do all of the following without recourse to source code, runbooks, or developer narration.
 
-### Audit-Trail-traversal-clearable checks
+### Record checks
 
 Checks the composition's records alone answer:
 
@@ -309,7 +309,7 @@ Checks the composition's records alone answer:
 
 6. **Verify attestation exclusivity (Invariant 7).** Enumerate `grant_attribution` and `revocation_attribution`. Confirm no `attestation_id` appears more than once in `grant_attribution` (injectivity of issuance map). Confirm no `attestation_id` appears more than once in `revocation_attribution` (injectivity of revocation map). Confirm the two sets of `attestation_id` values are disjoint — no attestation appears in both maps. Any violation is a structural breach of Invariant 7 — Attestation Exclusivity — surfacing either a nonce-uniqueness failure (two grant proposals produced the same `proposal_ref`), a fixed-format collision (a revocation proposal somehow matched a grant proposal), or adversarial reuse of an attestation across roles. Composition-level Invariant 7.
 
-### Externally-clearable checks
+### External checks
 
 Questions that arise around the composition but require external evidence to answer:
 
@@ -329,7 +329,7 @@ This is the generator's contract: any code generated from this composition must 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this composition does not cover:
 

@@ -475,7 +475,7 @@ Where seals carry `anchored_at` from a TSA (Time-Stamp Authority — a trusted t
 
 A derived implementation of Chain of Custody is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state (`entry_to_event`) plus the Provenance chain store and the Audit Trail substrate stores, can do all of the following without recourse to source code, runbooks, or developer narration.
 
-### Audit-Trail-traversal-clearable checks
+### Record checks
 
 These checks are answerable by reading the composition's records (including the Audit Trail substrate):
 
@@ -497,7 +497,7 @@ These checks are answerable by reading the composition's records (including the 
 
 7. **Constituent Generation acceptance bars.** Verify each constituent's own Generation acceptance bar over its respective store: Provenance's **seven** checks (entry attribution, single-origin, custody continuity, sequence-number order, archived-terminal, no mutation, and event-typing-with-id-uniqueness — the seventh added in the constituent's Final Critique 6 closure), and Audit Trail's **eight** checks, per that composition's own Generation acceptance section. The composition's invariants depend on the correctness of the constituents' invariants.
 
-### Externally-clearable checks
+### External checks
 
 These audit questions arise around this composition but cannot be answered from the composition's records alone:
 
@@ -507,7 +507,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **DAG-style multi-artifact custody and artifact splitting.** Inherited from Provenance as an explicit non-goal. W3C PROV (Provenance Data Model — W3C's directed-acyclic-graph representation of provenance with `wasDerivedFrom` and `wasGeneratedBy` relationships) `wasDerivedFrom` relationships — one artifact derived from or split into others — are out of scope. This composition is a linear single-artifact chain; custody continuity (Invariant 4) depends on the linearity. A pharmaceutical sample aliquoted into sub-samples requires separate chains, each with its own `originate_custody(genesis_type=received)` call; this composition records each independently.
 

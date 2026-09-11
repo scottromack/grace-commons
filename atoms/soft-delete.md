@@ -196,7 +196,7 @@ These scenarios exercise the atom against the questions regulators, data subject
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **[Soft Delete] is not idempotent.** Calling [Soft Delete] on an already-[Deleted] record returns `rejected(already-deleted)`, not a silent success. For idempotent delete semantics (where retrying a delete after a network timeout should not error), the caller must catch [Already Deleted] and treat it as success. The atom's non-idempotency is intentional — a second [Soft Delete] call is likely a bug or a retry, not a new delete intent; the caller should handle the distinction.
 

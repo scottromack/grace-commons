@@ -99,7 +99,7 @@ The composition takes string-typed inputs at its action boundaries; each is vali
 
 No primitive is case-sensitivity-normalized at the composition layer; deployments wanting normalization wire it at the calling layer before invoking composition actions.
 
-### Logic confinement (clock and id)
+### Logic confinement
 
 The clock is an **injected input at the composition's single I/O seam**, never read inside a guard or a transition and never threaded through a caller signature. Per the Logic Confinement Principle ([`execution-contract.md`](../execution-contract.md)), the host reads the clock once per invocation and injects `now` (`clock_t`) at the seam before the orchestration runs; the actions below are pure functions of the stored records plus that injected `now`. Because the clock enters at the seam rather than as a parameter, the action signatures below carry **no** `now` argument — the same discipline Retention Window pins for `place_under_retention`.
 
@@ -368,7 +368,7 @@ A [Withdraw Consent] call passes steps 1–5, revokes at step 6, and step 7's `r
 
 ---
 
-## Regulated adversarial scenarios
+### Regulated adversarial scenarios
 
 **Regulator audit — "prove every consent-based processing activity was gated on valid consent, and that withdrawals propagated."** A data protection authority examines the Audit Trail and the processing records. For every downstream processing activity *the deployment discloses* (the composition's records enumerate the registered set; whether that set is outwardly complete is the deployment's registration obligation, verified against the deployment's own processing inventory — an externally-clearable question), the examiner confirms a `processing.registered` event bound it to a `consent_id` (Invariant 4); for the consent governing it, the examiner confirms a `consent.granted` event (Invariant 2) and that `AuditTrail.verify_record` returns `verified` for both. For every withdrawn consent, the examiner confirms exactly one `consent.revoked` event whose `affected_scopes` enumerates every `processing.registered` binding for that `consent_id` (Invariant 3) — a withdrawal whose `affected_scopes` omits a registered binding, or a revoked Consent record with no `consent.revoked` event at all, is a conformance failure. The examiner consults no source code or runbooks; the gate is the single processing precondition (Invariant 1) and the propagation event is the single record of downstream impact.
 
@@ -382,7 +382,7 @@ A [Withdraw Consent] call passes steps 1–5, revokes at step 6, and step 7's `r
 
 A derived implementation of this composition is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state plus the Consent, Permissions, Retention Window, and Audit Trail substrate stores, can do all of the following without recourse to source code, runbooks, or developer narration.
 
-### Audit-Trail-traversal-clearable checks
+### Record checks
 
 *Standing qualifier for every `verify_record` clause below:* the substrate answers `failed-verification(purged)` for an event past the audit horizon before it reads anything else, and an event's identity — `event_id`, `sequence_number`, and through its attestation `action_ref` and `actor_ref` — survives the purge while its payload does not. A check that finds the event and receives `failed-verification(purged)` counts it as **lawfully destroyed, consistent with conformance**, reports any payload-dependent clause as unverifiable rather than failed, and runs no composition-side comparison on that event ahead of the substrate's answer (§*Lawful destruction is answered before absence*).
 
@@ -416,7 +416,7 @@ A derived implementation of this composition is *acceptable* — in the regulato
 
 9. **Constituent Generation acceptance bars.** Verify each constituent's own Generation acceptance bar over its store: Consent's seven checks, Permissions' five checks, Retention Window's six checks, Audit Trail's eight checks.
 
-### Externally-clearable checks
+### External checks
 
 These audit questions arise around this composition but cannot be answered from the composition's records alone:
 
@@ -429,7 +429,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **Cross-store consistency under partial failure.** Several of this composition's actions write to two or three stores in sequence; a failure between writes leaves partial state. The most consequential gap is in [Withdraw Consent]: step 6 revokes in Consent, then step 7 records the `consent.revoked` propagation event; if step 7 fails, the consent is Revoked but the withdrawal is **unpropagated** — a Revoked consent with no `consent.revoked` event, violating Invariant 3. Consent's revocation is immutable once committed, so synchronous rollback is not available. **There is no host transaction over steps 6–7 and there cannot be, and an earlier revision of this entry prescribed one.** It said the conforming implementation commits the revoke and the propagation event within one host transaction boundary, and treated the orphan as arising *"where the host cannot provide that atomicity"* — a conditional that reads as a deployment-specific caveat and is in fact the only case. This very entry states why, one sentence earlier: Consent's revocation is immutable once committed. The substrate's append is the same. **Two irreversible writes cannot be enlisted in a transaction, so what was described as the exception was the whole of the behavior**, and the prescription named a mechanism no deployment could supply. What the pair actually has is an **ordering** — revoke, then append — which is what makes this partial the recoverable one and its mirror unreachable (Invariant 3). The step-5 intent record stands before both, since it is the write that verified the revoker and must precede the revocation it authorizes, and it additionally fixes the propagation set's boundary (Generation acceptance check 2). Accordingly, the implementation must (a) recover **`(step)`-aware and pre-checked**: first traverse the log for an existing `consent.revoked` event carrying this `consent_id` — the substrate's `recording-failure(step)` step-4 arm (retention placement over the audit event) leaves the event already appended and attested, where a blind retry would append a second `consent.revoked` against Invariant 3's exactly-one and check 2 (that arm's gap belongs to the substrate's own Invariant-2 reconciliation, and this composition treats the event as landed); only where no event landed is the `record_action` re-attempted — by the invocation for at most `outcome_retry_attempts`, by the scan after that, never both — and (b) immediately surface the orphan (a Revoked consent with no propagation event) to the compliance dashboard as a high-priority finding, with the compensating `consent.revoked` event, once it lands, carrying a `cascade_recovery = true` marker so an auditor can distinguish a clean withdrawal from a recovered one.
 

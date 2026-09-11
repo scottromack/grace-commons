@@ -49,14 +49,19 @@ export function sliceGA(text) {
 const LIST_ITEM = /^\s*(?:(\d+)\.|[-*])\s+(.*)$/;
 // The claim is the first **bold** run in the item (handles nested *italics*).
 const BOLD_LEAD = /\*\*(.+?)\*\*/;
+// A GRACE lang check rule inside a ```text fence: `Check 3.2: …` or
+// `External check 4: …` (GRACE-lang Rule shape 7). One check per number; the
+// number after the dot is a rule of that check, and the first rule is the claim.
+const FENCE = /^\s*```/;
+const CHECK_RULE = /^\s*(External check|Check) (\d+)(?:\.\d+)?[a-z]?:\s*(.*)$/;
 // A kind-signaling header is a bold-only line or an h3 (NOT a list item).
 const HEADER = /^\s*(?:#{3,}\s+(.*)|\*\*(.+?)\*\*\s*)$/;
 
 /** Infer kind from a header's text. Returns 'record-clearable' | 'externally-clearable' | null. */
 function kindFromHeader(h) {
   const s = h.toLowerCase();
-  if (/externally[-\s]clearable/.test(s)) return "externally-clearable";
-  if (/record[-\s](clearable|verifiable)|traversal[-\s]clearable/.test(s)) return "record-clearable";
+  if (/externally[-\s]clearable|^external checks/.test(s)) return "externally-clearable";
+  if (/record[-\s](clearable|verifiable|checks)|traversal[-\s]clearable/.test(s)) return "record-clearable";
   // "state-verifiable" tiers describe checks not yet records-backed; left to
   // per-item language so we don't over-claim.
   return null;
@@ -80,8 +85,25 @@ export function extractGA(text, code = "") {
   const checks = [];
   let seq = 0;
 
+  let inFence = false;
+  const seen = new Set();
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (FENCE.test(line)) { inFence = !inFence; continue; }
+    if (inFence) {
+      const cr = line.match(CHECK_RULE);
+      if (!cr) continue;
+      const label = `${cr[1]} ${cr[2]}`;
+      if (seen.has(label)) continue;
+      seen.add(label);
+      let kind = cr[1] === "External check" ? "externally-clearable" : currentKind;
+      let kindSource = cr[1] === "External check" ? "label" : "section";
+      if (kind !== "externally-clearable" && itemForcesExternal(cr[3])) { kind = "externally-clearable"; kindSource = "item-language"; }
+      seq++;
+      checks.push({ seq, claim: cr[3].trim(), kind, kind_source: kindSource, ga_ref: code ? `${code} ${label}` : label });
+      continue;
+    }
     const li = line.match(LIST_ITEM);
     if (li) {
       // Gather the item's text (this line; bold lead is always on the first line).

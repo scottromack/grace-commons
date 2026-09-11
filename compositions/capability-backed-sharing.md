@@ -88,7 +88,7 @@ The Capability store (capability records, including the immutable `allocator_ref
 
 No primitive is case-sensitivity-normalized at the composition layer; deployments wanting normalization wire it at the calling layer before invoking composition actions.
 
-### Logic confinement (clock and id)
+### Logic confinement
 
 The composition reads no clock and mints no id inside a transition. One `now` (`clock_t`) is **injected at its I/O seam** per invocation, before the orchestration runs, and no action signature carries it. That reading serves exactly one purpose: stamping the timestamp fields this composition writes into its own audit-event payloads and derived indexes — `intended_at`, `authorized_at`, `revoked_at`, `disclosed_at` in event `data`, `allocated_at` and `disclosed_at` in the two maps. It is never handed to a constituent: `Capability.allocate` / `redeem` / `revoke` take no timestamp, Audit Trail's `record_action` stamps `recorded_at` at its own seam, and `SelectiveDisclosure.record` is called **without** `disclosed_at`, so the constituent defaults the record's `disclosed_at` from *its* seam — which is why Selective Disclosure's not-in-future guard is unreachable from this composition (no caller-supplied value ever reaches it) and why the event's `disclosed_at` and the record's `disclosed_at` are two seams' readings, bound by `disclosure_id` and never claimed equal. Ids — `capability_token`, `disclosure_id`, every `event_id` — are minted by the constituents at their own seams; this composition mints none.
 
@@ -266,7 +266,7 @@ Three scenarios the composition must survive in regulated contexts.
 
 A derived implementation of this composition is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state (`capability_to_sharing`, `disclosure_to_redemption`) plus the Capability, Selective Disclosure, and Audit Trail substrate stores, can do all of the following without recourse to source code, runbooks, or developer narration.
 
-### Audit-Trail-traversal-clearable checks
+### Record checks
 
 These checks an auditor answers by reading the composition's records (including the Audit Trail substrate reached through it).
 
@@ -284,7 +284,7 @@ These checks an auditor answers by reading the composition's records (including 
 
 8. **Constituent Generation acceptance bars.** Verify Capability's six checks over the capability store (including *no redeemer identity is present in any record* — Capability's own check 3, which is the atom-level half of Invariant 1), Selective Disclosure's six checks over the disclosure store, and Audit Trail's eight traversal-clearable checks — including *rebuild the derived indexes*, the one this composition's two maps most need — plus its six externally-clearable ones over the substrate (transitively clearing Event Log, Actor Identity, Tamper Evidence, Retention Window). This composition's invariants depend on the correctness of the constituents' invariants (Invariant 5).
 
-### Externally-clearable checks
+### External checks
 
 These questions arise around this composition but cannot be answered from its records alone — they are the composition's named audit-gaps, each routed to the evidence that owns it.
 
@@ -295,7 +295,7 @@ These questions arise around this composition but cannot be answered from its re
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **The audit-subject asymmetry is the design, not a gap.** This composition records the allocator and never the redeemer. This is not an accountability hole to be patched — it is the precise reconciliation the composition exists to provide. A deployment that needs to know *who accessed* the data (not merely *who authorized* the access) does not want bearer-token sharing at all; it wants an identity-keyed access model (Permissions gating on the accessing actor, Session establishing who is present). The two are structurally distinct authorization models (Capability's own *Identity-bound authorization* edge case names the boundary), and this composition deliberately implements the bearer one. Forcing a redeemer identity into this composition would break Capability Invariant 3 and defeat the purpose; the honest move is to choose the right primitive.
 - **Recipient is the allocator-declared intended recipient, not the bearer.** The `recipient` recorded in every disclosure is the party the allocator named at allocation time (the share was *authorized to go to* recipient R), not the party who actually presented the token (unknowable by bearer design). A deployment must choose `recipient` values meaningful to its regulatory audience (the GDPR Article 15(1)(c) named-recipient obligation, inherited from Selective Disclosure's *subject-recognizable recipient vocabulary* edge case). Whether the actual bearer was R is the externally-unanswerable question the disputed-disclosure scenario names.

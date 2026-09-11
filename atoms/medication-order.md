@@ -248,17 +248,17 @@ A physician attempts to amend an order while it is [On Hold]: `amend("ord-006", 
 
 ---
 
-## Regulated adversarial scenarios
+### Regulated adversarial scenarios
 
-### Regulator audit — DEA controlled substance prescription trail
+#### Regulator audit — DEA controlled substance prescription trail
 
 A DEA auditor investigating Schedule II controlled substance dispensing requests the complete lifecycle history for a specific order. Queries `read({order_id: "ord-cs-017"})`. The result must show: the prescriber ([Prescriber Ref], [Ordered At]) — immutable by Invariant 1; the pharmacist who verified ([Verifier Ref], [Verified At]) — immutable by Invariant 12; the dispenser ([Dispenser Ref], [Quantity], [Lot Number], [Dispensed At]) — immutable by Invariant 12; and the administerer ([Administerer Ref], [Administered At]) — immutable by Invariant 12. If the order was amended before dispensing, the amendment chain — original ([Amended], with [Successor Id]), intermediate orders, and the final dispensed successor — is traceable via [Predecessor Id] / [Successor Id] links, with each link's [Amended By] and [Amendment Reason] immutable by Invariant 12. No gap in the chain is permitted. The audit clears when the records alone account for every controlled unit: who prescribed, who cleared, who released, and who administered — without recourse to developer testimony, runbooks, or log integrity.
 
-### Disputed order — wrong medication or wrong dose alleged
+#### Disputed order — wrong medication or wrong dose alleged
 
 A patient alleges they were administered a different medication than prescribed, or a dose different from what their physician ordered. The investigator queries the order record for `ord-022`. Invariant 1 guarantees [Medication Ref] is immutable — it cannot have been edited to cover the discrepancy. The dispenser record ([Dispenser Ref], [Quantity], [Dispensed At]) and the administration record ([Administerer Ref], [Administered At]) are both immutable by Invariant 12. If there is an amendment chain, every amendment carries [Amended By] and [Amendment Reason] (immutable by Invariant 12), and the ordering of events is deterministic via the [Predecessor Id] / [Successor Id] chain and [Ordered At] timestamps. The dispute is answered from the records alone: the medication identity, dose, attributing actors, and timing are all permanently fixed, and no field can have been retroactively altered.
 
-### Breach investigation — controlled substance diversion
+#### Breach investigation — controlled substance diversion
 
 An internal audit detects a quantity discrepancy: a controlled substance lot appears dispensed but no administration record exists for the corresponding order. The investigator queries `read({medication_ref: "med-oxycodone-5mg"})` across the date range and filters for orders in [Dispensed] state. The result surfaces orders that have reached [Dispensed] but not [Administered] or [Completed]. For each such order, [Dispenser Ref] and [Quantity] are on record and immutable by Invariant 12 — the dispenser attribution cannot have been edited after the fact. The absence of an [Administer] transition on an order that was dispensed is itself a forensic signal. If the order was discontinued without administration, [Discontinued By] (required non-empty by Invariant 10) and [Discontinuation Reason] (required non-empty by Invariant 11) must both be present and immutable — an unexplained discontinuation with no actor or no reason is a conformance failure. The investigation has the dispenser identity, the dispensing timestamp, the lot number, and the quantity; the audit trail either closes the chain or names the gap.
 
@@ -282,7 +282,7 @@ Any implementation derived from this atom must produce records and a runtime sur
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **Amending to remove duration.** Setting [Duration] to nil in an [Amend] call converts a duration-bounded order to an open-ended one; this counts as a change and is valid. The reverse — supplying a [Duration] on an amendment when the original had none — is also valid. Open-ended orders that have been amended to be bounded must be explicitly completed or discontinued when the course ends.
 

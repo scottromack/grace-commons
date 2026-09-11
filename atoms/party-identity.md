@@ -52,7 +52,7 @@ Each [State-Change Event] produced by [Suspend], [Reinstate], [Close], or a [Ver
 
 Two enrollments for the same natural person produce two records with two distinct [Party Id] values. The atom does not deduplicate; deduplication is the composing system's responsibility. See Edge cases.
 
-### Inputs and Outputs
+### Inputs
 
 - A legal [Name] identifying the party at enrollment. Non-empty, non-whitespace-only. Maximum 500 characters. The atom stores the name as supplied; Unicode normalization, case folding, and transliteration are deployment policy.
 - A [Date Of Birth] expressed as an ISO 8601 date (the International Organization for Standardization's date format, `YYYY-MM-DD`). Must parse as a valid calendar date; must not be in the future.
@@ -74,7 +74,9 @@ Two enrollments for the same natural person produce two records with two distinc
 
 **On [Read]:** the read-only query surface — it changes nothing and appends nothing. The supported filter axes of the [Query] are exactly: [Party Id], [Current State], and a time range on [Enrolled At] of the form `{after: <timestamp>, before: <timestamp>}` (both sub-keys optional; both bounds inclusive; a range carrying only one sub-key is unbounded on the other side; filter keys are flat strings, not dot-notation paths). Any combination of supported axes is valid. A [Query] supplying only a [Party Id] returns at most one record; a [Query] with no filters returns every party in the store; a well-formed [Query] matching no parties returns an empty sequence, not a rejection. Results are ordered by enrollment insertion order — the same insertion-order authority §Ordering pins for every other sequence in this atom, so no sortable-id format obligation is introduced on [Party Id]. Each returned record carries the full field set named in Outputs below, including the complete [State-Change Log] and the full ordered [Verification Event] list — the per-party histories travel with the record rather than through separate query surfaces, which is what makes the Generation acceptance checks and the adversarial-scenario reconstructions executable from this one surface. An [Enrolled At] range filters on advisory wall-time metadata (§Ordering): under clock skew its result set is best-effort; reconstructions needing authoritative bounds use insertion order, with the composing Trusted Timestamping pattern as the wall-time anchor. **Malformed-query rules ([Invalid Query]):** a [Party Id] filter value that is null, empty, or whitespace-only; a [Current State] filter value not one of `Unverified`, `Verified`, `Suspended`, `Closed`; a time range with end before start; or an unrecognized filter key — any key outside the supported axes — each is [Invalid Query], rejected rather than silently ignored, because silent ignore would return a result set inconsistent with the caller's intent.
 
-**Outputs** — via [Read]: the party records matching the caller's [Query], in enrollment insertion order; for each party: [Party Id], [Name], [Date Of Birth], [Document Type], [Document Ref], [Enrolled At], [Enrolling Actor Ref], [Current State], [State-Change Log], and the full ordered list of [Verification Event]s. For each verification event: [Verification Id], [Party Id], [Verifying Actor Ref], [Verification Method], [Verification Result], [Evidence Ref], [Verified At]. Action returns: [Party Id] from [Enroll]; `(verification_id, state_change_id?)` from [Verify] — [State Change Id] is present iff the call drove an [Unverified] → [Verified] transition, absent otherwise; [State Change Id] from [Suspend], [Reinstate], [Close]. Every action that produces a state-change event returns the [State Change Id] directly so the caller can bind to Actor Identity for attestation and to Audit Trail for tamper-evident recording without a follow-up query — symmetric with [Enroll] returning [Party Id] and [Verify] returning [Verification Id].
+### Outputs
+
+Via [Read]: the party records matching the caller's [Query], in enrollment insertion order; for each party: [Party Id], [Name], [Date Of Birth], [Document Type], [Document Ref], [Enrolled At], [Enrolling Actor Ref], [Current State], [State-Change Log], and the full ordered list of [Verification Event]s. For each verification event: [Verification Id], [Party Id], [Verifying Actor Ref], [Verification Method], [Verification Result], [Evidence Ref], [Verified At]. Action returns: [Party Id] from [Enroll]; `(verification_id, state_change_id?)` from [Verify] — [State Change Id] is present iff the call drove an [Unverified] → [Verified] transition, absent otherwise; [State Change Id] from [Suspend], [Reinstate], [Close]. Every action that produces a state-change event returns the [State Change Id] directly so the caller can bind to Actor Identity for attestation and to Audit Trail for tamper-evident recording without a follow-up query — symmetric with [Enroll] returning [Party Id] and [Verify] returning [Verification Id].
 
 ### State
 
@@ -296,7 +298,7 @@ A derived implementation of Party Identity is *acceptable* — in the regulator-
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this atom does not cover:
 

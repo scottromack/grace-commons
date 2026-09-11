@@ -82,7 +82,7 @@ The **enumerated in-scope universe** for a `subject_ref` is not stored as standi
 - **`fulfillment_completion_bound`** — the deployment-declared maximum duration of a fulfillment invocation between its intent record and its sealed fulfillment event, read against the seam-injected `now` the intent carries. It is the **lower edge** of the reconciliation scan: a Committing request whose intent is younger than it may belong to an invocation still between its bind step and its seal — or, on the erasure path, still destroying — and a scan that compensated it would seal beside the seal the invocation is about to append, or write a second response-disclosure beside the one it is about to bind. The **upper edge** is `audit_trail_retention_policy`'s horizon: past it the intent and fulfillment payloads are destroyed, a response-disclosure whose `dsar.*_fulfilled` event aged out is lawful destruction and never a Layer-2 orphan, and the request's state is read from `request_to_fulfillment`'s truth-bearing half. *Default:* none.
 - **`reconciliation_cadence`** — the deployment-declared interval at which the orphan reconciliation scan the *Cross-store consistency under partial failure* edge case mandates is run, in addition to its mandatory run at process restart. The scan is what makes the second safety half of Invariant 1 hold for a failure that *cannot* return — a crash between the response-disclosure and the sealed event surfaces nothing at the action boundary, so the only thing standing between that orphan and silence is a scan someone runs on a declared schedule. Cadence and window are related but distinct: the cadence bounds *detection*, the window bounds *repair*, and a cadence longer than the window makes the window unmeetable by construction.
 
-### Logic confinement (clock and id)
+### Logic confinement
 
 The composition reads no clock and mints no id inside a transition. One `now` (`clock_t`) and, at [Receive Request], one fresh `id_t` are **injected at the composition's I/O seam** per invocation, before the orchestration runs; no action signature carries either. The clock reading serves exactly one purpose per invocation — stamping the timestamp fields this composition writes into its own audit-event payloads and maps: `received_at` at intake, `intended_at` on each fulfillment's intent record, `fulfilled_at` on its sealed event and fulfillment record — **one reading, stamped wherever that invocation writes a time**, so an invocation's `intended_at` and `fulfilled_at` are equal by construction and no check compares them (the Event Log `sequence_number` orders them). It is never handed to a constituent: `SelectiveDisclosure.record` is called without `disclosed_at` and stamps its own at its seam, `Consent.check` is called without `at_time` and evaluates at its own, and Audit Trail's `record_action` stamps `recorded_at` at the substrate's — each a different seam's reading, bound to this composition's by ids, never claimed equal. The `request_id` is the injected `id_t`; every other id (`disclosure_id`, `event_id`, `retention_id`) is minted by the constituent that owns it.
 
@@ -338,7 +338,7 @@ Three scenarios the composition must survive in regulated contexts.
 
 A derived implementation of this composition is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state plus the Selective Disclosure, Consent, and Defensible Retention substrate stores, can do all of the following without recourse to source code, runbooks, or developer narration.
 
-### Audit-Trail-traversal-clearable checks
+### Record checks
 
 These checks an auditor answers by reading the composition's records — the two emergent maps plus the Selective Disclosure store and the Defensible Retention substrate (including the Audit Trail reached through it).
 
@@ -362,7 +362,7 @@ These checks an auditor answers by reading the composition's records — the two
 
 8. **Constituent Generation acceptance bars.** Verify each constituent's own Generation acceptance bar over its store: Selective Disclosure's six checks, Consent's seven checks, and Defensible Retention's bar (which transitively clears Legal Hold, Retention Window, and Audit Trail). This composition's invariants depend on the correctness of the constituents' invariants.
 
-### Externally-clearable checks
+### External checks
 
 These audit questions arise around this composition but cannot be answered from the composition's records alone — they are the composition's named audit-gaps, each routed to the evidence that owns it.
 
@@ -374,7 +374,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **The four-claim conflict and disposition precedence.** When access, erasure, legal hold/retention, and consent all bear on one record, this composition resolves them into one disposition by a stated precedence so the verdict is deterministic and the recorded reason is the *strongest applicable* claim. For erasure the precedence is: (1) other-lawful-basis (a persisting non-consent ground, or a still-`granted` consent) → `retained(other-lawful-basis)`, checked *first and read-only* because it determines whether erasure is due at all and must precede the irreversible purge; (2) the Defensible Retention gate's `under-legal-hold` → `retained(legal-hold)`; (3) the Defensible Retention gate's `not-eligible` → `retained(retention-obligation)`; (4) `erased`. A record under *both* a hold and another lawful basis is `retained(other-lawful-basis)` by precedence — but the auditor can still observe the hold via the Defensible Retention substrate, because this composition's disposition records the governing reason while the constituent stores retain the full set of applicable claims. The precedence is a recording convention, not a legal ranking; this composition does not assert that one exemption legally dominates another, only that it records one governing reason and leaves the constituent evidence intact for the rest.
 

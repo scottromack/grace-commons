@@ -236,7 +236,7 @@ A derived implementation of Authenticated Actor is *acceptable* — in the regul
 5. **Constituent Generation acceptance bars.** Verify Credential's seven checks over the credential store and Actor Identity's five checks over the attestation store. The composition's invariants depend on the correctness of the constituents' invariants (Invariant 5).
 6. **Orphaned credentials (the leg's records-alone form).** Run the orphaned-credential leg's comparison by hand: every effective-Active credential record whose `credential_id` is bound in no `principal_to_actor` entry **and** whose `(principal_ref, credential_type)` is the gating pair of no entry (a rotation successor shares its predecessor's pair and is not an orphan), and whose `registered_at` is older than `registration_completion_bound + clock_skew_allowance`, is an *unbound effective-Active credential* — the partial of a [Register Authenticated Actor] that landed a `binding`-position code or `orphan-credential`, or a registration made outside the composition; the check names both causes as candidates and chooses neither. Confirm the deployment's compliance surface carries a finding for each; one it does not carry is a leg that did not run on `reconciliation_cadence` (Configuration). No horizon: Credential Invariant 10 provides no deletion surface.
 
-### Externally-clearable checks
+### External checks
 
 These questions arise around the composition but cannot be answered from its records alone — they are the composition's named audit-gaps, each routed to the evidence that owns it.
 
@@ -247,7 +247,7 @@ These questions arise around the composition but cannot be answered from its rec
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **No Audit Trail substrate — the attestations are the regulated record.** Login wires an Audit Trail to record its login/logout/cascade events; Authenticated Actor deliberately does not (the approved cut is Credential + Actor Identity, two atoms). It can afford to, because **Actor Identity attestations are themselves the non-repudiable, regulator-grade records** of the actions they attest — the composition's `success` outputs are tamper-resistant proofs, not mere log lines. The `attest_log` is the composition-layer query surface (the analog of Login's `login_event_log`), and the attestation store is the external-auditor surface. A deployment that needs *tamper-evident logging of the binding and gate operations themselves* (registrations, refused attest attempts) composes Audit Trail above this composition — a named composing concept, not absorbed, exactly as Login keeps lockout out of its cut.
 - **The composition does not revoke credentials.** [Attest As Actor]'s cascade is the downstream consequence of a revocation performed elsewhere; the composition never calls `Credential.revoke`. The identity-management surface (or a compromise-response process) revokes the credential through Credential's own surface; the composition's gate then closes the attest surface structurally. A deployment that wants to *also* terminate the principal's live sessions on revocation wires Login's `revoke_sessions_for_credential` in parallel — the two cascades (sessions die, attest surface closes) are independent downstream consequences of the same `Credential.revoke`, each owned by its own composition.

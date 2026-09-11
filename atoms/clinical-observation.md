@@ -167,17 +167,17 @@ A caller attempts to amend an observation that was retracted. `amend("obs-003", 
 
 ---
 
-## Regulated adversarial scenarios
+### Regulated adversarial scenarios
 
-### Regulator audit — verify amendment trail integrity
+#### Regulator audit — verify amendment trail integrity
 
 A HIPAA (US Health Insurance Portability and Accountability Act) auditor queries all observations for patient p42 across all states: `read({patient_ref: "p42"})`. The result must include every observation ever recorded for this patient — [Recorded], [Amended], and [Retracted] — in chronological order. For every [Amended] observation, the auditor verifies that a [Successor Id] is present and that the successor is in the store. For every [Retracted] observation, the auditor verifies that a [Retraction Reason] and [Retracted By] are present. No observation is missing; no amendment is unattributed; no retraction is unexplained. The audit passes by Invariants 2, 3, 7, and 9 — completeness (7), correct amendment-chain structure (2, 3), and the write-once guarantee that prevents retroactive rewiring of [Successor Id], [Retracted By], or [Retraction Reason] (9).
 
-### Disputed observation — patient challenges a recorded value
+#### Disputed observation — patient challenges a recorded value
 
 A patient disputes a recorded blood glucose value, claiming the measurement was taken incorrectly. The clinical record must show: the original observation (by Invariant 1, its [Value] and [Recorded By] are immutable); whether it was amended and why (by the State definition for [Amended] observations and Invariant 9, the successor record names the correcting clinician via [Amended By] and the reason via [Amendment Reason], both write-once); or whether it was retracted and why (by the same Invariant 9, [Retracted By] and [Retraction Reason] are write-once on the original). The patient's dispute is answered from the records alone — the clinician's identity, the timestamp, and the reason for any correction are all present and unalterable.
 
-### Breach investigation — unauthorized observations
+#### Breach investigation — unauthorized observations
 
 A security investigation suspects that observations were recorded for a patient by an unauthorized actor. The investigator queries `read({patient_ref: "p99"})` and cross-references each observation's [Recorded By] against the authorized clinical staff list at [Recorded At] time. Invariant 1 guarantees [Recorded By] is immutable — it cannot have been edited to cover tracks after the fact. Every observation's author is permanently attributed.
 
@@ -195,7 +195,7 @@ Any implementation derived from this atom must produce records and a runtime sur
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **Amending an intermediate node in a chain.** The atom permits amending any [Recorded] or non-[Retracted] node, including intermediate nodes in an amendment chain. Callers should amend the current end of the chain (the most recent [Recorded] observation) to keep the chain semantically clean; amending an intermediate node creates a branch point, which Invariant 3 prohibits. Implementations must enforce that an already-[Amended] observation cannot be amended again ([Already Amended]) — the chain is linear.
 - **Amending to change [Observation Type].** Structurally impossible — [Amend] does not accept an [Observation Type] parameter; the successor inherits the original's type by construction (Invariant 5). A clinician who recorded `temperature` when they meant `oxygen_saturation` must retract and re-record. The amendment chain models value corrections within a type, not type changes.

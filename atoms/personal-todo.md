@@ -199,7 +199,7 @@ This sequence covers four of the rejection reasons ([Invalid Description], [Dupl
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this pattern does not cover:
 

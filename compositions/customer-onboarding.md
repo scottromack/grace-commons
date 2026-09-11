@@ -100,7 +100,7 @@ The composition takes string-typed inputs at its action boundaries; each is vali
 
 No primitive is case-sensitivity-normalized at the composition layer; deployments wanting normalization wire it at the calling layer before invoking composition actions.
 
-### Logic confinement (clock and id)
+### Logic confinement
 
 The clock is an **injected input at the composition's single I/O seam**, never read inside a guard or a transition and never threaded through a caller signature. Per the Logic Confinement Principle ([`execution-contract.md`](../execution-contract.md)), the host reads the clock once per invocation and injects `now` (`clock_t`) at the seam before the orchestration runs; the actions below are pure functions of the stored records plus that injected `now`. Because the clock enters at the seam rather than as a parameter, the action signatures below carry **no** `now` argument — the same discipline Retention Window pins for `place_under_retention`.
 
@@ -436,7 +436,7 @@ A [Record Verification] call passes steps 1–3, drives the `Unverified → Veri
 
 A derived implementation of this composition is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state plus the Party Identity, Retention Window, and Audit Trail substrate stores, can do all of the following without recourse to source code, runbooks, or developer narration.
 
-### Audit-Trail-traversal-clearable checks
+### Record checks
 
 These checks are answerable by reading the composition's records (including the Audit Trail substrate). Every "event of class X" selection below is made composition-side over the declared full-range enumeration (Composition state — *Records-alone enumeration*), never by asking the substrate for a payload-field query it does not serve:
 
@@ -456,7 +456,7 @@ These checks are answerable by reading the composition's records (including the 
 
 7. **Constituent Generation acceptance bars.** Verify each constituent's own Generation acceptance bar over its respective store: Party Identity's six checks, Retention Window's six checks, Audit Trail's eight checks. The composition's invariants depend on the correctness of the constituents' invariants.
 
-### Externally-clearable checks
+### External checks
 
 These audit questions arise around this composition but cannot be answered from the composition's records alone:
 
@@ -469,7 +469,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **Cross-store consistency under partial failure.** Several this composition actions write to two or three stores in sequence; a failure between writes leaves partial state, and the consequence differs by action. The most consequential gap is in [Record Verification]: step 4 drives a Party Identity state transition, then step 5 writes the Audit Trail event; if step 4 fails, the verification exists in Party Identity but is **unattested** — a `Verified` party with no `customer-onboarding.verification-recorded` event, violating Invariant 2. Party Identity's verification events are immutable once committed, so synchronous rollback is not available. The implementation must (a) retry the failed write until it lands — a failed *record* re-emitted, a failed *constituent commit* (a post-closure or renewal placement) made by the reconciliation under the composition's service identity behind its own `customer-onboarding.recovery-intended` record, never re-run under a prior invocation's authentication (Configuration; [Close Party] step 5's re-entry arm is the caller-driven alternative) — **partitioned as the Action wiring preamble states, not blindly**: the loop applies only to the transient `recording-failure(step)` whose step shows the Event Log append did not land; the substrate's step-4 arm is never retried here (the event is appended and attested, so a re-record would double-append, and the substrate's own reconciliation owns that gap); `invalid-request` cannot recur-and-clear and is a pageable deployment fault; and every compensating write is preceded by a log traversal for an existing event carrying the same `intent_event_id` — the seam-minted key every outcome carries back to its intent, matched by equality and never by resemblance of payload (on the trigger paths `intent_event_id = trigger_event_id`, so the trigger event is the intent) — and (b) immediately surface the orphan (a verification with no corresponding Audit Trail event) to the compliance dashboard as a high-priority finding, with the compensating Audit Trail entry, once it lands, carrying a `cascade_recovery = true` marker so an auditor can distinguish a clean verification from a recovered one. The analogous gaps in [Initiate Onboarding] (enrolled-and-retained party with no `customer-onboarding.initiated`), [Trigger Monitoring Review] (Suspended party with no `customer-onboarding.party-suspended` — though the precipitating `customer-onboarding.monitoring-triggered` already landed, so the suspension is not *uncaused*, and the trigger still enters the open set so [Clear Review] stays reachable; a rejected `suspend` with no `customer-onboarding.trigger-voided`, which rebuilds as a false open investigation until the void lands; and, on the periodic path, a review that fired with no renewal placed or a renewal placed with no `customer-onboarding.retention-renewed` — the first time-bounded by the current placement's `retention_until`), [Clear Review] (a fresh `passed` verification recorded at step 5 with no `customer-onboarding.review-cleared` event when step 6 fails — the mirror of [Record Verification]'s gap, with the reinstate deliberately not attempted; and a reinstated party with no `customer-onboarding.party-reinstated` when step 8 fails — its open-set clearance and schedule advance held until the record lands), and [Close Party] (Closed party with no post-closure retention, or with no `customer-onboarding.party-closed`) are each handled the same way: retry the failed write, surface the orphan, mark the compensating record. The ordering disciplines built into the actions (record-the-trigger-first in [Trigger Monitoring Review]; record-the-clearance-before-reinstate in [Clear Review]; audit-before-the-irreversible-step where possible) minimize the window in which a state change exists without its caused-in-the-records audit event. Deployments under BSA/AML exposure must treat any such orphan as a hard alerting condition. **The reconciliation is a declared scan, not an implicit retry:** it runs at process restart and on `reconciliation_cadence` (Configuration), **between two edges** — it examines no intent younger than `onboarding_completion_bound` and no case past the audit horizon — and closes each orphan within `compensation_window` or escalates it; every constituent commit it makes runs under the service identity behind its `customer-onboarding.recovery-intended` record, as the retry partition above states. This mirrors Defensible Retention's treatment of its `purge_record` atomicity hole.
 

@@ -114,7 +114,7 @@ Four semantics the cells cannot hold:
 
 Each action carries explicit preconditions. Violations are rejected, not silently absorbed.
 
-**Logic confinement (clock and id).** The clock and the id are **pipeline-injected, supplied at the I/O seam** (Step 3 of the execution contract), never produced inside a transition and not shown as action signature parameters. [Now] (`clock_t`) is read once by the pipeline at the seam and consumed by the action; the [Assignment Id] is assigned from injected `id_t` id material at the seam, not generated internally (per the Logic Confinement Principle, see [`execution-contract.md`](../execution-contract.md)). The clock's only use is the immutable timestamp stamps inside a committed transition — [Assigned At] on [Assign] (and on the [Assign] inside [Reassign]), [Recalled At] on [Recall], [Transferred At] on [Reassign] — each set from the same injected [Now]. Each transition is thereby a pure function of its record state, inputs, [Now], and id material, with both sources auditable at the deployment layer.
+**Logic confinement.** The clock and the id are **pipeline-injected, supplied at the I/O seam** (Step 3 of the execution contract), never produced inside a transition and not shown as action signature parameters. [Now] (`clock_t`) is read once by the pipeline at the seam and consumed by the action; the [Assignment Id] is assigned from injected `id_t` id material at the seam, not generated internally (per the Logic Confinement Principle, see [`execution-contract.md`](../execution-contract.md)). The clock's only use is the immutable timestamp stamps inside a committed transition — [Assigned At] on [Assign] (and on the [Assign] inside [Reassign]), [Recalled At] on [Recall], [Transferred At] on [Reassign] — each set from the same injected [Now]. Each transition is thereby a pure function of its record state, inputs, [Now], and id material, with both sources auditable at the deployment layer.
 
 - **At [Assign]** — [Task Ref] and [Assignee Ref] must be well-formed and non-empty; otherwise [Invalid Request]. There must be no [Active] [Assignment] for [Task Ref] in the system; otherwise [Already Assigned]. The atom enforces the at-most-one invariant at this boundary. If the store write fails, the atom returns [Storage Failure]; no [Assignment] is created.
 - **At [Recall]** — [Assignment Id] must reference a known [Assignment]; otherwise [Not Known]. The referenced [Assignment] must be in [Active]; otherwise [Not Active]. If the store write fails, the atom returns [Storage Failure]; the [Assignment] remains [Active].
@@ -201,7 +201,7 @@ All five rejection reasons (`invalid-request`, `already-assigned`, `not-known`, 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this atom does not cover:
 

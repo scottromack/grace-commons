@@ -409,7 +409,7 @@ An unexpected `actor_ref` on a `record.purged` event, or a `failed-verification`
 
 A derived implementation of this composition is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state (`record_to_events`) plus the Soft Delete store and the Audit Trail substrate stores, can do all of the following without recourse to source code, runbooks, or developer narration.
 
-### Audit-Trail-traversal-clearable checks
+### Record checks
 
 These checks are answerable by reading the composition's records (including the Audit Trail substrate and the Soft Delete store):
 
@@ -425,7 +425,7 @@ These checks are answerable by reading the composition's records (including the 
 
 6. **Constituent Generation acceptance bars.** Verify each constituent's own Generation acceptance bar over its respective store: Soft Delete's six checks (lifecycle record retention, purge attribution completeness, two-step purge path, terminal absorption, multi-cycle coherence, deletion attribution completeness) and Audit Trail's six checks (all four audit questions answerable, all eight composition-level invariants verifiable, each constituent atom's GA bar satisfied, forensic window boundable, honest destruction distinguishable, composing patterns identifiable). The composition's invariants depend on the correctness of the constituents' invariants.
 
-### Externally-clearable checks
+### External checks
 
 These audit questions arise around this composition but cannot be answered from the composition's records alone:
 
@@ -435,7 +435,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **Purge eligibility gate.** Whether a Deleted record is eligible for purge — whether a Legal Hold blocks it, whether the Retention Window has elapsed — is not enforced by this composition. The composition records a purge when called; it does not gate the call. Purge gate enforcement belongs to [Defensible Retention](./defensible-retention.md), which wires Legal Hold + Retention Window + Audit Trail into the hold-blocks-purge gate. This composition is the forensic-attribution composition; Defensible Retention is the eligibility-gate composition. A deployment requiring both the attributed lifecycle history and the hold-blocks-purge gate composes this composition + Defensible Retention; neither absorbs the other's concept.
 

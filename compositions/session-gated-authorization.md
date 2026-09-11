@@ -227,7 +227,7 @@ Internally: `Session.validate("tok_abc123") → valid(principal_ref: "usr_42", .
 
 ---
 
-## Edge cases
+## Non-goals and edge cases
 
 **Session expires between issuance and first use.** A session issued with a short `session_duration` may expire before the first [Check Permitted] call. The gate returns `rejected(session-invalid(expired))`. The composition does not distinguish between a session that expired due to elapsed time versus one that was never exercised.
 

@@ -164,17 +164,17 @@ After hold-001 is [Released], counsel's paralegal system retries: `release("hold
 
 ---
 
-## Regulated adversarial scenarios
+### Regulated adversarial scenarios
 
-### Regulator audit — HHS OCR HIPAA investigation
+#### Regulator audit — HHS OCR HIPAA investigation
 
 HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) Office for Civil Rights (OCR) opens an investigation into a reported breach of PHI (Protected Health Information — individually identifiable health data covered by HIPAA, the Health Insurance Portability and Accountability Act, the US federal law governing healthcare data privacy). It issues a preservation demand to the covered entity for all records relating to the incident. The compliance team calls [Place] for each record in scope; each placement carries `case_ref: "ocr-hipaa-inv-2026-0334"`. Two months later, OCR requests the preservation record: query `read({case_ref: "ocr-hipaa-inv-2026-0334", state: Active})` returns every [Active] hold placed under this investigation. Every hold carries [Placed By] and [Hold Reason] strings each with at least one non-whitespace character, and a [Placed At] timestamp that is set — immutable by Invariants 1 and 7. OCR confirms that preservation was initiated and that each hold is still [Active]. The covered entity has a documentable, auditable preservation response; no recourse to developer testimony is needed.
 
-### Spoliation challenge — federal litigation
+#### Spoliation challenge — federal litigation
 
 Opposing counsel in federal litigation argues that the defendant destroyed documents after the duty to preserve was triggered under FRCP (Federal Rules of Civil Procedure — the rules governing civil lawsuits in US federal courts) Rule 37(e). Defendant's counsel queries `read({record_ref: "doc-contract-077"})` for all holds ever placed on the disputed document. The query returns the hold placed on the record, with `placed_at: 2026-02-14` — the date the preservation obligation was recognized. The opposing party claims the document was destroyed on `2026-02-10`. The hold record shows [Placed At] postdating the destruction. If a corresponding purge record from Retention Window shows `purged_at: 2026-02-10` and no [Active] hold existed at that time, the records faithfully document the chronology — the hold was placed after the purge. If the document was never purged and remains in the store, the hold records confirm ongoing preservation. Either way, the court has the complete record; the atom does not manufacture a defense but it does not hide the facts either.
 
-### Concurrent hold integrity — dual regulatory investigation
+#### Concurrent hold integrity — dual regulatory investigation
 
 A financial institution is simultaneously under a DOJ (US Department of Justice) criminal investigation and an SEC (US Securities and Exchange Commission — the federal regulator of securities markets) civil enforcement action. Both issue preservation demands covering the same set of trading records. The compliance team places holds under both matters:
 
@@ -203,7 +203,7 @@ Any implementation derived from this atom must produce records and a runtime sur
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **Hold placed after record is purged.** The atom does not prevent placing a hold on a [Record Ref] for which the underlying record has already been destroyed. The hold is created successfully; the [Record Ref] is an opaque value the atom does not validate against the storage layer. The hold record faithfully documents that a preservation obligation was recognized after the fact. Legal counsel and the court assess the spoliative implications — the atom records the truth, it does not adjudicate it. Whether post-purge hold placement triggers any remediation belongs to the composing layer and to legal counsel.
 

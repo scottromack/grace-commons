@@ -155,7 +155,7 @@ All three rejection reasons ([Invalid Payload], [Invalid Query], [Storage Failur
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this pattern does not cover:
 

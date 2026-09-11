@@ -242,7 +242,7 @@ Any implementation derived from this atom must produce records and a runtime sur
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **Approval Step is not idempotent.** Two [Submit] calls for the same [Subject Ref], [Approver Ref], and [Scope] create two independent steps with distinct [Step Id]s and independent lifecycles. For at-most-once semantics on submission under retry conditions, compose with [Duplicate Prevention](./duplicate-prevention.md).
 

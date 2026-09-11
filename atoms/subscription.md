@@ -195,7 +195,7 @@ Three scenarios the subscription store must survive in regulated contexts:
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this atom does not cover:
 

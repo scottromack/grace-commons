@@ -54,7 +54,7 @@ Two deployment-set parameters govern the atom; both are named here because other
 
 Token format and token storage security (raw vs. hashed at rest) remain deployment-configuration concepts; see Edge cases.
 
-### Inputs and Outputs
+### Inputs
 
 **Actions:** Every action receives the current clock reading [Now] as a **pipeline-injected input** (the pipeline's `clock_t`, supplied at the I/O seam — not read inside the transition, not trusted from the caller, and not shown as a signature parameter). [Now] is consumed for two clearly separated purposes: stamping immutable timestamps on a write (execution time), and evaluating the pure expiry derivation in [Validate] (no write). See the Logic-confinement note in Decision points.
 
@@ -80,7 +80,7 @@ There is **no `expire` action**. A lapsed [Session] needs no write to be treated
 
 **String input policy (applies to every string input above).** Values are treated byte-exact: no trimming, no Unicode normalization, no case folding is applied before storage or comparison — equality (including the [Principal Ref] query surface in Feedback) is byte-for-byte. A whitespace-only string counts as empty and is rejected wherever non-empty is required. The deployment sets a maximum length per string input; a value exceeding it is rejected as [Invalid Request]. The opaque references ([Principal Ref], [Issued By Ref], [Revoked By Ref]) are caller-supplied identifiers — byte-exactness means callers own canonicalization; two refs differing only in case or normalization form are two distinct principals to this atom.
 
-**Outputs:**
+### Outputs
 
 - The current set of [Session] records. For each: [Session Token], [Principal Ref], [Issued By Ref], [Issued At], [Expires At], [Status] (the stored status: [Active] or [Revoked]), [Revoked At] (nullable), [Revoked By Ref] (nullable), [Revocation Reason] (nullable), and the derived [Effective Status] (the stored [Status], except [Expired] when `[Status] = [Active] ∧ [Now] ≥ [Expires At]`). There is **no `expired_at` field**: expiry is derived at read time, never stamped, so there is no stored expiry timestamp to keep consistent.
 - [Issue] returns a new [Session Token] on success, or a rejection naming the failed precondition.
@@ -132,7 +132,7 @@ Each [Session] record carries:
 
 ### Decision points
 
-**Logic confinement (clock and id).** The clock and the token are **pipeline-injected at the I/O seam** (Step 3 of the execution contract), never produced inside a transition and not shown as action signature parameters. [Now] (`clock_t`) is read once by the pipeline at the seam and consumed by the action; the [Session Token] is the injected `id_t` (the random material backing it is likewise injected — see Configuration). The expiry test is a **pure function of the stored record and the injected [Now]** — a record is lapsed exactly when `[Status] = [Active] ∧ [Now] ≥ [Expires At]` — and it **writes nothing**. The only clock *writes* are the immutable timestamp stamps inside a committed transition ([Issued At] on [Issue], [Revoked At] on [Revoke]), each set from the same injected [Now]. Expiry itself never writes; it is surfaced only by [Validate]'s derived outcome and [Read]'s [Effective Status] projection. Rejection/outcome priority for [Validate]: [Not Known] → [Invalid Revoked] → [Invalid Expired] → [Valid]. Rejection priority for [Revoke]: [Not Known] → [Already Terminal] → [Invalid Request] → [Storage Failure].
+**Logic confinement.** The clock and the token are **pipeline-injected at the I/O seam** (Step 3 of the execution contract), never produced inside a transition and not shown as action signature parameters. [Now] (`clock_t`) is read once by the pipeline at the seam and consumed by the action; the [Session Token] is the injected `id_t` (the random material backing it is likewise injected — see Configuration). The expiry test is a **pure function of the stored record and the injected [Now]** — a record is lapsed exactly when `[Status] = [Active] ∧ [Now] ≥ [Expires At]` — and it **writes nothing**. The only clock *writes* are the immutable timestamp stamps inside a committed transition ([Issued At] on [Issue], [Revoked At] on [Revoke]), each set from the same injected [Now]. Expiry itself never writes; it is surfaced only by [Validate]'s derived outcome and [Read]'s [Effective Status] projection. Rejection/outcome priority for [Validate]: [Not Known] → [Invalid Revoked] → [Invalid Expired] → [Valid]. Rejection priority for [Revoke]: [Not Known] → [Already Terminal] → [Invalid Request] → [Storage Failure].
 
 **At [Issue]:**
 - [Principal Ref] and [Issued By Ref] must be non-null and non-empty; otherwise [Invalid Request].
@@ -256,7 +256,7 @@ Three scenarios the atom must survive in regulated contexts:
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this atom does not cover:
 

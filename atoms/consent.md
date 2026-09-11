@@ -129,7 +129,7 @@ No other transitions exist. Neither [Revoked] nor [Expired] can be re-activated;
 
 ### Decision points
 
-**Logic confinement (clock and id).** The clock and the id are **pipeline-injected at the I/O seam, not signature parameters**, and are never produced inside a transition. [Now] (`clock_t`) is read once by the pipeline and supplied to the transitions at the seam — it is *not* threaded through the action signatures ([Grant] and [Revoke] do not carry a [Now] parameter); [Check]'s explicit [At Time] is a caller-supplied query input, and when omitted it defaults to the seam-injected [Now]. The [Consent Id] is the injected `id_t` (system-generated at the seam, never reused). [Now] is consumed for two clearly separated purposes: stamping immutable timestamps on a write ([Granted At], [Revoked At] — execution time), and evaluating pure guards/derivations that **write nothing** — the [Expires At] > [Now] guard on [Grant], the temporal guards on [Revoke], and the expiry **derivation** in [Check]/[Read] ([Expires At] ≤ [At Time] ⇒ `expired`). No transition reads a wall clock internally. The one residual that is *not* a pure read-time derivation is the stored [State] field's Expired write — a materialized cache of the derived semantic state, clearly marked in the State section; it is constrained to equal the derived value at read time, so it never functions as a clock-lagging flag.
+**Logic confinement.** The clock and the id are **pipeline-injected at the I/O seam, not signature parameters**, and are never produced inside a transition. [Now] (`clock_t`) is read once by the pipeline and supplied to the transitions at the seam — it is *not* threaded through the action signatures ([Grant] and [Revoke] do not carry a [Now] parameter); [Check]'s explicit [At Time] is a caller-supplied query input, and when omitted it defaults to the seam-injected [Now]. The [Consent Id] is the injected `id_t` (system-generated at the seam, never reused). [Now] is consumed for two clearly separated purposes: stamping immutable timestamps on a write ([Granted At], [Revoked At] — execution time), and evaluating pure guards/derivations that **write nothing** — the [Expires At] > [Now] guard on [Grant], the temporal guards on [Revoke], and the expiry **derivation** in [Check]/[Read] ([Expires At] ≤ [At Time] ⇒ `expired`). No transition reads a wall clock internally. The one residual that is *not* a pure read-time derivation is the stored [State] field's Expired write — a materialized cache of the derived semantic state, clearly marked in the State section; it is constrained to equal the derived value at read time, so it never functions as a clock-lagging flag.
 
 - **At [Grant]** — [Subject Ref], [Purpose], and [Granted By] must each contain at least one non-whitespace character; [Expires At], if supplied, must be strictly in the future relative to the injected [Now] (a pure guard, [Expires At] > [Now], that writes nothing on failure). Any violation is [Invalid Request]. [Granted At] = [Now] is stamped from the injected clock. [Storage Failure] if the store write fails; no [Consent Id] is issued, no record enters the store.
 
@@ -210,17 +210,17 @@ Before queuing a 30-day marketing campaign, the system calls `check(subject_ref:
 
 ---
 
-## Regulated adversarial scenarios
+### Regulated adversarial scenarios
 
-### Regulator audit — GDPR Article 7 validity challenge
+#### Regulator audit — GDPR Article 7 validity challenge
 
 A data protection authority investigates whether a data controller had valid consent before processing personal data for `analytics:behavioral` purposes on a given date. The controller queries `read({subject_ref: "user-4491", purpose: "analytics:behavioral"})` and retrieves all consent records for that subject and purpose. The authority evaluates: (a) was a [Granted] record in effect on the processing date? — confirmed by [Granted At] and the absence of [Revoked At] or [Expires At] before that date; (b) was consent freely given, specific, informed, and unambiguous — [Granted By] names the collection point; the [Purpose] field names the scope; the [Metadata] field (if used) carries the consent form version or signal type. (c) Is the grant record immutable — confirmed by Invariants 1 and 7. The authority confirms that consent was valid for the period in question; the controller does not need to produce any witness testimony or developer narration.
 
-### Disputed revocation — data subject claims non-compliance
+#### Disputed revocation — data subject claims non-compliance
 
 A data subject submits a complaint claiming that the controller continued sending marketing emails after they withdrew consent. The controller queries `read({subject_ref: "user-4491", purpose: "marketing:email"})`. The result shows: `cns-0001` [Granted] on `2025-03-01`; `cns-0001` [Revoked] on `2026-01-15` (`revoked_by: "privacy_portal"`, `revocation_reason: "User withdrawal via preferences page"`). The controller can show exactly when revocation was recorded and by which system. If marketing emails were sent after `2026-01-15`, that is a processing system failure — the Consent atom faithfully records the withdrawal; whether the processing system checked [Check] before sending is the composing layer's conformance question. The atom's records answer the when-was-consent-withdrawn question precisely.
 
-### Cross-purpose consent audit — HIPAA Authorization review
+#### Cross-purpose consent audit — HIPAA Authorization review
 
 A covered entity receives an HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) inquiry about whether patient `patient-7712` consented to disclosure of PHI (Protected Health Information — individually identifiable health data covered by HIPAA) to a research partner under `hipaa:research:partner-univ-cardiology`. The entity queries `read({subject_ref: "patient-7712", purpose: "hipaa:research:partner-univ-cardiology"})`. The result shows a [Granted] record with `granted_at: 2025-09-01`, `expires_at: 2026-09-01`, and `granted_by: "clinical_consent_kiosk"`. The disclosure occurred on `2026-01-10` — within the consent window. `check(subject_ref: "patient-7712", purpose: "hipaa:research:partner-univ-cardiology", at_time: "2026-01-10T00:00:00Z")` → `granted`. The entity demonstrates valid HIPAA Authorization at the time of disclosure from the records alone.
 
@@ -246,7 +246,7 @@ Any implementation derived from this atom must produce records and a runtime sur
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **[Grant] is not idempotent.** A consent collection surface that retries after a network timeout creates a duplicate consent record if the first call succeeded. Both records are valid. For at-most-once semantics on grant, compose with [Duplicate Prevention](./duplicate-prevention.md).
 

@@ -73,7 +73,7 @@ The [Declaration] contains the following fields:
 - **[Initial State]** — a member of [States]. The instance's current state on creation. Must be a non-terminal state — an instance whose initial state is already terminal would accept no transitions and is rejected at [Instantiate] as an invalid declaration.
 - **[Terminal States]** — a subset of [States] (possibly empty). States in this set are absorbing: once the instance's current state is a terminal state, no [Fire] succeeds. No declared transition may have a [From State] in [Terminal States]; any such declaration is rejected at [Instantiate] as an invalid declaration.
 
-### Inputs and Outputs
+### Inputs
 
 **Inputs:**
 
@@ -83,7 +83,7 @@ The [Declaration] contains the following fields:
 - [History] queries from auditors, investigators, and composing systems, carrying an [Instance Id] and an optional query filter.
 - [Read Declaration] queries from deployers, auditors, and composing systems, carrying an [Instance Id].
 
-**Outputs:**
+### Outputs
 
 - For [Instantiate]: a fresh [Instance Id], or a rejection naming the failed precondition.
 - For [Fire]: the `new_state` the instance has transitioned to, or a rejection naming the failed precondition.
@@ -284,9 +284,9 @@ Two instances `"wf-batch-0044"` and `"wf-batch-0045"` are both instantiated with
 
 ---
 
-## Regulated adversarial scenarios
+### Regulated adversarial scenarios
 
-### Regulator audit — FDA 21 CFR Part 11 / ISO 9001 §8.5.1: declared-transition compliance
+#### Regulator audit — FDA 21 CFR Part 11 / ISO 9001 §8.5.1: declared-transition compliance
 
 An FDA (US Food and Drug Administration) inspector auditing a pharmaceutical manufacturer's batch release process under 21 CFR Part 11 and ISO 9001 §8.5.1 demands evidence that batch `BR-2026-0412` moved only through the manufacturer's declared quality-control states in the declared order, and that the qualified-person sign-off gate was enforced before the release transition fired.
 
@@ -294,7 +294,7 @@ The inspector queries `history("wf-batch-BR-2026-0412")` and receives the full t
 
 The inspector's structural questions — *did the batch move only through declared states?* and *was the release gate enforced?* — are answered from the records alone, with no recourse to source code, runbooks, or developer narration.
 
-### Disputed transition — external party claims the workflow skipped a required state
+#### Disputed transition — external party claims the workflow skipped a required state
 
 A contract manufacturer disputes that purchase order `PO-2026-0551` was properly processed: they claim the order moved directly from `submitted` to `fulfilled` without passing through `approved`, bypassing the required approval gate. The composing system queries `history("wf-po-PO-2026-0551")` and returns the full transition history in sequence order.
 
@@ -302,7 +302,7 @@ The history shows three entries: (1) `{from: draft, to: submitted, seq: 1}`; (2)
 
 The question of whether the actor who fired the `approved → fulfilled` transition was authorized to do so is answered by composition with [Permissions](./permissions.md) and [Actor Identity](./actor-identity.md); this atom records that the transition fired and who asserted it.
 
-### Breach or incident investigation — reconstructing the anomaly window
+#### Breach or incident investigation — reconstructing the anomaly window
 
 During a security incident investigation, the incident response team needs to determine whether any workflow instances in the order-management system were driven through unauthorized state transitions during a suspected credential-compromise window (2026-05-01T00:00:00Z through 2026-05-03T23:59:59Z). The team queries [History] for all relevant instances with a [Fired At] range filter: `history("wf-po-{id}", query: {fired_at: {after: "2026-05-01T00:00:00Z", before: "2026-05-03T23:59:59Z"}})` for each instance of interest.
 
@@ -330,7 +330,7 @@ Any implementation derived from this atom must produce records and a runtime sur
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **Guard evaluation is the caller's responsibility.** The atom enforces that the caller must assert `guard_satisfied = true` before a guarded transition fires. It does not evaluate whether the guard condition is true in the external world. A caller that asserts `guard_satisfied = true` without actually evaluating the guard predicate is violating the declared process semantics; the atom records the assertion faithfully regardless. Guard evaluation — checking the external condition (two approvals recorded, a quorum reached, a threshold exceeded) — belongs to the calling system or to a composing Rules Engine pattern.
 

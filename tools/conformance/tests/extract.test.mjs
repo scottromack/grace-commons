@@ -61,3 +61,32 @@ test("seq numbers run in document order across list styles", () => {
   const checks = extractGA(SPEC, "X");
   assert.deepEqual(checks.map((c) => c.seq), [1, 2, 3]);
 });
+
+const GRACE = `# Some Atom
+
+## Generation acceptance
+
+### Record checks
+
+\`\`\`text
+Check 1.1: An auditor MUST confirm that one take answers.
+Check 1.2: An auditor MUST confirm that the other take waits.
+Check 2.1: An auditor MUST confirm that a release frees the key.
+\`\`\`
+
+### External checks
+
+\`\`\`text
+External check 1: An auditor MUST confirm by code inspection that nothing reads a clock.
+\`\`\`
+
+## Terms
+`;
+
+test("extractGA reads GRACE lang check labels, one check per number", () => {
+  const checks = extractGA(GRACE, "Lease");
+  assert.deepEqual(checks.map((c) => c.ga_ref), ["Lease Check 1", "Lease Check 2", "Lease External check 1"]);
+  assert.equal(checks[0].claim, "An auditor MUST confirm that one take answers.");
+  assert.deepEqual(checks.map((c) => c.kind), ["record-clearable", "record-clearable", "externally-clearable"]);
+  assert.equal(checks[2].kind_source, "label");
+});

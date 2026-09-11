@@ -155,7 +155,7 @@ Storage failure path: the user calls `add("walk dog")` and Event Log's `append` 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this composition does not cover:
 

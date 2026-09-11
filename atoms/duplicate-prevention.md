@@ -129,7 +129,7 @@ The mechanic is identical across all four. What differs: the [Window Duration], 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this pattern does not cover:
 

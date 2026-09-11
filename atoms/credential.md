@@ -41,7 +41,7 @@ Two credential records for the same principal of the same type have different id
 
 The opaque-id model matters here for the same reason it matters in other atoms: identifying a credential by `(principal_ref, credential_type)` would conflate the rotation history into a single mutable record, losing the auditability the library's invariants require. Separate records with separate ids preserve the one-credential-one-record discipline that makes rotation-chain reconstruction tractable.
 
-### Inputs and Outputs
+### Inputs
 
 **Actions:** The current clock reading [Now] (the pipeline's `clock_t`) is **not** an action parameter. It is injected by the pipeline at the I/O seam — supplied to the contract, not passed by the caller and not read inside any transition — and the contract makes it available to the action's pure guards and to its write-time timestamp stamps. [Now] is consumed for two clearly separated purposes: stamping immutable timestamps on a write (execution time), and evaluating the pure expiry/effective-Active derivation in a guard (no write). Because it arrives at the seam rather than through the signature, it does not appear in the action parameter lists below. See the Logic-confinement note in Decision points.
 
@@ -70,7 +70,7 @@ There is **no `expire` action**. A lapsed credential needs no write to be shown 
 
 - [Read] — (Projected contract: `read(filter) → records`) — each returned record carries its stored fields plus a derived **[Effective Status]**: [Expired] when [Status] = [Active] ∧ [Now] ≥ [Expires At] (and [Expires At] is non-null), otherwise the stored [Status]. [Effective Status] is a pure projection over the record and the injected [Now] (supplied at the read seam, not a [Read] parameter); it is never stored.
 
-**Outputs:**
+### Outputs
 
 - The current set of credential records. For each: [Credential Id], [Principal Ref], [Credential Type], [Status] (the **stored** status: [Active], [Rotated], or [Revoked]), [Registered At], [Expires At] (nullable), [Rotated At] (nullable), [Successor Credential Id] (nullable), [Revoked At] (nullable), [Revoked By Ref] (nullable), [Revocation Reason] (nullable), and the derived [Effective Status] (the stored [Status], except [Expired] when [Status] = [Active] ∧ [Expires At] is non-null ∧ [Now] ≥ [Expires At]). The stored [Verifier] is not exposed in outputs — it is an internal artifact. There is **no `expired_at` field**: expiry is derived at read time, never written.
 - [Register] returns a new [Credential Id] on success, or a rejection naming the failed precondition.
@@ -131,7 +131,7 @@ Each credential record carries:
 
 ### Decision points
 
-**Logic confinement (clock and id).** The clock and the id are **injected at the I/O seam, not signature parameters**, and are never produced inside a transition. [Now] (`clock_t`) is read once by the pipeline and made available to the action *at the seam* — the contract supplies it to the action's guards and write-time stamps without threading it through the action's parameter list, exactly as the pipeline supplies the [Credential Id]'s injected `id_t`. (This is the corpus convention: `clock_t` and `id_t` are pipeline-implicit, injected by the contract at the seam, not enumerated arguments.) A guard's expiry/effective-Active test is a **pure function of the stored record and the injected [Now]** — `is_effective_active(record, now) ≜ record.status = Active ∧ (record.expires_at = null ∨ now < record.expires_at)` — and it **writes nothing**. The only clock *writes* are the immutable timestamp stamps inside a committed transition ([Registered At], [Rotated At], [Revoked At]), each set from the same injected [Now]. Expiry itself never writes; it is surfaced only by the [Effective Status] projection and by the `is_effective_active` guard. Per the Logic Confinement Principle ([`execution-contract.md`](../execution-contract.md)), the core transition never reads a wall clock internally, so each transition is a pure function of (record state, inputs, and the seam-injected [Now]).
+**Logic confinement.** The clock and the id are **injected at the I/O seam, not signature parameters**, and are never produced inside a transition. [Now] (`clock_t`) is read once by the pipeline and made available to the action *at the seam* — the contract supplies it to the action's guards and write-time stamps without threading it through the action's parameter list, exactly as the pipeline supplies the [Credential Id]'s injected `id_t`. (This is the corpus convention: `clock_t` and `id_t` are pipeline-implicit, injected by the contract at the seam, not enumerated arguments.) A guard's expiry/effective-Active test is a **pure function of the stored record and the injected [Now]** — `is_effective_active(record, now) ≜ record.status = Active ∧ (record.expires_at = null ∨ now < record.expires_at)` — and it **writes nothing**. The only clock *writes* are the immutable timestamp stamps inside a committed transition ([Registered At], [Rotated At], [Revoked At]), each set from the same injected [Now]. Expiry itself never writes; it is surfaced only by the [Effective Status] projection and by the `is_effective_active` guard. Per the Logic Confinement Principle ([`execution-contract.md`](../execution-contract.md)), the core transition never reads a wall clock internally, so each transition is a pure function of (record state, inputs, and the seam-injected [Now]).
 
 **At `register(principal_ref, credential_material, credential_type, expires_at?)`:**
 - [Principal Ref], [Credential Material], and [Credential Type] must be non-null and non-empty; otherwise [Invalid Request].
@@ -263,7 +263,7 @@ Three scenarios the atom must survive in regulated contexts:
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this atom does not cover:
 

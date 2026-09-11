@@ -101,7 +101,7 @@ Step-level decisions ([Approve Step], [Reject Step], [Withdraw Step]) are *not* 
 
 The vocabulary is deployment-configurable. A deployment that distinguishes "read your own chains" from "read any chain" introduces finer-grained scopes (`chains:read:own`, `chains:read:any`) and adjusts the wiring accordingly; the canonical vocabulary above is the minimum useful set.
 
-### Logic confinement (clock and id)
+### Logic confinement
 
 The clock is an **injected input at the composition's single I/O seam**, never read inside a guard or a transition and never threaded through a caller signature. Per the Logic Confinement Principle ([`execution-contract.md`](../execution-contract.md)), the host reads the clock once per invocation and injects `now` (`clock_t`) at the seam before the orchestration runs; the quorum evaluation and every chain-state transition are pure functions of the stored records plus that injected `now`. Because the clock enters at the seam rather than as a parameter, the action signatures below carry **no** `now` argument — the same discipline Retention Window pins for `place_under_retention` / `purge`. (Approval Step differs: its actions expose optional timestamp parameters — `submitted_at?` on `submit`, `decided_at?` / `withdrawn_at?` on the decisions — wall-clock-defaulted at its own seam when omitted. This composition omits them, so each step's timestamp is stamped at Approval Step's seam.)
 
@@ -396,7 +396,7 @@ The seven checks above cover the composition-level invariants the composition en
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this composition does not cover:
 

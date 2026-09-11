@@ -208,7 +208,7 @@ Replay step 3 with a realistic engine. `advance(s1)` appends `step_attempted(cha
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this composition does not cover:
 

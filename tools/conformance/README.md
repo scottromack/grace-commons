@@ -127,10 +127,13 @@ mechanically. It parses each composition's `## Generation acceptance` section
 and pulls out the spec-**intrinsic** fields, which the spec decides, not the
 author:
 
-- `claim` — the verbatim bold lead of each GA check,
+- `claim` — the verbatim bold lead of each GA check; in a spec written in
+  GRACE lang, the first rule of each check (`Check 3.1: …`),
 - `kind` — inferred from the GA section's own subsection headers and language
-  ("Externally-clearable checks", "requires code inspection", …),
-- `ga_ref` — the check's position in the section.
+  ("External checks", "requires code inspection", …); an `External check`
+  label is externally-clearable by its name,
+- `ga_ref` — the check's position in the section, or its label (`Check 3`,
+  `External check 2`).
 
 It **cannot** derive the render-**specific** fields (`render_scope`, `severity`,
 `scope_note`, `adapter_capability`) — those depend on what a given render

@@ -357,7 +357,7 @@ The binding bijection is what makes "every disclosure is accounted" a checkable 
 
 A derived implementation of Immutable Transaction Ledger with Selective Disclosure is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state (`disclosure_to_event`) plus the Selective Disclosure store and the Audit Trail substrate stores, can do all of the following without recourse to source code, runbooks, or developer narration.
 
-### Audit-Trail-traversal-clearable checks
+### Record checks
 
 These checks are answerable by reading the composition's records (including the Audit Trail substrate). Every "every `ledger.disclosed` event" or "every `ledger.entry` event" below is obtained by the declared route — the open-upper-bound sequence-range read with the `action_ref` selection made composition-side (*Composes*) — never by asking the substrate for a query it routes to Reverse Index:
 
@@ -379,7 +379,7 @@ These checks are answerable by reading the composition's records (including the 
 
 6. **Constituent Generation acceptance bars.** Verify each constituent's own Generation acceptance bar over its respective store: Selective Disclosure's six checks (record completeness, field completeness, immutability, authority-type enforcement, subject-history queryability, temporal soundness) and Audit Trail's six checks (all four audit questions answerable, all eight composition-level invariants verifiable, each constituent atom's bar satisfied, forensic window boundable, honest destruction distinguishable, composing patterns identifiable). The composition's invariants depend on the correctness of the constituents'. Invariant 5 is the contract.
 
-### Externally-clearable checks
+### External checks
 
 These audit questions arise around this composition but cannot be answered from the composition's records alone:
 
@@ -399,7 +399,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **This composition does not authorize disclosures — Consent / Permissions is the authorization peer.** This composition records and proves that a disclosure occurred and was accounted; it does not decide *whether* the disclosure was permitted. The authorization gate — may this actor disclose this subset to this recipient under this basis? — is a composing [Consent](../atoms/consent.md) / [Permissions](../atoms/permissions.md) concept, run *before* [Disclose Subset]. This composition's `authority` field records the asserted basis and makes the assertion immutable and attributable; validating that the basis was genuinely in force is the authorization peer's obligation (see the externally-clearable checks). A deployment composing this composition + Consent/Permissions gets both the gate (may I?) and the accountable, verifiable record (I did, here is the proof).
 

@@ -4,14 +4,14 @@
 Reads a spec's normative surface the way §2 and §17 of the grammar say a parser
 must — a fenced ```text block classified by its first line, `Terms ›`
 declarations — and reports what a form-reader can decide without semantics:
-fence classification (S17, S17a) and signature blocks (S17b), unlabelled lines (I1, U3), label uniqueness
-and tombstone reuse (I25, I27), the rule form and the statement shapes (R1, R2,
-R6, I2, I3), WHEN blocks (W3, I7), mixed AND/OR and OR outside a condition (I8,
-I9), BEFORE and AFTER outside their admitted places (I10–I12), the banned
-words (B10, B11), arithmetic in a rule (I24), pronouns (I5), the copula after
-a modal (C7, C12), the record verb after the modal against the declared
-vocabulary (C7), a declared term nothing uses, and a cross-rule reference to a
-label no rule carries (I13).
+fence classification (Surface 18, Surface 19) and signature blocks (Surface 20), unlabelled lines (Hard invariant 1, Sugar 3), label uniqueness
+and tombstone reuse (Hard invariant 25, Hard invariant 27), the rule form and the statement shapes (Rule shape 1, Rule shape 2,
+Rule shape 6, Hard invariant 2, Hard invariant 3), WHEN blocks (WHEN block 3, Hard invariant 6), mixed AND/OR and OR outside a condition (Hard invariant 7,
+Hard invariant 8), BEFORE and AFTER outside their admitted places (Hard invariant 9–11), the banned
+words (Timing 10, Timing 11), arithmetic in a rule (Hard invariant 24), pronouns (Hard invariant 4), the copula after
+a modal (Closed vocabulary 8, Closed vocabulary 14), the record verb after the modal against the declared
+vocabulary (Closed vocabulary 8), a declared term nothing uses, and a cross-rule reference to a
+label no rule carries (Hard invariant 12).
 
 Standard library only. `python3 tools/grace/check.py [paths...]`; with no path
 it reads GRACE-lang.md and every file under atoms/ and compositions/ that
@@ -19,8 +19,8 @@ carries a ```text fence. Prints one finding per line, `path:line: [CODE] message
 Non-gating by default: exits 0 whatever it finds; `--gate` exits 1 on any
 finding that is not advisory (the W- codes).
 
-What it does not do: resolve every identifier (C3), parse value sets against
-conditions (I14), or normalize (§16). Those need the parser this is the
+What it does not do: resolve every identifier (Closed vocabulary 4), parse value sets against
+conditions (Hard invariant 14), or normalize (§16). Those need the parser this is the
 forerunner of.
 """
 from __future__ import annotations
@@ -30,12 +30,13 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-LABEL = re.compile(r"^([A-Z]{1,3}\d+[a-z]?\d?):\s*(.*)$")
+LABEL = re.compile(r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?):\s*(.*)$")
+LABEL_PARTS = re.compile(r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 PREFIX = re.compile(r"^(WHY|NOTE|UX|PROVISIONAL):")
 FENCE = re.compile(r"^(\s*)```(\w*)\s*$")
 TERM_DECL = re.compile(r"^\s*Terms › `([^`]+)`:\s*(.*)$")
 MODAL = re.compile(r"\b(MUST NOT|MUST|MAY)\b")
-TOMBSTONE = re.compile(r"^NOTE:\s*([A-Z]{1,3}\d+[a-z]?\d?)\s+deleted\b")
+TOMBSTONE = re.compile(r"^NOTE:\s*((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?)\s+deleted\b")
 PRONOUN = re.compile(r"\b(it|its|itself|they|their|them|he|she|his|her)\b")
 ARITH = re.compile(r"[+×−]|\s-\s")
 MARKER = re.compile(r"\[([^\]\[]+)\]")
@@ -60,6 +61,28 @@ class Finding:
     line: int
     code: str
     message: str
+
+
+def _words(s: str) -> list[str]:
+    s = s.replace("`", " ").lower()
+    out = []
+    for w in re.split(r"[\s/=—–(),.:;*-]+", s):
+        w = w.strip("'’")
+        if not w:
+            continue
+        if w.endswith("ies") and len(w) > 4:
+            w = w[:-3] + "y"
+        elif w.endswith("s") and len(w) > 3 and not w.endswith("ss"):
+            w = w[:-1]
+        out.append(w)
+    return out
+
+
+def _matches(word: str, heading_words: list[str]) -> bool:
+    for h in heading_words:
+        if word == h or (min(len(word), len(h)) >= 4 and (h.startswith(word) or word.startswith(h))):
+            return True
+    return False
 
 
 def declared_verbs(text: str) -> set[str] | None:
@@ -91,15 +114,46 @@ def scan(path: Path) -> list[Finding]:
     def add(line: int, code: str, msg: str) -> None:
         findings.append(Finding(path, line, code, msg))
 
+    ctx = {"h2": "", "h3": "", "h4": "", "bullet": "", "italic": "", "inv": None, "step": None}
+
+    def track(ln: str) -> None:
+        hm = re.match(r"^(#{2,4}) (.*)$", ln)
+        if hm:
+            lvl = len(hm.group(1))
+            if lvl == 2:
+                ctx.update(h2=hm.group(2), h3="", h4="")
+            elif lvl == 3:
+                ctx.update(h3=hm.group(2), h4="")
+            else:
+                ctx["h4"] = hm.group(2)
+            ctx.update(bullet="", italic="", inv=None, step=None)
+            return
+        im = re.match(r"^\s*- \*\*Invariant (\d+) —(.*)", ln)
+        if im:
+            ctx.update(inv=im.group(1), bullet="Invariant " + im.group(2), step=None)
+            return
+        bm = re.match(r"^- \*\*([^*]+)\*\*", ln)
+        if bm and not bm.group(1).startswith("["):
+            ctx.update(bullet=bm.group(1), italic="", inv=None, step=None)
+            return
+        sm = re.match(r"^\s*(\d+)\. \*\*", ln) or re.match(r"^\s*\*\*Step ([\d½]+)", ln)
+        if sm:
+            ctx["step"] = sm.group(1)
+            return
+        it = re.match(r"^\*([A-Z][^*]*?)\*", ln)
+        if it:
+            ctx["italic"] = it.group(1)
+
     i = 0
     n = len(lines)
     while i < n:
         m = FENCE.match(lines[i])
         if not m:
+            track(lines[i])
             i += 1
             continue
         if m.group(2) != "text":
-            # S17b/S17c: a bare fence opening with a signature line is a signature block; any other fence is nothing
+            # Surface 20/Surface 21: a bare fence opening with a signature line is a signature block; any other fence is nothing
             k = i + 1
             while k < n and not lines[k].strip():
                 k += 1
@@ -122,12 +176,12 @@ def scan(path: Path) -> list[Finding]:
         while j < n and not (FENCE.match(lines[j]) and FENCE.match(lines[j]).group(2) == ""):
             j += 1
         block = lines[start:j]
-        # S17: classify by the first non-blank line
+        # Surface 18: classify by the first non-blank line
         first = next((b.strip() for b in block if b.strip()), "")
         if not first:
             add(start, "F-fence-empty", "empty ```text fence")
         elif PREFIX.match(first):
-            # S18: the prefix covers the whole block — not normative; labels inside are exemplars
+            # Surface 22: the prefix covers the whole block — not normative; labels inside are exemplars
             for raw in block:
                 lm = LABEL.match(raw.strip())
                 if lm:
@@ -146,12 +200,26 @@ def scan(path: Path) -> list[Finding]:
                         if lab in tombstones:
                             add(k, "L-dup-tombstone", f"{lab} tombstoned twice")
                         tombstones[lab] = k
-                    continue  # S18a: a later-line prefix covers that line alone
+                    continue  # Surface 23: a later-line prefix covers that line alone
                 lm = LABEL.match(s)
                 if not lm:
                     add(k, "F-unlabelled", f"unprefixed line in a normative block is not a rule: {s[:80]}")
                     continue
                 lab, body = lm.group(1), lm.group(2)
+                parts = LABEL_PARTS.match(lab)
+                if parts:
+                    name = parts.group("name")
+                    heading = " ".join(str(ctx[k] or "") for k in ("h2", "h3", "h4", "bullet", "italic"))
+                    hw = _words(heading)
+                    missing = [w for w in _words(name) if not _matches(w, hw)]
+                    if missing:
+                        add(k, "R-label-heading", f"{lab}: the label's name is not the heading it sits under ({', '.join(missing)}) (Rule shape 7)")
+                    if any(re.fullmatch(r"[A-Z]{2,3}", w) and w != "WHEN" for w in name.split()):
+                        add(k, "R-label-abbrev", f"{lab}: an abbreviation in a label (Rule shape 8)")
+                    if parts.group("major") and name == "Invariant" and ctx["inv"] and parts.group("major") != ctx["inv"]:
+                        add(k, "R-label-heading", f"{lab}: sits under Invariant {ctx['inv']} (Rule shape 7)")
+                    if parts.group("step") and ctx["step"] and fence_indent > 0 and parts.group("step") != ctx["step"]:
+                        add(k, "R-label-heading", f"{lab}: sits under step {ctx['step']} (Rule shape 7)")
                 if lab in labels:
                     add(k, "L-dup-label", f"label {lab} already used at line {labels[lab]}")
                 labels[lab] = k
@@ -162,10 +230,10 @@ def scan(path: Path) -> list[Finding]:
                 rule = Rule(k, lab, body, indent, parent.label if parent else None)
                 rules.append(rule)
                 if parent:
-                    if not re.match(r"^" + re.escape(parent.label) + r"[a-z]\d?$", lab):
+                    if not re.match(r"^" + re.escape(parent.label) + r"[a-z]$", lab):
                         add(k, "R-child-label", f"child of {parent.label} carries label {lab}")
                     if body.startswith("WHEN "):
-                        add(k, "R-nested-when", f"{lab}: a WHEN block inside a WHEN block (I7)")
+                        add(k, "R-nested-when", f"{lab}: a WHEN block inside a WHEN block (Hard invariant 6)")
                 if body.startswith("WHEN "):
                     stack.append(rule)
             # WHEN with no children
@@ -173,25 +241,25 @@ def scan(path: Path) -> list[Finding]:
                 if r.line >= start and r.text.startswith("WHEN ") and not any(x.parent == r.label for x in rules):
                     add(r.line, "R-when-empty", f"{r.label}: WHEN block with no child rule")
         else:
-            add(start, "F-fence-first", f"fenced block's first line is neither a labelled rule nor a surface prefix (S17a): {first[:80]}")
+            add(start, "F-fence-first", f"fenced block's first line is neither a labelled rule nor a surface prefix (Surface 19): {first[:80]}")
         i = j + 1
 
-    # tombstone reuse (I25, I27)
+    # tombstone reuse (Hard invariant 25, Hard invariant 27)
     for lab, k in tombstones.items():
         if lab in labels:
-            add(labels[lab], "L-tombstone-reuse", f"{lab} is tombstoned at line {k} and used as a rule (I27)")
+            add(labels[lab], "L-tombstone-reuse", f"{lab} is tombstoned at line {k} and used as a rule (Hard invariant 27)")
 
     verbs = declared_verbs(text)
     for r in rules:
         body = CODE_SPAN.sub("QUOTED", r.text)  # a code span quotes text; never the rule's own tokens
         if body.startswith("PROVISIONAL:"):
-            continue  # S13: no normative force; not shape-checked
+            continue  # Surface 14: no normative force; not shape-checked
         if body.startswith("WHEN "):
             if not body.endswith(":"):
                 add(r.line, "R-when-colon", f"{r.label}: WHEN condition must end with a colon")
             cond = body[5:].rstrip(":")
             if " AND " in cond and " OR " in cond:
-                add(r.line, "V-mixed", f"{r.label}: AND and OR in one condition (I8)")
+                add(r.line, "V-mixed", f"{r.label}: AND and OR in one condition (Hard invariant 7)")
             continue
         stmt = body
         cond = ""
@@ -202,12 +270,12 @@ def scan(path: Path) -> list[Finding]:
                 continue
             cond, stmt = im.groups()
             if " AND " in cond and " OR " in cond:
-                add(r.line, "V-mixed", f"{r.label}: AND and OR in one condition (I8)")
+                add(r.line, "V-mixed", f"{r.label}: AND and OR in one condition (Hard invariant 7)")
         if " IS AUTHORITATIVE FOR " in stmt:
-            continue  # A1 shape; carries no modal (outside C7)
+            continue  # Authority 1 shape; carries no modal (outside Closed vocabulary 8)
         mm = MODAL.search(stmt)
         if not mm:
-            add(r.line, "R-no-modal", f"{r.label}: no modal and no IS AUTHORITATIVE FOR — a definitional sentence is a declaration (C12): {stmt[:80]}")
+            add(r.line, "R-no-modal", f"{r.label}: no modal and no IS AUTHORITATIVE FOR — a definitional sentence is a declaration (Closed vocabulary 14): {stmt[:80]}")
             continue
         obligation = stmt
         tail = re.search(r"\bONLY IF\b(.*)$", stmt)
@@ -215,27 +283,27 @@ def scan(path: Path) -> list[Finding]:
             obligation = stmt[: tail.start()]
             tcond = tail.group(1)
             if " AND " in tcond and " OR " in tcond:
-                add(r.line, "V-mixed", f"{r.label}: AND and OR in one condition (I8)")
+                add(r.line, "V-mixed", f"{r.label}: AND and OR in one condition (Hard invariant 7)")
         if re.search(r"\bOR\b", obligation) and "EXACTLY ONE OF" not in obligation:
-            add(r.line, "V-or-obligation", f"{r.label}: OR outside a condition (I9)")
+            add(r.line, "V-or-obligation", f"{r.label}: OR outside a condition (Hard invariant 8)")
         if re.search(r"\bor\b", obligation):
-            add(r.line, "W-or-word", f"{r.label}: 'or' inside an obligation — an enumeration the parser cannot read (V3)")
+            add(r.line, "W-or-word", f"{r.label}: 'or' inside an obligation — an enumeration the parser cannot read (Earned vocabulary 3)")
         if re.search(r"\bMUST (?!NOT\b)[^.]*\bBEFORE\b", stmt) or re.search(r"\bMAY\b[^.]*\bBEFORE\b", stmt):
-            add(r.line, "B-before", f"{r.label}: positive MUST/MAY … BEFORE (B6, I12)")
+            add(r.line, "B-before", f"{r.label}: positive MUST/MAY … BEFORE (Timing 6, Hard invariant 11)")
         if re.search(r"\bAFTER\b", stmt) and not re.search(r"\bONLY AFTER\b", stmt):
             if re.search(r"\bMUST NOT\b", stmt):
-                add(r.line, "B-after", f"{r.label}: AFTER under MUST NOT (B4)")
-            # under MUST / MAY it is the deterministic sugar (B2, B3)
+                add(r.line, "B-after", f"{r.label}: AFTER under MUST NOT (Timing 4)")
+            # under MUST / MAY it is the deterministic sugar (Timing 2, Timing 3)
         if re.search(r"\bAT LEAST\b|\bSTRICTLY\b", stmt):
-            add(r.line, "B-banned", f"{r.label}: AT LEAST / STRICTLY (B10, B11)")
+            add(r.line, "B-banned", f"{r.label}: AT LEAST / STRICTLY (Timing 10, Timing 11)")
         if re.search(r"\bMUST EXCEED\b|\bMAY EXCEED\b", stmt):
-            add(r.line, "B-exceed", f"{r.label}: ≥ is written MUST NOT EXCEED (B9)")
+            add(r.line, "B-exceed", f"{r.label}: ≥ is written MUST NOT EXCEED (Timing 9)")
         if ARITH.search(stmt) or ARITH.search(cond):
-            add(r.line, "A-arith", f"{r.label}: arithmetic in a rule; name a term (I24, C8)")
+            add(r.line, "A-arith", f"{r.label}: arithmetic in a rule; name a term (Hard invariant 24, Closed vocabulary 9)")
         if PRONOUN.search(stmt) or PRONOUN.search(cond):
-            add(r.line, "P-pronoun", f"{r.label}: pronoun in a rule (I5)")
+            add(r.line, "P-pronoun", f"{r.label}: pronoun in a rule (Hard invariant 4)")
         if re.search(r"\b(MUST NOT|MUST|MAY)\s+(be|is|are|been|being)\b", stmt):
-            add(r.line, "C-copula", f"{r.label}: copula after the modal — no declared record verb (C7)")
+            add(r.line, "C-copula", f"{r.label}: copula after the modal — no declared record verb (Closed vocabulary 8)")
         if re.search(r"\b(until|while|unless)\b", stmt) or re.search(r"\b(after|before)\b", stmt):
             add(r.line, "W-watch-word", f"{r.label}: lower-case after/before/until/while/unless — an ordering or duration the tails do not carry (§18 watch list)")
         if verbs is not None:
@@ -244,41 +312,45 @@ def scan(path: Path) -> list[Finding]:
                 if v in RESERVED_VERBS or v.startswith("("):
                     continue
                 if v not in verbs:
-                    add(r.line, "C-verb", f"{r.label}: '{v}' after the modal is not a declared record verb (C7)")
+                    add(r.line, "C-verb", f"{r.label}: '{v}' after the modal is not a declared record verb (Closed vocabulary 8)")
         # a [Marker] that is not a term card — a bracket range read as a marker
         for mk in MARKER.findall(stmt):
             if not re.match(r"^[A-Z][A-Za-z ]+$", mk):
                 add(r.line, "F-bracket", f"{r.label}: '[{mk}]' in a rule reads as a term marker; write the range in a term")
 
-    # a NOTE declaring labels never used reserves them like a tombstone (a gap is not a deletion)
-    reserved: set[str] = set()
-    for raw in lines:
-        s = raw.strip()
-        if s.startswith("NOTE:") and re.search(r"\bnever (?:used|carried)\b", s):
-            for a, b in re.findall(r"\b([A-Z]{1,3}\d+)(?:–([A-Z]{1,3}\d+))?\b", s):
-                if b:
-                    fa, na = re.match(r"([A-Z]+)(\d+)", a).groups()
-                    fb, nb = re.match(r"([A-Z]+)(\d+)", b).groups()
-                    if fa == fb:
-                        reserved.update(f"{fa}{k}" for k in range(int(na), int(nb) + 1))
-                reserved.add(a)
-    # cross-rule references to labels no rule carries (I13) — families present in this file only
-    families = {re.match(r"^[A-Z]+", lab).group(0) for lab in list(labels) + list(tombstones)}
-    if families:
-        fam_re = re.compile(r"\b(" + "|".join(sorted(families, key=len, reverse=True)) + r")(\d+[a-z]?\d?)\b")
+    # cross-rule references to labels no rule carries (Hard invariant 12) — names used by this spec's labels only
+    names: set[str] = set()
+    groups: set[str] = set()
+    for lab in list(labels) + list(tombstones):
+        parts = LABEL_PARTS.match(lab)
+        if not parts:
+            continue
+        names.add(parts.group("name"))
+        if parts.group("major"):
+            groups.add(f"{parts.group('name')} {parts.group('major')}")
+        if parts.group("step"):
+            groups.add(f"{parts.group('name')} step {parts.group('step')}")
+    if names:
+        name_re = re.compile(r"(?<![\w-])(" + "|".join(re.escape(x) for x in sorted(names, key=len, reverse=True)) +
+                             r")( step [\d½]+(?:\.\d+[a-z]?)?| \d+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
         seen: set[str] = set()
         for k, raw in enumerate(lines, start=1):
-            # skip code spans and fenced non-text? references count everywhere; the labels are the same namespace
-            for fm in fam_re.finditer(raw):
-                lab = fm.group(1) + fm.group(2)
-                if lab in labels or lab in tombstones or lab in exemplars or lab in reserved or lab in seen:
+            if TERM_DECL.match(raw):
+                continue
+            for fm in name_re.finditer(raw):
+                ref = fm.group(1) + fm.group(2)
+                before = raw[:fm.start()]
+                if re.search(r"[A-Z][\w'’]*\s$", before) and fm.group(1) in ("Invariant", "Check"):
+                    continue  # another spec's invariant or check, cited by the corpus form
+                if ref in labels or ref in tombstones or ref in exemplars or ref in groups or ref in seen:
                     continue
-                # ranges like RA25–RA47 are two labels; both are matched separately
-                seen.add(lab)
-                add(k, "X-ref", f"reference to {lab}, which no rule in this spec carries (I13)")
+                seen.add(ref)
+                add(k, "X-ref", f"reference to {ref}, which no rule in this spec carries (Hard invariant 12)")
 
     # declared terms nothing uses (advisory)
     for name, k in declared_terms(text).items():
+        if name in {"actors", "records", "record verbs", "cited", "value sets", "bounds", "cadences", "qualifiers", "terms", "composing patterns"}:
+            continue  # the vocabulary's own categories (Closed vocabulary 1, Closed vocabulary 2)
         pat = re.escape(name)
         uses = len(re.findall(pat, text))
         if uses <= 1:

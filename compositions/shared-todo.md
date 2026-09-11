@@ -177,7 +177,7 @@ The accountability record is complete at the responsibility level: which nurse h
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 What this composition does not cover:
 

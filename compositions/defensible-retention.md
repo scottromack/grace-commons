@@ -89,7 +89,7 @@ The composition takes string-typed inputs at its action boundaries; each is vali
 
 No primitive is case-sensitivity-normalized at the composition layer; deployments wanting normalization wire it at the calling layer before invoking composition actions.
 
-### Logic confinement (clock and id)
+### Logic confinement
 
 The clock is an **injected input at the composition's single I/O (input/output) seam**, never read inside a guard or a transition and never threaded through a caller signature. Per the Logic Confinement Principle ([`execution-contract.md`](../execution-contract.md)), the host reads the clock once per invocation and injects `now` (`clock_t`) at the seam before the orchestration runs; the composition's actions are pure functions of their inputs plus that injected `now`. Because the clock enters at the seam rather than as a parameter, the action signatures below carry **no** `now` argument — the same discipline Retention Window pins for `place_under_retention` / `purge`.
 
@@ -268,7 +268,7 @@ During an incident investigation, the team suspects a held record was purged out
 
 A derived implementation of Defensible Retention is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state plus the three constituent stores, can do all of the following without recourse to source code, runbooks, or developer narration.
 
-### Audit-Trail-traversal-clearable checks
+### Record checks
 
 These checks require reading the Audit Trail substrate (part of the composition's records) in addition to the Legal Hold and Retention Window stores:
 
@@ -286,7 +286,7 @@ These checks require reading the Audit Trail substrate (part of the composition'
 
 7. **Constituent Generation acceptance bars.** Verify each constituent's own Generation acceptance bar over its respective store instance: Legal Hold's six checks, Retention Window's six checks, Audit Trail's eight checks (the count that composition's own Generation acceptance declares). The composition's invariants depend on the correctness of the constituents' invariants.
 
-### Externally-clearable checks
+### External checks
 
 These audit questions arise around this composition but cannot be answered from the composition's records alone:
 
@@ -297,7 +297,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ---
 
-## Edge cases and explicit non-goals
+## Non-goals and edge cases
 
 - **Multi-jurisdiction policy reconciliation.** When HIPAA, state law, SOX, and GDPR all apply to one record, selecting the governing retention policy belongs to a Policy Reconciliation composing pattern. This composition takes the reconciled `policy_ref` as input; it does not adjudicate competing obligations.
 
