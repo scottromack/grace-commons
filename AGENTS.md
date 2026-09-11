@@ -97,9 +97,9 @@ The only prompt-shaped content that belongs in the repo is methodology — the t
 
 ---
 
-## Cowork sandbox notes (environment-specific — not Grace Commons content)
+## Sandbox notes (environment-specific — not Grace Commons content)
 
-Operational quirks of running this repo inside the Cowork Linux sandbox. These are environment facts, not canonical content, and do not apply to a local machine / Claude Code. Recorded so a session need not rediscover them.
+Operational quirks of running this repo from a sandboxed or bridged session. These are environment facts, not canonical content, and do not apply to a local machine / Claude Code. Recorded so a session need not rediscover them. Two shapes exist, and they differ: the **Cowork Linux sandbox** (the repo mounted into the agent's own filesystem) and a **bridged cloud session** (the agent runs in a cloud container, the repo stays on the user's machine and is reached through a device shell). The notes below are marked where they diverge.
 
 - **The formal harness needs Java 17, and the bootstrap must finish.** `node tools/harness/audit.mjs` checks `.tla` models with a bundled WASM checker (works out of the box) and `.als` (Alloy) models with `tools/alloy/alloy.jar`, which needs **Java 17** — the sandbox's system Java is 11, too old for Alloy 6. `tools/harness/bootstrap.sh` installs a JRE 17 to `/tmp/javajre` via npm; the unpack is large and **overruns a ~45-second command window**, and if it is cut off it leaves `jre/` without `lib/` (no `libjli.so`), so *every* `.als` fails with `libjli.so: cannot open shared object file` while `.tla` still passes. Fix: re-run the install until `/tmp/javajre/node_modules/javajre-linux-64/jre/lib/libjli.so` exists (it finishes even when the foreground call times out). Each Alloy model takes ~5–40s, so the full 74-model audit will not complete in one window — run `.als` in small batches.
 
@@ -107,4 +107,9 @@ Operational quirks of running this repo inside the Cowork Linux sandbox. These a
 
 - **The mount blocks `unlink`.** `rm`, `git rm`, and any delete fail with *Operation not permitted* until the cowork delete-permission tool (`allow_cowork_file_delete`) is invoked once for the folder. Do **not** try to move a stuck `.git/index.lock` aside — `rename` "works" but only produces a second orphan you also can't remove, and it does not clear the real `.git/index.lock` (git just recreates it on the next index-touching call). The fix is to not create the lock at all (`--no-optional-locks`, above); if one already exists, clear it with `allow_cowork_file_delete` or have the user `rm` it locally. Separately, every `sed -i` / `perl -i` leaves a `.fuse_hiddenXXXX` orphan of the pre-edit file (these get swept into `git add -A` and corrupt rename detection — delete them before staging). `git mv` (rename) is unaffected.
 
-- **~45 seconds per command, and background work does not reliably survive between calls.** Chunk long operations (npm installs, the full audit) rather than backgrounding them.
+- **~45 seconds per command, and background work does not reliably survive between calls.** Chunk long operations (npm installs, the full audit) rather than backgrounding them. *(Bridged session: the device shell allows longer — currently ~180 seconds — and each call is a fresh shell, so no working directory, variable or background job survives between calls. The full linter and the surface checker each finish inside one call; the conformance suite needs file globs, not directory arguments, under Node 22: `node --test tests/*.test.mjs ghost/tests/*.test.mjs`.)*
+
+- **Bridged session: the repo is on the user's machine, and the cloud container is a different filesystem.** Work in the device shell, in place. Copying a spec into the cloud container to edit it and copying it back is how two versions of one file come to exist, and the user's own edits get overwritten by the stale copy. Cross the seam only for something the device cannot do — reading an image or a PDF page, a library that will not install there — and write the result straight back beside its source.
+
+- **Bridged session: `git` writes locks the mount cannot always clean up, and the rule above still applies.** `--no-optional-locks` on every call. Delete permission for the repo folder can be requested once per session (the remote-devices delete-permission tool), after which `rm -f .git/index.lock .git/HEAD.lock` works — but the lock is best not created.
+

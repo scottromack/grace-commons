@@ -22,6 +22,7 @@ Identity 1: The atom MUST identify a lease by the pair (key, holder).
 Identity 2: The atom MUST compare keys by byte identity.
 Identity 3: The atom MUST NOT normalize a key.
 Identity 4: The atom MUST compare holders by byte identity.
+Identity 5: The atom MUST NOT identify a grant across terms.
 ```
 
 Terms › `key`: the opaque value a lease protects — a [Key]; two keys that differ by a byte are two leases.
@@ -29,7 +30,7 @@ Terms › `key`: the opaque value a lease protects — a [Key]; two keys that di
 Terms › `holder`: the opaque value naming who holds — a [Holder]; a party, not a process.
 
 WHY:
-A holder that restarts and resumes is the same holder only if the pattern gives it the same holder value; a pattern that mints a fresh value per attempt has said that a restart is a different party. Both are legitimate and the choice is the pattern's. The pair matters because [Remaining] and [Release] answer against it (Invariant 5.1): a party that has lost standing finds out from the host, and neither answer is an error.
+Take, release, take again on one pair is two grants under one name, told apart by expires_at and by nothing else; a pattern that must prove which grant it held records the grant (Identity 5, Non-goal 9). A holder that restarts and resumes is the same holder only if the pattern gives it the same holder value; a pattern that mints a fresh value per attempt has said that a restart is a different party. Both are legitimate and the choice is the pattern's. The pair matters because [Remaining] and [Release] answer against it (Invariant 5.1): a party that has lost standing finds out from the host, and neither answer is an error.
 
 ### State
 
@@ -97,13 +98,14 @@ Fence 6: The fenced party MUST compare the fence bare.
 Fence 7: The holder MUST NOT apply the allowance at the reading.
 Fence 8: A holder fencing more than one party MUST mint EVERY fence separately.
 Fence 9: A holder MUST NOT derive a second fence bare from a minted fence.
+Fence 10: A work item MUST NOT carry an effect instant.
 ```
 
 Terms › `fence`: an instant no later than the fence ceiling, handed to a third party as a deadline (a [Fence]) — refuse this holder's work if the work would take effect after this instant.
 
 Terms › `fence ceiling`: `expires_at − allowance`.
 
-Terms › `effect instant`: the instant a work item takes effect, read on the fenced party's own clock at the moment of judgement; never a property the work item carries.
+Terms › `effect instant`: the instant a work item takes effect, read on the fenced party's own clock at the moment of judgement.
 
 Terms › `allowance`: the declared cross-seam allowance between the granting host's clock and the judging party's clock; one allowance per fenced party.
 

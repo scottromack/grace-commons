@@ -59,11 +59,11 @@ Terms › `recorded set`: the identities under guard, each held with the identit
 
 Terms › `recorded_at`: the instant an identity was placed under guard, stamped from the injected `now` — a [Recorded At].
 
-Terms › `window`: the length a containing pattern chooses for a guard — a [Window Duration]; the value the elapsed term is measured against.
+Terms › `window duration`: the length a containing pattern chooses for a guard — a [Window Duration]; the value the elapsed term is measured against. The [Window] the length sizes is the interval, and carries no separate name in a rule.
 
 Terms › `elapsed term`: `now − recorded_at`.
 
-Terms › `under guard`: an identity in the recorded set whose elapsed term is less than `window` — the state [Check] answers `seen` for; the [Window] is the interval it names.
+Terms › `under guard`: an identity in the recorded set whose elapsed term is less than `window duration` — the state [Check] answers `seen` for.
 
 WHY:
 One set and one stamp per entry are the whole of the atom's storage, and *under guard* is derived at the moment of the question rather than stored. That is what lets a host implement the atom over a store offering nothing but a key with an expiry (State 2).
@@ -86,7 +86,7 @@ Operation 7: [Check] MUST answer not-seen for an identity that is not under guar
 Operation 8: The host MUST read the clock at the atom's seam.
 Operation 9: The transition MUST NOT read a clock.
 Operation 10: The business caller MUST NOT supply now.
-Operation 11: The containing pattern MUST supply window.
+Operation 11: The containing pattern MUST supply window duration.
 Operation 12: The containing pattern MUST own the response to an answer.
 ```
 
@@ -133,8 +133,8 @@ Both calls are total. The containing pattern has already acted when it records �
   ```
 - **Invariant 4 — Eventual expiry.**
   ```text
-  Invariant 4.1: IF the elapsed term EXCEEDS window THEN the host MUST drop the identity from the recorded set.
-  Invariant 4.2: IF the elapsed term EXCEEDS window THEN [Check] MUST answer not-seen.
+  Invariant 4.1: IF the elapsed term EXCEEDS window duration THEN the host MUST drop the identity from the recorded set.
+  Invariant 4.2: IF the elapsed term EXCEEDS window duration THEN [Check] MUST answer not-seen.
   ```
 
 ## Examples
@@ -244,13 +244,13 @@ Terms › `record verbs`: identify, treat, interpret, normalize, supply, hold, d
 
 Terms › `value sets`: check answers = seen | not-seen. record answers = ok. store policy = fail-open | fail-closed.
 
-Terms › `bounds`: `window` (the length a containing pattern chooses for a guard).
+Terms › `bounds`: `window duration` (the length a containing pattern chooses for a guard; `window` is the lowering token the [Window Duration] card carries).
 
 Terms › `cadences`: empty.
 
 Terms › `qualifiers`: `under guard` — recorded, and the guard's term not yet elapsed.
 
-Terms › `terms`: `identity`, `matching rule`, `recorded set`, `recorded_at`, `window`, `elapsed term`, `under guard`, `now`, `transition`, `seam`, `business caller`.
+Terms › `terms`: `identity`, `matching rule`, `recorded set`, `recorded_at`, `window duration`, `elapsed term`, `under guard`, `now`, `transition`, `seam`, `business caller`.
 
 #### Identity
 

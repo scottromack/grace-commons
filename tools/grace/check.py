@@ -44,7 +44,7 @@ CODE_SPAN = re.compile(r"`[^`]*`")
 SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
-            "K-check-bare"}
+            "K-check-bare", "S-action-unused"}
 # A declaration may carry arithmetic and comparison where a rule may not
 # (Closed vocabulary 9, Closed vocabulary 11) — which is where complexity
 # goes when a rule cannot hold it, and the one place nothing read it.
@@ -173,7 +173,10 @@ def scan(path: Path) -> list[Finding]:
                 body = " ".join(x.strip() for x in lines[k:end])
                 if "→" not in body:
                     add(k, "F-signature", f"signature block without a result arrow: {head[:60]}")
-                signatures.append((k, head.split("(")[0]))
+                # v0.35: one line per action, one or more lines per block
+                for off, sig in enumerate(lines[k:end]):
+                    if SIGNATURE.match(sig.strip()):
+                        signatures.append((k + off, sig.strip().split("(")[0]))
                 i = end + 1
                 continue
             i += 1
@@ -406,6 +409,21 @@ def scan(path: Path) -> list[Finding]:
                     add(k, "D-decl-unresolved",
                         f"Terms › `{name}` computes over `{ident}`, which this spec declares nowhere "
                         f"(Closed vocabulary 4)")
+
+    # an action the spec declares and no rule names (advisory): a signature
+    # block is a declaration, and a declaration nothing uses is a loose end
+    if signatures:
+        named = set()
+        for r in rules:
+            for m in MARKER.finditer(r.text):
+                named.add(m.group(1).strip().lower().replace(" ", "_"))
+            for m in re.finditer(r"\b([a-z_][a-z0-9_]*)\b", r.text):
+                named.add(m.group(1))
+        for k, action in signatures:
+            if action.strip() not in named:
+                add(k, "S-action-unused",
+                    f"`{action.strip()}` is declared in a signature block and no rule names it "
+                    f"(Closed vocabulary 20)")
 
     # a check that names no rule (advisory): the auditor is the last reader
     # nobody audits, and a check whose failure nobody can state passes forever

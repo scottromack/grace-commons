@@ -73,7 +73,7 @@ Reference examples: [`atoms/personal-todo.md`](./atoms/personal-todo.md) for the
 
 5. **Identity model.** What identifies an instance of the atom's primary record. State explicitly whether identity is an opaque system-generated id (the usual answer) and which fields are immutable properties set on the creating action. Never use a content field (description, name, reason) as identity. Identity model precision is the single most common Pass 3 finding when missing.
 
-6. **Inputs.** What the atom takes. For each input: the type, validity rules (empty allowed? whitespace? Unicode normalization? length cap?), and rejection-reason name if violated.
+6. **Inputs.** *(A spec rewritten in GRACE lang carries Inputs, Outputs, Flow, Decision points, Behavior and Feedback as rules under Structure — an identity model, a state declaration, a signature block and the operations' rules — and keeps the decision table beside them. The six prose sections were six paraphrases of one set of obligations, which is how a spec comes to disagree with itself; a rewritten spec states each obligation once. Adopted 2026-09-11.)* What the atom takes. For each input: the type, validity rules (empty allowed? whitespace? Unicode normalization? length cap?), and rejection-reason name if violated.
 
 7. **Outputs.** What the atom produces. For each output: the shape and which fields are present in which states.
 
