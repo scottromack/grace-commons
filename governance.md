@@ -61,6 +61,18 @@ This is the library applying its own [Tamper Evidence](./atoms/tamper-evidence.m
 
 ---
 
+## The language council
+
+The reviewers a GRACE lang draft is run past. An internal process of the corpus, kept out of the grammar on purpose (`GRACE-lang.md` v0.32 tombstoned its G9–G12): the grammar states what the language is; who reads a draft and how is decided here, and can change without a grammar release.
+
+- **Members to date:** Claude, Kimi, Gemini, GPT, GLM, Grok, Mistral — the AI seat of the ALL Council above.
+- **The chair:** the council is headed by a president, currently Claude, named by the maintainer; the maintainer — the human in charge of the corpus, Scott — is president of all. The chair carries the council's advice to the maintainer and holds no power over admission.
+- **Advisory, never admitting.** The council advises; the maintainer decides every admission to the grammar (`GRACE-lang.md` G13, under G2's test — recurrence and contested).
+- **Reads are cited like commits.** Every read gets an id and is cited by it in the grammar's changelog. To date: CR-1 Kimi on v0.28 and the Recoverable Invocation rewrite (2026-09-10); CR-2 Gemini on v0.28 (2026-09-11); CR-3 GPT on v0.28 (2026-09-11); CR-4 GLM on v0.29 (2026-09-11); CR-5 GLM on v0.30 (2026-09-11); CR-6 GLM on v0.31 (2026-09-11); CR-7 GLM on Recoverable Invocation as rewritten (2026-09-11) — two contradictions, one parse-blocking form (the signature block), a mechanical rewrite of about sixty rules, and a G2 docket; applied the same day, language only, [Resolve] read pending. New reads append here.
+- **What a read produces:** findings against the draft, each applied, declined with a reason, or routed to the watch list (`GRACE-lang.md` §18). A member's recusal on a finding about itself is recorded with the read.
+
+---
+
 ## Relationship to existing documents
 
 - [`pressure-testing.md`](./pressure-testing.md) — the authoring standard that feeds the Council's review gate.

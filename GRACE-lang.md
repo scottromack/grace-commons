@@ -1,4 +1,4 @@
-# GRACE lang v0.31 — Minimal Earned Grammar
+# GRACE lang v0.33 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -22,23 +22,20 @@ G4: The grammar MAY admit sugar.
 G5: The grammar MUST NOT admit inference.
 G6: Complexity MUST live in the number and arrangement of simple rules.
 G7: Complexity MUST NOT live in the grammar of one rule.
-G8: The maintainer MUST decide EVERY admission under G2.
-G9: The council MAY advise on admission.
-G10: The council MUST NOT admit a form.
-G11: The council MUST elect the council president.
-G12: The council president MUST carry the council's advice to the maintainer.
+NOTE: G8 deleted in v0.31; S4 owns the rule. The label was reused in v0.31 for the maintainer's decision and is retired in v0.32 (I27); that rule is G13.
+NOTE: G9 deleted in v0.32; the council is an internal process, governance.md §The language council.
+NOTE: G10 deleted in v0.32; governance.md §The language council.
+NOTE: G11 deleted in v0.32; governance.md §The language council.
+NOTE: G12 deleted in v0.32; governance.md §The language council.
+G13: The maintainer MUST decide EVERY admission under G2.
 ```
 
 Terms › `contested`: the concept's free-prose expression drifted, was read two ways, OR produced a finding.
 
-Terms › `maintainer`: the human in charge of the corpus — president of all; decides admission.
-
-Terms › `council`: the reviewers a draft is run past, headed by the council president; advisory; each read is cited in §23 the way a git commit is; members to date: Claude, Kimi, Gemini, GPT, GLM, Grok, Mistral.
-
-Terms › `council president`: elected by the council (G11); heads the council's read and carries the council's advice to the maintainer (G12); currently Claude.
+Terms › `maintainer`: the human in charge of the corpus; decides admission.
 
 WHY:
-The test is the concept, not the token: a token appears only after its form is admitted, so counting tokens is circular. Recurrence alone admits noise. Counts follow `pressure-testing.md` §*Measure the form, not the word*. S4 owns *states WHAT*; the former G8 was its mirror.
+The test is the concept, not the token: a token appears only after its form is admitted, so counting tokens is circular. Recurrence alone admits noise. Counts follow `pressure-testing.md` §*Measure the form, not the word*. S4 owns *states WHAT*; the former G8 was its mirror. The reviewers a draft is run past — the council — advise and never admit; who they are and how a read is cited is the corpus's internal process, kept out of the grammar (`governance.md` §*The language council*).
 
 ---
 
@@ -64,15 +61,21 @@ S13: A provisional form MUST NOT carry normative force.
 S14: The parser MUST ignore WHY:, UX:, NOTE: and PROVISIONAL: lines.
 S15: A system MUST obey EVERY normative line.
 S16: A system MUST NOT obey WHY:, UX: or NOTE:.
-S17: The parser MUST classify a fenced block by the block's first line: a labelled rule opens a normative block; a surface prefix opens that surface.
-S17a: The parser MUST reject a fenced block whose first line is neither a labelled rule nor a surface prefix.
+S17: The parser MUST classify a text fence by the block's first line: a labelled rule opens a normative block; a surface prefix opens that surface.
+S17a: The parser MUST reject a text fence whose first line is neither a labelled rule nor a surface prefix.
+S17b: The parser MUST read a signature block as a declaration.
+S17c: The parser MUST read a fenced block that is neither a text fence nor a signature block as the surface nothing.
 S18: A surface prefix on a block's first line MUST cover every line of the block.
 S18a: A surface prefix on a later line of a normative block MUST cover that line alone.
 S19: The parser MUST read a line outside every fenced block and outside a Terms › declaration as the surface nothing.
-S20: A system satisfies a MAY rule vacuously; a MAY rule obliges nothing.
+NOTE: S20 deleted in v0.32; Terms › MAY rule owns the sentence.
 ```
 
-Terms › `normative block`: a fenced text block of labelled rules, or a `Terms ›` declaration — a spec's whole normative surface (`spec-format.md` §*The normative surface*).
+Terms › `normative block`: a fenced text block of labelled rules, a `Terms ›` declaration, or a signature block — a spec's whole normative surface (`spec-format.md` §*The normative surface*).
+
+Terms › `text fence`: a fenced block whose info string is `text`.
+
+Terms › `signature block`: a fenced block with no info string whose first line is a signature line — `name(args) →` — followed by the result and the `rejected(…)` arms; the declaration of the action's outcomes, read as the value set the action's rules land on.
 
 Terms › `normative`: unprefixed Strict Caveman (§20) inside a normative block.
 
@@ -80,7 +83,9 @@ Terms › `run`: one execution of a system.
 
 Terms › `conformance failure`: a run that violates a rule.
 
-Terms › `obey`: a system obeys a rule when every run of the system satisfies the rule's obligation under the rule's condition; a run that does not is a conformance failure, decided from records by the spec's acceptance checks (Generation acceptance: `spec-format.md`); an inequality rule (B9) obliges the party that binds the terms.
+Terms › `obey`: a system obeys a rule when every run of the system satisfies the rule's obligation under the rule's condition; a run that does not is a conformance failure, decided from records by the spec's acceptance checks (Generation acceptance: `spec-format.md`); an inequality rule (B9) obliges the party that binds the terms; a rule whose subject is not an agent is a constraint on the writer.
+
+Terms › `MAY rule`: a rule under `MAY`; a system satisfies a MAY rule vacuously, and a MAY rule obliges nothing.
 
 ```text
 NOTE: a fragment, not a rule — no label, no actor, no modal; the tail alone:
@@ -177,10 +182,10 @@ Terms › `modal`: `MUST` | `MUST NOT` | `MAY`.
 Terms › `condition operator`: `=` | `!=` | `EXISTS` | `NOT EXISTS` | `EXCEEDS` | `AND` (flat) | `OR` (flat, inclusive).
 
 ```text
-V1: A condition MUST NOT mix AND and OR.
+V1: A condition MUST NOT mix `AND` and `OR`.
 V2: A writer MUST route a mixed condition through a declared term.
-V3: A rule MUST NOT carry OR in an obligation or between obligations.
-V4: A writer MUST write an exclusive choice as EXACTLY ONE OF.
+V3: A rule MUST NOT carry `OR` in an obligation or between obligations.
+V4: A writer MUST write an exclusive choice as `EXACTLY ONE OF`.
 V5: A condition MUST NOT nest.
 ```
 
@@ -207,18 +212,18 @@ NOTE:
 ### 8. Timing and Bounds
 
 ```text
-B1: A writer MUST write a positive lower-bound ordering as: actor MUST action ONLY AFTER term.
-B2: The parser MUST normalize actor MUST action AFTER term to actor MUST action ONLY AFTER term.
-B3: The parser MUST normalize actor MAY action AFTER term to actor MAY action ONLY AFTER term.
-B4: A writer MUST NOT write AFTER under MUST NOT.
-B5: A writer MUST write a forbidden-before ordering as: actor MUST NOT action BEFORE term.
-B6: A writer MUST NOT write positive MUST … BEFORE.
-B7: A writer MUST write a deadline as: IF measure EXCEEDS bound THEN actor MUST NOT action.
-B8: A writer MUST write a completion window as: actor MUST action WITHIN bound.
-B9: A writer MUST write ≥ as: term MUST NOT EXCEED term.
-B10: A writer MUST NOT write AT LEAST.
-B11: A writer MUST NOT write STRICTLY.
-B12: A writer MUST write a strict lower bound as: actor MAY action ONLY IF term EXCEEDS term.
+B1: A writer MUST write a positive lower-bound ordering as `actor MUST action ONLY AFTER term`.
+B2: The parser MUST normalize `actor MUST action AFTER term` to `actor MUST action ONLY AFTER term`.
+B3: The parser MUST normalize `actor MAY action AFTER term` to `actor MAY action ONLY AFTER term`.
+B4: A writer MUST NOT write `AFTER` under `MUST NOT`.
+B5: A writer MUST write a forbidden-before ordering as `actor MUST NOT action BEFORE term`.
+B6: A writer MUST NOT write positive `MUST … BEFORE`.
+B7: A writer MUST write a deadline as `IF measure EXCEEDS bound THEN actor MUST NOT action`.
+B8: A writer MUST write a completion window as `actor MUST action WITHIN bound`.
+B9: A writer MUST write ≥ as `term MUST NOT EXCEED term`.
+B10: A writer MUST NOT write `AT LEAST`.
+B11: A writer MUST NOT write `STRICTLY`.
+B12: A writer MUST write a strict lower bound as `actor MAY action ONLY IF term EXCEEDS term`.
 B13: A reader MUST NOT infer timing from rule order.
 ```
 
@@ -248,7 +253,7 @@ WHEN condition:
 ### 10. Authority
 
 ```text
-A1: A writer MUST write authority as: subject IS AUTHORITATIVE FOR proposition.
+A1: A writer MUST write authority as `subject IS AUTHORITATIVE FOR proposition`.
 A2: A synonym MUST NOT carry authority semantics.
 A3: Two specs MUST NOT claim authority for one proposition.
 A3a: The parser MUST treat two propositions as one proposition ONLY IF the propositions normalize identically (X3).
@@ -271,17 +276,17 @@ NOTE: I4 deleted in v0.28; §13 owns the rule.
 I5: The parser MUST reject a normative rule carrying a pronoun.
 I6: The parser MUST reject a normative sentence carrying two obligations.
 I7: The parser MUST reject a nested WHEN block.
-I8: The parser MUST reject a condition mixing AND and OR.
-I9: The parser MUST reject OR outside a condition or a term declaration.
-I10: The parser MUST reject BEFORE outside MUST NOT.
-I11: The parser MUST reject AFTER outside ONLY AFTER or the deterministic sugar.
-I12: The parser MUST reject a positive MUST-BEFORE ordering.
+I8: The parser MUST reject a condition mixing `AND` and `OR`.
+I9: The parser MUST reject `OR` outside a condition or a term declaration.
+I10: The parser MUST reject `BEFORE` outside `MUST NOT`.
+I11: The parser MUST reject `AFTER` outside `ONLY AFTER` or the deterministic sugar.
+I12: The parser MUST reject a positive `MUST … BEFORE` ordering.
 I13: The parser MUST resolve a cross-rule reference by label.
 I13a: The parser MUST reject a cross-rule reference by ordinal.
-I14: The parser MUST reject a value used with = or != that belongs to no declared closed value set.
+I14: The parser MUST reject a value used with `=` or `!=` that belongs to no declared closed value set.
 I15: The parser MUST NOT infer from rule order.
 I16: The parser MUST NOT infer from the absence of a rule.
-I17: The parser MUST NOT infer exclusivity among outcomes unless EXACTLY ONE OF states the exclusivity.
+I17: The parser MUST NOT infer exclusivity among outcomes unless `EXACTLY ONE OF` states the exclusivity.
 I18: The parser MUST normalize sugar without adding meaning.
 I19: The parser MUST normalize EVERY sugar form to exactly one canonical form.
 I20: The parser MUST NOT infer missing semantics.
@@ -292,8 +297,12 @@ I24: The parser MUST reject arithmetic in a rule.
 I25: The parser MUST reserve the label a tombstone carries.
 I26: A writer MUST NOT renumber an invariant.
 I27: A writer MUST NOT reuse a tombstoned label.
-I28: A cross-spec reference in a normative block MUST qualify the label with the spec's name, as spec::label.
+I28: A cross-spec reference in a normative block MUST qualify the label with the spec's name, as `spec::label`.
+I28a: A constituent invariant citation MAY use the corpus form `<Pattern> Invariant N`.
+NOTE: I28 governs cross-rule references by label; an invariant header is not a label, and the linter's F check resolves the corpus form.
 ```
+
+Terms › `pronoun`: `it` | `its` | `itself` | `they` | `their` | `them` | `he` | `she` | `his` | `her`, and `this`, `that`, `these`, `those` standing alone — the set I5 rejects and `tools/grace/check.py` enforces; a relative `whose`, `that` or `which` opening a clause is not a pronoun.
 
 Terms › `tombstone`: a `NOTE:` line inside a normative block whose text begins with a label followed by the word `deleted`; recognized by that form alone (I25, I27).
 
@@ -335,7 +344,7 @@ C4: The parser MUST NOT infer a term's type from the term's name.
 C5: A specification MUST declare record verbs explicitly.
 C6: A record MUST NOT acquire behavior from the record's noun.
 C7: A rule carrying a modal MUST carry a declared record verb or a reserved grammar verb after the modal.
-C7a: The IS AUTHORITATIVE FOR shape carries no modal and is outside C7.
+NOTE: C7a deleted in v0.32; C7's condition owns the scope — a shape with no modal is outside C7 by construction.
 C8: A rule MUST name a term where the rule needs arithmetic.
 C9: A writer MUST write a declaration in the declaration form.
 C10: A definition MAY carry arithmetic, comparison operators, a value set, or a sentence saying what the name is.
@@ -345,7 +354,11 @@ C12: A writer MUST NOT write a definitional sentence as a rule.
 C13: A declaration MAY cite the declaration's owner instead of restating the definition.
 C14: The parser MUST resolve a cited declaration against the owner's Terms registry, migrated or not.
 C15: A specification MUST NOT redeclare a constituent's term.
-C16: A specification MUST NOT declare EXCEED or IS AUTHORITATIVE FOR as record verbs.
+C16: A specification MUST NOT declare `EXCEED` or `IS AUTHORITATIVE FOR` as record verbs.
+C17: The parser MUST resolve an inflected form of a declared record verb to the declared form.
+C18: A specification MUST declare EVERY action's outcomes in a signature block.
+C19: The parser MUST read a signature block as the value set of the action's outcomes.
+C20: A rule MUST NOT land an outcome absent from the action's signature block.
 ```
 
 Terms › `category`: `actor` | `record` | `record verb` | `value set` | `bound` | `cadence` | `term` | `qualifier`.
@@ -354,13 +367,17 @@ Terms › `declaration form`: `Terms › name: definition.` on one line, the nam
 
 Terms › `value-set form`: member names separated by `|`.
 
-Terms › `name`: a spec's name is the spec's file stem; this document's is `GRACE-lang`.
+Terms › `name`: a spec's name is the spec's file stem, case preserved; this document's is `GRACE-lang` (the title spaces it for reading).
 
 Terms › `definitional sentence`: *X is Y*, *X counts Z*, *the key is (kind, act_key)* — a sentence with no modal.
 
 Terms › `reserved grammar verbs`: `EXCEED` (in `MUST NOT EXCEED`) and `IS AUTHORITATIVE FOR` carry grammar semantics; a specification never declares them as record verbs. Every other verb in a rule is a record verb the specification declares.
 
 Terms › `identifier`: a subject, an object, a term name or a value in a rule; every identifier resolves to a declaration (C3).
+
+Terms › `actor`: a declared identifier that may serve as a rule's subject.
+
+Terms › `agent`: an actor that can perform a rule's verb — the grammar; §21; the parser; a specification; a citing spec; an owner; a system; a reader; a writer; a drafter; a human; AI; the reverse diff; a maintainer; a party. A rule whose subject is an actor and not an agent constrains the writer (`obey`).
 
 WHY:
 A named expression has one owner, and a diff can match it by name. C7 is what rejects the passive — *The actor MUST be granted invite_actor* has no declared record verb after the modal — which is why the former I4 was a second owner and was deleted. A citation form lets a composition use a constituent's term without restating it.
@@ -372,9 +389,9 @@ record verb record_action: Audit Trail
 
 #### This document's own vocabulary
 
-Terms › `actors`: the grammar; §21 (the lock list); the parser; a specification (a spec); a rule; a statement; a sentence (a rule's text); a condition; a form; a sugar form; a term; a declaration; a WHEN block; a tail; a surface; a system; a reader; a writer; a drafter; a human; AI; the reverse diff; the normalized form (the representation); fuzzy intent; a value set; a value; an enumeration; a synonym; a citing spec; an owner (the spec that declares a term); a registry (a spec's Terms section); `WHY:`; `UX:`; `NOTE:`; `PROVISIONAL:`; sugar; complexity; arithmetic; a label; an obligation; a proposition; an invariant; a tombstone; an ordinal; a pronoun; a line; a fenced block; a party; a run; a maintainer; a council; a child; a category.
+Terms › `actors`: (every subject in this document, agent or not) the grammar; §21 (the lock list); the parser; a specification (a spec); a rule; a statement; a sentence (a rule's text); a condition; a form; a sugar form; a term; a declaration; a WHEN block; a tail; a surface; a system; a reader; a writer; a drafter; a human; AI; the reverse diff; the normalized form (the representation); fuzzy intent; a value set; a value; an enumeration; a synonym; a citing spec; an owner (the spec that declares a term); a registry (a spec's Terms section); `WHY:`; `UX:`; `NOTE:`; `PROVISIONAL:`; sugar; complexity; arithmetic; a label; an obligation; a proposition; an invariant; a tombstone; an ordinal; a pronoun; a line; a fenced block; a party; a run; a maintainer; a child; a category; an actor; an agent.
 
-Terms › `record verbs`: decide, advise, contain, admit, recur, satisfy, live, state, read, parse, create, alter, infer, generate, regenerate, discard, write, obey, ignore, carry, use, stand, pass, route, mix, nest, normalize, name, restate, resolve, cite, declare, acquire, redeclare, renumber, reuse, enumerate, reject, lower, report, treat, assume, keep, express, mark, shorten, add, accept, supply, earn, belong, cover, classify, claim, qualify, give, match, place, bind.
+Terms › `record verbs`: decide, contain, admit, recur, satisfy, live, state, read, parse, create, alter, infer, generate, regenerate, discard, write, obey, ignore, carry, use, stand, pass, route, mix, nest, normalize, name, restate, resolve, cite, declare, acquire, redeclare, renumber, reuse, enumerate, reject, lower, report, treat, assume, keep, express, mark, shorten, add, accept, supply, earn, belong, cover, classify, claim, qualify, give, match, place, bind, reserve, compare, land.
 
 Terms › `qualifiers`: `ratified` — accepted into §21 by G2; `migrated` — rewritten in this language.
 
@@ -384,9 +401,9 @@ Terms › `bounds`: empty.
 
 Terms › `cadences`: empty.
 
-Terms › `terms`: `contested`, `hold_bound`, `run_floor` (the examples' terms), and every other name declared in this document.
+Terms › `terms`: `contested`, `hold_bound`, `run_floor` (the examples' terms), and every other name declared in this document — a comprehension over the document's `Terms ›` lines, determinate by construction.
 
-Terms › `value sets`: surface (S1); quantifier, modal, condition operator (§6); tail (§7); diff result — `ADDED` | `REMOVED` | `CHANGED`; category — actor | record | record verb | value set | bound | cadence | term.
+Terms › `value sets`: `surface`; `quantifier`, `modal`, `condition operator`; `tail`; diff result — `ADDED` | `REMOVED` | `CHANGED`; `category` (declared once, at Terms › `category`; cited here by C13).
 
 ---
 
@@ -425,7 +442,7 @@ R41:
 run_floor MUST NOT EXCEED run_bound.
 ```
 
-Terms › `run_floor`: 2 × closure_latency + journal_write_bound.
+Terms › `run_floor`: `max(completion_bound, closure_latency + journal_write_bound) + closure_latency` — Recoverable Invocation's declaration, borrowed with the name.
 
 ---
 
@@ -465,19 +482,18 @@ PROVISIONAL: IS DERIVED FROM
 PROVISIONAL: COMPOSES / BINDS
 PROVISIONAL: positive MUST … BEFORE
 PROVISIONAL: <strong rule> DEGRADES TO <weak rule>
-PROVISIONAL: signature block — name(args) → result | rejected(code | …)
-PROVISIONAL: "land release and rejected(code)" as sugar for two obligations
+PROVISIONAL: a code span inside a rule quotes text — the grammar's own meta-rules (B1–B12, V1–V4, I8–I12, A1, C16) mention the tokens they govern
 ```
 
 WHY:
-`DEGRADES TO` is a pairing slot for a degraded guarantee: the condition stays on the strong rule's `ONLY IF`, the slot carries none, so the pairing adds no third rule — the reverse diff sees the strong rule and the weak rule, and the `PROVISIONAL:` pairing line is invisible to it (S14). Recoverable Invocation uses it four times, states each weak rule under `IF`, and marks the pairing provisional — the contested history §1 requires. The signature block is every action's contract in the corpus and has no declaration form here; the release-and-reject idiom recurs at every refusal site. Both wait on G2.
+`DEGRADES TO` is a pairing slot for a degraded guarantee: the condition stays on the strong rule's `ONLY IF`, the slot carries none, so the pairing adds no third rule — the reverse diff sees the strong rule and the weak rule, and the `PROVISIONAL:` pairing line is invisible to it (S14). Recoverable Invocation uses it four times, states each weak rule under `IF`, and marks the pairing provisional — the contested history §1 requires. The signature block was admitted in v0.33 (S17b, C18–C20) on twelve sites across two specs and a parse-error finding (CR-7); the release-and-reject idiom was withdrawn the same day — after CR-7's splits it has no site, and G3 admits nothing on none.
 
 ---
 
 #### Watch list — pressure the rewrite may find, flagged and counted, not admitted
 
 NOTE:
-During the corpus rewrite, no grammar is added preemptively. A rewriter flags recurring pressure at the site, as `NOTE: watch <pressure>` beside the rule that strained, and recurrence is the count of flags across specs. Most of these are expected to collapse into declared domain terms rather than new grammar. Watched: persistent state (cases that want `WHILE`); applicability (cases that want `WHERE`, or feature-present gating); cardinality (needs beyond `EVERY`, `EXISTS`, `EXACTLY ONE`, `EXACTLY ONE OF`); condition negation (where `!=`, `NOT EXISTS` and `MUST NOT` are not enough); event versus state (where the distinction matters enough that terms alone become awkward); contradiction (two rules normalizing to `X MUST a` and `X MUST NOT a` under identical conditions — nearly free to detect after normalization, and waiting for its finding); satisfaction (where `obey` is not enough: what a violation of `WITHIN` is, compensate or nonconform). The rule: flag first, count recurrence, admit nothing until the corpus forces it (G1–G3).
+During the corpus rewrite, no grammar is added preemptively. A rewriter flags recurring pressure at the site, as `NOTE: watch <pressure>` beside the rule that strained, and recurrence is the count of flags across specs. Most of these are expected to collapse into declared domain terms rather than new grammar. Watched: persistent state (cases that want `WHILE`); applicability (cases that want `WHERE`, or feature-present gating); cardinality (needs beyond `EVERY`, `EXISTS`, `EXACTLY ONE`, `EXACTLY ONE OF`); condition negation (where `!=`, `NOT EXISTS` and `MUST NOT` are not enough); event versus state (where the distinction matters enough that terms alone become awkward); contradiction (two rules normalizing to `X MUST a` and `X MUST NOT a` under identical conditions — nearly free to detect after normalization, and waiting for its finding); satisfaction (where `obey` is not enough: what a violation of `WITHIN` is, compensate or nonconform); addressable sections (a rule that names a section as subject or object — Recoverable Invocation's JF2, WA2, IS1, WC1, IV7 make section titles the subjects of authority claims, and this document's `value sets` line once cited sections by ordinal; the grammar has labels for rules and nothing for sections); template identifiers (`spec::label` under I28 — Recoverable Invocation about six sites, this document one). Counts so far: Recoverable Invocation flags none yet (the pilot predates the list); Audit Trail flags six — applicability, persistent state, event versus state, cardinality, condition negation, satisfaction. The rule: flag first, count recurrence, admit nothing until the corpus forces it (G1–G3).
 
 ---
 
@@ -513,12 +529,12 @@ K2: A writer MUST NOT express complex behavior as a more complicated sentence.
 
 ---
 
-### 21. What v0.29 Locks
+### 21. What the grammar locks
 
-Terms › `locked forms`: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; `MUST` / `MUST NOT` / `MAY`; `EVERY` / `EXACTLY ONE` / `EXACTLY ONE OF`; flat `IF` and flat `WHEN`; flat `AND`, flat `OR`, never both in one condition; `OR` only inside conditions and term declarations; `=` / `!=` / `EXISTS` / `NOT EXISTS` / `EXCEEDS`; `ONLY AFTER` / `ONLY IF` / `WITHIN` / `PER`; `MUST NOT EXCEED` for ≥, no `AT LEAST`, no `STRICTLY`; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; `IS AUTHORITATIVE FOR` (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic `AFTER` sugar under `MUST` and `MAY`; positive `MUST … BEFORE` illegal; one obligation per sentence; closed vocabulary including record verbs; the `Terms ›` declaration form; a declaration may cite its owner; arithmetic only in term declarations; closed value sets; no pronouns, §13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by G2 — recurrence AND contested.
+Terms › `locked forms`: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; `MUST` / `MUST NOT` / `MAY`; `EVERY` / `EXACTLY ONE` / `EXACTLY ONE OF`; flat `IF` and flat `WHEN`; flat `AND`, flat `OR`, never both in one condition; `OR` only inside conditions and term declarations; `=` / `!=` / `EXISTS` / `NOT EXISTS` / `EXCEEDS`; `ONLY AFTER` / `ONLY IF` / `WITHIN` / `PER`; `MUST NOT EXCEED` for ≥, no `AT LEAST`, no `STRICTLY`; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; `IS AUTHORITATIVE FOR` (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic `AFTER` sugar under `MUST` and `MAY`; positive `MUST … BEFORE` illegal; one obligation per sentence; closed vocabulary including record verbs; the `Terms ›` declaration form; the signature block as a declaration form; a declaration may cite its owner; arithmetic only in term declarations; closed value sets; no pronouns, §13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by G2 — recurrence AND contested.
 
 ```text
-Q1: The parser MUST accept only the locked forms and their deterministic sugar.
+Q1: The parser MUST accept only the locked forms and the locked forms' deterministic sugar.
 Q2: §21 MUST NOT admit a form outside the locked forms except by G2.
 ```
 
@@ -526,7 +542,7 @@ Q2: §21 MUST NOT admit a form outside the locked forms except by G2.
 
 ### 22. Core Rules
 
-NOTE: a recap; every claim below is owned by a rule elsewhere (G8, S5–S16, D1–D4, U1–U2, I16, I20, K1, K2). Normative states WHAT. WHY explains why. UX presents how. Sugar shortens syntax and creates no semantics. AI generates WHY or UX from the normative surface, never the reverse. Nothing unstated is true because a reader expects it (I16, I20). Nothing omitted is supplied by context. Nothing is normative unless the parser can name it (S2, S17). Complex systems may require many rules; every rule stays simple (K1, K2).
+NOTE: a recap; every claim below is owned by a rule elsewhere (S4, S5–S16, D1–D4, U1–U2, I16, I20, K1, K2). Normative states WHAT. WHY explains why. UX presents how. Sugar shortens syntax and creates no semantics. AI generates WHY or UX from the normative surface, never the reverse. Nothing unstated is true because a reader expects it (I16, I20). Nothing omitted is supplied by context. Nothing is normative unless the parser can name it (S2, S17). Complex systems may require many rules; every rule stays simple (K1, K2).
 
 WHY:
 Strict Caveman grows slowly. Grace itself can grow enormously.
@@ -546,5 +562,14 @@ v0.30 (2026-09-11), after the council's self-hosting read: copula enumerations a
 
 NOTE:
 v0.31 (2026-09-11), after the council's read of v0.30: C7 carves out the reserved grammar verbs and puts the IS AUTHORITATIVE FOR shape outside its scope (C7a); the surface algebra closes — `nothing` joins the surface value set, S2 reads unprefixed lines only, S17a rejects, S18a covers a later-line prefix, S20 makes MAY vacuous; the sub-grammar is declared — `label`, `rule form`, `child`, `declaration form`, `value-set form`, `category`, `name`; C2 asks for the categories a spec uses and declares the empty ones; the tombstone is recognized by form alone; I28 is scoped to normative blocks and the examples are marked exemplars; `run`, `conformance failure`, `maintainer`, `council` declared; the maintainer — the human in charge, president of all — decides admission on council evidence, the council headed by an elected president, currently Claude (G8–G12); the status line derives from §23; the old G8 folded into S4. No form admitted or removed.
+
+NOTE:
+v0.32 (2026-09-11), after the council's read of v0.31 (CR-6): the council leaves the grammar — G9–G12 tombstoned, the council's constitution and the citation of reads moved to `governance.md` §*The language council*; old G8 gets the tombstone it was owed and its label is retired, the maintainer's decision is G13; S20 becomes the declaration `MAY rule`; C7a deleted, C7's condition owning the scope; the `category` value set has one owner, cited by C13; the exemplar `run_floor` carries Recoverable Invocation's formula; `actor` and `agent` declared and `obey` extended to the non-agent subject; C17 resolves an inflected verb to the declared form; `name` case-preserved; Q1's pronoun removed; the meta-rules quote their tokens in code spans, provisional; §21's heading loses its version; the watch list gains addressable sections and template identifiers with the counts to date. Landed with it: `tools/grace/check.py`, the surface checker — fences, labels, tombstones, the rule form, WHEN blocks, AND/OR, BEFORE/AFTER, the banned words, arithmetic, pronouns, the verb after the modal, cross-rule references — run over this document and the two migrated specs; its findings on v0.31 were GLM's A1–A3 and three more (I25's `reserve`, X1's `compare`, Q1's pronoun). No form admitted or removed.
+
+NOTE:
+v0.33 (2026-09-11), after GLM's read of Recoverable Invocation (CR-7), the maintainer's three decisions: the signature block admitted as a declaration form — S17 scoped to text fences, S17b reads a signature block, S17c reads every other fence as nothing, C18–C20 declare every action's outcomes and bind a rule's landed outcome to them; the pronoun set enumerated (`pronoun`), relative clauses outside it; I28 clarified, not changed — a constituent invariant citation may use the corpus form (I28a). The release-and-reject sugar withdrawn from §18. `tools/grace/check.py` reads signature blocks and the never-used-label note. No other form admitted or removed.
+
+NOTE:
+Council reads, cited by id: CR-1 Kimi on v0.28 and the Recoverable Invocation rewrite (2026-09-10); CR-2 Gemini on v0.28 (2026-09-11); CR-3 GPT on v0.28 (2026-09-11); CR-4 GLM on v0.29 (2026-09-11); CR-5 GLM on v0.30 (2026-09-11); CR-6 GLM on v0.31 (2026-09-11). The register is kept in `governance.md` §*The language council* from CR-7 on.
 
 NOTE: End of GRACE-lang. We love you. ❤️
