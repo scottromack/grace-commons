@@ -90,6 +90,17 @@ Operation 11: The containing pattern MUST supply window.
 Operation 12: The containing pattern MUST own the response to an answer.
 ```
 
+The case space, and the rule that owns each case:
+
+| Call | Identity under guard? | Answer | Effect on the recorded set |
+|---|---|---|---|
+| [Record] | no | `ok` | enters under guard, `recorded_at` from the injected `now` (Operation 1, Operation 2) |
+| [Record] | yes | `ok` | unchanged — the original `recorded_at` stands (Invariant 2.1, Invariant 2.2) |
+| [Check] | yes | [Seen] | none — the call reads (Operation 6, Invariant 3.1) |
+| [Check] | no | [Not Seen] | none — the call reads (Operation 7, Invariant 3.1) |
+
+A failed store write sits outside the table: [Record] still answers `ok`, and the guard is missed rather than refused (Record failure 1–3).
+
 Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition — a [Now].
 
 Terms › `transition`: the atom's evaluation of one call against the recorded set.

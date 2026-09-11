@@ -81,7 +81,7 @@ Reference examples: [`atoms/personal-todo.md`](./atoms/personal-todo.md) for the
 
 9. **Flow.** The lifecycle a typical record traverses from creation to terminal state, with the actions that drive each step. At least one branch must be named (happy path versus rejection, or two valid lifecycle paths). This is GRID's Flow node.
 
-10. **Decision points.** Where the atom's logic chooses a path — quorum evaluation, eligibility check, rejection-priority ordering, etc. Each decision links to a State or Behavior node. This is GRID's Decision node.
+10. **Decision points.** Where the atom's logic chooses a path — quorum evaluation, eligibility check, rejection-priority ordering, etc. Each decision links to a State or Behavior node. This is GRID's Decision node. In a spec rewritten in GRACE lang the decisions are rules like every other obligation, and the table stays as reader sugar beside them, each row citing the rule that owns it — a table is a completeness argument, which a list of rules does not make on its own.
 
 11. **Behavior.** The observable consequences of each action — what the caller sees, what state has changed, what records have been written. Behavior must be observable, not inferred. This is GRID's Behavior node.
 
