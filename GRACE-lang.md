@@ -547,4 +547,4 @@ v0.30 (2026-09-11), after the council's self-hosting read: copula enumerations a
 NOTE:
 v0.31 (2026-09-11), after the council's read of v0.30: C7 carves out the reserved grammar verbs and puts the IS AUTHORITATIVE FOR shape outside its scope (C7a); the surface algebra closes — `nothing` joins the surface value set, S2 reads unprefixed lines only, S17a rejects, S18a covers a later-line prefix, S20 makes MAY vacuous; the sub-grammar is declared — `label`, `rule form`, `child`, `declaration form`, `value-set form`, `category`, `name`; C2 asks for the categories a spec uses and declares the empty ones; the tombstone is recognized by form alone; I28 is scoped to normative blocks and the examples are marked exemplars; `run`, `conformance failure`, `maintainer`, `council` declared; the maintainer — the human in charge, president of all — decides admission on council evidence, the council headed by an elected president, currently Claude (G8–G12); the status line derives from §23; the old G8 folded into S4. No form admitted or removed.
 
-NOTE: End of GRACE lang ❤️
+NOTE: End of GRACE-lang. We love you. ❤️
