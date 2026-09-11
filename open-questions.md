@@ -127,6 +127,20 @@ The projector's determinism bar is **contract fulfillment, not byte identity**: 
 
 ---
 
+### GRACE lang — who admits a form, and what obeying one means *(added 2026-09-11)*
+
+The language grows by G2: a form is admitted only when its concept recurs across specifications and the concept is *contested* ([`GRACE-lang.md`](./GRACE-lang.md) §1). The rewrite's watch list — the pressures a rewriter flags at the site and the corpus counts — lives beside the candidate forms in §18, because that is where a rewriter looks. What §18 cannot hold is the three questions the council's self-hosting read left open, which are about the process and the meaning rather than the forms:
+
+**Who arbitrates admission — resolved 2026-09-11.** The council is constituted in [`GRACE-lang.md`](./GRACE-lang.md) §1 (G8–G12): the human in charge of the corpus is the maintainer, president of all, and decides every admission under G2; the council — the reviewers a draft is run past, to date Claude, Kimi, Gemini, GPT, GLM, Grok and Mistral — advises and cannot admit; it elects a council president, currently Claude, who heads its read and carries its advice to the maintainer. Whether a flag count over a threshold ever becomes a checkable trigger for the maintainer's decision stays with the watch list.
+
+**What `obey` means.** §2 declares it in one line — every run satisfies the obligation under the condition, a violation is a conformance failure decided from records — and an inequality rule obliges whoever binds the terms. That is enough for the rewrite and not for a satisfaction relation: what a violated `WITHIN` *is* (nonconformance, or an obligation to compensate), and whether trace conformance, monitored enforcement or design review is the standard. On the watch list as *satisfaction*; the relation itself is v0.3x work.
+
+**Whether the parser exists.** It does not. A forty-line scan has run over the grammar and Recoverable Invocation; the parser reads the corpus after the rewrite (the migration plan). The council's findings 1–4 on v0.29 are the output the parser's first run should reproduce, and are its first test corpus.
+
+**Trigger to resolve the two that remain:** the first rewritten spec whose acceptance checks need a violation class `obey` does not name; and the first council finding a checker could have made, which is the parser's first slice.
+
+---
+
 ## Generated index (planned, not built)
 
 Open questions are *also* scattered through the artifacts as markers: `*(forthcoming)*` links, atoms/compositions marked `unresolved` / `partially resolved`, open CORNERS items, and the sub-question sections in proposals (e.g. `atoms/TAXONOMY.md`). Those are **derivable** — a future generator should project them into an index appended here rather than anyone hand-maintaining the list. Same discipline as the taxonomy itself: name the irreducible (the authored architectural questions above), derive the rest.
