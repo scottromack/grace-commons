@@ -502,6 +502,10 @@ CONTRACT_PROJECTED = re.compile(
 CONTRACT_BOLD = re.compile(
     r"^\s*(?:[-*]\s*)?\*\*`([a-z_][a-z0-9_]*)\(([^)]*)\)", re.M)
 BACKTICKED_ACTION = re.compile(r"`([a-z_][a-z0-9_]*)\(")
+# A GRACE lang signature block: a bare fence whose lines read
+# `name(param, param) -> outcome | outcome` (GRACE-lang Closed vocabulary 20).
+CONTRACT_SIGNATURE = re.compile(
+    r"^([a-z_][a-z0-9_]*)\(([^)]*)\)\s*(?:\u2192|->)", re.M)
 KWARG = re.compile(r"^\s*([a-z_][a-z0-9_]*)\s*=[^=]")
 HANDLE_ALIASES = {"workflow-state-machine": "state-machine"}
 
@@ -531,7 +535,7 @@ def _resolve_handle(handle: str, stems: dict[str, Path]) -> Path | None:
 
 def _declared_contracts(text: str) -> dict[str, set[str]]:
     out: dict[str, set[str]] = {}
-    for rx in (CONTRACT_PROJECTED, CONTRACT_BOLD):
+    for rx in (CONTRACT_PROJECTED, CONTRACT_BOLD, CONTRACT_SIGNATURE):
         for name, params in rx.findall(text):
             cleaned = set()
             for piece in params.split(","):
