@@ -23,6 +23,9 @@ Principle 5: The grammar MUST NOT admit inference.
 Principle 6: Complexity MUST live in the number and arrangement of simple rules.
 Principle 7: Complexity MUST NOT live in the grammar of one rule.
 Principle 8: The maintainer MUST decide EVERY admission under Principle 2.
+Principle 9: A specification MUST declare the specification's domain meaning.
+Principle 10: A specification MUST NOT declare grammar meaning.
+Principle 11: A writer MUST declare a meaning locally ONLY IF the domain forces the declaration.
 ```
 
 Terms › `contested`: the concept's free-prose expression drifted, was read two ways, OR produced a finding.
@@ -31,6 +34,8 @@ Terms › `maintainer`: the human in charge of the corpus; decides admission.
 
 WHY:
 The test is the concept, not the token: a token appears only after its form is admitted, so counting tokens is circular. Recurrence alone admits noise. Counts follow `pressure-testing.md` §*Measure the form, not the word*. Surface 5 owns *states WHAT*. The reviewers a draft is run past — the council — advise and never admit; who they are and how a read is cited is the corpus's internal process, kept out of the grammar (`governance.md` §*The language council*).
+
+*Local specs declare domain meaning, not GRACE meaning* (Principle 9–11). Explicit never meant repeating a globally-known fact in every file: the grammar owns the label families, the categories, the outcome shapes and the timing concepts, and a spec that restates one of them has added a second owner for something it does not own. A spec declares the domain — the nouns, the verbs, the value sets, the signatures, and the local exception the domain forces. The substrate gets richer as the specs get smaller (CR-8).
 
 ---
 
@@ -63,13 +68,20 @@ Surface 21: The parser MUST read a fenced block that is neither a text fence nor
 Surface 22: A surface prefix on a block's first line MUST cover every line of the block.
 Surface 23: A surface prefix on a later line of a normative block MUST cover that line alone.
 Surface 24: The parser MUST read a line outside every fenced block and outside a Terms › declaration as the surface nothing.
+Surface 25: The parser MUST read a card as the surface nothing.
+Surface 26: The parser MUST resolve a bracket marker to the declaration the marker names.
+Surface 27: A card MUST NOT carry an obligation.
 ```
 
 Terms › `normative block`: a fenced text block of labelled rules, a `Terms ›` declaration, or a signature block — a spec's whole normative surface (`spec-format.md` §*The normative surface*).
 
 Terms › `text fence`: a fenced block whose info string is `text`.
 
-Terms › `signature block`: a fenced block with no info string whose first line is a signature line — `name(args) →` — followed by the result and the `rejected(…)` arms; the declaration of the action's outcomes, read as the value set the action's rules land on.
+Terms › `card`: a Terms registry entry — a heading, prose and a `Kind` line — the reader's copy of a declaration (`spec-format.md` §*Terms*).
+
+Terms › `bracket marker`: `[Name]` in prose, and the link line that lands it on the name's card; a pointer to the declaration, never a second copy of the declaration.
+
+Terms › `signature block`: a fenced block with no info string whose lines are signature lines — `name(args) →` followed by the action's arms — one line per action, one or more lines per block; each line is the declaration of that action's outcomes, read as the value set the action's rules land on.
 
 Terms › `normative`: unprefixed Strict Caveman (§20) inside a normative block.
 
@@ -169,6 +181,19 @@ NOTE: a copula enumeration is *X is one of a, b, c*.
 
 WHY:
 A label is read by people before a parser: *Non-goal 4* says where to look, *NG4* says nothing. Never mint an acronym (`naming.md`).
+
+#### Standard label families
+
+Terms › `standard label family`: `Identity` (what identifies an instance) | `State` (what the spec holds) | `Operation` (one action's rules) | `Invariant` (a property of every reachable state) | `Check` (an acceptance check) | `External check` (a check needing evidence the records do not carry) | `Non-goal` (what the spec does not do, and who owns it instead) | `Composition note` (an obligation on a composing pattern) | `Composes` (a constituent's role) | `Capability requirement` (what the deployment supplies).
+
+```text
+Standard label 1: The grammar IS AUTHORITATIVE FOR the standard label families.
+Standard label 2: A specification MUST NOT redeclare a standard label family.
+Standard label 3: A label family outside the standard set MUST carry the meaning of the heading the family names.
+```
+
+WHY:
+A family carries meaning the rule's own words leave out — *Non-goal 3: The host MUST admit waiters in arrival order* is a positive obligation, and the scope that makes it a non-goal lives in the label (CR-8). Declaring the families once here is what makes that meaning owned rather than conventional, and Principle 9–11 is why the declaration is here and not in every spec.
 
 ---
 
@@ -526,7 +551,7 @@ Caveman 2: A writer MUST NOT express complex behavior as a more complicated sent
 
 ### 21. What the grammar locks
 
-Terms › `locked forms`: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; `MUST` / `MUST NOT` / `MAY`; `EVERY` / `EXACTLY ONE` / `EXACTLY ONE OF`; flat `IF` and flat `WHEN`; flat `AND`, flat `OR`, never both in one condition; `OR` only inside conditions and term declarations; `=` / `!=` / `EXISTS` / `NOT EXISTS` / `EXCEEDS`; `ONLY AFTER` / `ONLY IF` / `WITHIN` / `PER`; `MUST NOT EXCEED` for ≥, no `AT LEAST`, no `STRICTLY`; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; `IS AUTHORITATIVE FOR` (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic `AFTER` sugar under `MUST` and `MAY`; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; closed vocabulary including record verbs; the `Terms ›` declaration form; the signature block as a declaration form; a declaration may cite its owner; arithmetic only in term declarations; closed value sets; no pronouns, §13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
+Terms › `locked forms`: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; `MUST` / `MUST NOT` / `MAY`; `EVERY` / `EXACTLY ONE` / `EXACTLY ONE OF`; flat `IF` and flat `WHEN`; flat `AND`, flat `OR`, never both in one condition; `OR` only inside conditions and term declarations; `=` / `!=` / `EXISTS` / `NOT EXISTS` / `EXCEEDS`; `ONLY AFTER` / `ONLY IF` / `WITHIN` / `PER`; `MUST NOT EXCEED` for ≥, no `AT LEAST`, no `STRICTLY`; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; `IS AUTHORITATIVE FOR` (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic `AFTER` sugar under `MUST` and `MAY`; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; closed vocabulary including record verbs; the `Terms ›` declaration form; the signature block as a declaration form, one line per action; the standard label families; the card and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations; closed value sets; no pronouns, §13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
 
 ```text
 Lock 1: The parser MUST accept only the locked forms and the locked forms' deterministic sugar.
@@ -545,6 +570,9 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.35 (2026-09-11): local specs declare domain meaning, not GRACE meaning (Principle 9–11); the standard label families declared once, here (Standard label 1–3); the signature block admitted with one line per action, and the `rejected(…)` wording it carried from Recoverable Invocation dropped; the Terms card and the bracket marker read as the surface nothing, the `Terms ›` declaration the one owner (Surface 25–27). CR-8.
 
 NOTE:
 v0.34 (2026-09-11): labels are words — the name of the heading a rule sits under, then a number (Rule shape 7, Rule shape 8); every label in this document, Recoverable Invocation, Audit Trail and Lease relabelled; a cross-spec reference names the spec before the label (Hard invariant 28). No form admitted or removed.

@@ -91,23 +91,25 @@ Fence 1: [Take] MUST return expires_at as an absolute instant on the granting ho
 Fence 2: A holder MAY pass a fence to a third party.
 Fence 3: IF a work item's effect instant EXCEEDS the fence THEN the fenced party MUST refuse the work item.
 Fence 4: The fenced party MUST judge the fence on the fenced party's own clock.
-Fence 5: The holder MUST mint the fence as expires_at less the allowance.
+Fence 5: A fence MUST NOT EXCEED the fence ceiling.
 Fence 6: The fenced party MUST compare the fence bare.
 Fence 7: The holder MUST NOT apply the allowance at the reading.
 Fence 8: A holder fencing more than one party MUST mint EVERY fence separately.
 Fence 9: A holder MUST NOT derive a second fence bare from a minted fence.
 ```
 
-Terms › `fence`: `expires_at` less the allowance, handed to a third party as a deadline (a [Fence]) — refuse this holder's work if it would take effect after this instant.
+Terms › `fence`: an instant no later than the fence ceiling, handed to a third party as a deadline (a [Fence]) — refuse this holder's work if the work would take effect after this instant.
+
+Terms › `fence ceiling`: `expires_at − allowance`.
 
 Terms › `effect instant`: the instant a work item takes effect, read on the fenced party's own clock at the moment of judgement; never a property the work item carries.
 
-Terms › `allowance`: the declared cross-seam allowance between the granting host's clock and the judging party's clock.
+Terms › `allowance`: the declared cross-seam allowance between the granting host's clock and the judging party's clock; one allowance per fenced party.
 
 Terms › `fenced party`: the third party a fence is handed to.
 
 WHY:
-`expires_at` is the point of the atom ([Expires At]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
+`expires_at` is the point of the atom ([Expires At]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. The ceiling is a ceiling and not an equation: a holder may hand over an earlier instant and keep more margin, never a later one (Fence 5, Check 6.1). Two fenced parties are two seams with two allowances, which is what makes minting each fence separately more than bookkeeping (Fence 8). Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
 
 ### Invariants
 
@@ -230,13 +232,13 @@ Terms › `record verbs`: identify, compare, normalize, hold, derive, store, wai
 
 Terms › `value sets`: `lease state` = free | held. grant terminus = release | instant. take answers = expires_at | unavailable. try_take answers = taken(expires_at) | held. remaining answers = duration | none. release answers = released | not-held.
 
-Terms › `bounds`: `duration` (the term a take asks for); the allowance.
+Terms › `bounds`: `duration` (the term a take asks for); the allowance; the fence ceiling.
 
 Terms › `cadences`: empty.
 
 Terms › `qualifiers`: empty.
 
-Terms › `terms`: `key`, `holder`, `lease state`, `question`, `remaining term`, `arrival term`, `asking party`, `the holder`, `fence`, `effect instant`, `allowance`, `fenced party`, `fence margin`, and `expires_at` ([Expires At]).
+Terms › `terms`: `key`, `holder`, `lease state`, `question`, `remaining term`, `arrival term`, `asking party`, `the holder`, `fence`, `fence ceiling`, `effect instant`, `allowance`, `fenced party`, `fence margin`, and `expires_at` ([Expires At]).
 
 #### Lease
 
@@ -288,7 +290,7 @@ Kind: Field
 
 #### Fence
 
-An `expires_at` less the allowance, handed to a third party as a deadline: refuse this holder's work if it would take effect after this instant. Judged on the third party's clock.
+An instant no later than `expires_at` less the allowance, handed to a third party as a deadline: refuse this holder's work if the work would take effect after this instant. Judged on the third party's clock.
 
 Kind: Type
 
