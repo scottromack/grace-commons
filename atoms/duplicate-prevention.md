@@ -143,7 +143,7 @@ Both calls are total. The containing pattern has already acted when it records �
 
 A user deletes *"buy milk."* Personal Todo calls [Record] with `"buy milk"`. Two hours later, the user attempts to add *"buy milk"* again. Personal Todo calls [Check] with `"buy milk"`, receives [Seen], rejects the add as `duplicate-recent`. Twenty-five hours after the original delete, the user tries again. Personal Todo calls [Check] with `"buy milk"`, receives [Not Seen], accepts the add.
 
-(`duplicate-recent` is shown verbatim by design: it is the **composing pattern's** pinned rejection string — neither this atom's nor Personal Todo's, since neither raises it; it exists only where the two are wired together, and its wire form is frozen because callers switch on the exact string. It is not this atom's Term; when Personal Todo carries a Terms registry it becomes a cross-page reference to that pattern's card. Per [`annotation.md`](../working-ideas/annotation.md), a pinned wire literal shown to display its exact form stays backticked — "literal" is a pinned projection, not a kind.)
+(`duplicate-recent` is shown verbatim by design: it is the **composing pattern's** pinned rejection string — neither this atom's nor Personal Todo's, since neither raises it; it exists only where the two are wired together, and its wire form is frozen because callers switch on the exact string. It is not this atom's Term; when Personal Todo carries a Terms registry it becomes a cross-page reference to that pattern's term entry. Per [`annotation.md`](../working-ideas/annotation.md), a pinned wire literal shown to display its exact form stays backticked — "literal" is a pinned projection, not a kind.)
 
 ### Comment double-post protection (60-second window)
 
@@ -232,7 +232,7 @@ Invariant 1.1 is a claim about stored state and holds of an eager host. A lazy h
 
 ## Terms
 
-Each `[Term]` marker above links to its card here; a card states what the concept *is* and its **Kind**.
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
 ### Vocabulary
 
@@ -244,7 +244,7 @@ Terms › `record verbs`: identify, treat, interpret, normalize, supply, hold, d
 
 Terms › `value sets`: check answers = seen | not-seen. record answers = ok. store policy = fail-open | fail-closed.
 
-Terms › `bounds`: `window duration` (the length a containing pattern chooses for a guard; `window` is the lowering token the [Window Duration] card carries).
+Terms › `bounds`: `window duration` (the length a containing pattern chooses for a guard; `window` is the lowering token the [Window Duration] term entry carries).
 
 Terms › `cadences`: empty.
 
@@ -326,7 +326,7 @@ Parameter of: Check
 Projects:     now
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
-     output; each resolves a [Term] marker to its card heading above (kramdown
+     output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
      kramdown; no plugin required. -->
 

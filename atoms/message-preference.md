@@ -566,7 +566,7 @@ The rest compose the way the non-goals imply. [Event Log](./event-log.md) record
 
 ## Terms
 
-Each `[Term]` marker above links to its card here; a card states what the concept *is* and its **Kind**.
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
 ### Vocabulary
 
@@ -731,7 +731,7 @@ Projects:  undeclared-channel
 
 #### Storage Failure
 
-The rejection any state-changing action returns when the write fails after all preconditions pass. Fail-closed at the write: nothing observable was written — for [Set] with supersession, neither half landed (Invariant 4); for [Suspend] and [Delete], no status moved. Which record keeps governing after a refused [Set] is Invariant 4.3's answer, not this card's: the prior record stays in effect, so a failed write is fail-closed on the store and not on whatever the new record was carrying.
+The rejection any state-changing action returns when the write fails after all preconditions pass. Fail-closed at the write: nothing observable was written — for [Set] with supersession, neither half landed (Invariant 4); for [Suspend] and [Delete], no status moved. Which record keeps governing after a refused [Set] is Invariant 4.3's answer, not this term entry's: the prior record stays in effect, so a failed write is fail-closed on the store and not on whatever the new record was carrying.
 
 Kind:      Member
 Member of: the action rejection
@@ -808,7 +808,7 @@ Role:      Outcome
 Projects:  already-deleted
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
-     output; each resolves a [Term] marker to its card heading above (kramdown
+     output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
      kramdown; no plugin required. -->
 

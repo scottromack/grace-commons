@@ -92,7 +92,7 @@ Terms › `degenerate duration`: a duration that does not carry retention_until 
 
 Terms › `max_purge_delay`: the lag the policy allows between retention-end and purge — a [Max Purge Delay]; not negative.
 
-Terms › `purge eligible`: `yes` | `no` — a [Purge Eligible]; `yes` exactly when the retention stands in retained AND retention_until has passed against the injected now. Derived at the moment a question is asked, never written; the card's `purge_eligible` is the projection of this answer.
+Terms › `purge eligible`: `yes` | `no` — a [Purge Eligible]; `yes` exactly when the retention stands in retained AND retention_until has passed against the injected now. Derived at the moment a question is asked, never written; the term entry's `purge_eligible` is the projection of this answer.
 
 WHY:
 Two states and no third: a storage tier is an orthogonal axis a Storage Tier pattern *(forthcoming)* owns, and a record moves from active to cold storage without its obligation changing (State 10). Eligibility is derived rather than stored because a stored flag lags the clock — nothing fires when a retention crosses `retention_until`, no scheduler runs, and the only write is the purge that actually happened (State 7, Invariant 11.1). There is no un-purge and no policy edit: extending an obligation means a new retention under a new policy, which is a new audit record rather than a quiet overwrite of an old one (State 8, State 9).
@@ -395,7 +395,7 @@ WHY:
 
 ## Terms
 
-Each `[Term]` marker above links to its card here; a card states what the concept *is* and its **Kind**.
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
 ### Vocabulary
 
@@ -617,7 +617,7 @@ Role:      Outcome
 Projects:  storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
-     output; each resolves a [Term] marker to its card heading above (kramdown
+     output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
      kramdown; no plugin required. -->
 

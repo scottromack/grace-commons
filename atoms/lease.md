@@ -222,7 +222,7 @@ The concept is not itself regulated. It appears in regulated patterns as the mec
 
 ## Terms
 
-Each `[Term]` marker above links to its card here; a card states what the concept *is* and its **Kind**.
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
 ### Vocabulary
 

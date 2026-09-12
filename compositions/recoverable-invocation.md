@@ -1326,7 +1326,7 @@ WHY: a clock read inside [Resolve] breaks Clock semantics 1; `-buggy-opclock` sh
 
 ## Terms
 
-Each `[Term]` marker above links to its card here; a card states what the concept *is* and its **Kind**. The substrate's rejections (`invalid-credential`, `invalid-request`, `recording-failure(step)`) are the substrate's cards.
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**. The substrate's rejections (`invalid-credential`, `invalid-request`, `recording-failure(step)`) are the substrate's cards.
 
 ### Vocabulary
 

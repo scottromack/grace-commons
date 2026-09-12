@@ -91,7 +91,7 @@ Grace already teaches a second vocabulary — **Actor, Capability, Permission, O
 
 That is the axiom the rest follows from — in the same family as the library's *the spec is canonical; code is derived*.
 
-Each Term has a **card** (canonical, human) and a **manifest entry** (adapter, machine). The card teaches *what it is*; the manifest knows *how it lowers*. Nothing implementation-specific appears on the card.
+Each Term has a **card** (canonical, human) and a **manifest entry** (adapter, machine). The term entry teaches *what it is*; the manifest knows *how it lowers*. Nothing implementation-specific appears on the card.
 
 **Card (canon — plain English):**
 
@@ -127,16 +127,16 @@ invalid-request:
   wire:     pinned        # callers switch on the string; it may not change
 ```
 
-Casing, the constant form, the pinned wire string — all manifest, never card. The card stays readable to a compliance officer; the manifest stays useful to a code generator.
+Casing, the constant form, the pinned wire string — all manifest, never a term entry. The term entry stays readable to a compliance officer; the manifest stays useful to a code generator.
 
 ## The annotation marker in prose
 
-The mark must be visually light, unambiguous, ignorable in the rendered page, trivial to parse — and it must render on the live host (GitHub Pages, Jekyll safe mode, **no custom plugins**). That rules out `[[Event Scope]]` wiki-links (they need a plugin to resolve) and rules out overloading backticks (they already mean *verbatim literal token*, so reusing them re-imports the ambiguity we are removing). What clears every bar is a plain Markdown link to the Term's card:
+The mark must be visually light, unambiguous, ignorable in the rendered page, trivial to parse — and it must render on the live host (GitHub Pages, Jekyll safe mode, **no custom plugins**). That rules out `[[Event Scope]]` wiki-links (they need a plugin to resolve) and rules out overloading backticks (they already mean *verbatim literal token*, so reusing them re-imports the ambiguity we are removing). What clears every bar is a plain Markdown link to the Term's term entry:
 
 - **Before (today):** `` Validate `event_scope`: non-empty; on failure → `rejected(invalid-request)`. ``
 - **After (canon):** `Validate [Event Scope]: non-empty; on failure → [Invalid Request].`
 
-`[Event Scope]` resolves (via a shortcut-reference definition, one per registry entry) to the Term's card — so the reader clicks through to the definition, and the parser resolves the same link to a projection. Backticks stay reserved for genuine verbatim literals (a wire string a reader must see exactly). The reference-definition set *is* the Term registry.
+`[Event Scope]` resolves (via a shortcut-reference definition, one per registry entry) to the Term's term entry — so the reader clicks through to the definition, and the parser resolves the same link to a projection. Backticks stay reserved for genuine verbatim literals (a wire string a reader must see exactly). The reference-definition set *is* the Term registry.
 
 ## "Literal" is not a kind
 
@@ -168,23 +168,23 @@ Open question #1 is resolved against the corpus by the question calculus and the
 
 **The names, against both filters.** `Field` and `Parameter` both pass durability (any spec language with records and behaviors rediscovers "a record has fields" and "a behavior has parameters" — the data/computation duality). On legibility — Grace's bridge bar — both are the plainest available English: a compliance officer reads "the `recorded_at` Field" and "the `window` Parameter" with no glossary. **The tradeoff, stated explicitly:** annotation.md earlier flagged `Field` as straining durability (a database/form word) and `Parameter` as "too broad." Both objections soften once the manifest owns the lowering (so the kind name need not be casing-neutral) and once they are read as *kind labels paired with their question* rather than generic nouns. `Field` mildly favors legibility over the cleaner-but-illegible `Datum`; `Parameter`, paired with "what does it need?", is exact rather than broad. No word clears both filters perfectly; these are the best available, and the strain is cosmetic, not semantic. **This is the call the human ratifies before bulk rollout.**
 
-**Level-consistency.** Like a Member uses `member of:`, a Field card carries `field of:` (its owning Type) and a Parameter card carries `parameter of:` (its owning Operation) — mirroring the existing relationship grammar, not inventing new structure.
+**Level-consistency.** Like a Member uses `member of:`, a Field term entry carries `field of:` (its owning Type) and a Parameter term entry carries `parameter of:` (its owning Operation) — mirroring the existing relationship grammar, not inventing new structure.
 
 ## The manifest/adapter — resolved mechanism (2026-06-29)
 
 Open questions #2 and #3 are resolved by a concrete mechanism, proven on the first batch.
 
-**Home + format.** Casing leaves the prose and lives in one **`Projects:` line per card** — the concept's single canonical lowering token, in plain view on the rendered page. From those tokens, [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs) **derives** the full machine manifest on demand (`build-terms/<page>.terms.json`, git-ignored) — every target's snake/camel/pascal/const/wire form, plus a `wire: pinned` flag for pinned Members. This is the tla-adapter philosophy exactly: *derive, don't hand-maintain a drift-prone mirror.* The card is the canonical source; the manifest is a build artifact. Nothing under `tools/` or `build-terms/` renders on GitHub Pages and nothing there needs to — the page already shows the canonical token. Only the `[Term]` markers and shortcut-reference definitions live in the `.md`, and those are proven to render in kramdown safe mode.
+**Home + format.** Casing leaves the prose and lives in one **`Projects:` line per term entry** — the concept's single canonical lowering token, in plain view on the rendered page. From those tokens, [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs) **derives** the full machine manifest on demand (`build-terms/<page>.terms.json`, git-ignored) — every target's snake/camel/pascal/const/wire form, plus a `wire: pinned` flag for pinned Members. This is the tla-adapter philosophy exactly: *derive, don't hand-maintain a drift-prone mirror.* The term entry is the canonical source; the manifest is a build artifact. Nothing under `tools/` or `build-terms/` renders on GitHub Pages and nothing there needs to — the page already shows the canonical token. Only the `[Term]` markers and shortcut-reference definitions live in the `.md`, and those are proven to render in kramdown safe mode.
 
 **The concrete-name-visibility solution (the crux).** The tension: if `recorded_at` becomes `[Recorded At]` and the snake form lives only in a hidden manifest, the implementer loses the concrete name. Resolution — *two visibility channels, both on the rendered page*:
-1. For **Fields, Parameters, and Members**: the card's `Projects:` line shows the one canonical token (`Projects: recorded_at`). The concrete name is right there in the definition the reader clicks through to.
+1. For **Fields, Parameters, and Members**: the term entry's `Projects:` line shows the one canonical token (`Projects: recorded_at`). The concrete name is right there in the definition the reader clicks through to.
 2. For **Operations**: the one canonical signature stays in the Inputs/Actions section as a labeled **projected contract** (`(Projected contract: append(data) → event_id | rejected(invalid-payload | storage-failure))`). That is the operation's concrete shape, kept once.
 
 So casing leaves the *prose* (the requirement) but never leaves the *page* — it moves to the one place it belongs, the Term's definition. A codegen reads the derived manifest; a human reads the card.
 
 **The pinned-literal + cross-page-Member rule.** Two distinct cases, one rule each:
 - *Pinned wire literal shown verbatim* (the `duplicate-recent` case as it appears in Duplicate Prevention's example): it stays a **backticked literal**, because backticks are reserved for "a wire string a reader must see exactly" and a pinned string shown to display its exact form is exactly that. "Literal is not a kind" — pinned is a flag on a projection, not a fifth kind. A one-line note marks it.
-- *Cross-page Member* (the same `duplicate-recent`, now that Personal Todo — its **owner** — carries a card for it as a pinned `[Duplicate Recent]` Member): a reference from another page resolves to the owner's card via a **full reference link** (`[Duplicate Recent](./personal-todo.md#duplicate-recent)`), **not** a bare shortcut marker (which kramdown resolves only page-locally). The rule: *a token that is another page's Member/Operation stays backticked until that page carries a registry; then it becomes a full cross-page link to the owner's card, where its `pinned` flag and projection live.* The linter's `[Term]` resolver checks only page-local shortcut markers, so cross-page full links are out of its scope by construction.
+- *Cross-page Member* (the same `duplicate-recent`, now that Personal Todo — its **owner** — carries a term entry for it as a pinned `[Duplicate Recent]` Member): a reference from another page resolves to the owner's term entry via a **full reference link** (`[Duplicate Recent](./personal-todo.md#duplicate-recent)`), **not** a bare shortcut marker (which kramdown resolves only page-locally). The rule: *a token that is another page's Member/Operation stays backticked until that page carries a registry; then it becomes a full cross-page link to the owner's term entry, where its `pinned` flag and projection live.* The linter's `[Term]` resolver checks only page-local shortcut markers, so cross-page full links are out of its scope by construction.
 
 ## Rollout playbook (the per-atom procedure for the remaining ~49 patterns)
 
@@ -194,7 +194,7 @@ So casing leaves the *prose* (the requirement) but never leaves the *page* — i
 
 1. **Inventory the surfaces.** `grep -oE '\`[^\`]+\`'` the live body (everything above Lineage). Classify each token by the four kinds: Type / Operation / Member / (Field | Parameter), using the discriminator *stored-as-itself → Field, consumed → Parameter*.
 2. **Mark concept references in flowing prose** as `[Term]` shortcut markers. Leave concrete forms in three places only: (a) the one labeled *projected-contract* signature per Operation in Inputs/Actions; (b) genuinely-pinned wire literals shown verbatim; (c) concrete example invocations and their literal returns (illustrative wire-level calls — the analog of a literal argument).
-3. **Write the `## Terms` registry** (place it after Edge cases, before Composition notes). One card per Term: a plain-English definition, `Kind:`, the `field of:` / `parameter of:` / `member of:` relation, `Role:` where the domain assigns one, and a `Projects:` line for every Field, Parameter, and Member (plus a state-field name where a Type is stored under a concrete name). Add `Wire: pinned` to any pinned Member. End with the shortcut-reference definition block (`[Term]: #anchor`), wrapped in the standard HTML comment.
+3. **Write the `## Terms` registry** (place it after Edge cases, before Composition notes). One term entry per Term: a plain-English definition, `Kind:`, the `field of:` / `parameter of:` / `member of:` relation, `Role:` where the domain assigns one, and a `Projects:` line for every Field, Parameter, and Member (plus a state-field name where a Type is stored under a concrete name). Add `Wire: pinned` to any pinned Member. End with the shortcut-reference definition block (`[Term]: #anchor`), wrapped in the standard HTML comment.
 4. **Verify anchors.** kramdown lowercases the heading, strips punctuation, and replaces spaces with hyphens: "Recorded At" → `#recorded-at`, "Not Seen" → `#not-seen`. Pick Term names whose anchor is stable and unique on the page.
 5. **Run the gates** (all must pass):
    - `python3 tools/linter/lint.py .` → **0 findings** (the new `O-term-*` checks now resolve every marker on the converted page against its registry).
@@ -205,13 +205,13 @@ So casing leaves the *prose* (the requirement) but never leaves the *page* — i
 
 **Batch strategy + sequencing (risk-ordered):**
 
-- **Foundations first, then dependents.** Convert substrate atoms (Event Log, Actor Identity, Capability, Session, Provisional Commitment) before the compositions that cite them, so cross-page references point at pages that already carry cards. Event Log is done and is the canonical Field/Member exemplar.
+- **Foundations first, then dependents.** Convert substrate atoms (Event Log, Actor Identity, Capability, Session, Provisional Commitment) before the compositions that cite them, so cross-page references point at pages that already carry term entries. Event Log is done and is the canonical Field/Member exemplar.
 - **Anchor stability is a hard constraint.** Many compositions cite constituent invariants and surfaces wholesale ("Event Log Invariants 1–7"). The conversion never renumbers invariants and never changes a Term name a dependent links to. A Term *rename* is a separate, versioned change (naming.md MAJOR bump), never folded into a casing conversion.
-- **Cross-page Term references** become full links to the owner's card (per the rule above) only after *both* pages carry registries; until then they stay backticked. Sequence so the owner converts first. Track the cross-page edges (e.g., Personal Todo ↔ Duplicate Prevention, the Event-Log-citing compositions) as a small dependency graph.
+- **Cross-page Term references** become full links to the owner's term entry (per the rule above) only after *both* pages carry registries; until then they stay backticked. Sequence so the owner converts first. Track the cross-page edges (e.g., Personal Todo ↔ Duplicate Prevention, the Event-Log-citing compositions) as a small dependency graph.
 - **Compositions** follow the same procedure; their emergent actions and composition-level invariants get Terms like any other surface. A composition's references to a constituent's Operations/Members become cross-page links to the constituent's cards.
 - **Batch size:** 3–5 atoms per ratified batch, foundations-first, re-running the full gate suite after each. Stop and re-ratify if the discriminator or a name proves wrong on a new surface (the single-kind rule is an invariant — a Term that resists exactly one kind is a finding against the ontology, not a thing to force).
 
-**Promotion (after the corpus is converted):** land the *principle* (representational form is derived) as a one-clause widening of [`the-spec-layer.md`](../the-spec-layer.md)'s SSOT principle, and the *convention* (Terms, the four kinds, the `[Term]` marker, the `Projects:` card line, the adapter manifest) into [`spec-format.md`](../spec-format.md). The linter's `O-term-*` checks and `tools/harness/term-adapter.mjs` become the enforced/derive tooling, cited there.
+**Promotion (after the corpus is converted):** land the *principle* (representational form is derived) as a one-clause widening of [`the-spec-layer.md`](../the-spec-layer.md)'s SSOT principle, and the *convention* (Terms, the four kinds, the `[Term]` marker, the `Projects:` term entry line, the adapter manifest) into [`spec-format.md`](../spec-format.md). The linter's `O-term-*` checks and `tools/harness/term-adapter.mjs` become the enforced/derive tooling, cited there.
 
 ## Relation to the other directions
 

@@ -308,7 +308,7 @@ The three landed compositions are the worked examples: [Undo History](../composi
 
 ## Terms
 
-Each `[Term]` marker above links to its card here; a card states what the concept *is* and its **Kind**.
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
 ### Vocabulary
 
@@ -480,7 +480,7 @@ Projects:  storage-failure
 
 #### Duplicate Recent
 
-The refusal a **composing pattern** returns when [Duplicate Prevention](./duplicate-prevention.md) reports the [Description] as recently seen — the *"buy milk twice in the same morning"* rejection. It is the composing pattern's outcome and the composing pattern's to pin: this atom's [Add] never raises it, and its signature block does not carry it (Closed vocabulary 21). The card is here because a reader of this atom meets the string in a composed deployment, not because this atom owns it.
+The refusal a **composing pattern** returns when [Duplicate Prevention](./duplicate-prevention.md) reports the [Description] as recently seen — the *"buy milk twice in the same morning"* rejection. It is the composing pattern's outcome and the composing pattern's to pin: this atom's [Add] never raises it, and its signature block does not carry it (Closed vocabulary 21). The term entry is here because a reader of this atom meets the string in a composed deployment, not because this atom owns it.
 
 Kind:      Member
 Member of: the composing pattern's add rejection
@@ -489,7 +489,7 @@ Projects:  duplicate-recent
 Wire:      pinned
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
-     output; each resolves a [Term] marker to its card heading above (kramdown
+     output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
      kramdown; no plugin required. -->
 

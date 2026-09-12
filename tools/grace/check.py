@@ -52,12 +52,22 @@ DEMONSTRATIVE = re.compile(r"\b(these|those)\b")
 COMPARATOR = re.compile(r"\b(past|longer than|shorter than|more than|fewer than|greater than|less than|short of|at most|at least|no longer|no earlier|no later|advance past)\b", re.I)
 # A modal outside the admitted three carries no obligation the parser can read.
 SOFT_MODAL = re.compile(r"\b(can|could|would|should|might)\b")
+# An action that rejects and also carries an unconditional effect rule says both
+# things about a refused call: the prose spec relied on case-order ("if we got
+# here, the guards passed") and Hard invariant 15 and Hard invariant 16 forbid
+# inferring it. The cure is a declared admitted-call term as the effect's
+# subject (council read 26).
+ACTION_RULE = re.compile(r"^(?:IF .*? THEN )?\[([A-Z][A-Za-z ]+)\] (MUST(?: NOT)?|MAY) (\w+)")
+# The condition operators are the whole set a condition may carry; an English
+# comparison in an IF is a condition the normalizer cannot read (council read 26).
+COND_ENGLISH = re.compile(r"^IF .*?\b(is not|is no|are not|does not|do not|is a|are a)\b.*? THEN ")
 ARITH = re.compile(r"[+×−]|\s-\s")
 MARKER = re.compile(r"\[([^\]\[]+)\]")
 CODE_SPAN = re.compile(r"`[^`]*`")
 SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-two-obligations", "W-demonstrative", "W-comparator", "W-modal",
+            "W-unconditional-effect", "W-condition-operator",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
 # F-prefix-first gates: a demoted rule is a deleted rule
@@ -341,6 +351,10 @@ def scan(path: Path) -> list[Finding]:
             add(r.line, "P-pronoun", f"{r.label}: pronoun in a rule (Hard invariant 4)")
         if re.search(r"\b(MUST NOT|MUST|MAY)\s+(be|is|are|been|being)\b", stmt):
             add(r.line, "C-copula", f"{r.label}: copula after the modal — no declared record verb (Closed vocabulary 8)")
+        if COND_ENGLISH.match(body):
+            add(r.line, "W-condition-operator",
+                f"{r.label}: an English comparison in a condition — the operators are "
+                f"=, !=, EXISTS, NOT EXISTS, EXCEEDS (Earned vocabulary)")
         cm = COMPARATOR.search(stmt) or COMPARATOR.search(cond)
         if cm:
             add(r.line, "W-comparator",
@@ -456,6 +470,25 @@ def scan(path: Path) -> list[Finding]:
                     add(k, "D-decl-unresolved",
                         f"Terms › `{name}` computes over `{ident}`, which this spec declares nowhere "
                         f"(Closed vocabulary 4)")
+
+    # an action that rejects and also carries an unconditional effect rule
+    rejects, effects = {}, {}
+    for r in rules:
+        am = ACTION_RULE.match(r.text)
+        if not am:
+            continue
+        act, modal, verb = am.group(1), am.group(2), am.group(3)
+        if verb == "answer" and r.text.startswith("IF"):
+            rejects[act] = rejects.get(act, 0) + 1
+        elif modal == "MUST" and verb != "answer" and not r.text.startswith("IF") \
+                and " ONLY IF " not in r.text:
+            effects.setdefault(act, []).append(r)
+    for act, rs in effects.items():
+        if rejects.get(act):
+            for r in rs:
+                add(r.line, "W-unconditional-effect",
+                    f"{r.label}: [{act}] rejects elsewhere, so this effect also binds a "
+                    f"refused call — condition it on an admitted-call term (Hard invariant 16)")
 
     # an EXACTLY ONE OF whose members are not exclusive: one member containing
     # another is an exclusive choice that does not exclude (council read 9, council read 13)
