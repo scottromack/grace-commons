@@ -189,9 +189,10 @@ def into(specs: list[Spec], target: str) -> dict[str, list[str]]:
         if spec_name(spec.path) == target:
             continue
         rule_lines = set(spec.rules.values())
+        own = set(spec.rules)
         for label, text in spec.text_of.items():
             for m in CROSS_REF.finditer(text):
-                if m.group(1) == target:
+                if m.group(1) == target and f"{m.group(1)} {m.group(2)}" not in own:
                     out.setdefault(m.group(2), []).append(
                         f"{spec.path.name}:{spec.rules[label]}: {label}")
         # a citation in prose carries no obligation and still sends a reader
@@ -199,7 +200,7 @@ def into(specs: list[Spec], target: str) -> dict[str, list[str]]:
             if i in rule_lines:
                 continue
             for m in CROSS_REF.finditer(raw):
-                if m.group(1) == target:
+                if m.group(1) == target and f"{m.group(1)} {m.group(2)}" not in own:
                     out.setdefault(m.group(2), []).append(
                         f"{spec.path.name}:{i}: (prose)")
     return out
@@ -380,6 +381,8 @@ def main(argv: list[str]) -> int:
             for i, raw in enumerate(spec.path.read_text(encoding="utf-8").split("\n"), start=1):
                 for m in CROSS_REF.finditer(raw):
                     target = m.group(1)
+                    if f"{m.group(1)} {m.group(2)}" in spec.rules:
+                        continue  # the citing spec's own label family, not a citation
                     if target not in migrated and (root / "atoms" / (target.lower().replace(" ", "-") + ".md")).exists():
                         counts[target] = counts.get(target, 0) + 1
         if not counts:
