@@ -454,10 +454,6 @@ Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-12
 
 Terms › `terms`: `disclosure record`, `disclosure_id`, `subject_ref`, `recipient`, `scope`, `store instance`, `seam`, `transition`, `now`, `business caller`, `authority`, `authority_type`, `authority types`, `authority_reference`, `disclosed_at`, `resolved disclosed_at`, `field-level precondition`, `filter axes`, `admitted record`, `string input`, `blank`.
 
-## Terms
-
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of four: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the atom above.)*
-
 #### Record
 
 The behavior that appends one immutable disclosure record: it takes the injected `id_t` as the record's [Disclosure Id], stores [Subject Ref], [Recipient], [Scope], [Authority] (both [Authority Type] and [Authority Reference]), and [Disclosed At] (the injected clock `now` if not supplied; rejected [Invalid Request] if in the future), and returns `recorded(disclosure_id)`. Rejection priority: [Invalid Request] → [Unknown Authority Type] → [Storage Failure].

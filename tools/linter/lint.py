@@ -1158,6 +1158,29 @@ def _unseparated(region: str) -> list[str]:
 SIGNATURE_BLOCK = re.compile(r"```\n(.*?)\n```", re.S)
 
 
+def check_migration_seam(patterns: dict[Path, Pattern]) -> list[Finding]:
+    """M. A migrated spec carrying a second `## Terms` heading. A migration
+    concatenates a rewritten head onto the preserved term entries, so an
+    extraction that starts one heading too early carries the old section
+    heading in beside the new one, and the spec then has two owners for one
+    section. Neither checker reads headings, so the doubling passed both
+    tools on Selective Disclosure until a council read found it (council
+    read 30)."""
+    findings: list[Finding] = []
+    for p in patterns.values():
+        migrated = re.search(r"^Terms › `qualifiers`:.*\bmigrated\b", p.text, re.M)
+        if not migrated:
+            continue  # an unmigrated spec still carries the prose preamble by right
+        heads = [m for m in re.finditer(r"^## Terms\s*$", p.text, re.M)]
+        if len(heads) > 1:
+            findings.append(Finding(
+                p.path, line_of(p.text, heads[1].start()), "M-terms-doubled",
+                "a migrated spec carries two `## Terms` headings — an extraction "
+                "that began at the old section heading rather than at the first "
+                "term entry (Authority 3)"))
+    return findings
+
+
 def check_signature_alternation(patterns: dict[Path, Pattern]) -> list[Finding]:
     """V. A rejection alternation in a signature block whose items are not
     separated by `|`, so two intended alternatives read as one code."""
@@ -1899,6 +1922,7 @@ def main(argv: list[str]) -> int:
     findings += check_recording_step(patterns)
     findings += check_seal_key(patterns)
     findings += check_retry_bit(patterns)
+    findings += check_migration_seam(patterns)
     findings += check_signature_alternation(patterns)
     findings += check_step_reference(patterns)
     findings += check_status_grammar(patterns)
