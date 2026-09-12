@@ -123,9 +123,9 @@ Operation 25: The business caller MUST NOT supply sealed_at.
 Operation 26: The implementation MUST own the mechanism.
 ```
 
-Terms › `record set match`: `yes` | `no` — the host's answer, injected at the seam, to whether the presented original_record_set is the record set the evidence's record_set_ref names. The atom cannot judge it: record_set_ref is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (CR-13).
+Terms › `record set match`: `yes` | `no` — the host's answer, injected at the seam, to whether the presented original_record_set is the record set the evidence's record_set_ref names. The atom cannot judge it: record_set_ref is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (council read 13).
 
-Terms › `seal check`: `held` | `failed` | `unavailable` — the mechanism's verification function, run over the presented record set against the recorded proof. Named for the seal because [Actor Identity](./actor-identity.md) declares its own `proof check` over an attestation, and [Audit Trail](../compositions/audit-trail.md) wires both: one name for two judgments is a collision a composition cannot resolve (CR-13).
+Terms › `seal check`: `held` | `failed` | `unavailable` — the mechanism's verification function, run over the presented record set against the recorded proof. Named for the seal because [Actor Identity](./actor-identity.md) declares its own `proof check` over an attestation, and [Audit Trail](../compositions/audit-trail.md) wires both: one name for two judgments is a collision a composition cannot resolve (council read 13).
 
 Terms › `original_record_set`: the record set a verifier presents at [Verify] — an [Original Record Set]; the proof commits to content, so the verifier holds the content.
 
@@ -290,7 +290,7 @@ External check 1: An auditor MUST read the mechanism's health from the Mechanism
 External check 2: An auditor MUST read the anchor's trust from the anchoring authority's own records (Non-goal 1, Non-goal 2).
 ```
 
-NOTE: mechanism health and anchor trust are what the seal store does not carry — the External check family v0.35 declares exists for exactly this (CR-13).
+NOTE: mechanism health and anchor trust are what the seal store does not carry — the External check family v0.35 declares exists for exactly this (council read 13).
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove these records were not altered?* — answered from the records and the proof, never from a runtime claim.
 

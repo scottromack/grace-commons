@@ -203,7 +203,7 @@ def scan(path: Path) -> list[Finding]:
                     labelled += 1
             # a tombstone or note written as a block's FIRST line silently demotes
             # every rule under it — the edit that looks like an annotation and
-            # reads like a deletion (CR-15)
+            # reads like a deletion (council read 15)
             if labelled and TOMBSTONE.match(first):
                 add(start, "F-prefix-first",
                     f"a tombstone opens this block, so its {labelled} labelled line(s) "
@@ -423,13 +423,20 @@ def scan(path: Path) -> list[Finding]:
                         f"(Closed vocabulary 4)")
 
     # an EXACTLY ONE OF whose members are not exclusive: one member containing
-    # another is an exclusive choice that does not exclude (CR-9, CR-13)
+    # another is an exclusive choice that does not exclude (council read 9, council read 13)
     for r in rules:
         m = re.search(r"EXACTLY ONE OF (.+?)(?:\.|$)", r.text)
         if not m:
             continue
         members = [x.strip().rstrip(".") for x in m.group(1).split(",") if x.strip()]
         if len(members) < 2:
+            continue
+        # a final alternative that swallows the others: "a, b, a combination of
+        # those" is not an exclusive choice, it is a list with a catch-all (council read 17)
+        if re.match(r"^(a combination|any combination|both|any of|some combination)\b", members[-1], re.I):
+            add(r.line, "E-not-exclusive",
+                f"{r.label}: EXACTLY ONE OF ending in a catch-all — "
+                f"'{members[-1][:40]}' subsumes the alternatives before it (Earned vocabulary 4)")
             continue
         for i, a in enumerate(members):
             for j, b in enumerate(members):
@@ -470,10 +477,10 @@ def scan(path: Path) -> list[Finding]:
             text_of_rule = next((r.text for r in rules if r.label == label), "")
             if not name_re.search(text_of_rule):
                 add(line_no, "K-check-bare",
-                    f"{label} names no rule — a check whose failure nobody can state (CR-8)")
+                    f"{label} names no rule — a check whose failure nobody can state (council read 8)")
 
     # a vocabulary category listing one name twice: the template ships with a
-    # repeating defect and every spec inherits it (CR-16)
+    # repeating defect and every spec inherits it (council read 16)
     for name, k in declared_terms(text).items():
         if name not in {"record verbs", "terms"}:
             continue

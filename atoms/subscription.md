@@ -316,7 +316,7 @@ Lost ledger 4: A deployment needing recovery from a lost subscription_id MUST co
 ```
 
 WHY:
-The capability trade buys unguessability and pays for it here. The id is the whole authorization (Operation 12), the atom enumerates no ids (Cancel capability 2), and nothing gates [Cancel] beyond the id (Non-goal 15) — so a composing pattern that loses its ledger holds subscriptions that every audit can see and nobody can cancel. Non-goal 12's deprovisioning cascade presupposes that ledger too. Retention Window's principle — observe the failure, never forbid the remediation — inverts here unless the ledger is owned: the remediation is not refused, it is absent. An Administrative Recovery pattern *(forthcoming)*, composing [Actor Identity](./actor-identity.md) so a named administrator can cancel without the id, is the remedy this atom deliberately does not carry (CR-12).
+The capability trade buys unguessability and pays for it here. The id is the whole authorization (Operation 12), the atom enumerates no ids (Cancel capability 2), and nothing gates [Cancel] beyond the id (Non-goal 15) — so a composing pattern that loses its ledger holds subscriptions that every audit can see and nobody can cancel. Non-goal 12's deprovisioning cascade presupposes that ledger too. Retention Window's principle — observe the failure, never forbid the remediation — inverts here unless the ledger is owned: the remediation is not refused, it is absent. An Administrative Recovery pattern *(forthcoming)*, composing [Actor Identity](./actor-identity.md) so a named administrator can cancel without the id, is the remedy this atom deliberately does not carry (council read 12).
 
 ### Atomicity of a cancel
 

@@ -5,7 +5,7 @@
 Nothing walked it backward, and that is how a vacuous check survives a repair.
 Lease's Check 6.1 measured the fence margin against the allowance; Fence 5 was
 the rule that set the margin; when Fence 5 changed, nothing re-opened the check
-that rested on it, and the pair stayed mutually vacuous for a day (CR-8).
+that rested on it, and the pair stayed mutually vacuous for a day (council read 8).
 
 A citation here is either kind of dependence a rule can carry:
 
@@ -280,7 +280,7 @@ def main(argv: list[str]) -> int:
     total = 0
     if "--unchecked" in argv:
         # the inverse of K-check-bare: a rule no check names. A rule with no
-        # check is a claim nobody audits — the silence is the finding (CR-11).
+        # check is a claim nobody audits — the silence is the finding (council read 11).
         i = argv.index("--unchecked")
         stem = argv[i + 1] if i + 1 < len(argv) and not argv[i + 1].startswith("--") else None
         for spec in specs_with_rules(root, paths):
@@ -323,7 +323,7 @@ def main(argv: list[str]) -> int:
     if "--drift" in argv:
         # the same name, declared twice, differently — and the same label family
         # carrying different rules in two specs. The corpus's error mass moved
-        # between the documents; this is the walker pointed there (CR-10).
+        # between the documents; this is the walker pointed there (council read 10).
         corpus = specs_with_rules(root, None)
         decls: dict[str, list[tuple[str, str]]] = {}
         families: dict[str, set[str]] = {}
@@ -357,7 +357,7 @@ def main(argv: list[str]) -> int:
         i = argv.index("--terms")
         name = argv[i + 1] if i + 1 < len(argv) else ""
         # every declaration of one name, across the corpus: a term is one
-        # concept or it is several wearing one name (CR-9)
+        # concept or it is several wearing one name (council read 9)
         seen = []
         for spec in specs_with_rules(root, None):
             if name in spec.terms:

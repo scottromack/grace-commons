@@ -281,7 +281,8 @@ WHY:
 ## Composition notes
 
 ```text
-Composition note 1: A composing pattern MUST take EXACTLY ONE OF appending on every state change, deriving state by replay, both.
+Composition note 1: A composing pattern MUST append on every state change.
+Composition note 1a: A composing pattern MAY derive state by replay.
 Composition note 2: A composing pattern MUST own what an event means.
 Composition note 3: A composing pattern MUST own the payload's schema.
 Composition note 4: This atom's invariant numbers MUST stand as a frozen contract surface.
@@ -301,7 +302,7 @@ Terms › `actors`: the atom; the log (also: a log instance, a fresh log instanc
 
 Terms › `records`: `event` — one recorded fact, carrying `event_id`, `sequence_number`, `recorded_at` and `data`; the log carries `log_name` and `next_sequence_number`.
 
-Terms › `record verbs`: identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match.
+Terms › `record verbs`: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match.
 
 Terms › `value sets`: append answers = event_id | rejected(invalid-payload | storage-failure). read answers = events | rejected(invalid-query). `event field` = event_id | sequence_number | recorded_at | data.
 

@@ -277,7 +277,7 @@ External check 3: An auditor MUST read a task's completion from the host's task 
 External check 4: An auditor MUST read the serialization evidence from the deployment's own concurrency probe (Invariant 7.3, Invariant 7.4, Assign race 1).
 ```
 
-NOTE: Invariant 7.3 and Invariant 7.4 forbid a reader *observing* a state. Records written after the fact cannot show what was observable between two writes, so no conformance check clears them and External check 4 names the probe that can — the records-alone gap `open-questions.md` §*Generation trust* docks, with its first load-bearing resident (CR-14).
+NOTE: Invariant 7.3 and Invariant 7.4 forbid a reader *observing* a state. Records written after the fact cannot show what was observable between two writes, so no conformance check clears them and External check 4 names the probe that can — the records-alone gap `open-questions.md` §*Generation trust* docks, with its first load-bearing resident (council read 14).
 
 NOTE: EVERY check names the rule the check tests. The assignment store answers *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.
 

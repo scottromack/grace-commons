@@ -22,127 +22,219 @@ Legal Hold is a formal instruction to keep a specific record intact — overridi
 
 ## Intent
 
-When litigation is reasonably anticipated, when a regulatory body opens an investigation, when an audit freeze is ordered, or when a breach response team needs to preserve forensic evidence, the normal retention clock stops being the governing rule. The obligation shifts from *keep this record for N years* to *keep this record until the legal matter resolves, regardless of what the retention schedule says*. That shift is a Legal Hold.
-
-Legal Hold is the enforcement record for that shift. A compliance officer, legal counsel, or automated case management integration places a hold (a legally mandated preservation order — prevents deletion of records potentially relevant to litigation) on a record, naming who placed it, why, and under what legal authority. The record is now preserved. When the matter closes — the litigation settles, the investigation ends, the audit concludes — the hold is released. The record is again governed by its retention window. The full arc, from placement to release, is carried in the hold records themselves: every attribution field, every timestamp, every reason. The atom guarantees the chain is *present* and *immutable by specification*. Cryptographic protection of those records against post-hoc modification — the bar for court-admissible evidence in spoliation litigation (destruction or concealment of evidence relevant to a legal proceeding) — is added by composition with [Tamper Evidence](./tamper-evidence.md); this atom does not provide it alone.
-
-The pattern is structurally distinct from [Retention Window](./retention-window.md) in a load-bearing way: Retention Window answers *how long must this record be kept under normal operation*; Legal Hold answers *this record may not be purged under any circumstances until this hold is explicitly released*. The two coexist as composing peers — a record under both a retention window and a legal hold must satisfy both: it cannot be purged before `retention_until`, and it cannot be purged while any Active hold remains. Neither atom enforces the other's constraint; the composition ([Regulated Record Retention & Defensible Deletion](../roadmap.md)) wires the gate that checks both before permitting purge. This keeps each atom freestanding.
-
-The atom records holds; it does not prevent purge directly. Preventing purge is enforced by the composition that wires Legal Hold with the system's purge surface. This is deliberate: the atom specifies what a hold *is* and what its records must prove; the deployment decides which purge surfaces check for Active holds before acting. A Legal Hold atom that intercepts purge internally would need to know about storage layers, retention records, and purge mechanisms — absorbing concepts that belong to composing patterns and breaking freestanding status.
-
-Multiple concurrent holds on the same record are structurally independent. This is not a simplification — it is the correct model for real multi-party legal situations. A record under both an internal forensic investigation hold and a state attorney general investigation hold has two independent preservation obligations. If the internal team closes its investigation and releases its hold, the AG's preservation obligation is unaffected. A system that released both holds when one was released would create spoliation risk. Each hold has its own `hold_id`, its own lifecycle, and its own release event. Whether a record is *currently held* — meaning at least one Active hold covers it — is a query result over the hold records, not a separate state on the hold.
-
-This is a freestanding (can be specified without naming any other pattern) concept in the EOS (Essence of Software — Daniel Jackson's framework for specifying software concepts as freestanding, composable units) sense. It carries its own state (the hold record set), its own actions (`place`, `release`, `read`), and its own invariants (hold immutability, two-state exclusivity, terminal absorption, concurrent independence, release attribution, store durability). Composing patterns add the purge gate, access control, case management integration, and cross-record batch holds.
-
----
+WHY:
+When litigation is filed or reasonably anticipated, the duty to preserve arrives before anyone knows what will matter, and it overrides every retention schedule the organization has. Destroying a held record is spoliation — sanctions, adverse inference, sometimes the case. So the obligation itself has to be a record: what is held, who decided, why, under which matter, from when, and — when it ends — who lifted it and on what grounds. That record is this atom. It does not stop a purge; it documents an obligation a composing pattern enforces at the purge surface. It does not know what a case is. And it never merges two holds over one record, because two authorities demanding preservation of one document is two obligations, each ending on its own day.
 
 ## Structure
 
 ### Store instance model
 
-The Legal Hold atom operates against a named store instance. A [Store Name] identifies the instance; multiple instances coexist in real systems — one per organization, jurisdiction, or business unit, depending on deployment topology. [Hold Id] values are unique within a store instance; uniqueness across instances is a composing concept. [Record Ref] is an opaque reference scoped to the host system — the same [Record Ref] may be held by multiple simultaneous holds within the same store instance. Calls implicitly target a single routed instance; instance selection is handled at the deployment-routing layer, not defined by this atom.
+```text
+Instance 1: The atom MUST hold every hold under EXACTLY ONE store instance.
+Instance 2: Two holds in one store instance MUST NOT share a hold_id.
+Instance 3: The atom MUST NOT reach across store instances.
+Instance 4: The deployment MUST route a call to one store instance.
+Instance 5: [Read] MUST answer the store_name the read was routed to.
+Instance 6: A composing pattern MUST match the answered store_name against the record's own store instance.
+Instance 7: A composing pattern MUST NOT read an empty answer as unheld WHILE the store_name does not match.
+```
+
+Terms › `store instance`: one named hold store — a [Store Name] identifies it; a deployment runs one per organization, jurisdiction or business unit.
 
 ### Identity model
 
-Each hold has an opaque, immutable, system-generated [Hold Id] — assigned on [Place], never reused, never reassigned within the store instance. It must be a non-empty string sortable in lexicographic byte-order; this property is required for deterministic [Read] ordering. The id is the hold's identity; the record reference, placing actor, reason, and timestamps are properties of the hold, not its identity.
+```text
+Identity 1: The atom MUST identify a hold by the hold_id.
+Identity 2: The host MUST allocate a hold_id at the atom's seam.
+Identity 3: The transition MUST NOT allocate a hold_id.
+Identity 4: The atom MUST NOT reuse a hold_id.
+Identity 5: The atom MUST NOT reassign a hold_id.
+Identity 6: A hold_id MUST sort in lexicographic byte order.
+Identity 7: The atom MUST NOT identify a hold by the record_ref.
+Identity 8: Two holds over one record MUST carry two hold_ids.
+```
 
-[Record Ref] is an opaque reference to the record being held. Set on [Place], immutable. The atom does not validate that the record exists or is currently retained — [Record Ref] is the caller's responsibility. Two holds over the same record have distinct [Hold Id]s; each is its own audit record with its own lifecycle.
+Terms › `hold`: one recorded preservation obligation over one record — the record this atom writes.
 
-[Placed By] is an opaque reference to the actor placing the hold. Set on [Place], immutable. It is the attribution anchor for the preservation decision; empty or whitespace-only values are rejected at placement.
+Terms › `hold_id`: the opaque value naming one hold — a [Hold Id]; not blank, and sortable so [Read] can order deterministically.
 
-[Case Ref] is an optional opaque reference to the legal matter, investigation, or audit under which the hold is placed (for example, a case management system identifier or a docket number). Set on [Place], immutable. Its absence is valid — holds may be placed before a formal case is opened, or the case reference system may be external. If supplied, it must contain at least one non-whitespace character.
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses.
 
-### Inputs
+Terms › `record_ref`: the opaque reference naming what is preserved — a [Record Ref]; the host owns whether the record exists.
 
-- [Place] calls from legal counsel, compliance officers, case management integrations, or automated preservation workflows, each carrying a [Record Ref], a placing actor ([Placed By]), a [Reason], an optional [Case Ref], and an optional explicit [Placed At] timestamp.
-- [Release] calls documenting that the legal obligation has ended, carrying the [Hold Id], the releasing actor ([Released By]), a required [Reason], and an optional explicit [Released At] timestamp.
-- [Read] queries from legal teams, compliance dashboards, audit processes, and litigation support workflows.
+Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the hold_id here.
 
-### Actions
+Terms › `transition`: the atom's evaluation of one call against the hold store, as `execution-contract.md` §Logic confinement declares it.
 
-For optional parameters in both [Place] and [Release], "supplied" means provided as a parseable value of the declared type. Null, missing, and empty (or whitespace-only) values are equivalent to "not supplied," and the action's documented default applies.
+Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-- [Place] — (Projected contract: `place(record_ref, placed_by, reason, case_ref?, placed_at?) → hold_id | rejected(invalid-request | storage-failure)`) — place a preservation hold on the named record. Assigns a fresh [Hold Id], records [Record Ref], [Placed By], [Hold Reason], [Case Ref] (if supplied), and [Placed At] (wall clock if not supplied; must not be in the future). The hold enters [Active] state. [Record Ref], [Placed By], and [Reason] must each contain at least one non-whitespace character; [Case Ref], if supplied, must also contain at least one non-whitespace character — any violation is [Invalid Request]. [Storage Failure] if the store write fails after all preconditions pass; no [Hold Id] is issued and no record enters the store.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, and never supplied by the business caller — `placed_at` and `released_at` are the caller's claims about when an obligation began and ended, judged against `now` and stored as claims (Operation 37–41).
 
-- [Release] — (Projected contract: `release(hold_id, released_by, reason, released_at?) → released | rejected(invalid-request | not-known | already-released | storage-failure)`) — document the end of the preservation obligation and transition the hold to [Released]. Records [Released By], [Release Reason], and [Released At] (wall clock if not supplied; must not be in the future — releasing a hold in the future is not meaningful); all are immutable after the transition. The [Hold Id] parameter must itself contain at least one non-whitespace character ([Invalid Request]); a null, empty, or whitespace-only [Hold Id] is malformed and rejected before any existence check is performed. [Released By] and [Reason] must each contain at least one non-whitespace character ([Invalid Request]). The resolved [Released At] — whether caller-supplied or wall-clock-defaulted — must be ≥ the hold's [Placed At]; a value less than [Placed At] is [Invalid Request] regardless of how it was derived (this enforces Invariant 6 against clock-skew artifacts as well as caller-supplied backdated values). Releasing a hold on a record does not affect any other hold on the same record. [Storage Failure] leaves the hold in [Active] state; the caller must retry.
-
-- [Read] — (Projected contract: `read(query) → ordered_sequence_of_holds | rejected(invalid-query)`) — return holds matching the [Query], ordered by [Placed At] ascending, then by [Hold Id] ascending in lexicographic byte-order as a stable tiebreaker. Implementations must assign [Hold Id] values in a format where string byte-order sort produces a total order (e.g., ULID — Universally Unique Lexicographically Sortable Identifier, UUID v7 — version 7 of the Universally Unique Identifier, which is time-ordered, or zero-padded integer string). The supported filter axes are exactly: [Hold Id], [Record Ref], [Placed By], [Case Ref], [State], and time ranges on [Placed At] or [Released At]. Any combination of supported axes is valid. A query supplying only a [Hold Id] returns at most one hold. A well-formed query matching no holds returns an empty sequence, not a rejection. A query with no filters returns every hold in the store. A time range filter on [Released At] returns only holds that carry a [Released At] field — i.e., [Released] holds. [Active] holds carry no [Released At] field and are implicitly excluded from results whenever a [Released At] filter is present, regardless of whether a [State] filter is also supplied. A query `{released_at: {after: X}}` with no state filter returns [Released] holds where `released_at > X`; [Active] holds are not included. A query `{state: Active, released_at: {after: X}}` returns an empty sequence by the same rule. A [Case Ref] filter value matches only holds where [Case Ref] is set and equals the value; holds without [Case Ref] are excluded by any positive [Case Ref] filter (a "find holds that have no [Case Ref]" predicate is not in the spec; if a deployment needs it, the composing layer adds it). The query `{record_ref: X, state: Active}` returns every [Active] hold covering a given record — this is the operational check for whether a record is currently held.
-
-  **Malformed-query rules ([Invalid Query]):** a [Hold Id], [Record Ref], [Placed By], or [Case Ref] filter value that is null, empty, or whitespace-only is [Invalid Query] (the filter axes exist; the values are malformed). A [State] filter value that is not one of {[Active], [Released]} is [Invalid Query]. A time range with end before start is [Invalid Query]. A query carrying an unrecognized filter key — any key outside the supported axes named above — is [Invalid Query]; an unrecognized key is rejected rather than silently ignored, because silent ignore would return a result set inconsistent with the caller's intent.
-
-### Outputs
-
-- For [Place]: a fresh [Hold Id], or a rejection.
-- For [Release]: the outcome token `released`, or a rejection.
-- For [Read]: a (possibly empty) ordered sequence of holds. Each hold carries its full field set. Fields present on every hold ([Active] or [Released]): [Hold Id], [Record Ref], [Placed By], [Hold Reason], [Placed At], [State]. Optional field set at placement (independent of state): [Case Ref] (present if supplied at [Place], absent otherwise; immutable thereafter). State-specific fields: [Released By], [Release Reason], [Released At] are present on [Released] holds only. A [Released] hold carries all placement fields (including [Case Ref] if it was supplied) and all release fields simultaneously.
+WHY:
+Two authorities can demand preservation of one document — a plaintiff's litigation hold and a regulator's investigative demand — and they end on different days. Merging them into one obligation would release the record the moment the first ends, which is the spoliation the atom exists to foreclose (Identity 7, Identity 8, Invariant 4.1). The id sorts because [Read]'s order is part of the contract, not a convenience (Identity 6, Operation 18).
 
 ### State
 
-Each hold is in exactly one state:
+```text
+State 1: EVERY hold MUST stand in EXACTLY ONE OF active, released.
+State 2: EVERY hold MUST carry hold_id, record_ref, placed_by, hold_reason, placed_at and state.
+State 3: A hold MAY carry case_ref.
+State 4: A released hold MUST carry released_by, release_reason and released_at.
+State 5: An active hold MUST NOT carry released_at.
+State 7: The atom MUST NOT delete a hold.
+State 8: The atom MUST NOT hold an aggregate for a record.
+NOTE: State 6 deleted — Invariant 3.2 owns the absent re-activation.
+NOTE: State 9 deleted — Non-goal 9 owns the case lifecycle.
+```
 
-- **[Active]** — the preservation obligation for [Record Ref] is in effect. Any composition wiring this atom to a purge surface must treat an [Active] hold as blocking purge eligibility; the atom records the obligation but does not enforce it internally. The hold carries [Hold Id], [Record Ref], [Placed By], [Hold Reason], [Placed At], and [Case Ref] (if supplied). May only be released (transitioning to [Released]) or read.
-- **[Released]** — the preservation obligation has ended. Carries [Released By], [Release Reason], and [Released At] (all immutable from the moment [Release] completes), plus all placement fields. Terminal; no further transitions.
+Terms › `hold state`: `active` | `released` — the obligation in effect, or documented as ended.
 
-Valid transitions — writes only; every committed transition stamps its timestamp from the receiving node's wall clock:
+Terms › `placed_by`: the opaque reference naming who placed the hold — a [Placed By]; the attribution anchor for the preservation decision.
 
-| action | from | to | guard | stamps | result |
-| --- | --- | --- | --- | --- | --- |
-| [Place] | *(no record)* | **[Active]** | [Placed At] (if supplied) not in the future | fresh [Hold Id]; [Record Ref]; [Placed By]; [Hold Reason]; [Case Ref] if supplied; [Placed At] | the new [Hold Id] |
-| [Release] | [Active] | **[Released]** | resolved [Released At] not future ∧ ≥ [Placed At] | [Released By]; [Release Reason]; [Released At] | `released` |
+Terms › `hold_reason`: the narrative ground the hold was placed on — a [Hold Reason].
 
-No other transitions exist. A hold cannot be re-activated after release; a new preservation obligation requires a new [Place] call producing a new [Hold Id]. [Release] on an already-[Released] hold is rejected [Already Released], writing nothing; concurrent holds on one record are independent (Invariant 4), so releasing one never transitions another.
+Terms › `placed_at`: the instant the obligation was recorded — a [Placed At].
 
-### Flow
+Terms › `case_ref`: the opaque reference naming the matter the hold sits under — a [Case Ref]; absent where no formal matter exists yet.
 
-1. **Litigation trigger.** Counsel determines that records relating to Project Alpha are subject to litigation hold. Calls `place(record_ref: "doc-alpha-0012", placed_by: "counsel_morgan", reason: "Litigation hold — Smith v. Acme Corp., SDNY 2026-cv-4421 — all Project Alpha records", case_ref: "matter-2026-smith-acme")` → `hold_id: "hold-001"`. The hold enters [Active].
-2. **Second independent hold.** The state AG separately issues a preservation demand covering the same record. Compliance calls `place(record_ref: "doc-alpha-0012", placed_by: "compliance_lee", reason: "NY AG Civil Investigative Demand — Case INV-2026-0089", case_ref: "ag-inv-2026-0089")` → `hold_id: "hold-002"`. Two independent [Active] holds now cover the record.
-3. **Internal matter closes.** Smith v. Acme Corp. settles. Counsel calls `release("hold-001", released_by: "counsel_morgan", reason: "Matter settled with prejudice — May 10 2026")` → `released`. Hold-001 is now [Released]. Hold-002 remains [Active]; the record is still held.
-4. **AG investigation closes.** AG closes the investigation. `release("hold-002", released_by: "compliance_lee", reason: "NY AG CID withdrawn — May 28 2026")` → `released`. No [Active] holds remain on the record; the composing layer resumes normal retention governance.
-5. **Audit query.** A later audit queries `read({record_ref: "doc-alpha-0012"})` and sees both holds with full placement and release attribution. The record's complete legal hold history is recoverable without recourse to external systems.
+Terms › `released_by`: the opaque reference naming who ended the obligation — a [Released By].
 
-### Decision points
+Terms › `release_reason`: the ground the obligation ended on — a [Release Reason].
 
-- **At [Place]** — [Record Ref], [Placed By], and [Reason] must each contain at least one non-whitespace character; [Case Ref], if supplied, must also contain at least one non-whitespace character; [Placed At], if supplied, must not be in the future (checked against the receiving node's wall clock). Any violation is [Invalid Request]. [Storage Failure] if the store write fails; no [Hold Id] is issued, no record enters the store.
+Terms › `released_at`: the instant the obligation was documented as ended — a [Released At].
 
-- **At [Release]** — the [Hold Id] parameter is checked first: if null, empty, or whitespace-only, the call is [Invalid Request] (the caller passed garbage, not a reference to a missing hold). If [Hold Id] is well-formed, the store is consulted: [Not Known] if no hold with this id exists; [Already Released] if the hold is in [Released] state. If neither, attribution and temporal checks apply: [Released By] and [Reason] must each contain at least one non-whitespace character ([Invalid Request]); the resolved [Released At] — caller-supplied or wall-clock-defaulted — must not be in the future (the future-bound applies only when caller-supplied, because a wall-clock default is "now" by construction) and must be ≥ the hold's [Placed At]. The ≥ [Placed At] bound applies to the resolved [Released At] regardless of how it was derived; this enforces Invariant 6 against clock-skew artifacts as well as caller-supplied backdated values. A violation is [Invalid Request]. [Storage Failure] leaves the hold in [Active]; the caller must retry. Rejection priority: malformed [Hold Id] ([Invalid Request]) → [Not Known] → [Already Released] → attribution/temporal ([Invalid Request]) → [Storage Failure].
+WHY:
+There is no aggregate *is this record held* field, because an aggregate is a second copy of the truth that drifts the moment a hold is placed or released; the question is answered by reading the active holds over the record (State 9, Operation 20). A released hold stays in the store because it is the proof the obligation was honoured and lawfully lifted — the evidence a court asks for, deleted by nobody (State 7, Invariant 8.1).
 
-- **At [Read]** — every supplied filter value must be well-formed for its axis. A [Hold Id], [Record Ref], [Placed By], or [Case Ref] filter value that is null, empty, or whitespace-only is [Invalid Query]. A [State] filter value not in {[Active], [Released]} is [Invalid Query]. A time range with end before start is [Invalid Query]. An unrecognized filter key — any key outside the supported axes — is [Invalid Query]; the spec rejects rather than ignores unknown keys. A [Released At] filter implicitly excludes [Active] holds, which carry no [Released At] field, regardless of whether a [State] filter is also present. A [Case Ref] filter excludes holds without [Case Ref]. A well-formed query matching no holds returns an empty sequence.
+### Operations
 
-### Behavior
+```
+place(record_ref, placed_by, reason, case_ref?, placed_at?) → hold_id | rejected(invalid-request | storage-failure)
+release(hold_id, released_by, reason, released_at?) → released | rejected(invalid-request | not-known | already-released | storage-failure)
+read(query) → holds | rejected(invalid-query)
+```
 
-- **Holds are durable on success.** Once [Place] returns a [Hold Id], the hold is in the store and will appear in subsequent reads.
-- **Hold placement is not idempotent.** Two [Place] calls for the same [Record Ref], [Placed By], and [Reason] create two independent holds with distinct [Hold Id]s.
-- **Concurrent holds are independent.** Multiple [Active] holds on the same [Record Ref] do not interact. Releasing hold A leaves hold B unaffected. The aggregate "is this record held?" question is answered by querying `{record_ref: X, state: Active}` and checking whether the result is non-empty; the atom does not maintain a separate aggregate state.
-- **[Released] state is terminal and auditable.** A [Released] hold carries the full placement and release record. It is the audit evidence of the complete preservation arc — when the hold was placed, by whom, why, and when it was lifted. Releasing a hold does not remove its record from the store.
-- **The atom does not enforce the purge gate.** Whether a held record is actually prevented from being purged is enforced at the composing layer (Retention Window + Legal Hold composition). The atom records that a preservation obligation exists; the composition enforces it at the purge surface.
-- **Reads are repeatable; the hold store is monotonic.** The hold store only grows — [Place] adds records, [Release] transitions them. An unfiltered read at `t2 > t1` returns every hold visible at `t1` plus any added in between. State-filtered reads are not monotonic: a hold visible under `state: Active` at `t1` may appear under `state: Released` at `t2` if released in between.
+```text
+Operation 1: [Place] MUST record EXACTLY ONE hold per successful call.
+Operation 2: [Place] MUST stand the hold in active.
+Operation 3: [Place] MUST answer hold_id.
+Operation 4: IF record_ref is blank THEN [Place] MUST answer invalid-request.
+Operation 5: IF placed_by is blank THEN [Place] MUST answer invalid-request.
+Operation 6: IF hold_reason is blank THEN [Place] MUST answer invalid-request.
+Operation 7: IF a supplied case_ref is blank THEN [Place] MUST answer invalid-request.
+Operation 8: IF a supplied placed_at EXCEEDS now THEN [Place] MUST answer invalid-request.
+Operation 9: IF the caller supplies no placed_at THEN [Place] MUST stamp placed_at from the injected now.
+Operation 10: [Place] MUST accept a placed_at below now.
+Operation 11: IF the store refuses the write THEN [Place] MUST answer storage-failure.
+Operation 12: IF hold_id is blank THEN [Release] MUST answer invalid-request.
+Operation 13: IF the hold NOT EXISTS THEN [Release] MUST answer not-known.
+Operation 14: IF the hold stands in released THEN [Release] MUST answer already-released.
+Operation 15: IF released_by is blank THEN [Release] MUST answer invalid-request.
+Operation 16: IF release_reason is blank THEN [Release] MUST answer invalid-request.
+Operation 17: IF the resolved released_at falls below the hold's placed_at THEN [Release] MUST answer invalid-request.
+Operation 18: IF a supplied released_at EXCEEDS now THEN [Release] MUST answer invalid-request.
+Operation 18a: IF the caller supplies no released_at THEN [Release] MUST stamp released_at from the injected now.
+Operation 19: [Release] MUST stand the hold in released.
+Operation 20: [Release] MUST NOT reach another hold over the record.
+Operation 21: IF the store refuses the write THEN [Release] MUST answer storage-failure.
+Operation 22: [Release] MUST leave the hold standing in active on storage-failure.
+Operation 23: [Read] MUST answer the holds the query matches.
+Operation 24: [Read] MUST order the answer by placed_at, rising.
+Operation 25: [Read] MUST order two holds sharing a placed_at by hold_id, rising.
+Operation 26: [Read] MUST accept a filter on EVERY admitted axis.
+Operation 26a: [Read] MUST accept a query combining admitted axes.
+Operation 27: IF the query carries an axis outside the admitted axes THEN [Read] MUST answer invalid-query.
+Operation 28: IF a filter value is blank THEN [Read] MUST answer invalid-query.
+Operation 29: IF a hold state filter value falls outside the hold state set THEN [Read] MUST answer invalid-query.
+Operation 30: IF a range's end falls below the range's start THEN [Read] MUST answer invalid-query.
+Operation 31: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
+Operation 32: [Read] MUST NOT answer an active hold under a released_at filter.
+Operation 33: [Read] MUST NOT answer a hold carrying no case_ref under a case_ref filter.
+Operation 34: [Read] MUST NOT write.
+Operation 35: The host MUST read the clock at the atom's seam.
+Operation 36: The transition MUST NOT read a clock.
+Operation 37: The business caller MUST NOT supply now.
+Operation 38: The business caller MAY supply placed_at.
+Operation 39: The business caller MAY supply released_at.
+Operation 40: The atom MUST judge a supplied placed_at against the injected now.
+Operation 41: The atom MUST judge a supplied released_at against the injected now.
+```
 
-### Feedback
+Terms › `query`: what a read asks for — a [Query]; any combination of the admitted axes, and a query carrying none matches every hold.
 
-- After [Place] — a new [Active] hold record exists; [Hold Id], [Record Ref], [Placed By], [Hold Reason], [Placed At], and [Case Ref] (if supplied) are set and immutable.
-- After [Release] — the hold is now [Released]; [Released By], [Release Reason], and [Released At] are set and immutable. All placement fields are unchanged.
+Terms › `admitted axis`: `hold_id` | `record_ref` | `placed_by` | `case_ref` | `hold state` | a `placed_at` range | a `released_at` range — the filter axes [Read] accepts, and no others.
 
-Each rejected action produces an observable refusal naming the failed precondition.
+Terms › `resolved released_at`: the released_at the release records — the caller's value where one is supplied, the injected now otherwise.
+
+Terms › `held at an instant`: `placed_at` at or before the instant, and the hold either standing active or carrying a `released_at` after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
+
+The case space, and the rule that owns each case:
+
+| Call | Case | Answer | Effect on the hold store |
+|---|---|---|---|
+| [Place] | refs and reason present, `placed_at` not future, store accepts | `hold_id` | one hold lands in [Active] (Operation 1, Operation 2) |
+| [Place] | blank `record_ref`, `placed_by`, reason, or supplied `case_ref` | [Invalid Request] | none (Operation 4–7) |
+| [Place] | supplied `placed_at` in the future | [Invalid Request] | none (Operation 8) |
+| [Place] | supplied `placed_at` in the past | `hold_id` | one hold lands, back-dated as supplied (Operation 10) |
+| [Release] | hold active, attribution present, time in range | `released` | [Active] → [Released], release fields stamped (Operation 19, State 4) |
+| [Release] | blank `hold_id` | [Invalid Request] | none — the caller passed nothing, not a missing hold (Operation 12) |
+| [Release] | id names nothing | [Not Known] | none (Operation 13) |
+| [Release] | hold already released | [Already Released] | none (Operation 14) |
+| [Release] | resolved `released_at` before `placed_at`, or supplied one in the future | [Invalid Request] | none (Operation 17, Operation 18) |
+| either write | store refuses | [Storage Failure] | none — a release leaves the hold [Active] (Operation 11, Operation 21, Operation 22) |
+| [Read] | well-formed query | the matching holds, ordered | none — the call reads (Operation 23, Operation 34) |
+| [Read] | unknown axis, blank value, bad state, inverted range | [Invalid Query] | none — rejected rather than silently ignored (Operation 27–30) |
+| [Read] | well-formed query matching nothing | empty sequence | none (Operation 31) |
+
+WHY:
+A blank `hold_id` is refused before the store is consulted, because *you passed garbage* and *no such hold* are different facts and a caller acts on them differently (Operation 12, Operation 13). An unrecognized filter axis is refused rather than ignored: a silently dropped filter returns a result set wider than the caller asked for, and in this atom a wider set means *this record is not held* answered from an incomplete read (Operation 27). Back-dating a placement is accepted on purpose — an obligation recognized late is still an obligation, and the record should say when it was recognized rather than pretend (Operation 10, Backdating 1–3).
 
 ### Invariants
 
-- **Invariant 1 — Hold immutability.** After a successful [Place], the fields [Hold Id], [Record Ref], [Placed By], [Hold Reason], [Placed At], and [Case Ref] never change, regardless of any subsequent action.
+- **Invariant 1 — Hold immutability.**
+  ```text
+  Invariant 1.1: A recorded hold's hold_id, record_ref, placed_by, hold_reason, placed_at and case_ref MUST NOT change.
+  ```
+- **Invariant 2 — Membership exclusivity.**
+  ```text
+  Invariant 2.1: EVERY hold MUST stand in EXACTLY ONE OF active, released.
+  ```
+- **Invariant 3 — Terminal absorption.**
+  ```text
+  Invariant 3.1: A released hold MUST NOT stand in active again.
+  Invariant 3.2: The atom MUST NOT offer a re-activation.
+  ```
+- **Invariant 4 — Concurrent holds are independent.**
+  ```text
+  Invariant 4.1: A release MUST NOT change another hold's state.
+  Invariant 4.2: A hold's state MUST rest on that hold's own release alone.
+  Invariant 4.3: A record MUST read as held at an instant ONLY IF a hold over the record is held at an instant.
+  ```
+- **Invariant 5 — Release attribution is complete.**
+  ```text
+  Invariant 5.1: A released hold MUST carry a released_by that is not blank.
+  Invariant 5.2: A released hold MUST carry a release_reason that is not blank.
+  Invariant 5.3: A released hold MUST carry released_at.
+  ```
+  WHY: an anonymous or unexplained release defeats the audit trail a court reads — *who decided the duty had ended, and on what ground* is the question a spoliation dispute turns on.
+- **Invariant 6 — Temporal ordering.**
+  ```text
+  Invariant 6.1: A released hold's placed_at MUST NOT EXCEED the hold's released_at.
+  ```
+- **Invariant 7 — Placement attribution is complete.**
+  ```text
+  Invariant 7.1: EVERY hold MUST carry a placed_by that is not blank.
+  Invariant 7.2: EVERY hold MUST carry a hold_reason that is not blank.
+  Invariant 7.3: EVERY hold MUST carry placed_at.
+  ```
+- **Invariant 8 — Hold store durability.**
+  ```text
+  Invariant 8.1: The atom MUST NOT delete a hold record.
+  Invariant 8.2: The hold set MUST NOT shrink.
+  Invariant 8.3: A storage-failure from [Place] MUST NOT leave a partial hold.
+  ```
 
-- **Invariant 2 — Membership exclusivity.** Every hold known to the store is in exactly one of {[Active], [Released]} at all times.
-
-- **Invariant 3 — Terminal absorption.** Once a hold transitions to [Released], no action transitions it further. The atom has no re-activate surface; a new preservation need requires a new [Place].
-
-- **Invariant 4 — Concurrent holds are independent.** Releasing hold H on record R does not change the state of any other hold H′ on the same record R. The [Active]/[Released] state of each hold is determined solely by whether [Release] has been called on that specific [Hold Id].
-
-- **Invariant 5 — Release attribution is complete.** Every [Released] hold carries [Released By] and [Release Reason] each containing at least one non-whitespace character, and a [Released At] timestamp that is set. An anonymous release, an unexplained release, a whitespace-only attribution string, or a release with no timestamp is a conformance failure — each defeats the audit trail that legal proceedings depend on.
-
-- **Invariant 6 — Temporal ordering.** For every [Released] hold, [Released At] ≥ [Placed At]. A hold cannot be documented as released before it was placed. The constraint applies to the value persisted in the record, regardless of whether [Released At] was caller-supplied or wall-clock-defaulted; the [Release] Decision point enforces this against the resolved value before the transition is committed.
-
-- **Invariant 7 — Placement attribution is complete.** Every hold, [Active] or [Released], carries [Hold Id], [Record Ref], [Placed By], and [Hold Reason] each containing at least one non-whitespace character, and a [Placed At] timestamp that is set. Invariant 1 guarantees these fields are immutable; this invariant guarantees they are never blank or unset. An anonymous placement, a whitespace-only reason, or a missing timestamp is a conformance failure — it defeats the chain of custody a court requires to establish when and why the preservation obligation was recognized.
-
-- **Invariant 8 — Hold store durability.** No hold record is removed from the store. The total hold count is monotonically non-decreasing. A [Hold Id] returned by a successful [Place] is durably persisted; a [Storage Failure] rejection guarantees no partial record was written. [Released] holds are retained as audit evidence; deleting a [Released] hold would destroy the proof that the preservation obligation was honored and lawfully lifted.
-
----
+Immutability and durability give the *preservation record* property — the full arc of an obligation, from recognition to lifting, recoverable from the store alone. Independence gives the property a multi-authority matter needs: one record, many obligations, each ending on its own day.
 
 ## Examples
 
@@ -187,55 +279,152 @@ The DOJ investigation closes first. The compliance team releases all `hold-doj-*
 
 ## Generation acceptance
 
-Any implementation derived from this atom must produce records and a runtime surface that pass the following checks from the records alone, without recourse to source code, runbooks, or developer narration:
+This atom's acceptance is what an external auditor can clear from the hold store's stored fields, with no recourse to source code, runbooks or developer narration.
 
-1. **Hold completeness check.** For a set of [Hold Id]s known to have been issued, confirm that `read({hold_id: X})` returns each of them across all states. No issued [Hold Id] may be absent from the store.
+### Conformance checks
 
-2. **Placement attribution check — both states.** For every hold in the store, in any state: confirm [Placed By], [Hold Reason], [Record Ref], and [Hold Id] each contain at least one non-whitespace character, and confirm [Placed At] is set (present, not null). This applies equally to [Active] and [Released] holds — Invariant 7 covers both. A hold in either state with a blank attribution string or a missing [Placed At] is a conformance failure under Invariant 7.
+```text
+Check 1.1: An auditor MUST find EVERY issued hold_id in the store (Invariant 8.1, Invariant 8.2).
+Check 2.1: An auditor MUST find placed_by and hold_reason not blank on EVERY hold (Invariant 7.1, Invariant 7.2).
+Check 2.3: An auditor MUST find record_ref not blank on EVERY hold (Operation 4).
+Check 2.4: An auditor MUST find hold_id not blank on EVERY hold (Identity 2, Instance 2).
+Check 2.2: An auditor MUST find placed_at set on EVERY hold (Invariant 7.3).
+Check 3.1: An auditor MUST find released_by and release_reason not blank on EVERY released hold (Invariant 5.1, Invariant 5.2).
+Check 3.2: An auditor MUST find released_at set on EVERY released hold (Invariant 5.3).
+Check 3.3: An auditor MUST find no released hold whose placed_at EXCEEDS the hold's released_at (Invariant 6.1).
+Check 4.1: An auditor MUST find a second hold over one record still active once the first hold is released (Invariant 4.1).
+Check 5.1: An auditor MUST find already-released answered for a release against a released hold (Operation 14, Invariant 3.1).
+Check 5.2: An auditor MUST find a released hold's fields unchanged by that refused release (Invariant 1.1).
+Check 6.1: An auditor MUST find the hold set never shrinking across two readings (Invariant 8.2).
+Check 6.2: An auditor MUST find EVERY placement field unchanged across two readings (Invariant 1.1).
+Check 6.3: An auditor MUST read an active-to-released move between two readings as conformant (Invariant 2.1).
+Check 7.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
+```
 
-3. **Release attribution check.** For every [Released] hold: confirm [Released By] and [Release Reason] each contain at least one non-whitespace character, confirm [Released At] is set, and confirm [Released At] ≥ [Placed At] (Invariant 6). A [Released] hold with a blank attribution string, a missing [Released At], or an inverted temporal ordering is a conformance failure under Invariants 5 and 6.
+### External checks
 
-4. **Hold independence check.** Place two holds on the same [Record Ref]. Release the first. Confirm that `read({hold_id: second_hold_id})` returns a hold still in [Active] state. Confirm that `read({record_ref: X, state: Active})` returns the second hold only. Invariant 4 guarantees independence; this check verifies it.
+```text
+External check 1: An auditor MUST read whether a held record was purged from the composing pattern's purge records (Non-goal 1, Composition note 2).
+External check 2: An auditor MUST read who was permitted to place a hold from the composing [Permissions](./permissions.md) records (Non-goal 7).
+External check 3: An auditor MUST read a hold record's integrity from the composing [Tamper Evidence](./tamper-evidence.md) seals (Non-goal 11).
+External check 4: An auditor MUST read the matter a case_ref names from the deployment's case-management system (Non-goal 9).
+```
 
-5. **Terminal absorption check.** Attempt [Release] against a known [Released] hold. The call must return `rejected(already-released)`. Confirm the hold's fields are unchanged after the attempted release.
+NOTE: EVERY check names the rule the check tests. The hold store answers *what was preserved, by whom, and for how long*; whether the preservation was honoured at the purge surface is the composing pattern's record, because this atom deliberately enforces nothing (Non-goal 1).
 
-6. **Store monotonicity check.** At time `t1`, issue `read({})` (unfiltered) and record the result set S1. Place one new hold and confirm the [Place] call returned a [Hold Id]. At time `t2 > t1`, issue `read({})` again and record result set S2. Confirm every hold in S1 appears in S2 by [Hold Id] (no hold is removed). For each hold present in both S1 and S2, confirm the placement fields ([Hold Id], [Record Ref], [Placed By], [Hold Reason], [Placed At], and [Case Ref] if it was set in S1) are unchanged in S2 — placement fields are immutable per Invariant 1. Release fields ([Released By], [Release Reason], [Released At]) may newly appear on holds released between t1 and t2; their appearance is conformant with the state machine and is **not** a monotonicity violation. The state of any hold present in both sets may legitimately have transitioned from [Active] to [Released]; the reverse transition is a conformance failure. The total hold count in S2 is ≥ the count in S1. Confirms the behavioral guarantee that the hold store is monotonically non-decreasing and that placement fields are immutable, while distinguishing the legitimate [Active]→[Released] transition from a violation.
+## Non-goals
 
----
+```text
+Non-goal 1: The atom MUST NOT block a purge.
+Non-goal 2: A deployment needing an enforced hold MUST compose [Defensible Retention](../compositions/defensible-retention.md).
+Non-goal 3: The atom MUST NOT read the record a record_ref names.
+Non-goal 4: The atom MUST NOT refuse a hold over a destroyed record.
+Non-goal 5: The atom MUST NOT deduplicate two holds.
+Non-goal 6: A deployment needing at-most-once placement MUST compose [Duplicate Prevention](./duplicate-prevention.md).
+Non-goal 7: The atom MUST NOT gate who places a hold.
+Non-goal 8: A deployment needing gated placement MUST compose [Permissions](./permissions.md).
+Non-goal 9: The atom MUST NOT hold a matter's lifecycle.
+Non-goal 10: The atom MUST NOT release every hold over a record in one call.
+Non-goal 11: The atom MUST NOT detect tampering with a hold record.
+Non-goal 12: A deployment needing court-admissible hold records MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 13: The atom MUST NOT place one hold over two records.
+Non-goal 14: The atom MUST NOT import a retention policy.
+Non-goal 15: The atom MUST NOT purge a hold record.
+Non-goal 16: A deployment sweeping the hold store MUST leave EVERY stored field as written.
+```
 
-## Non-goals and edge cases
+WHY:
+The atom documents an obligation and enforces nothing, which is the seam that matters most here: enforcement needs the purge surface, and the purge surface belongs to [Retention Window](./retention-window.md) and the composition that gates it — [Defensible Retention](../compositions/defensible-retention.md) checks both *not before `retention_until`* and *not while a hold is active* (Non-goal 1, Non-goal 2, Non-goal 14). A hold over a record that was already destroyed still records that somebody recognized the duty, which is evidence in a spoliation dispute rather than an error to refuse (Non-goal 4). There is no bulk release and no batch placement: N obligations take N calls, each individually attributable, because a bulk lift with one reason is exactly the record a court will not accept (Non-goal 10, Non-goal 13).
 
-- **Hold placed after record is purged.** The atom does not prevent placing a hold on a [Record Ref] for which the underlying record has already been destroyed. The hold is created successfully; the [Record Ref] is an opaque value the atom does not validate against the storage layer. The hold record faithfully documents that a preservation obligation was recognized after the fact. Legal counsel and the court assess the spoliative implications — the atom records the truth, it does not adjudicate it. Whether post-purge hold placement triggers any remediation belongs to the composing layer and to legal counsel.
+Where the atom breaks down: when the preservation duty is defined by a query rather than a record — *everything touching Project Alpha* — which needs a composing pattern to enumerate and place; when the hold must survive the store that holds it, which needs an external anchor; when who may lift a hold is part of the obligation, which is Permissions' and not a field here.
 
-- **Multiple concurrent holds and aggregate held status.** A record with N [Active] holds requires N [Release] calls to fully lift all holds. The atom has no `release_all` action — bulk release of all holds covering a record is a composing-layer operation that calls [Place] and [Release] appropriately. The aggregate "is this record currently held?" question is answered by `read({record_ref: X, state: Active})` returning a non-empty sequence; if the sequence is empty, no [Active] holds cover the record.
+## Edge cases
 
-- **[Place] is not idempotent.** A prescriber system that retries after a network timeout creates a duplicate hold if the first call succeeded. For at-most-once semantics on hold placement, compose with [Duplicate Prevention](./duplicate-prevention.md).
+### Place persistence failure
 
-- **Hold on a record that does not exist in the retention system.** [Record Ref] is opaque; the atom does not validate it against a retention store, a document management system, or any other external system. Placing a hold on a non-existent or misspelled [Record Ref] creates a hold record. The hold is real from this atom's perspective; the record it names may not be. The composing system is responsible for ensuring [Record Ref] values are valid. For high-stakes litigation holds, a validation step against the retention store belongs in the composing workflow.
+```text
+Place persistence 1: A caller MUST read storage-failure from [Place] as the record standing unheld.
+Place persistence 2: A caller MUST retry a place that answered storage-failure.
+Place persistence 3: A high-assurance deployment MUST raise an alert on storage-failure from [Place].
+Place persistence 4: A caller MUST NOT read storage-failure from [Release] as the obligation standing ended.
+```
 
-- **Case reference without a formal case.** [Case Ref] is optional precisely because preservation obligations arise before formal litigation is filed — when litigation is "reasonably anticipated" under FRCP, when a regulatory inquiry is received informally, or when an internal investigation is underway without a docket number. Holds without [Case Ref] are valid; [Hold Reason] carries the narrative explanation. No amendment mechanism exists; the immutability of [Case Ref] after placement is load-bearing for legal proceedings. When a formal case reference later attaches to a hold that was placed without one, the correct workflow is to **place a new, independent hold** carrying the [Case Ref], leaving the original hold [Active] for as long as its underlying preservation obligation persists. The original is **not** released merely to re-catalog under a case reference — releasing it would write [Released At], [Released By], and [Release Reason] for an obligation that has not actually ended, poisoning the audit trail with a release event that an external evaluator could reasonably read as suspicious record manipulation. Invariant 4 (concurrent holds are independent) makes both holds preserve the record in parallel; the new hold's [Hold Reason] can narrate the relationship to the original. The original is released only when its preservation obligation genuinely ends.
+WHY:
+The two storage failures have opposite polarity, and this atom's dangerous side is the placement. A failed release leaves an obligation standing, which over-preserves — costly and safe. A failed place leaves a record unprotected while litigation pends, which is the spoliation the atom exists to document, and it surfaces as nothing at all unless the caller retries ([Permissions](./permissions.md) states the mirrored polarity for its own revoke; Council read 17).
 
-- **Purge gate enforcement.** Whether a record covered by an [Active] hold is actually prevented from being purged is not enforced by this atom. This is deliberately outside scope: enforcement requires the purge surface to check for [Active] holds, which requires integrating Legal Hold with the storage or retention layer. That integration is the [Regulated Record Retention & Defensible Deletion](../roadmap.md) composition (Legal Hold + Retention Window + Audit Trail). Deployments that query hold records as an advisory check without wiring the gate are non-conforming to the composition's invariants but conforming to this atom's invariants.
+### Back-dating a placement
 
-- **Access control.** Who may [Place] holds, who may [Release] them, and who may [Read] them is not defined by this atom. That is the obligation of a composing [Permissions](./permissions.md) pattern. In many deployments, hold placement is restricted to legal counsel or designated compliance officers; unauthorized placement or release of holds is a serious process failure that Permissions governs.
+```text
+Backdating 1: [Place] MUST accept a placed_at below now.
+Backdating 2: [Place] MUST NOT accept a placed_at above now.
+Backdating 3: The deployment MUST own the evidentiary weight of a back-dated placed_at.
+```
 
-- **Case management and legal matter lifecycle.** Tracking the legal matter itself — parties, counsel, status, court, settlement terms, matter type — is out of scope. [Case Ref] is an opaque pointer into an external case management system. This atom makes no claims about what that system contains.
+WHY:
+An obligation recognized on Tuesday and recorded on Friday is honestly recorded as Tuesday's; a hold placed in the future is not a fact about anything. Courts scrutinize back-dated placements in spoliation disputes, which is the deployment's problem to defend and the atom's to record faithfully rather than to prevent (Backdating 3).
 
-- **Batch holds across multiple records.** One [Place] call creates one hold on one [Record Ref]. Bulk holds (all records matching a query, all records in a folder, all records within a date range) are a composing-layer operation. The composing layer iterates the matching records and calls [Place] for each; the resulting holds are individually releasable. Atomic batch placement — where all records in a batch are held or none are — requires a transaction wrapper in the composing layer.
+WHY:
+An empty answer and a misrouted answer read alike, and this atom's empty answer licenses a purge — so the deepest failure available here is a routing mistake wearing the shape of *no holds* (Instance 5–7, Aggregate 3; Council read 17). The atom cannot detect the misrouting, so it names the store it answered from and obliges the reader to check.
 
-- **Retention Window interaction.** Legal Hold and Retention Window are composing peers. This atom does not import Retention Window semantics; it records preservation obligations. The composition that enforces the purge gate must check both: no purge before `retention_until`, and no purge while any [Active] hold covers the record.
+### The aggregate question
 
-- **Tamper-evidence.** The atom guarantees immutability by specification; it does not cryptographically prevent a store administrator from altering hold records. For court-admissible evidence of record preservation, compose with [Tamper Evidence](./tamper-evidence.md), which provides cryptographic sealing of the hold records. Tamper-evident hold records are required under several regulatory regimes (SEC Rule 17a-4, 21 CFR (Code of Federal Regulations) Part 11 in regulated clinical contexts).
+```text
+Aggregate 1: A composing pattern MUST read a record's active holds to answer whether the record is held.
+Aggregate 2: The atom MUST NOT carry a held flag on a record.
+Aggregate 3: A composing pattern MUST read an empty active set as the record standing unheld ONLY IF the answered store_name matches the record's store instance.
+```
 
-- **Clock semantics.** [Placed At] and [Released At] default to the receiving node's wall clock when not supplied. [Placed At] must not be in the future — a hold cannot logically be placed in the future. Back-dated [Placed At] values are accepted; documenting a preservation obligation recognized late is valid and often necessary. Courts scrutinize backdated hold timestamps in spoliation disputes, but the atom records what the caller supplies without interpretation; legal counsel owns the evidentiary consequences. [Released At] must not be in the future and must be ≥ [Placed At] (enforced at the [Release] Decision point). Back-dated [Released At] values are accepted — documenting a release that was communicated or recognized at an earlier time is valid. Clock skew, timezone normalization, and monotonicity are handled at the deployment layer.
+### Concurrency
 
-- **Concurrency.** Two systems concurrently calling [Release] on the same [Hold Id] must be serialized. The first succeeds; the second receives [Already Released]. Implementations must serialize state transitions on a given [Hold Id].
+```text
+Concurrency 1: The implementation MUST serialize two releases of one hold_id.
+Concurrency 2: The second concurrent release MUST answer already-released.
+Concurrency 3: Two placements over one record MUST record two holds.
+```
 
----
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's timezone handling.
+Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
+```
+
+## Composition notes
+
+```text
+Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Composition note 2: A composing pattern MUST check a record's active holds at the purge surface.
+Composition note 3: A composing pattern MUST own who may place a hold.
+Composition note 4: A composing pattern MUST own who may release a hold.
+Composition note 5: A composing pattern MUST own a bulk placement.
+Composition note 6: A composing pattern MUST own a bulk release.
+```
+
+WHY:
+[Defensible Retention](../compositions/defensible-retention.md) is the composition this atom was extracted for: [Retention Window](./retention-window.md) says when a record may be destroyed, this atom says when it may not, and the composition is the gate that reads both at the purge surface — neither atom enforcing anything alone is the design, not an omission (Composition note 2). Attribution of the placement itself composes [Actor Identity](./actor-identity.md); integrity of the hold records composes [Tamper Evidence](./tamper-evidence.md); the audit surface both write through is [Audit Trail](../compositions/audit-trail.md).
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its card here. A card states what the concept *is*, in plain English, plus its **Kind** — one of four: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A card also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A card carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the atom above.)*
+Each `[Term]` marker above links to its card here; a card states what the concept *is* and its **Kind**.
+
+### Vocabulary
+
+Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an auditor; the store; a hold; a release; a placement; a query.
+
+Terms › `records`: `hold` — one preservation obligation, carrying `hold_id`, `record_ref`, `placed_by`, `hold_reason`, `placed_at`, a hold state and, where they exist, `case_ref`, `released_by`, `release_reason` and `released_at`.
+
+Terms › `record verbs`: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, leave, read, order, write, change, rest, shrink, find, serialize, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, exceed, fall.
+
+Terms › `value sets`: place answers = hold_id | rejected(invalid-request | storage-failure). release answers = released | rejected(invalid-request | not-known | already-released | storage-failure). read answers = the matching holds, ordered | rejected(invalid-query). `hold state` = active | released.
+
+Terms › `bounds`: empty.
+
+Terms › `cadences`: empty.
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+
+Terms › `terms`: `store instance`, `hold`, `hold_id`, `record_ref`, `seam`, `transition`, `business caller`, `now`, `hold state`, `placed_by`, `hold_reason`, `placed_at`, `case_ref`, `released_by`, `release_reason`, `released_at`, `query`, `resolved released_at`.
 
 #### Place
 
@@ -451,22 +640,6 @@ Projects:  invalid-query
 
 ---
 
-## Composition notes
-
-Legal Hold is the preservation primitive the library has held open since Retention Window was grounded. Every atom in `compliance` and every atom in `healthcare` ultimately composes with it when records must be preserved against destruction:
-
-- **[Retention Window](./retention-window.md)** — the primary composing peer. Legal Hold overrides Retention Window's purge eligibility: while any [Active] hold covers a record, `purge` must be rejected regardless of whether `retention_until` has elapsed. Neither atom enforces the other's constraint; the gate belongs to the **[Defensible Retention](../compositions/defensible-retention.md)** composition.
-- **[Audit Trail](../compositions/audit-trail.md)** — every [Place] and [Release] event is an auditable action; Audit Trail provides the tamper-evident, attributed, retention-governed record of every hold lifecycle event.
-- **[Tamper Evidence](./tamper-evidence.md)** — seals hold records against post-hoc modification. Court-admissible hold records require cryptographic integrity guarantees beyond this atom's spec-level immutability.
-- **[Actor Identity](./actor-identity.md)** — [Placed By] and [Released By] are opaque references; Actor Identity provides cryptographic attestation that those references are real, credentialed actors who authorized their respective actions. In regulated contexts (SOX — the Sarbanes-Oxley Act, US law on corporate financial reporting and records integrity; 21 CFR Part 11), hold placement is an electronic record requiring verifiable authorship.
-- **[Permissions](./permissions.md)** — governs who may [Place], [Release], or [Read] holds. Legal hold placement is a privileged action in every regulated deployment.
-- **[Duplicate Prevention](./duplicate-prevention.md)** — for at-most-once semantics on hold placement under retry conditions.
-- **[Medication Order](./medication-order.md)** — in healthcare, an active investigation or litigation hold may cover medication order records and their associated clinical observations. Legal Hold composes directly with any record-producing atom when that record's destruction must be suspended.
-- **[Clinical Observation](./clinical-observation.md)** — same as Medication Order; clinical observations under malpractice litigation or HHS investigation are subject to legal hold.
-- **[Defensible Retention](../compositions/defensible-retention.md)** — Legal Hold + Retention Window + Audit Trail, wired to enforce the purge gate. **[Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md)** — reaches Legal Hold *transitively* through Defensible Retention: an [Active] hold is what maps a Defensible Retention `purge_record` block to the `retained(legal-hold)` erasure disposition (GDPR Article 17(3)(e)), the operational form of "an erasure request may be declined because a hold preserves the record."
-
----
-
 ## Standards references
 
 - **Federal Rules of Civil Procedure Rule 37(e)** — the primary U.S. federal standard for electronic discovery preservation. A party must take reasonable steps to preserve ESI (Electronically Stored Information — digital records subject to legal discovery) once litigation is reasonably anticipated; failure to preserve when an [Active] hold should have been in place exposes the party to sanctions including adverse inference instructions. The [Placed At] timestamp and [Hold Reason] field are the record of when and why the preservation obligation was recognized.
@@ -483,6 +656,7 @@ Legal Hold is the preservation primitive the library has held open since Retenti
 
 ---
 
+
 ## Status
 
 `grounded on Final Critique 4 — 2026-05-20` — see the Ledger.
@@ -497,6 +671,11 @@ last gate: 2026-05-20 — Final Critique 4, fresh reader — clean
 open: none
 ```
 
+
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/legal-hold.md`.
+
+- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the three actions as a signature block, the read's filter axes and malformed-query grounds as rules rather than a paragraph, the eight invariant numbers unchanged, Generation acceptance as conformance checks plus external checks ahead of Non-goals, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan, and this atom completes [Defensible Retention](../compositions/defensible-retention.md)'s constituent set with [Retention Window](./retention-window.md) and [Audit Trail](../compositions/audit-trail.md).
+
+NOTE: End of Legal Hold.

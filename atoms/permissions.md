@@ -41,7 +41,7 @@ Identity 7: A subject_ref MAY hold two active grants over one action_scope.
 Identity 8: [Revoke] MUST reach EXACTLY ONE grant.
 ```
 
-Terms › `grant record`: one recorded binding of a subject to a scope; [Grant] the marker names the operation that writes one, and the two are not the same concept (CR-15).
+Terms › `grant record`: one recorded binding of a subject to a scope; [Grant] the marker names the operation that writes one, and the two are not the same concept (council read 15).
 
 Terms › `grant_id`: the opaque value naming one grant — a [Grant Id]; the handle revocation takes.
 

@@ -180,7 +180,7 @@ Check 6.2: An auditor MUST confirm that an instant derived from another is minte
 
 Terms › `fence margin`: `expires_at − fence`.
 
-NOTE: EVERY check names the rule the check tests. A check that names none is a check whose failure nobody can state (CR-8).
+NOTE: EVERY check names the rule the check tests. A check that names none is a check whose failure nobody can state (council read 8).
 
 ## Non-goals
 

@@ -298,7 +298,7 @@ External check 2: An auditor MUST read the composing pattern's joint-enforcement
 External check 3: An auditor MUST read the deployment's declared time resolution (Operation 7a).
 ```
 
-NOTE: the atom cannot answer these from the retention store — Simultaneous retention 3 forecloses reading a sibling, so the evidence that joint enforcement happened lives in the composing pattern's records, not here (CR-11).
+NOTE: the atom cannot answer these from the retention store — Simultaneous retention 3 forecloses reading a sibling, so the evidence that joint enforcement happened lives in the composing pattern's records, not here (council read 11).
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *was every record's obligation honored, and what is overdue now?* — answered from the records, never from a runtime claim.
 
