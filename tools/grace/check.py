@@ -67,6 +67,32 @@ def vocabulary_categories(grammar_path=None):
 VOCABULARY_CATEGORIES = vocabulary_categories()
 
 
+# a `>=` spelled as a two-arm disjunction: "<X> EXCEEDS <Y> OR <X> = <Y>", the
+# same operand pair in both arms. The condition operator set carries EXCEEDS and
+# `=` and nothing between them (Terms › `condition operator`). Counting this by
+# hand mis-measured it twice: a loose "EXCEEDS ... OR ... =" match also catches
+# "X EXCEEDS Y OR Y = none", which is two propositions and not a comparison at
+# all (council read 31).
+GE_DISJUNCTION = re.compile(
+    r"(?P<x1>[A-Za-z_][\w'’ ]*?)\s+EXCEEDS\s+(?P<y1>[A-Za-z_][\w'’ ]*?)"
+    r"\s+OR\s+(?P<x2>[A-Za-z_][\w'’ ]*?)\s*=\s*(?P<y2>[A-Za-z_][\w'’ ]*)")
+
+
+def _ge_operand(s: str) -> str:
+    s = re.sub(r"^(?:IF|WHEN|AND|OR)\s+", "", s.strip().rstrip("."))
+    return re.sub(r"^(?:the|a|an)\s+", "", s)
+
+
+def ge_disjunction(line: str) -> tuple[str, str] | None:
+    """The (x, y) of a genuine `x >= y` spelled as a disjunction, else None."""
+    for m in GE_DISJUNCTION.finditer(line):
+        x1, y1 = _ge_operand(m.group("x1")), _ge_operand(m.group("y1"))
+        x2, y2 = _ge_operand(m.group("x2")), _ge_operand(m.group("y2"))
+        if x1 == x2 and y2[:len(y1)] == y1:
+            return x1, y1
+    return None
+
+
 LABEL = re.compile(r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?):\s*(.*)$")
 LABEL_PARTS = re.compile(r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 PREFIX = re.compile(r"^(WHY|NOTE|UX|PROVISIONAL):")
@@ -105,6 +131,7 @@ SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-two-obligations", "W-demonstrative", "W-comparator", "W-modal",
             "W-unconditional-effect", "W-condition-operator", "W-duplicate-proposition",
+            "W-ge-disjunction",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
 # F-prefix-first gates: a demoted rule is a deleted rule
@@ -397,6 +424,12 @@ def scan(path: Path) -> list[Finding]:
             add(r.line, "W-comparator",
                 f"{r.label}: '{cm.group(1)}' is a comparison outside the condition "
                 f"operators — route it through EXCEEDS or a declared term")
+        ge = ge_disjunction(r.text)
+        if ge:
+            add(r.line, "W-ge-disjunction",
+                f"{r.label}: '{ge[0]} >= {ge[1]}' spelled as a two-arm disjunction — "
+                f"the condition operators carry EXCEEDS and = and nothing between "
+                f"them (§18 watch list)")
         sm = SOFT_MODAL.search(stmt) or SOFT_MODAL.search(cond)
         if sm:
             add(r.line, "W-modal",

@@ -14,6 +14,7 @@ toc: true
 {:toc}
 </details>
 
+
 ## Summary
 
 State Machine records a single named process instance — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by this atom.
@@ -24,349 +25,558 @@ The atom then enforces three guarantees for the lifetime of the instance: only d
 
 These guarantees make the system useful for regulated processes (a pharmaceutical batch that must prove it moved only through the approved sequence of quality-control states) and for any process where you need an unambiguous, auditable record of what happened and in what order. This atom is the general pattern; [Approval Step](./approval-step.md) is one specific kind of state machine with its states and rules fixed in advance, whose instances do not need their own declaration.
 
+*Also known as: a workflow instance, a process instance, a declared finite state machine.*
+
 ---
 
 ## Intent
 
-Many real-world processes move an entity through a defined sequence of states: a pharmaceutical batch advances from *sampled* through *tested* through *qualified* through *released*; a purchase order advances from *draft* through *submitted* through *approved* through *fulfilled*; a software change request advances from *open* through *in-review* through *merged* through *deployed*. In each case the valid state transitions are known in advance, the order in which they fire must be recorded and auditable, and the current state must be unambiguously knowable at any moment. These processes recur across virtually every regulated and non-regulated domain; the structure that governs them is the same structure in all of them: a named entity, a finite declared set of states, a declared set of transitions, and a durable history of which transitions have fired and in what order.
+WHY:
+Many real-world processes move an entity through a defined sequence of states: a pharmaceutical batch advances from *sampled* through *tested* through *qualified* through *released*; a purchase order from *draft* through *submitted* through *approved* through *fulfilled*; a change request from *open* through *in-review* through *merged* through *deployed*. In each the valid transitions are known in advance, the order they fire in must be auditable, and the current state must be unambiguously knowable at any moment. The structure governing them is the same in all of them: a named entity, a finite declared set of states, a declared set of transitions, and a durable history of which fired and when.
 
-The core problem is that different deployments need different state machines. A pharmaceutical batch-release workflow has states and transitions governed by 21 CFR (Code of Federal Regulations — the codification of US federal agency rules) Part 11 and ISO (International Organization for Standardization) 9001 §8.5.1. An HL7 (Health Level Seven — an international standards organization for healthcare data exchange) FHIR (Fast Healthcare Interoperability Resources — a standard for exchanging healthcare information) Task resource has its own lifecycle (`requested → accepted → in-progress → completed | failed | cancelled`). A BPMN (Business Process Model and Notation — an international standard for modeling business processes) workflow diagram has states and transitions that vary by process type. Writing a separate atom for each is not feasible; the commonality is the pattern of declared-finite-state-machine enforcement, not the particular states or transitions. This atom captures that pattern.
+The core problem is that different deployments need different state machines. A batch-release workflow is governed by 21 CFR (Code of Federal Regulations) Part 11 and ISO (International Organization for Standardization) 9001 §8.5.1. An HL7 (Health Level Seven) FHIR (Fast Healthcare Interoperability Resources) Task resource has its own lifecycle. A BPMN (Business Process Model and Notation) workflow varies by process type. Writing a separate atom for each is not feasible, and it is also not the right factoring: the commonality is declared-finite-state-machine *enforcement*, not the particular states. That is what this atom captures — the declaration is data supplied by the deployment, and the enforcement is the atom.
 
-State Machine is the specification of the declared-state-machine structure. It records: what states and transitions were declared for this instance; what the instance's current state is; and every transition that has ever fired, in order, with attribution. It enforces: that only declared transitions fire; that exactly one current state exists at all times; that terminal states are absorbing; that the transition history is append-only and total-ordered; and that any caller-asserted guard obligation is gated before a guarded transition fires. It does not evaluate guard predicates (that is the caller's responsibility), does not attribute transitions to identities in a non-repudiable way (that is [Actor Identity](./actor-identity.md)'s responsibility), does not cryptographically protect the history (that is [Tamper Evidence](./tamper-evidence.md)'s responsibility), and does not govern retention of the history (that is [Retention Window](./retention-window.md)'s responsibility).
+The atom is structurally distinct from two adjacent concepts, and both distinctions are load-bearing.
 
-The atom is structurally distinct from three adjacent concepts, and the distinctions are load-bearing:
+[Approval Step](./approval-step.md) is a *specific* state machine whose states, transitions and semantics are fixed at the atom level — an external evaluator knows them without reading any deployment configuration. This atom's machine is fixed at the *instance* level, and an external evaluator must read the instance's declaration to know what is valid. Specificity is the axis: Approval Step is specification-level, State Machine is instance-level. Approval Step also carries approval-specific semantics — one named approver, submitter exclusivity on withdrawal, a required reason on rejection — that this atom carries none of. Both are freestanding, and they compose into [Execute Gated Workflow](../compositions/execute-gated-workflow.md), where a State Machine instance governs the process lifecycle and Approval Step instances govern the gates inside it.
 
-**State Machine vs. Approval Step.** [Approval Step](./approval-step.md) is a *specific* state machine whose states are fixed by the atom (Pending, Approved, Rejected, Withdrawn), whose transitions are fixed by the atom (submit, approve, reject, withdraw), and whose semantics are fixed by the atom (exactly one named approver; submitter exclusivity on withdrawal; required reason on rejection). Approval Step is fully specified at the atom level — external evaluators know the states and their semantics without consulting any deployment configuration. State Machine is the *general* case: the states and transitions are declared by the deployment at instantiation and are opaque to the atom. An Approval Step carries approval-specific semantics (approver exclusivity, decision attribution requirements, decision completeness as a compliance invariant); State Machine carries none of those — it carries the declared-machine-enforcement invariants that apply to any finite state machine regardless of what the states mean. Both are freestanding atoms. They compose into [Execute Gated Workflow](../compositions/execute-gated-workflow.md) (`grounded` 2026-06-04), where a State Machine instance governs the overall process lifecycle while Approval Step instances govern the gate transitions within it.
+[Event Log](./event-log.md) records what happened; this atom enforces what is allowed to happen and tracks the resulting state. The transition history here resembles an event log structurally — append-only, totally ordered by a sequence number, with wall time as a best-effort annotation — but an event log has no declared states, no declared transitions, no current state and no validity gate. This atom is freestanding and does not name Event Log; where the two meet is a composition's business.
 
-**State Machine vs. Event Log.** [Event Log](./event-log.md) is an append-only sequence of immutable events with no notion of declared states, declared transitions, current state, or transition validity. Event Log records what happened; State Machine enforces what is allowed to happen and tracks the resulting state. The transition history in this atom resembles an Event Log structurally (append-only, total-ordered by sequence number, `sequence_number` is the order source, `fired_at` is best-effort wall time) but the load-bearing concept here is declared-transition enforcement — only declared transitions fire, and current state is always derivable by replaying the history. Event Log provides no declared-transition gate; this atom does. This atom is freestanding and does not name Event Log. Tamper-evident preservation of the transition history is an obligation of a composing Audit Trail; event-log-substrate composition is an obligation of the Execute Gated Workflow composition.
-
-**State Machine vs. Approval Step (conceptual boundary, restated precisely).** Approval Step's state machine is fully determined by the atom specification; no deployment configuration is needed for an external evaluator to know the valid states and transitions. This atom's state machine is fully determined by the deployment declaration supplied at instantiation; an external evaluator must read the declaration to know the valid states and transitions for a given instance. The specificity axis is the load-bearing distinction: Approval Step is specification-level; State Machine is instance-level.
-
-This is a freestanding (can be specified without naming any other pattern) concept in the EOS (Essence of Software — Daniel Jackson's framework for specifying software concepts as freestanding, composable units) sense. It carries its own state (the instance set, the declaration per instance, the current state per instance, the transition history per instance), its own actions (`instantiate`, `fire`, `current`, `history`, `read_declaration`), and its own invariants (declaration immutability, exactly one current state, only-declared-transitions, terminal absorption, history append-only and complete, history total order, replay determinism, guard-gating without evaluation, transition attribution, instance store durability). Composing patterns add non-repudiable attribution, tamper evidence, retention governance, guard evaluation, approval gates, permissions checks, and multi-actor orchestration.
-
----
+The guard is where the atom's restraint is sharpest. A declared transition may carry a guard label, and the atom enforces that the caller *asserts* the guard satisfied before the transition fires — while evaluating nothing. The history records the assertion, not a verdict. A caller asserting a guard it never checked is violating the declared process and the atom will record the assertion faithfully, because the alternative is an atom that must understand every deployment's predicates, which is the absorption this factoring exists to prevent.
 
 ## Structure
 
-### Store instance model
-
-The State Machine atom operates against a named store instance. A `store_name` identifies the instance; multiple store instances coexist in real systems — one per organizational domain, one per regulated process type, one per deployment environment, depending on topology. [Instance Id] values are unique within a store instance; uniqueness across store instances is a composing concept. The same [Subject Ref] (an opaque reference to the entity whose lifecycle this workflow governs) may appear in multiple simultaneous workflow instances within the same store — one per distinct workflow process. Calls implicitly target a single routed store instance; instance selection is handled at the deployment-routing layer, not defined by this atom.
-
 ### Identity model
 
-Each workflow instance has an opaque, immutable, system-generated [Instance Id] — assigned on [Instantiate], never reused, never reassigned within the store instance. It must be a non-empty string sortable in lexicographic byte-order; this property is required for deterministic [History] ordering. The [Instance Id] is the workflow instance's identity; the [Declaration], the [Current State], and the [Transition History] are properties of the instance, not its identity.
+```text
+Identity 1: The atom MUST identify an instance by the instance_id.
+Identity 2: The atom MUST identify a history entry by the transition_id.
+Identity 3: The host MUST allocate an instance_id at the seam.
+Identity 4: The host MUST allocate a transition_id at the seam.
+Identity 5: The transition MUST NOT allocate an instance_id.
+Identity 6: The transition MUST NOT allocate a transition_id.
+Identity 7: The atom MUST NOT change an instance_id.
+Identity 8: The atom MUST NOT change a transition_id.
+Identity 9: Two instances in one store instance MUST NOT share an instance_id.
+Identity 10: Two history entries in one instance MUST NOT share a transition_id.
+Identity 11: The deployment MUST choose an instance_id format that sorts in lexicographic byte order.
+Identity 12: The deployment MUST route EVERY call to one store instance.
+Identity 13: The atom MUST NOT identify an instance by the subject_ref.
+Identity 14: The atom MUST admit a second instance carrying a recorded subject_ref.
+Identity 15: The atom MUST NOT confirm that a subject_ref names a known subject.
+Identity 16: The atom MUST NOT interpret an instance_metadata.
+```
 
-Each entry in a workflow instance's transition history has an opaque, immutable, system-generated [Transition Id] — assigned when [Fire] records the transition, never reused, never reassigned within the instance. It must be a non-empty string. The [Transition Id] is the history entry's identity.
+Terms › `instance`: one workflow instance — one declaration, one current state and one transition history; the record this atom holds.
 
-[Subject Ref] is an optional opaque reference to the entity whose lifecycle this workflow governs — a batch id, a document id, a transaction id, a work item id. Set on [Instantiate], immutable. The atom does not validate that the subject exists or is in any particular state; [Subject Ref] is the caller's responsibility. Its absence is valid; if supplied, it must contain at least one non-whitespace character.
+Terms › `instance_id`: the opaque value naming one instance — an [Instance Id]; host-allocated at the seam.
 
-[Instance Metadata] is an optional opaque payload (caller-supplied at [Instantiate]) providing deployment context. Set on [Instantiate], immutable. The atom does not interpret it; it records it as an auditable field. If supplied, it must be non-null and non-empty.
+Terms › `history entry`: one recorded transition on one instance, carrying `transition_id`, `sequence_number`, `from_state`, `to_state`, `action`, `fired_at` and, where supplied, `actor_ref` and `guard_satisfied`.
+
+Terms › `transition_id`: the opaque value naming one history entry — a [Transition Id]; host-allocated at the seam.
+
+Terms › `subject_ref`: the opaque reference naming the entity whose lifecycle the instance governs — a [Subject Ref]; a property of the instance, never the instance's identity.
+
+Terms › `instance_metadata`: the opaque payload the caller supplies at [Instantiate] for deployment context — an [Instance Metadata]; recorded, never interpreted.
+
+Terms › `store instance`: one named workflow store a call is routed to; `instance_id` uniqueness ranges over one instance.
+
+Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the instance_id and the transition_id here.
+
+Terms › `transition`: the atom's evaluation of one call against the workflow store, as `execution-contract.md` §Logic confinement declares it.
+
+Terms › `declared transition`: one `from_state`, `action`, `to_state` and optional `guard` in the declaration — a move the instance may make. Distinct from the transition above, which is the atom's evaluation of a call.
+
+WHY:
+The corpus's word *transition* carries two senses here and the atom cannot avoid either: the execution contract's transition (one evaluation of one call) and the state machine's declared transition (one edge in the declaration). Both are declared, and every rule names which.
+
+Lexicographic sortability (Identity 11) is the same deployment obligation [Selective Disclosure](./selective-disclosure.md) carries and for the same reason — it is the tiebreaker a deterministic read rests on.
 
 ### The declaration
 
-The [Declaration] is the immutable map that governs a workflow instance. It is supplied in full at [Instantiate] and never changes thereafter. Every enforcement decision the atom makes — whether a transition is valid, whether a terminal state blocks a [Fire], whether a guard must be asserted — is derived from this [Declaration].
+```text
+Declaration 1: [Instantiate] MUST NOT take a partial declaration.
+Declaration 2: The atom MUST NOT change a recorded declaration.
+Declaration 3: The atom MUST NOT offer a declaration edit surface.
+Declaration 4: EVERY enforcement decision MUST rest on the instance's declaration.
+Declaration 5: IF states carries no member THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 6: IF a state name NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 7: IF two state names in states match THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 8: IF the initial state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 9: IF the initial state EXISTS in the terminal states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 10: IF a declared transition's from_state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 11: IF a declared transition's to_state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 12: IF a declared transition's from_state EXISTS in the terminal states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 13: IF two declared transitions share one from_state and one action THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 14: IF a declared transition's action NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 15: IF a supplied guard NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 16: The terminal states MAY carry no member.
+Declaration 17: A declared transition MAY carry no guard.
+```
 
-The [Declaration] contains the following fields:
+Terms › `declaration`: the immutable map governing one instance — a [Declaration]; carries `states`, the declared transitions, the initial state and the terminal states.
 
-- **[States]** — a non-empty set of named states. Each state name must contain at least one non-whitespace character. State names within the declaration must be unique (no duplicate names within the same declaration).
-- **[Transitions]** — a set of declared transitions, each carrying `{from_state, action, to_state, guard?}` where [From State] and [To State] must both be members of [States], [Action] is a non-empty-string named trigger, and [Guard] is an optional opaque guard label (a non-empty string naming the condition the caller must assert is satisfied before this transition fires; the atom does not evaluate the guard predicate — guard evaluation is the caller's obligation). At most one declared transition may share the same `(from_state, action)` pair; duplicate `(from_state, action)` pairs are rejected at [Instantiate] as an invalid declaration. This is the determinism constraint: given the current state and a named action, at most one declared transition matches.
-- **[Initial State]** — a member of [States]. The instance's current state on creation. Must be a non-terminal state — an instance whose initial state is already terminal would accept no transitions and is rejected at [Instantiate] as an invalid declaration.
-- **[Terminal States]** — a subset of [States] (possibly empty). States in this set are absorbing: once the instance's current state is a terminal state, no [Fire] succeeds. No declared transition may have a [From State] in [Terminal States]; any such declaration is rejected at [Instantiate] as an invalid declaration.
+Terms › `states`: the named states one declaration admits — a [States]; every state name the instance may stand in.
 
-### Inputs
+Terms › `initial state`: the state an instance stands in at [Instantiate] — an [Initial State]; a member of `states` and never a terminal state.
 
-**Inputs:**
+Terms › `terminal states`: the absorbing members of `states` — a [Terminal States]; possibly none.
 
-- [Instantiate] calls from deployers and process-orchestration systems, each carrying a complete [Declaration], an optional [Actor Ref], optional [Instance Metadata], and an optional [Instantiated At] timestamp.
-- [Fire] calls from process actors, automated workflow engines, and orchestration systems, each carrying an [Instance Id], an [Action] name, an optional [Actor Ref], an optional [Guard Satisfied] flag, and an optional [Fired At] timestamp.
-- [Current] queries from process actors and dashboards, carrying an [Instance Id].
-- [History] queries from auditors, investigators, and composing systems, carrying an [Instance Id] and an optional query filter.
-- [Read Declaration] queries from deployers, auditors, and composing systems, carrying an [Instance Id].
+Terms › `well-formed declaration`: a declaration Declaration 5 through Declaration 15 all admit.
 
-### Outputs
+WHY:
+Declaration 13 is the determinism constraint and the load-bearing one: at most one declared transition per `from_state` and `action` pair means a [Fire] either matches exactly one edge or none, and the atom never chooses between two. Without it *fire the approve action* would be ambiguous in a declaration that named two approve edges, and an implementation would have to invent a tiebreak the spec does not have.
 
-- For [Instantiate]: a fresh [Instance Id], or a rejection naming the failed precondition.
-- For [Fire]: the `new_state` the instance has transitioned to, or a rejection naming the failed precondition.
-- For [Current]: the current state name as a string, or a rejection.
-- For [History]: a (possibly empty) ordered sequence of transition history entries. Each entry carries: [Transition Id], [Sequence Number], [From State], [To State], [Action], [Actor Ref] (if supplied at the firing [Fire] call), [Fired At], and [Guard Satisfied] (true if the transition carried a [Guard] label and the caller asserted `guard_satisfied = true`; absent if the transition had no guard).
-- For [Read Declaration]: the immutable [Declaration] as supplied at [Instantiate], or a rejection.
+Declaration 9 and Declaration 12 are the same claim from two directions, and neither is redundant. Declaration 9 refuses an instance born absorbed — an instance whose initial state is terminal accepts nothing and exists only to be stuck. Declaration 12 refuses an edge *out of* a terminal state, which is what makes Invariant 4's absorption structural rather than merely enforced at [Fire]: a conforming declaration cannot even describe the move.
+
+### Operations
+
+```
+instantiate(declaration, actor_ref?, instance_metadata?, instantiated_at?)
+  → instance_id
+  | rejected(invalid-declaration | invalid-request | storage-failure)
+
+fire(instance_id, action, actor_ref?, guard_satisfied?, fired_at?)
+  → new_state
+  | rejected(invalid-request | not-known | terminal | invalid-transition | guard-not-satisfied | storage-failure)
+
+current(instance_id)      → current_state | rejected(invalid-request | not-known)
+history(instance_id, query?) → the matching history entries | rejected(invalid-request | not-known | invalid-query)
+read_declaration(instance_id) → declaration | rejected(invalid-request | not-known)
+```
+
+```text
+Operation 1: [Instantiate] MUST answer invalid-request ONLY IF the declaration is well-formed.
+Operation 2: IF a supplied actor_ref NOT EXISTS THEN an action MUST answer invalid-request.
+Operation 3: IF the resolved instantiated_at EXCEEDS now THEN [Instantiate] MUST answer invalid-request.
+Operation 4: An admitted instantiate MUST record EXACTLY ONE instance.
+Operation 5: An admitted instantiate MUST stand the instance in the initial state.
+Operation 6: An admitted instantiate MUST set next_sequence_number to one.
+Operation 7: An admitted instantiate MUST record an empty transition history.
+Operation 8: An admitted instantiate MUST answer the instance_id.
+Operation 9: IF instance_id NOT EXISTS THEN an addressed action MUST answer invalid-request.
+Operation 10: IF action NOT EXISTS THEN [Fire] MUST answer invalid-request.
+Operation 11: IF the instance_id names no instance THEN an addressed action MUST answer not-known.
+Operation 12: An addressed action MUST answer not-known ONLY IF instance_id EXISTS.
+Operation 13: IF the current state EXISTS in the terminal states THEN [Fire] MUST answer terminal.
+Operation 14: [Fire] MUST answer terminal ONLY IF the instance_id names an instance.
+Operation 15: IF no declared transition matches the current state and action THEN [Fire] MUST answer invalid-transition.
+Operation 16: [Fire] MUST answer invalid-transition ONLY IF the current state NOT EXISTS in the terminal states.
+Operation 17: IF the matched transition carries a guard AND guard_satisfied NOT EXISTS THEN [Fire] MUST answer guard-not-satisfied.
+Operation 18: [Fire] MUST answer guard-not-satisfied ONLY IF a declared transition matches.
+Operation 19: IF the resolved fired_at EXCEEDS now THEN [Fire] MUST answer invalid-request.
+Operation 20: IF the resolved fired_at precedes the instance's instantiated_at THEN [Fire] MUST answer invalid-request.
+Operation 21: An admitted fire MUST append EXACTLY ONE history entry.
+Operation 22: An admitted fire MUST take the history entry's sequence_number from next_sequence_number.
+Operation 23: An admitted fire MUST raise next_sequence_number by one.
+Operation 24: An admitted fire MUST set the history entry's from_state to the current state the call found.
+Operation 25: An admitted fire MUST set the history entry's to_state to the matched transition's to_state.
+Operation 26: An admitted fire MUST stand the instance in the matched transition's to_state.
+Operation 27: An admitted fire MUST commit the entry, the raise and the state change in one operation.
+Operation 28: An admitted fire MUST answer the matched transition's to_state.
+Operation 29: An admitted fire over a guarded transition MUST record guard_satisfied on the history entry.
+Operation 30: An admitted fire over an unguarded transition MUST NOT record guard_satisfied on the history entry.
+Operation 31: [Fire] MUST NOT evaluate a guard.
+Operation 32: [Fire] MUST NOT offer a wildcard declared transition.
+Operation 33: IF the store refuses the write THEN a writing action MUST answer storage-failure.
+Operation 34: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Operation 35: A refused action MUST leave the instance as the call found the instance.
+Operation 36: A refused action MUST NOT append a history entry.
+Operation 37: A refused action MUST NOT raise next_sequence_number.
+Operation 38: [Current] MUST answer the instance's current state.
+Operation 39: An admitted history MUST answer the matching history entries in sequence_number ascending order.
+Operation 40: An admitted history MUST answer EVERY history entry matching the supplied filters.
+Operation 41: An admitted history MUST NOT answer a history entry failing a supplied filter.
+Operation 42: IF no history entry matches THEN an admitted history MUST answer an empty entry sequence.
+Operation 43: IF a filter's axis NOT EXISTS in the filter axes THEN [History] MUST answer invalid-query.
+Operation 44: IF a string filter's value NOT EXISTS THEN [History] MUST answer invalid-query.
+Operation 45: IF a range filter's end precedes the range's start THEN [History] MUST answer invalid-query.
+Operation 46: [History] MUST answer invalid-query ONLY IF the instance_id names an instance.
+Operation 47: [Read Declaration] MUST answer the instance's declaration.
+Operation 48: [Read Declaration] MUST NOT normalize the declaration.
+Operation 49: [Read Declaration] MUST NOT reorder the declaration.
+Operation 50: A reading action MUST NOT write.
+Operation 51: The host MUST read the clock at the seam.
+Operation 52: The transition MUST NOT read a clock.
+Operation 53: The business caller MUST NOT supply now.
+Operation 54: A guard MUST NOT read a clock.
+Operation 55: An ordering rule MUST NOT rest on fired_at.
+```
+
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+
+Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+
+Terms › `addressed action`: any action carrying an instance_id — every action but [Instantiate].
+
+Terms › `writing action`: [Instantiate] | [Fire] — the two actions that write.
+
+Terms › `reading action`: [Current] | [History] | [Read Declaration] — the three that do not.
+
+Terms › `current state`: the state the instance stands in — a [Current State]; the initial state until a fire lands, and the latest history entry's to_state after.
+
+Terms › `next_sequence_number`: the counter [Fire] takes a sequence_number from — a [Next Sequence Number]; begins at one, rises by one per append, and survives a restart.
+
+Terms › `sequence_number`: the strictly increasing integer a history entry takes at append — a [Sequence Number]; the history's order source, and never taken from a clock.
+
+Terms › `fired_at`: the instant a declared transition fired — a [Fired At]; a best-effort annotation, and never an order source.
+
+Terms › `instantiated_at`: the instant an instance was created — an [Instantiated At].
+
+Terms › `resolved fired_at`: the `fired_at` the history entry carries — the supplied value where one exists, and `now` otherwise.
+
+Terms › `resolved instantiated_at`: the `instantiated_at` the instance carries — the supplied value where one exists, and `now` otherwise.
+
+Terms › `actor_ref`: the opaque reference naming who fired a declared transition — an [Actor Ref]; optional, and recorded where supplied.
+
+Terms › `guard`: the opaque label naming the condition a caller asserts before a declared transition fires — a [Guard].
+
+Terms › `guard_satisfied`: the caller's assertion that a guard holds — a [Guard Satisfied]; an assertion, never a verdict.
+
+Terms › `matched transition`: the one declared transition whose from_state is the current state and whose action is the call's action (Declaration 13).
+
+Terms › `filter axes`: `transition_id` | `sequence_number` | `from_state` | `to_state` | `action` | `actor_ref` | `fired_at` — the seven axes [History] accepts, and no others.
+
+Terms › `admitted instantiate`: an [Instantiate] call whose declaration, actor_ref and resolved instantiated_at the guards all admit.
+
+Terms › `admitted fire`: a [Fire] call whose instance_id names a live instance, whose action matches a declared transition the current state offers, whose guard the caller asserted where one is carried, and whose actor_ref and resolved fired_at the guards admit.
+
+Terms › `admitted history`: a [History] call whose instance_id names an instance and whose every filter axis and filter value the guards admit.
+
+| # | Condition | [Fire] answers |
+|---|---|---|
+| 1 | instance_id or action is blank | `invalid-request` |
+| 2 | both are well-formed, the instance_id names no instance | `not-known` |
+| 3 | the instance exists, the current state is terminal | `terminal` |
+| 4 | the current state is not terminal, no declared transition matches | `invalid-transition` |
+| 5 | a declared transition matches, it carries a guard, the caller asserts none | `guard-not-satisfied` |
+| 6 | the gate clears, actor_ref is blank or the resolved fired_at is out of bounds | `invalid-request` |
+| 7 | every precondition passes, the store refuses the write | `storage-failure` |
+| 8 | every precondition passes, the store accepts the write | `new_state` |
+
+NOTE: watch condition negation — `invalid-request` occupies two rows of one precedence chain (row 1 and row 6), so the answer alone does not say which guard refused. Audit Trail's 2026-08-30-a open line is the same shape with a worse consequence, its row 6 landing after a commitment.
+
+WHY:
+The precedence chain is the atom's most load-bearing ordering and every step earns its place. Argument well-formedness precedes the store lookup (row 1) so a malformed call never costs a read. `not-known` precedes `terminal` (row 2) because a state answer about an instance that does not exist would be an invention. `terminal` precedes `invalid-transition` (row 3) because an absorbed instance rejects *every* action, and telling a caller their action was undeclared when the instance would refuse any action sends them to fix the wrong thing. `invalid-transition` precedes `guard-not-satisfied` (row 4) because a guard belongs to a declared transition, and an undeclared move has no guard to be unsatisfied about.
+
+Row 6 is the one that surprises, and it is deliberate: attribution and temporal checks run *after* the gate. The alternative — checking `fired_at` before the guard — would tell a caller their timestamp is wrong on a transition they were never allowed to make, which leaks the declaration's shape to a caller the declaration refuses.
+
+Operation 20 states the within-instance temporal bound as a precedence rather than as a comparison, which is why no rule here spells `≥` as a two-arm disjunction. A transition cannot be recorded as firing before the instance existed; a transition firing *at* the instant of instantiation is legal, and `precedes` says exactly that in one arm.
+
+Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inherits: `fired_at` is best-effort and `sequence_number` is the order. Under a skewing clock a later history entry may legitimately carry an earlier `fired_at`, and no invariant here is at risk from it.
 
 ### State
 
-Each workflow instance is in exactly one state drawn from its declared [States] at all times.
-
-**Instance-level state per workflow instance:**
-
-- **[Current State]** — the current state name; a member of the instance's declared [States]. Set to [Initial State] on [Instantiate]. Updated to the [To State] of the most recently fired declared transition on each successful [Fire]. Invariant: exactly one value; always a member of [States].
-- **[Transition History]** — the ordered append-only sequence of transition history entries for this instance. Begins empty at [Instantiate]. Each successful [Fire] appends exactly one entry. Never shrinks.
-- **[Next Sequence Number]** — the sequence number the next [Fire] will assign to its history entry. Begins at 1 for a fresh instance. Increments by 1 on each successful [Fire]. Part of the instance's persistent state — durable implementations must preserve it across restarts to maintain sequence-number monotonicity (see Event Log's discipline, mirrored here). Volatile implementations that reset to 1 on restart violate this atom's History total-order invariant across the lifetime of the instance.
-
-**Store-level state:**
-
-- **`instances`** — the set of all known [Instance Id]s and their associated declarations, current states, transition histories, and [Next Sequence Number] counters. Append-only at the instance granularity: no instance is removed. Transition history within each instance is also append-only. Instance state ([Current State]) changes on successful [Fire].
-
-There is no delete or edit surface. Once an instance is created, it remains. Once a history entry is written, it remains.
-
-### Actions
-
-For optional parameters in all actions, "supplied" means provided as a parseable value of the declared type. Null, missing, and empty (or whitespace-only) values are equivalent to "not supplied," and the action's documented default applies.
-
-- **[Instantiate]** — (Projected contract: `instantiate(declaration, [actor_ref], [instance_metadata], [instantiated_at]) → instance_id | rejected(invalid-declaration | invalid-request | storage-failure)`) — validate the declaration's well-formedness, create a new workflow instance in [Initial State], and record the genesis.
-
-  Declaration validation checks (all failures are [Invalid Declaration]):
-  - [States] is non-empty.
-  - Every state name in [States] contains at least one non-whitespace character.
-  - State names within [States] are unique (no duplicates).
-  - [Initial State] is a member of [States].
-  - [Initial State] is not a member of [Terminal States].
-  - Every declared transition's [From State] and [To State] are members of [States].
-  - No declared transition has a [From State] in [Terminal States].
-  - No two declared transitions share the same `(from_state, action)` pair.
-  - Every declared transition's [Action] contains at least one non-whitespace character.
-  - Every declared transition's [Guard] label, if present, contains at least one non-whitespace character.
-
-  If the declaration is well-formed: assigns a fresh [Instance Id] and [Next Sequence Number] = 1; records [Current State] = [Initial State]; records [Instance Metadata] (if supplied); records [Instantiated At] (wall clock if not supplied; must not be in the future — an instance cannot be declared in the future; violation is [Invalid Request]); records [Actor Ref] (if supplied; must contain at least one non-whitespace character — violation is [Invalid Request]); sets [Transition History] to empty.
-
-  [Storage Failure] if the store write fails after all preconditions pass; no [Instance Id] is issued and no record enters the store. Rejection priority: [Invalid Declaration] on any declaration defect → [Invalid Request] on [Actor Ref] or [Instantiated At] violations → [Storage Failure].
-
-- **[Fire]** — (Projected contract: `fire(instance_id, action, [actor_ref], [guard_satisfied], [fired_at]) → new_state | rejected(not-known | terminal | invalid-transition | guard-not-satisfied | invalid-request | storage-failure)`) — look up the unique declared transition from the instance's current state matching [Action]; if found and all preconditions are met, append one immutable history entry and advance [Current State] to the transition's [To State].
-
-  The [Instance Id] and [Action] parameters must each contain at least one non-whitespace character ([Invalid Request]); a null, empty, or whitespace-only value for either is malformed and rejected before any existence check is performed.
-
-  [Actor Ref], if supplied, must contain at least one non-whitespace character ([Invalid Request]). [Fired At], if supplied, must not be in the future ([Invalid Request]). The resolved [Fired At] — whether caller-supplied or wall-clock-defaulted — must be ≥ the instance's [Instantiated At]; a value that is less is [Invalid Request] (a transition cannot be recorded as occurring before the instance existed — the within-instance bound analogous to Approval Step's `decided_at ≥ submitted_at`). The atom does **not** enforce monotonicity of [Fired At] across history entries: under a skewing or non-monotonic clock a later transition may legitimately carry an earlier [Fired At] than its predecessor. [Sequence Number], not [Fired At], is the authoritative order source, mirroring Event Log's best-effort wall-time discipline (Invariant 6).
-
-  If all parameter checks pass: look up the instance ([Not Known] if no instance with this [Instance Id] exists). Check whether [Current State] is a terminal state ([Terminal] if yes — no transition out of a terminal state is permitted). Look up the declared transition matching `(current_state, action)` ([Invalid Transition] if no such transition is declared). If the matched transition carries a [Guard] label: the transition fires only if [Guard Satisfied] is supplied as `true` ([Guard Not Satisfied] if [Guard Satisfied] is absent or not `true`).
-
-  On success: increment [Next Sequence Number]; append one immutable history entry with fields [Transition Id] (fresh opaque id), [Sequence Number] (the prior [Next Sequence Number] — i.e., the value before incrementing), [From State] (prior [Current State]), [To State] (the transition's [To State]), [Action] (the named trigger), [Actor Ref] (as supplied, or absent if not supplied), [Fired At] (resolved value), [Guard Satisfied] (true if the transition carried a [Guard] and the caller asserted it — absent if the transition had no guard); set [Current State] = [To State]. Return `new_state = to_state`.
-
-  Rejection priority: malformed [Instance Id] or [Action] ([Invalid Request]) → [Not Known] → [Terminal] → [Invalid Transition] → [Guard Not Satisfied] → attribution/temporal ([Invalid Request]) → [Storage Failure].
-
-  [Storage Failure] leaves the instance in its prior state with no history entry written and [Next Sequence Number] unchanged; the caller must retry.
-
-- **[Current]** — (Projected contract: `current(instance_id) → current_state | rejected(not-known | invalid-request)`) — return the instance's current state name. The [Instance Id] parameter must contain at least one non-whitespace character ([Invalid Request]). [Not Known] if no instance with this [Instance Id] exists. Returns the [Current State] string.
-
-- **[History]** — (Projected contract: `history(instance_id, [query]) → ordered_sequence_of_transitions | rejected(not-known | invalid-query | invalid-request)`) — return the instance's transition history matching the query, ordered by [Sequence Number] ascending.
-
-  The [Instance Id] parameter must contain at least one non-whitespace character ([Invalid Request]). [Not Known] if no instance with this [Instance Id] exists.
-
-  The supported filter axes are exactly: [Transition Id], [Sequence Number] (range), [From State], [To State], [Action], [Actor Ref], and time ranges on [Fired At]. A time range filter on [Fired At] takes the form `{after: <timestamp>, before: <timestamp>}` with both sub-keys optional; `after` is an inclusive lower bound and `before` is an inclusive upper bound. Filter keys are flat strings, not dot-notation paths. Any combination of supported axes is valid.
-
-  A [From State], [To State], [Action], or [Actor Ref] filter value that is null, empty, or whitespace-only is [Invalid Query]. A [Sequence Number] range with end before start is [Invalid Query]. A [Fired At] time range with end before start is [Invalid Query]. A [Transition Id] filter value that is null, empty, or whitespace-only is [Invalid Query]. A query carrying an unrecognized filter key — any key outside the supported axes named above — is [Invalid Query]; an unrecognized key is rejected rather than silently ignored, because silent ignore would return a result set inconsistent with the caller's intent.
-
-  A well-formed query matching no transitions returns an empty sequence, not a rejection. A query with no filters returns the full history in [Sequence Number] ascending order.
-
-- **[Read Declaration]** — (Projected contract: `read_declaration(instance_id) → declaration | rejected(not-known | invalid-request)`) — return the immutable [Declaration] as supplied at [Instantiate]. The [Instance Id] parameter must contain at least one non-whitespace character ([Invalid Request]). [Not Known] if no instance with this [Instance Id] exists. The returned [Declaration] is the exact declaration as supplied; no fields are normalized or reordered.
-
-### Flow
-
-**Example: ISO 9001 batch qualification workflow.**
-
-A pharmaceutical manufacturer declares a three-state batch qualification workflow:
-
-```
-states: {sampled, testing, released}
-transitions: [
-  {from: sampled, action: begin-testing, to: testing},
-  {from: testing, action: release, to: released, guard: "QP-sign-off"},
-  {from: testing, action: reject-batch, to: rejected}
-]
-initial_state: sampled
-terminal_states: {released, rejected}
+```text
+State 1: EVERY instance MUST carry instance_id, a declaration, a current state, a transition history and next_sequence_number.
+State 2: An instance MAY carry subject_ref.
+State 3: An instance MAY carry instance_metadata.
+State 4: EVERY history entry MUST carry transition_id, sequence_number, from_state, to_state, action and fired_at.
+State 5: A history entry MAY carry actor_ref.
+State 6: The atom MUST NOT offer an instance removal surface.
+State 7: The atom MUST NOT offer a history entry removal surface.
+State 8: The atom MUST NOT offer a history entry edit surface.
+State 9: The atom MUST NOT offer a reorder surface.
+State 10: The atom MUST NOT offer a transition out of a terminal state.
+State 11: The atom MUST NOT offer an action that stands an instance in two states.
+State 12: The store instance's instance count MUST NOT fall.
+State 13: An instance's transition history MUST NOT shrink.
+State 14: next_sequence_number MUST survive a restart.
 ```
 
-Note that the `rejected` state appears as a transition target but was not listed in [States]; the [Instantiate] call therefore returns `rejected(invalid-declaration)`. The declaration is corrected:
-
-```
-states: {sampled, testing, released, rejected}
-transitions: [
-  {from: sampled, action: begin-testing, to: testing},
-  {from: testing, action: release, to: released, guard: "QP-sign-off"},
-  {from: testing, action: reject-batch, to: rejected}
-]
-initial_state: sampled
-terminal_states: {released, rejected}
-```
-
-1. **Instantiate.** `instantiate(declaration, actor_ref: "system-planner")` → `instance_id: "wf-batch-0044"`. The instance enters `sampled`.
-2. **Begin testing.** `fire("wf-batch-0044", action: "begin-testing", actor_ref: "lab-tech-rivera")` → `new_state: "testing"`. The history records one entry: `{from: sampled, to: testing, action: begin-testing, seq: 1}`.
-3. **Attempt release without asserting guard.** `fire("wf-batch-0044", action: "release", actor_ref: "qp-director-santos")` → `rejected(guard-not-satisfied)`. The `release` transition requires `guard: "QP-sign-off"` to be asserted. No history entry is written; current state remains `testing`.
-4. **Release with guard asserted.** `fire("wf-batch-0044", action: "release", actor_ref: "qp-director-santos", guard_satisfied: true)` → `new_state: "released"`. The history records a second entry: `{from: testing, to: released, action: release, seq: 2, guard_satisfied: true}`. The instance is now in a terminal state.
-5. **Attempt further transition.** `fire("wf-batch-0044", action: "begin-testing")` → `rejected(terminal)`. The instance is in `released`, a terminal state.
-6. **Audit query.** `history("wf-batch-0044")` returns the two-entry sequence in `sequence_number` order: the `begin-testing` transition and the `release` transition. The regulator can confirm the batch moved only through declared, valid states in the declared order.
-
-### Decision points
-
-- **At [Instantiate]** — declaration validation runs first and is comprehensive (see Actions above); any defect is [Invalid Declaration]. If the declaration is valid, [Actor Ref] and [Instantiated At] are checked ([Invalid Request] on violations). [Storage Failure] on store-write failure with no [Instance Id] issued. Rejection priority: [Invalid Declaration] → [Invalid Request] → [Storage Failure].
-
-- **At [Fire]** — [Instance Id] and [Action] are checked first for well-formedness (null, empty, or whitespace-only is [Invalid Request] before any store lookup). The store is consulted: [Not Known] if the instance does not exist. The [Current State] is checked against [Terminal States]: [Terminal] if the current state is terminal. The declared transitions for [Current State] are scanned for a transition matching [Action]: [Invalid Transition] if no match. If the matched transition carries a [Guard] label: the transition fires only if `guard_satisfied = true` is asserted by the caller ([Guard Not Satisfied] if not). Attribution and temporal checks follow: [Actor Ref] (if supplied) must contain at least one non-whitespace character; [Fired At] (resolved) must not be in the future and must be ≥ the instance's [Instantiated At] (a transition cannot predate instantiation). [Fired At] is not required to be monotonic across entries — [Sequence Number] is the order source. [Storage Failure] on store-write failure; no entry written; no state change. Rejection priority: malformed [Instance Id] or [Action] ([Invalid Request]) → [Not Known] → [Terminal] → [Invalid Transition] → [Guard Not Satisfied] → attribution/temporal ([Invalid Request]) → [Storage Failure].
-
-- **At [Current]** — [Instance Id] must be non-whitespace ([Invalid Request]). [Not Known] if the instance does not exist. Returns [Current State].
-
-- **At [History]** — [Instance Id] must be non-whitespace ([Invalid Request]). [Not Known] if the instance does not exist. Filter values are checked for well-formedness (empty/whitespace-only values for string axes are [Invalid Query]; malformed ranges are [Invalid Query]; unrecognized keys are [Invalid Query]). A well-formed query matching no transitions returns an empty sequence.
-
-- **At [Read Declaration]** — [Instance Id] must be non-whitespace ([Invalid Request]). [Not Known] if the instance does not exist.
-
-### Behavior
-
-- **Instances are durable on success.** Once [Instantiate] returns an [Instance Id], the instance is in the store, its [Declaration] is set and immutable, and it will appear in subsequent [Current] and [History] queries.
-
-- **[Fire] is not idempotent.** Two [Fire] calls with the same `(instance_id, action)` pair (where both are otherwise valid) will both succeed if the declared transition is still available — the first advances [Current State] to [To State], and the second will look up the declared transitions from [To State]. A second call with the same [Action] from a different state may succeed, fail with [Invalid Transition], or fail with [Terminal], depending on the declaration. For at-most-once semantics under retry conditions, the calling system must supply its own idempotency key; this atom does not provide one.
-
-- **Guard enforcement is a gate, not an evaluation.** When a declared transition carries a [Guard] label, the atom enforces that the caller must assert `guard_satisfied = true` before the transition fires. The atom does not evaluate whether the guard condition is actually true in the external world — that is the caller's obligation. The history records that the guard was asserted satisfied (`guard_satisfied: true` in the entry), not that the underlying predicate was evaluated by the atom. A caller that asserts `guard_satisfied = true` without actually evaluating the predicate is violating the declared process semantics; the atom records the assertion faithfully regardless. Guard evaluation correctness is a calling-system obligation.
-
-- **Declared-transition enforcement is strict.** A [Fire] call with an [Action] that has no declared transition from the current state is always [Invalid Transition]. There is no fallback, no wildcard transition, and no "any action" surface. The atom enforces exactly what was declared at instantiation.
-
-- **Terminal states are absorbing.** A [Fire] call on an instance whose [Current State] is in [Terminal States] is always [Terminal]. There is no re-open, re-activate, or post-terminal transition surface. The declaration may not name transitions out of terminal states (enforced at [Instantiate]). A process that requires post-terminal behavior must model that behavior in the declaration as a non-terminal state, or the calling system must instantiate a new workflow instance.
-
-- **History is append-only.** The transition history only grows. Each successful [Fire] appends one entry. No history entry is ever removed or modified. An unfiltered [History] query at time `t2 > t1` returns every entry visible at `t1` plus any added between `t1` and `t2`.
-
-- **[Current State] is replay-deterministic.** The [Current State] at any moment equals the [To State] of the history entry with the highest [Sequence Number], or [Initial State] if no entry exists. Any implementation that correctly replays the history in [Sequence Number] order will arrive at the correct [Current State].
-
-### Feedback
-
-- After [Instantiate] — a new instance exists; [Instance Id], [Current State] (= [Initial State]), the immutable [Declaration], and [Next Sequence Number] = 1 are set.
-- After [Fire] — the instance's [Current State] is updated to `new_state`; one history entry is appended with the full transition record; [Next Sequence Number] is incremented.
-- After [Current] — the current state string is returned; no state changes.
-- After [History] — an ordered sequence of transition history entries matching the query is returned; no state changes.
-- After [Read Declaration] — the immutable [Declaration] is returned; no state changes.
-
-Each rejected action produces an observable refusal naming the failed precondition.
+WHY:
+State 14 is stated as a rule rather than left to the implementation because the failure it prevents is silent and total. A counter that resets to one on restart produces two history entries carrying `sequence_number: 1`, which breaks Invariant 6's total order and Invariant 7's replay in the same stroke — and it breaks them *retroactively*, for a history that looked correct before the restart and is unrecoverable after.
 
 ### Invariants
 
-- **Invariant 1 — Declaration immutability.** After a successful [Instantiate], the fields [States], [Transitions], [Initial State], and [Terminal States] comprising the [Declaration] never change, regardless of any subsequent action on the instance. [Read Declaration] returns the exact [Declaration] as supplied at [Instantiate] at any point in the instance's lifetime.
-
-- **Invariant 2 — Exactly one current state.** At all times, every known workflow instance has a [Current State] that is exactly one member of its declared [States]. The [Current State] is never absent, never null, and never a value not in the instance's declared [States].
-
-- **Invariant 3 — Only-declared-transitions fire.** Every successful [Fire] corresponds to exactly one declared transition `{from_state = prior current_state, action = the named trigger, to_state = new_state}` that is present in the instance's declaration. A [Fire] call whose [Action] has no declared transition from the current state is rejected [Invalid Transition] and changes no state and produces no history entry. The determinism constraint (at most one declared transition per `(from_state, action)` pair, enforced at [Instantiate]) ensures the matched transition, if any, is unique.
-
-- **Invariant 4 — Terminal absorption.** Once [Current State] is a member of [Terminal States], no [Fire] succeeds; the instance remains in that terminal state permanently. No declared transition may have a [From State] in [Terminal States] (enforced at [Instantiate]). Terminal states are absorbing: they have no outgoing transitions by construction and by enforcement.
-
-- **Invariant 5 — History append-only and complete.** Every successful [Fire] appends exactly one immutable history entry to the instance's [Transition History]. No history entry is ever removed or modified. The count of history entries is monotonically non-decreasing. An instance with no successful [Fire] calls has an empty history; an instance with N successful [Fire] calls has exactly N history entries.
-
-- **Invariant 6 — History total order.** History entries within an instance have strictly increasing [Sequence Number] values. No two entries share a [Sequence Number]. The [Sequence Number] is the total-order source for the history; [Fired At] is best-effort wall time only. An implementation that resets [Next Sequence Number] to 1 on restart without persisting the counter violates this invariant across the lifetime of the instance, producing two entries with `sequence_number = 1`. The [Next Sequence Number] counter is part of the instance's persistent state and must survive restarts.
-
-- **Invariant 7 — Replay determinism.** The [Current State] of an instance equals the [To State] of the history entry with the highest [Sequence Number], or [Initial State] if no entry exists. Replaying the history in [Sequence Number] order from the beginning — starting at [Initial State], applying each entry's [To State] in sequence — produces the [Current State]. The history is a gap-free record from which [Current State] is always derivable without consulting any mutable field.
-
-- **Invariant 8 — Guard-gating without evaluation.** A declared transition carrying a [Guard] label fires only if the caller asserts `guard_satisfied = true`; the atom enforces the gate but does not evaluate the guard predicate. The history entry for a guarded transition records `guard_satisfied: true`, attesting that the caller asserted the guard was satisfied at the time of the [Fire] call. A [Fire] call on a guarded transition that does not assert `guard_satisfied = true` is rejected [Guard Not Satisfied] and produces no history entry. The atom does not check whether the asserted guard condition is actually satisfied in the external world; that is the caller's obligation.
-
-- **Invariant 9 — Transition attribution completeness.** Every history entry carries [Transition Id], [Sequence Number], [From State], [To State], [Action], and [Fired At] — each set and non-null. [Actor Ref], if supplied on the [Fire] call, is present in the entry and contains at least one non-whitespace character; [Actor Ref] is absent from the entry if not supplied on the [Fire] call. The entry is complete for forensic replay regardless of whether [Actor Ref] was supplied; [Actor Ref] presence is deployment policy, not atom-level mandate.
-
-- **Invariant 10 — Instance store durability.** No workflow instance or history entry is removed from the store. The total instance count is monotonically non-decreasing. A [Storage Failure] response on [Fire] guarantees that no partial history entry was written and that the instance's [Current State] and [Next Sequence Number] are unchanged. A [Storage Failure] response on [Instantiate] guarantees that no partial instance record was written and no [Instance Id] was issued.
+- **Invariant 1 — Declaration immutability.**
+  ```text
+  Invariant 1.1: A recorded declaration's field MUST NOT change.
+  Invariant 1.2: [Read Declaration] MUST answer the declaration as [Instantiate] took the declaration.
+  ```
+- **Invariant 2 — Exactly one current state.**
+  ```text
+  Invariant 2.1: EVERY instance MUST stand in EXACTLY ONE member of the instance's states.
+  ```
+- **Invariant 3 — Only declared transitions fire.**
+  ```text
+  Invariant 3.1: EVERY history entry MUST match EXACTLY ONE declared transition in the instance's declaration.
+  Invariant 3.2: Two declared transitions in one declaration MUST NOT share one from_state and one action.
+  ```
+  WHY: Invariant 3.2 is what makes Invariant 3.1's *exactly one* reachable. The uniqueness is enforced once, at [Instantiate] (Declaration 13), and every later match inherits it — so the atom never carries a tiebreak rule, because a conforming declaration never presents a tie.
+- **Invariant 4 — Terminal absorption.**
+  ```text
+  Invariant 4.1: An instance standing in a terminal state MUST NOT leave the terminal state.
+  Invariant 4.2: A declared transition's from_state MUST NOT stand in the terminal states.
+  ```
+  WHY: absorption holds twice over — by enforcement at [Fire] (Operation 13) and by construction in the declaration (Invariant 4.2), which is what makes it structural. A deployment needing post-terminal behaviour models it as a non-terminal state or instantiates a new instance; there is no reopen surface and there is no declaration that could describe one.
+- **Invariant 5 — History append-only and complete.**
+  ```text
+  Invariant 5.1: A history entry MUST NOT change.
+  Invariant 5.2: An instance's history entry count MUST equal the instance's admitted fire count.
+  ```
+- **Invariant 6 — History total order.**
+  ```text
+  Invariant 6.1: Two history entries in one instance MUST NOT share a sequence_number.
+  Invariant 6.2: An instance's sequence_numbers MUST stand from one to the instance's history entry count.
+  Invariant 6.3: An instance's history order MUST rest on sequence_number alone.
+  ```
+- **Invariant 7 — Replay determinism.**
+  ```text
+  Invariant 7.1: An instance carrying a history entry MUST stand in the highest sequence_number entry's to_state.
+  Invariant 7.2: An instance carrying no history entry MUST stand in the initial state.
+  Invariant 7.3: A replay of an instance's history from the initial state in sequence_number ascending order MUST reach the instance's current state.
+  ```
+  WHY: the current state is a projection of the history, cached so a guard need not replay. Invariant 7.3 is what makes the cache safe to hold: an auditor can rebuild the state from the entries alone, and a disagreement between the cache and the replay is a conformance failure rather than a repair job.
+- **Invariant 8 — Guard gating without evaluation.**
+  ```text
+  Invariant 8.1: A guarded declared transition MUST fire ONLY IF the caller asserts guard_satisfied.
+  Invariant 8.2: The atom MUST NOT evaluate a guard's condition.
+  Invariant 8.3: A guarded declared transition's history entry MUST record the caller's assertion.
+  ```
+  WHY: the entry attests that the caller asserted the guard at the moment of the call, and attests nothing about the world. The distinction is the atom's whole restraint, and it is what an auditor must understand before reading `guard_satisfied: true` as evidence — it is evidence of an assertion, and [Execute Gated Workflow](../compositions/execute-gated-workflow.md) is where the assertion is earned by reading a bound [Approval Step](./approval-step.md).
+- **Invariant 9 — Transition attribution completeness.**
+  ```text
+  Invariant 9.1: A recorded actor_ref MUST carry a non-whitespace character.
+  ```
+  WHY: the entry is complete for forensic replay whether or not `actor_ref` was supplied. Attribution is deployment policy here, not an atom-level mandate — which is exactly the gap [Actor Identity](./actor-identity.md) closes where a regulator needs the actor bound rather than named.
+- **Invariant 10 — Store durability.**
+  ```text
+  Invariant 10.1: The atom MUST NOT remove an instance from the store.
+  Invariant 10.2: The atom MUST NOT remove a history entry from an instance.
+  Invariant 10.3: A storage-failure rejection MUST leave no partial record in the store.
+  ```
 
 ---
-
 ## Examples
 
-### Happy path — ISO 9001 batch qualification
+### Pharmaceutical batch qualification
 
-See Flow section. A complete two-transition arc is walked there: instantiation with a declaration validation failure (to illustrate [Invalid Declaration]), re-instantiation with the corrected declaration, `begin-testing` firing, a `release` rejection due to unasserted guard, a `release` success with guard asserted, a [Terminal] rejection on post-terminal [Fire], and a final audit [History] query.
+A quality system instantiates a batch-release workflow. The declaration names `states: [sampled, tested, qualified, released, rejected]`, `initial state: sampled`, `terminal states: [released, rejected]`, and five declared transitions — `sampled --test--> tested`, `tested --qualify[qa_signoff]--> qualified`, `tested --reject--> rejected`, `qualified --release[qa_signoff]--> released`, `qualified --reject--> rejected`. `instantiate(declaration, actor_ref: "qa-system", subject_ref: "batch-x91")` → `wf_01HQ…`, standing in `sampled` with `next_sequence_number: 1` (Operation 4–8).
 
-### Rejection path — undeclared transition
+`fire("wf_01HQ…", "test", actor_ref: "lab-tech-r.chen")` → `tested`. One history entry lands at `sequence_number: 1` carrying `from_state: sampled`, `to_state: tested` (Operation 21–28).
 
-A workflow instance `"wf-po-0199"` is currently in state `"draft"`. The declaration for this instance does not include a transition from `draft` with action `"approve"` (approval happens only from `"submitted"`, not `"draft"`). A workflow engine with a routing bug calls `fire("wf-po-0199", action: "approve")` → `rejected(invalid-transition)`. No history entry is written; [Current State] remains `"draft"`. The workflow engine logs the rejection and routes to the correct action (`"submit"` from `"draft"` before `"approve"` from `"submitted"`).
+`fire("wf_01HQ…", "qualify", actor_ref: "qa-lead-m.ross")` → `rejected(guard-not-satisfied)`. The declared transition carries the `qa_signoff` guard and the call asserted nothing (Operation 17). The same call with `guard_satisfied: true` → `qualified`, and the entry records the assertion (Operation 29).
 
-### Rejection path — guard not asserted
+`fire("wf_01HQ…", "release", guard_satisfied: true, actor_ref: "qa-lead-m.ross")` → `released`. The instance now stands in a terminal state.
 
-A workflow instance `"wf-cr-0055"` has a declared transition `{from: in-review, action: merge, to: merged, guard: "two-approver-sign-off"}`. The automation engine calls `fire("wf-cr-0055", action: "merge", actor_ref: "ci-bot")` without setting [Guard Satisfied] → `rejected(guard-not-satisfied)`. The engine checks whether two approvals have been recorded by the composing Approval Step layer, records both, and retries: `fire("wf-cr-0055", action: "merge", actor_ref: "ci-bot", guard_satisfied: true)` → `new_state: "merged"`. The history entry records `guard_satisfied: true`. The atom does not re-verify the two-approver condition; the engine's assertion is the gate.
+### The audit question
 
-### Rejection path — invalid declaration (duplicate from-action pair)
+An inspector asks whether the batch moved only through the approved sequence. `read_declaration("wf_01HQ…")` answers the map as supplied, unchanged since instantiation (Invariant 1.2). `history("wf_01HQ…")` answers three entries in `sequence_number` order. Every entry's `from_state`, `action` and `to_state` triple appears in the declaration (Invariant 3.1), and replaying them from `sampled` arrives at `released`, which is what `current("wf_01HQ…")` answers (Invariant 7.3). The declaration bounds what *could* have happened and the history says what *did*; neither alone answers the inspector.
 
-A deployment attempts to declare a non-deterministic state machine: the declaration includes both `{from: pending, action: decide, to: approved}` and `{from: pending, action: decide, to: rejected}`. `instantiate(declaration)` → `rejected(invalid-declaration)`. The `(from_state: "pending", action: "decide")` pair is declared twice; the declaration is non-deterministic and the atom will not instantiate it. The deployer must model the decision through distinct action names (`decide-approve` and `decide-reject`) or through a branching state that uses different action names for each branch.
+### Rejection paths
 
-### Rejection path — fire with whitespace-only action
+`fire("wf_01HQ…", "test")` against the released instance → `rejected(terminal)`. Not `invalid-transition`, even though no `test` edge leaves `released` — an absorbed instance refuses every action, and saying so sends the caller to the right problem (Operation 13, Operation 16).
 
-`fire("wf-batch-0044", action: "   ")` → `rejected(invalid-request)`. Whitespace-only [Action] is malformed. No store lookup is performed; no state changes.
+`fire("wf_01HQ…", "expedite")` against a live instance in `tested` → `rejected(invalid-transition)`. No declared transition matches, and there is no wildcard (Operation 15, Operation 32).
+
+`fire("wf_99999", "test")` → `rejected(not-known)`. `fire("", "test")` → `rejected(invalid-request)`, refused before any store lookup (Operation 9, Operation 12).
+
+`instantiate(declaration)` where two declared transitions both leave `tested` on `qualify` → `rejected(invalid-declaration)`. The determinism constraint refuses the ambiguity at birth rather than inventing a tiebreak at fire time (Declaration 13).
+
+`instantiate(declaration)` where `initial state: released` and `released` is terminal → `rejected(invalid-declaration)`. An instance born absorbed accepts nothing (Declaration 9).
+
+`instantiate(declaration)` carrying an edge out of `released` → `rejected(invalid-declaration)` (Declaration 12).
+
+`fire("wf_01HQ…", "test", fired_at: "2020-01-01")` against an instance instantiated in 2026 → `rejected(invalid-request)`. A transition cannot fire before the instance existed (Operation 20).
 
 ### Multi-instance independence
 
-Two instances `"wf-batch-0044"` and `"wf-batch-0045"` are both instantiated with the same batch-qualification declaration. Firing a transition on `"wf-batch-0044"` has no effect on `"wf-batch-0045"`. Each instance has its own [Current State], its own [Transition History], and its own [Next Sequence Number]. `history("wf-batch-0044")` returns only the transitions fired on that instance; `history("wf-batch-0045")` returns only the transitions fired on that instance.
-
----
+Two batches run the same declaration as two instances. Firing `test` on one moves one current state; the other is untouched, carries its own history and its own `next_sequence_number`. The declaration is a value each instance holds, not a shared object (Non-goal 8).
 
 ### Regulated adversarial scenarios
 
-#### Regulator audit — FDA 21 CFR Part 11 / ISO 9001 §8.5.1: declared-transition compliance
-
-An FDA (US Food and Drug Administration) inspector auditing a pharmaceutical manufacturer's batch release process under 21 CFR Part 11 and ISO 9001 §8.5.1 demands evidence that batch `BR-2026-0412` moved only through the manufacturer's declared quality-control states in the declared order, and that the qualified-person sign-off gate was enforced before the release transition fired.
-
-The inspector queries `history("wf-batch-BR-2026-0412")` and receives the full transition history in [Sequence Number] order. Invariant 5 (history append-only and complete) guarantees every transition that fired is recorded. The inspector then queries `read_declaration("wf-batch-BR-2026-0412")` to recover the immutable [Declaration]. Invariant 1 (declaration immutability) guarantees this declaration is exactly as declared at instantiation — the manufacturer cannot have added or removed states after the fact. The inspector cross-references each history entry against the declaration: every `{from_state, action, to_state}` triple in the history must correspond to a declared transition (Invariant 3 — only-declared-transitions). The release entry carries `guard_satisfied: true`, confirming the qualified-person sign-off gate was asserted (Invariant 8 — guard-gating without evaluation). The forensic question of whether the qualified person actually signed off is answered by composition with [Actor Identity](./actor-identity.md); the State Machine records that the gate was asserted satisfied.
-
-The inspector's structural questions — *did the batch move only through declared states?* and *was the release gate enforced?* — are answered from the records alone, with no recourse to source code, runbooks, or developer narration.
-
-#### Disputed transition — external party claims the workflow skipped a required state
-
-A contract manufacturer disputes that purchase order `PO-2026-0551` was properly processed: they claim the order moved directly from `submitted` to `fulfilled` without passing through `approved`, bypassing the required approval gate. The composing system queries `history("wf-po-PO-2026-0551")` and returns the full transition history in sequence order.
-
-The history shows three entries: (1) `{from: draft, to: submitted, seq: 1}`; (2) `{from: submitted, to: approved, seq: 2}`; (3) `{from: approved, to: fulfilled, seq: 3}`. The declaration (returned by [Read Declaration]) has no declared transition from `submitted` directly to `fulfilled`; such a [Fire] call would have been rejected [Invalid Transition] and produced no entry. Invariants 3 (only-declared-transitions) and 7 (replay determinism) together constitute the structural rebuttal: no transition fires without a corresponding declared transition from the current state, and the history is the complete record of every transition that fired. The dispute cannot be sustained against the structural record: if the `submitted → approved` step had not occurred, no `approved → fulfilled` step would have been reachable.
-
-The question of whether the actor who fired the `approved → fulfilled` transition was authorized to do so is answered by composition with [Permissions](./permissions.md) and [Actor Identity](./actor-identity.md); this atom records that the transition fired and who asserted it.
-
-#### Breach or incident investigation — reconstructing the anomaly window
-
-During a security incident investigation, the incident response team needs to determine whether any workflow instances in the order-management system were driven through unauthorized state transitions during a suspected credential-compromise window (2026-05-01T00:00:00Z through 2026-05-03T23:59:59Z). The team queries [History] for all relevant instances with a [Fired At] range filter: `history("wf-po-{id}", query: {fired_at: {after: "2026-05-01T00:00:00Z", before: "2026-05-03T23:59:59Z"}})` for each instance of interest.
-
-For each transition entry in the window, the team cross-references the entry's `{from_state, action, to_state}` against the instance's declaration ([Read Declaration]) to confirm the transition was declared. Invariant 3 guarantees every entry in the history corresponds to a declared transition — the history cannot contain an undeclared transition, because undeclared [Fire] calls are rejected and produce no entries. The team then inspects [Actor Ref] values in the window entries and routes suspicious actor references to the composing [Actor Identity](./actor-identity.md) investigation to determine whether the referenced actors' credentials were compromised.
-
-Invariant 6 (history total order, strictly increasing [Sequence Number]) gives the team a clock-independent ordering of every transition within each instance, bounding the anomaly window precisely. The forensic question — *which transitions fired, in what order, by which asserted actors, during the window?* — is answered from the records alone.
+- **Regulator audit.** An FDA inspector auditing under 21 CFR Part 11 and ISO 9001 §8.5.1 asks the system to prove the batch moved only through approved states. Check 2.1 and Check 6.1 are the structural answer: every history entry matches a declared transition, and the declaration is the one supplied at instantiation. What the atom cannot answer is whether the `qa_signoff` guard was truly satisfied — `guard_satisfied: true` attests an assertion (Invariant 8.3), and the evidence lives in the composing [Approval Step](./approval-step.md) record.
+- **Disputed transition.** An external party claims the workflow skipped a required state. The history is gap-free by `sequence_number` (Invariant 6.2) and replays to the current state (Invariant 7.3), so a skipped state would have to appear as a declared transition that jumps it — which the declaration either names or does not. The claim resolves against the declaration, not against testimony.
+- **Breach investigation.** An investigator reconstructing an anomaly window filters the history by `fired_at` range and finds the entries generously bracketed. Because `sequence_number` is dense and is the order source (Invariant 6.2, Operation 55), the investigator confirms the window's completeness against an unfiltered read rather than trusting the wall-time filter — a clock-skewed entry can fall outside the bracket and cannot fall out of the sequence.
 
 ---
 
 ## Generation acceptance
 
-Any implementation derived from this atom must produce records and a runtime surface that pass the following checks from the records alone, without recourse to source code, runbooks, or developer narration:
+This atom's acceptance is what an external auditor can clear from the workflow store and the declaration, with no recourse to source code, runbooks or developer narration.
 
-1. **Declaration immutability check.** For a known [Instance Id], call [Read Declaration] at time `t1` and record the returned declaration. Fire one or more transitions on the instance. Call [Read Declaration] again at `t2 > t1`. Confirm the two declarations are identical in every field ([States], [Transitions], [Initial State], [Terminal States]). Any difference between the two declarations is a conformance failure under Invariant 1. This check must be run after at least one [Fire] call has succeeded, to confirm that transitions do not mutate the declaration.
+### Conformance checks
 
-2. **Only-declared-transitions check.** For a known [Instance Id] with a known declaration, attempt a [Fire] call with an [Action] that has no declared transition from the instance's current state. Confirm the call returns `rejected(invalid-transition)` and that `current(instance_id)` returns the same state as before the call. Then attempt a [Fire] call with a declared transition's [Action] from the current state. Confirm the call returns `new_state` equal to the declared transition's [To State]. Confirm `current(instance_id)` returns that [To State]. Invariant 3 guarantees this behavior; the check verifies it.
+```text
+Check 1.1: An auditor MUST find a re-read declaration unchanged from the prior read (Invariant 1.1).
+Check 1.2: An auditor MUST find a declaration unchanged across an admitted fire (Invariant 1.1).
+Check 2.1: An auditor MUST find EVERY history entry's from_state, action and to_state standing as a declared transition in the instance's declaration (Invariant 3.1).
+Check 2.2: An auditor MUST find no two declared transitions in one declaration sharing one from_state and one action (Invariant 3.2).
+Check 3.1: An auditor MUST find EVERY instance standing in EXACTLY ONE member of the instance's states (Invariant 2.1).
+Check 4.1: An auditor MUST find an instance standing in a terminal state carrying no history entry following the entry that reached the terminal state (Invariant 4.1).
+Check 4.2: An auditor MUST find no declared transition's from_state standing in the terminal states (Invariant 4.2).
+Check 5.1: An auditor MUST find an instance's sequence_numbers standing from one to the instance's history entry count (Invariant 6.2).
+Check 5.2: An auditor MUST reconstruct an instance's history order from sequence_number alone (Invariant 6.3).
+Check 5.3: An auditor MUST find a re-read history entry's fields unchanged from the prior read (Invariant 5.2).
+Check 6.1: An auditor MUST reach the instance's current state by replaying the instance's history from the initial state (Invariant 7.3).
+Check 7.1: An auditor MUST find guard_satisfied recorded on EVERY guarded declared transition's history entry (Invariant 8.3).
+Check 7.2: An auditor MUST find no guard_satisfied recorded on an unguarded declared transition's history entry (Operation 30).
+Check 8.1: An auditor MUST find transition_id, sequence_number, from_state, to_state, action and fired_at on EVERY history entry (State 4).
+Check 8.2: An auditor MUST find a non-whitespace character in EVERY recorded actor_ref (Invariant 9.1).
+```
 
-3. **Terminal absorption check.** Drive a workflow instance to a terminal state. Confirm `current(instance_id)` returns a state in [Terminal States]. Attempt [Fire] with any action (including actions that were valid from prior non-terminal states). All calls must return `rejected(terminal)`. Confirm `current(instance_id)` is unchanged after each attempted transition. Confirm `history(instance_id)` shows no new entry was appended. Invariant 4 guarantees absorption; this check verifies it. The check must cover at least one declared terminal state; in deployments with multiple terminal states, at least one instance should be driven to each terminal state and checked.
+NOTE: EVERY check names the rule the check tests.
 
-4. **History append-only and replay-determinism check.** For a known [Instance Id] with N fired transitions, call `history(instance_id)` (unfiltered) and confirm: (a) exactly N entries are returned; (b) entries are in strictly increasing [Sequence Number] order with no gaps (sequence numbers 1 through N); (c) replaying the entries in [Sequence Number] order — starting at [Initial State], applying each [To State] in sequence — produces the same [Current State] as returned by `current(instance_id)`. A history with missing entries, a non-monotone [Sequence Number], or a replay that does not arrive at [Current State] is a conformance failure under Invariants 5, 6, and 7. In a test environment where all [Fire] calls are observable, confirm the entry count equals the number of successful [Fire] calls.
+### External checks
 
-5. **Guard-gating check.** For a known [Instance Id] currently in a state with a guarded outgoing declared transition, call [Fire] with the guarded transition's [Action] but without setting `guard_satisfied = true`. Confirm the call returns `rejected(guard-not-satisfied)`. Confirm no history entry was appended. Then call [Fire] with `guard_satisfied = true`. Confirm the call returns the declared `new_state`. Confirm the history entry for this transition carries `guard_satisfied: true`. Invariant 8 guarantees this behavior; the check verifies it. For unguarded transitions, confirm that omitting [Guard Satisfied] does not trigger a [Guard Not Satisfied] rejection.
+```text
+External check 1: A deployment needing a guard's condition confirmed MUST read the composing pattern that evaluates the guard (Invariant 8.2).
+External check 2: A deployment needing an instance's history entry count matched against the instance's admitted fire count MUST capture the fire answers (Invariant 5.2).
+External check 3: A deployment needing an actor_ref bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Non-goal 11).
+```
 
-6. **Every history entry corresponds to a declared transition check.** For a known [Instance Id], call `history(instance_id)` (unfiltered) and `read_declaration(instance_id)`. For every entry in the history, confirm that the `{from_state, action, to_state}` triple is present as a declared transition in the declaration. An entry with a `{from_state, action, to_state}` triple that is not present in the declaration is a conformance failure under Invariant 3. This check verifies the declared-transition enforcement at the record level: if any undeclared transition entry exists, the implementation has violated the atom's core contract.
+WHY:
+External check 2 is the check that could not stay in the conformance list. Counting an instance's history entries is trivial from the store; matching that count against the number of *admitted* fires needs the fire answers captured at call time, and a production auditor reading the store cannot enumerate them — the store is exactly what would be missing an entry. Check 5.1 is the store-alone substitute: a gap-free run from one to the entry count catches a lost entry from the other direction.
 
----
-
-## Non-goals and edge cases
-
-- **Guard evaluation is the caller's responsibility.** The atom enforces that the caller must assert `guard_satisfied = true` before a guarded transition fires. It does not evaluate whether the guard condition is true in the external world. A caller that asserts `guard_satisfied = true` without actually evaluating the guard predicate is violating the declared process semantics; the atom records the assertion faithfully regardless. Guard evaluation — checking the external condition (two approvals recorded, a quorum reached, a threshold exceeded) — belongs to the calling system or to a composing Rules Engine pattern.
-
-- **Approval gates within a workflow.** When a workflow transition requires a formal approval by a named actor before it may fire, the [Guard] label on the declared transition is the gate enforcement point, and the composing system is responsible for evaluating the guard (i.e., checking that an [Approval Step](./approval-step.md) for the relevant subject, approver, and scope is in state Approved). The [Fire] call is the point at which the caller asserts the gate has been cleared; the Approval Step record is the evidence. This composition is [Execute Gated Workflow](../compositions/execute-gated-workflow.md) (`grounded` 2026-06-04) — the layer where this atom's approval-type guards are actually evaluated (the composition reads the bound Approval Step's state and asserts [Guard Satisfied] only when it is Approved).
-
-- **Parallel / concurrent active states and fork-join.** This atom has exactly one [Current State] at all times (Invariant 2). Parallel workflows — where an instance may be in multiple active states simultaneously, and where a join transition fires only when all parallel branches have completed — are out of scope. A Parallel Workflow / fork-join pattern (a composing or sibling pattern) handles this concept; this atom is the single-active-state primitive.
-
-- **Sub-workflows and hierarchical states.** UML statecharts and Harel statecharts allow states to contain nested sub-state machines (composite states). This atom does not model nesting; its [States] are flat names. A calling system that needs hierarchical state behavior must model it explicitly in the declaration (naming composite states as distinct flat states with transitions between them) or compose with a sub-workflow pattern.
-
-- **Declaration versioning and sharing one declaration across many instances.** This atom takes the [Declaration] at instantiation and fixes it immutably per instance. If the deployer needs to share one canonical declaration template across many instances — so that changing the template updates all new instances instantiated from it — that belongs to a Definition Registry, not this atom. The Definition Registry would hold the template; the calling system would retrieve the current template and supply it at [Instantiate]. This atom receives the [Declaration] as a value at instantiation; it does not know or care whether two instances received the same template or different ones.
-
-- **Non-repudiable transition attribution.** The atom records [Actor Ref] as an opaque reference on each history entry. It enforces that, if supplied, [Actor Ref] is non-whitespace. It does not cryptographically bind the actor to the transition in a way that survives disputed-authorship challenges. For non-repudiable transition attribution — required in FDA 21 CFR Part 11 and SOX (Sarbanes-Oxley Act) §404 regulated contexts — compose with [Actor Identity](./actor-identity.md). The State Machine record is the transition history; Actor Identity is the non-repudiation layer.
-
-- **Tamper-evidence of the history.** The atom guarantees immutability by specification. It does not cryptographically prevent a store administrator with write access from altering history entries. For court-admissible evidence under SOX §404 and FDA Part 11, compose with [Tamper Evidence](./tamper-evidence.md), which provides cryptographic sealing of the transition history.
-
-- **Retention of the transition history.** The atom keeps every instance and every history entry for the lifetime of the store instance. Time-bounded retention under regulatory obligation — GDPR (General Data Protection Regulation — the European Union's data protection law) Article 17, HIPAA (Health Insurance Portability and Accountability Act — the US law governing protected health information) §164.530(j), FRCP (Federal Rules of Civil Procedure — the procedural rules governing US federal civil litigation) Rule 37(e) — belongs to a composing [Retention Window](./retention-window.md) pattern.
-
-- **Which workflow state an entity "should" be in.** The atom records the declared states and the transitions that have fired. It does not declare what the subject's state *should* be — that is the calling system's business-rule layer. An auditor asking "show me every batch that never reached `released`" cannot answer that question from this atom alone without also having the set of all batches that were instantiated (which [History] or [Current] can supply) and knowing the expected terminal state for the batch type (which the [Declaration] can supply). The composing system must drive that analysis.
-
-- **Subject validity.** [Subject Ref] is opaque. The atom does not validate it against any external record, database, or workflow engine. Instantiating a workflow for a [Subject Ref] that does not correspond to any real entity creates a valid workflow instance governing a nonexistent subject. The calling system is responsible for ensuring [Subject Ref] values are valid before calling [Instantiate].
-
-- **Concurrency on the same instance.** Two systems concurrently calling [Fire] on the same [Instance Id] must be serialized. The first succeeds; the second will observe the [Current State] left by the first and may succeed (if the resulting state has a matching declared transition) or fail ([Terminal], [Invalid Transition], or succeed with a different result depending on the declaration). Implementations must serialize state transitions on a given [Instance Id]. This is identical to Approval Step's concurrency discipline.
-
-- **Atomicity and crash semantics.** Each [Fire] call writes multiple fields simultaneously (appends a history entry with multiple sub-fields, updates [Current State], increments [Next Sequence Number]). A crash mid-write that sets some fields without others would violate Invariants 5, 6, and 7. The implementor is responsible for the transactional boundary that makes all field changes in a single [Fire] call change atomically. [Storage Failure] is the observable signal of an aborted transition; it leaves the instance in its prior state with no partial entry written and [Next Sequence Number] unchanged.
-
-- **[Fire] is not idempotent.** See Behavior section. A calling system that needs at-most-once semantics under retry conditions must supply its own idempotency key at the orchestration layer; this atom does not provide one.
-
-- **Clock semantics.** [Instantiated At] defaults to the receiving node's wall clock when not supplied; must not be in the future. [Fired At] defaults to the receiving node's wall clock when not supplied; must not be in the future; the resolved value must be ≥ the instance's [Instantiated At] (a transition cannot predate instantiation). Backdated [Fired At] values are accepted when ≥ `instantiated_at` (documenting a transition recognized at an earlier time is valid). [Fired At] is **not** required to be monotonic across history entries — under a skewing clock a later transition may carry an earlier [Fired At]; [Sequence Number] is the clock-independent, authoritative order source for the transition history. Clock skew, timezone normalization, and wall-clock monotonicity are handled at the deployment layer.
-
-- **Distinct from Approval Step.** Approval Step is a specific state machine whose states, transitions, and semantics are fixed at the atom level. State Machine is the general case whose states and transitions are declared by the deployment. Approval Step is appropriate when the approval-gate semantics (exactly one named approver, approval-specific decision record, required-reason-on-rejection, etc.) are needed and the state machine is not configurable by the deployment. State Machine is appropriate when the process states and transitions are deployment-specific and must be declared at instantiation time. Both atoms compose into Execute Gated Workflow.
+External check 1 is the atom's central restraint stated as an audit boundary. `guard_satisfied: true` is evidence that a caller asserted a guard, and evidence of nothing else. An auditor reading it as proof the condition held has misread the record, and the atom says so here rather than letting the misreading happen.
 
 ---
 
+## Non-goals
+
+```text
+Non-goal 1: A deployment needing a guard evaluated MUST compose the evaluating pattern.
+Non-goal 2: A deployment gating a declared transition on an approval MUST compose [Approval Step](./approval-step.md).
+Non-goal 3: The atom MUST NOT stand an instance in two states at once.
+Non-goal 4: The atom MUST NOT offer a fork declared transition.
+Non-goal 5: The atom MUST NOT offer a join declared transition.
+Non-goal 6: The atom MUST NOT nest a state inside a state.
+Non-goal 7: A deployment needing a nested state MUST name the nested state as a flat state.
+Non-goal 8: The atom MUST NOT share one declaration across two instances.
+Non-goal 9: The atom MUST NOT version a declaration.
+Non-goal 10: A deployment needing a shared declaration template MUST compose a definition registry pattern.
+Non-goal 11: The atom MUST NOT bind an actor_ref to an actor.
+Non-goal 12: A deployment needing a non-repudiable actor MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 13: The atom MUST NOT detect a rewrite under the store.
+Non-goal 14: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 15: The atom MUST NOT bound an instance's retention.
+Non-goal 16: A deployment needing a retention bound MUST compose [Retention Window](./retention-window.md).
+Non-goal 17: The atom MUST NOT decide who may call an action.
+Non-goal 18: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 19: The atom MUST NOT decide which state an instance ought to stand in.
+Non-goal 20: The atom MUST NOT read two [Fire] calls carrying one instance_id and one action as one fire.
+Non-goal 21: A deployment needing at-most-once firing MUST supply the deployment's own idempotency key.
+```
+
+WHY:
+Non-goal 3 through Non-goal 5 bound the atom to a single active state, and the bound is what makes every other guarantee statable. Parallel workflows — an instance live in several states, a join firing when all branches complete — have no single current state to be exactly one of, so Invariant 2, Invariant 7 and the whole replay story would need rewriting rather than extending. This atom is the single-active-state primitive and a fork-join pattern is a sibling, not a setting.
+
+Non-goal 8 and Non-goal 9 together answer the question every deployer asks second: *can I change the flowchart?* Not for a live instance, ever. The declaration is a value the instance holds, so two instances created from one template are two independent copies and editing the template moves neither. Where a deployer needs a canonical template that new instances pick up, that is a definition registry holding the template and a calling system supplying it at [Instantiate] — this atom receives a declaration and never asks where it came from.
+
+Non-goal 19 is the limit an auditor most often pushes against. *Show me every batch that never reached released* is not a question this atom answers: it knows what each instance declared and what each instance did, and it does not know which instances ought to exist or what a batch of a given type is expected to terminate in. The composing system drives that analysis with this atom's records as input.
+
+---
+
+## Edge cases
+
+### String policy
+
+```text
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+String 7: The deployment MUST canonicalize an opaque reference.
+```
+
+Terms › `string input`: `instance_id`, `action`, `actor_ref`, `subject_ref`, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
+
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+
+WHY:
+Byte-exactness reaches further here than in most atoms, because state names and action names are caller-supplied strings that the declaration and every later [Fire] must agree on. A declaration naming `Tested` and a fire naming `tested` are two different tokens, the match fails, and the answer is `invalid-transition` — correct, and mystifying to a caller who believes they are the same state. Canonicalization is the deployment's (String 7).
+
+NOTE: watch host obligations — this atom sets no maximum length on a string input, and neither does [Selective Disclosure](./selective-disclosure.md), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Four atoms, three postures, and a declaration is the largest caller-supplied payload in the corpus.
+
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's honesty.
+Clock semantics 3: The deployment MUST own the clock's synchronization.
+Clock semantics 4: A fired_at MUST NOT bound a later history entry's fired_at.
+Clock semantics 5: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+```
+
+WHY:
+Clock semantics 4 is the rule that looks like a gap and is a commitment. Wall-time monotonicity across history entries is deliberately *not* enforced: under a skewing or resynchronized clock a later transition can legitimately carry an earlier `fired_at`, and an atom that refused it would reject correct history to protect an annotation. `sequence_number` is the order (Invariant 6.3, Operation 55), so nothing is lost. A backdated `fired_at` is accepted within the instance's own lifetime — documenting a transition recognized late is valid — and the only temporal bounds are the two that are structural: not after `now`, and not before the instance existed (Operation 19, Operation 20).
+
+### Concurrency
+
+```text
+Concurrency 1: The implementation MUST serialize two [Fire] calls against one instance.
+Concurrency 2: A serialized [Fire] MUST read the current state the prior [Fire] left.
+```
+
+WHY:
+Unlike [Selective Disclosure](./selective-disclosure.md), whose concurrent records contend over nothing, two fires against one instance contend over the current state itself — the second call's matched transition depends on where the first left the instance. So the second may succeed, may answer `invalid-transition`, or may answer `terminal`, and which of the three is a fact about the declaration rather than a race. Serialization is what makes the outcome a fact at all.
+
+### Atomic writes
+
+```text
+Atomic writes 1: A reader MUST NOT observe a history entry without the entry's next_sequence_number raise.
+Atomic writes 2: A reader MUST NOT observe a history entry without the entry's current state change.
+Atomic writes 3: An uncommitted crash MUST leave the instance as the call found the instance.
+Atomic writes 4: The implementation MUST resolve a dangling transition.
+Atomic writes 5: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
+```
+
+Terms › `uncommitted crash`: a crash BEFORE an admitted fire's commit lands.
+
+Terms › `dangling transition`: an admitted fire's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
+
+WHY:
+Every admitted fire couples three durable mutations — the entry, the counter raise and the state change (Operation 27) — and a crash between any two breaks Invariant 6 or Invariant 7 in a way a later read cannot distinguish from a correct history. The obligation is all-or-none observability: a partly applied fire is not a transient condition to be repaired later, it must never be servable.
+
+---
+
+## Composition notes
+
+```text
+Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Composition note 2: A composing pattern MUST own a guard's evaluation.
+Composition note 3: A composing pattern asserting guard_satisfied MUST own the evidence.
+Composition note 4: A composing pattern MUST own the authorization of a call.
+Composition note 5: A composing pattern MUST own the attestation binding an actor_ref.
+Composition note 6: A composing pattern MUST own the tamper seal over a transition history.
+Composition note 7: A composing pattern MUST own the retention of the workflow store.
+Composition note 8: A composing pattern MUST own an idempotency key.
+Composition note 9: A composing pattern MUST own a declaration template.
+Composition note 10: A composing pattern reading the workflow store MUST NOT write to the workflow store.
+```
+
+WHY:
+[Execute Gated Workflow](../compositions/execute-gated-workflow.md) (`grounded` 2026-06-04) is the composition this atom exists inside, and it is where the guard evaluation this atom refuses re-converges: it reads a bound [Approval Step](./approval-step.md)'s state and asserts `guard_satisfied` only where that step stands approved (Composition note 2, Composition note 3). The wiring is State Machine plus Approval Step plus [Permissions](./permissions.md) plus Assignment plus an [Audit Trail](../compositions/audit-trail.md) substrate, and the emergent guarantee is one neither constituent holds alone — a transition that fired carries both the declared-machine proof and the approval evidence behind its gate.
+
+[Approval Step](./approval-step.md) is the fixed-state sibling and the clearest way to see what this atom trades away: its states are known to an evaluator who has read only the spec, and this atom's are known only to one who has read the instance. [Actor Identity](./actor-identity.md) makes `actor_ref` survive an authorship challenge under 21 CFR Part 11 and SOX (Sarbanes-Oxley Act) §404; [Tamper Evidence](./tamper-evidence.md) seals the history for court admissibility; [Retention Window](./retention-window.md) bounds how long instances are kept under GDPR (General Data Protection Regulation) Article 17, HIPAA (Health Insurance Portability and Accountability Act) §164.530(j) and FRCP (Federal Rules of Civil Procedure) Rule 37(e); [Audit Trail](../compositions/audit-trail.md) is the regulated-evidence layer each admitted fire lands in.
+
+[Event Log](./event-log.md) is the structural cousin this atom deliberately does not name as a constituent: the transition history is append-only and totally ordered by a sequence number with best-effort wall time, which is an event log's shape, and the load-bearing concept here is the validity gate an event log has no notion of. Where a deployment wants both, that layering belongs to Execute Gated Workflow.
+
+---
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the atom above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
+
+### Vocabulary
+
+Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the store; an instance; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a rejection; a crash; a reader; a state name; a string input; an opaque reference; the store instance's instance count; the instance's history entry count; the instance's admitted fire count.
+
+Terms › `records`: `instance` — one workflow instance, carrying `instance_id`, a declaration, a current state, a transition history, `next_sequence_number` and, where supplied, `subject_ref` and `instance_metadata`. `history entry` — one recorded transition, carrying `transition_id`, `sequence_number`, `from_state`, `to_state`, `action`, `fired_at` and, where supplied, `actor_ref` and `guard_satisfied`.
+
+Terms › `record verbs`: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, commit, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, observe, resolve, complete, serve, serialize, shrink, fall, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, survive, canonicalize.
+
+Terms › `value sets`: instantiate answers = instance_id | rejected(invalid-declaration | invalid-request | storage-failure). fire answers = the matched transition's to_state | rejected(invalid-request | not-known | terminal | invalid-transition | guard-not-satisfied | storage-failure). current answers = the instance's current state | rejected(invalid-request | not-known). history answers = the matching history entries | rejected(invalid-request | not-known | invalid-query). read_declaration answers = the instance's declaration | rejected(invalid-request | not-known).
+
+Terms › `bounds`: empty.
+
+Terms › `cadences`: empty.
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-12).
+
+Terms › `terms`: `instance`, `instance_id`, `history entry`, `transition_id`, `subject_ref`, `instance_metadata`, `store instance`, `seam`, `transition`, `declared transition`, `declaration`, `states`, `initial state`, `terminal states`, `well-formed declaration`, `now`, `business caller`, `addressed action`, `writing action`, `reading action`, `current state`, `next_sequence_number`, `sequence_number`, `fired_at`, `instantiated_at`, `resolved fired_at`, `resolved instantiated_at`, `actor_ref`, `guard`, `guard_satisfied`, `matched transition`, `filter axes`, `admitted instantiate`, `admitted fire`, `admitted history`, `string input`, `blank`, `uncommitted crash`, `dangling transition`.
 
 #### Instantiate
 
@@ -680,23 +890,6 @@ Projects:  invalid-query
 
 ---
 
-## Composition notes
-
-State Machine is the general-purpose declared-state-machine primitive that Execute Gated Workflow and other multi-actor workflow compositions build on:
-
-- **[Approval Step](./approval-step.md)** — the fixed-state sibling. Approval Step is a specific state machine (Pending / Approved / Rejected / Withdrawn) with approval-specific semantics (approver exclusivity, decision attribution, required reason on rejection). State Machine is the general declared case. A State Machine instance governing a multi-step process may have individual gate transitions guarded by Approval Step records; the guard evaluation and Approval Step consultation are the calling system's or the Execute Gated Workflow composition's responsibility.
-- **[Actor Identity](./actor-identity.md)** — provides the non-repudiable attestation that binds the actor named in [Actor Ref] to the transition. [Actor Ref] in the history entry is an opaque reference; Actor Identity is the contract that makes that reference non-repudiable under FDA Part 11 and SOX §404. Required for regulated deployments where the transition-by-actor record must survive an authorship challenge.
-- **[Tamper Evidence](./tamper-evidence.md)** — seals transition history entries against post-hoc modification. Court-admissible workflow history requires cryptographic integrity guarantees beyond this atom's spec-level immutability. Required under FDA 21 CFR Part 11.
-- **[Retention Window](./retention-window.md)** — governs how long workflow instances and their transition histories are retained. This atom keeps everything for the lifetime of the store instance; time-bounded retention under GDPR Article 17, HIPAA §164.530(j), FRCP Rule 37(e), or SOX §802 is the Retention Window composition's obligation.
-- **[Event Log](./event-log.md)** — the transition history within this atom has structural parallels to an Event Log (append-only, total-ordered by sequence number, [Fired At] best-effort), but Event Log has no notion of declared transitions, current state, or transition-validity enforcement. They are distinct freestanding atoms. The [Audit Trail](../compositions/audit-trail.md) composition (Event Log + Actor Identity + Retention Window + Tamper Evidence) can be layered alongside State Machine instances to provide a tamper-evident, attributed, retention-governed audit substrate; that layering belongs to the Execute Gated Workflow composition.
-- **[Permissions](./permissions.md)** — governs which actors may call [Fire] for which workflow instances and which actions. This atom does not check permissions on [Fire] calls; access control is a composing concept.
-- **[Audit Trail](../compositions/audit-trail.md)** — the canonical regulated-audit stack. In regulated deployments, each successful [Fire] is an auditable event; Audit Trail provides the tamper-evident, attributed, retention-governed substrate the regulators require. This atom produces the process-state record; Audit Trail produces the regulatory evidence layer.
-- **[Execute Gated Workflow](../compositions/execute-gated-workflow.md)** (`grounded` 2026-06-04) — wires State Machine + Approval Step + Permissions + Assignment + Audit Trail (substrate) into multi-actor gated workflows with tamper-evident transition histories. This atom is the declared-state-machine primitive whose lifecycle Execute Gated Workflow manages, and it is where this atom's approval-type guard *evaluation* re-converges.
-
-This atom resolves the `workflow` category's one-atom open question by landing as the second workflow atom, establishing the category on the basis of two present atoms rather than one present atom and one planned atom.
-
----
-
 ## Standards references
 
 - **FDA 21 CFR Part 11 (Electronic Records; Electronic Signatures)** — for FDA-regulated contexts: each declared state transition constitutes a regulated electronic record; the transition history is the audit trail that Part 11 §11.50 (attributability) and Part 11 §11.70 (record linking to prevent removal, substitution, or falsification) require. Composition with [Actor Identity](./actor-identity.md) provides the §11.50 attributability; composition with [Tamper Evidence](./tamper-evidence.md) provides the §11.70 non-falsifiability. Invariants 3 (only-declared-transitions), 5 (history append-only and complete), and 7 (replay determinism) are the atom-level guarantees the regulated record depends on.
@@ -728,3 +921,11 @@ open: none
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/state-machine.md`.
+
+- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariants 1–10 keeping their numbers, the declaration's ten well-formedness checks raised to a `Declaration 1–17` family of their own, every success effect conditioned on a declared `admitted instantiate`, `admitted fire` or `admitted history` (Hard invariant 16), [Fire]'s seven-step rejection precedence kept beside the rules as an eight-row case space with the ordering carried by `ONLY IF` guards rather than by a prose *rejection priority* line repeated in two sections, the six acceptance areas opened into `Check 1.1–8.2` with three `External check`s for what the store cannot answer, the Non-goals-and-edge-cases prose split into a `Non-goal 1–21` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`), the Composition notes prose raised to `Composition note 1–10`. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into state-machine` found nothing in the corpus citing this atom by label. 78.8 KB → 67.0 KB.
+
+- **2026-09-12 — The within-instance temporal bound is a precedence, not a `≥`.** *Chose:* `Operation 20` — *IF the resolved fired_at precedes the instance's instantiated_at THEN [Fire] MUST answer invalid-request*. *Over:* `IF fired_at EXCEEDS instantiated_at OR fired_at = instantiated_at`, the two-arm spelling the condition operator set forces on a `≥`. *Because:* that spelling is a watched class at five sites across two specs (council read 29), and this atom would have been the third. A bound that admits its own boundary is a *precedes* prohibition in one arm — the boundary case (a transition firing at the instant of instantiation) is legal, and one arm says so. The class may still earn an operator; it does not need this atom's vote.
+
+- **2026-09-12 — Four propositions had two owners each.** *Chose:* `Invariant 2` owns exactly-one-current-state and the `State` family no longer restates it; `Operation 21` owns *one entry per admitted fire* and `Invariant 5` no longer does; `State 4` owns the history entry's field set and `Invariant 9` no longer does; `Invariant 8.2` owns *the atom does not evaluate a guard* and the `Non-goal` family no longer does. *Over:* keeping each pair for emphasis. *Because:* Authority 3. All four were found by `W-duplicate-proposition`, which is the check earning its keep on the largest atom migrated so far — 192 rules, where a reader cannot hold the whole surface at once and a duplicate is invisible by construction.
+
+NOTE: End of State Machine.
