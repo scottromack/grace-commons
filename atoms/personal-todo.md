@@ -23,147 +23,185 @@ Personal Todo is a single-person to-do list: one user records tasks, edits them 
 
 ## Intent
 
-A single user records discrete units of work they intend to complete. Each unit can be edited while pending, marked done, and removed entirely. At any moment, every known unit is in exactly one logical condition.
-
----
+WHY:
+One person, a list of things to do, and nothing else. The atom exists because every larger system that tracks work contains this shape and buries it: a unit is recorded, may be revised, is finished or abandoned, and leaves. Isolating it makes the additions visible as additions — an owner, a priority, a due date, a second actor are each a composing pattern rather than a field quietly added here. Two decisions carry the weight. A unit's identity is an opaque id, never its text, so revising the text does not make it a different unit; and the text is unique across everything live, so a list cannot silently hold *buy milk* twice. Everything else follows from those, including the thing the atom deliberately does not do: remember what was deleted.
 
 ## Structure
 
 ### Identity model
 
-Every unit known to the system has an **[Id]** — an opaque, immutable identifier host-allocated at the I/O seam (injected into the transition, not generated inside it) on [Add]. The id is the unit's identity; [Description] is a mutable property of the unit, not its identity.
+```text
+Identity 1: The atom MUST identify a unit by the id.
+Identity 2: The host MUST allocate an id at the atom's seam.
+Identity 3: The transition MUST NOT allocate an id.
+Identity 4: The business caller MUST NOT supply an id.
+Identity 5: The atom MUST NOT reuse an id.
+Identity 6: The atom MUST NOT identify a unit by the description.
+Identity 7: The implementation MUST own the id's scheme.
+```
 
-- Two units with the same [Description] value have different ids.
-- An [Id] is returned to the caller by [Add] and used to reference the unit in [Edit], [Complete], and [Delete].
-- Ids are not reused after a unit is deleted.
-- The implementation chooses the id scheme (UUID, ULID, autoincrementing integer, opaque string). The spec requires only uniqueness within the system's lifetime and stability across sessions.
+Terms › `unit`: one thing to do — the record this atom holds; recorded, revised, finished or abandoned.
 
-This model differs from the Alloy (a formal modeling language for checking structural properties) `todo.als` concept: that version uses fully opaque atoms with no description at all (`var sig Task {}`); this pattern carries a user-visible [Description] as a mutable property under an active-set uniqueness constraint. See the pattern's commit history for the honest framing of how the two concepts relate.
+Terms › `id`: the opaque value naming one unit — an [Id]; stable across sessions, unique for the system's life.
+
+Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the id here.
+
+Terms › `transition`: the atom's evaluation of one call against the list, as `execution-contract.md` §Logic confinement declares it.
+
+Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 ### Description policy
 
-Every [Description] provided to [Add] or [Edit] is normalized before it enters state and before any active-set uniqueness comparison:
+```text
+Description 1: The atom MUST trim a description's leading and trailing whitespace.
+Description 2: The atom MUST normalize a description to Unicode normal form C.
+Description 3: The atom MUST preserve a description's internal whitespace.
+Description 4: IF the normalized description is empty THEN the atom MUST answer invalid-description.
+Description 5: IF the normalized description EXCEEDS the description cap THEN the atom MUST answer invalid-description.
+Description 6: The atom MUST compare two descriptions case-sensitively.
+Description 7: The atom MUST compare two descriptions on the normalized form.
+Description 8: The atom MUST show the normalized form.
+```
 
-- **Trim** leading and trailing whitespace.
-- **NFC-normalize** Unicode codepoints (the numeric values that identify individual characters in Unicode). NFC (Normalization Form C — the Unicode standard's canonical composed form, which gives equivalent characters one standard byte sequence) ensures text typed one way and pasted another way compares equal.
-- **Reject** if the result is empty (rejection reason: [Invalid Description]).
-- **Reject** if the result exceeds the maximum length (default: 1024 codepoints; configurable per implementation; rejection reason: [Invalid Description]).
+Terms › `description`: the text the person gives a unit — a [Description]; normalized before it enters the list and before any comparison.
 
-Internal whitespace is preserved verbatim. Comparison for active-set uniqueness is case-sensitive on the normalized form. Case-insensitive matching is policy and belongs to a wrapping pattern.
+Terms › `description cap`: the bound on a normalized description's length; 1024 codepoints where a deployment declares none.
 
-The user-facing display preserves the normalized form (post-trim, post-NFC) — what the user typed, modulo trimming and Unicode canonicalization.
-
-### Inputs
-
-- A user-supplied [Description] for each unit of work.
-- User-initiated actions ([Add], [Edit], [Complete], [Delete]), with these projected contracts:
-  - `add(description) → id | rejected(invalid-description | duplicate-active | storage-failure)`
-  - `edit(id, newDescription) → ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure)`
-  - `complete(id) → ok | rejected(not-known | not-pending | storage-failure)`
-  - `delete(id) → ok | rejected(not-known | storage-failure)`
-- A clock providing wall-time (clock time as a human would read it, not an internal counter) timestamps, and an id source for [Id] allocation — both injected at the atom's single I/O seam. Per the Logic Confinement Principle (see [`execution-contract.md`](../execution-contract.md)), the host reads the clock and allocates the [Id] at the seam before the transition runs; the pure transition receives [Now] and [Id] as inputs and reads no clock and mints no id internally. Neither is supplied by the business caller — which keeps the transition deterministic.
-
-### Outputs
-
-- The current set of pending units.
-- The current set of done units.
-- For each unit: [Id], [Description], state, and timestamps.
-- Action acknowledgements — success (returning [Id] for [Add], `ok` otherwise) or rejection with a named reason.
+WHY:
+Normalization before comparison is what makes *café* typed and *café* pasted the same text — different sources produce different Unicode forms, and without normal form C the uniqueness rule would let one list hold both (Description 2, Invariant 6.1). Case sensitivity and internal whitespace are kept verbatim because the person's own text is what the person recognizes; a case-insensitive or fuzzy variant is a wrapping pattern's policy, not this atom's (Description 3, Description 6).
 
 ### State
 
-A unit of work occupies one of two named conditions while known to the system:
+```text
+State 1: EVERY known unit MUST stand in EXACTLY ONE OF pending, done.
+State 2: EVERY unit MUST carry id, description and added_at.
+State 3: A unit MAY carry last_edited_at.
+State 4: A done unit MUST carry completed_at.
+State 5: [Add] MUST stamp added_at from the injected now.
+State 6: [Edit] MUST stamp last_edited_at from the injected now.
+State 7: [Complete] MUST stamp completed_at from the injected now.
+State 8: [Delete] MUST take the unit out of the list.
+State 9: The atom MUST NOT offer a done-to-pending transition.
+State 10: The atom MUST NOT hold a deleted unit.
+```
 
-- **[Pending]** — recorded, not yet completed.
-- **[Done]** — completed, not yet removed.
+Terms › `unit state`: `pending` | `done` — recorded and unfinished, or finished and unremoved.
 
-A unit leaves the system entirely when deleted. Deletion is terminal within this concept; the id is retired and not reused.
+Terms › `added_at`: the instant the unit was recorded — an [Added At].
 
-Each unit carries:
+Terms › `last_edited_at`: the instant the unit's description last changed — a [Last Edited At]; absent until an edit lands.
 
-- **[Id]** — opaque, immutable, host-allocated at the I/O seam (injected into the transition, not generated inside it). Set on [Add]. Never changes.
-- **[Description]** — normalized text. Set on [Add], mutable via [Edit] while in [Pending].
-- **[Added At]** — set on [Add], immutable.
-- **[Last Edited At]** — set on [Edit], absent if never edited.
-- **[Completed At]** — set on [Complete], present only while in [Done].
+Terms › `completed_at`: the instant the unit was finished — a [Completed At].
 
-Transitions — every transition below stamps its timestamp from the injected [Now], and no transition reads the clock internally:
+Terms › `active set`: the units standing in pending together with the units standing in done — what uniqueness ranges over.
 
-| action | from | to | guard | stamps | result | rejections |
-|--------|------|----|-------|--------|--------|-----------|
-| [Add] | *(no record)* | **[Pending]** | normalized [Description] valid and not active-duplicate | fresh [Id]; [Added At] = [Now] | the new [Id] | [Invalid Description]; [Duplicate Active]; [Storage Failure] |
-| [Edit] | [Pending] | **[Pending]** | normalized [New Description] valid and not active-duplicate (excluding the unit itself) | [Last Edited At] = [Now] | `ok` | [Not Known]; [Not Editable]; [Invalid Description]; [Duplicate Active]; [Storage Failure] |
-| [Complete] | [Pending] | **[Done]** | — | [Completed At] = [Now] | `ok` | [Not Known]; [Not Pending]; [Storage Failure] |
-| [Delete] | [Pending] or [Done] | *(leaves the system)* | — | — | `ok` | [Not Known]; [Storage Failure] |
+WHY:
+Deletion is the only way out and it is terminal: the atom keeps no memory of what left, which is why re-adding a deleted description succeeds and why a system that wants *not twice this morning* composes [Duplicate Prevention](./duplicate-prevention.md) rather than asking this atom to remember (State 10, Composition note 2). There is no reopening, because a person who reopens a finished thing is describing a different pattern — one with history — and adding the transition here would quietly take that pattern's job (State 9).
 
-Four semantics the cells cannot hold:
+### Operations
 
-- *The [Edit] no-op is a real accepted case that never writes.* A normalized [New Description] equal to the unit's current normalized [Description] is accepted as a no-op: state is unchanged, [Last Edited At] is unchanged, no write occurs, and [Storage Failure] cannot result. Only a non-no-op [Edit] writes and can therefore storage-fail.
-- *Active-set uniqueness spans both live states and applies to two actions.* The normalized-[Description] uniqueness check runs across [Pending] ∪ [Done] together — [Done] counts toward it — and guards both [Add] and [Edit] (the [Edit] check excludes the unit being edited). A clash is rejected [Duplicate Active]; no unit is created or changed.
-- *A failed guard or store write leaves the prior state intact.* When a precondition fails or the store write fails after all preconditions pass, the atom returns the named rejection and the unit is left exactly as it was — [Add] creates no unit on [Storage Failure], and [Edit]/[Complete]/[Delete] leave their target unchanged.
-- *[Delete] is terminal and retires the id.* A unit leaves the system entirely on [Delete]; the [Id] is retired and never reused, and there is no transition back into [Pending] or [Done]. The full per-action preconditions are in Decision points.
+```
+add(description) → id | rejected(invalid-description | duplicate-active | storage-failure)
+edit(id, new_description) → ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure)
+complete(id) → ok | rejected(not-known | not-pending | storage-failure)
+delete(id) → ok | rejected(not-known | storage-failure)
+```
 
-### Flow
+```text
+Operation 1: [Add] MUST record EXACTLY ONE unit per successful call.
+Operation 2: [Add] MUST stand the unit in pending.
+Operation 3: [Add] MUST answer id.
+Operation 4: IF the normalized description matches a unit in the active set THEN [Add] MUST answer duplicate-active.
+Operation 5: IF the store refuses the write THEN [Add] MUST answer storage-failure.
+Operation 6: [Add] MUST NOT record a unit on storage-failure.
+Operation 7: IF the id NOT EXISTS THEN [Edit] MUST answer not-known.
+Operation 8: IF the unit stands in done THEN [Edit] MUST answer not-editable.
+Operation 9: IF the unit stands in pending AND the normalized new_description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
+Operation 9a: IF the unit stands in pending AND the normalized new_description fails the description policy THEN [Edit] MUST answer invalid-description.
+Operation 10: IF the unit stands in pending AND the normalized new_description = the unit's description THEN [Edit] MUST answer ok.
+Operation 11: [Edit] MUST NOT write for a new_description equal to the unit's description.
+Operation 12: [Edit] MUST NOT stamp last_edited_at for a new_description equal to the unit's description.
+Operation 13: [Edit] MUST replace the unit's description.
+Operation 14: [Edit] MUST leave the unit standing in pending.
+Operation 15: IF the id NOT EXISTS THEN [Complete] MUST answer not-known.
+Operation 16: IF the unit stands in done THEN [Complete] MUST answer not-pending.
+Operation 17: [Complete] MUST stand the unit in done.
+Operation 18: IF the id NOT EXISTS THEN [Delete] MUST answer not-known.
+Operation 19: [Delete] MUST take a pending unit out of the list.
+Operation 20: [Delete] MUST take a done unit out of the list.
+Operation 21: IF the store refuses the write THEN [Edit] MUST answer storage-failure.
+Operation 22: IF the store refuses the write THEN [Complete] MUST answer storage-failure.
+Operation 23: IF the store refuses the write THEN [Delete] MUST answer storage-failure.
+Operation 24: A refused call MUST leave the unit as the call found the unit.
+Operation 25: The host MUST read the clock at the atom's seam.
+Operation 26: The transition MUST NOT read a clock.
+Operation 27: The business caller MUST NOT supply now.
+```
 
-1. **Add.** The user records a new unit. The host allocates an [Id] and reads the clock at the seam; the transition normalizes the [Description], places the unit in [Pending] with the injected [Id] and [Added At], and returns the id. *(Start.)*
-2. **Edit (optional, while Pending).** The user revises the [Description]. The system normalizes the [New Description], replaces the existing one, and updates [Last Edited At]. The unit remains [Pending]. May happen any number of times before completion or deletion.
-3. **Complete or abandon.** The user marks it done ([Pending] → [Done] with [Completed At]) or deletes it without completing (abandonment branch).
-4. **Delete.** The user removes the unit from the system. Id is retired. *(End.)*
+Terms › `new_description`: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
 
-### Decision points
+The case space, and the rule that owns each case:
 
-Each action carries an explicit precondition. Violations are rejected, not silently absorbed.
+| Call | Case | Answer | Effect on the list |
+|---|---|---|---|
+| [Add] | description valid, no active match, store accepts | `id` | one unit lands in [Pending] (Operation 1, Operation 2) |
+| [Add] | description empty or over the cap | [Invalid Description] | none (Description 4, Description 5) |
+| [Add] | description matches a live unit | [Duplicate Active] | none (Operation 4) |
+| [Edit] | valid, different, no active match, store accepts | `ok` | description and `last_edited_at` change (Operation 13, State 6) |
+| [Edit] | same normalized text | `ok` | none — no write, no stamp (Operation 10–12) |
+| [Edit] | unit is done | [Not Editable] | none (Operation 8) |
+| [Complete] | unit is pending | `ok` | [Pending] → [Done], `completed_at` stamped (Operation 17, State 7) |
+| [Complete] | unit is done | [Not Pending] | none (Operation 16) |
+| [Delete] | unit is pending or done | `ok` | the unit leaves; the id is retired (Operation 19, Operation 20, Identity 5) |
+| any | id names nothing | [Not Known] | none (Operation 7, Operation 15, Operation 18) |
+| any writing call | store refuses | [Storage Failure] | none (Operation 5, Operation 21–24) |
 
-- **At [Add]** — [Description] after normalization must satisfy the description policy (non-empty, within length); otherwise rejected as [Invalid Description]. The normalized [Description] must not match the normalized [Description] of any unit currently in [Pending] or [Done]; otherwise rejected as [Duplicate Active]. If the store write fails, the atom returns [Storage Failure]; no unit is created.
-- **At [Edit]** — [Id] must reference a known unit; otherwise [Not Known]. The unit must be in [Pending]; otherwise [Not Editable] (the state model has exactly two live states — [Pending] and [Done] — so a non-[Pending] live unit is necessarily [Done]). [New Description] after normalization must satisfy the description policy and the same active-set uniqueness as [Add], excluding the unit at [Id] itself; otherwise [Invalid Description] or [Duplicate Active]. A normalized [New Description] equal to the unit's current normalized [Description] is accepted as a no-op (state unchanged, [Last Edited At] unchanged; no write occurs and [Storage Failure] cannot result). For non-no-op edits, if the store write fails, the atom returns [Storage Failure]; the unit is unchanged.
-- **At [Complete]** — [Id] must reference a known unit; otherwise [Not Known]. The unit must be in [Pending]; otherwise [Not Pending]. If the store write fails, the atom returns [Storage Failure]; the unit remains in [Pending].
-- **At [Delete]** — [Id] must reference a known unit in [Pending] or [Done]; otherwise [Not Known]. If the store write fails, the atom returns [Storage Failure]; the unit is unchanged.
-
-### Behavior
-
-Observed behavior, derived from how single-user task systems are actually used:
-
-- The user adds units freely and frequently, often in bursts.
-- The user completes some units and deletes others without completing them. Abandonment is common and is not a defect.
-- The user edits pending units to correct typos, refine scope, or capture context that arrived after the original add.
-- The user does not expect units to move backward from [Done] to [Pending]. Reopening belongs to a separate pattern.
-- The user expects timestamps to be visible and uses them to reason about staleness.
-- The user occasionally re-adds a unit with the same [Description] as one previously deleted. Personal Todo on its own accepts this — there is no temporal memory of deleted units, and a new id is issued. Containing systems that need recency-based duplicate prevention compose this pattern with [Duplicate Prevention](./duplicate-prevention.md); see Composition notes.
-- The user pastes descriptions from external sources. Different sources produce different Unicode normal forms (NFC vs. NFD). The pattern's NFC normalization ensures that *"café"* typed and *"café"* pasted from a different source compare equal under the active-set uniqueness check.
-- **Time and [Id] are injected at the seam, not generated inside the transition.** Per the Logic Confinement Principle (`execution-contract.md`), the host reads the clock and allocates the [Id] at the deployment seam before the transition runs; [Added At], [Last Edited At], and [Completed At] are stamped from the injected [Now], and the core transition reads no wall clock and mints no id internally. The caller signatures ([Add], [Edit], [Complete], [Delete]) are unchanged — time and id are host-injected, not caller-supplied — so the fix is additive with no caller-change cascade.
-
-### Feedback
-
-Each successful action produces an observable, measurable change:
-
-- After [Add] — a new unit appears in [Pending] with a fresh [Id] and [Added At]. Pending count and total count each increase by one. The id is returned to the caller.
-- After [Edit] — the unit's [Description] and [Last Edited At] update. Counts unchanged.
-- After [Complete] — the unit moves from [Pending] to [Done] with [Completed At]. Pending count decreases by one, Done count increases by one; total count unchanged.
-- After [Delete] — the unit is removed; the id is retired. Total count decreases by one.
-
-Each rejected action produces an observable refusal naming the failed precondition: [Invalid Description], [Duplicate Active], [Not Pending], [Not Editable], [Not Known], or [Storage Failure].
-
-The Pending and Done sets are queryable — the user can list, filter, and count them at any time. Per-unit fields ([Id], [Description], state, timestamps) are observable to the user.
+WHY:
+The no-op edit is a real accepted case that writes nothing, which is why it cannot answer `storage-failure` — a person retyping the same words has changed nothing and should not see a failure from a store that was never asked (Operation 10–12). Uniqueness ranges over pending and done together: a finished *buy milk* still blocks a second one, because a list showing the same text twice is confusing whichever column it sits in (Operation 4, Invariant 6.1).
 
 ### Invariants
 
-The following hold across all valid sequences of actions and constitute the verification surface of the pattern:
-
-- **Invariant 1 — Membership exclusivity.** For every unit `t` known to the system, `t` is in exactly one of {[Pending], [Done]}, never both, never neither.
-- **Invariant 2 — Add-then-Pending persistence.** After a successful [Add], the resulting unit is in [Pending] and remains so until [Complete] or [Delete] is invoked.
-- **Invariant 3 — Complete-then-Done persistence.** After a successful [Complete], the unit at [Id] is in [Done] and remains so until [Delete] is invoked.
-- **Invariant 4 — Delete is terminal.** After a successful [Delete], no unit with that [Id] is in [Pending] or [Done]. The id is not reused.
-- **Invariant 5 — Edit preserves state.** After a successful non-no-op [Edit], the unit at [Id] remains in [Pending]; only its [Description] and [Last Edited At] change.
-- **Invariant 6 — Active-set description uniqueness.** At any time, no two distinct units in [Pending] ∪ [Done] share a normalized [Description]. [Description] is a property under uniqueness constraint, not the unit's identity (which is [Id]).
-- **Invariant 7 — Timestamp monotonicity.** For any unit:
-  - if [Last Edited At] is defined, [Added At] ≤ [Last Edited At].
-  - if [Completed At] is defined, [Added At] ≤ [Completed At].
-  - if both [Last Edited At] and [Completed At] are defined, [Last Edited At] ≤ [Completed At].
-- **Invariant 8 — Id stability.** A unit's [Id] is set on [Add] and never changes. Edits to [Description] do not change [Id].
-
-Add-then-Pending persistence and Complete-then-Done persistence correspond to the linear temporal logic (a formal notation for reasoning about sequences of states over time) `until` assertions in the Alloy `todo.als` specification. The remaining four (edit preserves state, active-set description uniqueness, timestamp monotonicity, id stability) are extensions specific to this pattern; the Alloy version does not carry description, mutability, timestamps, or an explicit identity model.
-
----
+- **Invariant 1 — Membership exclusivity.**
+  ```text
+  Invariant 1.1: EVERY known unit MUST stand in EXACTLY ONE OF pending, done.
+  ```
+- **Invariant 2 — Add-then-Pending persistence.**
+  ```text
+  Invariant 2.1: A recorded unit MUST stand in pending ONLY IF [Complete] NOT EXISTS AND [Delete] NOT EXISTS for the unit.
+  ```
+- **Invariant 3 — Complete-then-Done persistence.**
+  ```text
+  Invariant 3.1: A completed unit MUST stand in done ONLY IF [Delete] NOT EXISTS for the unit.
+  ```
+- **Invariant 4 — Delete is terminal.**
+  ```text
+  Invariant 4.1: A deleted unit's id MUST NOT stand in the list.
+  NOTE: Invariant 4.2 deleted — Identity 5 owns id reuse for every id, deleted or not.
+  ```
+- **Invariant 5 — Edit preserves state.**
+  ```text
+  Invariant 5.1: An edited unit MUST stand in pending.
+  Invariant 5.2: [Edit] MUST NOT change a field other than description and last_edited_at.
+  ```
+- **Invariant 6 — Active-set description uniqueness.**
+  ```text
+  Invariant 6.1: Two units in the active set MUST NOT share a normalized description.
+  ```
+- **Invariant 7 — Timestamp monotonicity.**
+  ```text
+  Invariant 7.1: added_at MUST NOT EXCEED last_edited_at ONLY IF last_edited_at EXISTS.
+  Invariant 7.2: added_at MUST NOT EXCEED completed_at ONLY IF completed_at EXISTS.
+  Invariant 7.3: last_edited_at MUST NOT EXCEED completed_at ONLY IF last_edited_at EXISTS AND completed_at EXISTS.
+  ```
+  WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Clock semantics 1–3).
+- **Invariant 8 — Id stability.**
+  ```text
+  Invariant 8.1: [Add] MUST set the id.
+  Invariant 8.2: An id MUST NOT change.
+  Invariant 8.3: [Edit] MUST NOT change the id.
+  ```
 
 ## Examples
 
@@ -199,30 +237,96 @@ This sequence covers four of the rejection reasons ([Invalid Description], [Dupl
 
 ---
 
-## Non-goals and edge cases
+## Non-goals
 
-What this pattern does not cover:
+```text
+Non-goal 1: The atom MUST NOT hold a second actor.
+Non-goal 2: A deployment needing a shared list MUST compose [Shared Todo](../compositions/shared-todo.md).
+Non-goal 3: The atom MUST NOT assign a unit to an actor.
+Non-goal 4: The atom MUST NOT remember a deleted description.
+Non-goal 5: A deployment needing a recency guard MUST compose [Duplicate Prevention](./duplicate-prevention.md).
+Non-goal 6: The atom MUST NOT restore a deleted unit.
+Non-goal 7: A deployment needing restoration MUST compose [Undo History](../compositions/undo-history.md).
+Non-goal 8: The atom MUST NOT reopen a done unit.
+Non-goal 9: The atom MUST NOT regenerate a unit on a schedule.
+Non-goal 10: The atom MUST NOT order units.
+Non-goal 11: The atom MUST NOT hold a due date.
+Non-goal 12: The atom MUST NOT hold a dependency between units.
+Non-goal 13: The atom MUST NOT keep a description's history.
+Non-goal 14: The atom MUST NOT resolve two concurrent calls on one unit.
+Non-goal 15: The atom MUST NOT match descriptions case-insensitively.
+```
 
-- **Multi-user / shared lists.** Single-actor only. Multi-actor task tracking belongs to a separate Shared Todo pattern.
-- **Assignment, delegation, ownership transfer.** No actor concept beyond the implicit single owner.
-- **Recency-based duplicate prevention.** Compose with [Duplicate Prevention](./duplicate-prevention.md) if needed (see Composition notes).
-- **Restoration of deleted units.** Deletion is terminal. Systems that need restorability compose Personal Todo with an Audit or History pattern.
-- **Reopening completed units.** No Done → Pending transition. Reopening is a separate pattern.
-- **Recurring units.** Units with scheduled regeneration belong to a Recurring pattern.
-- **Priority, ordering, dependencies, due dates.** Each is a distinct pattern that composes with Personal Todo.
-- **Description versioning / edit history.** Only [Last Edited At] is retained; prior descriptions are not. Versioning belongs to a separate History pattern.
-- **Concurrent action sequences.** The pattern assumes a linear sequence of actions from a single actor. Multiple concurrent clients (two browser tabs, mobile + desktop) producing simultaneous actions on the same unit fall outside this concept; coordination belongs to a Concurrency-Resolution pattern that composes.
-- **Atomicity and crash semantics.** State transitions are specified as atomic. A crash mid-transition that leaves a unit in neither [Pending] nor [Done] violates membership exclusivity; the implementor is responsible for the transactional boundary that makes it hold. The spec does not define recovery semantics.
-- **Clock semantics.** [Added At], [Last Edited At], and [Completed At] are wall-time stamped from the injected [Now] (see Inputs and Behavior). Clock skew, NTP adjustments, monotonicity, and timezone handling are handled at the deployment layer; the spec does not address them. Invariant 7 (timestamp monotonicity) is best-effort under non-monotonic clocks; a clock that moves backward between transitions can violate the inequalities. Trusted timestamping is a composing pattern that supplies a verifiable time-anchor if the timeline must be adversarially defensible.
-- **Case-insensitive matching, fuzzy matching, locale-aware comparison.** The description policy specifies NFC + trim + case-sensitive. Variants belong to wrapping patterns.
+WHY:
+Each of these is a field somebody will want to add here and each is a pattern: priority and ordering, due dates, dependencies and recurrence compose *(all forthcoming)*, and the moment one of them lands inside this atom the atom stops being the thing every larger system contains (Non-goal 9–12). Deletion keeps no memory by design, which is what makes the recency behaviour a composition rather than a mode (Non-goal 4, Non-goal 5). Only `last_edited_at` survives an edit — prior text is gone, and a system that needs the trail composes a history pattern (Non-goal 13).
 
-Where the pattern breaks down: in any system with multiple actors, where "completion" is not a binary state, where description is not a sufficient property under uniqueness constraint, or where the host environment cannot supply the atomic state transitions membership exclusivity depends on. Each takes a different pattern.
+Where the atom breaks down: any system with more than one actor; a system where *finished* is not binary; a system where the description is not a property worth constraining; a host that cannot make a transition atomic.
 
----
+## Edge cases
+
+### Concurrency on one unit
+
+```text
+Concurrency 1: The atom MUST assume a linear sequence of calls from one actor.
+Concurrency 2: The implementation MUST make EVERY transition atomic.
+Concurrency 3: A deployment running two clients MUST compose a concurrency-resolution pattern.
+```
+
+WHY:
+Two tabs acting on one unit is outside the atom: a crash or a race that leaves a unit in neither state breaks Invariant 1.1, and the transactional boundary that prevents it is the implementor's (Concurrency 2).
+
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's timezone handling.
+Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
+```
+
+### Re-adding a deleted description
+
+```text
+Re-adding 1: The atom MUST accept a description equal to a deleted unit's description.
+Re-adding 2: [Add] MUST answer a fresh id for such a unit.
+```
+
+WHY:
+*Buy milk* deleted this morning and added again this afternoon is a new unit with a new id, and nothing in the atom objects. A deployment that wants the second one refused inside a window composes [Duplicate Prevention](./duplicate-prevention.md), whose guard opens on the delete and closes on its own clock (Composition note 2).
+
+## Composition notes
+
+```text
+Composition note 1: A composing pattern MUST own what this atom declines.
+Composition note 2: A composing pattern needing a recency guard MUST record a deleted description with [Duplicate Prevention](./duplicate-prevention.md).
+Composition note 3: A composing pattern needing a recency guard MUST NOT call [Add] BEFORE a [Duplicate Prevention](./duplicate-prevention.md) check.
+Composition note 4: A composing pattern needing restoration MUST append a deleted unit to an [Event Log](./event-log.md).
+Composition note 5: A composing pattern needing a shared list MUST compose [Permissions](./permissions.md) and [Assignment](./assignment.md).
+```
+
+WHY:
+The three landed compositions are the worked examples: [Undo History](../compositions/undo-history.md) appends every deletion to an Event Log so the list becomes restorable from records; [Shared Todo](../compositions/shared-todo.md) adds Permissions and Assignment to make one person's list many people's; and a container wanting *not twice in one morning* wires [Duplicate Prevention](./duplicate-prevention.md) around delete and add, which is where the [Duplicate Recent] refusal comes from — that refusal is the composing pattern's, never this atom's (Composition note 2, Composition note 3). Forthcoming: Priority and Ordering, Task Dependencies, Recurring, Reopen and Revision, Concurrency Resolution.
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its card here. A card states what the concept *is*, in plain English, plus its **Kind** — one of four: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A card also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A card carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the atom above.)*
+Each `[Term]` marker above links to its card here; a card states what the concept *is* and its **Kind**.
+
+### Vocabulary
+
+Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a person; a unit; a call; the store; the list.
+
+Terms › `records`: `unit` — one thing to do, carrying `id`, `description`, `added_at`, a unit state and, once they land, `last_edited_at` and `completed_at`.
+
+Terms › `record verbs`: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed.
+
+Terms › `value sets`: add answers = id | rejected(invalid-description | duplicate-active | storage-failure). edit answers = ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure). complete answers = ok | rejected(not-known | not-pending | storage-failure). delete answers = ok | rejected(not-known | storage-failure). `unit state` = pending | done.
+
+Terms › `bounds`: `description cap` (the bound on a normalized description's length).
+
+Terms › `cadences`: empty.
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+
+Terms › `terms`: `now`, `unit`, `id`, `seam`, `transition`, `business caller`, `description`, `description cap`, `unit state`, `added_at`, `last_edited_at`, `completed_at`, `active set`, `new_description`.
 
 #### Add
 
@@ -294,7 +398,7 @@ The replacement text [Edit] needs — supplied per call, normalized, and (unless
 
 Kind:         Parameter
 Parameter of: Edit
-Projects:     newDescription
+Projects:     new_description
 
 #### Now
 
@@ -376,10 +480,10 @@ Projects:  storage-failure
 
 #### Duplicate Recent
 
-The refusal a containing system returns when [Duplicate Prevention](./duplicate-prevention.md) reports the [Description] as recently seen — the *"buy milk twice in the same morning"* rejection. It is *this* pattern's outcome (the bare atom does not raise it; it surfaces only when composed with Duplicate Prevention), and its wire form is **pinned** — frozen because callers switch on the exact string.
+The refusal a **composing pattern** returns when [Duplicate Prevention](./duplicate-prevention.md) reports the [Description] as recently seen — the *"buy milk twice in the same morning"* rejection. It is the composing pattern's outcome and the composing pattern's to pin: this atom's [Add] never raises it, and its signature block does not carry it (Closed vocabulary 21). The card is here because a reader of this atom meets the string in a composed deployment, not because this atom owns it.
 
 Kind:      Member
-Member of: the add rejection
+Member of: the composing pattern's add rejection
 Role:      Outcome
 Projects:  duplicate-recent
 Wire:      pinned
@@ -409,22 +513,6 @@ Wire:      pinned
 [Not Editable]: #not-editable
 [Storage Failure]: #storage-failure
 [Duplicate Recent]: #duplicate-recent
-
----
-
-## Composition notes
-
-Personal Todo is a freestanding concept and is designed to compose with other concepts rather than absorb what belongs to them:
-
-- **[Duplicate Prevention](./duplicate-prevention.md)** — adds a temporally-bounded recency guard against rapid re-adds of recently-deleted descriptions. The container calls Duplicate Prevention's `record` on every successful [Delete] (with the normalized [Description]) and its `check` before every [Add]. If `check` returns `seen`, the add is rejected as [Duplicate Recent]. This produces the *"buy milk twice in the same morning is rejected; twice in the same week is allowed"* user experience. Personal Todo's MVP can ship without this composition; the v1.1 polish brings it in.
-- **[Undo History](../compositions/undo-history.md)** — wires Personal Todo with Event Log to preserve each deletion as a recoverable event. The deleted unit's id, description, and timestamps are appended to the Event Log on every successful `delete`, making the full deletion history reconstructable from records alone and enabling restoration by an administrator or the author.
-- **[Shared Todo](../compositions/shared-todo.md)** — wires Personal Todo with Permissions and Assignment to make a single-user task list multi-actor: Permissions controls which actors can read and modify which tasks; Assignment binds responsibility for specific tasks to specific actors.
-- **Audit / History** *(forthcoming)* — preserves deleted units (id, descriptions, timestamps, edit history) for retrospective inspection and restoration.
-- **Priority and Ordering** *(forthcoming)* — adds an ordering relation over Pending units.
-- **Task Dependencies** *(forthcoming)* — encodes prerequisite relations between ids.
-- **Recurring** *(forthcoming)* — adds scheduled regeneration of units after completion or deletion.
-- **Reopen and Revision** *(forthcoming)* — adds Done → Pending transitions.
-- **Concurrency Resolution** *(forthcoming)* — handles simultaneous actions from multiple clients on the same id.
 
 ---
 
@@ -458,3 +546,7 @@ open: none
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/personal-todo.md`.
+
+- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the four actions as a signature block, the description policy as its own rule family, the eight invariant numbers unchanged, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan, and this atom is the corpus's simplest shape — the one a reader meets first.
+
+NOTE: End of Personal Todo.

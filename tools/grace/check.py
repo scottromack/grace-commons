@@ -45,7 +45,7 @@ CODE_SPAN = re.compile(r"`[^`]*`")
 SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
-            "K-check-bare", "S-action-unused"}
+            "K-check-bare", "S-action-unused", "E-not-exclusive"}
 # A declaration may carry arithmetic and comparison where a rule may not
 # (Closed vocabulary 9, Closed vocabulary 11) — which is where complexity
 # goes when a rule cannot hold it, and the one place nothing read it.
@@ -410,6 +410,29 @@ def scan(path: Path) -> list[Finding]:
                     add(k, "D-decl-unresolved",
                         f"Terms › `{name}` computes over `{ident}`, which this spec declares nowhere "
                         f"(Closed vocabulary 4)")
+
+    # an EXACTLY ONE OF whose members are not exclusive: one member containing
+    # another is an exclusive choice that does not exclude (CR-9, CR-13)
+    for r in rules:
+        m = re.search(r"EXACTLY ONE OF (.+?)(?:\.|$)", r.text)
+        if not m:
+            continue
+        members = [x.strip().rstrip(".") for x in m.group(1).split(",") if x.strip()]
+        if len(members) < 2:
+            continue
+        for i, a in enumerate(members):
+            for j, b in enumerate(members):
+                if i == j or not a or not b:
+                    continue
+                short, long = (a, b) if len(a) < len(b) else (b, a)
+                if len(short) > 6 and re.search(r"(?<![\w-])" + re.escape(short) + r"(?![\w-])", long):
+                    add(r.line, "E-not-exclusive",
+                        f"{r.label}: EXACTLY ONE OF whose members are not exclusive — "
+                        f"'{long[:48]}' contains '{short[:32]}' (Earned vocabulary 4)")
+                    break
+            else:
+                continue
+            break
 
     # an action the spec declares and no rule names (advisory): a signature
     # block is a declaration, and a declaration nothing uses is a loose end

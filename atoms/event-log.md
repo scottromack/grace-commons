@@ -45,11 +45,11 @@ Identity 10: A composing pattern MUST own how many log instances a deployment ru
 
 Terms › `event_id`: the opaque value naming one event — an [Event Id]; allocated once, never again.
 
-Terms › `seam`: the atom's single boundary with the world, where the host reads the clock and allocates the event_id (`execution-contract.md` §Logic confinement).
+Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the event_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the log.
+Terms › `transition`: the atom's evaluation of one call against the log, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `business caller`: the composing pattern's caller, whose action the event describes.
+Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
 WHY:
 Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2–4). Ordering is `sequence_number`'s alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
@@ -79,6 +79,8 @@ Terms › `data`: the opaque payload a composing pattern supplies — [Data]; th
 Terms › `log_name`: the name telling one log instance from another — a [Log Name].
 
 Terms › `next_sequence_number`: the sequence_number the next landed event carries — a [Next Sequence Number]; part of the instance's persistent state.
+
+Terms › `durability mechanism`: a write-ahead log, or another mechanism making a committed write survive a crash.
 
 Terms › `landed`: an event a successful [Append] wrote; a consumed sequence_number under which nothing was written is not landed.
 
@@ -246,7 +248,7 @@ Where the pattern breaks down: when the host cannot supply atomic, serialized ap
 ```text
 Durability 1: The atom MUST specify in-memory semantics.
 Durability 2: The deployment MUST own persistence across a process restart.
-Durability 3: A durable implementation MUST supply EXACTLY ONE OF write-ahead logging, an equivalent mechanism.
+Durability 3: A durable implementation MUST supply a durability mechanism.
 Durability 4: A composing pattern MUST declare the log instance's durability as an instance capability requirement.
 ```
 
@@ -282,13 +284,12 @@ WHY:
 Composition note 1: A composing pattern MUST take EXACTLY ONE OF appending on every state change, deriving state by replay, both.
 Composition note 2: A composing pattern MUST own what an event means.
 Composition note 3: A composing pattern MUST own the payload's schema.
-Composition note 4: A writer MUST NOT renumber an invariant of this atom.
-Composition note 5: A writer MAY add an invariant to this atom.
-Composition note 6: A composing pattern MUST cite this atom's invariants by number.
+Composition note 4: This atom's invariant numbers MUST stand as a frozen contract surface.
+Composition note 5: A composing pattern MUST cite this atom's invariants by number.
 ```
 
 WHY:
-The two contracts are append-on-change (the log is the durable record the pattern's history is reconstructed from) and replay (the log is the source of truth and current state is a projection); most patterns take both. The invariant numbers are a frozen contract surface: Undo History, Audit Trail, Compensable Workflow and Reserve from Pool cite them wholesale, so adding one is forward-compatible and renumbering one re-passes every composition that cites it (Composition note 4, Composition note 5; `GRACE-lang.md` Hard invariant 26). Landed compositions over this atom: [Audit Trail](../compositions/audit-trail.md). Forthcoming: Undo History, Activity Feed, Event-Sourced Reservation.
+The two contracts are append-on-change (the log is the durable record the pattern's history is reconstructed from) and replay (the log is the source of truth and current state is a projection); most patterns take both. The invariant numbers are a frozen contract surface: Undo History, Audit Trail, Compensable Workflow and Reserve from Pool cite them wholesale, so adding one is forward-compatible and renumbering one re-passes every composition that cites it (Composition note 4). That a writer must not renumber is the grammar's rule and stays there (`GRACE-lang.md` Hard invariant 26); what this note owns is the local fact that these numbers are cited from outside. Landed compositions over this atom: [Audit Trail](../compositions/audit-trail.md). Forthcoming: Undo History, Activity Feed, Event-Sourced Reservation.
 
 ## Terms
 
@@ -310,7 +311,7 @@ Terms › `cadences`: empty.
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `landed` — written by a successful append.
 
-Terms › `terms`: `event_id`, `seam`, `transition`, `business caller`, `event`, `sequence_number`, `recorded_at`, `data`, `log_name`, `next_sequence_number`, `landed`, `event field`, `query`, `payload cap`.
+Terms › `terms`: `durability mechanism`, `event_id`, `seam`, `transition`, `business caller`, `event`, `sequence_number`, `recorded_at`, `data`, `log_name`, `next_sequence_number`, `landed`, `event field`, `query`, `payload cap`.
 
 #### Event Log
 

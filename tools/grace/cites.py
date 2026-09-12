@@ -152,14 +152,29 @@ def across(specs: list[Spec], seeds: dict[Path, set[str]]) -> dict[str, list[str
                 wanted.append((f"{name} {group.group(1)} {group.group(2)}", path.name))
     out: dict[str, list[str]] = {}
     for spec in specs:
+        rule_lines = set(spec.rules.values())
         for label, text in spec.text_of.items():
-            for ref, _ in wanted:
-                if ref in text and spec_name(spec.path) != ref.rsplit(" ", 2)[0]:
+            for ref, origin in wanted:
+                if ref in text and spec.path.name != origin:
                     out.setdefault(ref, []).append(
                         f"{spec.path.name}:{spec.rules[label]}: {label}")
+        # a citation in prose carries no obligation and still sends a reader
+        for i, raw in enumerate(spec.path.read_text(encoding="utf-8").split("\n"), start=1):
+            if i in rule_lines:
+                continue
+            for ref, origin in wanted:
+                if ref in raw and spec.path.name != origin:
+                    out.setdefault(ref, []).append(f"{spec.path.name}:{i}: (prose)")
     return out
 
 
+CATEGORY_NAMES = {"actors", "records", "record verbs", "value sets", "bounds",
+                  "cadences", "terms", "qualifiers", "composing patterns", "cited"}
+STANDARD_FAMILIES = {"Identity", "State", "Operation", "Invariant", "Check",
+                     "External check", "Non-goal", "Composition note", "Composes",
+                     "Capability requirement"}
+LABEL_PARTS = re.compile(
+    r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 CROSS_REF = re.compile(
     r"(?<![\w-])([A-Z][A-Za-z-]*(?: [A-Z][A-Za-z-]*){0,3}) "
     r"((?:[A-Z][a-z]+|[a-z_]+)(?: [a-z]+){0,2} \d+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
@@ -262,6 +277,118 @@ def main(argv: list[str]) -> int:
 
     specs = specs_with_rules(root, paths)
     total = 0
+    if "--unchecked" in argv:
+        # the inverse of K-check-bare: a rule no check names. A rule with no
+        # check is a claim nobody audits — the silence is the finding (CR-11).
+        i = argv.index("--unchecked")
+        stem = argv[i + 1] if i + 1 < len(argv) and not argv[i + 1].startswith("--") else None
+        for spec in specs_with_rules(root, paths):
+            if stem and spec.path.stem != stem:
+                continue
+            lab_re = _label_pattern(set(spec.rules))
+            checked: set[str] = set()
+            for label, text in spec.text_of.items():
+                parts = LABEL_PARTS.match(label)
+                if not parts or parts.group("name") not in ("Check", "External check"):
+                    continue
+                if lab_re:
+                    for m in lab_re.finditer(text):
+                        checked.add(m.group(1) + m.group(2))
+                        grp = re.match(r"^(.*?) (\d+)\.\d+[a-z]?$", m.group(1) + m.group(2))
+                        if grp:
+                            checked.add(f"{grp.group(1)} {grp.group(2)}")
+            bare = [lab for lab in spec.rules
+                    if (LABEL_PARTS.match(lab) or None) and
+                    LABEL_PARTS.match(lab).group("name") not in ("Check", "External check")
+                    and lab not in checked]
+            if not spec.rules or not checked:
+                print(f"{spec.path.name}: no checks — nothing audits any of its {len(spec.rules)} rules")
+                continue
+            by_family: dict[str, list[str]] = {}
+            for lab in bare:
+                by_family.setdefault(LABEL_PARTS.match(lab).group("name"), []).append(lab)
+            print(f"{spec.path.name}: {len(bare)} of {len(spec.rules)} rules named by no check")
+            # an unchecked invariant is the one that matters: a claim the spec
+            # makes about every reachable state, and nothing tests it
+            for fam in ("Invariant", "Identity", "State"):
+                if fam in by_family:
+                    labs = sorted(by_family.pop(fam))
+                    print(f"  {fam}: {len(labs)} unchecked — {', '.join(labs[:8])}"
+                          + (" …" if len(labs) > 8 else ""))
+            rest = ", ".join(f"{f} ({len(v)})" for f, v in sorted(by_family.items()))
+            if rest:
+                print(f"  elsewhere: {rest}")
+        return 0
+    if "--drift" in argv:
+        # the same name, declared twice, differently — and the same label family
+        # carrying different rules in two specs. The corpus's error mass moved
+        # between the documents; this is the walker pointed there (CR-10).
+        corpus = specs_with_rules(root, None)
+        decls: dict[str, list[tuple[str, str]]] = {}
+        families: dict[str, set[str]] = {}
+        for spec in corpus:
+            for name, (_, body) in spec.terms.items():
+                if name in CATEGORY_NAMES:
+                    continue
+                decls.setdefault(name, []).append((spec.path.name, body.strip()))
+            for label in spec.rules:
+                parts = LABEL_PARTS.match(label)
+                if parts:
+                    families.setdefault(parts.group("name"), set()).add(spec.path.name)
+        term_drift = {n: v for n, v in decls.items()
+                      if len(v) > 1 and len({b for _, b in v}) > 1}
+        family_spread = {f: s for f, s in families.items()
+                         if len(s) > 1 and f not in STANDARD_FAMILIES}
+        if term_drift:
+            print(f"terms declared more than one way — {len(term_drift)}:")
+            for name in sorted(term_drift):
+                print(f"  `{name}`")
+                for path, body in term_drift[name]:
+                    print(f"      {path}: {body[:110]}")
+        if family_spread:
+            print(f"label families outside the standard set, used in more than one spec — {len(family_spread)}:")
+            for fam in sorted(family_spread):
+                print(f"  {fam}: {', '.join(sorted(family_spread[fam]))}")
+        if not term_drift and not family_spread:
+            print("— no term declared two ways, no local family spread across specs.")
+        return 0
+    if "--terms" in argv:
+        i = argv.index("--terms")
+        name = argv[i + 1] if i + 1 < len(argv) else ""
+        # every declaration of one name, across the corpus: a term is one
+        # concept or it is several wearing one name (CR-9)
+        seen = []
+        for spec in specs_with_rules(root, None):
+            if name in spec.terms:
+                line, body = spec.terms[name]
+                seen.append((spec.path.name, line, body))
+        if not seen:
+            print(f"— no spec declares `{name}`.")
+            return 0
+        print(f"`{name}`: {len(seen)} declaration(s)")
+        for path, line, body in seen:
+            print(f"  {path}:{line}: {body}")
+        if len(seen) > 1:
+            print("— one name, several declarations. A reader of two specs reads both.")
+        return 0
+    if "--queue" in argv:
+        # what the corpus cites but has not migrated, most-cited first
+        corpus = specs_with_rules(root, None)
+        migrated = {spec_name(s.path) for s in corpus}
+        counts: dict[str, int] = {}
+        for spec in corpus:
+            for i, raw in enumerate(spec.path.read_text(encoding="utf-8").split("\n"), start=1):
+                for m in CROSS_REF.finditer(raw):
+                    target = m.group(1)
+                    if target not in migrated and (root / "atoms" / (target.lower().replace(" ", "-") + ".md")).exists():
+                        counts[target] = counts.get(target, 0) + 1
+        if not counts:
+            print("— every spec the corpus cites by label is migrated.")
+            return 0
+        print("unmigrated specs the corpus cites, most-cited first:")
+        for target, n in sorted(counts.items(), key=lambda kv: -kv[1]):
+            print(f"  {target}: {n} citation(s)")
+        return 0
     if "--into" in argv:
         i = argv.index("--into")
         stem = argv[i + 1] if i + 1 < len(argv) else ""
@@ -286,10 +413,10 @@ def main(argv: list[str]) -> int:
         corpus = specs if paths is None else specs_with_rules(root, None)
         elsewhere = across(corpus, seeds_by_path)
         for ref in sorted(elsewhere):
-            print(f"cross-spec: {ref} changed — {len(elsewhere[ref])} to re-read")
-            for site in sorted(elsewhere[ref]):
+            print(f"cross-spec: {ref} changed — {len(set(elsewhere[ref]))} to re-read")
+            for site in sorted(set(elsewhere[ref])):
                 print(f"  {site}")
-            total += len(elsewhere[ref])
+            total += len(set(elsewhere[ref]))
         if total == 0:
             print(f"— nothing to re-read against {rev}.")
         else:
@@ -308,7 +435,7 @@ def main(argv: list[str]) -> int:
             total += report(spec, {seed})
             elsewhere = across(specs, {spec.path: {seed}})
             for ref in sorted(elsewhere):
-                print(f"cross-spec: {ref} — {len(elsewhere[ref])} to re-read")
+                print(f"cross-spec: {ref} — {len(set(elsewhere[ref]))} to re-read")
                 for site in sorted(elsewhere[ref]):
                     print(f"  {site}")
     if not found:

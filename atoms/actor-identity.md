@@ -23,120 +23,182 @@ Actor Identity answers one question: "who authorized this action, and can you pr
 
 ## Intent
 
-Regulated systems require that every action of consequence be attributable to an actor who authorized it, and that the attribution survive adversarial scrutiny — disputed transactions, regulator audits, breach investigations, court proceedings. The shape is constant across domains: at action time, the actor produces a [Proof] (a signature, a cryptographic attestation, a witnessed approval) that binds their identity to the specific action. At verification time, anyone with access to the [Attestation] can confirm the binding without trusting the system that recorded it.
-
-The pattern addresses the *who* question that audit trails alone cannot answer. An event log records *what happened*; an [Attestation] records *who authorized it* in a form the regulator accepts as binding. Without attestations, the audit trail is the system's claim about who acted; with attestations, the audit trail is the actor's own commitment to having acted.
-
-This is a freestanding atom in the EOS (Essence of Software — Daniel Jackson's framework for specifying software concepts as freestanding, composable units) sense. It has its own state (the [Attestation] record), its own actions ([Attest], [Verify]), and its own operational principles (proofs are immutable; verification is a read-only function of the [Attestation] and the actor registry's public material). It does not implement actor registration, credential lifecycle, authentication flows, authorization rules, multi-actor witness schemes, or compromise disclosure. Each is a separate composable atom; see Composition notes.
-
----
+WHY:
+A regulated action has to answer one question from the records: *who authorized this?* A logged `actor` field answers it procedurally — it is the system's word about the past, written by the party under audit. A proof answers it structurally: the actor's own credential produced an artifact that binds that actor to that action, and anyone holding the record and the registry's public material can check it without asking the system to vouch for itself. This atom is that binding and nothing else. It does not authenticate the actor, does not decide whether the actor was permitted, does not manage the credential, and does not know what the action is; it records that this actor attested to this action at this time, in a form a verifier can re-check later. The contract it clears is non-repudiation, and it is conditional by construction — on the credential not being compromised, which is a fact the records cannot carry and a composing pattern must reinterpret.
 
 ## Structure
 
 ### Identity model
 
-Every [Attestation] known to the system has an **[Attestation Id]** — an opaque, immutable identifier allocated by the host id source at the I/O seam on [Attest] (per the Logic Confinement Principle in [`execution-contract.md`](../execution-contract.md), the id is injected into the transition, not generated inside it; see Inputs and Behavior). The id is the [Attestation]'s identity; the [Action Ref], [Actor Ref], [Proof], and [Attested At] are immutable *properties* of the [Attestation], not its identity.
+```text
+Identity 1: The atom MUST identify an attestation by the attestation_id.
+Identity 2: The host MUST allocate an attestation_id at the atom's seam.
+Identity 3: The transition MUST NOT allocate an attestation_id.
+Identity 4: The business caller MUST NOT supply an attestation_id.
+Identity 5: The atom MUST NOT reuse an attestation_id.
+Identity 6: The atom MUST NOT identify an attestation by the action_ref.
+Identity 7: The atom MUST NOT identify an attestation by the actor_ref.
+Identity 8: The atom MUST NOT identify an attestation by attested_at.
+Identity 9: Two attestations over one action by one actor MUST carry two attestation_ids.
+```
 
-Two attestations for the same action by the same actor have different ids — re-attestations after credential rotation, retries after partial failures, and multi-action sequences are distinct attestations with their own records. Ids are not reused.
+Terms › `attestation`: one recorded binding of an actor to an action — an [Attestation].
 
-The opaque-id model matters here for the same reason it mattered in Provisional Commitment: identifying an [Attestation] by [Action Ref] and [Actor Ref] together would collapse legitimate re-attestations, and identifying by timestamp would lose precision under concurrent attestations. Opaque ids preserve the one-attestation-one-id discipline that makes per-event audit reconstruction tractable.
+Terms › `attestation_id`: the opaque value naming one attestation — an [Attestation Id].
 
-### Inputs
+Terms › `action_ref`: the opaque reference naming what was attested — an [Action Ref]; the host owns what an action is.
 
-- An [Action Ref] identifying *what* is being attested. The atom treats this as opaque — the host pattern defines what an action is and how to reference it.
-- An [Actor Ref] identifying *who* is attesting. Also opaque — the actor registry is a separate concept.
-- A [Credential] — the private material the actor uses to produce the [Proof]. The atom consumes this at [Attest] time and never persists it.
-- [Attest] — record a new [Attestation] binding an [Actor Ref] to an [Action Ref]. (Projected contract: `attest(action_ref, actor_ref, credential) → attestation_id | rejected(invalid-request | invalid-credential | storage-failure)`.)
-- [Verify] — confirm a recorded [Attestation] is valid, by id. (Projected contract: `verify(attestation_id) → verified | failed-verification(proof-invalid | actor-unknown-in-registry | registry-unavailable) | not-known`.)
-- A clock providing wall-time timestamps, an id source for [Attestation Id] allocation, and the cryptographic primitive (and any entropy) the [Proof] computation requires — all injected at the atom's single I/O seam. Per the Logic Confinement Principle (see [`execution-contract.md`](../execution-contract.md)), the host reads the clock, allocates the [Attestation Id], and supplies the cryptographic material at the seam, *before* the transition runs. The pure transition receives them as inputs. It reads no clock, mints no id, and generates no randomness internally. None of these is supplied by the business caller; the [Credential] remains the only caller-supplied secret. Confining them to the seam is what keeps the transition deterministic.
+Terms › `actor_ref`: the opaque reference naming who attested — an [Actor Ref]; the actor registry is a separate concept.
 
-### Outputs
+Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the attestation_id and the cryptographic material here.
 
-- The current set of attestations.
-- For each [Attestation]: [Attestation Id], [Action Ref], [Actor Ref], [Attested At], and the [Proof].
-- [Attest] returns the new [Attestation Id] on success, or a rejection naming the failed precondition.
-- [Verify] returns [Verified], [Failed Verification], or [Not Known]. The [Verify] call itself does not modify state.
+Terms › `transition`: the atom's evaluation of one call against the attestation store, as `execution-contract.md` §Logic confinement declares it.
+
+Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+
+WHY:
+Identity by action and actor together would collapse the re-attestation the regime produces — a retry after a partial failure, a second proof after a key rotation, a step in a multi-action sequence — and identity by time would lose two concurrent attestations (Identity 6–9). One attestation, one id, is what makes per-event audit reconstruction tractable.
 
 ### State
 
-A single stable state: **[Attested]**. There are no transitions out of [Attested] — the atom has no surface for revoking, invalidating, or modifying an [Attestation] once it is recorded. Verification is a read-only query over the [Attestation]'s stored fields and the actor registry's public material. Whether a verification result *changes over time* — because the actor registry's view of the actor changes (key rotation, public material updates) — is a property of the composing actor registry, not of the atom.
+```text
+State 1: EVERY attestation MUST stand in attested.
+State 2: The atom MUST NOT offer a transition out of attested.
+State 3: EVERY attestation MUST carry attestation_id, action_ref, actor_ref, proof and attested_at.
+State 4: The atom MUST NOT store the credential.
+State 5: The atom MUST NOT offer a revocation surface.
+State 6: The atom MUST NOT offer a deletion surface.
+State 7: The atom MUST NOT hold the actor registry's public material.
+```
 
-Each [Attestation] carries:
+Terms › `attested`: the atom's one state — recorded, and nothing further to become.
 
-- **[Attestation Id]** — opaque, immutable, host-allocated at the seam (see Inputs). Set on [Attest]. Never changes.
-- **[Action Ref]** — opaque reference to the action being attested. Set on [Attest]. Never changes.
-- **[Actor Ref]** — opaque reference to the actor doing the attesting. Set on [Attest]. Never changes.
-- **[Proof]** — the cryptographic or procedural artifact that binds [Actor Ref] to [Action Ref]. Set on [Attest]. Never changes.
-- **[Attested At]** — wall-time when the [Attestation] was recorded. Set on [Attest]. Never changes.
+Terms › `proof`: the cryptographic or procedural artifact binding the actor_ref to the action_ref — a [Proof]; a signature, a message authentication code, a card-bound proof, a qualified electronic signature, a witnessed approval.
 
-Transitions:
+Terms › `attested_at`: the wall-time instant the attestation was recorded, stamped from the injected now — an [Attested At].
 
-- [Attest] → a new [Attestation] is recorded in [Attested] with the injected [Attestation Id], the supplied [Action Ref] and [Actor Ref], the [Proof] computed from the [Credential] and the injected cryptographic material, and [Attested At] stamped from the injected clock (all read at the seam before the transition; see Inputs). Returns [Attestation Id].
-- *(no other transitions)*
+Terms › `credential`: the private material the actor uses to produce the proof — a [Credential]; consumed at [Attest] and never stored.
 
-### Flow
+Terms › `public material`: what the actor registry holds for an actor_ref and a verifier reads.
 
-1. **Composing pattern initiates an action that requires attribution** (attribution — the binding of an action to the actor who performed it). It calls [Attest] with the actor's [Credential] in hand.
-2. **Atom validates the [Credential] and computes the [Proof].** If the [Credential] does not validate against the actor's public material, the call is rejected. Otherwise the atom records the [Attestation] and returns the id.
-3. **Time passes; the [Attestation] persists.** The host system stores the [Attestation Id] alongside whatever it represents (the commitment record, the event log entry, the contract artifact).
-4. **An auditor, verifier, or composing pattern queries the [Attestation].** Calls [Verify]. The atom retrieves the [Attestation], checks the [Proof] against [Action Ref] and [Actor Ref] using the actor registry's public material, and returns the verification result.
+Terms › `durability mechanism`: a write-ahead log, or another mechanism making a committed write survive a crash.
 
-### Decision points
+Terms › `attestation field`: `attestation_id` | `action_ref` | `actor_ref` | `proof` | `attested_at`.
 
-**At [Attest].** [Action Ref], [Actor Ref], and [Credential] must be non-null and non-empty; otherwise [Invalid Request]. (Further structural validation of the opaque references is the composing pattern's responsibility — the atom does not know what a valid action or actor looks like.) The [Credential] must validate against the actor registry's public material for [Actor Ref]; otherwise [Invalid Credential]. The [Credential] is *consumed*, never stored. If the attestation store write fails after successful credential validation, the atom returns [Storage Failure]. No [Attestation] is recorded. Durability of the attestation store is implementation-owned; see Edge cases.
+WHY:
+One state and no way out: an attestation that could be revoked would prove nothing, because the party who wanted the attribution undone is the party who would revoke it. Reinterpretation under a compromised credential is real and is a Compromise Disclosure pattern's *(forthcoming)* — it writes new records rather than editing old ones (State 2, State 5, Non-goal 9). The credential is consumed and never stored: an atom holding actors' private material would be the highest-value target in the deployment (State 4).
 
-**At [Verify].** The atom resolves the outcome in a fixed precedence order: it confirms the [Attestation] exists, then checks the [Proof], and only then returns [Verified]. The first matching condition decides the outcome.
+### Operations
 
-| Order | Condition | Outcome |
-|-------|-----------|---------|
-| 1 | [Attestation Id] references no recorded [Attestation] | [Not Known] |
-| 2 | actor registry cannot return public material for [Actor Ref] (actor deleted from the registry) | [Failed Verification] ([Actor Unknown In Registry]) |
-| 2 | actor registry is unreachable at verify time | [Failed Verification] ([Registry Unavailable]) |
-| 2 | stored [Proof] does not check out against the stored [Action Ref] and [Actor Ref] under current public material | [Failed Verification] ([Proof Invalid]) |
-| 3 | none of the above — the [Proof] checks out | [Verified] |
+```
+attest(action_ref, actor_ref, credential) → attestation_id | rejected(invalid-request | invalid-credential | storage-failure)
+verify(attestation_id) → verified | failed-verification(proof-invalid | actor-unknown-in-registry | registry-unavailable) | not-known
+```
 
-The order is what keeps the outcomes distinct. [Not Known] is a lookup miss, resolved first, before any proof check. The three [Failed Verification] reasons are then distinguished by *why* the check could not pass: [Actor Unknown In Registry] is missing actor material (may be permanent), [Registry Unavailable] is a transient registry outage (retryable), and [Proof Invalid] is a proof that exists but fails (for example, after a key rotation). All three are distinct from [Not Known] (the id is not in the store) and from each other. [Verify] never *rejects* in the same sense as the other action calls. [Verified], [Failed Verification], and [Not Known] are three legitimate first-class outcomes, and a composing pattern should treat each distinctly. [Verify] writes nothing in any case — it is a read-only query that leaves the [Attestation] record untouched.
+```text
+Operation 1: [Attest] MUST compute the proof over the action_ref and the actor_ref from the credential.
+Operation 2: [Attest] MUST record EXACTLY ONE attestation per successful call.
+Operation 3: [Attest] MUST stamp attested_at from the injected now.
+Operation 4: [Attest] MUST answer attestation_id.
+Operation 5: [Attest] MUST consume the credential.
+Operation 6: IF action_ref is blank THEN [Attest] MUST answer invalid-request.
+Operation 7: IF actor_ref is blank THEN [Attest] MUST answer invalid-request.
+Operation 8: IF the credential is blank THEN [Attest] MUST answer invalid-request.
+Operation 9: IF the credential fails against the actor's public material THEN [Attest] MUST answer invalid-credential.
+Operation 10: IF the attestation store refuses the write THEN [Attest] MUST answer storage-failure.
+Operation 11: [Attest] MUST NOT record a partial attestation.
+Operation 12: [Attest] MUST NOT alter a recorded attestation.
+Operation 13: [Attest] MUST NOT read the action's content.
+Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
+Operation 15: IF the attestation NOT EXISTS THEN [Verify] MUST answer not-known.
+Operation 16: IF the attestation EXISTS AND registry answer = unknown-actor THEN [Verify] MUST answer actor-unknown-in-registry.
+Operation 17: IF the attestation EXISTS AND registry answer = unreachable THEN [Verify] MUST answer registry-unavailable.
+Operation 18: IF registry answer = material AND proof check = failed THEN [Verify] MUST answer proof-invalid.
+Operation 19: [Verify] MUST answer verified ONLY IF proof check = held.
+Operation 20: [Verify] MUST NOT write.
+Operation 21: [Verify] MUST read the actor registry's public material for the actor_ref.
+Operation 22: The host MUST read the clock at the atom's seam.
+Operation 23: The host MUST supply the cryptographic material at the atom's seam.
+Operation 24: The transition MUST NOT read a clock.
+Operation 25: The transition MUST NOT mint entropy.
+Operation 26: The business caller MUST NOT supply attested_at.
+```
 
-### Behavior
+Terms › `registry answer`: `material` | `unknown-actor` | `unreachable` — what the actor registry gives a verifier for an actor_ref.
 
-Observed behavior, derived from how regulated systems use attestations:
+Terms › `proof check`: `held` | `failed` — the recorded proof run against the recorded action_ref and actor_ref under the registry's current public material.
 
-- An [Attestation] is a cryptographic or procedural artifact, not merely a logged claim. The atom is vocabulary-neutral about the mechanism (asymmetric signature, MAC — Message Authentication Code, a short tag computed over data with a shared secret — over a shared secret, smart-card-bound proof, qualified electronic signature, witnessed approval) — the contract is only that the [Proof] verifies later from the recorded fields alone.
-- Verification needs no out-of-band lookup at verify time beyond the actor registry's public material. The [Attestation] is self-contained relative to the registry; a verifier with the [Attestation] and the registry's view of the actor can decide.
-- [Attest] never modifies an existing [Attestation]. It always creates a new one. Re-attesting the same action by the same actor produces a separate record with its own id — useful for credential-rotation scenarios where multiple proofs over the same action accumulate.
-- The [Credential] is consumed by [Attest] and never persisted by the atom. Credential management — storage, rotation, recovery, HSM (Hardware Security Module — a dedicated tamper-resistant device for storing keys and performing cryptographic operations) binding — is an entirely separate concept.
-- **Time, id, and cryptographic material are injected at the seam, not generated inside the transition.** Per the Logic Confinement Principle (`execution-contract.md`), the host reads the clock, allocates the [Attestation Id], and supplies the cryptographic primitive and entropy at the deployment seam before [Attest]'s transition runs; [Verify]'s cryptographic check likewise runs against injected primitive material. The core transition is a pure function of its caller inputs and these injected inputs — it reads no wall clock, mints no id, and improvises no crypto internally. This is the determinism the execution contract requires, and it leaves the caller signatures ([Attest], [Verify]) unchanged.
-- [Verify] results depend on the actor registry's current view of [Actor Ref]. If the registry's public material for the actor changes (key rotation), previously-verified attestations may begin to fail verification under the new key, unless the registry maintains historical material. Whether the registry does so belongs to the registry, not the atom.
-- The atom does not retroactively invalidate attestations made with a [Credential] later determined to have been compromised. That reinterpretation belongs to a Compromise Disclosure composing pattern; see Edge cases.
+Terms › `verification set`: the attestation's own fields together with the registry's public material for the actor_ref — and, where the credential mechanism embeds it, the revocation status the proof carries (Revocation status 1, Revocation status 2); everything [Verify] is allowed to read, and nothing else.
 
-### Feedback
+The case space, and the rule that owns each case:
 
-Each successful action produces an observable, measurable change:
+| Call | Case | Answer | Effect on the attestation store |
+|---|---|---|---|
+| [Attest] | refs and credential present, credential validates, store accepts | `attestation_id` | one attestation lands in [Attested] (Operation 1, Operation 2) |
+| [Attest] | blank `action_ref`, `actor_ref` or credential | [Invalid Request] | none (Operation 6–8) |
+| [Attest] | credential fails against the actor's public material | [Invalid Credential] | none (Operation 9) |
+| [Attest] | store refuses the write | [Storage Failure] | none — no partial record (Operation 10, Operation 11) |
+| [Verify] | no attestation under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
+| [Verify] | attestation found, registry holds no material for the actor | [Actor Unknown In Registry] | none (Operation 16) |
+| [Verify] | attestation found, registry unreachable | [Registry Unavailable] | none (Operation 17) |
+| [Verify] | material in hand, proof does not hold | [Proof Invalid] | none (Operation 18) |
+| [Verify] | material in hand, proof holds | [Verified] | none (Operation 19) |
 
-- After [Attest] — a new [Attestation] appears in the system with a fresh [Attestation Id], the supplied [Action Ref] and [Actor Ref], the computed [Proof], and [Attested At]. Total count increases by one. The id is returned.
-- After [Verify] — no state change. The atom returns one of [Verified], [Failed Verification], or [Not Known].
-
-Each rejected [Attest] action produces an observable refusal: [Invalid Request], [Invalid Credential], or [Storage Failure]. Each [Verify] outcome is a first-class result (not a rejection): [Verified], [Failed Verification] (for [Proof Invalid], [Actor Unknown In Registry], or [Registry Unavailable]), or [Not Known].
-
-The attestation set is queryable. Per-attestation fields ([Attestation Id], [Action Ref], [Actor Ref], [Attested At], [Proof]) are observable to auditors and operators; whether end-users see them is a presentation policy of the host system.
+WHY:
+The four verify outcomes are kept apart by their conditions, not by the order the rules sit in (`GRACE-lang.md` Hard invariant 15): `not-known` is an id miss; `actor-unknown-in-registry` is missing actor material and may be permanent; `registry-unavailable` is transient and worth retrying; `proof-invalid` is a proof that exists and fails — after a key rotation, or under forgery. A deployment that collapses these into a boolean has thrown away the difference between *we cannot check right now* and *this does not check out* (Operation 15–19). Verification reads the registry's view, which is why a rotation can turn a verified attestation into a failing one unless the registry keeps historical material — the registry's property, not the atom's (Non-goal 3, Registry view 1–3).
 
 ### Invariants
 
-The following invariants (conditions that must always hold, regardless of what sequence of actions has occurred) constitute the verification surface of the pattern:
+- **Invariant 1 — Attestation immutability.**
+  ```text
+  Invariant 1.1: EVERY attestation field of a recorded attestation MUST NOT change.
+  ```
+- **Invariant 2 — Action binding.**
+  ```text
+  Invariant 2.1: A recorded proof MUST verify against the recorded action_ref.
+  Invariant 2.2: A proof produced for another action MUST NOT verify against the attestation.
+  ```
+- **Invariant 3 — Actor binding.**
+  ```text
+  Invariant 3.1: A recorded proof MUST verify against the recorded actor_ref under the registry's public material.
+  Invariant 3.2: A proof produced by another actor MUST NOT verify against the attestation.
+  ```
+- **Invariant 4 — Id stability.**
+  ```text
+  Invariant 4.1: [Attest] MUST set the attestation_id.
+  Invariant 4.2: An attestation_id MUST NOT change.
+  ```
+- **Invariant 5 — No id reuse.**
+  ```text
+  Invariant 5.1: Two attestations MUST NOT share an attestation_id.
+  ```
+- **Invariant 6 — Self-containment.**
+  ```text
+  Invariant 6.1: [Verify] MUST consult the verification set.
+  Invariant 6.2: [Verify] MUST NOT consult the host's state.
+  Invariant 6.3: [Verify] MUST NOT consult a source outside the verification set.
+  ```
+  WHY: a mechanism that embeds revocation status in the proof keeps verification self-contained; one that sends the verifier to a live revocation service weakens the invariant, which is a mechanism choice the deployment makes (Revocation status 1–4).
+- **Invariant 7 — Verification consistency under fixed registry state.**
+  ```text
+  Invariant 7.1: Two verifications of one attestation under one registry view MUST answer alike.
+  ```
+- **Invariant 8 — Non-repudiation contract.**
+  ```text
+  Invariant 8.1: A verified attestation MUST bind the actor_ref to the action_ref at attested_at ONLY IF the credential was uncompromised at attested_at.
+  Invariant 8.2: The atom MUST NOT reinterpret an attestation under a later compromise.
+  ```
+  WHY: the contract is conditional on credential integrity, and the condition is a fact the records cannot carry. A compromise is disclosed by new records that reinterpret old ones — never by mutating an attestation, which would make the store itself unreliable (Invariant 8.2, Non-goal 9).
+- **Invariant 9 — Attestation durability.**
+  ```text
+  Invariant 9.1: The atom MUST NOT delete an attestation.
+  Invariant 9.2: The attestation set MUST NOT shrink.
+  Invariant 9.3: A storage-failure MUST NOT leave a partial attestation.
+  ```
 
-- **Invariant 1 — Attestation immutability.** Once recorded, an [Attestation]'s [Attestation Id], [Action Ref], [Actor Ref], [Proof], and [Attested At] never change.
-- **Invariant 2 — Action binding.** For any [Attestation] in the system, the recorded [Proof] verifies cryptographically or procedurally against the recorded [Action Ref]. A [Proof] produced for a different action does not verify against this [Attestation].
-- **Invariant 3 — Actor binding.** For any [Attestation] in the system, the recorded [Proof] verifies against the recorded [Actor Ref] using the actor registry's public material. A [Proof] produced by a different actor does not verify against this [Attestation].
-- **Invariant 4 — Id stability.** An [Attestation]'s [Attestation Id] is set on [Attest] and never changes.
-- **Invariant 5 — No id reuse.** No two attestations share an [Attestation Id] across the lifetime of the system.
-- **Invariant 6 — Self-containment.** [Verify] requires only the [Attestation]'s stored fields and the actor registry's public material for [Actor Ref]. No additional out-of-band data is consulted at verify time. This holds for the atom's design; specific credential mechanisms (X.509 certificate-based credentials requiring revocation status checks) may require additional data at verify time if revocation status is not embedded in the [Proof] — see *Certificate revocation status* in Edge cases.
-- **Invariant 7 — Verification consistency under fixed registry state.** For any [Attestation] and any fixed view of the actor registry, repeated [Verify] calls return the same result.
-- **Invariant 8 — Non-repudiation contract.** If [Verify] returns [Verified], then under the assumption that the actor's [Credential] was not compromised at or before [Attested At], the actor referenced by [Actor Ref] authorized the action referenced by [Action Ref] at [Attested At]. The contract is conditional on credential integrity; reinterpretation under compromise belongs to a Compromise Disclosure composing pattern.
-- **Invariant 9 — Attestation durability.** Once recorded, an [Attestation] is never deleted by the atom. The attestation store's record count is monotonically non-decreasing. The atom provides no deletion surface; cascading deletion under a retention policy is the composing pattern's responsibility (see Tamper Evidence and Retention Window in Composition notes). An [Attestation Id] returned by a successful [Attest] call is durably persisted; a [Storage Failure] rejection guarantees no partial record was written.
-
-Action binding and actor binding together give the *attribution* property — the regulator's question *"who authorized this action?"* has a structural answer rather than a procedural one. Attestation immutability and self-containment together give the *survivability* property — attestations remain verifiable independent of the system that recorded them. The non-repudiation contract names the regulatory bar the atom is built to clear.
-
----
+Action binding and actor binding give the *attribution* property — *who authorized this?* answered structurally. Immutability and self-containment give *survivability* — an attestation stays verifiable independent of the system that recorded it. The non-repudiation contract names the bar the atom is built to clear, and its condition.
 
 ## Examples
 
@@ -182,32 +244,128 @@ Three scenarios the atom must survive in regulated contexts:
 
 ---
 
-## Non-goals and edge cases
+## Generation acceptance
 
-What this atom does not cover:
+This atom's acceptance is what an external auditor can clear from the attestation store and the actor registry's public material, with no recourse to source code, runbooks or developer narration.
 
-- **Actor lifecycle.** Actor registration, deactivation, suspension, revocation, and recovery belong to an Actor Registry / Identity Provisioning pattern. The atom takes [Actor Ref] as opaque and consults the registry's public material via [Verify].
-- **Authentication.** Login flows, session management, MFA challenge-response — these produce the [Credential] the atom consumes. The atom does not opine on how the [Credential] reaches [Attest].
-- **Authorization.** Whether the actor was *permitted* to take the action is a separate question from whether they *authorized* it. Authorization / RBAC (Role-Based Access Control — permissions granted via roles) / ABAC (Attribute-Based Access Control — permissions decided from attributes of the actor, resource, and context) is a composing pattern.
-- **Credential management.** Storage, rotation, recovery, HSM-binding, biometric protection — implementation concepts. The atom never persists the credential.
-- **Multi-actor attestation.** Witness signatures, m-of-n approvals, co-signed contracts, dual-control workflows — each [Attest] call records one actor's binding. Multi-actor schemes compose with a Witness / Co-signature pattern.
-- **Retroactive credential revocation.** As discussed above, attestations are immutable; reinterpretation under compromise belongs to Compromise Disclosure.
-- **Tamper-evidence on the attestation store.** The bare atom assumes the attestation store has not been rewritten by an adversary with write access. Cryptographic hash chains, Merkle trees, and timestamp-authority anchoring belong to a Tamper Evidence composing pattern. (Many credential mechanisms — qualified signatures, blockchain-anchored attestations — provide tamper-evidence as a side effect; the atom does not require it but composes naturally with it.)
-- **Time-of-attestation veracity.** [Attested At] is stamped from the injected clock at the seam (see Inputs and Behavior); clock *access* is confined to the seam, but clock *quality* — whether that clock is honest, monotonic, or synchronized — is handled at the deployment layer. Trusted timestamping (RFC 3161 — the Internet standard, "Request for Comments" document 3161, defining a trusted time-stamping protocol) is a composing pattern that supplies a verifiable time-anchor.
-- **Action-content immutability.** The atom binds [Action Ref], not action content. If the action's content can be mutated after attestation (an editable document, a modifiable transaction record), the binding loses meaning. The host pattern is responsible for either binding to immutable content (e.g., a content hash) or composing with a Content Lock pattern.
-- **Cross-system identity portability.** [Actor Ref] is opaque to the atom; portability across trust domains (federated identity, cross-organizational verification) belongs to an Identity Federation pattern.
-- **Group attestations, pseudonyms, anonymous credentials.** Single actor reference per [Attestation]. Group signatures, ring signatures, and selective-disclosure credentials are separate concepts.
-- **Verification result caching.** [Verify] is read-only and idempotent under fixed registry state, but the atom does not specify whether implementations may cache the result. Caching is implementation policy; a stale cache under a registry change is handled at the deployment layer.
-- **Certificate revocation status.** For attestations using X.509 (the standard format for public-key certificates) certificate-based credentials, verification may require determining whether the certificate was revoked at or before [Attested At]. OCSP (Online Certificate Status Protocol — a way to check in real time whether a certificate has been revoked) stapling embeds the revocation status proof in the credential mechanism and keeps verification self-contained (satisfying Invariant 6); without stapling, the verifier must query a live OCSP responder or CRL (Certificate Revocation List — a published list of revoked certificates) distribution point, which introduces an out-of-band dependency that weakens Invariant 6. Short-lived certificates that expire before revocation is likely also satisfy self-containment. The credential mechanism choice — stapling, live revocation check, or short-lived certificates — is handled at the deployment layer; the atom's self-containment invariant holds for mechanisms that embed revocation status in the [Proof] and must be noted as conditional for mechanisms that rely on external revocation services at verify time.
-- **Attestation store durability.** [Attest] writes a new record as a single atomic operation; a write failure after credential validation returns [Storage Failure] with no partial record in the store. Durability across crashes, replication lag, and storage-engine failure is implementation-owned. High-assurance deployments should compose with a Write-Ahead Log or equivalent mechanism to ensure that a [Storage Failure] response and the absence of a persisted record are consistent.
+### Conformance checks
 
-Where the atom breaks down: when *authorization* cannot be reduced to a single actor (truly anonymous attestation in regulated contexts is a contradiction in terms); when the credential mechanism cannot produce a verifiable proof (shared secrets where anyone with the secret could forge an attestation); when the host environment has no actor registry the verifier can consult.
+```text
+Check 1.1: An auditor MUST reconstruct EVERY attestation from the attestation's stored fields (Invariant 1.1, State 3).
+Check 1.2: An auditor MUST NOT need state beyond those fields and the registry's public material (Invariant 6.1, Invariant 6.2).
+Check 2.1: An auditor MUST verify an attestation without privileged access to the system (Invariant 6.1, Operation 21).
+Check 3.1: An auditor MUST confirm that the proof holds against the recorded action_ref and against no other action (Invariant 2.1, Invariant 2.2).
+Check 3.2: An auditor MUST confirm that the proof holds against the recorded actor_ref and against no other actor (Invariant 3.1, Invariant 3.2).
+Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
+Check 4.2: An auditor MUST read proof-invalid, actor-unknown-in-registry and registry-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
+Check 5.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
+```
 
----
+NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove who authorized this action?* — never the developer's intuition.
+
+## Non-goals
+
+```text
+Non-goal 1: The atom MUST NOT register an actor.
+Non-goal 2: The atom MUST NOT retire an actor.
+Non-goal 3: A deployment MUST compose an actor-registry pattern for the actor's lifecycle.
+Non-goal 4: The atom MUST NOT authenticate an actor.
+Non-goal 5: The atom MUST NOT decide whether an actor was permitted to take an action.
+Non-goal 6: A deployment needing permission MUST compose [Permissions](./permissions.md).
+Non-goal 7: The atom MUST NOT manage a credential.
+Non-goal 8: The atom MUST NOT record two actors on one attestation.
+Non-goal 9: The atom MUST NOT invalidate an attestation under a later compromise.
+Non-goal 10: The atom MUST NOT detect a rewrite of the attestation store.
+Non-goal 11: A deployment needing a tamper-evident store MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 12: The atom MUST NOT vouch for the clock.
+Non-goal 13: The atom MUST NOT bind the action's content.
+Non-goal 14: A host whose action content is mutable MUST bind an immutable reference.
+Non-goal 15: The atom MUST NOT carry an actor_ref across trust domains.
+```
+
+WHY:
+Authentication produces the credential this atom consumes, and authorization asks a different question entirely — *could* they, rather than *did* they; the atom answers the second and composes for the first (Non-goal 4–6). One attestation is one actor's binding: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)*, which is a pattern over attestations rather than a bigger attestation (Non-goal 8). The store is assumed unrewritten, which is exactly what [Tamper Evidence](./tamper-evidence.md) supplies; many credential mechanisms give it as a side effect and the atom requires none of them (Non-goal 10, Non-goal 11). Binding a mutable action is the quiet failure: the proof stays valid while the content it was supposed to attest to changes underneath, which is why the host binds a content hash or composes a Content Lock pattern *(forthcoming)* (Non-goal 13, Non-goal 14).
+
+Where the atom breaks down: when authorization cannot be reduced to one actor — truly anonymous attestation in a regulated context is a contradiction; when the credential mechanism cannot produce a verifiable proof — a shared secret anyone holding it could forge with; when the deployment has no actor registry a verifier can consult.
+
+## Edge cases
+
+### The registry's view moves
+
+```text
+Registry view 1: A rotation of an actor's public material MAY turn a verified attestation into a failing one.
+Registry view 2: The actor registry MUST own whether historical public material is kept.
+Registry view 3: A deployment whose old attestations must keep verifying MUST retain the historical public material.
+```
+
+WHY:
+Audit Trail's long-lived attestations are the case: an attestation made years ago verifies under the key of its day, and a registry that keeps only current material silently converts every one of them into `proof-invalid` — indistinguishable, to a reader, from tampering (Registry view 3).
+
+### Revocation status at verify time
+
+```text
+Revocation status 1: A credential mechanism MAY carry the revocation status inside the proof.
+Revocation status 2: A mechanism carrying the revocation status inside the proof MUST keep [Verify] self-contained.
+Revocation status 3: A deployment MUST NOT read a mechanism resting on a live revocation service as self-contained.
+Revocation status 4: The deployment MUST own the mechanism choice.
+```
+
+WHY:
+Stapled status and short-lived credentials both satisfy Invariant 6.1; a live status query at verify time introduces the out-of-band dependency the invariant exists to exclude, and the honest thing is to say so in the deployment's own record rather than to claim the invariant anyway (Revocation status 3).
+
+### Attestation store durability
+
+```text
+Attestation durability 1: [Attest] MUST write EXACTLY ONE record per successful call.
+Attestation durability 2: The implementation MUST own durability across a crash.
+Attestation durability 3: A high-assurance deployment MUST compose a durability mechanism.
+Attestation durability 4: A storage-failure MUST agree with the absence of a persisted record.
+```
+
+### Verification caching
+
+```text
+Verification caching 1: An implementation MAY cache a verification result.
+Verification caching 2: An implementation MUST NOT cache a verification result across two registry views.
+```
+
+WHY:
+[Verify] is deterministic under a fixed registry view (Invariant 7.1), so a cache is sound exactly while the registry does not move — and a cache that outlives a rotation or a revocation reports *verified* for an attestation the registry would now fail.
+
+## Composition notes
+
+```text
+Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Composition note 2: A composing pattern MUST carry the attestation_id alongside the record the attestation attributes.
+Composition note 3: A composing pattern MUST trust a recorded actor field ONLY IF [Verify] answers verified.
+Composition note 4: A composing pattern MUST own the retention of an attestation.
+Composition note 5: This atom's invariant numbers MUST stand as a frozen contract surface.
+```
+
+WHY:
+This atom is the attribution surface the rest of the corpus rests on rather than re-inventing: [Provisional Commitment](./provisional-commitment.md) attests each transition, [Event Log](./event-log.md) carries an attestation_id in the payload, [Permissions](./permissions.md) pairs every grant and revoke with one — formalized as [Attributed Permissions Admin](../compositions/attributed-permissions-admin.md) — and [Authenticated Actor](../compositions/authenticated-actor.md) wires this atom to [Credential](./credential.md) under one principal, owning the revocation cascade and the namespace binding neither atom specifies alone. The regulated-audit stack is [Event Log](./event-log.md), this atom, [Retention Window](./retention-window.md) and [Tamper Evidence](./tamper-evidence.md), wired by [Audit Trail](../compositions/audit-trail.md), which cites this atom's Invariants 1, 6 and 9 by number — so these numbers are a frozen contract surface (Composition note 5), additive growth is forward-compatible, and the rule against renumbering is the grammar's (`GRACE-lang.md` Hard invariant 26). Forthcoming: Actor Registry, Compromise Disclosure, Witness, Trusted Timestamping.
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its card here. A card states what the concept *is*, in plain English, plus its **Kind** — one of four: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A card also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A card carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the atom above.)*
+Each `[Term]` marker above links to its card here; a card states what the concept *is* and its **Kind**.
+
+### Vocabulary
+
+Terms › `actors`: the atom; the host; the transition; the implementation; the deployment (also: a high-assurance deployment); a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an actor; the actor registry; the attestation store; a credential mechanism (also: a mechanism); an attestation; a rotation; a proof.
+
+Terms › `records`: `attestation` — one binding, carrying `attestation_id`, `action_ref`, `actor_ref`, `proof` and `attested_at`.
+
+Terms › `record verbs`: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, identify, declare, trust, renumber, add, agree, fail.
+
+Terms › `value sets`: attest answers = attestation_id | rejected(invalid-request | invalid-credential | storage-failure). verify answers = verified | failed-verification(proof-invalid | actor-unknown-in-registry | registry-unavailable) | not-known. `registry answer` = material | unknown-actor | unreachable. `proof check` = held | failed. `attestation field` = attestation_id | action_ref | actor_ref | proof | attested_at.
+
+Terms › `bounds`: empty.
+
+Terms › `cadences`: empty.
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12); `uncompromised` — a credential no disclosure names as compromised at or before the instant in question.
+
+Terms › `terms`: `now`, `verification set`, `durability mechanism`, `attestation`, `attestation_id`, `action_ref`, `actor_ref`, `seam`, `transition`, `business caller`, `attested`, `proof`, `attested_at`, `credential`, `public material`, `attestation field`, `registry answer`, `proof check`.
 
 #### Attestation
 
@@ -391,26 +549,6 @@ Projects:  storage-failure
 
 ---
 
-## Composition notes
-
-Actor Identity is freestanding and is the non-repudiation contract that several other atoms reference:
-
-- **[Provisional Commitment](./provisional-commitment.md)** — every [Place Hold](./provisional-commitment.md#place-hold), [Confirm](./provisional-commitment.md#confirm), [Release](./provisional-commitment.md#release), and [Expire](./provisional-commitment.md#expire) produces an [Attestation]; the commitment's audit trail includes [Attestation Id]s alongside per-transition timestamps. This is the non-repudiation composition Provisional Commitment's commit history anticipated.
-- **[Event Log](./event-log.md)** — every appended event carries an [Attestation Id] in its payload (or as a structured sidecar); readers verify before trusting the recorded `actor` field. Event Log's existing edge case naming Actor Identity as forthcoming is now resolved by this atom.
-- **[Permissions](./permissions.md)** — every [Grant](./permissions.md#grant) and [Revoke](./permissions.md#revoke) is paired atomically with an [Attestation] under the issuing actor's [Credential]; the records alone answer *"who granted this access, when, and under what credential?"* The **[Attributed Permissions Admin](../compositions/attributed-permissions-admin.md)** composition is the formalization of this wiring, with eight emergent invariants (attribution completeness, revocation attribution, attestation-time monotonicity, attestation exclusivity, orphan-log durability, and more) and a dynamic Alloy (a formal modeling language for checking structural and temporal properties of a design) trace model verifying its temporal claims. This is the bottom rung on which Authorization / RBAC and Delegation compose without re-inventing the attribution surface.
-- **Actor Registry / Identity Provisioning** *(forthcoming)* — supplies the public material [Verify] consults and the actor lifecycle (registration, key rotation, suspension, revocation).
-- **[Credential](./credential.md)** — produces the [Credential] the atom consumes. Credential answers *"did the right material arrive?"*; Actor Identity answers *"who authorized this action and can you prove it?"* The two atoms are distinct freestanding atoms sharing the same `principal_ref` / [Actor Ref] namespace. Their relationship — cascade on revocation, permitted interchangeability of secret material, audit identity unification — is owned by the **[Authenticated Actor](../compositions/authenticated-actor.md)** composition. See `demos/attributed-permissions-admin/CORNERS.md` §Cross-atom identity surface aliasing for the implementation-discovered gap that surfaces the need for that composition.
-- **[Authenticated Actor](../compositions/authenticated-actor.md)** — wires Credential and Actor Identity under a single principal, owning the three invariants neither atom currently specifies: revocation cascade, secret surface separation, and `principal_ref` / [Actor Ref] namespace binding.
-- **Authorization / RBAC** *(forthcoming)* — combines what an actor *can* do with what they *did do*. Attestation answers the second; authorization answers the first.
-- **Compromise Disclosure** *(forthcoming)* — handles retroactive credential invalidation by producing reinterpretation records, never by mutating the attestation store.
-- **Witness / Co-signature** *(forthcoming)* — multi-actor attestations (m-of-n approval, dual control, qualified witness signatures).
-- **[Tamper Evidence](./tamper-evidence.md)** — cryptographic chaining (or Merkle-tree commitment, or external anchoring) of the attestation store, so that any rewrite of recorded attestations is detectable from the records alone.
-- **Trusted Timestamping** *(forthcoming, per RFC 3161)* — verifiable time-anchor for [Attested At].
-
-The canonical regulated-audit stack composes [Event Log](./event-log.md) + Actor Identity + [Retention Window](./retention-window.md) + [Tamper Evidence](./tamper-evidence.md) as four freestanding atoms; the **[Audit Trail](../compositions/audit-trail.md)** composition is the wiring.
-
----
-
 ## Standards references
 
 Actor Identity is a foundational compliance primitive with deep regulatory anchoring:
@@ -435,20 +573,6 @@ It inherits from:
 
 ---
 
-## Generation acceptance
-
-A derived implementation of Actor Identity is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the attestation store plus the composing actor registry's public material, can do all of the following without recourse to source code, runbooks, or developer narration:
-
-- **Reconstruct any attestation from its stored fields.** [Attestation Id], [Action Ref], [Actor Ref], [Proof], [Attested At] are sufficient for the verifier; no additional state is consulted at verify time beyond the registry's public material.
-- **Verify each attestation independently.** [Verify] is a function of the [Attestation] and the registry's current view of the actor. The auditor can run verification themselves with no privileged access beyond the public material.
-- **Confirm action binding and actor binding.** The [Proof] verifies against the recorded [Action Ref] and [Actor Ref], and only against those (Invariants 2 and 3).
-- **Distinguish the three verify outcomes.** [Verified], [Failed Verification], and [Not Known] are observable as distinct first-class results, not collapsed into a single boolean.
-- **Identify the composing patterns active in this deployment.** Whether actor registry, authentication mechanism, witness scheme, compromise disclosure, tamper evidence, and trusted timestamping are wired in, with what configuration.
-
-This is the generator's contract: any code generated from this atom must produce attestations and a verification surface that pass the five checks above. The bar is the regulator's question — *"can you prove who authorized this action?"* — not the developer's intuition.
-
----
-
 ## Status
 
 `grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
@@ -466,3 +590,7 @@ open: none
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`.
+
+- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the two actions as a signature block, the verify precedence carried by each rule's own condition rather than by the order the rules sit in, the nine invariant numbers frozen exactly as Audit Trail cites them, Generation acceptance moved ahead of Non-goals as `spec-format.md` requires, Non-goals and Edge cases as two sections, the case table kept beside the rules. *Over:* the prose spec. *Because:* the migration plan takes the atoms the migrated compositions already cite first — Audit Trail cites this atom's Invariants 1, 6 and 9 (`tools/grace/cites.py --into actor-identity`).
+
+NOTE: End of Actor Identity.

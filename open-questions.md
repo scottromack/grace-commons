@@ -139,6 +139,23 @@ The language grows by Principle 2: a form is admitted only when its concept recu
 
 **Trigger to resolve the two that remain:** the first rewritten spec whose acceptance checks need a violation class `obey` does not name; and the first council finding a checker could have made, which is the parser's first slice.
 
+### GRACE lang — the classes the migration is accumulating *(added 2026-09-12)*
+
+The rolling fixes cure a finding one document after it is raised; what they cannot cure is a *class* — a shape that recurs across specs and belongs to the grammar rather than to any one of them. Each of these carries the recurrence count Principle 2's first half asks for; each is waiting on the second half, a finding against the class itself, and on the maintainer's decision (Principle 8). They are counted in [`GRACE-lang.md`](./GRACE-lang.md) §18's watch list and listed here because §18 is a counting ledger, not a docket.
+
+| Class | Count | What it is | What would decide it |
+|---|---|---|---|
+| **The card grammar** | 9 specs | `Kind`, `Member of`, `Field of`, `Parameter of`, `Role`, `Projects:`, `Wire: pinned` — the whole type lattice, rendered as reader sugar on the *nothing* surface, drifting per document. `Kind` cannot tell a stored field from a derived projection from a pinned wire literal. | A declared form, or a ruling that the cards stay prose and the drift is acceptable. The wire layer the watch list counts is a subset of this question (CR-9 – CR-12). |
+| **The total read** | 5 specs | A query that refuses nothing, because a malformed argument has a correct answer rather than an error — Duplicate Prevention's check, Lease's remaining, Actor Identity's and Tamper Evidence's verify, Subscription's two queries, which is the first spec to state the principle. | Whether *total* is a property the grammar can carry on an action, or stays a per-spec WHY (CR-12). |
+| **The degenerate bound** | 4 instances | An inequality or bound whose two readings make different rules real: Lease's `less`, Duplicate Prevention's `window`, Retention Window's deleted Invariant 6.3 and its `degenerate duration`, Lease's arrival-term boundary. | A named check, or a declared form for a bound that must strictly advance something (CR-11). |
+| **The auditor's vocabulary** | every regulated spec | Generation acceptance needs verbs an atom's own rules never use — find, reproduce, compute, reconstruct, confirm. Nothing owns the split between what an atom does to records and what an auditor does with them. | The generation run: an implementer becomes the auditor, and these verbs become the test language (CR-11). |
+| **A label family recurring across specs** | `Clock semantics` in 5 | A family outside the standard set, carrying different rules in each spec, with nothing diffing them (`tools/grace/cites.py --drift`). | Whether the standard set grows by recurrence alone, or a family stays local until contested (CR-10). |
+| **Multiplicity polarity** | 7 atoms | Every atom answers *does this concept admit more than one record over its key, and what does a duplicate mean?* — Subscription at-most-one per pair, Tamper Evidence many and unordered, Retention Window many gated per-retention, Actor Identity many with fresh ids, Personal Todo one description per active set, Duplicate Prevention one stamp, Permissions many grants. Answered locally seven times, never declared as a shared question — and it is the axis a composition's load-bearing wiring decision turns on. | A declared question every atom answers in its Identity model, or a ruling that polarity stays local (CR-13). |
+| **Checks resting on unowned invariants** | 2 specimens | A Generation acceptance check that leans on a property the spec does not hold: Subscription's *exact* timeline reconstruction over a best-effort timestamp, Tamper Evidence's forensic bound over a clock it refuses to vouch for. Both were repaired by softening the check or moving it to External checks — the class is the pattern, not the instances (CR-12, CR-13). | Whether a check must name an invariant of its own spec, which `cites.py --unchecked` half-answers from the other side. |
+| **Addressable sections** | first specimen | A rule or card citing a *section* rather than a label — Subscription's Subscription Id card cited a `Configuration` section no atom shape carries. Labels resolve; sections do not (CR-12). | A form for naming a section, or a rule that a citation must name a label. |
+
+**Trigger to resolve any of these:** a finding *against the class* — two specs that disagree because the class has no owner, rather than two specs that merely share a shape. Recurrence alone is half of Principle 2, and the half that admits noise.
+
 ---
 
 ## Generated index (planned, not built)

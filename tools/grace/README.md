@@ -27,6 +27,7 @@ Standard library only. One finding per line, `path:line: [CODE] message`. Non-ga
 | **X-ref** | A reference to a label, by one of the spec's own label names, that no rule carries (Hard invariant 12). A heading-numbered group — `Invariant 2`, `Check 5` — counts as carried when a rule under it exists; another spec's `Invariant N` is left to the corpus linter. |
 | **D-decl-modal / D-decl-selfref / D-decl-unresolved** *(advisory)* | What a declaration carries. A definition is not a rule, so a modal in one is an obligation in a definition's clothes (Closed vocabulary 12, Closed vocabulary 14); a definition that computes over itself, or over a datum the spec declares nowhere (Closed vocabulary 4). A declaration may carry the arithmetic a rule may not (Closed vocabulary 9, Closed vocabulary 11), which is where complexity goes when a rule cannot hold it — and, until these landed, the one place nothing read. |
 | **K-check-bare** *(advisory)* | A `Check` or `External check` rule naming no rule. The auditor is the last reader nobody audits: a check whose failure nobody can state passes forever, and Lease's Check 6.1 was vacuous against the very rule it rested on for a day (CR-8). Landed 2026-09-11 against a baseline of 83, most of them checks citing an invariant in prose rather than by label. |
+| **E-not-exclusive** *(advisory)* | An `EXACTLY ONE OF` whose members are not exclusive — one member containing another, so the exclusive choice does not exclude (Earned vocabulary 4). Two instances on file before it landed, both in a self-containment invariant, both repaired by declaring the set as a term (CR-9, CR-13). |
 | **W-or-word / W-watch-word / W-term-unused** *(advisory)* | A lower-case `or` inside an obligation; `after`, `before`, `until`, `while`, `unless` inside a rule (§18's watch list); a `Terms ›` declaration nothing uses. |
 
 A code span inside a rule is read as quoted text, never as the rule's own tokens — the grammar's meta-rules mention the tokens they govern (`GRACE-lang.md` §18, provisional).
@@ -37,10 +38,28 @@ A code span inside a rule is read as quoted text, never as the rule's own tokens
 [`cites.py`](cites.py) walks it backward, which is the reading nobody was doing:
 
 ```
-python3 tools/grace/cites.py 'Fence 5'          # what rests on this rule
-python3 tools/grace/cites.py 'fence'            # what rests on this term
-python3 tools/grace/cites.py --changed HEAD~1   # what a commit's edits re-open
+python3 tools/grace/cites.py 'Fence 5'            # what rests on this rule
+python3 tools/grace/cites.py 'fence'              # what rests on this term
+python3 tools/grace/cites.py --changed HEAD~1     # what a commit's edits re-open
+python3 tools/grace/cites.py --into event-log     # what the corpus cites INTO a spec
+python3 tools/grace/cites.py --terms seam         # every declaration of one name
+python3 tools/grace/cites.py --queue              # unmigrated specs, most-cited first
+python3 tools/grace/cites.py --drift              # one name declared two ways; families spread across specs
+python3 tools/grace/cites.py --unchecked <spec>   # rules no check names
 ```
+
+`--into` is the pre-flight for rewriting a spec: a label the corpus cites is a
+label that keeps its number. `--terms` answers the drift question — one name,
+several declarations, and a reader of two specs reads both (CR-9 found `seam`
+declared seven ways). `--queue` orders the migration by who is cited most,
+which is how the corpus schedules its own work. `--drift` sweeps across Terms
+registries — the space between documents, where the corpus's error mass moved
+once the interiors got clean (CR-10). `--unchecked` is `K-check-bare`'s inverse: a check naming no rule is one
+failure, a rule no check names is the other, and an unchecked *invariant* is the
+one worth reading — a claim about every reachable state that nothing tests
+(CR-11). Like the rest of the walker it names a
+reading, not a defect: two specs may mean different things by one word and be
+right, and the human decides which.
 
 A rule rests on a label it cites and on every term it uses; a term rests on the
 terms its own definition computes over, walked to the end of the chain. Rules

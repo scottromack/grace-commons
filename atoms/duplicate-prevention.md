@@ -101,13 +101,13 @@ The case space, and the rule that owns each case:
 
 A failed store write sits outside the table: [Record] still answers `ok`, and the guard is missed rather than refused (Record failure 1–3).
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition — a [Now].
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `transition`: the atom's evaluation of one call against the recorded set.
+Terms › `transition`: the atom's evaluation of one call against the recorded set, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `seam`: the atom's single boundary with the world, where the host reads the clock (`execution-contract.md` §Logic confinement).
+Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading here.
 
-Terms › `business caller`: the party whose action carries the identity.
+Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
 WHY:
 Both calls are total. The containing pattern has already acted when it records — the item is already removed, the charge already made — so a refusal would have nothing to roll back, and a failed write is a liveness miss rather than a safety violation (Operation 4, Record failure 1–3). [Check] reads and nothing else, which is what makes asking twice safe (Invariant 3.1). The clock is read once, at the seam, and handed in: a transition reading a clock of the transition's own would answer two ways for one input (Operation 8, Operation 9). What a `seen` answer means — reject, absorb, replay a cached result — is the containing pattern's to decide, and the atom is useful across four domains because the atom never decides it (Operation 12).
@@ -143,7 +143,7 @@ Both calls are total. The containing pattern has already acted when it records �
 
 A user deletes *"buy milk."* Personal Todo calls [Record] with `"buy milk"`. Two hours later, the user attempts to add *"buy milk"* again. Personal Todo calls [Check] with `"buy milk"`, receives [Seen], rejects the add as `duplicate-recent`. Twenty-five hours after the original delete, the user tries again. Personal Todo calls [Check] with `"buy milk"`, receives [Not Seen], accepts the add.
 
-(`duplicate-recent` is shown verbatim by design: it is Personal Todo's pinned rejection string — a Member of *that* pattern's outcome, its wire form frozen because callers switch on the exact string. It is not this atom's Term; when Personal Todo carries a Terms registry it becomes a cross-page reference to that pattern's card. Per [`annotation.md`](../working-ideas/annotation.md), a pinned wire literal shown to display its exact form stays backticked — "literal" is a pinned projection, not a kind.)
+(`duplicate-recent` is shown verbatim by design: it is the **composing pattern's** pinned rejection string — neither this atom's nor Personal Todo's, since neither raises it; it exists only where the two are wired together, and its wire form is frozen because callers switch on the exact string. It is not this atom's Term; when Personal Todo carries a Terms registry it becomes a cross-page reference to that pattern's card. Per [`annotation.md`](../working-ideas/annotation.md), a pinned wire literal shown to display its exact form stays backticked — "literal" is a pinned projection, not a kind.)
 
 ### Comment double-post protection (60-second window)
 
