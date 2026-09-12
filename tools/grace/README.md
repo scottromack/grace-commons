@@ -8,6 +8,8 @@ python3 tools/grace/check.py <paths...>      # named files
 python3 tools/grace/check.py --gate          # exit 1 on any non-advisory finding
 ```
 
+Both tools read one whitelist: a spec is scanned when its `Terms › qualifiers` line declares `migrated`. Nothing is inferred from the presence of a fence, so an unmigrated spec that grows one is not suddenly held to the language.
+
 Standard library only. One finding per line, `path:line: [CODE] message`. Non-gating by default — landed 2026-09-11 against a corpus of three migrated documents, and it starts by measuring, not defending (the linter's rule for a new check, `tools/linter/README.md` §Advisory codes).
 
 | Code | What it reads |

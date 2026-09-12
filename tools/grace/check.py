@@ -34,6 +34,7 @@ LABEL = re.compile(r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d�
 LABEL_PARTS = re.compile(r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 PREFIX = re.compile(r"^(WHY|NOTE|UX|PROVISIONAL):")
 FENCE = re.compile(r"^(\s*)```(\w*)\s*$")
+MIGRATED = re.compile(r"^Terms › `qualifiers`:[^\n]*`migrated`", re.M)
 TERM_DECL = re.compile(r"^\s*Terms › `([^`]+)`:\s*(.*)$")
 MODAL = re.compile(r"\b(MUST NOT|MUST|MAY)\b")
 TOMBSTONE = re.compile(r"^NOTE:\s*((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?)\s+deleted\b")
@@ -460,7 +461,8 @@ def main(argv: list[str]) -> int:
         paths = [root / "GRACE-lang.md"]
         for d in ("atoms", "compositions"):
             for p in sorted((root / d).glob("*.md")):
-                if "```text" in p.read_text(encoding="utf-8"):
+                # a spec declares itself migrated; a stray fence is not a claim
+                if MIGRATED.search(p.read_text(encoding="utf-8")):
                     paths.append(p)
     findings: list[Finding] = []
     for p in paths:

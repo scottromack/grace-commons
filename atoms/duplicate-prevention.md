@@ -248,7 +248,7 @@ Terms › `bounds`: `window duration` (the length a containing pattern chooses f
 
 Terms › `cadences`: empty.
 
-Terms › `qualifiers`: `under guard` — recorded, and the guard's term not yet elapsed.
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `under guard` — recorded, and the guard's term not yet elapsed.
 
 Terms › `terms`: `identity`, `matching rule`, `recorded set`, `recorded_at`, `window duration`, `elapsed term`, `under guard`, `now`, `transition`, `seam`, `business caller`.
 

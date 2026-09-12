@@ -413,7 +413,7 @@ Terms › `actors`: (every subject in this document, agent or not) the grammar; 
 
 Terms › `record verbs`: decide, contain, admit, recur, satisfy, live, state, read, parse, create, alter, infer, generate, regenerate, discard, write, obey, ignore, carry, use, stand, pass, route, mix, nest, normalize, name, restate, resolve, cite, declare, acquire, redeclare, renumber, reuse, enumerate, reject, lower, report, treat, assume, keep, express, mark, shorten, add, accept, supply, earn, belong, cover, classify, claim, qualify, give, match, place, bind, reserve, compare, land.
 
-Terms › `qualifiers`: `ratified` — accepted into §21 by Principle 2; `migrated` — rewritten in this language.
+Terms › `qualifiers`: `ratified` — accepted into §21 by Principle 2; `migrated` — rewritten in this language, declared by the spec's own `qualifiers` line as `` `migrated` — rewritten in GRACE lang vN (date) ``, which is how a tool tells a migrated spec from an unmigrated one without guessing from a fence.
 
 Terms › `records`: empty.
 

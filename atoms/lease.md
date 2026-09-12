@@ -238,7 +238,7 @@ Terms › `bounds`: `duration` (the term a take asks for); the allowance; the fe
 
 Terms › `cadences`: empty.
 
-Terms › `qualifiers`: empty.
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11).
 
 Terms › `terms`: `key`, `holder`, `lease state`, `question`, `waiting term`, `remaining term`, `arrival term`, `asking party`, `the holder`, `fence`, `fence ceiling`, `effect instant`, `allowance`, `fenced party`, `fence margin`, and `expires_at` ([Expires At]).
 

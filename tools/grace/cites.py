@@ -32,6 +32,7 @@ LABEL = re.compile(
     r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?):\s*(.*)$")
 TERM_DECL = re.compile(r"^\s*Terms › `([^`]+)`:\s*(.*)$")
 FENCE = re.compile(r"^\s*```(\w*)")
+MIGRATED = re.compile(r"^Terms › `qualifiers`:[^\n]*`migrated`", re.M)
 NAME_NUM = re.compile(r"( step [\d½]+(?:\.\d+[a-z]?)?| \d+(?:\.\d+)?[a-z]?)$")
 
 
@@ -128,6 +129,67 @@ def reopened_by(spec: Spec, seeds: set[str]) -> dict[str, set[str]]:
     return out
 
 
+def spec_name(path: Path) -> str:
+    """A spec's name as Hard invariant 28 writes it: the file stem, spaced."""
+    if path.name == "GRACE-lang.md":
+        return "GRACE-lang"
+    return " ".join(w.capitalize() for w in path.stem.split("-"))
+
+
+def across(specs: list[Spec], seeds: dict[Path, set[str]]) -> dict[str, list[str]]:
+    """Rules in other specs that cite a changed rule by the cross-spec form —
+    `Tamper Evidence Invariant 1` (GRACE-lang Hard invariant 28). A citation
+    the corpus can make is a citation something has to walk."""
+    wanted: list[tuple[str, str]] = []
+    for path, labels in seeds.items():
+        name = spec_name(path)
+        for label in labels:
+            if label.startswith("`"):
+                continue
+            wanted.append((f"{name} {label}", path.name))
+            group = re.match(r"^(.*?) (\d+)\.\d+[a-z]?$", label)
+            if group:
+                wanted.append((f"{name} {group.group(1)} {group.group(2)}", path.name))
+    out: dict[str, list[str]] = {}
+    for spec in specs:
+        for label, text in spec.text_of.items():
+            for ref, _ in wanted:
+                if ref in text and spec_name(spec.path) != ref.rsplit(" ", 2)[0]:
+                    out.setdefault(ref, []).append(
+                        f"{spec.path.name}:{spec.rules[label]}: {label}")
+    return out
+
+
+CROSS_REF = re.compile(
+    r"(?<![\w-])([A-Z][A-Za-z-]*(?: [A-Z][A-Za-z-]*){0,3}) "
+    r"((?:[A-Z][a-z]+|[a-z_]+)(?: [a-z]+){0,2} \d+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
+
+
+def into(specs: list[Spec], target: str) -> dict[str, list[str]]:
+    """Every rule in the corpus citing the named spec, by cited label. Run it
+    before rewriting a spec: a label the corpus cites is a label that keeps its
+    number, or a citation that breaks silently (Hard invariant 28)."""
+    out: dict[str, list[str]] = {}
+    for spec in specs:
+        if spec_name(spec.path) == target:
+            continue
+        rule_lines = set(spec.rules.values())
+        for label, text in spec.text_of.items():
+            for m in CROSS_REF.finditer(text):
+                if m.group(1) == target:
+                    out.setdefault(m.group(2), []).append(
+                        f"{spec.path.name}:{spec.rules[label]}: {label}")
+        # a citation in prose carries no obligation and still sends a reader
+        for i, raw in enumerate(spec.path.read_text(encoding="utf-8").split("\n"), start=1):
+            if i in rule_lines:
+                continue
+            for m in CROSS_REF.finditer(raw):
+                if m.group(1) == target:
+                    out.setdefault(m.group(2), []).append(
+                        f"{spec.path.name}:{i}: (prose)")
+    return out
+
+
 def specs_with_rules(root: Path, paths: list[Path] | None) -> list[Spec]:
     if paths:
         candidates = paths
@@ -137,6 +199,10 @@ def specs_with_rules(root: Path, paths: list[Path] | None) -> list[Spec]:
     out = []
     for p in candidates:
         if not p.exists():
+            continue
+        text = p.read_text(encoding="utf-8")
+        # a spec says it is migrated; the tools never guess it from a fence
+        if p.name != "GRACE-lang.md" and not MIGRATED.search(text):
             continue
         spec = parse(p)
         if spec.rules:
@@ -196,9 +262,34 @@ def main(argv: list[str]) -> int:
 
     specs = specs_with_rules(root, paths)
     total = 0
+    if "--into" in argv:
+        i = argv.index("--into")
+        stem = argv[i + 1] if i + 1 < len(argv) else ""
+        target = spec_name(Path(stem if stem.endswith(".md") else stem + ".md"))
+        cited = into(specs_with_rules(root, None), target)
+        if not cited:
+            print(f"— nothing in the corpus cites {target} by label.")
+            return 0
+        print(f"{target}: {len(cited)} label(s) the corpus cites — each keeps its number")
+        for label in sorted(cited):
+            print(f"  {target} {label}  ← {len(cited[label])} site(s)")
+            for site in sorted(set(cited[label])):
+                print(f"      {site}")
+        return 0
     if rev:
+        seeds_by_path = {}
         for spec in specs:
-            total += report(spec, changed_seeds(root, rev, spec))
+            seeds = changed_seeds(root, rev, spec)
+            seeds_by_path[spec.path] = seeds
+            total += report(spec, seeds)
+        # a cited rule's own spec is never the whole blast radius
+        corpus = specs if paths is None else specs_with_rules(root, None)
+        elsewhere = across(corpus, seeds_by_path)
+        for ref in sorted(elsewhere):
+            print(f"cross-spec: {ref} changed — {len(elsewhere[ref])} to re-read")
+            for site in sorted(elsewhere[ref]):
+                print(f"  {site}")
+            total += len(elsewhere[ref])
         if total == 0:
             print(f"— nothing to re-read against {rev}.")
         else:
@@ -215,6 +306,11 @@ def main(argv: list[str]) -> int:
         if seed in spec.rules or seed.strip("`") in spec.terms:
             found = True
             total += report(spec, {seed})
+            elsewhere = across(specs, {spec.path: {seed}})
+            for ref in sorted(elsewhere):
+                print(f"cross-spec: {ref} — {len(elsewhere[ref])} to re-read")
+                for site in sorted(elsewhere[ref]):
+                    print(f"  {site}")
     if not found:
         print(f"— no rule or term named {seed}.")
         return 2

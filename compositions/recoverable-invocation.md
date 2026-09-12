@@ -1362,7 +1362,7 @@ Terms › `bounds`: `completion_bound`, `commit_round_trip`, `probe_round_trip`,
 
 Terms › `cadences`: `reconciliation_cadence`.
 
-Terms › `qualifiers`: empty.
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11).
 
 Terms › `terms`: (named expressions, each declared where it is used) `worst_closure`, `window_end`, `lease_spend`, `run_floor`, `closure_spend`, `examine_edge`, `abandon_edge`, `horizon_edge`, `at_risk_threshold`, `intent_age`, `settle_bound`, `retention_end`, `usable_term`, `sweep_lease`, `in-flight`, `aged`, `partition`, `examined`, `skipped`, `reported`, `surfaced`, `unreached`, `closed_already`, `standing closing`, `closings key`, `intents key`, `terminus`, `caller_kind`, `payload_match`, `quiescence`, `read path`, `read-your-writes`, `position's existing arm`, `journal_fence instant`, `commit_fence`, `section key`, `section holder`, `section duration`, `act finding`, `instance finding`, `act_key`, `invocation_id`, `now`, `operator_run_id`.
 
