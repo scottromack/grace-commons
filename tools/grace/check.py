@@ -39,11 +39,25 @@ TERM_DECL = re.compile(r"^\s*Terms › `([^`]+)`:\s*(.*)$")
 MODAL = re.compile(r"\b(MUST NOT|MUST|MAY)\b")
 TOMBSTONE = re.compile(r"^NOTE:\s*((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?)\s+deleted\b")
 PRONOUN = re.compile(r"\b(it|its|itself|they|their|them|he|she|his|her)\b")
+# The grammar's `pronoun` declaration also names this, that, these and those
+# standing alone, and names this file as what enforces them — it did not.
+# `that` is a relative in most rules and `this` a determiner, so only the two
+# that are almost always pronominal are detected, advisory, pending a smarter
+# rule (council read 24).
+DEMONSTRATIVE = re.compile(r"\b(these|those)\b")
+# Two detectors ported from Kimi's sweep parser (council read 24). A comparison
+# written in English rather than through EXCEEDS, =, !=, EXISTS or NOT EXISTS is
+# one the normalizer cannot read; most route through an admitted operator, and
+# the ones that cannot are the pressure §18 counts.
+COMPARATOR = re.compile(r"\b(past|longer than|shorter than|more than|fewer than|greater than|less than|short of|at most|at least|no longer|no earlier|no later|advance past)\b", re.I)
+# A modal outside the admitted three carries no obligation the parser can read.
+SOFT_MODAL = re.compile(r"\b(can|could|would|should|might)\b")
 ARITH = re.compile(r"[+×−]|\s-\s")
 MARKER = re.compile(r"\[([^\]\[]+)\]")
 CODE_SPAN = re.compile(r"`[^`]*`")
 SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
+            "W-two-obligations", "W-demonstrative", "W-comparator", "W-modal",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
 # F-prefix-first gates: a demoted rule is a deleted rule
@@ -327,6 +341,27 @@ def scan(path: Path) -> list[Finding]:
             add(r.line, "P-pronoun", f"{r.label}: pronoun in a rule (Hard invariant 4)")
         if re.search(r"\b(MUST NOT|MUST|MAY)\s+(be|is|are|been|being)\b", stmt):
             add(r.line, "C-copula", f"{r.label}: copula after the modal — no declared record verb (Closed vocabulary 8)")
+        cm = COMPARATOR.search(stmt) or COMPARATOR.search(cond)
+        if cm:
+            add(r.line, "W-comparator",
+                f"{r.label}: '{cm.group(1)}' is a comparison outside the condition "
+                f"operators — route it through EXCEEDS or a declared term")
+        sm = SOFT_MODAL.search(stmt) or SOFT_MODAL.search(cond)
+        if sm:
+            add(r.line, "W-modal",
+                f"{r.label}: '{sm.group(1)}' is not an admitted modal (MUST, MUST NOT, MAY)")
+        if DEMONSTRATIVE.search(stmt) or DEMONSTRATIVE.search(cond):
+            add(r.line, "W-demonstrative",
+                f"{r.label}: a demonstrative standing alone (Hard invariant 4's `pronoun` set)")
+        if verbs is not None:
+            mm2 = MODAL.search(stmt)
+            if mm2:
+                for am in re.finditer(r"\band\s+(\w+)", stmt[mm2.end():]):
+                    if am.group(1) in verbs:
+                        add(r.line, "W-two-obligations",
+                            f"{r.label}: a second declared record verb after 'and' — one "
+                            f"obligation per sentence (Rule shape 3, Hard invariant 5)")
+                        break
         if re.search(r"\b(until|while|unless)\b", stmt) or re.search(r"\b(after|before)\b", stmt):
             add(r.line, "W-watch-word", f"{r.label}: lower-case after/before/until/while/unless — an ordering or duration the tails do not carry (§18 watch list)")
         if verbs is not None:
