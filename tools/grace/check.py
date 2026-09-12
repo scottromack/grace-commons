@@ -25,10 +25,47 @@ forerunner of.
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+# the vocabulary's categories, derived from the grammar rather than held here:
+# check.py carried its own copy through v0.39 and recognized `cited` and
+# `composing patterns` two versions before Terms › `category` did (council read
+# 29). Deriving it means the grammar is the single authority (Authority 3) and
+# the two cannot drift again.
+_CATEGORY_LINE = re.compile(r"^Terms › `category`:(.+)$", re.M)
+
+def vocabulary_categories(grammar_path=None):
+    """The plural category names a Terms section may carry, from GRACE-lang.md."""
+    p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "GRACE-lang.md")
+    try:
+        m = _CATEGORY_LINE.search(open(p, encoding="utf-8").read())
+    except OSError:
+        m = None
+    if not m:
+        raise SystemExit(
+            "check.py: GRACE-lang.md carries no Terms › `category` line; the "
+            "category set has no authority to derive from (Closed vocabulary 2)")
+    names = re.findall(r"`([^`]+)`", m.group(1))
+    # a Terms line names its category in the plural; the value set names it singular
+    plural = {"actor": "actors", "record": "records", "record verb": "record verbs",
+              "value set": "value sets", "bound": "bounds", "cadence": "cadences",
+              "term": "terms", "qualifier": "qualifiers", "cited": "cited",
+              "composing pattern": "composing patterns"}
+    out = set()
+    for n in names:
+        if n not in plural:
+            raise SystemExit(
+                f"check.py: GRACE-lang.md declares the category `{n}`, which this "
+                "checker has no plural for; add it to the plural map")
+        out.add(plural[n])
+    return out
+
+VOCABULARY_CATEGORIES = vocabulary_categories()
+
 
 LABEL = re.compile(r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?):\s*(.*)$")
 LABEL_PARTS = re.compile(r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
@@ -424,8 +461,7 @@ def scan(path: Path) -> list[Finding]:
     # every name the spec declares anywhere: a Terms › name, a name inside a
     # vocabulary declaration (the records, bounds, cadences and value-set
     # lines), a signature block's action and argument names.
-    CATEGORIES = {"actors", "records", "record verbs", "value sets", "bounds",
-                  "cadences", "terms", "qualifiers", "composing patterns", "cited"}
+    CATEGORIES = VOCABULARY_CATEGORIES
     universe = set(decls)
     for name in decls:
         universe.update(DECL_TOKEN.findall(name))
@@ -595,7 +631,7 @@ def scan(path: Path) -> list[Finding]:
 
     # declared terms nothing uses (advisory)
     for name, k in declared_terms(text).items():
-        if name in {"actors", "records", "record verbs", "cited", "value sets", "bounds", "cadences", "qualifiers", "terms", "composing patterns"}:
+        if name in VOCABULARY_CATEGORIES:
             continue  # the vocabulary's own categories (Closed vocabulary 1, Closed vocabulary 2)
         pat = re.escape(name)
         # a declaration that mentions its own name is not a use of it
