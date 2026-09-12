@@ -199,8 +199,8 @@ Reassign is one commit and not a recall followed by an assign, which is the whol
   ```
 - **Invariant 8 — Timestamp ordering.**
   ```text
-  Invariant 8.1: assigned_at MUST NOT EXCEED recalled_at ONLY IF recalled_at EXISTS.
-  Invariant 8.2: assigned_at MUST NOT EXCEED transferred_at ONLY IF transferred_at EXISTS.
+  Invariant 8.1: IF recalled_at EXISTS THEN assigned_at MUST NOT EXCEED recalled_at.
+  Invariant 8.2: IF transferred_at EXISTS THEN assigned_at MUST NOT EXCEED transferred_at.
   Invariant 8.3: The atom MUST stamp EVERY timestamp once.
   ```
   WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (Clock semantics 1–3).

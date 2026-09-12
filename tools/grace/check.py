@@ -46,6 +46,7 @@ SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
+# F-prefix-first gates: a demoted rule is a deleted rule
 # A declaration may carry arithmetic and comparison where a rule may not
 # (Closed vocabulary 9, Closed vocabulary 11) — which is where complexity
 # goes when a rule cannot hold it, and the one place nothing read it.
@@ -194,10 +195,20 @@ def scan(path: Path) -> list[Finding]:
             add(start, "F-fence-empty", "empty ```text fence")
         elif PREFIX.match(first):
             # Surface 22: the prefix covers the whole block — not normative; labels inside are exemplars
+            labelled = 0
             for raw in block:
                 lm = LABEL.match(raw.strip())
                 if lm:
                     exemplars.add(lm.group(1))
+                    labelled += 1
+            # a tombstone or note written as a block's FIRST line silently demotes
+            # every rule under it — the edit that looks like an annotation and
+            # reads like a deletion (CR-15)
+            if labelled and TOMBSTONE.match(first):
+                add(start, "F-prefix-first",
+                    f"a tombstone opens this block, so its {labelled} labelled line(s) "
+                    f"carry no obligation — move the tombstone below the first rule "
+                    f"(Surface 18, Surface 22)")
         elif LABEL.match(first):
             stack: list[Rule] = []
             for k, raw in enumerate(block, start=start + 1):

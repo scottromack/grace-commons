@@ -191,9 +191,9 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
   ```
 - **Invariant 7 — Timestamp monotonicity.**
   ```text
-  Invariant 7.1: added_at MUST NOT EXCEED last_edited_at ONLY IF last_edited_at EXISTS.
-  Invariant 7.2: added_at MUST NOT EXCEED completed_at ONLY IF completed_at EXISTS.
-  Invariant 7.3: last_edited_at MUST NOT EXCEED completed_at ONLY IF last_edited_at EXISTS AND completed_at EXISTS.
+  Invariant 7.1: IF last_edited_at EXISTS THEN added_at MUST NOT EXCEED last_edited_at.
+  Invariant 7.2: IF completed_at EXISTS THEN added_at MUST NOT EXCEED completed_at.
+  Invariant 7.3: IF last_edited_at EXISTS AND completed_at EXISTS THEN last_edited_at MUST NOT EXCEED completed_at.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Clock semantics 1–3).
 - **Invariant 8 — Id stability.**

@@ -196,7 +196,7 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
   ```
 - **Invariant 9 — Timestamp ordering.**
   ```text
-  Invariant 9.1: subscribed_at MUST NOT EXCEED cancelled_at ONLY IF cancelled_at EXISTS.
+  Invariant 9.1: IF cancelled_at EXISTS THEN subscribed_at MUST NOT EXCEED cancelled_at.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Clock semantics 1–2).
 
