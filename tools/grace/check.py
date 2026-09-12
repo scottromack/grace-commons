@@ -472,6 +472,23 @@ def scan(path: Path) -> list[Finding]:
                 add(line_no, "K-check-bare",
                     f"{label} names no rule — a check whose failure nobody can state (CR-8)")
 
+    # a vocabulary category listing one name twice: the template ships with a
+    # repeating defect and every spec inherits it (CR-16)
+    for name, k in declared_terms(text).items():
+        if name not in {"record verbs", "terms"}:
+            continue
+        body = TERM_DECL.match(lines[k - 1]).group(2)
+        seen_here: dict[str, int] = {}
+        for piece in re.split(r"[;,]", CODE_SPAN.sub(" ", body)):
+            w = piece.strip().strip(".").strip()
+            if not w or " " in w and name == "record verbs":
+                continue
+            seen_here[w] = seen_here.get(w, 0) + 1
+        dupes = sorted(w for w, n in seen_here.items() if n > 1 and w)
+        if dupes:
+            add(k, "V-dup-vocab",
+                f"Terms › `{name}` lists {', '.join(dupes)} twice (Closed vocabulary 1)")
+
     # declared terms nothing uses (advisory)
     for name, k in declared_terms(text).items():
         if name in {"actors", "records", "record verbs", "cited", "value sets", "bounds", "cadences", "qualifiers", "terms", "composing patterns"}:

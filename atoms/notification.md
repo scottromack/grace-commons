@@ -17,161 +17,214 @@ toc: true
 
 ## Summary
 
-Notification records whether a single piece of information actually reached a single recipient. Where Subscription records who wants to know about a class of events, Notification records the outcome of one delivery. It creates a permanent, unchangeable record of a delivery attempt and tracks it to one of three end states: [Delivered] (the transport layer confirmed receipt), [Failed] (the transport returned a definite error), or [Expired] (the delivery window ran out with no recorded outcome). These are kept as three distinct states because each answers a different question and is handled by a different part of the system — the delivery layer, the failure handler, the expiry scheduler. The pattern does not decide who should be notified or how to reach them; by the time it is asked to create a record, the recipient and the content are already settled. Nothing is ever deleted, so the full delivery history of any notification is always recoverable. This is what underlies delivery audit trails in regulated settings, and it is the substrate for retry logic, which records each retry as a new notification rather than altering the failed one.
+Notification records whether a single piece of information was accepted by the transport for a single recipient. Where Subscription records who wants to know about a class of events, Notification records the outcome of one delivery. It creates a permanent, unchangeable record of a delivery attempt and tracks it to one of three end states: [Delivered] (the transport layer confirmed receipt), [Failed] (the transport returned a definite error), or [Expired] (the delivery window ran out with no recorded outcome). These are kept as three distinct states because each answers a different question and is handled by a different part of the system — the delivery layer, the failure handler, the expiry scheduler. The pattern does not decide who should be notified or how to reach them; by the time it is asked to create a record, the recipient and the content are already settled. Nothing is ever deleted, so the full delivery history of any notification is always recoverable. This is what underlies delivery audit trails in regulated settings, and it is the substrate for retry logic, which records each retry as a new notification rather than altering the failed one.
 
 ---
 
 ## Intent
 
-When an event fires against a subscription, something must carry the resulting information to the recipient and record whether it arrived. That record is the notification: a durable account of the delivery attempt with enough state to answer the operational questions — *did the recipient get this? was delivery attempted and failed? did this expire before it could be delivered?*
-
-Notification records *delivery*. It does not know about subscriptions, events, or routing; those belong to the composing Notification Fanout pattern. What the atom owns is the delivery record for a single recipient from the moment of creation through its terminal outcome: Delivered, Failed, or Expired.
-
-The three terminal states are distinct because they answer different questions. Delivered: *did the recipient receive it?* Failed: *was delivery attempted and did the attempt not succeed?* Expired: *did this sit undelivered beyond the allowed window without a recorded failure?* Collapsing them into a single terminal state would hide information that operators, auditors, and retry logic each need separately.
-
-This is a freestanding (can be specified without naming any other pattern) atom in the EOS (Essence of Software — Daniel Jackson's framework for specifying software concepts as freestanding, composable units) sense. It has its own state (the notification set), its own actions (`create`, `deliver`, `fail`, `expire`, `status_of`, `pending_for`), and its own operational principles (notifications are immutable once recorded; terminal states are irreversible; `status_of` and `pending_for` are read-only queries). It does not implement routing, subscription evaluation, retry scheduling, or delivery transport. Each is a separate composable pattern; see Composition notes.
-
----
+WHY:
+A notification is a promise to tell somebody something, and the interesting part is not the telling — it is the record of whether it happened. Systems that skip this concept end up asking their transport layer what happened weeks ago, which is a question no transport layer can answer. The atom holds the delivery record: who it was for, what it said, when it was made, and exactly one outcome — reached, failed, or ran out of time. It sends nothing. It does not know what a webhook is, does not retry, does not decide whether a bounced email is a failure or an expiry. What it guarantees is that every attempt is one record with one terminal answer and a timestamp, so *did we tell them* is answered from the store rather than from a log nobody kept.
 
 ## Structure
 
 ### Identity model
 
-Every notification known to the system has a **[Notification Id]** — an opaque, immutable, host-allocated at the I/O seam (injected into the transition, not generated inside it) identifier produced by [Create]. The id is the notification's identity; the recipient reference and payload are immutable *properties* of the notification, not its identity.
+```text
+Identity 1: The atom MUST identify a notification by the notification_id.
+Identity 2: The host MUST allocate a notification_id at the atom's seam.
+Identity 3: The transition MUST NOT allocate a notification_id.
+Identity 4: The business caller MUST NOT supply a notification_id.
+Identity 5: The atom MUST NOT reuse a notification_id.
+Identity 6: The atom MUST NOT identify a notification by the recipient_ref with the payload.
+Identity 7: Two notifications carrying one recipient_ref and one payload MUST carry two notification_ids.
+```
 
-The opaque-id model follows the same discipline used across the library. Identifying a notification by ([Recipient Ref], [Payload]) would collapse independently-created notifications into a single record — a recipient may be notified of the same event scope multiple times (e.g., after re-subscribing), and each delivery attempt is a distinct record with its own outcome. Opaque ids preserve one-notification-one-id discipline.
+Terms › `notification`: one delivery record — one recipient, one payload, one outcome.
 
-Ids are not reused after a notification reaches a terminal state.
+Terms › `notification_id`: the opaque value naming one notification — a [Notification Id].
 
-### Inputs
+Terms › `recipient_ref`: the opaque reference naming who the notification is for — a [Recipient Ref]; compared by equality and never interpreted.
 
-- A recipient reference identifying *who* the notification is addressed to. Opaque — the actor registry is a separate concept. The atom requires only that recipient references support equality testing (so [Pending For] and [Status Of] queries can filter and look up by recipient); it does not parse, normalize, or otherwise interpret their contents.
-- A payload carrying *what* is being communicated. Opaque — the composing system defines payload structure and content. This atom stores and returns the payload unchanged; it does not inspect, parse, or validate its contents.
-- Actions:
-  - [Create] — (Projected contract: `create(recipient_ref, payload) → notification_id | rejected(reason)`)
-  - [Deliver] — (Projected contract: `deliver(notification_id) → ok | rejected(reason)`)
-  - [Fail] — (Projected contract: `fail(notification_id) → ok | rejected(reason)`)
-  - [Expire] — (Projected contract: `expire(notification_id) → ok | rejected(reason)`)
-  - [Status Of] — (Projected contract: `status_of(notification_id) → {notification_id, recipient_ref, payload, created_at, status, delivered_at?, failed_at?, expired_at?} | not-known`)
-  - [Pending For] — (Projected contract: `pending_for(recipient_ref) → [notification_id, ...]`)
-- A clock providing wall-time timestamps, and an id source for [Notification Id] allocation — both injected at the atom's single I/O seam. Per the Logic Confinement Principle (see [`execution-contract.md`](../execution-contract.md)), the host reads the clock and allocates the [Notification Id] at the seam, *before* the transition runs; the pure transition receives the timestamps and [Notification Id] as injected inputs. Neither is read or generated inside the core transition, and neither is supplied by the business caller — which keeps the transition deterministic and forecloses caller-supplied timestamp or id lying.
+Terms › `payload`: the opaque content the notification carries — a [Payload]; stored and returned unchanged.
 
-**String input policy (applies to [Recipient Ref] and [Payload]).** Values are treated byte-exact: no trimming, no Unicode normalization, no case folding is applied before storage or comparison. A whitespace-only string counts as empty for the presence check and is rejected wherever non-empty is required (i.e., [Recipient Ref]). The deployment sets a maximum length per string input; a value exceeding it is rejected as [Invalid Request]. Callers own canonicalization — two [Recipient Ref] values differing only in case or normalization form are two distinct recipients to this atom.
+Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the notification_id here.
 
-### Outputs
+Terms › `transition`: the atom's evaluation of one call against the notification store, as `execution-contract.md` §Logic confinement declares it.
 
-- The current set of notifications ([Pending], [Delivered], [Failed], and [Expired]).
-- For each notification: [Notification Id], [Recipient Ref], [Payload], [Created At], [Status], and the applicable terminal timestamp ([Delivered At], [Failed At], or [Expired At]).
-- [Create] returns the new [Notification Id] on success, or a rejection naming the failed precondition.
-- [Deliver], [Fail], and [Expire] return `ok` on success, or a rejection naming the failed precondition.
-- [Status Of] returns one of two first-class outcomes: the full notification record (all stored fields for that id), or [Not Known] if no notification exists for the given id. Both are answers to the query, not success-failure pairs.
-- [Pending For] returns the list of [Notification Id] values for all [Pending] notifications addressed to the queried recipient. The list is unordered. Composing systems that require delivery in creation order must sort by [Created At] on the returned ids.
+Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+
+WHY:
+One attempt, one record. A retry is a new notification with a new id rather than a second outcome on the old one, which is what keeps *how many times did we try* answerable and stops a terminal record being rewritten (Identity 7, Non-goal 3).
+
+### String input policy
+
+```text
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only recipient_ref as empty.
+String 6: IF a string input EXCEEDS the string cap THEN [Create] MUST answer invalid-request.
+String 7: The business caller MUST own a recipient_ref's canonical form.
+String 8: [Pending For] MUST read an over-length recipient_ref as matching nothing.
+String 9: [Pending For] MUST read a whitespace-only recipient_ref as matching nothing.
+```
+
+Terms › `string cap`: the deployment's bound on a string input's length.
 
 ### State
 
-A notification occupies one of four named states:
+```text
+State 1: EVERY notification MUST stand in EXACTLY ONE OF pending, delivered, failed, expired.
+State 2: EVERY notification MUST carry notification_id, recipient_ref, payload, created_at and status.
+State 3: A delivered notification MUST carry delivered_at.
+State 4: A failed notification MUST carry failed_at.
+State 5: An expired notification MUST carry expired_at.
+State 6: A pending notification MUST NOT carry a terminal stamp.
+State 7: [Create] MUST stamp created_at from the injected now.
+State 8: A terminal transition MUST stamp the transition's terminal stamp from the injected now.
+State 9: The atom MUST NOT offer a transition out of a terminal status.
+State 10: The atom MUST NOT delete a notification.
+State 11: The atom MUST NOT hold a transport.
+State 12: The atom MUST NOT hold a retry.
+```
 
-- **[Pending]** — the notification has been created and delivery has not yet been confirmed, failed, or expired.
-- **[Delivered]** — the notification reached the recipient. Terminal.
-- **[Failed]** — delivery was attempted and did not succeed. Terminal.
-- **[Expired]** — the notification was not delivered and no failure was recorded within the allowed window. Terminal.
+Terms › `status`: `pending` | `delivered` | `failed` | `expired` — the [Status] field's four values: awaiting an outcome, reached, attempted without success, or out of time.
 
-Each notification carries:
+Terms › `terminal stamp`: `delivered_at` | `failed_at` | `expired_at` — the one stamp a terminal status carries.
 
-- **[Notification Id]** — opaque, immutable, host-allocated at the I/O seam (injected into the transition, not generated inside it). Set on [Create]. Never changes.
-- **[Recipient Ref]** — opaque reference to the intended recipient. Set on [Create]. Never changes.
-- **[Payload]** — opaque content of the notification. Set on [Create]. Never changes.
-- **[Created At]** — wall-time when the notification was created. Set on [Create]. Never changes.
-- **[Status]** — `pending`, `delivered`, `failed`, or `expired`. Set to `pending` on [Create]; transitions to a terminal state on the corresponding action.
-- **[Delivered At]** — wall-time when delivery was confirmed. Absent unless status is `delivered`; set on [Deliver]. Never changes after set.
-- **[Failed At]** — wall-time when the failure was recorded. Absent unless status is `failed`; set on [Fail]. Never changes after set.
-- **[Expired At]** — wall-time when the expiry was recorded. Absent unless status is `expired`; set on [Expire]. Never changes after set.
+Terms › `created_at`: the instant the notification was recorded — a [Created At].
 
-Transitions — writes stamp their timestamp from the injected clock; the two queries below the rule cause no transition. State is unchanged on any rejection, and each terminal transition is serialized per [Notification Id] (Decision points):
+WHY:
+Four states and exactly one terminal stamp each, because the audit question is *what happened to this one*, and a record carrying two terminal stamps answers it twice (State 6, Invariant 3.1). Nothing about transport lives here: a webhook, a push and an email produce the same three outcomes, and an atom that knew the difference would have to be re-specified every time a deployment changed channel (State 11).
 
-| action | from | to | stamps | result | rejections |
-| --- | --- | --- | --- | --- | --- |
-| [Create] | *(none)* | **[Pending]** | fresh [Notification Id]; [Recipient Ref]; [Payload]; [Created At] | the new [Notification Id] | [Invalid Request] |
-| [Deliver] | [Pending] | **[Delivered]** | [Delivered At] | `ok` | [Not Known]; [Not Pending] |
-| [Fail] | [Pending] | **[Failed]** | [Failed At] | `ok` | [Not Known]; [Not Pending] |
-| [Expire] | [Pending] | **[Expired]** | [Expired At] | `ok` | [Not Known]; [Not Pending] |
-| [Status Of] | read-only | — | — | the full record, or [Not Known] | — |
-| [Pending For] | read-only | — | — | the [Pending] ids for the recipient | — |
+### Operations
 
-The three terminal transitions ([Deliver], [Fail], [Expire]) share identical preconditions: the [Notification Id] must be known (else [Not Known]) and the notification must be in [Pending] (else [Not Pending]). [Status Of] returns the full notification record for the given id, or [Not Known]; [Pending For] returns the [Notification Id] values for all [Pending] notifications where `notification.recipient_ref = recipient_ref`.
+```
+create(recipient_ref, payload) → notification_id | rejected(invalid-request | storage-failure)
+deliver(notification_id) → ok | rejected(not-known | not-pending | storage-failure)
+fail(notification_id) → ok | rejected(not-known | not-pending | storage-failure)
+expire(notification_id) → ok | rejected(not-known | not-pending | storage-failure)
+status_of(notification_id) → notification | not-known
+pending_for(recipient_ref) → notification_ids
+```
 
-### Flow
+```text
+Operation 1: [Create] MUST record EXACTLY ONE notification per successful call.
+Operation 2: [Create] MUST stand the notification in pending.
+Operation 3: [Create] MUST answer notification_id.
+Operation 4: IF recipient_ref is empty THEN [Create] MUST answer invalid-request.
+Operation 5: [Create] MUST accept an empty payload.
+Operation 6: The atom MUST NOT read a payload.
+Operation 7: IF the store refuses the write THEN [Create] MUST answer storage-failure.
+Operation 8: IF the notification_id NOT EXISTS THEN a terminal transition MUST answer not-known.
+Operation 9: IF the notification stands in a terminal status THEN a terminal transition MUST answer not-pending.
+Operation 10: [Deliver] MUST stand the notification in delivered.
+Operation 11: [Fail] MUST stand the notification in failed.
+Operation 12: [Expire] MUST stand the notification in expired.
+Operation 13: [Expire] MUST NOT require a delivery attempt.
+Operation 14: The atom MUST NOT choose between fail and expire.
+Operation 14a: The atom MUST NOT hold a delivery window.
+Operation 14b: A composing pattern MUST own the delivery window an expiry answers to.
+Operation 15: IF the store refuses the write THEN a terminal transition MUST answer storage-failure.
+Operation 16: A refused call MUST leave the notification as the call found the notification.
+Operation 17: [Status Of] MUST answer the notification's stored fields.
+Operation 18: IF the notification_id NOT EXISTS THEN [Status Of] MUST answer not-known.
+Operation 19: [Pending For] MUST answer the notification_id of EVERY pending notification carrying the recipient_ref.
+Operation 20: [Pending For] MUST NOT answer a terminal notification's notification_id.
+Operation 21: [Pending For] MUST NOT order the answer.
+Operation 22: [Status Of] MUST NOT write.
+Operation 23: [Pending For] MUST NOT write.
+Operation 24: The host MUST read the clock at the atom's seam.
+Operation 25: The transition MUST NOT read a clock.
+Operation 26: The business caller MUST NOT supply now.
+```
 
-1. **An event fires; the composing pattern creates a notification.** The Notification Fanout pattern (or equivalent) calls `create(recipient_ref, payload)` — the atom records the notification in [Pending] and returns the id.
-2. **The delivery layer attempts to deliver (optional).** The transport mechanism (webhook call, WebSocket push, email send) attempts to reach the recipient. This step may be skipped entirely — a notification may be expired before any delivery attempt begins if the deadline passes first.
-3. **Delivery outcome is recorded.** Exactly one of three transitions applies:
-   - 3a. Transport succeeds: `deliver(notification_id)` → [Delivered], [Delivered At] set.
-   - 3b. Transport fails: `fail(notification_id)` → [Failed], [Failed At] set.
-   - 3c. Deadline passes without a delivery attempt, or without a recorded outcome: `expire(notification_id)` → [Expired], [Expired At] set. Step 2 need not have occurred.
-4. **Operators or retry logic consult notification state.** `pending_for(recipient_ref)` returns unresolved notifications; `status_of(notification_id)` returns the full record for any notification by id, including terminal ones.
+Terms › `terminal transition`: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
 
-### Decision points
+Terms › `pending at an instant`: `created_at` at or before the instant, and the terminal stamp either absent or after the instant — the reconstruction an auditor runs over stored fields, never over `status`, which carries the present rather than the past.
 
-- **At `create(recipient_ref, payload)`** — [Recipient Ref] must be non-empty — specifically, not null, undefined, the empty string, or whitespace-only (per the String input policy); otherwise [Invalid Request]. The atom does not parse or interpret the opaque value beyond this presence check. [Payload] must be present — null or absent is rejected as [Invalid Request]; any non-null payload, including an empty string or empty object, is accepted. The atom does not inspect, validate, or parse payload content. There is no uniqueness constraint: multiple notifications may be created for the same recipient with the same payload — each is a distinct delivery attempt with its own id and outcome.
-- **At `deliver(notification_id)`** — [Notification Id] must reference a known notification; otherwise [Not Known]. The notification must be in [Pending]; transitioning a non-[Pending] notification is rejected as [Not Pending].
-- **At `fail(notification_id)`** — same preconditions as [Deliver]: [Not Known] or [Not Pending].
-- **At `expire(notification_id)`** — same preconditions: [Not Known] or [Not Pending].
-- **At `status_of(notification_id)`** — no precondition. Empty or malformed [Notification Id] returns [Not Known] — no notification has an empty id, so the result is structurally [Not Known]. Both [Not Known] and the full record are first-class outcomes; neither is a rejection.
-- **At `pending_for(recipient_ref)`** — no precondition. Empty or malformed [Recipient Ref] returns an empty list — no notification has an empty recipient, so the result is structurally empty. Returns an empty list if no [Pending] notifications exist for the recipient. The query is read-only.
+The case space, and the rule that owns each case:
 
-**Single-record transition serialization is the load-bearing precondition for status monotonicity (Invariant 2) and terminal exclusivity (Invariant 3).** Each terminal transition ([Deliver], [Fail], [Expire]) must execute as an atomic, serialized unit per [Notification Id]; without this guarantee, two concurrent transitions could both observe [Pending] and both proceed, producing two terminal timestamps and violating both invariants. The host environment supplies this serialization; the atom specifies the requirement.
+| Call | Case | Answer | Effect on the notification store |
+|---|---|---|---|
+| [Create] | recipient present, store accepts | `notification_id` | one notification lands in [Pending] (Operation 1, Operation 2) |
+| [Create] | empty or whitespace-only recipient, or over the cap | [Invalid Request] | none (Operation 4, String 5, String 6) |
+| [Create] | empty payload | `notification_id` | one notification lands — the payload is the caller's business (Operation 5, Operation 6) |
+| [Deliver] | notification is pending | `ok` | [Pending] → [Delivered], `delivered_at` stamped (Operation 10, State 8) |
+| [Fail] | notification is pending | `ok` | [Pending] → [Failed], `failed_at` stamped (Operation 11) |
+| [Expire] | notification is pending, attempted or not | `ok` | [Pending] → [Expired], `expired_at` stamped (Operation 12, Operation 13) |
+| any terminal transition | notification already terminal | [Not Pending] | none — including a second [Deliver] (Operation 9) |
+| any terminal transition | id names nothing | [Not Known] | none (Operation 8) |
+| any write | store refuses | `storage-failure` | none (Operation 7, Operation 15, Operation 16) |
+| [Status Of] | id names a notification | its stored fields | none — the call reads (Operation 17, Operation 22) |
+| [Status Of] | id names nothing | `not-known` | none (Operation 18) |
+| [Pending For] | recipient has pending notifications | their ids, unordered | none (Operation 19, Operation 21) |
+| [Pending For] | recipient has none, or only terminal ones | empty list | none (Operation 20) |
+| [Pending For] | over-length or whitespace-only recipient | empty list | none — a read with a bad argument has a correct answer (String 8, String 9) |
 
-### Behavior
-
-Observed behavior, derived from how notification delivery systems are actually deployed:
-
-- The three terminal transitions ([Deliver], [Fail], [Expire]) are separate actions rather than a single `resolve(notification_id, outcome)` action. The likely objection: "they share identical preconditions and return shapes; a parameterized action would reduce duplication." The mechanism: keeping them separate preserves distinct action semantics — the delivery layer, failure handler, and expiry scheduler are independent actors with independent authorization surfaces; a parameterized outcome enum would introduce a new precondition (is the enum value valid?) that currently does not exist. The result: each terminal transition is an unambiguously-named operation with no shared enum validation burden.
-- The three terminal states are mutually exclusive. A notification transitions from [Pending] to exactly one terminal state. Once terminal, no further transition is possible; [Deliver], [Fail], or [Expire] called on a non-[Pending] notification returns [Not Pending].
-- **[Fail] vs. [Expire] — a deployment policy.** [Failed] indicates an explicit delivery attempt that produced a definitive negative outcome (HTTP 5xx response, bounced email, invalid token, connection refused). [Expired] indicates that the allowed window elapsed without either a successful delivery or a recorded failure. Whether a connection timeout is [Fail] or [Expire] is the composing system's call; the atom only records the outcome, not how it was determined.
-- Concurrent [Deliver], [Fail], or [Expire] calls for the same [Notification Id] resolve serially under the host environment's serialization guarantees. The first transition wins; subsequent calls receive [Not Pending].
-- Who calls [Deliver], [Fail], or [Expire] is handled at the deployment layer. In a push model, the delivery layer calls these after attempting to push. In a pull model, the host system calls [Deliver] when the recipient reads the notification. In a scheduled-expiry model, a background process calls [Expire] for notifications past their deadline. The atom records the transition; the caller is the composing system's responsibility.
-- The atom does not enforce who may call [Create] — any caller may create a notification for any recipient. Authorization to create belongs to the composing system.
-- Multiple [Pending] notifications for the same recipient are allowed and independent. Each has its own id, payload, and delivery lifecycle. [Pending For] returns all of them; the composing system decides the delivery order.
-- No notification is deleted. All terminal records — [Delivered], [Failed], [Expired] — remain in the store for audit and operational purposes. [Pending For] excludes them; `status_of(notification_id)` returns them.
-- A [Failed] notification does not automatically trigger a retry. If retry is desired, the composing system creates a new notification record for the retry attempt — a distinct record with a distinct id and its own outcome (see Edge cases).
-- [Payload] is stored and returned opaque. The atom does not parse, validate, or act on payload content. Whether the payload is a JSON object, a plain string, or a reference to another record is defined entirely by the composing system.
-- [Status Of] is a read-only query with no side effects. It returns all stored fields — including the opaque payload — for any notification in any state: [Pending], [Delivered], [Failed], or [Expired]. No notification becomes inaccessible via [Status Of] after reaching a terminal state; the record is durable for the lifetime of the system.
-- Time and [Notification Id] are injected at the I/O seam: the host reads the clock and allocates [Notification Id] before the transition runs; the core transition receives both as inputs and neither reads a clock nor mints an id. Caller signatures (`create(recipient_ref, payload)` and all other actions) are unchanged — timestamps and ids are never caller-supplied.
-- A notification may remain in [Pending] indefinitely. The atom does not impose a maximum lifetime; whether and when a [Pending] notification reaches a terminal state depends on the composing system's delivery layer and any scheduled-expiry process. A store with long-lived [Pending] records is not a spec violation — composing systems that need bounded [Pending] lifetimes wire a scheduled-expiry process that calls [Expire] at deadline.
-
-### Feedback
-
-Each successful action produces an observable, measurable change:
-
-- After [Create] — a new notification appears in [Pending] with a fresh [Notification Id], the supplied [Recipient Ref] and [Payload], and [Created At]. Total notification count increases by one. Pending count increases by one. The id is returned. Falsifiable: after `create(r, p) → n`, `status_of(n)` must return a record with `status = pending` and `recipient_ref = r`.
-- After [Deliver] — the notification moves to [Delivered] with [Delivered At]. Pending count decreases by one; delivered count increases by one; total count unchanged. Falsifiable: `status_of(n)` must return `status = delivered` and `delivered_at` must be set; `pending_for(recipient_ref)` must not include `n`.
-- After [Fail] — the notification moves to [Failed] with [Failed At]. Pending count decreases; failed count increases. Falsifiable: `status_of(n)` must return `status = failed` and `failed_at` set.
-- After [Expire] — the notification moves to [Expired] with [Expired At]. Pending count decreases; expired count increases. Falsifiable: `status_of(n)` must return `status = expired` and `expired_at` set.
-- After [Status Of] — no state change. Returns the full notification record or [Not Known].
-- After [Pending For] — no state change. Returns the list of [Notification Id]s in [Pending] state for the queried recipient.
-
-[Create] rejections: [Invalid Request]. [Deliver], [Fail], [Expire] rejections: [Not Known], [Not Pending].
-
-The full notification set — [Pending], [Delivered], [Failed], [Expired] — is queryable via [Status Of] and [Pending For].
+WHY:
+The three terminal transitions share one precondition pair — known, and pending — which is why they are one rule each and two rules between them rather than nine (Operation 8, Operation 9). Which operational event counts as a failure and which as an expiry is the deployment's policy and deliberately not the atom's: a bounced address is a failure in one shop and an expiry in another, and an atom that decided would make two deployments' records mean different things while looking identical (Operation 14, External check 1).
 
 ### Invariants
 
-The following hold across all valid sequences of actions and constitute the verification surface of the pattern:
+- **Invariant 1 — Notification immutability.**
+  ```text
+  Invariant 1.1: A recorded notification's notification_id, recipient_ref, payload and created_at MUST NOT change.
+  Invariant 1.2: A landed terminal stamp MUST NOT change.
+  ```
+- **Invariant 2 — Status monotonicity.**
+  ```text
+  Invariant 2.1: A status MUST move from pending to EXACTLY ONE OF delivered, failed, expired.
+  Invariant 2.2: A status MUST NOT move to pending from a terminal status.
+  Invariant 2.3: A status MUST NOT move between two terminal statuses.
+  Invariant 2.4: A notification MUST read as pending at an instant ONLY IF the notification is pending at an instant.
+  ```
+- **Invariant 3 — Terminal states are exclusive.**
+  ```text
+  Invariant 3.1: A notification standing in a terminal status MUST carry EXACTLY ONE terminal stamp.
+  Invariant 3.2: A pending notification MUST NOT carry a terminal stamp.
+  ```
+- **Invariant 4 — Terminal timestamps match status.**
+  ```text
+  Invariant 4.1: A delivered notification MUST carry delivered_at.
+  Invariant 4.2: A notification carrying delivered_at MUST stand in delivered.
+  Invariant 4.3: A failed notification MUST carry failed_at.
+  Invariant 4.4: A notification carrying failed_at MUST stand in failed.
+  Invariant 4.5: An expired notification MUST carry expired_at.
+  Invariant 4.6: A notification carrying expired_at MUST stand in expired.
+  ```
+- **Invariant 5 — Id stability.**
+  ```text
+  Invariant 5.1: [Create] MUST set the notification_id.
+  Invariant 5.2: A notification_id MUST NOT change.
+  ```
+- **Invariant 6 — No id reuse.**
+  ```text
+  Invariant 6.1: Two notifications MUST NOT share a notification_id.
+  ```
+- **Invariant 7 — Pending query excludes terminals.**
+  ```text
+  Invariant 7.1: [Pending For] MUST answer a notification_id ONLY IF the notification stands in pending.
+  ```
+- **Invariant 8 — Timestamp ordering.**
+  ```text
+  Invariant 8.1: IF delivered_at EXISTS THEN created_at MUST NOT EXCEED delivered_at.
+  Invariant 8.2: IF failed_at EXISTS THEN created_at MUST NOT EXCEED failed_at.
+  Invariant 8.3: IF expired_at EXISTS THEN created_at MUST NOT EXCEED expired_at.
+  ```
+  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Clock semantics 1–2).
+- **Invariant 9 — Notification durability.**
+  ```text
+  Invariant 9.1: The atom MUST NOT delete a notification record.
+  Invariant 9.2: The notification set MUST NOT shrink.
+  Invariant 9.3: [Status Of] MUST answer a created notification's fields for the store's life.
+  ```
 
-- **Invariant 1 — Notification immutability.** Once recorded, a notification's [Notification Id], [Recipient Ref], [Payload], and [Created At] never change. Once set, [Delivered At], [Failed At], and [Expired At] never change. No field in the notification record is ever overwritten.
-- **Invariant 2 — Status monotonicity.** A notification's status transitions only from [Pending] to one terminal state: [Delivered], [Failed], or [Expired]. No notification returns from a terminal state to [Pending] or transitions between terminal states.
-- **Invariant 3 — Terminal states are exclusive.** At most one of [Delivered At], [Failed At], [Expired At] is present for any notification. A notification in [Delivered] has [Delivered At] and no other terminal timestamp; likewise for [Failed] and [Expired]. A [Pending] notification has none.
-- **Invariant 4 — Terminal timestamps match status.** [Delivered At] is present if and only if status is `delivered`. [Failed At] is present if and only if status is `failed`. [Expired At] is present if and only if status is `expired`.
-- **Invariant 5 — Id stability.** A notification's [Notification Id] is set on [Create] and never changes.
-- **Invariant 6 — No id reuse.** No two notifications share a [Notification Id] across the lifetime of the system.
-- **Invariant 7 — Pending query excludes terminals.** `pending_for(recipient_ref)` returns only notifications in [Pending] state for the queried recipient. [Delivered], [Failed], and [Expired] notifications are not included regardless of their [Recipient Ref].
-- **Invariant 8 — Timestamp ordering.** For any notification in [Delivered] state, [Created At] ≤ [Delivered At]. For any notification in [Failed] state, [Created At] ≤ [Failed At]. For any notification in [Expired] state, [Created At] ≤ [Expired At]. This invariant is best-effort under non-monotonic clocks; if the underlying clock moves backward between [Create] and the terminal action, the inequality may be violated. The implementor is responsible for the clock discipline that makes each inequality hold; see Edge cases.
-
-- **Invariant 9 — Notification durability.** Notifications are never deleted from the store. Once created, a notification record persists through all state transitions and remains queryable via [Status Of] for the lifetime of the system. The total notification count is monotonically non-decreasing.
-
-Notification immutability and durability together give the *auditability* property — the full delivery history of every notification is recoverable from the notification store alone, with no gaps. Terminal-state exclusivity and timestamp matching (Invariants 3 and 4) give the *unambiguous record* property — for any notification, exactly one delivery outcome is recorded and its timestamp is stable. Status monotonicity and timestamp ordering together give the *operational readability* property — [Pending For] is a deterministic snapshot of unresolved deliveries at query time.
-
----
+Immutability and durability give *auditability* — the delivery history is the store, with no gaps. Exclusivity and the status-stamp match give the *unambiguous record* property — one outcome per notification, with a stable time. Monotonicity and ordering make [Pending For] a deterministic snapshot of what is still unresolved.
 
 ## Examples
 
@@ -209,46 +262,151 @@ Three scenarios the notification store must survive in regulated contexts:
 
 ---
 
-## Non-goals and edge cases
-
-What this atom does not cover:
-
-- **Routing and subscription evaluation.** This atom creates and tracks delivery records; it does not evaluate subscriptions or determine who should be notified. That belongs to a Notification Fanout composing pattern that wires Subscription + Notification + an event source.
-- **Retry scheduling.** A [Failed] notification does not trigger a retry. The composing system creates a new notification record for the retry attempt: `create(recipient_ref, payload) → new_notification_id`. The retry is a distinct record with a distinct id and its own outcome. Both the original [Failed] record and the retry record are preserved in the store.
-- **Transport mechanism.** Whether delivery is via WebSocket, webhook, email, push notification, in-app message, or SMS is handled at the deployment layer. The atom records the outcome ([Deliver], [Fail], [Expire]); the mechanism that produces that outcome is out of scope.
-- **`fail` vs. `expire` boundary.** Whether a connection timeout, an invalid token, or a rate-limit response is [Fail] or [Expire] is a deployment policy the composing system defines. The atom only records which terminal transition was called; it does not inspect or validate the reason.
-- **Delivery ordering guarantees.** Multiple [Pending] notifications for the same recipient may be delivered in any order. If delivery ordering matters, the composing system is responsible for imposing it. [Pending For] returns an unordered list; the composing system sorts by [Created At] if ordered delivery is required.
-- **Recipient read confirmation vs. system delivery confirmation.** [Deliver] covers system-level confirmation that the transport layer accepted the notification. Deployments that additionally require read confirmation (the recipient explicitly acknowledged the notification) should create two separate notification records: one for the push attempt (resolved with [Deliver] or [Fail] at push time) and one for the read-acknowledgement (resolved with [Deliver] when the recipient acknowledges). The bare atom does not distinguish delivery from reading; the distinction requires two records.
-- **Payload validation and schema.** Payload is opaque. Whether a payload is well-formed, type-safe, or complete is the composing system's responsibility before calling [Create].
-- **Notification deduplication.** Multiple [Create] calls for the same ([Recipient Ref], [Payload]) pair produce multiple distinct [Pending] notifications. Composing systems that require at-most-once delivery for a given event should use Duplicate Prevention to guard the [Create] call.
-- **Recipient registration and lifecycle.** [Recipient Ref] is opaque. Whether a recipient exists or has been deprovisioned belongs to Actor Registry.
-- **Authorization to create.** The atom does not enforce who may call [Create]. Any caller may create a notification for any recipient. Authorization to create belongs to the composing system.
-- **Bulk expiry.** There is no bulk-expire surface. Expiring all [Pending] notifications past a deadline requires querying [Pending For] for each recipient and calling `expire(notification_id)` for each eligible id.
-- **Atomicity and crash semantics.** Each terminal transition changes two fields simultaneously: [Status] and one terminal timestamp. A crash mid-[Deliver] that sets [Delivered At] without updating [Status], or vice versa, violates Invariant 4 (terminal timestamps match status). The implementor is responsible for the transactional boundary that makes both fields change together. The spec does not define recovery semantics for partial writes.
-- **Payload data retention.** The notification store retains payload data for every notification for the lifetime of the system (Invariant 9). If payloads contain sensitive data — PII, financial records, medical information — the composing system is responsible for the retention policy. Retention Window is the composing pattern that bounds how long records must be kept and when they may be purged. The bare atom does not implement payload expiry or redaction.
-- **Clock semantics.** [Created At], [Delivered At], [Failed At], and [Expired At] are wall-time from the injected clock. Clock skew, NTP (Network Time Protocol) adjustments, and timezone handling are handled at the deployment layer. Invariant 8 is best-effort under non-monotonic clocks.
-
----
-
 ## Generation acceptance
 
-The audit surface is the notification store inspected on its stored fields — distinct from and complementary to the action surface ([Create], [Deliver], [Fail], [Expire], [Status Of], [Pending For]). The action surface answers *what does the atom do at runtime?*; the audit surface answers *what does the atom commit to recording, queryable on stored fields?*. A derived implementation must produce a store that supports the audit-surface queries below, independent of whether the runtime action surface exposes them.
+This atom's acceptance is what an external auditor can clear from the notification store's stored fields, with no recourse to source code, runbooks or developer narration. The audit surface is the store, not the action surface.
 
-A derived implementation of Notification is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the notification store, can do all of the following without recourse to source code, runbooks, or developer narration:
+### Conformance checks
 
-- **Enumerate every notification with its full delivery history.** [Notification Id], [Recipient Ref], [Payload], [Created At], [Status], and the applicable terminal timestamp are present and queryable for every notification ever created. No notification is missing from the store.
-- **Reconstruct the delivery status of any notification at any past point in time.** Given a [Notification Id] and a timestamp, the auditor can determine what state the notification was in: if `created_at ≤ t` and no terminal timestamp is before `t`, the notification was [Pending] at `t`; if `delivered_at ≤ t`, it was [Delivered]; and so on. The reconstruction is exact with respect to stored timestamps (Invariants 1 and 4); the wall-clock truth of those timestamps is subject to Invariant 8's best-effort clock caveat. Under a clock that has moved backward, two stored timestamps may be misordered; the auditor's answer is still deterministic on stored fields, but may not reflect wall-clock truth.
-- **Confirm terminal state exclusivity.** For every notification, at most one of [Delivered At], [Failed At], [Expired At] is present. The auditor can verify this directly from the notification store (Invariant 3).
-- **Confirm terminal timestamps match status.** For every notification, the presence of a terminal timestamp matches the [Status] field exactly — no notification has `status = delivered` with `failed_at` set, or any other mismatch (Invariant 4).
-- **Identify composing patterns active in this deployment.** Whether notification attribution (Actor Identity), event firing history (Event Log), deduplication (Duplicate Prevention), retention (Retention Window), and tamper-evidence on the notification store (Tamper Evidence) are wired in, and with what configuration. The deployment's **fail-vs-expire policy** must also be disclosed — which operational events the deployment maps to [Fail] (e.g., HTTP 5xx, bounced email, invalid token) versus [Expire] (e.g., elapsed delivery window without a recorded outcome). Without this disclosure, the same operational event may produce `failed_at` in one deployment and `expired_at` in another, and cross-deployment audit cannot interpret records uniformly.
+```text
+Check 1.1: An auditor MUST read EVERY notification's notification_id, recipient_ref, payload, created_at and status from the store (State 2).
+Check 2.1: An auditor MUST reconstruct a notification's status at a past instant from created_at and the terminal stamp (Invariant 2.4).
+Check 2.2: An auditor MUST read the reconstruction as deterministic on stored fields (Invariant 1.2).
+Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1, Clock semantics 1).
+Check 3.1: An auditor MUST find no notification carrying two terminal stamps (Invariant 3.1).
+Check 3.2: An auditor MUST find no pending notification carrying a terminal stamp (Invariant 3.2).
+Check 4.1: An auditor MUST find EVERY terminal stamp matching the notification's status (Invariant 4.2, Invariant 4.4, Invariant 4.6).
+Check 5.1: An auditor MUST find the notification set never shrinking across two readings (Invariant 9.1, Invariant 9.2).
+Check 6.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
+```
 
-This is the generator's contract: any code generated from this atom must produce a notification store and a query surface that pass the five checks above.
+### External checks
 
----
+```text
+External check 1: An auditor MUST read the deployment's fail-versus-expire policy from the deployment's own declaration (Operation 14).
+External check 2: An auditor MUST read a payload's retention from the composing [Retention Window](./retention-window.md) records (Non-goal 13).
+External check 3: An auditor MUST read who created a notification from the composing [Actor Identity](./actor-identity.md) attestations (Non-goal 11).
+External check 4: An auditor MUST read the transport's own outcome from the deployment's delivery layer (Non-goal 5).
+```
+
+NOTE: EVERY check names the rule the check tests. External check 1 is the one that makes cross-deployment audit possible: without the declared policy, one shop's `failed_at` and another's `expired_at` record the same operational event and no reader can tell.
+
+## Non-goals
+
+```text
+Non-goal 1: The atom MUST NOT evaluate a subscription.
+Non-goal 2: The atom MUST NOT choose a notification's recipient.
+Non-goal 3: The atom MUST NOT retry a failed notification.
+Non-goal 4: A composing pattern retrying MUST create a second notification.
+Non-goal 5: The atom MUST NOT deliver a notification.
+Non-goal 6: The atom MUST NOT hold a transport's mechanism.
+Non-goal 7: The atom MUST NOT order two pending notifications.
+Non-goal 8: The atom MUST NOT record a recipient's reading.
+Non-goal 9: A deployment needing a read acknowledgement MUST create a second notification for the acknowledgement.
+Non-goal 10: The atom MUST NOT validate a payload.
+Non-goal 11: The atom MUST NOT record who called [Create].
+Non-goal 12: The atom MUST NOT deduplicate two notifications.
+Non-goal 13: The atom MUST NOT purge a payload.
+Non-goal 14: The atom MUST NOT gate [Create].
+Non-goal 15: The atom MUST NOT expire notifications in bulk.
+```
+
+WHY:
+Who should hear about an event is [Subscription](./subscription.md)'s and the fanout that reads it; this atom starts once the recipient is known (Non-goal 1, Non-goal 2). A retry is a new record rather than a second chance at an old one, which is what keeps the count of attempts honest (Non-goal 3, Non-goal 4). Read acknowledgement is two records because *the transport accepted it* and *the person saw it* are two facts, and one record forced to carry both loses whichever is recorded second (Non-goal 8, Non-goal 9). Payload retention is the sharp one: this store keeps every payload for the life of the system, so a deployment whose payloads carry personal or medical content composes [Retention Window](./retention-window.md) rather than trusting an atom that never forgets (Non-goal 13, Payload retention 1–3).
+
+Where the atom breaks down: when *delivered* is not a single observable event — a multi-hop transport with partial acknowledgement; when the same notification must be retried in place, which this atom refuses on purpose; when the payload cannot be stored at all, which needs a reference rather than content.
+
+## Edge cases
+
+### Atomicity of a terminal transition
+
+```text
+Terminal atomicity 1: The implementation MUST change status and the terminal stamp together.
+Terminal atomicity 2: A crash inside a terminal transition MUST NOT leave a terminal status without the terminal stamp.
+Terminal atomicity 3: A crash inside a terminal transition MUST NOT leave a terminal stamp on a pending notification.
+Terminal atomicity 4: The implementation MUST serialize two terminal transitions on one notification_id.
+```
+
+WHY:
+Half a transition breaks Invariant 4 while every field reads plausibly on its own — and Invariant 4's two directions are exactly what an auditor uses to detect it, which is why the repair is the implementation's transactional boundary rather than a reader's inference (Terminal atomicity 1, Invariant 4.2).
+
+### Deliver persistence failure
+
+```text
+Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the notification standing pending.
+Deliver persistence 2: A caller MUST retry a deliver that answered storage-failure.
+Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry.
+Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver].
+```
+
+WHY:
+The transport accepted the notification and the store did not record it, so the record understates what happened — the recipient has been told and *did we tell them* answers no. The retry is a retry of the *write*, never of the send, which is the distinction a caller that treats the two alike gets wrong twice (Deliver persistence 2, Deliver persistence 3; the polarity [Permissions](./permissions.md) states for its own revoke).
+
+### Payload retention
+
+```text
+Payload retention 1: The atom MUST keep a payload for the store's life.
+Payload retention 2: The atom MUST NOT offer a payload purge.
+Payload retention 3: A deployment whose payloads carry sensitive content MUST compose [Retention Window](./retention-window.md).
+Payload retention 4: A composing pattern purging a payload MUST leave EVERY stored field as written.
+Payload retention 5: A composing pattern MUST NOT delete a notification record.
+```
+
+WHY:
+Invariant 1.1 forbids a payload changing and Invariant 9.2 forbids the set shrinking, so a composed purge cannot edit the payload or drop the record. What it can do is the shredding-class destruction [Audit Trail](../compositions/audit-trail.md) already wires over its own cascade: the content becomes unrecoverable while every stored field stands as written, which is why the invariants and the retention obligation do not collide (Payload retention 4, Payload retention 5).
+
+### Bulk expiry
+
+```text
+Bulk expiry 1: A composing pattern MUST enumerate a recipient's pending notifications.
+Bulk expiry 2: A composing pattern MUST call [Expire] for EVERY notification the enumeration returns.
+Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
+```
+
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's timezone handling.
+Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
+```
+
+## Composition notes
+
+```text
+Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Composition note 2: A deployment MUST declare the deployment's fail-versus-expire policy.
+Composition note 3: A composing pattern MUST own who is notified.
+Composition note 4: A composing pattern MUST own the transport.
+Composition note 5: A composing pattern needing at-most-once notification MUST guard [Create] with [Duplicate Prevention](./duplicate-prevention.md).
+Composition note 6: A composing pattern MUST own a payload's retention.
+Composition note 7: A composing pattern MUST own the delivery window.
+```
+
+WHY:
+[Notification Fanout](../compositions/notification-fanout.md) is the wiring this atom was extracted for: an event fires, [Subscription](./subscription.md) answers who is listening, and one notification is created per subscriber — the composition owns the audience, this atom owns the record (Composition note 3). [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md) adds [Message Preference](./message-preference.md) between the two. The fail-versus-expire policy is declared by the deployment rather than the atom, and it is what makes two deployments' records comparable (Composition note 2, External check 1).
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its card here. A card states what the concept *is*, in plain English, plus its **Kind** — one of four: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A card also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A card carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the atom above.)*
+Each `[Term]` marker above links to its card here; a card states what the concept *is* and its **Kind**.
+
+### Vocabulary
+
+Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a recipient; an auditor; the store; a notification; a status.
+
+Terms › `records`: `notification` — one delivery record, carrying `notification_id`, `recipient_ref`, `payload`, `created_at`, `status` and, once it ends, one terminal stamp.
+
+Terms › `record verbs`: identify, allocate, supply, reuse, carry, compare, trim, normalize, case-fold, read, stand, stamp, offer, delete, hold, record, answer, accept, leave, refuse, order, write, change, move, set, share, shrink, keep, own, evaluate, choose, retry, create, deliver, validate, deduplicate, purge, gate, expire, enumerate, call, serialize, compose, guard, declare, find, reconstruct, raise, require, exceed.
+
+Terms › `value sets`: create answers = notification_id | rejected(invalid-request | storage-failure). deliver answers = ok | rejected(not-known | not-pending | storage-failure). fail answers = ok | rejected(not-known | not-pending | storage-failure). expire answers = ok | rejected(not-known | not-pending | storage-failure). status_of answers = the notification's stored fields | not-known. pending_for answers = a list of notification_id, empty where nothing pends. `status` = pending | delivered | failed | expired. `terminal stamp` = delivered_at | failed_at | expired_at.
+
+Terms › `bounds`: `string cap` (the deployment's bound on a string input's length).
+
+Terms › `cadences`: empty — a delivery window is the composing pattern's (Operation 14b, Composition note 7).
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+
+Terms › `terms`: `notification`, `notification_id`, `recipient_ref`, `payload`, `seam`, `transition`, `business caller`, `now`, `string cap`, `status`, `terminal stamp`, `created_at`, `terminal transition`.
 
 #### Create
 
@@ -382,9 +540,17 @@ Kind:      Member
 Member of: the notification status
 Role:      Outcome
 
+#### Now
+
+The current clock reading every writing action consumes — supplied at the atom's seam, never read inside the transition and never a signature parameter. Its only use is the immutable stamps inside committed transitions ([Created At] and the terminal stamp).
+
+Kind:         Parameter
+Parameter of: Create, Deliver, Fail and Expire
+Projects:     now
+
 #### Invalid Request
 
-The refusal [Create] returns when request fields fail — an empty/whitespace [Recipient Ref], or a null/absent [Payload].
+The refusal [Create] returns when a request field fails its rule — an empty or whitespace-only [Recipient Ref] (Operation 4, String 5), or a string over the deployment's cap (String 6). An empty [Payload] is not a failure: Operation 5 accepts it.
 
 Kind:      Member
 Member of: the Create rejection
@@ -432,23 +598,10 @@ Projects:  not-pending
 [Delivered]: #delivered
 [Failed]: #failed
 [Expired]: #expired
+[Now]: #now
 [Invalid Request]: #invalid-request
 [Not Known]: #not-known
 [Not Pending]: #not-pending
-
----
-
-## Composition notes
-
-Notification is freestanding and is designed to compose with:
-
-- **[Subscription](./subscription.md)** — the interest record that determines who should receive a notification. The composing Notification Fanout pattern calls `Subscription.subscribers_for(event_scope)` and then `Notification.create(subscriber_ref, payload)` for each result.
-- **[Notification Fanout](../compositions/notification-fanout.md)** — the composition that wires Subscription + Notification + an event source into an end-to-end delivery pipeline. Notification Fanout is the composition that gives both atoms their operational meaning.
-- **[Event Log](./event-log.md)** — records delivery attempts and outcomes as auditable events. Each [Deliver], [Fail], or [Expire] call can be appended to an Event Log for replay and investigation.
-- **[Actor Identity](./actor-identity.md)** — records who triggered the creation of a notification when attribution of notification source is required.
-- **[Retention Window](./retention-window.md)** — the notification store must be retained for the regulatory or operational lifetime the deployment requires.
-- **[Tamper Evidence](./tamper-evidence.md)** — in regulated contexts, the notification store is a target for after-the-fact manipulation. Cryptographic commitment makes any rewrite detectable.
-- **[Duplicate Prevention](./duplicate-prevention.md)** — composing systems that require at-most-once notification creation for a given event can use Duplicate Prevention to guard the [Create] call.
 
 ---
 
@@ -464,6 +617,7 @@ Notification is freestanding and is designed to compose with:
 
 ---
 
+
 ## Status
 
 `grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
@@ -478,6 +632,11 @@ last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 open: none
 ```
 
+
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/notification.md`.
+
+- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the six actions as a signature block, the three terminal transitions sharing one declared term and one precondition pair, the nine invariant numbers unchanged, Generation acceptance as conformance checks plus external checks ahead of Non-goals, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into notification` prints nothing, so no number is frozen from outside, and this atom completes [Notification Fanout](../compositions/notification-fanout.md)'s constituent set with [Subscription](./subscription.md).
+
+NOTE: End of Notification.

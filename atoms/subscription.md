@@ -354,7 +354,7 @@ Terms › `actors`: the atom; the host; the transition; the implementation; the 
 
 Terms › `records`: `subscription` — one standing interest, carrying `subscription_id`, `subscriber_ref`, `event_scope`, `subscribed_at`, `status` and, once withdrawn, `cancelled_at`.
 
-Terms › `record verbs`: make, discharge, recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, leave, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, identify, declare, exceed.
+Terms › `record verbs`: make, discharge, recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, leave, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, exceed.
 
 Terms › `value sets`: subscribe answers = subscription_id | rejected(invalid-request | already-subscribed | storage-failure). cancel answers = ok | rejected(not-known | not-active | storage-failure). subscribed answers = subscribed | not-subscribed. subscribers_for answers = a list of subscriber_ref, empty where nothing matches. `status` = active | cancelled.
 

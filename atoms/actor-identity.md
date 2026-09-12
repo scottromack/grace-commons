@@ -355,7 +355,7 @@ Terms › `actors`: the atom; the host; the transition; the implementation; the 
 
 Terms › `records`: `attestation` — one binding, carrying `attestation_id`, `action_ref`, `actor_ref`, `proof` and `attested_at`.
 
-Terms › `record verbs`: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, identify, declare, trust, renumber, add, agree, fail.
+Terms › `record verbs`: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, agree, fail.
 
 Terms › `value sets`: attest answers = attestation_id | rejected(invalid-request | invalid-credential | storage-failure). verify answers = verified | failed-verification(proof-invalid | actor-unknown-in-registry | registry-unavailable) | not-known. `registry answer` = material | unknown-actor | unreachable. `proof check` = held | failed. `attestation field` = attestation_id | action_ref | actor_ref | proof | attested_at.
 

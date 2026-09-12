@@ -382,7 +382,7 @@ Terms › `actors`: the atom; the host; the transition; the implementation; the 
 
 Terms › `records`: `evidence` — one commitment, carrying `evidence_id`, `record_set_ref`, `proof`, `sealed_at` and, where the mechanism anchors, `anchored_at`.
 
-Terms › `record verbs`: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, make, cache, declare, renumber, add, identify.
+Terms › `record verbs`: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, make, cache, declare, renumber, add.
 
 Terms › `value sets`: seal answers = evidence_id | rejected(invalid-request | mechanism-failure(unreadable-records | keying-precondition | anchor-unreachable) | storage-failure). verify answers = verified | failed-verification(proof-invalid | record-set-mismatch | mechanism-verification-unavailable) | not-known. `record set match` = yes | no. `seal check` = held | failed | unavailable. `evidence field` = evidence_id | record_set_ref | proof | sealed_at | anchored_at. evidence state = sealed.
 

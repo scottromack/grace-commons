@@ -403,7 +403,7 @@ Terms › `actors`: the atom; the host; the transition; the implementation; the 
 
 Terms › `records`: `retention` — one obligation, carrying `retention_id`, `record_ref`, `policy_ref`, `retained_at`, `retention_until`, `purge_deadline`, a retention state and, once purged, `purged_at`.
 
-Terms › `record verbs`: identify, allocate, supply, reuse, carry, stand, set, store, offer, hold, record, answer, read, resolve, stamp, judge, leave, refuse, write, derive, change, delete, shrink, share, admit, gate, destroy, retry, alert, coordinate, confirm, serialize, own, disagree, compose, place, define, version, retain, permit, purge, choose, suspend, renumber, add, find, reproduce, compute, reconstruct, identify, declare, exceed, bound.
+Terms › `record verbs`: identify, allocate, supply, reuse, carry, stand, set, store, offer, hold, record, answer, read, resolve, stamp, judge, leave, refuse, write, derive, change, delete, shrink, share, admit, gate, destroy, retry, alert, coordinate, confirm, serialize, own, disagree, compose, place, define, version, retain, permit, purge, choose, suspend, renumber, add, find, reproduce, compute, reconstruct, declare, exceed, bound.
 
 Terms › `value sets`: place_under_retention answers = retention_id | rejected(invalid-request | invalid-policy | policy-not-found | storage-failure). purge answers = ok | rejected(not-known | not-retained | retention-period-not-elapsed | storage-failure). `retention state` = retained | purged. `purge eligible` = yes | no.
 
