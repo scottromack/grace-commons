@@ -1,4 +1,4 @@
-# GRACE lang v0.37 — Minimal Earned Grammar
+# GRACE lang v0.39 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -200,7 +200,7 @@ A family carries meaning the rule's own words leave out — *Non-goal 3: The hos
 
 Terms › `reserved token`: a `modal`, a `quantifier`, a `condition operator`, a `tail`, `IF`, `THEN`, `WHEN`, `IS AUTHORITATIVE FOR`, one of the `reserved grammar verbs`, a surface prefix, or a diff result — each declared elsewhere in this document and cited here (Closed vocabulary 15).
 
-Terms › `casing tier`: `upper case` | `title case` | `lower case`.
+Terms › `casing tier`: `upper case` | `title case` | `sentence case` | `lower case`.
 
 Terms › `domain identifier`: a record verb, a value-set member, a field name or an action name — a name the specification declares rather than the grammar.
 
@@ -218,7 +218,7 @@ The tiers were already in force in every migrated document and declared nowhere,
 
 Casing 3 is the load-bearing one, and it is a reading rule rather than a prohibition. A lower-case `and` is English and carries no operator, so an object list — *the scope and the allocator_ref* — stays legal prose; a condition the writer meant as `AND` and wrote in lower case is simply not a condition, and the shape checks then report it as one that does not parse. Forbidding the word would break the prose; refusing to read it as an operator makes the drift visible without a new prohibition.
 
-A label family's casing is not this section's to set. Rule shape 7 already says a label names the heading the label sits under, in the heading's own words, so the casing follows the heading and needs no second owner — which the census confirms: 104 of the 105 families named in words are sentence case, matching their headings. The 62 families named `event_to_attestation`, `seal_coverage`, `retention_policy` and the like are not exceptions to a tier, they are Casing 5 winning: the name *is* a declared term, the lower case is part of the identifier, and title-casing it would break the reference. A first draft of this section claimed an initial capital for label families and bracket markers together, which put Casing 4 and Casing 5 in conflict at those 62 sites; council read 25 applied the pressure and the census settled it.
+A label family's casing is not this section's to *set* — but the tier set must *contain* it, or Casing 6 has no tier to read for the corpus's commonest family casing and Value set 3's ban on an implicit other bites. `sentence case` is the fourth member for that reason, added at council read 27 after a three-member set shipped against a census that had already counted 104 sentence-case families. Which tier a family takes stays Rule shape 7's: it already says a label names the heading the label sits under, in the heading's own words, so the casing follows the heading and needs no second owner — which the census confirms: 104 of the 105 families named in words are sentence case, matching their headings. The 62 families named `event_to_attestation`, `seal_coverage`, `retention_policy` and the like are not exceptions to a tier, they are Casing 5 winning: the name *is* a declared term, the lower case is part of the identifier, and title-casing it would break the reference. A first draft of this section claimed an initial capital for label families and bracket markers together, which put Casing 4 and Casing 5 in conflict at those 62 sites; council read 25 applied the pressure and the census settled it.
 
 Casing 6 is what the tiers buy: a parser classifies a token by shape before it looks anything up, so the closed vocabulary is consulted to resolve a name rather than to decide what kind of thing the name is. Closed vocabulary 18 already forbids declaring two specific reserved tokens as record verbs; the tiers generalize that from a list of two to a property of the case.
 
@@ -308,14 +308,14 @@ WHEN condition:
 ```text
 Authority 1: A writer MUST write authority as `subject IS AUTHORITATIVE FOR proposition`.
 Authority 2: A synonym MUST NOT carry authority semantics.
-Authority 3: Two specs MUST NOT claim authority for one proposition.
+Authority 3: Two rules MUST NOT claim authority for one proposition.
 Authority 4: The parser MUST treat two propositions as one proposition ONLY IF the propositions normalize identically (Reverse diff 3).
 Authority 5: A citing spec MUST name the owner.
 Authority 6: A citing spec MUST NOT restate the rule.
 ```
 
 WHY:
-No synonym — `canonical`, `source of truth`, `primary` — carries authority semantics. A site is one spec (`pressure-testing.md` §*One site is one spec*). `IS AUTHORITATIVE FOR` is an introduced form, not a discovered one: the concept is earned (three consecutive gates; DRY on responsibility depends on it), the phrasing was minted 2026-09-10 in Recoverable Invocation and propagated only after use. It is the grammar's one labelled exception to Principle 1.
+No synonym — `canonical`, `source of truth`, `primary` — carries authority semantics. Authority 3 reads *two rules* rather than *two specs*, which covers both altitudes: a proposition owned twice across two specs, and a proposition owned twice inside one. The second is the common case and was unowned until council read 26 counted it — 46 pairs in one atom, seven of them the same sentence under two labels (`State 1` and `Invariant 2.1`, `State 22` and `Non-goal 20`). A spec pays for a proposition once: deleting the second copy costs nothing, and deleting the first breaks Hard invariant 16, which is what makes the rule mechanical rather than a matter of taste. A site is one spec (`pressure-testing.md` §*One site is one spec*). `IS AUTHORITATIVE FOR` is an introduced form, not a discovered one: the concept is earned (three consecutive gates; DRY on responsibility depends on it), the phrasing was minted 2026-09-10 in Recoverable Invocation and propagated only after use. It is the grammar's one labelled exception to Principle 1.
 
 ---
 
@@ -600,6 +600,12 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.39 (2026-09-12): `sentence case` added to the `casing tier` value set. The tiers shipped with three members against a census that counted 104 word-named label families in sentence case — a member in active use and absent from its own set, which Value set 3 forbids and Casing 6 needs. Council read 27.
+
+NOTE:
+v0.38 (2026-09-12): Authority 3 widened from *two specs* to *two rules*, so one proposition owned twice inside a single spec is a finding rather than a preference. Admitted on Principle 2's two halves — the shape recurs in every migrated spec, and the contested half is council read 26's count of 46 duplicate pairs in Capacity alone, seven of them verbatim under two labels. `tools/grace/check.py` reports `W-duplicate-proposition`. No form admitted or withdrawn; a scope widened.
 
 NOTE:
 v0.37 (2026-09-12): `card` renamed to `term entry` (Surface 25, Surface 27, §21). A rename only — no rule changed, no form admitted or withdrawn. *Card* named a presentation; the object is structured knowledge about a declared term — its definition, kind, relationships and projection token — and a Grace UI may render it as a card, a tooltip, a panel or nothing at all. Declared lower case, like every sibling term in this document's vocabulary (`bracket marker`, `normative block`, `text fence`, `casing tier`), because Casing 4's title case is the bracket marker's and a grammar term is not one. Council approved.

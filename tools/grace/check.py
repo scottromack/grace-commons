@@ -67,7 +67,7 @@ CODE_SPAN = re.compile(r"`[^`]*`")
 SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-two-obligations", "W-demonstrative", "W-comparator", "W-modal",
-            "W-unconditional-effect", "W-condition-operator",
+            "W-unconditional-effect", "W-condition-operator", "W-duplicate-proposition",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
 # F-prefix-first gates: a demoted rule is a deleted rule
@@ -489,6 +489,35 @@ def scan(path: Path) -> list[Finding]:
                 add(r.line, "W-unconditional-effect",
                     f"{r.label}: [{act}] rejects elsewhere, so this effect also binds a "
                     f"refused call — condition it on an admitted-call term (Hard invariant 16)")
+
+    # one proposition owned twice inside one spec (Authority 3, widened v0.38).
+    # A token-set prefilter keeps this linear enough for a 2800-rule corpus:
+    # two rules are compared only when they share a rare content word.
+    _STOP = {"the","a","an","of","and","or","to","in","for","at","on","by","as",
+             "must","not","may","every","this","that","one","two","its"}
+    _bucket: dict[str, list] = {}
+    for r in rules:
+        toks = [w for w in re.findall(r"[a-z_]{4,}", r.text.lower()) if w not in _STOP]
+        if len(toks) < 3:
+            continue
+        fam = LABEL_PARTS.match(r.label)
+        fam = fam.group("name") if fam else r.label
+        key = frozenset(toks)
+        for rare in sorted(toks)[:3]:
+            for pk, pf, pl in _bucket.get(rare, []):
+                if pf == fam:
+                    continue
+                inter = len(pk & key)
+                if inter and inter / max(len(pk), len(key)) > 0.85:
+                    add(r.line, "W-duplicate-proposition",
+                        f"{r.label} restates {pl} — a spec pays for a proposition "
+                        f"once (Authority 3)")
+                    rare = None
+                    break
+            if rare is None:
+                break
+        for t in sorted(toks)[:3]:
+            _bucket.setdefault(t, []).append((key, fam, r.label))
 
     # an EXACTLY ONE OF whose members are not exclusive: one member containing
     # another is an exclusive choice that does not exclude (council read 9, council read 13)
