@@ -1,11 +1,11 @@
-# GRACE lang v0.35 — Minimal Earned Grammar
+# GRACE lang v0.36 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
 ## NOTE: Grace UX is abstracted microcopy and interaction behavior derived from verified logical state.
 
 Status: the current version and its history are §23; this line states nothing else.
-Date: 2026-09-11
+Date: 2026-09-12
 
 NOTE:
 This document obeys itself. A fenced block is classified by its first line (Surface 18): a labelled rule opens a normative block, a surface prefix opens that surface, anything else is a parse error. Everything outside the fences and the `Terms ›` lines carries nothing (Surface 3); `WHY:` and `NOTE:` label it for readers. The vocabulary the document's own rules use is declared in §13.
@@ -194,6 +194,35 @@ Standard label 3: A label family outside the standard set MUST carry the meaning
 
 WHY:
 A family carries meaning the rule's own words leave out — *Non-goal 3: The host MUST admit waiters in arrival order* is a positive obligation, and the scope that makes it a non-goal lives in the label (council read 8). Declaring the families once here is what makes that meaning owned rather than conventional, and Principle 9–11 is why the declaration is here and not in every spec.
+
+
+#### Casing tiers
+
+Terms › `reserved token`: a `modal`, a `quantifier`, a `condition operator`, a `tail`, `IF`, `THEN`, `WHEN`, `IS AUTHORITATIVE FOR`, one of the `reserved grammar verbs`, a surface prefix, or a diff result — each declared elsewhere in this document and cited here (Closed vocabulary 15).
+
+Terms › `casing tier`: `upper case` | `title case` | `lower case`.
+
+Terms › `domain identifier`: a record verb, a value-set member, a field name or an action name — a name the specification declares rather than the grammar.
+
+```text
+Casing 1: The grammar IS AUTHORITATIVE FOR the casing tiers.
+Casing 2: EVERY reserved token MUST carry upper case.
+Casing 3: The parser MUST NOT read a lower-case token as a reserved token.
+Casing 4: EVERY bracket marker MUST carry title case.
+Casing 5: EVERY domain identifier MUST carry lower case.
+Casing 6: The parser MUST read a token's tier from the token's case.
+```
+
+WHY:
+The tiers were already in force in every migrated document and declared nowhere, which is why the cheap instruments work at all: lower case is the tell. `W-or-word`, `W-watch-word` and `W-modal` each find a reserved concept written in the wrong tier, and they cost a regex because the right tier is upper case and nothing else is.
+
+Casing 3 is the load-bearing one, and it is a reading rule rather than a prohibition. A lower-case `and` is English and carries no operator, so an object list — *the scope and the allocator_ref* — stays legal prose; a condition the writer meant as `AND` and wrote in lower case is simply not a condition, and the shape checks then report it as one that does not parse. Forbidding the word would break the prose; refusing to read it as an operator makes the drift visible without a new prohibition.
+
+A label family's casing is not this section's to set. Rule shape 7 already says a label names the heading the label sits under, in the heading's own words, so the casing follows the heading and needs no second owner — which the census confirms: 104 of the 105 families named in words are sentence case, matching their headings. The 62 families named `event_to_attestation`, `seal_coverage`, `retention_policy` and the like are not exceptions to a tier, they are Casing 5 winning: the name *is* a declared term, the lower case is part of the identifier, and title-casing it would break the reference. A first draft of this section claimed an initial capital for label families and bracket markers together, which put Casing 4 and Casing 5 in conflict at those 62 sites; council read 25 applied the pressure and the census settled it.
+
+Casing 6 is what the tiers buy: a parser classifies a token by shape before it looks anything up, so the closed vocabulary is consulted to resolve a name rather than to decide what kind of thing the name is. Closed vocabulary 18 already forbids declaring two specific reserved tokens as record verbs; the tiers generalize that from a list of two to a property of the case.
+
+The census that admitted this: 471 lower-case reserved tokens inside normative rules across the migrated corpus — 277 of them in the two pilot compositions, 38 in this document. The drift is the contested half of Principle 2; the nineteen documents already obeying the tiers are the recurrence half (council read 24).
 
 ---
 
@@ -552,7 +581,7 @@ Caveman 2: A writer MUST NOT express complex behavior as a more complicated sent
 
 ### 21. What the grammar locks
 
-Terms › `locked forms`: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; `MUST` / `MUST NOT` / `MAY`; `EVERY` / `EXACTLY ONE` / `EXACTLY ONE OF`; flat `IF` and flat `WHEN`; flat `AND`, flat `OR`, never both in one condition; `OR` only inside conditions and term declarations; `=` / `!=` / `EXISTS` / `NOT EXISTS` / `EXCEEDS`; `ONLY AFTER` / `ONLY IF` / `WITHIN` / `PER`; `MUST NOT EXCEED` for ≥, no `AT LEAST`, no `STRICTLY`; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; `IS AUTHORITATIVE FOR` (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic `AFTER` sugar under `MUST` and `MAY`; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; closed vocabulary including record verbs; the `Terms ›` declaration form; the signature block as a declaration form, one line per action; the standard label families; the card and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations; closed value sets; no pronouns, §13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
+Terms › `locked forms`: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; `MUST` / `MUST NOT` / `MAY`; `EVERY` / `EXACTLY ONE` / `EXACTLY ONE OF`; flat `IF` and flat `WHEN`; flat `AND`, flat `OR`, never both in one condition; `OR` only inside conditions and term declarations; `=` / `!=` / `EXISTS` / `NOT EXISTS` / `EXCEEDS`; `ONLY AFTER` / `ONLY IF` / `WITHIN` / `PER`; `MUST NOT EXCEED` for ≥, no `AT LEAST`, no `STRICTLY`; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; `IS AUTHORITATIVE FOR` (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic `AFTER` sugar under `MUST` and `MAY`; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; closed vocabulary including record verbs; the `Terms ›` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the card and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations; closed value sets; no pronouns, §13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
 
 ```text
 Lock 1: The parser MUST accept only the locked forms and the locked forms' deterministic sugar.
@@ -571,6 +600,9 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.36 (2026-09-12): the casing tiers declared (Casing 1–6) — upper case is reserved, an initial capital names a label family or a bracket marker, lower case is the specification's own. Already in force in nineteen documents and drifting at 471 sites inside normative rules, which is Principle 2's two halves. Council read 24.
 
 NOTE:
 v0.35 (2026-09-11): local specs declare domain meaning, not GRACE meaning (Principle 9–11); the standard label families declared once, here (Standard label 1–3); the signature block admitted with one line per action, and the `rejected(…)` wording it carried from Recoverable Invocation dropped; the Terms card and the bracket marker read as the surface nothing, the `Terms ›` declaration the one owner (Surface 25–27). Council read 8.
