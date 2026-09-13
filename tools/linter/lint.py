@@ -461,22 +461,28 @@ def check_rests_on_refs(patterns: dict[Path, Pattern], md_files: list[Path]) -> 
         name = TRAILING_PAREN.sub("", m.group(1).strip()).strip()
         if name and reserved:
             by_name[name] = max(reserved)
-    refs = [
-        (re.compile(r"(?<![A-Za-z])" + re.escape(nm)
-                    + r"\s+Invariants?\s+([0-9][0-9,\s]*(?:and\s+[0-9]+)?)"), nm, count)
-        for nm, count in by_name.items()
-    ]
     findings: list[Finding] = []
+    if not by_name:
+        return findings
+    # One alternation over every pattern name rather than one regex per name.
+    # The per-name form scanned each file once per pattern — 54 files by 28
+    # names over ~60 KB each — and cost 20 of the linter's 39 seconds, which a
+    # profile found and a guess did not (council read 46). Longest name first so
+    # the alternation prefers `Party Identity` over any shorter name inside it.
+    names = sorted(by_name, key=len, reverse=True)
+    rx = re.compile(r"(?<![A-Za-z])(" + "|".join(re.escape(n) for n in names)
+                    + r")\s+Invariants?\s+([0-9][0-9,\s]*(?:and\s+[0-9]+)?)")
     for md in md_files:
         text = md.read_text(encoding="utf-8")
-        for rx, nm, count in refs:
-            for m in rx.finditer(text):
-                for n in (int(x) for x in re.findall(r"\d+", m.group(1))):
-                    if n > count:
-                        findings.append(Finding(
-                            md, line_of(text, m.start()), "F-invariant-ref",
-                            f"cites {nm} Invariant {n}, but {nm} declares {count}",
-                        ))
+        for m in rx.finditer(text):
+            nm = m.group(1)
+            count = by_name[nm]
+            for n in (int(x) for x in re.findall(r"\d+", m.group(2))):
+                if n > count:
+                    findings.append(Finding(
+                        md, line_of(text, m.start()), "F-invariant-ref",
+                        f"cites {nm} Invariant {n}, but {nm} declares {count}",
+                    ))
     return findings
 
 
@@ -1446,24 +1452,38 @@ def check_provenance_drift(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
                     out[k] = ln.strip()
         return out
 
-    try:
-        proc = subprocess.run(
-            ["git", "--no-optional-locks", "rev-parse", "--is-inside-work-tree"],
-            cwd=root, capture_output=True, text=True, timeout=10)
-        if proc.returncode != 0:
-            return findings
-    except (OSError, subprocess.SubprocessError):
+    def git(*args, timeout=20):
+        try:
+            return subprocess.run(["git", "--no-optional-locks", *args], cwd=root,
+                                  capture_output=True, text=True, timeout=timeout)
+        except (OSError, subprocess.SubprocessError):
+            return None
+
+    if (probe := git("rev-parse", "--is-inside-work-tree", timeout=10)) is None:
+        return findings
+    if probe.returncode != 0:
+        return findings
+
+    # Ask git once which files differ from HEAD rather than reading every spec
+    # out of HEAD. A provenance line cannot have drifted in a file that has not
+    # changed, so the unchanged majority costs nothing. Worth recording that this
+    # was NOT the slow check: it was blamed for the linter's 39 seconds on a
+    # guess, the batching changed nothing measurable, and a profile then put the
+    # cost in `check_rests_on_refs` and `check_council_register` instead. The
+    # batching is kept because it is correct, not because it was the cure.
+    changed = git("diff", "--name-only", "HEAD")
+    if changed is None or changed.returncode != 0:
+        return findings
+    touched = {ln.strip() for ln in changed.stdout.split("\n") if ln.strip()}
+    if not touched:
         return findings
 
     for p in patterns.values():
         rel = p.path.relative_to(root).as_posix()
-        try:
-            show = subprocess.run(
-                ["git", "--no-optional-locks", "show", f"HEAD:{rel}"],
-                cwd=root, capture_output=True, text=True, timeout=20)
-        except (OSError, subprocess.SubprocessError):
+        if rel not in touched:
             continue
-        if show.returncode != 0:
+        show = git("show", f"HEAD:{rel}")
+        if show is None or show.returncode != 0:
             continue  # new file; nothing to compare against
         was, now = provenance(show.stdout), provenance(p.text)
         for k in KEYS:
@@ -1555,9 +1575,19 @@ def check_council_register(root: Path) -> list[Finding]:
         else:
             seen[n] = line_of(text, m.start())
     known = set(seen)
-    for f in sorted(root.rglob("*.md")):
-        if ".git" in f.parts or "node_modules" in f.parts:
-            continue
+    # Prune the walk rather than filter after it: this tree carries 417 markdown
+    # files and 208 of them are inside `node_modules`, so `rglob` was descending
+    # a vendored dependency tree to throw it away. Second-slowest check in the
+    # linter until measured (council read 46).
+    def corpus_md(base: Path):
+        for dirpath, dirnames, filenames in os.walk(base):
+            dirnames[:] = [d for d in dirnames
+                           if d != "node_modules" and not d.startswith(".")]
+            for fn in sorted(filenames):
+                if fn.endswith(".md"):
+                    yield Path(dirpath) / fn
+
+    for f in corpus_md(root):
         try:
             body = f.read_text(encoding="utf-8")
         except OSError:
