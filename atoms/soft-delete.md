@@ -406,7 +406,7 @@ Terms › `blank`: a value that is absent, empty, or carries only whitespace —
 WHY:
 Byte-exactness costs more here than in most atoms, because `record_id` is the *caller's* identifier rather than one this atom issued (Identity 2). A host that supplies `Post-8821` on delete and `post-8821` on purge has two lifecycle records, and the purge answers `not-known` on a record that visibly exists. Canonicalization is the deployment's (String 7, Identity 9).
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, and neither do [Approval Step](./approval-step.md), [State Machine](./state-machine.md) or [Selective Disclosure](./selective-disclosure.md), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Six atoms, three postures.
+NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 ### Clock semantics
 

@@ -444,7 +444,7 @@ Terms › `blank`: a value that is absent, empty, or carries only whitespace —
 WHY:
 The cost of byte-exactness lands hardest on the exclusivity guards. An approver whose reference is stored one way and supplied another gets `unauthorized` on their own step — correct by Identity 10, and indistinguishable to them from being the wrong actor. A deployment that does not canonicalize will discover this as an approver who cannot approve.
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, and neither do [State Machine](./state-machine.md) or [Selective Disclosure](./selective-disclosure.md), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Five atoms, three postures.
+NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 ### Clock semantics
 

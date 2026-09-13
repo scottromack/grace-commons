@@ -93,6 +93,10 @@ Moved — the verbosity-preserves-meaning and bridges-over-walls principles are 
 
 The same rule applies to review *outputs*: a review's findings go into the pattern's Ledger as open lines (or are fixed, with the reasoning in the commit message), not into a standalone review file alongside the pattern.
 
+**Never create a directory.** The repo's top level is a closed set — `atoms`, `compositions`, `demos`, `grants`, `internal`, `tools`, `working-ideas`, `build-terms`, and the Jekyll `_data` / `_includes` / `_layouts` / `_sass`. A file belongs in one of those or it does not belong in the repo; a new directory is never the answer to *where does this go*, because the answer is either an existing home or the chat. `lint.py`'s `M-stray-directory` enforces it, and adding a top-level directory means changing that rule deliberately rather than discovering the directory months later.
+
+The directory named `Claude outputs/` is what this rule exists to prevent. A past session created it and then filed real work inside it — Recoverable Invocation's formal models and their configurations, gate review records, verification scripts — where no instrument read them, no reading order named them, and the composition's own Ledger pointed at a model sitting outside the corpus tree. It is being emptied of anything meaningful and then deleted. A formal model belongs beside its spec; a gate record belongs in the Ledger or the commit; a verification script belongs in `tools/`; a draft belongs in the chat.
+
 The only prompt-shaped content that belongs in the repo is methodology — the three-pass question sets and authoring rubric in [`pressure-testing.md`](./pressure-testing.md). That content is canonical, reviewed, and edited like any other library document. Everything else is chat.
 
 ---

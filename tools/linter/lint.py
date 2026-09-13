@@ -1158,6 +1158,67 @@ def _unseparated(region: str) -> list[str]:
 SIGNATURE_BLOCK = re.compile(r"```\n(.*?)\n```", re.S)
 
 
+KNOWN_DIRS = {"atoms", "compositions", "demos", "grants", "internal", "tools",
+              "working-ideas", "build-terms", "_data", "_includes", "_layouts",
+              "_sass", "assets", ".github"}
+
+
+def check_stray_directory(root: Path) -> list[Finding]:
+    """M. A top-level directory outside the closed set. A past session created
+    `Claude outputs/` and filed real work in it — formal models, gate records,
+    verification scripts — where no instrument read them and the reading order
+    did not name them. The set is closed so that adding to it is a decision
+    rather than a discovery (AGENTS.md, Session hygiene)."""
+    findings: list[Finding] = []
+    for d in sorted(p for p in root.iterdir() if p.is_dir()):
+        if d.name.startswith(".") or d.name in KNOWN_DIRS:
+            continue
+        n = sum(1 for _ in d.rglob("*") if _.is_file())
+        findings.append(Finding(
+            d, 1, "M-stray-directory",
+            f"`{d.name}/` is not in the repo's closed top-level set and holds "
+            f"{n} file(s) — a file belongs in an existing home or in the chat"))
+    return findings
+
+
+def check_formal_siblings(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
+    """M. The formal-model family, which no instrument read until now. Two checks:
+    a model's declared module name must match its file stem, and a spec's Ledger
+    `formal:` line must name models that sit beside the spec. The rename of
+    2026-09-13 had to edit two Alloy module declarations by hand precisely because
+    nothing checked the first, which is the fix loop's boundary stated as a
+    symptom (council read 37)."""
+    findings: list[Finding] = []
+    ALS = re.compile(r"^module\s+([A-Za-z_0-9]+)", re.M)
+    TLA = re.compile(r"^-+\s*MODULE\s+([A-Za-z_0-9-]+)", re.M)
+    for d in ("atoms", "compositions"):
+        for f in sorted((root / d).glob("*.als")) + sorted((root / d).glob("*.tla")):
+            text = f.read_text(encoding="utf-8", errors="replace")
+            m = (ALS if f.suffix == ".als" else TLA).search(text)
+            if not m:
+                findings.append(Finding(f, 1, "M-model-unnamed",
+                    "formal model declares no module name"))
+                continue
+            want = f.stem.replace("-", "_") if f.suffix == ".als" else f.stem
+            if m.group(1) != want:
+                findings.append(Finding(f, line_of(text, m.start()), "M-model-name",
+                    f"module is `{m.group(1)}` and the file is `{f.name}` — a rename "
+                    f"that misses the declaration leaves the model orphaned from its spec"))
+    for p in patterns.values():
+        fm = re.search(r"^formal:\s*(.+)$", p.text, re.M)
+        if not fm:
+            continue
+        for name in dict.fromkeys(re.findall(r"([A-Za-z0-9_-]+\.(?:als|tla))", fm.group(1))):
+            if (p.path.parent / name).exists():
+                continue
+            found = next((q for q in root.rglob(name) if ".git" not in q.parts), None)
+            where = f"; it sits at {found.relative_to(root)}" if found else ""
+            findings.append(Finding(
+                p.path, line_of(p.text, fm.start()), "M-model-misplaced",
+                f"the Ledger names `{name}`, which is not beside this spec{where}"))
+    return findings
+
+
 def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
     """W. A label-family count written into the grammar's watch list that no
     longer matches the corpus. Section 18 carried these by hand and they went
@@ -1968,6 +2029,8 @@ def main(argv: list[str]) -> int:
     findings += check_recording_step(patterns)
     findings += check_seal_key(patterns)
     findings += check_retry_bit(patterns)
+    findings += check_stray_directory(root)
+    findings += check_formal_siblings(root, patterns)
     findings += check_stale_census(root, patterns)
     findings += check_migration_seam(patterns)
     findings += check_signature_alternation(patterns)

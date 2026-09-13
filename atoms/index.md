@@ -34,7 +34,7 @@ _25 compositions (22 regulated) · 27 atoms · 63 composition→atom edges. Gene
 | [Assignment](./assignment.md) | — | yes (2) | — | execute-gated-workflow, multi-party-approval, shared-todo |
 | [Capability](./capability.md) | — | yes (2) | yes | capability-backed-sharing, privileged-access-provisioning |
 | [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md) | — | yes (1) | — | reserve-from-pool |
-| [Clinical Observation](./clinical-observation.md) | — | — | — | *(none yet)* |
+| [Observation](./observation.md) | — | — | — | *(none yet)* |
 | [Consent](./consent.md) | — | yes (2) | — | propagate-consent-revocation-downstream, resolve-a-persons-data-rights |
 | [Credential](./credential.md) | — | yes (4) | yes | authenticated-actor, external-onboarding, login, privileged-access-provisioning |
 | [Duplicate Prevention](./duplicate-prevention.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
@@ -139,7 +139,7 @@ The union of standards each atom's composers carry, attributed per composer in t
 
 Atoms no composition yet composes. The overlays say nothing about them — an honest gap, not a claim of non-regulation.
 
-- [Clinical Observation](./clinical-observation.md)
+- [Observation](./observation.md)
 - [Medication Order](./medication-order.md)
 
 ---

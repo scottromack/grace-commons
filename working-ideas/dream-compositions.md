@@ -2,7 +2,7 @@
 
 > **Status: internal staging, not canonical.** Brainstorm output from a Cowork session sweep of the 27 grounded atoms and 24 grounded compositions. Nothing here is proposed, sequenced, or counted; each candidate is gate-sketched (pressure-testing.md §the three gates) but has had no pass run against it. This file dies into `roadmap.md` proposals for whichever candidates the author promotes, and into the trash for the rest.
 
-Selection bias, deliberate: candidates favor underused atoms (Clinical Observation, Medication Order, Capability, Provenance, Capacity Constraint Enforcement), substrate reuse, cross-domain reach in the C12 mold (one structure, several regulator-shaped domains), and emergent invariants with obvious formal-layer shapes.
+Selection bias, deliberate: candidates favor underused atoms (Observation, Medication Order, Capability, Provenance, Capacity Constraint Enforcement), substrate reuse, cross-domain reach in the C12 mold (one structure, several regulator-shaped domains), and emergent invariants with obvious formal-layer shapes.
 
 ---
 
@@ -41,9 +41,9 @@ Selection bias, deliberate: candidates favor underused atoms (Clinical Observati
 
 ## 3. Closed-Loop Medication Administration
 
-**Composes:** Medication Order + Clinical Observation + Approval Step + Authenticated Actor (substrate) + Audit Trail (substrate).
+**Composes:** Medication Order + Observation + Approval Step + Authenticated Actor (substrate) + Audit Trail (substrate).
 
-**The idea.** The eMAR/BCMA loop: order → pharmacist verification (Approval Step) → administration, where the administration action atomically reads order status + verification + a named contraindication predicate over Clinical Observations, and writes the attributed administration event paired to the order.
+**The idea.** The eMAR/BCMA loop: order → pharmacist verification (Approval Step) → administration, where the administration action atomically reads order status + verification + a named contraindication predicate over Observations, and writes the attributed administration event paired to the order.
 
 **Emergent invariants:**
 - *No administration without a live verified order* — order revocation/expiry forward-closes the administration surface (C17's cascade pointed at a clinical act).
@@ -88,7 +88,7 @@ Selection bias, deliberate: candidates favor underused atoms (Clinical Observati
 
 ## 6. Consent-Scoped Observation
 
-**Composes:** Consent + Clinical Observation + Selective Disclosure + Retention Window.
+**Composes:** Consent + Observation + Selective Disclosure + Retention Window.
 
 **The idea.** Data collection under living consent: every observation is stamped to the consent epoch that authorized its purpose; withdrawal forward-closes *new* collection without invalidating lawfully-collected priors; every disclosure of observations is scope-gated against the consent state at disclosure time.
 

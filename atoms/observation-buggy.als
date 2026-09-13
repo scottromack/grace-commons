@@ -1,5 +1,5 @@
--- clinical-observation-buggy.als
--- DELIBERATELY BROKEN twin of clinical-observation.als
+-- observation-buggy.als
+-- DELIBERATELY BROKEN twin of observation.als
 --
 -- WHAT WAS BROKEN
 -- The LinearChain fact has been REMOVED and the successor field multiplicity has been
@@ -21,10 +21,10 @@
 -- affected by the branching mutation alone.
 --
 -- HOW TO RUN (harness):
---   node check.mjs ../../atoms/clinical-observation-buggy.als --buggy
+--   node check.mjs ../../atoms/observation-buggy.als --buggy
 -- Expected harness output: PASS (at least one check returned SAT / counterexample found).
 
-module clinical_observation_buggy
+module observation_buggy
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Signatures (types)

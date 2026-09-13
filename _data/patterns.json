@@ -37,6 +37,7 @@
    "NIST 800-53",
    "NIST 800-57",
    "NIST 800-63",
+   "NIST 800-92",
    "OWASP ASVS",
    "PCI DSS",
    "SEC 17a-4",
@@ -53,8 +54,8 @@
    "permissions",
    "session"
   ],
-  "grounded": true,
-  "invariants": 4,
+  "grounded": false,
+  "invariants": 5,
   "kind": "composition",
   "models": {
    "als": false,
@@ -74,7 +75,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-10",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
@@ -107,7 +108,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-05-20",
+  "status": "grounded on Final Critique 5 \u2014 2026-07-12",
   "title": "Approval Step"
  },
  "assignment": {
@@ -146,8 +147,8 @@
    "permissions",
    "actor-identity"
   ],
-  "grounded": true,
-  "invariants": 8,
+  "grounded": false,
+  "invariants": 9,
   "kind": "composition",
   "models": {
    "als": true,
@@ -167,7 +168,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 6 \u2014 2026-05-23",
+  "status": "partially resolved",
   "substrates": [],
   "title": "Attributed Permissions Admin"
  },
@@ -178,7 +179,7 @@
    "retention-window",
    "tamper-evidence"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -196,13 +197,14 @@
    "GDPR",
    "HIPAA",
    "ISO 27001",
+   "NIST 800-92",
    "PCI DSS",
    "SEC 17a-4",
    "SOC 2",
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-18",
+  "status": "partially resolved",
   "substrate_of": [
    "actor-suspension",
    "capability-backed-sharing",
@@ -216,7 +218,8 @@
    "login",
    "multi-party-approval",
    "privileged-access-provisioning",
-   "propagate-consent-revocation-downstream"
+   "propagate-consent-revocation-downstream",
+   "recoverable-invocation"
   ],
   "substrates": [],
   "title": "Audit Trail"
@@ -226,7 +229,7 @@
    "credential",
    "actor-identity"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -245,7 +248,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-10",
+  "status": "partially resolved",
   "substrates": [],
   "title": "Authenticated Actor"
  },
@@ -285,13 +288,13 @@
    "capability",
    "selective-disclosure"
   ],
-  "grounded": true,
-  "invariants": 5,
+  "grounded": false,
+  "invariants": 6,
   "kind": "composition",
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 2
   },
   "regulated": true,
   "standards": [
@@ -302,7 +305,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-10",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
@@ -328,20 +331,20 @@
   "standards": [
    "PCI DSS"
   ],
-  "status": "grounded on Final Critique 5 \u2014 2026-05-20",
+  "status": "grounded on Final Critique 8 \u2014 2026-08-26",
   "title": "Capacity Constraint Enforcement"
  },
  "chain-of-custody": {
   "composes": [
    "provenance"
   ],
-  "grounded": true,
-  "invariants": 6,
+  "grounded": false,
+  "invariants": 7,
   "kind": "composition",
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 2
   },
   "regulated": true,
   "standards": [
@@ -353,35 +356,18 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-11",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
   "title": "Chain of Custody"
- },
- "clinical-observation": {
-  "composed_by": [],
-  "domain": null,
-  "grounded": true,
-  "invariants": 9,
-  "kind": "atom",
-  "models": {
-   "als": true,
-   "tla": false,
-   "twins": 1
-  },
-  "regulated_by": [],
-  "security": false,
-  "standards": [],
-  "status": "grounded on Final Critique 4 \u2014 2026-05-20",
-  "title": "Clinical Observation"
  },
  "compensable-workflow": {
   "composes": [
    "state-machine",
    "event-log"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 9,
   "kind": "composition",
   "models": {
@@ -395,7 +381,7 @@
    "ISO 27001",
    "NIST 800-92"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-16",
+  "status": "partially resolved",
   "substrates": [],
   "title": "Compensable Workflow"
  },
@@ -475,8 +461,8 @@
    "party-identity",
    "retention-window"
   ],
-  "grounded": true,
-  "invariants": 7,
+  "grounded": false,
+  "invariants": 8,
   "kind": "composition",
   "models": {
    "als": false,
@@ -492,7 +478,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-03",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
@@ -503,8 +489,8 @@
    "legal-hold",
    "retention-window"
   ],
-  "grounded": true,
-  "invariants": 8,
+  "grounded": false,
+  "invariants": 10,
   "kind": "composition",
   "models": {
    "als": false,
@@ -520,7 +506,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-05-20",
+  "status": "partially resolved",
   "substrate_of": [
    "resolve-a-persons-data-rights"
   ],
@@ -607,8 +593,8 @@
    "permissions",
    "assignment"
   ],
-  "grounded": true,
-  "invariants": 7,
+  "grounded": false,
+  "invariants": 8,
   "kind": "composition",
   "models": {
    "als": false,
@@ -623,7 +609,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-04",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
@@ -635,7 +621,7 @@
    "credential",
    "party-identity"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -652,7 +638,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "grounded on Final Critique 5 \u2014 2026-05-23",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
@@ -662,8 +648,8 @@
   "composes": [
    "soft-delete"
   ],
-  "grounded": true,
-  "invariants": 5,
+  "grounded": false,
+  "invariants": 6,
   "kind": "composition",
   "models": {
    "als": false,
@@ -682,7 +668,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-11",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
@@ -693,7 +679,7 @@
    "provisional-commitment",
    "duplicate-prevention"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -709,7 +695,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-18",
+  "status": "partially resolved",
   "substrates": [],
   "title": "Idempotent Reservation"
  },
@@ -717,8 +703,8 @@
   "composes": [
    "selective-disclosure"
   ],
-  "grounded": true,
-  "invariants": 5,
+  "grounded": false,
+  "invariants": 6,
   "kind": "composition",
   "models": {
    "als": false,
@@ -735,7 +721,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 6 \u2014 2026-06-10",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
@@ -768,6 +754,32 @@
   ],
   "status": "grounded on Final Critique 5 \u2014 2026-06-23",
   "title": "Invitation"
+ },
+ "lease": {
+  "composed_by": [
+   "recoverable-invocation"
+  ],
+  "domain": null,
+  "grounded": false,
+  "invariants": 6,
+  "kind": "atom",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated_by": [
+   "recoverable-invocation"
+  ],
+  "security": false,
+  "standards": [
+   "GDPR",
+   "HIPAA",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "draft",
+  "title": "lease"
  },
  "legal-hold": {
   "composed_by": [
@@ -802,7 +814,7 @@
    "credential",
    "session"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 6,
   "kind": "composition",
   "models": {
@@ -819,7 +831,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 5 \u2014 2026-05-23",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
@@ -862,7 +874,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "grounded on Final Critique 5 \u2014 2026-05-29",
+  "status": "grounded on Final Critique 8 \u2014 2026-08-26",
   "title": "Message Preference"
  },
  "multi-party-approval": {
@@ -871,8 +883,8 @@
    "permissions",
    "assignment"
   ],
-  "grounded": true,
-  "invariants": 9,
+  "grounded": false,
+  "invariants": 10,
   "kind": "composition",
   "models": {
    "als": false,
@@ -886,7 +898,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-05-20",
+  "status": "partially resolved",
   "substrate_of": [
    "privileged-access-provisioning"
   ],
@@ -925,7 +937,7 @@
    "subscription",
    "notification"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -935,9 +947,26 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "grounded on Final Critique 4 \u2014 2026-05-20",
+  "status": "partially resolved",
   "substrates": [],
   "title": "Notification Fanout"
+ },
+ "observation": {
+  "composed_by": [],
+  "domain": null,
+  "grounded": true,
+  "invariants": 9,
+  "kind": "atom",
+  "models": {
+   "als": true,
+   "tla": false,
+   "twins": 1
+  },
+  "regulated_by": [],
+  "security": false,
+  "standards": [],
+  "status": "grounded on Final Critique 4 \u2014 2026-05-20",
+  "title": "Observation"
  },
  "party-identity": {
   "composed_by": [
@@ -969,7 +998,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-05-20",
+  "status": "grounded on Final Critique 5 \u2014 2026-07-12",
   "title": "Party Identity"
  },
  "permissions": {
@@ -1050,7 +1079,7 @@
    "message-preference",
    "event-log"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 10,
   "kind": "composition",
   "models": {
@@ -1062,7 +1091,7 @@
   "standards": [
    "GDPR"
   ],
-  "status": "grounded on Final Critique 12 \u2014 2026-06-12",
+  "status": "partially resolved",
   "substrates": [],
   "title": "Preference-Aware Notification Fanout"
  },
@@ -1073,7 +1102,7 @@
    "permissions",
    "capability"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 10,
   "kind": "composition",
   "models": {
@@ -1089,7 +1118,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-05-23",
+  "status": "partially resolved",
   "substrates": [
    "multi-party-approval",
    "audit-trail"
@@ -1102,8 +1131,8 @@
    "permissions",
    "retention-window"
   ],
-  "grounded": true,
-  "invariants": 7,
+  "grounded": false,
+  "invariants": 8,
   "kind": "composition",
   "models": {
    "als": false,
@@ -1115,7 +1144,7 @@
    "GDPR",
    "HIPAA"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-04",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail"
   ],
@@ -1127,7 +1156,7 @@
   ],
   "domain": null,
   "grounded": true,
-  "invariants": 10,
+  "invariants": 9,
   "kind": "atom",
   "models": {
    "als": true,
@@ -1147,7 +1176,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-04",
+  "status": "grounded on Final Critique 7 \u2014 2026-08-26",
   "title": "Provenance"
  },
  "provisional-commitment": {
@@ -1179,6 +1208,31 @@
   "status": "grounded on Final Critique 4 \u2014 2026-06-18",
   "title": "Provisional Commitment"
  },
+ "recoverable-invocation": {
+  "composes": [
+   "lease"
+  ],
+  "grounded": false,
+  "invariants": 9,
+  "kind": "composition",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated": true,
+  "standards": [
+   "GDPR",
+   "HIPAA",
+   "PCI DSS",
+   "SOX"
+  ],
+  "status": "draft",
+  "substrates": [
+   "audit-trail"
+  ],
+  "title": "Recoverable Invocation"
+ },
  "reserve-from-pool": {
   "composes": [
    "provisional-commitment",
@@ -1187,8 +1241,8 @@
    "event-log",
    "actor-identity"
   ],
-  "grounded": true,
-  "invariants": 7,
+  "grounded": false,
+  "invariants": 8,
   "kind": "composition",
   "models": {
    "als": false,
@@ -1199,7 +1253,7 @@
   "standards": [
    "PCI DSS"
   ],
-  "status": "grounded on Final Critique 5 \u2014 2026-06-18",
+  "status": "partially resolved",
   "substrates": [],
   "title": "Reserve from Pool"
  },
@@ -1208,8 +1262,8 @@
    "selective-disclosure",
    "consent"
   ],
-  "grounded": true,
-  "invariants": 8,
+  "grounded": false,
+  "invariants": 9,
   "kind": "composition",
   "models": {
    "als": false,
@@ -1225,7 +1279,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 5 \u2014 2026-06-09",
+  "status": "partially resolved",
   "substrates": [
    "defensible-retention"
   ],
@@ -1269,6 +1323,7 @@
    "HIPAA",
    "ISO 15489",
    "ISO 27001",
+   "NIST 800-92",
    "PCI DSS",
    "SEC 17a-4",
    "SOC 2",
@@ -1372,7 +1427,7 @@
    "OWASP ASVS",
    "PCI DSS"
   ],
-  "status": "grounded on Final Critique 6 \u2014 2026-05-23",
+  "status": "grounded on Final Critique 8 \u2014 2026-08-26",
   "substrates": [],
   "title": "Session-Gated Authorization"
  },
@@ -1392,7 +1447,7 @@
   },
   "regulated": false,
   "standards": [],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-18",
+  "status": "grounded on Final Critique 6 \u2014 2026-08-26",
   "substrates": [],
   "title": "Shared Todo"
  },
@@ -1507,6 +1562,7 @@
    "GDPR",
    "HIPAA",
    "ISO 27001",
+   "NIST 800-92",
    "PCI DSS",
    "SEC 17a-4",
    "SOC 2",
@@ -1534,7 +1590,7 @@
    "ISO 27001",
    "NIST 800-92"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-18",
+  "status": "grounded on Final Critique 6 \u2014 2026-08-26",
   "substrates": [],
   "title": "Undo History"
  }

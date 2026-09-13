@@ -93,6 +93,28 @@ def ge_disjunction(line: str) -> tuple[str, str] | None:
     return None
 
 
+# A reservation rule -- "... MUST answer <outcome> ONLY IF <id> EXISTS" -- reads
+# `EXISTS` in the argument-presence sense, so it is only meaningful beside a rule
+# routing a blank <id> somewhere. Without that partner the blank case has no legal
+# answer at all: the reservation forbids the miss answer and every other arm is
+# gated behind checks a blank id cannot reach. Five atoms carry the spelling; one
+# carried it unpartnered (council read 36).
+RESERVE_EXISTS = re.compile(
+    r"MUST answer [a-z-]+ ONLY IF (?:the )?([a-z_]+) EXISTS\b")
+BLANK_GUARD = re.compile(r"IF (?:the )?([a-z_]+) NOT EXISTS THEN")
+
+
+def unpartnered_reservations(text: str) -> list[tuple[str, str]]:
+    """(label, identifier) for each EXISTS-reservation with no blank-guard partner."""
+    blanks = set(BLANK_GUARD.findall(text))
+    out = []
+    for m in re.finditer(r"^\s*([A-Z][A-Za-z ]*\d+(?:\.\d+)?): (.*)$", text, re.M):
+        rm = RESERVE_EXISTS.search(m.group(2))
+        if rm and rm.group(1) not in blanks:
+            out.append((m.group(1), rm.group(1)))
+    return out
+
+
 LABEL = re.compile(r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?):\s*(.*)$")
 LABEL_PARTS = re.compile(r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 PREFIX = re.compile(r"^(WHY|NOTE|UX|PROVISIONAL):")
@@ -201,6 +223,7 @@ def declared_terms(text: str) -> dict[str, int]:
 
 def scan(path: Path) -> list[Finding]:
     text = path.read_text(encoding="utf-8")
+    blank_guarded = set(BLANK_GUARD.findall(text))
     lines = text.split("\n")
     findings: list[Finding] = []
     rules: list[Rule] = []
@@ -424,6 +447,12 @@ def scan(path: Path) -> list[Finding]:
             add(r.line, "W-comparator",
                 f"{r.label}: '{cm.group(1)}' is a comparison outside the condition "
                 f"operators — route it through EXCEEDS or a declared term")
+        rm = RESERVE_EXISTS.search(stmt)
+        if rm and rm.group(1) not in blank_guarded:
+            add(r.line, "V-unpartnered-reservation",
+                f"{r.label}: reserves an answer to '{rm.group(1)} EXISTS' and no rule "
+                f"routes a blank {rm.group(1)} — the blank case has no legal answer "
+                f"(Hard invariant 16)")
         ge = ge_disjunction(r.text)
         if ge:
             add(r.line, "W-ge-disjunction",

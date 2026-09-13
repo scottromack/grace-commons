@@ -22,7 +22,7 @@ vote-named invariant*.
   check: Party Identity (after the Inv 6 promotion), Assignment, Message Preference,
   Invitation, Audit Trail, Idempotent Reservation, Defensible Retention, KYC,
   Shared Todo (Inv 2 covered by delegation to `assignment.tla`), Undo History,
-  Permissions, Notification, Subscription, Clinical Observation.
+  Permissions, Notification, Subscription, Observation.
 - **4 cheap promotions** (load-bearing held by-construction → add an explicit
   check, exactly as Inv 6 was promoted on Party Identity).
 - **6 genuine GAPs across 5 patterns** (a vote-named invariant with partial or no
@@ -52,7 +52,7 @@ action. Shared Todo Inv 2 is covered by delegation to `assignment.tla` — verif
 
 | Pattern | Invariant | Nature / candidate fix |
 |---|---|---|
-| Medication Order | **Inv 3 & 4** — amendment pre-dispensing only; linear amendment chains | Vote-named load-bearing, deferred "to Alloy" but **no Alloy model exists**. Fix: a small `medication-order.als` mirroring `clinical-observation.als` (same linear-amendment property). |
+| Medication Order | **Inv 3 & 4** — amendment pre-dispensing only; linear amendment chains | Vote-named load-bearing, deferred "to Alloy" but **no Alloy model exists**. Fix: a small `medication-order.als` mirroring `observation.als` (same linear-amendment property). |
 | Credential | **Inv 7** — rotation-chain integrity | Model tracks statuses but no `successor` link. Fix: add a successor relation + a "every Rotated has a successor in the same (principal,type)" check. |
 | Legal Hold | **Inv 6** — `released_at ≥ placed_at` | Model has no clock. Fix: a two-clock model with `released ⇒ releasedAt ≥ placedAt`, **or** reconsider the vote (best-effort clock → out-of-scope). |
 | Provisional Commitment | **Inv 8** — transition timestamps after placement | Confirm-window (the primary claim) is checked; release/expire timestamp ordering is not. Fix: extend, **or** reclassify the timestamp half as best-effort clock. |
@@ -68,7 +68,7 @@ checker-rejected buggy twin. Produced by parallel Sonnet subagents, Opus-gated
 
 | Pattern | Invariant | How closed | Artifact(s) |
 |---|---|---|---|
-| Medication Order | Inv 3 & 4 | New Alloy structural model mirroring `clinical-observation.als`; pre-dispensing guard + linear-chain checks | `medication-order.als` + `medication-order-buggy.als` (twin flags both Inv 3 and Inv 4) |
+| Medication Order | Inv 3 & 4 | New Alloy structural model mirroring `observation.als`; pre-dispensing guard + linear-chain checks | `medication-order.als` + `medication-order-buggy.als` (twin flags both Inv 3 and Inv 4) |
 | Credential | Inv 7 | Added `successor` link + `Inv_RotationChain` (every Rotated slot has a non-null successor; same-pair clause by single-pair scope) | `credential.tla` (138 states) + **two isolated twins**: `credential-buggy.tla` (Inv 7 dangling rotation; rejected at 5 states) and `credential-buggy-toctou.tla` (Inv 2 register TOCTOU; rejected at 33 states) |
 | Legal Hold | Inv 6 | Two-clock extension: global `now` + ghost `placedAt`/`releasedAt`, `Inv_TemporalOrdering` | `legal-hold.tla` (370 states) + **two isolated twins**: `legal-hold-buggy.tla` (Inv 6) and `legal-hold-buggy-cascade.tla` (Inv 4) |
 | Provisional Commitment | Inv 8 | Ghost `releasedAt`/`expiredAt` + `Inv8_TransitionsAfterPlacement` with `PlacedAt=1` | `provisional-commitment.tla` (15 states) + **two isolated twins**: `…-buggy.tla` (Inv 8) and `…-buggy-window.tla` (Inv 7) |

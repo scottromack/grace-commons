@@ -1,9 +1,9 @@
--- clinical-observation.als
--- Alloy structural model for the Grace Commons Clinical Observation atom
--- (atoms/clinical-observation.md)
+-- observation.als
+-- Alloy structural model for the Grace Commons Observation atom
+-- (atoms/observation.md)
 --
 -- PURPOSE
--- Verify the load-bearing structural invariants of the Clinical Observation atom
+-- Verify the load-bearing structural invariants of the Observation atom
 -- by bounded exhaustive search. The model encodes amendment-chain linearity as its
 -- primary target claim.
 --
@@ -40,7 +40,7 @@
 -- A "check" that returns SAT (counterexample found) is a spec finding.
 -- A "run" that returns UNSAT (no instance) means the facts are too restrictive.
 
-module clinical_observation
+module observation
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Signatures (types)

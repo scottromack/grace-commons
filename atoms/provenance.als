@@ -12,7 +12,7 @@
 --   (d) the linear-chain backbone (Invariants 2/5 — append-only, total order),
 --   (e) custodian presence (Invariant 7) and event-type validity (Invariant 8).
 --
--- MODELING APPROACH (mirrors atoms/clinical-observation.als)
+-- MODELING APPROACH (mirrors atoms/observation.als)
 -- Static structural snapshot. Each Entry is one custody record. The chain is a
 -- directed linear relation (successor/predecessor). `holder` is the current
 -- custodian in effect immediately AFTER an entry (the cached current_custodian

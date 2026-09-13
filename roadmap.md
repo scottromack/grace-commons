@@ -112,7 +112,7 @@ Tally (original aggressive bar): ~4 Alloy/Sonnet, ~21 TLA+/Opus. **Final 2026-06
 **Atoms grounded** (at `grounded` or `grounded (English) — formal layer pending`; see sweep note above)**:**
 
 - `compliance` (13): Actor Identity, Capability, Consent, Credential, Invitation, Legal Hold, Party Identity, Permissions, Provenance, Retention Window, Selective Disclosure, Session, Tamper Evidence
-- `healthcare` (2): Clinical Observation, Medication Order
+- `healthcare` (1): Medication Order — Clinical Observation was reframed to the neutral `Observation` on 2026-09-13 and carries no domain tag (see `atoms/TAXONOMY.md`)
 - `messaging` (3): Notification, Preference / Personalization, Subscription
 - `productivity` (2): Assignment, Personal Todo
 - `resource-lifecycle` (3): Capacity Constraint Enforcement, Provisional Commitment, Soft Delete
@@ -826,7 +826,7 @@ Formalize and fully apply the Logic Confinement Principle across the entire libr
 Replace folder hierarchy with a rich, multi-dimensional tagging system driven by data rather than card-sorting. Tags will cover: Domain, Behavioral Property, Lifecycle Stage, Regulatory Anchor, Composition Role, Technical Property, Maturity. Enables dynamic views — "All EHDS-relevant atoms", "All audit-related patterns", "Cross-domain universals". Ontology evolves organically from actual composition usage, regulatory overlap, and implementation data. The usage-derived taxonomy (flat storage + derived overlays, landed 2026-06-08) is the first realization of this tag-based direction — overlays *are* data-driven tags read off the composition graph; this initiative extends it into a richer multi-dimensional ontology.
 
 **3. Healthcare Core Expansion.**
-Ground 55–65 new healthcare-focused atoms, building on the existing Clinical Observation and Medication Order base. Primary downstream target: EHDS implementation patterns. A first triaged candidate backlog — separating genuinely-new atoms from domain specializations of existing concept-scoped atoms — is recorded in §"Healthcare atom backlog" below; the expansion draws from that deduplicated backlog, not a raw wishlist.
+Ground 55–65 new healthcare-focused atoms, building on the existing Observation and Medication Order base. Primary downstream target: EHDS implementation patterns. A first triaged candidate backlog — separating genuinely-new atoms from domain specializations of existing concept-scoped atoms — is recorded in §"Healthcare atom backlog" below; the expansion draws from that deduplicated backlog, not a raw wishlist.
 
 **4. Cross-Domain Attack.**
 Begin deliberate extraction and generalization of universal atoms — Audit Trail, Multi-Party Approval, Defensible Retention, Consent Propagation variants and related patterns. This phase will intentionally stress and evolve the ontology.
@@ -847,7 +847,7 @@ Deliver second-author-ready projector and verification harness — the core NLne
 | Candidate | Verdict | Covered by |
 |---|---|---|
 | Medication Order | grounded | `atoms/medication-order.md` |
-| Vital Signs Observation | reuse | Clinical Observation (vitals *are* clinical observations) |
+| Vital Signs Observation | reuse | Observation (a vital sign *is* an observation) |
 | Patient Identity | reuse | Party Identity (a patient is a party; MRN is a deployment field) |
 | Patient Consent | reuse | Consent (purpose-scoped agreement; treatment-consent and HIPAA authorization are scopes) |
 | Patient Record Access / PHI Access Event | reuse | Permissions + Session-Gated Authorization (C14) + Selective Disclosure + Audit Trail |
@@ -858,7 +858,7 @@ Deliver second-author-ready projector and verification harness — the core NLne
 | Audit Logging | reuse | Event Log + Audit Trail (the canonical "do not re-invent the audit atom") |
 | Data Retention Rule | reuse | Retention Window + Defensible Retention (C1) |
 | Provider Credential (authentication sense) | reuse | Credential |
-| Patient Demographics | not-an-atom | a mutable attribute schema; its correction history is Clinical Observation's amendment-chain shape, not a new concept |
+| Patient Demographics | not-an-atom | a mutable attribute schema; its correction history is Observation's amendment-chain shape, not a new concept |
 | Encounter Type | not-an-atom | a reference enumeration (a code) |
 | Billing Encounter Link | not-an-atom | a cross-reference / foreign key — composition-layer state, not an atom |
 | FHIR Resource Export / HL7 Message / Document Import / External System Sync | not-an-atom | serialization / wire formats / integration projections; PHI crossing the boundary is a Selective Disclosure event, message delivery is Notification, idempotent receipt is Duplicate Prevention, document custody is Provenance |
@@ -880,7 +880,7 @@ Deliver second-author-ready projector and verification harness — the core NLne
 
 ### Healthcare composition candidates (applications, not atoms)
 
-- **Patient Record** — Party Identity + Problem/Condition entries + Clinical Observations + a State Machine encounter lifecycle, under Audit Trail.
+- **Patient Record** — Party Identity + Problem/Condition entries + Observations + a State Machine encounter lifecycle, under Audit Trail.
 - **Patient Encounter** — an episode of care: party references (patient, providers) + a State Machine encounter-status lifecycle + the observations and orders recorded during it.
 - **Medication Administration Record (MAR)** — Medication Order + Clinical Administration Record + Chain of Custody (C12) for the drug, under Audit Trail.
 - **Prescription Fulfillment** — Medication Order + the dispensing event + Chain of Custody.

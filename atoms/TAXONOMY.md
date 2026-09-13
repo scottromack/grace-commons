@@ -126,22 +126,26 @@ The corpus already contains both outcomes, and they are the worked examples:
   Verified→Dispensed→Administered pipeline, controlled-substance attestation. You cannot
   derive those from neutral primitives. Domain earned it.
 
-- **`clinical-observation` → no tag (held; masquerade candidate).** Its own spec states it
+- **`observation` → no tag (masquerade confirmed, reframed 2026-09-13).** As `clinical-observation` its own spec stated it
   "imposes no semantics on what the value means clinically; it imposes only the structural
   guarantee that the record is faithful." Strip "clinical" and the concept is an
   *amendable, attributed, retractable measurement record* — equally a lab value, a
   financial mark, a sensor reading. The concept is domain-neutral; only the **name and
   intent framing** are healthcare. Tagging it `healthcare` would be the trap: domain-
   flavored naming masquerading as domain-intrinsic concept. Its eventual composition (or a
-  deliberate reframe to its neutral concept) is left to decide; the tag stays off until
-  evidence earns it.
+  deliberate reframe to its neutral concept) was left to decide; the reframe is the branch that
+  ran, and the tag stays off. The evidence that decided it was mechanical: a census of the
+  migrated rule surface found 18 domain tokens, all in prose-derived positions, against 0 in
+  the rules themselves — where `medication-order`'s guards are irreducibly clinical and cannot
+  be counted away.
 
 This generalizes to three layers at which "domain" can enter, only one of which is a tag:
 
 1. **via usage** — most domain *relevance* is an overlay fact (HIPAA via audit-trail). Derived.
 2. **via irreducible invariants** — rarely, a tight domain-specific invariant bundle bound
    to a specific state-set crystallizes into a genuine domain atom (medication-order). Tagged.
-3. **via naming** — a neutral concept dressed in domain clothes (clinical-observation). *Not*
+3. **via naming** — a neutral concept dressed in domain clothes (`clinical-observation`, since
+   reframed to `observation`). *Not*
    a domain; the trap the EOS test exists to catch. No tag.
 
 **Evidence decides as the corpus grows.** Healthcare is the only domain with candidates
@@ -198,8 +202,15 @@ the fix.
   obligation is stewardship that travels with the atom. The generated view should *lint*
   any derived-regulated atom missing the overlay sections (mirroring conformance
   `--reconcile`), separately from classification.
-- **Clinical Observation reframe** (rename to its neutral concept, let healthcare consume
-  it) is a *separate follow-on*, not part of this pass. Flagged, not bundled.
+- **Observation reframe — executed 2026-09-13 (council read 35).** The flagged follow-on landed:
+  `clinical-observation` was renamed to its neutral concept, `observation`, with `patient_ref`
+  renamed `subject_ref` and the clinician vocabulary neutralized wherever it was definitional.
+  The GRACE migration is what made the call decidable rather than a matter of taste — of the
+  atom's 173 labelled rules, **not one carried a clinical semantic**; every apparent domain
+  commitment sat in prose framing, and the two domain-flavoured identifiers were opaque
+  references. Healthcare now consumes the atom rather than naming it, and the freed name is
+  available to a healthcare composition. The worked example keeps its nurse and its blood
+  pressure: neutral where the text is definitional, concrete where it is illustrative.
 
 ## Migration plan — one discrete pass
 
@@ -213,7 +224,7 @@ the generator runs and the derived classification was eyeballed against reality)
    formal files' relative includes) and **re-measure the churn** (the proposal's 76 + 72
    figures are stale — count at move time).
 3. **Frontmatter schema** (intrinsic identity + optional `domain:`); seed `medication-order:
-   healthcare`, hold `clinical-observation`.
+   healthcare`, hold `observation` (reframed 2026-09-13; still untagged, and now correctly named).
 4. **The atomic move.** `git mv atoms/<category>/<name>.* atoms/<name>.*` for all atoms +
    formal siblings, then a scripted rewrite of every `atoms/<category>/<name>` →
    `atoms/<name>` reference across all referencing markdown + formal-file relative paths.
