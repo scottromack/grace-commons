@@ -413,7 +413,7 @@ Capability requirement 10: The store MUST release the section on the caller's de
 Capability requirement 11: The store MUST acknowledge a write ONLY IF the write commits.
 Capability requirement 12: The store MUST commit an admitted rotate's two writes together.
 Capability requirement 13: The deployment MUST canonicalize an opaque reference.
-Capability requirement 14: The deployment MUST bound a string input's length.
+Capability requirement 14: The deployment MUST declare the length bound.
 ```
 
 WHY:
@@ -474,10 +474,12 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: IF a string input EXCEEDS the deployment's length bound THEN an action MUST answer invalid-request.
+String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
 ```
 
 Terms › `string input`: a reference, `credential_type` OR `reason` — every caller-supplied string this atom accepts beside material.
+
+Terms › `length bound`: the maximum length the deployment declares for a `string input`.
 
 Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
@@ -561,13 +563,13 @@ Terms › `record verbs`: identify, assign, generate, change, share, carry, stan
 
 Terms › `value sets`: register answers = credential_id | rejected(invalid-request | duplicate-active-credential | storage-failure). verify answers = verified | failed-verification(material-mismatch | no-active-credential). rotate answers = new_credential_id | rejected(not-known | not-active | invalid-request | storage-failure). revoke answers = revoked | rejected(not-known | already-terminal | invalid-request | storage-failure). read answers = the matching credentials. `status` = active | rotated | revoked. `stored terminal` = rotated | revoked. `standing rejection` = not-active | already-terminal. `window reading` = live | lapsed. `property` = principal_ref | credential_type | verifier | registered_at | expires_at. `terminal field` = rotated_at | successor_credential_id | revoked_at | revoked_by_ref | revocation_reason.
 
-Terms › `bounds`: `default expires_at`.
+Terms › `bounds`: `default expires_at`, `length bound`.
 
 Terms › `cadences`: empty.
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `credential`, `credential_id`, `pair`, `property`, `reference`, `store instance`, `seam`, `transition`, `now`, `transitioning write`, `stored terminal`, `status`, `standing check`, `standing rejection`, `well-formedness check`, `window reading`, `live`, `lapsed`, `effective-active credential`, `lapsed credential`, `proceeding verify`, `effective status`, `verifier`, `derivation function`, `derivation registry`, `foldable difference`, `default expires_at`, `terminal field`, `resolution instant`, `admitted register`, `admitted rotate`, `admitted revoke`, `admitted read`, `string input`, `blank`.
+Terms › `terms`: `credential`, `credential_id`, `pair`, `property`, `reference`, `store instance`, `seam`, `transition`, `now`, `transitioning write`, `stored terminal`, `status`, `standing check`, `standing rejection`, `well-formedness check`, `window reading`, `live`, `lapsed`, `effective-active credential`, `lapsed credential`, `proceeding verify`, `effective status`, `verifier`, `derivation function`, `derivation registry`, `foldable difference`, `length bound`, `default expires_at`, `terminal field`, `resolution instant`, `admitted register`, `admitted rotate`, `admitted revoke`, `admitted read`, `string input`, `blank`.
 
 Terms › `cited`: `execution-contract.md` §Logic confinement — the seam and the transition.
 
@@ -911,14 +913,14 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 6 — 2026-06-25` — see the Ledger.
+`grounded on Final Critique 5 — 2026-06-23` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 6 — 2026-06-25
-formal: verified — credential.tla + 3 twins, 2026-06-05
-last gate: 2026-06-25 — Final Critique 6, fresh reader — clean
+status: grounded on Final Critique 5 — 2026-06-23
+formal: verified — credential.tla + 2 twins, 2026-06-04
+last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
 
 open:
 - 2026-09-13-a · refining · Capability requirement 8 / formal · the prose named a store constraint that cannot be built — a unique partial index whose predicate would have to reference `now`, whose clock-free half forbids the lapsed-beside-successor case Operation 8 permits; the obligation is unchanged and is now a section over the pair, but `credential-buggy-toctou.tla` was built against the index reading → re-check the twin against the section reading

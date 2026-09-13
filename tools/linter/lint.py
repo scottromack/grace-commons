@@ -149,6 +149,7 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -442,14 +443,24 @@ def check_rests_on_refs(patterns: dict[Path, Pattern], md_files: list[Path]) -> 
     check stays a Pass-2 fresh-reader concern. High precision: fires only when an
     exact known pattern name is immediately followed by "Invariant(s) <n>".
     """
+    # The ceiling is the RESERVED label space, not the count of live families: a
+    # tombstoned invariant keeps its number forever (GRACE-lang Hard invariant 25,
+    # Hard invariant 27), so a spec that tombstones Invariant 9 and 10 still has a
+    # legitimate Invariant 11 and a citation to it is not dangling. Counting live
+    # headers alone reported Party Identity's own Decisions entry as a dangling
+    # citation the moment two duplicated invariants became tombstones (council
+    # read 42).
+    TOMBSTONED_INV = re.compile(r"^\s*NOTE:\s*Invariant\s+(\d+)\s+deleted\b", re.M)
     by_name: dict[str, int] = {}
     for p in patterns.values():
         m = H1_TITLE.search(p.text)
         if not m or not p.invariant_count:
             continue
+        live = [int(n) for n in INVARIANT_HEADER.findall(p.text)]
+        reserved = live + [int(n) for n in TOMBSTONED_INV.findall(p.text)]
         name = TRAILING_PAREN.sub("", m.group(1).strip()).strip()
-        if name:
-            by_name[name] = p.invariant_count
+        if name and reserved:
+            by_name[name] = max(reserved)
     refs = [
         (re.compile(r"(?<![A-Za-z])" + re.escape(nm)
                     + r"\s+Invariants?\s+([0-9][0-9,\s]*(?:and\s+[0-9]+)?)"), nm, count)
@@ -1322,6 +1333,65 @@ def check_end_marker(patterns: dict[Path, Pattern]) -> list[Finding]:
     return findings
 
 
+def check_provenance_drift(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
+    """R. A Ledger provenance line that changed without the commit saying so.
+
+    `status:`, `formal:` and `last gate:` record what a gate and a model run
+    actually produced. Nothing in a migration should touch them — a migration
+    rewrites language, not history — and yet two of four migrations in one day
+    invented them: a critique number bumped, a date moved, a twin count raised
+    from two to three. One of the fabrications shipped, and a council read
+    quoted it back as a receipt, because a reviewer reads what the page says
+    (council read 42).
+
+    So the check is a comparison against git rather than a shape rule: if a
+    working-tree spec's provenance lines differ from the same lines at HEAD, say
+    so. A real re-grounding changes them legitimately — that is why this reports
+    the drift rather than forbidding it, and why the message asks for the gate
+    rather than asserting a fault. It is clean when nothing moved, which is the
+    state a language-only migration must be in."""
+    findings: list[Finding] = []
+    KEYS = ("status:", "formal:", "last gate:")
+
+    def provenance(text: str) -> dict[str, str]:
+        out = {}
+        for ln in text.split("\n"):
+            for k in KEYS:
+                if ln.startswith(k):
+                    out[k] = ln.strip()
+        return out
+
+    try:
+        proc = subprocess.run(
+            ["git", "--no-optional-locks", "rev-parse", "--is-inside-work-tree"],
+            cwd=root, capture_output=True, text=True, timeout=10)
+        if proc.returncode != 0:
+            return findings
+    except (OSError, subprocess.SubprocessError):
+        return findings
+
+    for p in patterns.values():
+        rel = p.path.relative_to(root).as_posix()
+        try:
+            show = subprocess.run(
+                ["git", "--no-optional-locks", "show", f"HEAD:{rel}"],
+                cwd=root, capture_output=True, text=True, timeout=20)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if show.returncode != 0:
+            continue  # new file; nothing to compare against
+        was, now = provenance(show.stdout), provenance(p.text)
+        for k in KEYS:
+            if k in was and k in now and was[k] != now[k]:
+                findings.append(Finding(
+                    p.path, line_of(p.text, p.text.find(now[k])),
+                    "R-provenance-drift",
+                    f"`{k}` changed from `{was[k]}` to `{now[k]}` — provenance "
+                    f"records what a gate produced, so name the gate in the "
+                    f"commit or restore the line"))
+    return findings
+
+
 def check_seam_injections(patterns: dict[Path, Pattern]) -> list[Finding]:
     """M. A spec obliging the deployment to supply something at the seam, whose
     own `Terms › seam` declaration does not name it.
@@ -2163,6 +2233,7 @@ def main(argv: list[str]) -> int:
     findings += check_migration_seam(patterns)
     findings += check_end_marker(patterns)
     findings += check_seam_injections(patterns)
+    findings += check_provenance_drift(root, patterns)
     findings += check_council_register(root)
     findings += check_signature_alternation(patterns)
     findings += check_step_reference(patterns)
