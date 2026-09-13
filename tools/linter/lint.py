@@ -1322,6 +1322,51 @@ def check_end_marker(patterns: dict[Path, Pattern]) -> list[Finding]:
     return findings
 
 
+def check_seam_injections(patterns: dict[Path, Pattern]) -> list[Finding]:
+    """M. A spec obliging the deployment to supply something at the seam, whose
+    own `Terms › seam` declaration does not name it.
+
+    The seam declaration is a spec's list of what crosses its I/O boundary, and
+    it is how a reader decides whether a transition is the pure function the
+    logic-confinement discipline claims. Two migrations running shipped a seam
+    naming two injections while the rules consumed a third — Provisional
+    Commitment's registry verdict, then Credential's derivation registry — and
+    both were found by a human reading the rules against the declaration
+    (council read 38, council read 41). Twice is a habit, so it becomes a
+    check: every `MUST supply X at the seam` must find X's significant words in
+    the seam declaration. `now` is satisfied by the clock reading, which is
+    what every seam declaration in the corpus calls it.
+
+    The reverse direction — a seam naming an injection no rule consumes — is
+    deliberately not checked; it has never failed, and a spec may name a seam
+    input its rules reach only through a declared term."""
+    findings: list[Finding] = []
+    SUPPLY = re.compile(r"MUST supply (.+?) at the seam")
+    SEAM = re.compile(r"^Terms › `seam`:(.+)$", re.M)
+    STOP = {"the", "a", "an", "and", "or", "s"}
+    for p in patterns.values():
+        seam = SEAM.search(p.text)
+        if not seam:
+            continue  # a spec that declares no seam obliges nothing at one
+        haystack = set(re.findall(r"[a-z_]+", seam.group(1).lower()))
+        for m in SUPPLY.finditer(p.text):
+            phrase = m.group(1).lower()
+            if phrase.strip() == "now":
+                words = {"clock"}
+            else:
+                words = {w for w in re.findall(r"[a-z_]+", phrase) if w not in STOP}
+            missing = words - haystack
+            if missing:
+                findings.append(Finding(
+                    p.path, line_of(p.text, m.start()), "M-seam-injection",
+                    f"the deployment is obliged to supply `{m.group(1)}` at the "
+                    f"seam, and the seam declaration does not name it "
+                    f"({', '.join(sorted(missing))}) — a transition consuming an "
+                    f"undeclared input is not the pure function logic "
+                    f"confinement claims"))
+    return findings
+
+
 def check_council_register(root: Path) -> list[Finding]:
     """M. A council-read number the register assigns twice, or a citation to a
     read the register does not carry.
@@ -2117,6 +2162,7 @@ def main(argv: list[str]) -> int:
     findings += check_stale_census(root, patterns)
     findings += check_migration_seam(patterns)
     findings += check_end_marker(patterns)
+    findings += check_seam_injections(patterns)
     findings += check_council_register(root)
     findings += check_signature_alternation(patterns)
     findings += check_step_reference(patterns)
