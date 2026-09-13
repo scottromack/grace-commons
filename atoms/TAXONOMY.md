@@ -120,11 +120,18 @@ it is **gated by the EOS freestanding test, not taste**:
 
 The corpus already contains both outcomes, and they are the worked examples:
 
-- **`medication-order` → `domain: healthcare` (earned).** Its lifecycle is a state machine
-  (a neutral shape that already exists as the Workflow/State Machine atom), but its
-  *guards* are irreducibly clinical — verification gates dispensing, the
-  Verified→Dispensed→Administered pipeline, controlled-substance attestation. You cannot
-  derive those from neutral primitives. Domain earned it.
+- **`medication-order` → `domain: healthcare` (earned — by the graph, corrected 2026-09-13).**
+  Its lifecycle is a state machine, a neutral shape the State Machine atom already carries.
+  This entry once located the domain in the *guards* — verification gates dispensing, the
+  Verified→Dispensed→Administered pipeline, controlled-substance attestation — and the
+  migration found that reading too weak: each of those guards is individually derivable
+  from a neutral primitive the corpus holds (Approval Step's two-party control, Chain of
+  Custody's staged pipeline, Actor Identity's attribution), and twelve of the fourteen
+  invariants strip clean. What does not strip is the **graph**: nine states in that
+  topology, with the amendment boundary and the cancel/discontinue split landing on exactly
+  the dispensing edge. A generic state machine plus a supplied graph is this atom with the
+  domain moved into a parameter. The tag stands; the reason is the shape, not the rules
+  (council read 44).
 
 - **`observation` → no tag (masquerade confirmed, reframed 2026-09-13).** As `clinical-observation` its own spec stated it
   "imposes no semantics on what the value means clinically; it imposes only the structural

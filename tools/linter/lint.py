@@ -1333,6 +1333,41 @@ def check_end_marker(patterns: dict[Path, Pattern]) -> list[Finding]:
     return findings
 
 
+def check_dead_anchors(patterns: dict[Path, Pattern]) -> list[Finding]:
+    """O. A term-registry link line pointing at a heading the page does not have.
+
+    The registry's shortcut-reference block maps `[Name]: #anchor` onto a term
+    entry's heading. `O-term-dangling` catches a *marker* with no link line and
+    `O-term-orphan` catches a *definition* nothing uses; neither looks at a link
+    line whose anchor resolves to nothing, because neither starts from the link
+    block. Medication Order's migration shipped thirteen of them at once — every
+    attribution and instant field of the four terminal transitions had a link
+    and no entry — and they are invisible in review, because the prose reads
+    correctly and only a rendered click finds the hole (council read 44).
+
+    Anchors are matched the way kramdown generates them from an `####` heading:
+    lower-cased, non-alphanumerics collapsed to hyphens, ends trimmed."""
+    findings: list[Finding] = []
+    HEADING = re.compile(r"^#### (.+)$", re.M)
+    LINKLINE = re.compile(r"^\[([^\]]+)\]:\s*#(\S+)\s*$", re.M)
+
+    def slug(s: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "-", s.strip().lower()).strip("-")
+
+    for p in patterns.values():
+        heads = {slug(h) for h in HEADING.findall(p.text)}
+        if not heads:
+            continue  # a spec with no term entries has no registry to check
+        for m in LINKLINE.finditer(p.text):
+            if m.group(2) not in heads:
+                findings.append(Finding(
+                    p.path, line_of(p.text, m.start()), "O-term-anchor",
+                    f"`[{m.group(1)}]` links to `#{m.group(2)}`, which names no "
+                    f"term entry on this page — the marker renders as a dead "
+                    f"link rather than as a missing one"))
+    return findings
+
+
 def check_provenance_drift(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
     """R. A Ledger provenance line that changed without the commit saying so.
 
@@ -2232,6 +2267,7 @@ def main(argv: list[str]) -> int:
     findings += check_stale_census(root, patterns)
     findings += check_migration_seam(patterns)
     findings += check_end_marker(patterns)
+    findings += check_dead_anchors(patterns)
     findings += check_seam_injections(patterns)
     findings += check_provenance_drift(root, patterns)
     findings += check_council_register(root)
