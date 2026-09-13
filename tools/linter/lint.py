@@ -1288,6 +1288,40 @@ def check_migration_seam(patterns: dict[Path, Pattern]) -> list[Finding]:
     return findings
 
 
+def check_end_marker(patterns: dict[Path, Pattern]) -> list[Finding]:
+    """M. A migrated spec whose last line is not `NOTE: End of <Name>.`
+
+    The marker is not decoration. These specs are read by council members
+    through a paste, and a paste that silently truncates looks exactly like a
+    spec that is short a section — the reader reviews the fragment and reports
+    findings against rules the spec does carry. The marker makes truncation
+    self-evident at the only place the reader can check it: if the last line
+    is not the marker, what arrived is not the spec.
+
+    Instrumented at 27 of 27 rather than after a drift, because the census was
+    perfect the day Provisional Commitment shipped without one and a hand check
+    caught it (council read 35). A convention with a real function and no
+    enforcement is a convention with an expiry date."""
+    findings: list[Finding] = []
+    for p in patterns.values():
+        if not re.search(r"^Terms › `qualifiers`:.*\bmigrated\b", p.text, re.M):
+            continue  # the marker is a migration convention
+        lines = [ln for ln in p.text.rstrip().split("\n") if ln.strip()]
+        if not lines:
+            continue
+        tm = re.search(r"^title:\s*(.+?)\s*$", p.text, re.M)
+        if not tm:
+            continue  # no front-matter title to name the marker with
+        want = f"NOTE: End of {tm.group(1)}."
+        if lines[-1].strip() != want:
+            findings.append(Finding(
+                p.path, len(p.text.rstrip().split("\n")), "M-end-marker",
+                f"a migrated spec's last line is `{lines[-1].strip()[:48]}` and not "
+                f"`{want}` — the marker is how a reader tells a truncated paste "
+                f"from a short spec"))
+    return findings
+
+
 def check_signature_alternation(patterns: dict[Path, Pattern]) -> list[Finding]:
     """V. A rejection alternation in a signature block whose items are not
     separated by `|`, so two intended alternatives read as one code."""
@@ -2033,6 +2067,7 @@ def main(argv: list[str]) -> int:
     findings += check_formal_siblings(root, patterns)
     findings += check_stale_census(root, patterns)
     findings += check_migration_seam(patterns)
+    findings += check_end_marker(patterns)
     findings += check_signature_alternation(patterns)
     findings += check_step_reference(patterns)
     findings += check_status_grammar(patterns)

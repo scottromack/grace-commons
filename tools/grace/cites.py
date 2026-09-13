@@ -172,9 +172,34 @@ def across(specs: list[Spec], seeds: dict[Path, set[str]]) -> dict[str, list[str
 
 CATEGORY_NAMES = {"actors", "records", "record verbs", "value sets", "bounds",
                   "cadences", "terms", "qualifiers", "composing patterns", "cited"}
-STANDARD_FAMILIES = {"Identity", "State", "Operation", "Invariant", "Check",
-                     "External check", "Non-goal", "Composition note", "Composes",
-                     "Capability requirement"}
+_FAMILY_LINE = re.compile(r"^Terms › `standard label family`:(.+)$", re.M)
+
+
+def standard_families(grammar_path=None):
+    """The standard label families, from GRACE-lang.md rather than from a copy.
+
+    This set was hand-copied here for four versions. It happened to be correct
+    every time it was read, which is the only reason the drift never showed:
+    a family the grammar declares and this file has not heard of is reported as
+    a non-standard family spreading across specs, and a family this file lists
+    that the grammar has dropped is silently exempt from that report. Council
+    read 35 asked whether the tools knew `Capability requirement`; they did,
+    by luck rather than by derivation. Same cure as check.py's category set —
+    read the declaration, exit rather than guess (Closed vocabulary 1)."""
+    g = Path(grammar_path) if grammar_path else Path(__file__).resolve().parents[2] / "GRACE-lang.md"
+    try:
+        m = _FAMILY_LINE.search(g.read_text(encoding="utf-8"))
+    except OSError:
+        m = None
+    if not m:
+        raise SystemExit(
+            "cites.py: GRACE-lang.md carries no Terms › `standard label family` "
+            "line; the standard set has no authority to derive from "
+            "(GRACE-lang Standard label 1)")
+    return set(re.findall(r"`([^`]+)`", m.group(1)))
+
+
+STANDARD_FAMILIES = standard_families()
 LABEL_PARTS = re.compile(
     r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 CROSS_REF = re.compile(
