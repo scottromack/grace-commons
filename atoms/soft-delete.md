@@ -14,6 +14,7 @@ toc: true
 {:toc}
 </details>
 
+
 ## Summary
 
 Soft Delete splits apart the two things an ordinary "delete" lumps together: hiding a record from normal use, and destroying it for good.
@@ -24,205 +25,474 @@ The pattern tracks three states — Active, Deleted, and Purged — and once som
 
 Purge is the part that regulators care about — it is where data-erasure laws and records-destruction rules apply — but the pattern only records the destruction faithfully; deciding whether a given purge is actually allowed (a legal hold in effect, a retention period not yet elapsed) is left to other patterns that wrap around it.
 
+*Also known as: archiving, deactivation, tombstoning, voiding.*
+
 ---
 
 ## Intent
 
-Most systems eventually need to delete records. The naive implementation — remove the row, free the storage — is irreversible and destroys information that may still be needed: by the user who wants to undo a mistake, by an auditor tracing a decision, by a regulator exercising a right of access, or by a legal hold requiring preservation of records that would otherwise be subject to purge.
+WHY:
+Most systems eventually need to delete records, and the naive implementation — remove the row, free the storage — destroys information that may still be needed: by the user who wants to undo a mistake, by an auditor tracing a decision, by a regulator exercising a right of access, or by a legal hold requiring preservation of exactly the records a purge would remove.
 
-Soft Delete separates the two concepts that a hard delete conflates: *hiding* a record from normal operation, and *destroying* it permanently. Deletion in this atom means the first: the record is marked as removed, excluded from standard read surfaces, and no longer available for normal use — but it is retained, attributable, and recoverable. Purge means the second: the record is permanently destroyed, with full attribution of who authorized the destruction and when. Between deletion and purge, restoration is available — the record can return to Active as though it had never been deleted.
+This atom separates the two concepts a hard delete conflates. *Deletion* means the record is marked removed, excluded from normal read surfaces, and no longer available for ordinary use — while remaining retained, attributable and recoverable. *Purge* means permanent destruction, with full attribution of who authorized it and when. Between the two, restoration is always available: the record returns to active as though it had never been deleted.
 
-The three-state lifecycle (Active → Deleted → Purged, with the Deleted → Active restoration path) appears across nearly every domain that handles records with any kind of lifecycle significance: content moderation (posts hidden but not erased), account management (accounts deactivated before closure), clinical records (superseded entries marked inactive but retained for audit), financial records (voided transactions retained for reconciliation), and e-discovery (records preserved in a recoverable state pending a hold decision). The states are constant across domains even when the vocabulary differs — "archived," "deactivated," "tombstoned," "voided" are all Deleted by another name.
+The three-state lifecycle appears in nearly every domain that handles records with lifecycle significance — content moderation, account management, clinical records, financial reconciliation, e-discovery — and the states are constant across them even where the vocabulary is not. *Archived*, *deactivated*, *tombstoned* and *voided* are all deleted by another name.
 
-The atom does not define what "hidden from normal query" means operationally. That is deployment policy — the atom defines the state and the recoverability guarantee; the deployment decides which read surfaces exclude Deleted records. This is deliberate: a social media platform hides deleted posts from public feeds but may surface them in moderator queues; a clinical system hides deleted observations from clinical summaries but returns them on full audit export. Neither deployment is wrong; both correctly implement the Deleted state.
+What the atom deliberately does not define is what *hidden from normal query* means operationally. That is deployment policy: a social platform hides deleted posts from public feeds and may surface them in moderator queues; a clinical system hides deleted observations from summaries and returns them on full audit export. Neither is wrong, and both correctly implement the deleted state. The atom defines the state and the recoverability guarantee, and leaves the read surfaces to the deployment.
 
-Purge is the destruction surface. It is irreversible and requires explicit attribution — who authorized the destruction, when, and why. This makes Purge the atom's regulated interface: GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Article 17 erasure, HIPAA (Health Insurance Portability and Accountability Act — US federal law governing healthcare data privacy and security) record destruction, and e-discovery spoliation risk all attach to the Purge action, not to the Deleted state. The atom records the purge faithfully; whether a purge is legally permissible at a given moment — whether a legal hold is active, whether the retention window has elapsed — is handled at the composing layer. The records carry the full attribution chain of deletion and destruction, immutable by specification; cryptographic protection of those records against post-hoc modification — the bar for court-admissible and regulator-admissible evidence — is added by composition with [Tamper Evidence](./tamper-evidence.md), not by this atom alone.
-
-This is a freestanding (can be specified without naming any other pattern) concept in the EOS (Essence of Software — Daniel Jackson's framework for specifying software concepts as freestanding, composable units) sense. It carries its own state (the record's lifecycle state plus deletion and purge attribution), its own actions (`soft_delete`, `restore`, `purge`, `read`), and its own invariants — conditions that must always hold — (terminal absorption, Purge irreversibility, attribution completeness, audit retention). Composing patterns add purge gate enforcement, access control, batch operations, and retention-window and legal-hold integration.
-
----
+Purge is the regulated interface. GDPR (EU General Data Protection Regulation) Article 17 erasure, HIPAA (Health Insurance Portability and Accountability Act) record destruction, and e-discovery spoliation risk all attach to the purge action rather than to the deleted state. The atom records the purge faithfully and asks no questions about it: whether a purge is legally permissible at a given moment — whether a hold is live, whether a retention window has elapsed — belongs to the composing layer, and building the gate in here would make the atom depend on the two patterns it is most often composed with.
 
 ## Structure
 
-### Store instance model
-
-The Soft Delete atom operates against a named store instance. A `store_name` identifies the instance; multiple instances coexist in real systems — one per data domain or system boundary. [Record Id] values are unique within a store instance; uniqueness across instances is handled at the composing layer. The atom tracks lifecycle state and attribution for records whose content is managed by the host system — Soft Delete is a lifecycle overlay, not a content store. Calls implicitly target a single routed instance; instance selection is handled at the deployment-routing layer.
-
 ### Identity model
 
-Each record tracked by the atom has an opaque [Record Id] — the identity of the record in the host system, supplied by the caller on [Soft Delete]. The atom does not generate ids; it accepts them. [Record Id] is immutable (unchangeable once written) once a lifecycle record exists for it in the atom's store.
+```text
+Identity 1: The atom MUST identify a lifecycle record by the record_id.
+Identity 2: The caller MUST supply the record_id.
+Identity 3: The atom MUST NOT allocate a record_id.
+Identity 4: The atom MUST NOT change a record_id.
+Identity 5: Two lifecycle records in one store instance MUST NOT share a record_id.
+Identity 6: The deployment MUST supply a record_id that sorts in lexicographic byte order.
+Identity 7: The deployment MUST route EVERY call to one store instance.
+Identity 8: The atom MUST compare a reference byte-exactly.
+Identity 9: The atom MUST NOT normalize a reference.
+Identity 10: The atom MUST NOT confirm that a record_id names a known host record.
+Identity 11: The atom MUST NOT hold the host record's content.
+```
 
-[Deleted By] is an opaque reference to the actor who performed the deletion. Set on [Soft Delete], immutable. Empty or whitespace-only values are rejected.
+Terms › `lifecycle record`: the state and attribution this atom holds for one host record — a state, the most recent deletion's attribution, and where they exist the most recent restore's and the purge's; the record this atom holds.
 
-[Purged By] is an opaque reference to the actor who authorized and performed the purge. Set on [Purge], immutable. Empty or whitespace-only values are rejected.
+Terms › `record_id`: the opaque value naming one lifecycle record — a [Record Id]; the host record's identity, supplied by the caller and never allocated here.
 
-[Deletion Reason] is an optional opaque string carrying the stated reason for deletion. Set on [Soft Delete], immutable. [Purge Reason] is an optional opaque string carrying the stated reason for purge. Set on [Purge], immutable.
+Terms › `tracked record`: a host record carrying a lifecycle record — one that has undergone at least one [Soft Delete].
 
-### Inputs
+Terms › `reference`: `record_id`, `deleted_by`, `restored_by` OR `purged_by` — every opaque reference this atom records.
 
-- [Soft Delete] calls from host-system logic, moderation systems, administrative interfaces, and automated lifecycle pipelines, each carrying a record id, deleting actor, optional reason, and optional explicit timestamp.
-- [Restore] calls from undo mechanisms, administrative recovery workflows, and appeal resolutions, carrying the record id, restoring actor, optional reason, and optional explicit timestamp.
-- [Purge] calls from data destruction workflows, GDPR erasure processors, retention-window expiry handlers, and administrative purge tools, carrying the record id, purging actor, required reason, and optional explicit timestamp.
-- [Read] queries from audit tools, moderation dashboards, compliance workflows, and DSAR (Data Subject Access Request — a request by an individual to see, correct, or erase the personal data an organization holds about them) processors.
+Terms › `store instance`: one named lifecycle store a call is routed to; `record_id` uniqueness ranges over one instance.
 
-### Actions
+Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading here.
 
-For optional parameters across [Soft Delete], [Restore], [Purge], and [Read], "supplied" means provided as a parseable value of the declared type. Null, missing, and empty (or whitespace-only) values are equivalent to "not supplied," and the action's documented default applies.
+Terms › `transition`: the atom's evaluation of one call against the lifecycle store, as `execution-contract.md` §Logic confinement declares it.
 
-- [Soft Delete] — (Projected contract: `soft_delete(record_id, deleted_by, reason?, deleted_at?) → deleted | rejected(invalid-request | already-deleted | already-purged | storage-failure)`) — mark the record as deleted. Transitions the record from [Active] to [Deleted]. The [Record Id] parameter must itself contain at least one non-whitespace character ([Invalid Request]); a null, empty, or whitespace-only [Record Id] is malformed and rejected before any state check. Records [Deleted By], [Deletion Reason] (if supplied), and [Deleted At] (wall clock if not supplied; must not be in the future — when caller-supplied; a wall-clock default is "now" by construction). [Deleted By] must contain at least one non-whitespace character ([Invalid Request]). On the first [Soft Delete] call for a well-formed [Record Id] that has no lifecycle record, the atom implicitly creates the lifecycle record and transitions it directly to [Deleted]; no prior registration is required. [Already Deleted] if the record is in [Deleted] state; [Already Purged] if the record is in [Purged] state. [Storage Failure] leaves the record in its prior state ([Active] for new records means no record is created; [Active] for restored records means the record stays [Active]); the caller must retry. Rejection priority: malformed [Record Id] ([Invalid Request]) → [Already Deleted] → [Already Purged] → attribution/temporal ([Invalid Request]) → [Storage Failure].
+WHY:
+Identity 2 and Identity 3 are the atom's one departure from the corpus's usual identity shape, and the departure is the point: this atom does not own records, it overlays a lifecycle onto records the host already owns. There is nothing for it to allocate an id *for*. Identity 11 states the other half — the content stays in the host system, and what a purge destroys is the host's content, not anything held here (Non-goal 3).
 
-- [Restore] — (Projected contract: `restore(record_id, restored_by, reason?, restored_at?) → restored | rejected(invalid-request | not-known | not-deleted | already-purged | storage-failure)`) — return a [Deleted] record to [Active] state. The [Record Id] parameter must itself contain at least one non-whitespace character ([Invalid Request]); a null, empty, or whitespace-only [Record Id] is rejected before the existence check. Records [Restored By], [Restoration Reason] (if supplied), and [Restored At] (wall clock if not supplied). The resolved [Restored At] — whether caller-supplied or wall-clock-defaulted — must not be in the future (the future-bound applies only when caller-supplied) and must be ≥ the record's current [Deleted At]. The `≥ deleted_at` bound applies to the resolved value regardless of how it was derived; this enforces Invariant 6 against clock-skew artifacts as well as caller-supplied backdated values. [Restored By] must contain at least one non-whitespace character ([Invalid Request]). [Not Deleted] if the record is in [Active] state. [Already Purged] if the record is in [Purged] state — Purged records cannot be restored. [Storage Failure] leaves the record in [Deleted] state; the caller must retry. Rejection priority: malformed [Record Id] ([Invalid Request]) → [Not Known] → [Not Deleted] → [Already Purged] → attribution/temporal ([Invalid Request]) → [Storage Failure].
+Identity 10 follows from both. A `record_id` that names nothing in the host system still produces a valid lifecycle record: the atom is tracking a lifecycle it was told about, and confirming the subject exists would require reaching into a store it has no knowledge of.
 
-- [Purge] — (Projected contract: `purge(record_id, purged_by, reason, purged_at?) → purged | rejected(invalid-request | not-known | not-deleted | storage-failure)`) — permanently destroy the record and transition to [Purged]. The [Record Id] parameter must itself contain at least one non-whitespace character ([Invalid Request]); a null, empty, or whitespace-only [Record Id] is rejected before the existence check. [Reason] is required for purge (not optional — the destruction of a record is an auditable decision that must carry a stated justification). Records [Purged By], [Purge Reason], and [Purged At] (wall clock if not supplied). The resolved [Purged At] — whether caller-supplied or wall-clock-defaulted — must not be in the future (the future-bound applies only when caller-supplied) and must be ≥ the record's current [Deleted At]. The `≥ deleted_at` bound applies to the resolved value regardless of how it was derived; this enforces Invariant 6 against clock-skew artifacts as well as caller-supplied backdated values. [Purged By] and [Reason] must each contain at least one non-whitespace character ([Invalid Request]). [Not Deleted] if the record is in [Active] state — a record must be soft-deleted before it can be purged. [Storage Failure] leaves the record in [Deleted] state; the caller must retry. Rejection priority: malformed [Record Id] ([Invalid Request]) → [Not Known] → [Not Deleted] → attribution/temporal ([Invalid Request]) → [Storage Failure].
+### Operations
 
-- [Read] — (Projected contract: `read(query) → ordered_sequence_of_records | rejected(invalid-query)`) — return lifecycle records matching the query, ordered by the most recent transition timestamp descending, then by [Record Id] ascending in lexicographic byte-order as a stable tiebreaker. The host system must supply [Record Id] values in a format where string byte-order sort is total and deterministic. The supported filter axes are exactly: [Record Id], [Deleted By], [Purged By], [State], and time ranges on [Deleted At], [Restored At], or [Purged At]. Any combination of supported axes is valid. A query supplying only a [Record Id] returns at most one record. A well-formed query matching no records returns an empty sequence. [Read] operates only over records that have a lifecycle record in the atom's store — that is, records that have undergone at least one [Soft Delete]. Records that have never been soft-deleted are outside the atom's scope and do not appear in any [Read] result.
+```
+soft_delete(record_id, deleted_by, reason?, deleted_at?)
+  → deleted | rejected(invalid-request | already-deleted | already-purged | storage-failure)
 
-  **Time-range filters on absent fields.** A time-range filter on a field implicitly excludes records that do not carry that field at evaluation time. [Purged At] is present only on [Purged] records; a [Purged At] filter implicitly excludes [Active] and [Deleted] records, regardless of whether a [State] filter is also supplied. [Restored At] is present only on records that have been restored at least once ([Active] records returned to Active from Deleted, or [Deleted] records that have a prior restore in their epoch chain); a [Restored At] filter implicitly excludes never-restored records. A [State] filter combined with a time-range filter on a field absent from records of that state returns an empty sequence by the same rule.
+restore(record_id, restored_by, reason?, restored_at?)
+  → restored | rejected(invalid-request | not-known | not-deleted | already-purged | storage-failure)
 
-  **Malformed-query rules ([Invalid Query]):** a [Record Id], [Deleted By], or [Purged By] filter value that is null, empty, or whitespace-only is [Invalid Query] (the filter axes exist; the values are malformed). A [State] filter value that is not one of {[Active], [Deleted], [Purged]} is [Invalid Query]. A time range with end before start is [Invalid Query]. A query carrying an unrecognized filter key — any key outside the supported axes named above — is [Invalid Query]; an unrecognized key is rejected rather than silently ignored, because silent ignore would return a result set inconsistent with the caller's intent.
+purge(record_id, purged_by, reason, purged_at?)
+  → purged | rejected(invalid-request | not-known | not-deleted | storage-failure)
 
-### Outputs
+read(query) → the matching lifecycle records | rejected(invalid-query)
+```
 
-- For [Soft Delete]: the outcome token `deleted`, or a rejection.
-- For [Restore]: the outcome token `restored`, or a rejection.
-- For [Purge]: the outcome token `purged`, or a rejection.
-- For [Read]: a (possibly empty) ordered sequence of lifecycle records. The atom returns lifecycle records only for [Record Id]s that have undergone at least one [Soft Delete]; records that have never been soft-deleted have no lifecycle record and do not appear. Fields present on every lifecycle record (any state): [Record Id], [State], [Deleted By], [Deleted At] — the deletion fields carry the most recent delete's attribution, retained on the record across subsequent restore and purge transitions. Optional field set on the most recent deletion: [Deletion Reason] (present if supplied on that [Soft Delete]; absent otherwise). Additional fields present on records that have been restored at least once (whether currently [Active] or subsequently re-deleted): [Restored By], [Restored At], [Restoration Reason] (most recent restore only; full restore history requires Event Log composition). Fields present on [Purged] records: [Purged By], [Purge Reason], [Purged At] — plus all deletion and restore fields the record carries. [Active] records (restored from Deleted) and [Deleted] records that have a prior restore in their cycle history both carry the restore fields; the difference is the [State] field value.
+```text
+Operation 1: IF record_id NOT EXISTS THEN a transitioning action MUST answer invalid-request.
+Operation 2: IF the acting reference NOT EXISTS THEN a transitioning action MUST answer invalid-request.
+Operation 3: IF reason NOT EXISTS THEN [Purge] MUST answer invalid-request.
+Operation 4: IF the record_id names no lifecycle record THEN [Restore] MUST answer not-known.
+Operation 5: IF the record_id names no lifecycle record THEN [Purge] MUST answer not-known.
+Operation 6: [Soft Delete] MUST NOT answer not-known.
+Operation 7: IF the record_id names no lifecycle record THEN an admitted soft delete MUST record the lifecycle record.
+Operation 8: The atom MUST NOT offer a registration action.
+Operation 9: IF the lifecycle record stands in deleted THEN [Soft Delete] MUST answer already-deleted.
+Operation 10: IF the lifecycle record stands in purged THEN [Soft Delete] MUST answer already-purged.
+Operation 11: IF the lifecycle record stands in purged THEN [Restore] MUST answer already-purged.
+Operation 12: IF the lifecycle record stands in active THEN [Restore] MUST answer not-deleted.
+Operation 13: IF the lifecycle record NOT EXISTS in deleted THEN [Purge] MUST answer not-deleted.
+Operation 14: A transitioning action MUST answer a state rejection ONLY IF record_id EXISTS.
+Operation 15: A transitioning action MUST answer invalid-request on an attribution fault ONLY IF EVERY state check passes.
+Operation 16: IF the resolved transition instant EXCEEDS now THEN a transitioning action MUST answer invalid-request.
+Operation 17: IF the resolved restored_at precedes the lifecycle record's deleted_at THEN [Restore] MUST answer invalid-request.
+Operation 18: IF the resolved purged_at precedes the lifecycle record's deleted_at THEN [Purge] MUST answer invalid-request.
+Operation 19: An admitted soft delete MUST stand the lifecycle record in deleted.
+Operation 20: An admitted restore MUST stand the lifecycle record in active.
+Operation 21: An admitted purge MUST stand the lifecycle record in purged.
+Operation 22: An admitted soft delete MUST record deleted_by and the resolved deleted_at.
+Operation 23: An admitted soft delete MUST record a supplied reason as deletion_reason.
+Operation 24: An admitted restore MUST record restored_by and the resolved restored_at.
+Operation 25: An admitted restore MUST record a supplied reason as restoration_reason.
+Operation 26: An admitted purge MUST record purged_by, reason as purge_reason and the resolved purged_at.
+Operation 27: An admitted restore MUST replace the lifecycle record's restore fields.
+Operation 28: An admitted purge MUST NOT change a restore field.
+Operation 29: A transitioning action MUST commit the state change and the recorded fields in one operation.
+Operation 30: IF the store refuses the write THEN a transitioning action MUST answer storage-failure.
+Operation 31: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
+Operation 32: A refused action MUST leave the lifecycle record as the call found the lifecycle record.
+Operation 33: A refused [Soft Delete] MUST NOT record a lifecycle record.
+Operation 34: An admitted read MUST answer the matching lifecycle records in latest transition instant descending order.
+Operation 35: An admitted read MUST order two lifecycle records sharing a latest transition instant by record_id ascending.
+Operation 36: An admitted read MUST answer EVERY lifecycle record matching the supplied filters.
+Operation 37: An admitted read MUST NOT answer a lifecycle record failing a supplied filter.
+Operation 38: An admitted read MUST NOT answer a host record carrying no lifecycle record.
+Operation 39: IF no lifecycle record matches THEN an admitted read MUST answer an empty record sequence.
+Operation 40: An admitted read MUST match an instant-range filter against ONLY the lifecycle records carrying the filter's field.
+Operation 41: IF a filter's axis NOT EXISTS in the filter axes THEN [Read] MUST answer invalid-query.
+Operation 42: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer invalid-query.
+Operation 43: IF a state filter's value NOT EXISTS in the states THEN [Read] MUST answer invalid-query.
+Operation 44: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
+Operation 45: [Read] MUST NOT write.
+Operation 46: The host MUST read the clock at the seam.
+Operation 47: The transition MUST NOT read a clock.
+Operation 48: The business caller MUST NOT supply now.
+Operation 49: A guard MUST NOT read a clock.
+```
+
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+
+Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+
+Terms › `states`: `active` | `deleted` | `purged` — a [State], and the whole state space a tracked record may stand in.
+
+Terms › `transitioning action`: [Soft Delete] | [Restore] | [Purge] — the three actions that move a lifecycle record.
+
+Terms › `acting reference`: `deleted_by` on [Soft Delete], `restored_by` on [Restore], and `purged_by` on [Purge] — the actor reference a transitioning action carries.
+
+Terms › `transition instant`: `deleted_at` on [Soft Delete], `restored_at` on [Restore], and `purged_at` on [Purge] — the instant a transitioning action records.
+
+Terms › `resolved transition instant`: the transition instant the lifecycle record carries — the supplied value where one exists, and `now` otherwise.
+
+Terms › `state rejection`: `already-deleted`, `already-purged` OR `not-deleted` — every refusal that rests on the lifecycle record's state.
+
+Terms › `deletion field`: `deleted_by`, `deleted_at` OR `deletion_reason` — the fields [Soft Delete] sets.
+
+Terms › `restore field`: `restored_by`, `restored_at` OR `restoration_reason` — the fields [Restore] sets.
+
+Terms › `purge field`: `purged_by`, `purged_at` OR `purge_reason` — the fields [Purge] sets.
+
+Terms › `deletion epoch`: the span from one admitted soft delete to the lifecycle record's next admitted soft delete; the deletion fields carry one epoch's attribution and no more.
+
+Terms › `latest transition instant`: the most recent of a lifecycle record's `deleted_at`, `restored_at` and `purged_at`.
+
+Terms › `filter axes`: `record_id` | `deleted_by` | `purged_by` | `state` | `deleted_at` | `restored_at` | `purged_at` — the seven axes [Read] accepts, and no others.
+
+Terms › `admitted soft delete`: a [Soft Delete] call whose record_id and deleted_by exist, whose lifecycle record stands outside deleted and purged, and whose resolved deleted_at the guards admit.
+
+Terms › `admitted restore`: a [Restore] call whose record_id names a lifecycle record standing in deleted, and whose restored_by and resolved restored_at the guards admit.
+
+Terms › `admitted purge`: a [Purge] call whose record_id names a lifecycle record standing in deleted, and whose purged_by, reason and resolved purged_at the guards admit.
+
+Terms › `admitted read`: a [Read] call whose every filter axis and filter value the guards admit.
+
+| # | Condition | a transitioning action answers |
+|---|---|---|
+| 1 | record_id is blank | `invalid-request` |
+| 2 | [Restore] or [Purge], record_id names no lifecycle record | `not-known` |
+| 3 | the lifecycle record's state refuses the action | a state rejection |
+| 4 | the state admits the action, an attribution or temporal check fails | `invalid-request` |
+| 5 | every precondition passes, the store refuses the write | `storage-failure` |
+| 6 | every precondition passes, the store accepts the write | the success token |
+
+NOTE: watch condition negation — `invalid-request` occupies rows 1 and 4 of one precedence chain, so the answer alone does not say which guard refused. [Approval Step](./approval-step.md), [State Machine](./state-machine.md) and [Audit Trail](../compositions/audit-trail.md) carry the same shape.
+
+WHY:
+Row 2 is where this atom differs from every sibling and the difference is deliberate. [Soft Delete] never answers `not-known` (Operation 6), because an unknown `record_id` is not an error there — it is the entry point. The first [Soft Delete] on a `record_id` creates the lifecycle record and stands it in deleted in one step, which is why there is no registration action to call first (Operation 7, Operation 8). [Restore] and [Purge] do answer `not-known`, because both are operations on a lifecycle the atom must already be tracking.
+
+Operation 17 and Operation 18 state the within-record temporal bounds as precedences rather than as comparisons, so no rule here spells `≥` as a two-arm disjunction. A restore or a purge recorded *at* the deletion instant is legal, and `precedes` admits it in one arm.
+
+Operation 38 is the scope rule an auditor must read before trusting an empty answer. This store holds lifecycle records, not host records, so a host record that has never been soft-deleted is not *absent from the results* — it is outside the atom entirely, in no state, with nothing here to return. An empty answer to a `record_id` query means *never deleted*, not *not found*.
 
 ### State
 
-**Scope of the atom's state machine.** The atom tracks records that have entered its lifecycle via a [Soft Delete] call. Records that have never been soft-deleted are outside the atom's scope: they are conceptually "Active" in the host system but the atom has no lifecycle record for them, no [Read] result returns them, and they are not "in" any of the atom's states. The state machine below applies to records the atom has a lifecycle record for.
+```text
+State 1: A host record carrying no lifecycle record MUST NOT stand in a state.
+State 2: A lifecycle record MUST NOT leave purged.
+State 3: The atom MUST NOT offer a restore-from-purged surface.
+State 4: The atom MUST NOT offer a direct active-to-purged transition.
+State 5: The atom MUST NOT offer a lifecycle record removal surface.
+State 6: The atom MUST NOT offer an untrack surface.
+State 7: EVERY lifecycle record MUST carry record_id, a state, deleted_by and deleted_at.
+State 8: A lifecycle record MAY carry deletion_reason.
+State 9: A lifecycle record MAY carry a restore field.
+State 10: EVERY purged lifecycle record MUST carry purged_by, purge_reason and purged_at.
+State 11: A purged lifecycle record MUST carry the deletion fields the purge found.
+State 12: The store instance's lifecycle record count MUST NOT fall.
+```
 
-Each tracked record is in exactly one state at any time:
+WHY:
+State 7 says something easy to misread: *every* lifecycle record carries deletion attribution, including one standing in active. An active lifecycle record is a record that was deleted and then restored — the atom has no record of anything that was never deleted (State 1) — so the deletion fields are always populated, and they describe the most recent deletion rather than a current one.
 
-- **[Active]** — the record is in normal operation in the host system. Within the atom, an Active lifecycle record is one that was previously soft-deleted and then restored (`Deleted → Active`); the atom does not have lifecycle records for records that have never been soft-deleted. Active records visible to the atom carry the deletion and restore attribution from the most recent prior cycle. May be soft-deleted again (transitioning back to [Deleted]).
-- **[Deleted]** — the record is marked as removed and hidden from normal query surfaces in the host system. Deletion fields are set and are immutable within the current deletion epoch (Invariant 1). May be restored (returning to [Active]) or purged (transitioning to [Purged]).
-- **[Purged]** — the record has been permanently destroyed. Carries full deletion and purge attribution. Terminal; no further transitions. The lifecycle record itself is retained in the atom's store as the audit evidence of destruction — only the content of the underlying record is destroyed.
-
-**Valid transitions.** No other transitions exist, and every action is fail-closed — a rejected call writes nothing and leaves the record in its prior state ([Storage Failure] included). [Purged] is terminal ([Restore] and [Purge] against it are rejected). A [Purge] requires a prior [Soft Delete]: there is no direct [Active] → [Purged] path. A new conceptual record requires a new [Record Id] — the atom provides no "untrack" or "reset" surface.
-
-| Action | From | Guard | To | Effect |
-|---|---|---|---|---|
-| [Soft Delete] | — (no lifecycle record) | valid [Record Id] | [Deleted] | creates the lifecycle record (the entry point into the state machine) |
-| [Soft Delete] | [Active] (tracked) | valid [Record Id] | [Deleted] | a re-deletion; overwrites the deletion fields |
-| [Restore] | [Deleted] | resolved [Restored At] ≥ [Deleted At] | [Active] | overwrites the restore fields |
-| [Purge] | [Deleted] | [Reason] required; resolved [Purged At] ≥ [Deleted At] | [Purged] | content destroyed; lifecycle record retained as audit evidence |
-
-### Flow
-
-1. **User deletes a post.** A social media user deletes a post. The platform calls `soft_delete(record_id: "post-8821", deleted_by: "user-4491", reason: "User-initiated delete")` → `deleted`. The post is hidden from the public feed; it remains in the atom's store in [Deleted] state.
-2. **User restores the post.** The user reconsiders and uses the platform's "undo delete" feature within 30 days. `restore(record_id: "post-8821", restored_by: "user-4491", reason: "User-initiated restore — undo")` → `restored`. The post returns to [Active]; it is visible on the feed again.
-3. **User deletes again; purge threshold reached.** The user deletes the post again. After 90 days in Deleted state, the platform's retention policy triggers: `purge(record_id: "post-8821", purged_by: "retention_service", reason: "90-day deleted-record purge policy")` → `purged`. The post content is destroyed. The lifecycle record in the atom's store transitions to [Purged] and is retained as audit evidence.
-4. **Attempted restore after purge.** A support ticket asks whether the post can be recovered. `restore(record_id: "post-8821", restored_by: "support_agent_lee", reason: "Customer request")` → `rejected(already-purged)`. The purge is irreversible. The support agent can see the full lifecycle record — when it was deleted, when it was restored, when it was deleted again, and when it was purged — via `read({record_id: "post-8821"})`.
-5. **GDPR erasure request.** A data subject submits an Article 17 erasure request. The DSAR workflow calls `soft_delete(record_id: "profile-4491", deleted_by: "dsar_service", reason: "GDPR Art. 17 erasure request — ticket DSR-2026-0441")` → `deleted`, then — after confirming no active legal hold blocks the purge — `purge(record_id: "profile-4491", purged_by: "dsar_service", reason: "GDPR Art. 17 erasure confirmed — no blocking hold — ticket DSR-2026-0441")` → `purged`. The lifecycle record proves the erasure was performed, attributed, and documented.
-
-### Decision points
-
-- **At [Soft Delete]** — the [Record Id] parameter is checked first: if null, empty, or whitespace-only, the call is [Invalid Request]. If [Record Id] is well-formed and the atom has no lifecycle record for it, the atom implicitly creates the lifecycle record and transitions it directly to [Deleted]; there is no separate `register` action and [Not Known] is not returned for new [Record Id]s. If a lifecycle record exists: [Already Deleted] if it is in [Deleted] state; [Already Purged] if it is in [Purged] state. Attribution checks: [Deleted By] must contain at least one non-whitespace character ([Invalid Request]); [Deleted At], if supplied, must not be in the future. [Storage Failure] leaves the record in its prior state (no lifecycle record created for new ids; existing tracked records unchanged). Rejection priority: malformed [Record Id] ([Invalid Request]) → [Already Deleted] → [Already Purged] → attribution/temporal ([Invalid Request]) → [Storage Failure].
-
-- **At [Restore]** — the [Record Id] parameter is checked first: if null, empty, or whitespace-only, the call is [Invalid Request]. If well-formed: [Not Known] if no lifecycle record exists for it; [Not Deleted] if the record is [Active]; [Already Purged] if the record is [Purged]. Attribution and temporal checks: [Restored By] must contain at least one non-whitespace character ([Invalid Request]); the resolved [Restored At] (caller-supplied or wall-clock-defaulted) must be ≥ the record's current [Deleted At], and must not be in the future when caller-supplied. The `≥ deleted_at` bound applies to the resolved value regardless of derivation; this enforces Invariant 6 against clock-skew artifacts. [Storage Failure] leaves the record in [Deleted]. Rejection priority: malformed [Record Id] ([Invalid Request]) → [Not Known] → [Not Deleted] → [Already Purged] → attribution/temporal ([Invalid Request]) → [Storage Failure].
-
-- **At [Purge]** — the [Record Id] parameter is checked first: if null, empty, or whitespace-only, the call is [Invalid Request]. If well-formed: [Not Known] if no lifecycle record exists for it; [Not Deleted] if the record is [Active] (a record must pass through [Deleted] before Purge — direct [Active] → Purge is not a valid path). Attribution and temporal checks: [Purged By] and [Reason] must each contain at least one non-whitespace character ([Invalid Request]); the resolved [Purged At] (caller-supplied or wall-clock-defaulted) must be ≥ the record's current [Deleted At], and must not be in the future when caller-supplied. The `≥ deleted_at` bound applies to the resolved value regardless of derivation. [Storage Failure] leaves the record in [Deleted]. Rejection priority: malformed [Record Id] ([Invalid Request]) → [Not Known] → [Not Deleted] → attribution/temporal ([Invalid Request]) → [Storage Failure].
-
-- **At [Read]** — every supplied filter value must be well-formed for its axis. A [Record Id], [Deleted By], or [Purged By] filter value that is null, empty, or whitespace-only is [Invalid Query]. A [State] filter value not in {[Active], [Deleted], [Purged]} is [Invalid Query]. A time range with end before start is [Invalid Query]. An unrecognized filter key — any key outside the supported axes — is [Invalid Query]; the spec rejects rather than ignores unknown keys. Time-range filters on fields absent from a state's records (e.g., [Purged At] on [Active] or [Deleted]; [Restored At] on never-restored records) implicitly return empty sequences for those records. A well-formed query matching no records returns an empty sequence.
-
-### Behavior
-
-- **Deletion and restoration are reversible; purge is not.** The [Deleted] → [Active] path is the atom's recoverability guarantee. Once a record reaches [Purged], no action in this atom can recover it.
-- **Purge requires a prior soft-delete.** There is no direct [Active] → [Purged] path. A record that needs to be destroyed must first be soft-deleted, making the destruction a two-step action. This is intentional: the soft-delete step creates a decision point where the record is hidden but recoverable; the purge step is the deliberate, attributed act of destruction. Systems that need immediate hard-delete behavior are outside the scope of this atom.
-- **The lifecycle record survives purge.** When a record is [Purged], its content is destroyed; its lifecycle record in the atom's store is retained. The [Purged] record carries full attribution of the deletion and the purge. Deleting the lifecycle record itself would destroy the audit evidence of the destruction, defeating the purpose of tracked purge.
-- **Multiple delete/restore cycles are valid.** A record may be soft-deleted and restored multiple times before being purged. Each [Soft Delete] overwrites the deletion fields ([Deleted By], [Deleted At], [Deletion Reason]) with the new deletion's attribution; each [Restore] overwrites the restore fields ([Restored By], [Restored At], [Restoration Reason]) with the new restore's attribution. The atom retains only the most recent attribution in each category; the full cycle history requires Event Log composition. Purge is only available from the [Deleted] state regardless of how many prior cycles the record has had.
-- **The atom does not enforce purge eligibility.** Whether a record is legally permissible to purge — whether a legal hold is active, whether the retention window has elapsed — is handled at the composing layer. The atom records that a purge was performed; the Forensic Recovery composition and Regulated Record Retention & Defensible Deletion composition enforce the gate checks.
-- **Reads are stable across states.** `read({record_id: X})` returns the lifecycle record regardless of its current state — [Active], [Deleted], or [Purged]. A query filtered to `state: Active` will not return [Deleted] or [Purged] records, but an unfiltered query by [Record Id] always returns the record.
-
-### Feedback
-
-- After [Soft Delete] — the record is now [Deleted]; [Deleted By], [Deleted At], and [Deletion Reason] (if supplied) are set and immutable.
-- After [Restore] — the record is now [Active]; [Restored By], [Restored At], and [Restoration Reason] (if supplied) are set. Prior deletion fields remain on the record.
-- After [Purge] — the record is now [Purged]; [Purged By], [Purge Reason], and [Purged At] are set and immutable. All deletion fields are retained.
-
-Each rejected action produces an observable refusal naming the failed precondition.
+State 11 is what makes a purge auditable. The lifecycle record outlives the content it describes: the host destroys the content on receiving the `purged` answer, and what remains here is the evidence that the destruction happened, who authorized it, and which deletion preceded it. Removing the lifecycle record would destroy the proof of destruction, which is the one thing a regulator comes to this store for.
 
 ### Invariants
 
-- **Invariant 1 — Deletion attribution is immutable within a deletion epoch.** The fields [Deleted By], [Deleted At], and [Deletion Reason] set by a [Soft Delete] call do not change as a result of [Restore] or [Purge]. A subsequent [Soft Delete] following a [Restore] replaces all three fields with the new deletion's attribution — the prior epoch's attribution is not retained by this atom. Full delete/restore cycle history requires Event Log composition. A [Purged] record carries the [Deleted By], [Deleted At], and [Deletion Reason] from the most recent [Soft Delete] that preceded the purge, immutably.
-
-- **Invariant 2 — Membership exclusivity.** Every record the atom has a lifecycle record for (every record that has undergone at least one [Soft Delete]) is in exactly one of {[Active], [Deleted], [Purged]} at all times. Records that have never been soft-deleted are outside the atom's state machine and are not "in" any of these states; they have no lifecycle record.
-
-- **Invariant 3 — Purge is terminal.** Once a record transitions to [Purged], no action transitions it further. The atom has no restore-from-purge surface.
-
-- **Invariant 4 — Purge requires prior deletion.** There is no valid transition from [Active] to [Purged]. Every [Purged] record passed through [Deleted]; every [Purged] record carries [Deleted By] (a string with at least one non-whitespace character) and [Deleted At] (a set timestamp) as evidence of the deletion step.
-
-- **Invariant 5 — Purge attribution is complete.** Every [Purged] record carries [Purged By] and [Purge Reason] each containing at least one non-whitespace character, and a [Purged At] timestamp that is set. An anonymous purge, a whitespace-only reason, or a missing purge timestamp is a conformance failure — each defeats the audit record that legal proceedings, regulatory inspections, and GDPR compliance demonstrations require.
-
-- **Invariant 6 — Temporal ordering within each transition.** For every [Purged] record: [Deleted At] ≤ [Purged At], where [Deleted At] is the most recent deletion's timestamp. For every restore event: [Restored At] ≥ the [Deleted At] that was current at the time [Restore] was called. Both bounds apply to the value persisted in the record, regardless of whether the timestamp was caller-supplied or wall-clock-defaulted; the [Restore] and [Purge] Decision points enforce these bounds against the resolved value before the transition is committed. After a subsequent [Soft Delete] following a restore, [Deleted At] is overwritten with the new deletion's timestamp; the stored [Restored At] from the prior cycle then predates the new [Deleted At]. This is expected: the stored fields reflect the most recent deletion epoch and the most recent restore epoch independently. Cross-epoch ordering is not guaranteed from stored fields alone; it is verifiable only via Event Log composition, which retains the full ordered history of all transitions.
-
-- **Invariant 7 — Lifecycle record durability.** The lifecycle record for a [Record Id] is never removed from the atom's store once created. The total lifecycle record count is monotonically non-decreasing. A [Purged] record's lifecycle record is retained as permanent audit evidence of the destruction.
-
-- **Invariant 8 — Deletion attribution completeness.** Every record the atom has a lifecycle record for (any state — [Active], [Deleted], or [Purged]) carries [Deleted By] (a string with at least one non-whitespace character) and [Deleted At] (a set timestamp), reflecting the most recent [Soft Delete]. A tracked record with a blank [Deleted By] or a missing [Deleted At] is a conformance failure.
+- **Invariant 1 — Deletion attribution is immutable within a deletion epoch.**
+  ```text
+  Invariant 1.1: An admitted restore MUST NOT change a deletion field.
+  Invariant 1.2: An admitted purge MUST NOT change a deletion field.
+  Invariant 1.3: An admitted soft delete MUST replace EVERY deletion field.
+  ```
+  WHY: the epoch is the unit of immutability, not the record. A restore and a purge leave the deletion attribution exactly as they found it; a second soft delete replaces all three fields together, and the prior epoch's attribution is gone from this store. The full cycle history is [Event Log](./event-log.md)'s (Non-goal 5), and the reason the atom keeps only the latest is that a summary the reader can trust beats a history the reader has to reconstruct — the summary answers *who deleted this, and when* without ambiguity about which deletion is meant.
+- **Invariant 2 — Membership exclusivity.**
+  ```text
+  Invariant 2.1: EVERY tracked record MUST stand in EXACTLY ONE OF active, deleted, purged.
+  ```
+- **Invariant 3 — Purge is terminal.**
+  ```text
+  Invariant 3.1: A lifecycle record standing in purged MUST NOT leave purged.
+  ```
+- **Invariant 4 — Purge requires a prior deletion.**
+  ```text
+  Invariant 4.1: EVERY purged lifecycle record MUST carry a deleted_by and a deleted_at.
+  Invariant 4.2: A purged lifecycle record's deleted_by MUST carry a non-whitespace character.
+  ```
+  WHY: there is no direct path from active to purged (State 4), so every purged record passed through deleted and carries that step's attribution as evidence. The two-step shape is the atom's deliberate friction: the first step hides the record and is reversible, the second destroys it and is not, and separating them creates a moment where the decision can be reconsidered.
+- **Invariant 5 — Purge attribution is complete.**
+  ```text
+  Invariant 5.1: EVERY purged lifecycle record's purged_by MUST carry a non-whitespace character.
+  Invariant 5.2: EVERY purged lifecycle record's purge_reason MUST carry a non-whitespace character.
+  Invariant 5.3: EVERY purged lifecycle record MUST carry a purged_at.
+  ```
+  WHY: the load-bearing one. An anonymous purge, a whitespace-only reason or a missing instant each defeat the record that legal proceedings, regulatory inspections and GDPR compliance demonstrations require. A reason is mandatory on purge and optional on deletion because destruction is the act that must justify itself.
+- **Invariant 6 — Temporal ordering within a transition.**
+  ```text
+  Invariant 6.1: A purged lifecycle record's purged_at MUST NOT precede the record's deleted_at.
+  Invariant 6.2: A recorded restored_at MUST NOT precede the deleted_at the restore found.
+  Invariant 6.3: The atom MUST NOT order two deletion epochs from the stored fields.
+  ```
+  WHY: Invariant 6.3 is an honest limit rather than a gap. After a soft delete following a restore, `deleted_at` is replaced and the stored `restored_at` from the prior cycle then precedes it — which looks inverted and is correct, because the two fields describe different epochs. The stored fields bound each transition against the deletion current *at that moment*, and cross-epoch ordering is recoverable only from a composed [Event Log](./event-log.md).
+- **Invariant 7 — Lifecycle record durability.**
+  ```text
+  Invariant 7.1: The atom MUST NOT remove a lifecycle record from the store.
+  Invariant 7.2: A storage-failure rejection MUST leave no partial record in the store.
+  ```
+- **Invariant 8 — Deletion attribution is complete.**
+  ```text
+  Invariant 8.1: EVERY lifecycle record's deleted_by MUST carry a non-whitespace character.
+  Invariant 8.2: EVERY lifecycle record MUST carry a deleted_at.
+  ```
 
 ---
-
 ## Examples
 
-### Happy path — delete, restore, delete, purge
+### Delete, restore, delete, purge
 
-See Flow section. The full arc is walked there: user-initiated delete, undo restore, second delete, retention-driven purge, and failed restore attempt against the Purged record.
+A user deletes a post: `soft_delete(record_id: "post-8821", deleted_by: "user-4491", reason: "User-initiated delete")` → `deleted`. No lifecycle record existed, so this call created one and stood it in deleted — no registration step (Operation 7, Operation 8). The platform hides the post.
 
-### Rejection path — purge an Active record
+The user reconsiders within the undo window: `restore("post-8821", restored_by: "user-4491", reason: "User-initiated restore — undo")` → `restored`. The record stands in active, carrying both the restore fields and the deletion fields the restore found (Invariant 1.1).
 
-An automated purge job mistakenly targets a record that was never soft-deleted: `purge(record_id: "doc-0099", purged_by: "purge_job", reason: "scheduled purge")` → `rejected(not-deleted)`. The record is unchanged. The purge job logs the rejection and flags the record for manual review.
+The user deletes it again. The deletion fields are replaced with the new epoch's attribution and the restore fields stand as they were (Invariant 1.3, Operation 27). Ninety days later the retention service purges it: `purge("post-8821", purged_by: "retention_service", reason: "90-day deleted-record purge policy")` → `purged`. The host destroys the content; the lifecycle record stays as the evidence (State 11).
 
-### Rejection path — restore a Purged record
+A support agent asks whether it can be recovered: `restore("post-8821", …)` → `rejected(already-purged)` (Operation 11). What they *can* see is the whole lifecycle — the latest deletion, the restore, and the purge with its actor and reason.
 
-`restore(record_id: "post-8821", restored_by: "support_agent", reason: "customer request")` → `rejected(already-purged)`. The lifecycle record is still readable; the content is gone.
+### GDPR Article 17 erasure
 
-### Rejection path — purge with empty reason
+A data subject submits an erasure request. The DSAR workflow calls `soft_delete("profile-4491", deleted_by: "dsar_service", reason: "GDPR Art. 17 erasure request — ticket DSR-2026-0441")` → `deleted`, then — having confirmed no live hold blocks it, which is the composing layer's check and not this atom's — `purge("profile-4491", purged_by: "dsar_service", reason: "GDPR Art. 17 erasure confirmed — no blocking hold — ticket DSR-2026-0441")` → `purged`. The lifecycle record proves the erasure was performed, attributed and documented (Non-goal 8).
 
-`purge(record_id: "profile-4491", purged_by: "dsar_service", reason: "  ")` → `rejected(invalid-request)`. Whitespace-only reason is treated as empty. The record remains in [Deleted] state.
+### Rejection paths
 
-### Rejection path — future-dated `deleted_at`
+`purge("doc-77", purged_by: "admin", reason: "cleanup")` where `doc-77` has never been deleted → `rejected(not-known)`. There is no lifecycle record to purge, and [Purge] does not create one (Operation 5).
 
-`soft_delete(record_id: "order-7712", deleted_by: "admin_chen", deleted_at: "2027-01-01T00:00:00Z")` → `rejected(invalid-request)`. A deletion documented as occurring in the future has no operational meaning.
+`purge("post-8821", …)` against the restored, active record → `rejected(not-deleted)`. A record must be deleted before it can be destroyed; there is no direct path (Operation 13, State 4).
+
+`soft_delete("post-8821", deleted_by: "user-4491")` against the already-deleted record → `rejected(already-deleted)`, not a silent success (Operation 9, Non-goal 1).
+
+`purge("post-8821", purged_by: "retention_service", reason: "   ")` → `rejected(invalid-request)`. A destruction with no stated reason is not an audit record (Operation 3, Invariant 5.2).
+
+`soft_delete("post-8821", deleted_by: "svc", deleted_at: "2030-01-01")` → `rejected(invalid-request)` (Operation 16).
+
+`restore("post-8821", restored_by: "svc", restored_at: "2020-01-01")` against a record deleted in 2026 → `rejected(invalid-request)`. A restore cannot precede the deletion it undoes (Operation 17).
+
+`read({record_id: "post-8821", deleted_reason: "spam"})` → `rejected(invalid-query)`. The key stands outside the seven axes and is refused rather than ignored (Operation 41).
 
 ### Regulated adversarial scenarios
 
-Three scenarios the atom must survive in regulated contexts, beyond happy-path and rejection-path:
-
-- **Regulator audit.** A GDPR supervisory authority asks: *"show me evidence that the data subject's erasure request for profile-4491 was completed — that the record was destroyed, by whom, and when."* The auditor queries `read({record_id: "profile-4491"})`. The [Purged] lifecycle record returns: `state: Purged`, `purged_by: "dsar_service"`, `purge_reason: "GDPR Art. 17 erasure confirmed — no blocking hold — ticket DSR-2026-0441"`, `purged_at: <timestamp>`, and the deletion attribution from the prior [Soft Delete] call. Invariant 5 (purge attribution completeness) and Invariant 7 (lifecycle record durability) together guarantee this record exists and is fully attributed. The auditor sees a structural guarantee — a non-empty, fully-attributed [Purged] record — not a procedural assurance. The same query pattern applies to HIPAA record-disposal audits and SOX (Sarbanes-Oxley Act — US law on corporate financial reporting and records integrity) §802 records-management reviews.
-- **Disputed erasure — data subject challenges the purge.** A data subject claims their profile was not erased or was erased without their request. The compliance team queries `read({record_id: "profile-4491"})`. The Purged lifecycle record names the purge actor, the stated reason (referencing the DSAR ticket), the purge timestamp, and the deletion actor and timestamp from the prior deletion step. Invariant 4 (purge requires prior deletion) and Invariant 5 (purge attribution completeness) together establish the two-step documented chain: who deleted the record and why, who authorized and executed the purge and why. The data subject's challenge is answered by the records alone. If the records show no purge (the record is still [Deleted]), the compliance team has evidence the erasure was not completed and a remediation path.
-- **Breach or incident investigation.** An incident responder investigates whether records for users in a compromised account range were purged during the incident window (02:00–04:00 UTC — Coordinated Universal Time, the global time standard — on a given date). The query: `read({state: Purged, purged_at: [start, end]})`. The results list every record purged in the window with full attribution — [Purged By], [Purge Reason], [Purged At]. Each result is cross-checked against the expected authorized purge actors; unexpected attributions are immediate findings. Invariant 7 (lifecycle record durability) guarantees that a purge performed during the window cannot be erased from the store after the fact; Invariant 5 (purge attribution completeness) guarantees that every purge in the result set is fully attributed. If any purge carries an actor outside the authorized set, the incident record names the finding structurally.
-
-These scenarios exercise the atom against the questions regulators, data subjects, and investigators actually ask. Happy-path and rejection-path examples cover what users and operators do; adversarial scenarios cover what auditors, data subjects, and incident responders do.
+- **Regulator audit.** A GDPR supervisory authority asks for evidence that a data subject's erasure was completed. `read({record_id: "profile-4491"})` answers a purged lifecycle record with its actor, reason and instant, plus the deletion attribution from the step before. Invariant 5 and Invariant 7 together are the structural guarantee — the record exists, is fully attributed, and cannot have been removed after the fact. The same query answers HIPAA disposal audits and SOX (Sarbanes-Oxley Act) §802 records-management reviews.
+- **Disputed erasure.** A data subject claims their profile was never erased, or erased without their request. The purged record names who deleted and why, and who purged and why, and Invariant 4 establishes the two-step chain. If the record still stands in deleted, the compliance team has evidence the erasure was *not* completed and a remediation path — which is a more useful answer than an absence would be.
+- **Breach investigation.** An incident responder asks which records were purged inside an anomaly window: `read({state: purged, purged_at: {after: …, before: …}})`. Every result carries its actor, and an actor outside the authorized set is a finding on sight. Invariant 7.1 is why the query can be trusted — a purge performed during the window cannot be erased from this store afterwards.
 
 ---
 
-## Non-goals and edge cases
+## Generation acceptance
 
-- **[Soft Delete] is not idempotent.** Calling [Soft Delete] on an already-[Deleted] record returns `rejected(already-deleted)`, not a silent success. For idempotent delete semantics (where retrying a delete after a network timeout should not error), the caller must catch [Already Deleted] and treat it as success. The atom's non-idempotency is intentional — a second [Soft Delete] call is likely a bug or a retry, not a new delete intent; the caller should handle the distinction.
+This atom's acceptance is what an external auditor can clear from the lifecycle store alone, with no recourse to source code, runbooks or developer narration.
 
-- **Content destruction is handled by the host system.** This atom manages lifecycle state and attribution. It does not destroy the underlying record's content — that is the host system's responsibility on receiving the `purged` outcome. The atom guarantees the [Purged] lifecycle record exists and is attributed; it does not implement the content deletion. A deployment that transitions to [Purged] without destroying content is non-conforming to the spirit of the atom but conforming to the atom's invariants — the atom cannot verify content destruction.
+### Conformance checks
 
-- **Multiple delete/restore cycles and attribution.** Each [Soft Delete] overwrites [Deleted By], [Deleted At], and [Deletion Reason] with the new deletion's attribution. Each [Restore] overwrites [Restored By], [Restored At], and [Restoration Reason]. The atom retains only the most recent deletion attribution; the full history of all cycles requires composition with [Event Log](./event-log.md).
+```text
+Check 1.1: An auditor MUST find no lifecycle record absent from a later read (Invariant 7.1).
+Check 1.2: An auditor MUST find a purged lifecycle record in the store (Invariant 7.1, State 11).
+Check 2.1: An auditor MUST find a non-whitespace character in EVERY purged lifecycle record's purged_by (Invariant 5.1).
+Check 2.2: An auditor MUST find a non-whitespace character in EVERY purged lifecycle record's purge_reason (Invariant 5.2).
+Check 2.3: An auditor MUST find a purged_at on EVERY purged lifecycle record (Invariant 5.3).
+Check 2.4: An auditor MUST find no purged lifecycle record's purged_at preceding the record's deleted_at (Invariant 6.1).
+Check 3.1: An auditor MUST find a deleted_by and a deleted_at on EVERY purged lifecycle record (Invariant 4.1).
+Check 3.2: An auditor MUST find a non-whitespace character in EVERY purged lifecycle record's deleted_by (Invariant 4.2).
+Check 4.1: An auditor MUST find EVERY tracked record standing in EXACTLY ONE OF active, deleted, purged (Invariant 2.1).
+Check 4.2: An auditor MUST find no lifecycle record standing outside purged on a later read of a record a prior read found purged (Invariant 3.1).
+Check 5.1: An auditor MUST find a non-whitespace character in EVERY lifecycle record's deleted_by (Invariant 8.1).
+Check 5.2: An auditor MUST find a deleted_at on EVERY lifecycle record (Invariant 8.2).
+Check 5.3: An auditor MUST find a re-read lifecycle record's deletion fields unchanged across an admitted restore (Invariant 1.1).
+Check 5.4: An auditor MUST find a re-read lifecycle record's deletion fields unchanged across an admitted purge (Invariant 1.2).
+```
 
-- **Purge gate enforcement.** Whether a [Deleted] record is eligible for purge — whether a legal hold blocks it, whether the retention window has elapsed — is not enforced by this atom. The atom records a purge when called; it does not gate the call. Purge gate enforcement belongs to the [Defensible Retention](../compositions/defensible-retention.md) composition (Legal Hold + Retention Window + Audit Trail — the hold-blocks-purge gate; grounded); the [Forensic Recovery](../compositions/forensic-recovery.md) composition (Soft Delete + Audit Trail substrate; `grounded` 2026-06-04) provides the attributed, tamper-evident, full-history-recoverable destruction audit surface but deliberately does not gate purge eligibility. Deployments that call [Purge] without checking eligibility are operationally non-conforming but syntactically valid from this atom's perspective.
+NOTE: EVERY check names the rule the check tests.
 
-- **Batch operations.** One [Soft Delete] call operates on one [Record Id]. Bulk deletion (all records matching a query) is a composing-layer operation. Atomic bulk deletion — where all records in a set are deleted or none are — requires a transaction wrapper in the composing layer.
+### External checks
 
-- **Access control.** Who may soft-delete, restore, or purge a record is not defined by this atom. That is the obligation of a composing [Permissions](./permissions.md) pattern. In regulated deployments, purge in particular is a privileged action — unrestricted purge access defeats the audit guarantee.
+```text
+External check 1: A deployment needing the host record's content confirmed destroyed MUST read the host system (Identity 11, Non-goal 3).
+External check 2: A deployment needing two deletion epochs ordered MUST read the composing [Event Log](./event-log.md) (Invariant 6.3).
+External check 3: A deployment needing a purge's eligibility confirmed MUST read the composing gate (Non-goal 8).
+External check 4: A deployment needing an acting reference bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Non-goal 12).
+```
 
-- **Tombstoning in distributed systems.** In distributed systems, Deleted records serve as tombstones — markers that prevent a deleted record from being re-created by a concurrent operation that hasn't yet seen the deletion. The Soft Delete atom's [Deleted] state serves this purpose; the [Purge] action removes the tombstone. Whether removing a tombstone can cause re-creation issues is handled at the distributed-systems layer; the atom records the state faithfully.
+WHY:
+External check 1 is the atom's sharpest boundary and the one a deployment can quietly fail. A purged lifecycle record attests that a purge was *recorded*; the content lives in the host system, and a deployment that stands the record in purged without destroying the content conforms to every invariant here and defeats the whole point. The atom cannot see the content and so cannot check it, which is exactly why this is stated rather than assumed.
 
-- **GDPR Article 17 and active legal holds.** A data subject's right to erasure under GDPR Article 17 does not apply when processing is necessary for the establishment, exercise, or defence of legal claims (Article 17(3)(e)). This means a DSAR erasure request may need to be blocked if an active Legal Hold covers the record. The atom does not enforce this — it will execute a [Purge] call if called. The composing layer (DSAR workflow + Legal Hold) must check for active holds before calling [Purge].
-
-- **Clock semantics.** [Deleted At], [Restored At], and [Purged At] default to the receiving node's wall clock when not supplied. The future-bound (must not be in the future) applies to caller-supplied values; wall-clock defaults are "now" by construction. The `≥ deleted_at` bound on [Restored At] and [Purged At] applies to the **resolved** value — caller-supplied or wall-clock-defaulted — so a clock-skewed node cannot write a record that violates Invariant 6 even when defaulting. Back-dated timestamps are accepted (subject to the lower bound) — documenting a deletion or purge recognized at an earlier time is valid. Clock skew, timezone normalization, and monotonicity are handled at the deployment layer.
-
-- **Concurrency.** Two systems concurrently calling [Soft Delete] on the same [Record Id] must be serialized; the first transitions the record (or creates it) into [Deleted], the second receives [Already Deleted]. Two systems concurrently calling [Restore] on the same [Record Id] must be serialized; the first transitions [Deleted] → [Active], the second receives [Not Deleted]. Two systems concurrently calling [Purge] on the same [Deleted] [Record Id] must be serialized; the first transitions [Deleted] → [Purged], the second receives [Not Deleted] (the record is no longer in [Deleted] state — [Purged] is not [Deleted]). Implementations must serialize state transitions on a given [Record Id].
+External check 2 follows from Invariant 6.3. The stored fields carry one deletion epoch and one restore epoch, so an auditor reconstructing *what happened in what order across cycles* needs the transition history, not this summary.
 
 ---
 
+## Non-goals
+
+```text
+Non-goal 1: The atom MUST NOT answer a second [Soft Delete] against a deleted lifecycle record as a success.
+Non-goal 2: A deployment needing an idempotent delete MUST read already-deleted as a success.
+Non-goal 3: The atom MUST NOT destroy the host record's content.
+Non-goal 4: The atom MUST NOT confirm that the host record's content stands destroyed.
+Non-goal 5: The atom MUST NOT retain a prior deletion epoch's attribution.
+Non-goal 6: A deployment needing the full cycle history MUST compose [Event Log](./event-log.md).
+Non-goal 7: The atom MUST NOT gate a purge on the purge's eligibility.
+Non-goal 8: A deployment needing a purge gated MUST compose [Defensible Retention](../compositions/defensible-retention.md).
+Non-goal 9: The atom MUST NOT read a live hold.
+Non-goal 10: The atom MUST NOT read a retention deadline.
+Non-goal 11: The atom MUST NOT offer a batch transitioning action.
+Non-goal 12: The atom MUST NOT bind an acting reference to an actor.
+Non-goal 13: A deployment needing a non-repudiable purge MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 14: The atom MUST NOT decide who may call an action.
+Non-goal 15: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 16: The atom MUST NOT detect a rewrite under the store.
+Non-goal 17: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 18: The atom MUST NOT define which read surface a deleted record leaves.
+Non-goal 19: The atom MUST NOT bound a transition instant from below by anything beside the lifecycle record's own deleted_at.
+```
+
+WHY:
+Non-goal 7 through Non-goal 10 are the boundary that most looks like a safety hole and is the atom's central factoring decision. This atom will execute a purge whenever it is called and well-formed. It does not read a hold, does not read a retention deadline, and does not ask whether GDPR Article 17(3)(e) — which suspends the right to erasure where processing is necessary for legal claims — applies to this record right now. Building any of that in would make the destruction primitive depend on the two patterns most often composed with it, and would put the gate inside the thing being gated. [Defensible Retention](../compositions/defensible-retention.md) wires the hold-blocks-purge check; [Forensic Recovery](../compositions/forensic-recovery.md) supplies the attributed, sealed, fully-recoverable destruction audit surface and deliberately does *not* gate eligibility. A deployment calling [Purge] without checking is operationally non-conforming and syntactically valid, and the spec says so rather than pretending the atom could tell.
+
+Non-goal 18 is the deliberate silence the Intent names. *Hidden from normal query* is a deployment's decision about its own read surfaces, and two correct deployments disagree about it — a moderator queue that shows deleted posts and a clinical summary that does not are both implementing the deleted state faithfully.
+
+Non-goal 1 is worth stating because the alternative is tempting. A second [Soft Delete] on a deleted record answers `already-deleted` rather than succeeding silently, because a repeat call is more often a bug or a retry than a fresh intent, and a caller who wants idempotence can read the answer as one (Non-goal 2) while a caller who has a bug finds it.
+
+---
+
+## Edge cases
+
+### String policy
+
+```text
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+String 7: The deployment MUST canonicalize an opaque reference.
+```
+
+Terms › `string input`: a reference, `reason` OR a filter's value — every caller-supplied string this atom accepts.
+
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+
+WHY:
+Byte-exactness costs more here than in most atoms, because `record_id` is the *caller's* identifier rather than one this atom issued (Identity 2). A host that supplies `Post-8821` on delete and `post-8821` on purge has two lifecycle records, and the purge answers `not-known` on a record that visibly exists. Canonicalization is the deployment's (String 7, Identity 9).
+
+NOTE: watch host obligations — this atom sets no maximum length on a string input, and neither do [Approval Step](./approval-step.md), [State Machine](./state-machine.md) or [Selective Disclosure](./selective-disclosure.md), where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Six atoms, three postures.
+
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's honesty.
+Clock semantics 3: The deployment MUST own the clock's synchronization.
+Clock semantics 4: The atom MUST NOT record a receipt instant.
+Clock semantics 5: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+```
+
+WHY:
+The lower bounds (Operation 17, Operation 18) hold against the *resolved* value, so a skewed node cannot default its way past them: a wall-clock default that lands before the record's `deleted_at` is refused exactly as a caller-supplied one would be. A backdated instant is otherwise accepted — documenting a deletion or purge recognized later is valid, and the future bound refuses the one direction that is always fabrication.
+
+### Concurrency
+
+```text
+Concurrency 1: The implementation MUST serialize two transitioning actions against one lifecycle record.
+Concurrency 2: A serialized transitioning action MUST read the state the prior transitioning action left.
+Concurrency 3: The second serialized [Soft Delete] against one lifecycle record MUST answer already-deleted.
+Concurrency 4: The second serialized [Restore] against one lifecycle record MUST answer not-deleted.
+Concurrency 5: The second serialized [Purge] against one lifecycle record MUST answer not-deleted.
+```
+
+WHY:
+Concurrency 5 reads oddly and is right: a second purge answers `not-deleted` rather than `already-purged`, because the guard tests *standing in deleted* (Operation 13) and a purged record does not. The answer names what the guard checked rather than what the caller probably wanted to hear, and a caller who needs to distinguish *already destroyed* from *never deleted* reads the record's state.
+
+### Atomic writes
+
+```text
+Atomic writes 1: A reader MUST NOT observe a state change without the transition's recorded fields.
+Atomic writes 2: An uncommitted crash MUST leave the lifecycle record as the call found the lifecycle record.
+Atomic writes 3: The implementation MUST resolve a dangling transition.
+Atomic writes 4: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
+```
+
+Terms › `uncommitted crash`: a crash BEFORE a transitioning action's commit lands.
+
+Terms › `dangling transition`: a transitioning action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
+
+WHY:
+Every transitioning action writes the state and its fields together (Operation 29), and a crash between them produces a purged record with no purge reason — Invariant 5 violated in exactly the way an auditor cannot tell from an implementation that never wrote one. The obligation is all-or-none observability.
+
+---
+
+## Composition notes
+
+```text
+Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
+Composition note 2: A composing pattern MUST own the purge eligibility gate.
+Composition note 3: A composing pattern MUST own the authorization of a call.
+Composition note 4: A composing pattern MUST own the attestation binding an acting reference.
+Composition note 5: A composing pattern MUST own the full cycle history.
+Composition note 6: A composing pattern MUST own the tamper seal over the lifecycle store.
+Composition note 7: A composing pattern MUST own a batch transition.
+Composition note 8: A composing pattern MUST own the host record's content destruction.
+Composition note 9: A composing pattern reading the lifecycle store MUST NOT write to the lifecycle store.
+```
+
+WHY:
+[Forensic Recovery](../compositions/forensic-recovery.md) (`grounded` 2026-06-04) wires this atom onto an [Audit Trail](../compositions/audit-trail.md) substrate to produce the attributed, tamper-evident, fully recoverable destruction audit surface — every delete, restore and purge attributed and sealed, with the ordered lifecycle reconstructable rather than summarized (Composition note 5, Invariant 6.3). It deliberately does not gate purge eligibility. [Defensible Retention](../compositions/defensible-retention.md) is the composition that does, wiring [Legal Hold](./legal-hold.md) and [Retention Window](./retention-window.md) into the hold-blocks-purge check this atom refuses to make (Composition note 2, Non-goal 7–10).
+
+[Event Log](./event-log.md) is the history behind the summary: this atom keeps the latest deletion and the latest restore, and the event log keeps every transition in order, which is the only place cross-epoch questions can be answered. [Actor Identity](./actor-identity.md) makes a purge non-repudiable, which regulated destruction needs and an opaque reference cannot supply. [Legal Hold](./legal-hold.md) and [Retention Window](./retention-window.md) are composing peers rather than constituents — one records the preservation obligation and the other the eligibility deadline, and neither is read here. [Permissions](./permissions.md) governs who may call what, and purge in particular is the action a deployment should restrict, because unrestricted destruction defeats the audit guarantee this atom exists to provide. [Duplicate Prevention](./duplicate-prevention.md) supplies idempotent delete semantics under retry (Non-goal 1, Non-goal 2).
+
+---
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the atom above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
+
+### Vocabulary
+
+Terms › `actors`: the atom; the host; the host system; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; an investigator; the store; a lifecycle record; a tracked record; a host record; a purged lifecycle record; a deleted lifecycle record; a transitioning action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a state rejection; a rejection; a crash; a reader; a deletion epoch; a string input; an opaque reference; the store instance's lifecycle record count.
+
+Terms › `records`: `lifecycle record` — the state and attribution this atom holds for one host record, carrying `record_id`, a state, `deleted_by`, `deleted_at` and, where supplied or set, `deletion_reason`, `restored_by`, `restored_at`, `restoration_reason`, `purged_by`, `purged_at` and `purge_reason`.
+
+Terms › `record verbs`: identify, allocate, change, carry, stand, answer, record, set, replace, leave, own, match, normalize, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, order, name, bind, destroy, hold, gate, retain, define, canonicalize, register, untrack.
+
+Terms › `value sets`: soft_delete answers = deleted | rejected(invalid-request | already-deleted | already-purged | storage-failure). restore answers = restored | rejected(invalid-request | not-known | not-deleted | already-purged | storage-failure). purge answers = purged | rejected(invalid-request | not-known | not-deleted | storage-failure). read answers = the matching lifecycle records | rejected(invalid-query). `state` = active | deleted | purged.
+
+Terms › `bounds`: empty.
+
+Terms › `cadences`: empty.
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
+
+Terms › `terms`: `lifecycle record`, `record_id`, `tracked record`, `reference`, `store instance`, `seam`, `transition`, `now`, `business caller`, `states`, `transitioning action`, `acting reference`, `transition instant`, `resolved transition instant`, `state rejection`, `deletion field`, `restore field`, `purge field`, `deletion epoch`, `latest transition instant`, `filter axes`, `admitted soft delete`, `admitted restore`, `admitted purge`, `admitted read`, `string input`, `blank`, `uncommitted crash`, `dangling transition`.
 
 #### Soft Delete
 
@@ -465,21 +735,6 @@ Projects:  invalid-query
 
 ---
 
-## Composition notes
-
-Soft Delete is the recoverability and destruction primitive. Every atom that produces records with a lifecycle longer than a single session potentially composes with it:
-
-- **[Event Log](./event-log.md)** — provides the full delete/restore cycle history that the atom retains only in summary (most-recent-delete attribution). The Event Log is the append-only (records can be added but never changed or deleted) record of every state transition; Soft Delete's lifecycle record is the current-state summary.
-- **[Actor Identity](./actor-identity.md)** — [Deleted By], [Restored By], and [Purged By] are opaque references; Actor Identity provides cryptographic attestation that those references are real, credentialed actors. In regulated contexts, purge is a regulated action requiring verifiable authorship.
-- **[Audit Trail](../compositions/audit-trail.md)** — every [Soft Delete], [Restore], and [Purge] event is an auditable action; Audit Trail provides the tamper-evident, attributed, retention-governed record of the full destruction lifecycle.
-- **[Legal Hold](./legal-hold.md)** — a [Deleted] record under an Active Legal Hold must not be purged. The Legal Hold atom records the preservation obligation; the composing layer enforces the gate. Soft Delete does not check for Legal Holds before executing [Purge].
-- **[Retention Window](./retention-window.md)** — [Deleted] records accumulate toward or past their retention deadline. The Retention Window atom governs when purge becomes eligible; Soft Delete executes the purge when called. The two are composing peers.
-- **[Permissions](./permissions.md)** — governs who may soft-delete, restore, or purge. Purge in particular should be a restricted action in any deployment handling regulated records.
-- **[Duplicate Prevention](./duplicate-prevention.md)** — for deployments requiring idempotent delete semantics under retry.
-- **[Forensic Recovery](../compositions/forensic-recovery.md)** (`grounded` 2026-06-04) — Soft Delete + Audit Trail (substrate), providing the complete attributed, tamper-evident, full-history-recoverable destruction audit surface (every delete/restore/purge attributed and sealed; `recover_history` reconstructs the full ordered lifecycle). **[Defensible Retention](../compositions/defensible-retention.md)** (grounded) — adds the Legal Hold + Retention Window purge-eligibility gate (hold-blocks-purge) that Forensic Recovery deliberately does not.
-
----
-
 ## Standards references
 
 - **GDPR Article 17 (Right to erasure / Right to be forgotten)** — the data subject's right to request destruction of personal data. The [Purge] action is the implementation surface; the [Purged] lifecycle record is the compliance proof. Article 17(3) exceptions (legal claims, public interest, etc.) are handled at the composing layer — the atom records the purge; the composing workflow enforces eligibility.
@@ -490,24 +745,6 @@ Soft Delete is the recoverability and destruction primitive. Every atom that pro
 - **SOX §802 (18 U.S.C. §1519)** — criminal obstruction-of-justice provision for destruction of documents subject to federal investigation. Purge of a record under an Active Legal Hold is the §802 risk surface; the atom's records provide the audit trail.
 - **ISO 15489-1 (Records management)** — the International Organization for Standardization's standard for records management. Soft Delete maps to ISO 15489's "suspension of disposition" ([Deleted] state); Purge maps to "authorized destruction." The two-step destruction path ([Soft Delete] then [Purge]) aligns with ISO 15489's requirement that destruction be deliberate and authorized.
 - **NIST (National Institute of Standards and Technology — US federal standards body) SP 800-88 (Guidelines for Media Sanitization)** — purge-level destruction of storage media. The [Purge] action's attribution fields document who authorized the destruction; the implementation of the actual data destruction is handled at the media-sanitization layer and is outside this atom's scope.
-
----
-
-## Generation acceptance
-
-Any implementation derived from this atom must produce records and a runtime surface that pass the following checks from the records alone, without recourse to source code, runbooks, or developer narration:
-
-1. **Lifecycle record retention check.** For a set of [Record Id]s including Purged records, confirm that `read({record_id: X})` returns each of them. A [Purged] record's lifecycle record must remain in the store (Invariant 7); no [Record Id] with a lifecycle record may be absent from the store.
-
-2. **Purge attribution completeness check.** For every [Purged] record in the store: confirm [Purged By] and [Purge Reason] each contain at least one non-whitespace character, confirm [Purged At] is set, and confirm `purged_at ≥ deleted_at` (Invariants 5 and 6). A [Purged] record with a blank attribution string, a missing [Purged At], or a reversed temporal ordering is a conformance failure.
-
-3. **Two-step purge path enforcement check.** Attempt [Purge] on a record in [Active] state (one that has never been soft-deleted). Confirm the response is `rejected(not-deleted)` and the lifecycle record is unchanged. Invariant 4 prohibits the [Active] → [Purged] direct path; this check verifies it.
-
-4. **Terminal absorption check.** Attempt [Restore] on a known [Purged] record. Confirm the response is `rejected(already-purged)` and the lifecycle record is unchanged. Invariant 3 guarantees Purged is terminal.
-
-5. **Multi-cycle coherence check.** For a record: (a) [Soft Delete], record [Deleted At] as T1 and [Deleted By] as A1; (b) [Restore]; (c) [Soft Delete] again, record [Deleted At] as T2 and [Deleted By] as A2 (T2 > T1); (d) [Purge]. Confirm the final [Purged] lifecycle record carries `deleted_at: T2`, `deleted_by: A2` (string with at least one non-whitespace character), and [Purged At] set with `purged_at ≥ T2`. Confirms the most-recent-epoch attribution is correct and that the prior epoch was replaced (Invariant 1).
-
-6. **Deletion attribution completeness check.** For every tracked record (any state): confirm [Deleted By] contains at least one non-whitespace character and [Deleted At] is set (Invariant 8). A tracked record with a blank [Deleted By] or a missing [Deleted At] is a conformance failure.
 
 ---
 
@@ -528,3 +765,11 @@ open: none
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/soft-delete.md`.
+
+- **2026-09-13 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the four actions as a signature block, Invariants 1–8 keeping their numbers, every success effect conditioned on a declared `admitted soft delete`, `admitted restore`, `admitted purge` or `admitted read` (Hard invariant 16), the three transitioning actions unified under declared `transitioning action`, `acting reference` and `transition instant` terms so their shared guards are stated once rather than three times, the four per-action *rejection priority* lines collapsed to one six-row case space, `Generation acceptance` moved ahead of `Non-goals` to match the migrated corpus, the six acceptance areas opened into `Check 1.1–5.4` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1–19` family and four edge-case families. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into soft-delete` found nothing citing this atom by label. 58.5 KB → 53.8 KB, the smallest reduction of the migration — this atom's prose was already dense, and most of what came out was the four repeated precedence lines.
+
+- **2026-09-13 — The caller owns the identity, and the atom owns no content.** *Chose:* `Identity 2` and `Identity 3` — the caller supplies `record_id`, the atom never allocates one — with `Identity 11` stating that the host record's content is not held here. *Over:* the host-allocates-at-the-seam shape every other migrated atom carries. *Because:* this atom is a lifecycle overlay rather than a record store, so there is nothing for it to allocate an id *for*, and what a purge destroys is the host's content rather than anything in this store. The consequence is stated where it bites: `External check 1` — a deployment can stand a record in purged without destroying the content, conform to every invariant here, and defeat the atom's whole purpose, because the atom cannot see the content it is recording the destruction of.
+
+- **2026-09-13 — Three propositions had two owners each.** *Chose:* `Invariant 1` owns the deletion-epoch semantics and three `Operation` rules that restated it are gone; `Invariant 2` owns membership exclusivity and the `State` family no longer restates it. *Over:* keeping each pair. *Because:* Authority 3, found by `W-duplicate-proposition`. The citation-aim audit then caught the consequence a checker cannot: an Examples citation pointed at deleted `Operation 29`, and after the renumber it resolved cleanly to a different rule about commit atomicity. Third atom running where the audit catches a silently repointed citation, and the second where a *deleted* rule's citation found a new home rather than dangling.
+
+NOTE: End of Soft Delete.

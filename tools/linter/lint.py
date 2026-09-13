@@ -1158,6 +1158,52 @@ def _unseparated(region: str) -> list[str]:
 SIGNATURE_BLOCK = re.compile(r"```\n(.*?)\n```", re.S)
 
 
+def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
+    """W. A label-family count written into the grammar's watch list that no
+    longer matches the corpus. Section 18 carried these by hand and they went
+    stale on arrival three council reads running; the census is mechanical, so
+    disagreeing with it is a finding rather than a discovery (council read 33)."""
+    findings: list[Finding] = []
+    grammar = root / "GRACE-lang.md"
+    try:
+        text = grammar.read_text(encoding="utf-8")
+    except OSError:
+        return findings
+    census: dict[str, int] = {}
+    for p in patterns.values():
+        for m in re.finditer(r"^\s*([A-Z][A-Za-z ]*?) \d+(?:\.\d+)?[a-z]?:", p.text, re.M):
+            census.setdefault(m.group(1), set()).add(p.path.name)  # type: ignore[arg-type]
+    # the >= term-entry census, stated in section 18 to inform the operator
+    # ruling. Counted by hand twice and wrong both times -- once including
+    # adversarial-scenario headings as term entries, once miscounting the specs
+    # -- which is the same disease as the family counts and takes the same cure
+    # (council read 34).
+    ge_entries = 0
+    ge_specs = set()
+    for p in patterns.values():
+        for m in re.finditer(r"^#### (.+)$((?:\n(?!####).*)*)", p.text, re.M):
+            body = m.group(2)
+            if re.search(r"^Kind:", body, re.M) and "\u2265" in body:
+                ge_entries += 1
+                ge_specs.add(p.path.name)
+    gm = re.search(r"(\d+) term entries across (\d+) specs carry `\u2265`", text)
+    if gm and (int(gm.group(1)), int(gm.group(2))) != (ge_entries, len(ge_specs)):
+        findings.append(Finding(
+            grammar, line_of(text, gm.start()), "W-stale-census",
+            f"the watch list says {gm.group(1)} term entries across "
+            f"{gm.group(2)} specs carry `\u2265`; the corpus has "
+            f"{ge_entries} across {len(ge_specs)}"))
+    for name, spec in re.findall(r"`([A-Z][A-Za-z ]+)` \((\d+)\)", text):
+        actual = len(census.get(name, ()))
+        if actual != int(spec):
+            findings.append(Finding(
+                grammar, line_of(text, text.index(f"`{name}` ({spec})")),
+                "W-stale-census",
+                f"the watch list says `{name}` is in {spec} specs; the corpus "
+                f"has {actual} (tools/grace/cites.py --drift)"))
+    return findings
+
+
 def check_migration_seam(patterns: dict[Path, Pattern]) -> list[Finding]:
     """M. A migrated spec carrying a second `## Terms` heading. A migration
     concatenates a rewritten head onto the preserved term entries, so an
@@ -1922,6 +1968,7 @@ def main(argv: list[str]) -> int:
     findings += check_recording_step(patterns)
     findings += check_seal_key(patterns)
     findings += check_retry_bit(patterns)
+    findings += check_stale_census(root, patterns)
     findings += check_migration_seam(patterns)
     findings += check_signature_alternation(patterns)
     findings += check_step_reference(patterns)

@@ -457,7 +457,10 @@ def scan(path: Path) -> list[Finding]:
                     add(r.line, "C-verb", f"{r.label}: '{v}' after the modal is not a declared record verb (Closed vocabulary 8)")
         # a [Marker] that is not a term card — a bracket range read as a marker
         for mk in MARKER.findall(stmt):
-            if not re.match(r"^[A-Z][A-Za-z ]+$", mk):
+            # a pattern name may carry a hyphen (Multi-Party Approval); a bracket
+            # range read as a marker carries digits, commas or brackets and does
+            # not (council read 32)
+            if not re.match(r"^[A-Z][A-Za-z -]*[A-Za-z]$", mk):
                 add(r.line, "F-bracket", f"{r.label}: '[{mk}]' in a rule reads as a term marker; write the range in a term")
 
     # cross-rule references to labels no rule carries (Hard invariant 12) — names used by this spec's labels only
