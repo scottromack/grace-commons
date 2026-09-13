@@ -375,15 +375,15 @@ State 14 says the absence plainly. There is no purge here and no delete surface 
 
 ### Inpatient order through completion
 
-`order(p77, dr_osei, med-lisinopril-10mg, 10, "mg", "oral", "QD", 30)` → `ord_a1`, standing ordered. `verify(ord_a1, rph_chen)` → verified. `dispense(ord_a1, tech_ruiz, 30, "LOT-4471")` → dispensed. `administer(ord_a1, rn_patel)` → administered. `complete(ord_a1, rn_patel)` → completed. The completed record carries all five field groups at once, and an auditor reads the whole chain — who prescribed, who verified, who released, who gave, who closed — from that one record.
+`order(p77, dr_osei, med-lisinopril-10mg, 10, "mg", "oral", "QD", 30)` → `ord_a1`, standing ordered. `verify(ord_a1, rph_chen)` → verified. `dispense(ord_a1, tech_ruiz, 30, "LOT-4471")` → dispensed. `administer(ord_a1, rn_patel)` → administered, stamping [Administered At]. `complete(ord_a1, rn_patel)` → completed. The completed record carries all five field groups at once, and an auditor reads the whole chain — who prescribed, who verified, who released, who gave, who closed — from that one record.
 
 ### Amendment before dispensing
 
-The dose is wrong. `amend(ord_a1, dr_osei, dose: 20, reason: "titration per 2026-05-02 BP readings")` → `ord_a2`. Two writes commit together: `ord_a2` stands ordered carrying the corrected dose, the inherited patient, prescriber and medication, and `predecessor_id: ord_a1`; and `ord_a1` stands amended carrying `successor_id: ord_a2`. The successor starts in ordered rather than verified — the clinical content changed, so the pharmacist reviews it again.
+The dose is wrong. `amend(ord_a1, dr_osei, dose: 20, reason: "titration per 2026-05-02 BP readings")` → `ord_a2`, the reason recorded as the successor's [Amendment Reason]. Two writes commit together: `ord_a2` stands ordered carrying the corrected dose, the inherited patient, prescriber and medication, and `predecessor_id: ord_a1`; and `ord_a1` stands amended carrying `successor_id: ord_a2`. The successor starts in ordered rather than verified — the clinical content changed, so the pharmacist reviews it again.
 
 ### Hold and reinstate
 
-`hold(ord_a1, rn_patel, "NPO for surgery 06:00")` → held, recording `prior_state: dispensed`. Every action but [Reinstate] now answers `on-hold`. `reinstate(ord_a1, rn_patel)` → reinstated, returning the order to dispensed — the action takes no target state, so it cannot return it anywhere else.
+`hold(ord_a1, rn_patel, "NPO for surgery 06:00")` → held, recording `prior_state: dispensed`. Every action but [Reinstate] now answers `on-hold`. `reinstate(ord_a1, rn_patel)` → reinstated, recording [Reinstated By] and [Reinstated At] and returning the order to dispensed — the action takes no target state, so it cannot return it anywhere else.
 
 ### The dispensing edge, from both sides
 
@@ -391,7 +391,7 @@ The dose is wrong. `amend(ord_a1, dr_osei, dose: 20, reason: "titration per 2026
 
 ### Rejection paths
 
-`dispense(ord_new, …)` before verification → `not-verified` — nothing is released on a prescription no pharmacist has read. `amend(ord_held, …)` → `on-hold`, not `already-dispensed`: the hold is reported first, because the caller must resolve the hold before learning anything about what is underneath it. `amend(ord_a1, dr_osei, dose: 10, reason: "…")` where the dose already is 10 → `invalid-request` — an amendment that changes nothing is not an amendment. `cancel(ord_a1, "  ", reason: "…")` on an already-cancelled order → `already-cancelled`, not `invalid-request`: the state checks run first (Operation 28).
+`dispense(ord_new, …)` before verification → `not-verified` — nothing is released on a prescription no pharmacist has read. `amend(ord_held, …)` → the [On Hold Rejection], not `already-dispensed`: the hold is reported first, because the caller must resolve the hold before learning anything about what is underneath it. `amend(ord_a1, dr_osei, dose: 10, reason: "…")` where the dose already is 10 → `invalid-request` — an amendment that changes nothing is not an amendment. `cancel(ord_a1, "  ", reason: "…")` on an already-cancelled order → `already-cancelled`, not `invalid-request`: the state checks run first (Operation 28).
 
 ### Regulated adversarial scenarios
 
@@ -995,6 +995,38 @@ Kind:         Parameter
 Parameter of: Order
 Projects:     now
 
+#### Administered At
+
+The instant the dose was given — the caller's supplied value, or [Now]. Written once at [Administer], and not bounded from above, because an administration at the bedside is often documented after it happened.
+
+Kind:     Field
+Field of: Order
+Projects: administered_at
+
+#### Amendment Reason
+
+Why the order was corrected. Recorded on the successor, never blank — an amendment with no stated basis leaves the chain walkable and unreadable.
+
+Kind:     Field
+Field of: Order
+Projects: amendment_reason
+
+#### Reinstated By
+
+The opaque reference naming who resumed a held order. Replaced by each new hold cycle.
+
+Kind:     Field
+Field of: Order
+Projects: reinstated_by
+
+#### Reinstated At
+
+The instant the resumption was recorded, stamped from [Now]. Replaced by each new hold cycle.
+
+Kind:     Field
+Field of: Order
+Projects: reinstated_at
+
 #### Ordered
 
 The entry state of every placed order: awaiting a pharmacist's review. May be verified, amended, held or cancelled.
@@ -1204,6 +1236,11 @@ Projects:  invalid-query
 [Storage Failure]: #storage-failure
 [Invalid Query]: #invalid-query
 [Now]: #now
+[Administered At]: #administered-at
+[Amendment Reason]: #amendment-reason
+[Reinstated By]: #reinstated-by
+[Reinstated At]: #reinstated-at
+[On Hold Rejection]: #on-hold-rejection
 
 ---
 

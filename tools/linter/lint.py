@@ -1333,6 +1333,56 @@ def check_end_marker(patterns: dict[Path, Pattern]) -> list[Finding]:
     return findings
 
 
+def check_term_coverage(patterns: dict[Path, Pattern]) -> list[Finding]:
+    """O. A field the spec rules over with no term entry, or a term entry the
+    registry cannot reach.
+
+    The registry is the citation substrate: a `[Marker]` resolves through a link
+    line to a term entry, and a reader following a rule's field name lands
+    there. Four ways that breaks, and until this check only two were watched.
+    `O-term-dangling` catches a marker with no link line; `O-term-orphan`
+    catches a link line no marker uses; `O-term-anchor` (council read 44)
+    catches a link line whose anchor names no entry. The two this adds are the
+    one this adds is the fourth: an entry the link block never names, so no
+    marker can reach it however correctly the prose is written — Medication
+    Order's `On Hold Rejection`, and Invitation's `Expired Rejection` before it
+    (council read 45).
+
+    The fifth way — a field the rules turn on with no entry at all — is real and
+    is NOT checked here. Deciding it needs the `Terms › records` line to
+    distinguish a record name from a field name from a derived index, and it
+    does not: Provenance declares two records on that line and Audit Trail
+    declares named indexes there, so a naive read reports both as missing
+    fields. A check that fires on correct specs teaches readers to ignore it,
+    which is the failure every census in this window was instrumented against.
+    Docketed instead."""
+    findings: list[Finding] = []
+    LINKNAME = re.compile(r"^\[([^\]]+)\]:\s*#\S+\s*$", re.M)
+
+    # A `####` heading is a term entry only when a `Kind:` line follows it. The
+    # corpus also uses `####` for adversarial scenarios, action signatures and
+    # subsection titles, and reading those as term entries is the same error
+    # that made the `>=` census wrong twice (council read 34).
+    def entry_names(text: str) -> list[str]:
+        parts = re.split(r"^#### ([^\n]+)$", text, flags=re.M)
+        return [n.strip() for n, body in zip(parts[1::2], parts[2::2])
+                if re.search(r"^Kind:", body, re.M)]
+
+    for p in patterns.values():
+        heads = entry_names(p.text)
+        if not heads:
+            continue  # no term entries: not a migrated registry
+        linked = {m.group(1) for m in LINKNAME.finditer(p.text)}
+        for h in heads:
+            if h not in linked:
+                findings.append(Finding(
+                    p.path, line_of(p.text, p.text.find(f"#### {h}")),
+                    "O-term-unreachable",
+                    f"the term entry `{h}` has no registry link line, so no "
+                    f"`[{h}]` marker can resolve to it"))
+    return findings
+
+
 def check_dead_anchors(patterns: dict[Path, Pattern]) -> list[Finding]:
     """O. A term-registry link line pointing at a heading the page does not have.
 
@@ -2268,6 +2318,7 @@ def main(argv: list[str]) -> int:
     findings += check_migration_seam(patterns)
     findings += check_end_marker(patterns)
     findings += check_dead_anchors(patterns)
+    findings += check_term_coverage(patterns)
     findings += check_seam_injections(patterns)
     findings += check_provenance_drift(root, patterns)
     findings += check_council_register(root)

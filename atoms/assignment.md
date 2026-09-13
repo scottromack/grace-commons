@@ -88,7 +88,7 @@ Terms › `recalled_at`: the instant the assignment was withdrawn — a [Recalle
 Terms › `transferred_at`: the instant the assignment was handed on — a [Transferred At].
 
 WHY:
-Recalled and transferred are two terminal states rather than one because they answer different audit questions: recalled means the task is nobody's, transferred means it is somebody else's, and a single *closed* state would make an auditor infer the difference from the presence of a successor (State 8, State 9). Nothing is deleted, so the chain of responsibility is the store rather than a reconstruction (State 10).
+Recalled and transferred are two terminal values of the [Status] rather than one because they answer different audit questions: recalled means the task is nobody's, transferred means it is somebody else's, and a single *closed* state would make an auditor infer the difference from the presence of a successor (State 8, State 9). Nothing is deleted, so the chain of responsibility is the store rather than a reconstruction (State 10).
 
 ### Operations
 
@@ -572,6 +572,7 @@ Projects:  storage-failure
 [Not Known]: #not-known
 [Not Active]: #not-active
 [Storage Failure]: #storage-failure
+[Status]: #status
 
 ---
 

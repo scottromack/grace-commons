@@ -30,7 +30,7 @@ Terms › `key`: the opaque value a lease protects — a [Key]; two keys that di
 Terms › `holder`: the opaque value naming who holds — a [Holder]; a party, not a process.
 
 WHY:
-Take, release, take again on one pair is two grants under one name, told apart by expires_at and by nothing else; a pattern that must prove which grant it held records the grant (Identity 5, Non-goal 9). A holder that restarts and resumes is the same holder only if the pattern gives it the same holder value; a pattern that mints a fresh value per attempt has said that a restart is a different party. Both are legitimate and the choice is the pattern's. The pair matters because [Remaining] and [Release] answer against it (Invariant 5.1): a party that has lost standing finds out from the host, and neither answer is an error.
+Take, release, take again on one pair is two [Lease] grants under one name, told apart by expires_at and by nothing else; a pattern that must prove which grant it held records the grant (Identity 5, Non-goal 9). A holder that restarts and resumes is the same holder only if the pattern gives it the same holder value; a pattern that mints a fresh value per attempt has said that a restart is a different party. Both are legitimate and the choice is the pattern's. The pair matters because [Remaining] and [Release] answer against it (Invariant 5.1): a party that has lost standing finds out from the host, and neither answer is an error.
 
 ### State
 
@@ -304,6 +304,7 @@ Kind: Type
 [Release]: #release
 [Expires At]: #expires-at
 [Fence]: #fence
+[Lease]: #lease
 
 ## Status
 
