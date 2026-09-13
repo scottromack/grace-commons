@@ -1322,6 +1322,55 @@ def check_end_marker(patterns: dict[Path, Pattern]) -> list[Finding]:
     return findings
 
 
+def check_council_register(root: Path) -> list[Finding]:
+    """M. A council-read number the register assigns twice, or a citation to a
+    read the register does not carry.
+
+    Council-read numbers are the corpus's only cross-document citation key that
+    no instrument reads, and they drifted exactly as an unheld number does: the
+    register already carried 35, 36 and 37 when a second 35 was written on top
+    of them and then cited eleven times across three documents and a commit
+    subject (council read 39). Two checks, both mechanical: the register must
+    not assign one number twice, and a `council read N` citation must name a
+    read the register carries. Nothing here checks that a citation aims at the
+    *right* read — that is the human reading Principle 8 holds."""
+    findings: list[Finding] = []
+    reg = root / "governance.md"
+    try:
+        text = reg.read_text(encoding="utf-8")
+    except OSError:
+        return findings
+    entries = list(re.finditer(r"^- \*\*Council read (\d+) — ", text, re.M))
+    if not entries:
+        return findings
+    seen: dict[str, int] = {}
+    for m in entries:
+        n = m.group(1)
+        if n in seen:
+            findings.append(Finding(
+                reg, line_of(text, m.start()), "M-register-number",
+                f"the register assigns council read {n} twice (first at line "
+                f"{seen[n]}) — the number is a citation key, so a duplicate "
+                f"makes every citation of it ambiguous"))
+        else:
+            seen[n] = line_of(text, m.start())
+    known = set(seen)
+    for f in sorted(root.rglob("*.md")):
+        if ".git" in f.parts or "node_modules" in f.parts:
+            continue
+        try:
+            body = f.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for m in re.finditer(r"council read (\d+)", body):
+            if m.group(1) not in known:
+                findings.append(Finding(
+                    f, line_of(body, m.start()), "M-register-citation",
+                    f"cites council read {m.group(1)}, which the register does "
+                    f"not carry"))
+    return findings
+
+
 def check_signature_alternation(patterns: dict[Path, Pattern]) -> list[Finding]:
     """V. A rejection alternation in a signature block whose items are not
     separated by `|`, so two intended alternatives read as one code."""
@@ -2068,6 +2117,7 @@ def main(argv: list[str]) -> int:
     findings += check_stale_census(root, patterns)
     findings += check_migration_seam(patterns)
     findings += check_end_marker(patterns)
+    findings += check_council_register(root)
     findings += check_signature_alternation(patterns)
     findings += check_step_reference(patterns)
     findings += check_status_grammar(patterns)
