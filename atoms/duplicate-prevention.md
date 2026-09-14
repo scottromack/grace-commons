@@ -114,29 +114,26 @@ Both calls are total. The containing pattern has already acted when it records �
 
 ### Invariants
 
-- **Invariant 1 — Window monotonicity.**
-  ```text
-  Invariant 1.1: EVERY identity in the recorded set MUST stand under guard.
-  ```
-  WHY: the invariant holds over an eager host's stored state; a lazy host keeps the behavior and not the storage claim (Lazy expiry 1–3).
 - **Invariant 2 — Single-recording.**
   ```text
   Invariant 2.1: [Record] MUST NOT extend the guard of an identity under guard.
   Invariant 2.2: [Record] MUST preserve the recorded_at of an identity under guard.
   Invariant 2.3: [Record] MUST open a fresh guard for an identity that is not under guard.
+  NOTE: Invariant 1 deleted — Operation 6 and Operation 7 own it.
   ```
+  WHY: the deleted invariant claimed EVERY identity in the recorded set stands under guard, unconditionally, and a WHY beside it narrowed the claim to an eager host — a rule whose scope lived on a surface Surface 15 tells the parser to ignore and Surface 9 lets a writer delete. The atom sells behaviour rather than storage, which the rules already say in both directions: Operation 6 answers `seen` for an identity under guard and Operation 7 answers `not-seen` for one that is not, so nothing remained for the invariant to own. Restating it as the answer claim — *EVERY identity the check answers seen for MUST stand under guard* — was considered and refused: that is Operation 7's contrapositive, one proposition under a second label, which is the defect rather than the cure (Authority 3, council read 52).
   WHY: the clock starts at the first sighting and runs out at a fixed instant, so a flurry of repeats cannot hold an identity blocked past the term the containing pattern asked for. An expired entry a host has not yet dropped is not under guard, and a record against it opens a new guard rather than reviving the old one (Invariant 2.3).
 - **Invariant 3 — Idempotency of check.**
   ```text
   Invariant 3.1: [Check] MUST NOT alter the recorded set.
   Invariant 3.2: Two checks of one identity under one now MUST answer alike.
   ```
-- **Invariant 4 — Eventual expiry.**
+- **Invariant 4 — Eventual expiry.** NOTE: watch the modal's temporal scope — Invariant 4.1 reads as safety (*always dropped*) and is meant as liveness (*eventually dropped*), the reading Lazy expiry 1 and Lazy expiry 2 license, and the only word carrying the distinction is *Eventual* in this heading. GRACE's MUST has no temporal scope; the docket carries the class (council read 52).
   ```text
   Invariant 4.1: The host MUST drop an identity that is not under guard from the recorded set.
   NOTE: Invariant 4.2 deleted — Operation 7 owns it.
   ```
-  WHY: both rules stated the comparison in raw operators — `EXCEEDS window duration` — where the spec already declares `under guard` as *elapsed term less than window duration* and Operation 6 and Operation 7 route through it. The two spellings disagree at exactly one instant: at `elapsed term = window duration` an identity is not under guard, so Invariant 1.1 required it out of the recorded set while the old Invariant 4.1 obliged no host to drop it. Routing through the declared term closes the boundary with no new operator, which is the cure the `≥` docket row asks whether the grammar needs — and one site fewer that it does (council read 51).
+  WHY: both rules stated the comparison in raw operators — `EXCEEDS window duration` — where the spec already declares `under guard` as *elapsed term less than window duration* and Operation 6 and Operation 7 route through it. The two spellings disagree at exactly one instant: at `elapsed term = window duration` an identity is not under guard, so the then-standing window-monotonicity invariant required it out of the recorded set while the old Invariant 4.1 obliged no host to drop it. Routing through the declared term closes the boundary with no new operator, which is the cure the `≥` docket row asks whether the grammar needs — and one site fewer that it does (council read 51).
 
 ## Examples
 
@@ -229,7 +226,7 @@ Lazy expiry 3: A lazy host MUST answer not-seen for an identity the lazy host st
 ```
 
 WHY:
-Invariant 1.1 is a claim about stored state and holds of an eager host. A lazy host keeps an identity that is not under guard until something asks, so the claim does not hold of that host's storage — but Operation 7 does, and the behavior a caller sees is identical. The physical removal is an implementation's business (Lazy expiry 1, Lazy expiry 2).
+The atom claims behaviour and not storage, which is why the two host modes are indistinguishable to a caller: Operation 7 answers not-seen for an identity that is not under guard whether or not the host has physically dropped it, and Lazy expiry 3 says so for the entry a lazy host still holds. The physical removal is an implementation's business, and when it happens is Invariant 4.1's eventual claim rather than a moment any rule names (Lazy expiry 1, Lazy expiry 2).
 
 ## Terms
 
