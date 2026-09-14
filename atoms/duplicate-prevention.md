@@ -133,9 +133,10 @@ Both calls are total. The containing pattern has already acted when it records �
   ```
 - **Invariant 4 — Eventual expiry.**
   ```text
-  Invariant 4.1: IF the elapsed term EXCEEDS window duration THEN the host MUST drop the identity from the recorded set.
-  Invariant 4.2: IF the elapsed term EXCEEDS window duration THEN [Check] MUST answer not-seen.
+  Invariant 4.1: The host MUST drop an identity that is not under guard from the recorded set.
+  NOTE: Invariant 4.2 deleted — Operation 7 owns it.
   ```
+  WHY: both rules stated the comparison in raw operators — `EXCEEDS window duration` — where the spec already declares `under guard` as *elapsed term less than window duration* and Operation 6 and Operation 7 route through it. The two spellings disagree at exactly one instant: at `elapsed term = window duration` an identity is not under guard, so Invariant 1.1 required it out of the recorded set while the old Invariant 4.1 obliged no host to drop it. Routing through the declared term closes the boundary with no new operator, which is the cure the `≥` docket row asks whether the grammar needs — and one site fewer that it does (council read 51).
 
 ## Examples
 
@@ -169,7 +170,7 @@ Non-goal 2: The atom MUST NOT require a recorded set that survives a restart.
 Non-goal 3: The deployment MUST own whether the recorded set survives a restart.
 Non-goal 4: The atom MUST NOT reconcile two recorded sets.
 Non-goal 5: A pattern needing one guard across every node MUST compose a coordination pattern.
-Non-goal 6: The atom MUST NOT retain an identity past the guard.
+Non-goal 6: The atom MUST NOT retain an identity that is not under guard.
 Non-goal 7: A pattern needing long-term history MUST compose an audit pattern.
 Non-goal 8: The atom MUST NOT supply the matching rule.
 Non-goal 9: A pattern needing a guard that resets on every sighting MUST compose a sliding-window pattern.
@@ -222,13 +223,13 @@ The guard is wall-time. A backward jump can make an identity read as expired bef
 ### Lazy expiry
 
 ```text
-Lazy expiry 1: A host MAY drop an expired entry at the moment a question is asked.
-Lazy expiry 2: A host MAY drop an expired entry on a schedule.
-Lazy expiry 3: A lazy host MUST answer not-seen for an expired entry.
+Lazy expiry 1: A host MAY drop an identity that is not under guard at the moment a question is asked.
+Lazy expiry 2: A host MAY drop an identity that is not under guard on a schedule.
+Lazy expiry 3: A lazy host MUST answer not-seen for an identity the lazy host still holds.
 ```
 
 WHY:
-Invariant 1.1 is a claim about stored state and holds of an eager host. A lazy host keeps expired entries until something asks, so the claim does not hold of that host's storage — but Invariant 4.2 does, and the behavior a caller sees is identical. The physical removal is an implementation's business (Lazy expiry 1, Lazy expiry 2).
+Invariant 1.1 is a claim about stored state and holds of an eager host. A lazy host keeps an identity that is not under guard until something asks, so the claim does not hold of that host's storage — but Operation 7 does, and the behavior a caller sees is identical. The physical removal is an implementation's business (Lazy expiry 1, Lazy expiry 2).
 
 ## Terms
 

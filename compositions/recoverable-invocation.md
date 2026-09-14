@@ -642,7 +642,7 @@ Writes the act's outcome record after the bound commit has returned, under the s
 close 1: The adopter MUST pass [Close] the actor_ref [Open] was given for the invocation.
 close 2: The composition MUST NOT retain state between [Open] and [Close].
 close 3: [Close] and [Refuse] MUST take intent_event_id.
-close 4: [Close] MUST decide not-open from the invocation's own [Open] result ([Not Open]).
+close 4: The adopter's action MUST decide not-open from the invocation's own [Open] result ([Not Open]).
 ```
 
 Steps:
@@ -717,9 +717,9 @@ Steps:
 
 0. **Not open.**
    ```text
-   refuse step 0.1: [Refuse] MUST decide not-open from the invocation's own [Open] result ([Not Open]).
+   refuse step 0.1: The adopter's action MUST decide not-open from the invocation's own [Open] result ([Not Open]).
    refuse step 0.2: [Refuse] MUST write nothing for a pair no [Open] returned.
-   NOTE: watch rule inheritance — refuse step 0.1 and refuse step 2.1 restate [Close]'s close 4 and close step 2.1 for [Refuse] rather than inheriting; the grammar has no inheritance form.
+   NOTE: watch rule inheritance — refuse step 0.1 and refuse step 2.1 restate [Close]'s close 4 and close step 2.1 for [Refuse] rather than inheriting; the grammar has no inheritance form. Council read 50's repoint made the first pair an EXACT restatement: both now oblige the adopter's action, where before they differed by naming [Close] and [Refuse], so `W-duplicate-proposition` reports it where it did not. That is the watch gaining its sharpest specimen rather than a defect arriving — one proposition, two labels, no form to inherit with — and it is left standing as the evidence the inheritance ruling will need.
    ```
 1. **Confirm standing, before any read.**
    ```text
@@ -1442,10 +1442,11 @@ Projects:  section_unavailable
 Not Open 1: The composition MUST NOT decide not-open.
 Not Open 2: The adopter's action MUST hold [Open]'s returned pair on the action's own call stack for the life of the invocation.
 Not Open 3: The composition MUST NOT decide not-open from a map or a range read.
-Not Open 4: [Close] and [Refuse] MUST land rejected(recording-failure(outcome)) at step 1 for a pair no [Open] returned.
+Not Open 4: [Close] MUST land rejected(recording-failure(outcome)) at step 1 for a pair no [Open] returned.
+Not Open 5: [Refuse] MUST land rejected(recording-failure(refusal, constituent_code)) at step 1 for a pair no [Open] returned.
 ```
 
-WHY: on a multi-node instance a local absence is not a miss, and a retained handle is the composition-owned state [`execution-contract.md`](../execution-contract.md) §Logic Confinement Principle forbids. Not Open 4 is a false positive in the safe direction: no intent record exists, so nothing will look at the id.
+WHY: on a multi-node instance a local absence is not a miss, and a retained handle is the composition-owned state [`execution-contract.md`](../execution-contract.md) §Logic Confinement Principle forbids. Not Open 4 and Not Open 5 are a false positive in the safe direction: no intent record exists, so nothing will look at the id. They are two rules rather than one because each action lands the arm its own signature block declares — [Close] carries `recording-failure(outcome)` and [Refuse] carries `recording-failure(refusal, constituent_code)` — and a single rule naming both landed an arm [Refuse] does not have (Closed vocabulary 22, council read 50).
 
 #### Not Known
 
@@ -1527,7 +1528,7 @@ The composition anchors the accountability every regulated adopter's regime requ
 
 ## Status
 
-`draft` — first draft 2026-08-30 (corpus date); the three passes and a fresh-reader gate are owed before any adopter binds to it.
+`draft` — first draft 2026-08-30 (corpus date); twelve fresh-reader gates on the prose draft through 2026-09-10, council read 7 on the GRACE lang rewrite, council read 50 on the current state. The Ledger carries every gate's counts. The word stays `draft` because no adopter has bound to it yet, not because the passes are owed — they ran, and this line said otherwise for a month (council read 50).
 
 ## Ledger
 

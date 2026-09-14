@@ -192,7 +192,7 @@ Terms › `replay`: the named rebuild procedure Replay 1 through Replay 13 state
 Terms › `surviving event`: a forward event whose `event_id` NOT EXISTS in the undone set.
 
 WHY:
-Replay 5 rests on something worth stating: a surviving event was recorded only because its action succeeded, so Personal Todo's preconditions held when it was written and hold again at every replay step. The replay never has to validate — it is re-running a history that was valid when it happened. [Event Log](../atoms/event-log.md)'s read-consistency invariant is what bounds the replay to exactly that set.
+Replay 5 rests on something worth stating: a surviving event was recorded only because its action succeeded, so Personal Todo's preconditions held when it was written and hold again at every replay step. The replay never has to validate — it is re-running a history that was valid when it happened. Event Log Invariant 5 is what bounds the replay to exactly that set.
 
 Replay 15 through Replay 17 are the contract classification stated as rules (`execution-contract.md` §Composition state). The derived state is a derived index by construction: the log is the sole truth, Replay 1 through Replay 13 *are* the named rebuild, and nothing is stored that the rebuild does not regenerate. So the Contract's three obligations hold trivially — the projection sits outside any atomicity surface, since there is no second truth-bearing write to coordinate with the append; a lost materialization is a rebuild trigger and never data loss; and no consistency claim attaches beyond the replay's own determinism. A cache is permitted and is an ordinary derived index; Replay 17 is what stops an invariant being evaluated against one.
 
@@ -248,6 +248,7 @@ Each of these emerges from the composition. None belongs to a single constituent
   Invariant 5.2: The composition MUST NOT remove an event.
   Invariant 5.3: The composition MUST NOT rewrite an event.
   ```
+  WHY: [Event Log](../atoms/event-log.md)'s `Composition note 5` obliges a composing pattern to cite its invariants by number, because `Composition note 4` freezes those numbers against the citations. This composition rests on six of the seven, each named in the qualified form because this spec carries an Invariant 1 through Invariant 7 of its own, so the unqualified form is wrong for every one of the six: Event Log Invariant 1 (append-only) and Event Log Invariant 2 (event immutability), which Invariant 5.2 and Invariant 5.3 mirror from this side; Event Log Invariant 3 (total order) and Event Log Invariant 4 (sequence-number monotonicity), without which Replay 1's *in sequence_number order* names nothing; Event Log Invariant 5 (read consistency), which bounds the replay's input to exactly the landed events; and Event Log Invariant 6 (no id reuse), which is what lets an `undone_event_id` name one event for the life of the log (Invariant 3.1, Check 3.3). It does not rest on Event Log Invariant 7: `recorded_at` is an annotation this composition never orders by.
 - **Invariant 6 — Identity is preserved across a delete and its undo.**
   ```text
   Invariant 6.1: An undone delete's unit MUST carry the unit's original id, instants and Personal Todo state.
