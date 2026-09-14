@@ -96,26 +96,26 @@ The map carries truth no replay reproduces. duplicate prevention(../atoms/duplic
 
 Composition state 9 and Composition state 10 keep the digest out of core logic. A digest computed inside a transition is cryptography improvised where the Logic Confinement Principle forbids it; computed at the seam from parameters already present, it is an ordinary injected input.
 
-### Eviction
+### Housekeeping
 
 ```text
-Eviction 1: The eviction leg MUST examine a token's entry ONLY AFTER taking the token's section.
-Eviction 2: The eviction leg MUST skip a token whose section the eviction leg cannot take.
-Eviction 3: The eviction leg MUST NOT examine an entry younger than the reservation completion bound.
-Eviction 4: The eviction leg MUST evict an entry ONLY IF Duplicate Prevention's check answers not-seen.
-Eviction 5: The eviction leg MUST evict an entry ONLY IF the idempotency window elapsed since the entry's pending instant.
-Eviction 6: The eviction leg MUST NOT evict a seen token's entry.
-Eviction 7: The eviction leg MUST NOT repair an entry.
-Eviction 8: The eviction leg MUST NOT call a constituent's write.
-Eviction 9: The eviction leg MUST measure an instant against the composition's own seam reading.
+Housekeeping 1: The eviction leg MUST examine a token's entry ONLY AFTER taking the token's section.
+Housekeeping 2: The eviction leg MUST skip a token whose section the eviction leg cannot take.
+Housekeeping 3: The eviction leg MUST NOT examine an entry younger than the reservation completion bound.
+Housekeeping 4: The eviction leg MUST evict an entry ONLY IF Duplicate Prevention's check answers not-seen.
+Housekeeping 5: The eviction leg MUST evict an entry ONLY IF the idempotency window elapsed since the entry's pending instant.
+Housekeeping 6: The eviction leg MUST NOT evict a seen token's entry.
+Housekeeping 7: The eviction leg MUST NOT repair an entry.
+Housekeeping 8: The eviction leg MUST NOT call a constituent's write.
+Housekeeping 9: The eviction leg MUST measure an instant against the composition's own seam reading.
 ```
 
 Terms › `eviction leg`: the composition's one leg running outside an invocation — an eviction leg; bounded at both edges and exclusive with the invocations the leg runs beside.
 
 WHY:
-The two edges are what make the leg safe. Eviction 3 is the lower edge — below the completion bound an invocation may still be in flight — and Eviction 5 is the upper, past which Invariant 7 already treats the token as fresh. Eviction 6 holds the ordering Invariant 7 requires: a token still under Duplicate Prevention's guard keeps its entry, or a replay would find the guard and not the answer.
+The two edges are what make the leg safe. Housekeeping 3 is the lower edge — below the completion bound an invocation may still be in flight — and Housekeeping 5 is the upper, past which Invariant 7 already treats the token as fresh. Housekeeping 6 holds the ordering Invariant 7 requires: a token still under Duplicate Prevention's guard keeps its entry, or a replay would find the guard and not the answer.
 
-Eviction 7 and Eviction 8 are why the leg owes no liveness bound. It evicts and does nothing else — repairs nothing, re-delegates nothing, promises no closure — so a stale entry is a leak rather than a defect, and the leg runs on whatever schedule the deployment picks.
+Housekeeping 7 and Housekeeping 8 are why the leg owes no liveness bound. It evicts and does nothing else — repairs nothing, re-delegates nothing, promises no closure — so a stale entry is a leak rather than a defect, and the leg runs on whatever schedule the deployment picks.
 
 ### Capability requirement
 
@@ -374,8 +374,8 @@ Check 1.2: An auditor MUST find EVERY token results entry carrying one parameter
 Check 2.1: An auditor MUST find no idempotency_token bound to two commitment ids inside the idempotency window (Invariant 3.1).
 Check 3.1: An auditor MUST find EVERY complete entry carrying the result the constituent answered (Wiring decision 1).
 Check 3.2: An auditor MUST find EVERY complete entry keeping the entry's pending instant (Composition state 7).
-Check 4.1: An auditor MUST find no evicted entry whose token Duplicate Prevention's check answers seen for (Eviction 6).
-Check 4.2: An auditor MUST find no evicted entry younger than the idempotency window (Eviction 5).
+Check 4.1: An auditor MUST find no evicted entry whose token Duplicate Prevention's check answers seen for (Housekeeping 6).
+Check 4.2: An auditor MUST find no evicted entry younger than the idempotency window (Housekeeping 5).
 Check 5.1: An auditor MUST find EVERY recovered entry marked (Indeterminate outcome 8).
 Check 5.2: An auditor MUST find EVERY outcome-unknown entry carrying the candidates (Indeterminate outcome 7).
 ```
@@ -423,7 +423,7 @@ Non-goal 6 is the honest limit under the whole design. Two stores, no distribute
 
 Non-goal 8 is the boundary with the operator. The composition names the candidates and stops: releasing a hold that was not meant, or adopting one that was, needs domain knowledge the mechanism does not have, and a composition that guessed would make a double out of an ambiguity.
 
-Non-goal 13 follows from `Eviction 7`. The leg evicts and repairs nothing, so a stale entry is a leak — space, not correctness — and promising a closure window would be a liveness claim nothing here can keep.
+Non-goal 13 follows from `Housekeeping 7`. The leg evicts and repairs nothing, so a stale entry is a leak — space, not correctness — and promising a closure window would be a liveness claim nothing here can keep.
 
 ---
 
@@ -632,5 +632,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except two invariants the Execution Contract already owns.** *Chose:* `Composes`, `Composition state`, `Eviction`, `Capability requirement`, `Primitive policy`, `Action wiring`, `Wiring decision` and `Indeterminate outcome` as the surfaces, the six surviving invariant numbers unchanged, and the acceptance section's own two tiers carried across. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. `Eviction` is the one family minted here and it is minted for a reason no other composition has had: the eviction leg is the only leg in the corpus that runs *outside* an invocation, with its own two edges and its own exclusion against the invocations it runs beside, and folding nine rules about a background sweep into `Composition state` would have buried the one surface a reader most needs to find. One spec, flagged, waiting on recurrence (Principle 1–3, council read 57's promotion path).
 - **2026-09-14 — Two preservation claims are one citation, third instance.** *Chose:* `Composes 5`, with `Invariant 5` and `Invariant 6` tombstoned to it. *Over:* keeping them. *Because:* council read 53's ruling, now applied at its third seam. What they carried beyond the blanket survives as `Composes 6` (the unchanged relay of a constituent rejection, which no atom guarantees about a caller) and `Composes 7` (the once-per-first-invocation `record` discipline, which is this composition's call pattern rather than a property of duplicate prevention(../atoms/duplicate-prevention.md)).
 - **2026-09-14 — The extraction-pending element is carried as a rule surface, not softened.** *Chose:* to state the `token_results` map as nine `Composition state` rules with the classification named in the WHY, the proposed atom named, and `Capability requirement 12` through `Capability requirement 14` carrying its durability. *Over:* describing it in prose, as every other composition's state section does — because every other composition's state section had nothing to describe. *Because:* this is the corpus's first migrated composition carrying truth no replay of its constituents reproduces, and `execution-contract.md` §Composition state says an unflagged truth-bearing composition store is a conformance finding while a flagged one is scheduled debt. The flag is the whole difference, so it belongs on the rule surface where an instrument can find it rather than in a paragraph (council read 58).
+
+- **2026-09-14 — `Eviction` re-cut as `Housekeeping`, joining the leg it was kept apart from.** *Chose:* the family renamed, with the nine rules and every citation of them moving with it. *Over:* keeping a one-spec family named for what this leg happens to do. *Because:* the entry above kept `Eviction` apart from authenticated actor(./authenticated-actor.md)'s `Reconciliation` on *one evicts and one reports*, and the drift pass found that axis wrong — it predicts the liveness bound on two of four legs, and this leg is one of the two it misses, because it takes a section and writes to the composition's own store while owing nothing. What decides the bound across all four is whether anything **awaits** the leg's output. Nothing awaits an eviction and nothing awaits an orphan report, so the two are one family; login(./login.md)'s and defensible retention(./defensible-retention.md)'s sweeps discharge a promise and are the other. `Housekeeping 7` and `Housekeeping 8` keep their reading unchanged — they are still why this leg owes no liveness bound, and now the family name says so too (council read 64).
 
 NOTE: End of Idempotent Reservation.

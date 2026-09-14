@@ -259,22 +259,22 @@ The residue is named rather than cured, and both halves of that are deliberate. 
 
 Concurrency 6 is the deployment's way out and is named as an option rather than folded in, because this composition does not revoke credentials (Composes 7) and a cut that reached into the identity-management surface to take a lock would be claiming an action it declines to own. A check-then-attest with **no** section is the time-of-check-to-time-of-use hazard the buggy twin demonstrates, which is a different thing entirely.
 
-### Reconciliation
+### Housekeeping
 
 ```text
-Reconciliation 1: The orphaned-credential leg MUST run at an instance's start.
-Reconciliation 2: The orphaned-credential leg MUST run every reconciliation cadence.
-Reconciliation 3: The orphaned-credential leg MUST NOT write.
-Reconciliation 4: The orphaned-credential leg MUST NOT take a section.
-Reconciliation 5: The orphaned-credential leg MUST NOT examine a credential younger than the registration completion bound AND the clock skew allowance.
-Reconciliation 6: The orphaned-credential leg MUST report a credential the principal binding binds to no entry.
-Reconciliation 7: The orphaned-credential leg MUST NOT promise a closure window.
+Housekeeping 1: The orphaned-credential leg MUST run at an instance's start.
+Housekeeping 2: The orphaned-credential leg MUST run every reconciliation cadence.
+Housekeeping 3: The orphaned-credential leg MUST NOT write.
+Housekeeping 4: The orphaned-credential leg MUST NOT take a section.
+Housekeeping 5: The orphaned-credential leg MUST NOT examine a credential younger than the registration completion bound AND the clock skew allowance.
+Housekeeping 6: The orphaned-credential leg MUST report a credential the principal binding binds to no entry.
+Housekeeping 7: The orphaned-credential leg MUST NOT promise a closure window.
 ```
 
 WHY:
-The leg reports and does not repair, and every other rule follows from that. Because it writes nothing and holds nothing, two runs at once — a restart beside the cadence, or two nodes — produce at worst two reports of one credential and never two acts (Reconciliation 3, Reconciliation 4). Because it reports rather than closes, no liveness inequality is owed (Reconciliation 7): the report lands as a finding on the deployment's compliance surface, where the identity-management surface acts on it under its own identity.
+The leg reports and does not repair, and every other rule follows from that. Because it writes nothing and holds nothing, two runs at once — a restart beside the cadence, or two nodes — produce at worst two reports of one credential and never two acts (Housekeeping 3, Housekeeping 4). Because it reports rather than closes, no liveness inequality is owed (Housekeeping 7): the report lands as a finding on the deployment's compliance surface, where the identity-management surface acts on it under its own identity.
 
-Reconciliation 5 is the age edge. A credential younger than the registration bound plus the skew allowance is a registration in flight, not an orphan, and a leg that reported it would be filing against a correct invocation mid-section.
+Housekeeping 5 is the age edge. A credential younger than the registration bound plus the skew allowance is a registration in flight, not an orphan, and a leg that reported it would be filing against a correct invocation mid-section.
 
 ---
 
@@ -366,7 +366,7 @@ Check 3.1: An auditor MUST find EVERY [Attest As Actor] call carrying one attest
 Check 3.2: An auditor MUST find EVERY credential-not-active entry carrying the observed status (Composition state 8).
 Check 4.1: An auditor MUST find EVERY attestation older than the attest completion bound AND the clock skew allowance carrying an attest log entry (Invariant 4.2).
 Check 5.1: An auditor MUST find no attest log entry changed (Composition state 9).
-Check 6.1: An auditor MUST find EVERY registered credential older than the registration completion bound AND the clock skew allowance bound in the principal binding (Reconciliation 6).
+Check 6.1: An auditor MUST find EVERY registered credential older than the registration completion bound AND the clock skew allowance bound in the principal binding (Housekeeping 6).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -605,5 +605,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except one invariant the Execution Contract already owns.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Action wiring`, `Wiring decision`, `Concurrency` and `Reconciliation` as the surfaces, the four surviving invariant numbers unchanged, and the acceptance section's own two tiers carried across. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. `Reconciliation` is the one family minted, for the orphaned-credential leg — a second instance of the shape idempotent reservation(./idempotent-reservation.md) minted `Eviction` for, a leg running outside an invocation, and the two are deliberately **not** merged: one evicts and one reports, one takes a section and one refuses to, and calling them one family would bury the difference that decides whether either owes a liveness bound. Two names at one spec each, both flagged, both waiting (council read 61).
 - **2026-09-14 — The fourth preservation-claim collapse, and the cheapest.** *Chose:* `Composes 4`, with `Invariant 5 — Constituent invariants preserved` tombstoned to it. *Over:* keeping it. *Because:* council read 53's ruling at its fourth seam. This spec spent **one** rule covering both constituents where the other three spent one per atom, so one tombstone closes what took two or three elsewhere — and the reason is visible in the document: every other invariant carries a `Rests on:` clause naming the constituent guarantees it leans on, which is provenance done properly at the invariant level. The blanket was the single place that discipline lapsed into a restatement. What it carried beyond the blanket survives as `Composes 5` through `Composes 10`: the refusals (no verify at the gate, no rotate, no revoke, no registry write) and the gate's key, none of which either atom guarantees about a caller.
 - **2026-09-14 — Both extraction-pending elements were classified before the rewrite began.** *Chose:* to declare the classification against the prose spec at council read 59 and carry it into the rules here unchanged. *Over:* discovering it during the migration, which is when every other composition's state question surfaced. *Because:* the classification does not depend on the language — `execution-contract.md` §Composition state turns on whether the truth is reconstructible from constituent stores, which is a fact about the wiring — and settling it first made the `Composition state` family write itself. That order is worth keeping: classify, then migrate.
+
+- **2026-09-14 — `Reconciliation` re-cut as `Housekeeping`, on a discriminator the first cut got wrong.** *Chose:* the family renamed, with the seven rules and every citation of them moving with it. *Over:* keeping the name and letting `Reconciliation` reach three specs. *Because:* the entry above split this leg from idempotent reservation(./idempotent-reservation.md)'s on *one evicts and one reports*, and the drift pass `GRACE-lang.md` Standard label 7 requires found that axis predicts the liveness bound on **two of four** legs — this leg reports and owes none, Eviction takes a section and writes and owes none, and the verb decides neither. What survives every member is whether anything **awaits** the leg's output: login(./login.md)'s and defensible retention(./defensible-retention.md)'s sweeps discharge a promise inside a declared window and owe a bound; this leg and idempotent reservation's evict or report with nobody waiting and owe none. Two families of two, cut on the guarantee rather than on the verb (council read 64).
 
 NOTE: End of Authenticated Actor.
