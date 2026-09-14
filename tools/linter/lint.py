@@ -1279,6 +1279,28 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
                 "W-stale-census",
                 f"the watch list says `{name}` is in {spec} specs; the corpus "
                 f"has {actual} (tools/grace/cites.py --drift)"))
+    # the inverse reading, and the one the loop above cannot give: a family the
+    # corpus carries at the promotion threshold that the watch list does not
+    # name at all. The comparison above only ever reads counts somebody already
+    # wrote down, so a family can cross three in silence -- which is read 58's
+    # lesson one layer out, the census *list* being the second hand-census.
+    # Standard families are excluded: the grammar owns those and they are not
+    # promotion candidates (council read 63).
+    listed = {n for n, _ in re.findall(r"`([A-Z][A-Za-z ]+)` \((\d+)\)", text)}
+    std: set[str] = set()
+    sm = re.search(r"^Terms › `standard label family`: (.+)$", text, re.M)
+    if sm:
+        std = {x.strip() for x in re.findall(r"`([^`]+)`", sm.group(1))}
+    clause = re.search(r"a label family recurring across specs outside the standard set", text)
+    clause_line = line_of(text, clause.start()) if clause else 1
+    for name, specs in sorted(census.items()):
+        if name in listed or name in std or len(specs) < 3:
+            continue
+        findings.append(Finding(
+            grammar, clause_line, "W-stale-census",
+            f"the watch list names no `{name}`; the corpus carries it in "
+            f"{len(specs)} specs, at or past the promotion threshold "
+            f"(Standard label 4; tools/grace/cites.py --drift)"))
     return findings
 
 

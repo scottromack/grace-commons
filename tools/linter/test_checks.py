@@ -43,6 +43,7 @@ from lint import (  # noqa: E402
     check_step_reference,
     check_seal_key,
     check_ledger,
+    check_stale_census,
     load_patterns,
 )
 
@@ -683,6 +684,72 @@ def check_r_synthetic(problems: list[str]) -> None:
             problems.append(f"R-ledger: {name} should fire {want}; got {sorted(codes) or 'nothing'}")
 
 
+# ── W-stale-census, both readings, pinned synthetically ───────────────────── #
+# The count reading was built at council read 33 against hand-written family
+# counts and compares only the counts somebody already wrote down. The list
+# reading was added at council read 63, when `Reconciliation` crossed Standard
+# label 4's threshold of three in silence because §18 named it nowhere — the
+# census list being the second hand-census, which is read 58's lesson one layer
+# out. Pinned without a victim: a throwaway grammar and two throwaway patterns,
+# so the fixtures cannot die when a corpus family's count moves.
+CENSUS_GRAMMAR = """### 18. Candidate Forms
+
+NOTE:
+Also watched, and counted: a label family recurring across specs outside the standard set: {listing}.
+
+Terms › `standard label family`: `Identity` (what identifies an instance) | `Invariant` (a property of every reachable state).
+"""
+
+CENSUS_PATTERN = """Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+
+```text
+{family} 1: The composition MUST stand.
+Invariant 1.1: The composition MUST stand.
+```
+"""
+
+
+def check_census_synthetic(problems: list[str]) -> None:
+    import tempfile
+
+    def run(listing: str, families: list[tuple[str, str]]) -> set[str]:
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "GRACE-lang.md").write_text(
+                CENSUS_GRAMMAR.format(listing=listing), encoding="utf-8")
+            pats = {}
+            for stem, fam in families:
+                path = root / f"{stem}.md"
+                text = CENSUS_PATTERN.format(family=fam)
+                pats[path] = Pattern(path=path, text=text,
+                                     invariant_count=1, grounded=False)
+            return {f.code + "|" + f.message for f in check_stale_census(root, pats)}
+
+    three = [("a", "Ghost"), ("b", "Ghost"), ("c", "Ghost")]
+    # (1) a family at three the list does not name must fire
+    got = run("", three)
+    if not any("names no `Ghost`" in m for m in got):
+        problems.append("W-stale-census: a family at three specs the watch list "
+                        "does not name did not fire — the list reading is dead")
+    # (2) the same family, named with the right count, must stay silent
+    got = run("", [("a", "Ghost"), ("b", "Ghost")])
+    got_named = {m for m in got if "Ghost" in m}
+    if got_named:
+        problems.append("W-stale-census: fired on a family at two specs — "
+                        "below Standard label 4's threshold, so it is not a candidate")
+    # (3) a standard family at three must stay silent: the grammar owns it and
+    #     it is not a promotion candidate
+    got = run("", [("a", "Identity"), ("b", "Identity"), ("c", "Identity")])
+    if any("Identity" in m for m in got):
+        problems.append("W-stale-census: fired on a standard label family — "
+                        "the grammar owns those and they never stand as candidates")
+    # (4) the count reading still works: a listed family whose count is wrong
+    got = run("`Wraith` (9)", [("a", "Wraith"), ("b", "Wraith")])
+    if not any("`Wraith` is in 9 specs" in m for m in got):
+        problems.append("W-stale-census: a listed family with a stale count did "
+                        "not fire — the count reading is dead")
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -764,6 +831,14 @@ def main(argv: list[str]) -> int:
               "signature and peer arm silent; id-keyed map fires, "
               "position-keyed map silent; straddling bare landings fire, "
               "positioned and same-side landings silent) \u2713")
+
+    census_problems: list[str] = []
+    check_census_synthetic(census_problems)
+    failures.extend(census_problems)
+    if not census_problems:
+        print("W-stale-census: 4 synthetic fixtures hold (an unlisted family at "
+              "three fires; the same family at two, a standard family at three "
+              "and a correct listing silent; a stale listed count fires) \u2713")
 
     r_problems: list[str] = []
     check_r_synthetic(r_problems)
