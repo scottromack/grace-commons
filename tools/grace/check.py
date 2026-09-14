@@ -320,6 +320,21 @@ def scan(path: Path) -> list[Finding]:
                     f"a tombstone opens this block, so its {labelled} labelled line(s) "
                     f"carry no obligation — move the tombstone below the first rule "
                     f"(Surface 18, Surface 22)")
+            # the same rule from the other end: a fence carrying tombstones and no
+            # live rule is not a tombstone block at all. Surface 22 makes the whole
+            # block non-normative, so the deletion it records reserves nothing and
+            # the labels it names read as references to rules that do not exist —
+            # which is how this arrives, as X-ref on the spec's own tombstones.
+            # Three migrations running placed tombstones this way (Shared Todo,
+            # Notification Fanout, and Consent from the other end), so the placement
+            # is the defect rather than the writer (council read 15, council read 57).
+            elif not labelled and TOMBSTONE.match(first):
+                n_tomb = sum(1 for b in block if TOMBSTONE.match(b.strip()))
+                add(start, "F-tombstone-orphan",
+                    f"this block carries {n_tomb} tombstone(s) and no live rule, so "
+                    f"Surface 22 makes the whole block non-normative and the deletion "
+                    f"reserves nothing — move the tombstone into a fence whose first "
+                    f"line is a rule (Surface 18, Surface 22)")
         elif LABEL.match(first):
             stack: list[Rule] = []
             for k, raw in enumerate(block, start=start + 1):
