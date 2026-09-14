@@ -237,7 +237,6 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
 ### State
 
 ```text
-State 1: EVERY consent record MUST stand in EXACTLY ONE OF granted, revoked, expired.
 State 2: A consent record's state MUST rest on granted_at, revoked_at and expires_at against the evaluation instant.
 State 3: EVERY consent record MUST carry consent_id, subject_ref, purpose, granted_by, granted_at and state.
 State 4: A consent record MUST carry an expires_at the [Grant] call supplied.
@@ -252,6 +251,7 @@ State 12: The atom MUST NOT offer a transition out of expired.
 State 13: The atom MUST NOT suppress a processing act.
 State 14: The atom MUST NOT hold a lawful basis outside consent.
 State 15: The atom MUST NOT hold a purpose taxonomy.
+NOTE: State 1 deleted — Invariant 2.1 owns it.
 ```
 
 Terms › `state`: `granted` | `revoked` | `expired` — in effect, withdrawn, or run out; a [State], derived per Expiry 1–4 against the evaluation instant.
@@ -403,6 +403,11 @@ Check 6.1: An auditor MUST find [Revoke] answering already-revoked against a rev
 Check 6.2: An auditor MUST find [Revoke] answering already-expired against an expired consent record (Invariant 3.2).
 Check 6.3: An auditor MUST find no consent record field changed by a refused [Revoke] (Operation 32, Operation 33).
 Check 7.1: An auditor MUST find EVERY revoked and expired consent record still answering to [Read] (Invariant 8.1).
+Check 8.1: An auditor MUST find two [Check] calls carrying one consent_id's pair and one at_time answering alike (Invariant 10.4).
+Check 8.2: An auditor MUST find a [Check] carrying an at_time answering alike across a later [Grant] for the pair (Invariant 10.3).
+Check 8.3: An auditor MUST find a [Check] carrying an at_time answering alike across a later [Revoke] for the pair (Invariant 10.3).
+Check 8.4: An auditor MUST find [Check] answering from the latest consent record the at_time does not precede (Invariant 10.1).
+Check 8.5: An auditor MUST find [Check] answering from the greatest consent_id of two consent records sharing a subject_ref, a purpose and a granted_at (Invariant 10.2).
 ```
 
 NOTE: EVERY check names the rule the check tests.
