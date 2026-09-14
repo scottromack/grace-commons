@@ -159,6 +159,46 @@ The mechanic is identical across all four. What differs: the [Window Duration], 
 
 ---
 
+## Generation acceptance
+
+An implementation is acceptable when an external auditor, given the recorded set and the atom's own query surface, can clear the checks below without recourse to source code, runbooks or developer narration. The atom is not regulated and carries no adversarial scenarios; what it carries is a guard other patterns rest correctness on, and this section is where that guard becomes testable rather than asserted.
+
+### Conformance checks
+
+```text
+Check 1.1: An auditor MUST find EXACTLY ONE recorded_at PER identity the recorded set holds (State 1).
+Check 1.2: An auditor MUST find an identity's recorded_at unchanged across a second record inside the identity's window (Invariant 2.2).
+Check 1.3: An auditor MUST find no guard extended by a second record (Invariant 2.1).
+Check 1.4: An auditor MUST find a fresh recorded_at for a record against an identity that is not under guard (Invariant 2.3).
+Check 2.1: An auditor MUST find the recorded set unchanged across a check (Invariant 3.1).
+Check 2.2: An auditor MUST find two checks of one identity under one now answering alike (Invariant 3.2).
+Check 3.1: An auditor MUST find EVERY check answering EXACTLY ONE OF seen, not-seen (Operation 5).
+Check 3.2: An auditor MUST find a check answering seen for an identity under guard (Operation 6).
+Check 3.3: An auditor MUST find a check answering not-seen for an identity that is not under guard (Operation 7).
+Check 3.4: An auditor MUST find a check answering not-seen for an identity a lazy host still holds (Lazy expiry 3).
+Check 4.1: An auditor MUST find EVERY record answering ok (Operation 4).
+```
+
+NOTE: EVERY check names the rule the check tests.
+
+### External checks
+
+```text
+External check 1: An auditor needing the window duration confirmed MUST read the containing pattern's own declaration (Operation 11).
+External check 2: An auditor needing the matching rule confirmed MUST read the containing pattern's own declaration (Identity 5).
+External check 3: An auditor needing a guard miss confirmed MUST read the deployment's own store (Record failure 2).
+External check 4: An auditor needing the recorded set's durability confirmed MUST read the deployment's own store (Non-goal 3).
+External check 5: An auditor needing the unavailability policy confirmed MUST read the deployment's own declaration (Check unavailability 1).
+External check 6: An auditor needing the clock's honesty confirmed MUST read the deployment's own clock discipline (Clock semantics 2).
+```
+
+WHY:
+The three checks worth the section are `Check 1.2`, `Check 1.3` and `Check 2.1`, because they are what a composing pattern's own guarantee rests on and none of them was testable before. Idempotent Reservation's exactly-once claim holds only if a repeat record does not move the stamp — that is the whole of the window's monotonicity, it clears from two readings of one entry, and it was asserted by an invariant nothing audited.
+
+`Check 3.4` is the one a reader does not expect and the one that proves the atom sells behaviour rather than storage. A lazy host still holding an expired entry must answer `not-seen` for it, so an auditor who finds the entry present and the answer `not-seen` has confirmed conformance rather than found a leak — and an auditor told only to compare the set against the window would report the opposite.
+
+The external set is short and each member is a value the records cannot carry. The window duration and the matching rule belong to the containing pattern by construction (`Non-goal 8`); a guard missed by a failed write leaves no trace at all, which is `Record failure 2` stated from the auditor's side; and the unavailability policy is a deployment's declared posture rather than an observation.
+
 ## Non-goals
 
 ```text
@@ -234,11 +274,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host (also: a host, a lazy host); the transition; a containing pattern (also: the containing pattern, a pattern); a business caller; an implementation (also: a fail-open implementation, a fail-closed implementation); the deployment (also: a deployment); an identity; a guarded entry; an entry; a check.
+Terms › `actors`: the atom; the host (also: a host, a lazy host); the transition; a containing pattern (also: the containing pattern, a pattern); a business caller; an implementation (also: a fail-open implementation, a fail-closed implementation); the deployment (also: a deployment); an identity; a guarded entry; an entry; a check; an auditor.
 
 Terms › `records`: `recorded set` — the identities under guard, one `recorded_at` per entry.
 
-Terms › `record verbs`: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, require, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct.
+Terms › `record verbs`: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, require, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct, find.
 
 Terms › `value sets`: check answers = seen | not-seen. record answers = ok. store policy = fail-open | fail-closed.
 
@@ -376,5 +416,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/duplicate-prevention.md`.
 
 - **2026-09-11 — Rewritten in GRACE lang v0.34; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the two calls as a signature block, rationale under `WHY:`, terms declared where they are used, the invariant numbers and the Ledger unchanged, Non-goals and Edge cases as two sections. *Over:* the prose spec. *Because:* the migration plan — atoms first, since they declare the vocabulary the compositions cite.
+
+- **2026-09-14 — The atom gained an acceptance surface, written from the atom's own rules.** *Chose:* eleven `Check` rules and six `External check` rules, each naming the rule the check tests. *Over:* declining by delegation, which the amended rule admits and this atom cannot honestly take. *Because:* presence became mandatory for every migrated spec on 2026-09-14 (`pressure-testing.md` §Generation acceptance), and this atom is the one where the absence cost most: a composing pattern's exactly-once guarantee rests on a repeat record not moving the stamp, which is `Invariant 2.2`, and nothing audited it. Every check clears from the recorded set and the atom's own query surface; none invents an obligation, which is what *the bar reduces to the invariants hold* was always asserting and never made testable (council read 65).
 
 NOTE: End of Duplicate Prevention.

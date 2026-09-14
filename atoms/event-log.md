@@ -215,6 +215,48 @@ All three rejection reasons ([Invalid Payload], [Invalid Query], [Storage Failur
 
 ---
 
+## Generation acceptance
+
+An implementation is acceptable when an external auditor, given one log instance and the atom's own read surface, can clear the checks below without recourse to source code, runbooks or developer narration. This atom is the corpus's Start Here — the first pattern most readers meet — and it claims append-only, total order and read consistency while the evidence for those claims has until now lived in a formal model, a twin suite and five independent renders, none of which a first reader has met. This section is the bridge: the same claims, cleared from the log alone.
+
+### Conformance checks
+
+```text
+Check 1.1: An auditor MUST find EVERY event of an earlier read in a later read of one log instance (Invariant 1.1).
+Check 1.2: An auditor MUST find a re-read event's EVERY event field unchanged (Invariant 2.1).
+Check 2.1: An auditor MUST find no two landed events sharing a sequence_number (Invariant 3.1).
+Check 2.2: An auditor MUST find no two events sharing an event_id (Invariant 6.1).
+Check 2.3: An auditor MUST find a landed event's sequence_number above EVERY sequence_number an earlier landed event carries (Invariant 4.1).
+Check 2.4: An auditor MUST read a gap in the sequence_numbers as an event that did not land (Sequence gap 3).
+Check 3.1: An auditor MUST find a read answering the events by sequence_number, rising (Invariant 5.2).
+Check 3.2: An auditor MUST find two reads of one query answering alike (Invariant 5.1).
+Check 3.3: An auditor MUST find a read answering an empty sequence for a well-formed query matching nothing (Operation 16).
+Check 3.4: An auditor MUST find a read answering invalid-query for a malformed query (Operation 15).
+Check 3.5: An auditor MUST find no read answering an event for a consumed sequence_number no event landed under (Invariant 5.3).
+Check 4.1: An auditor MUST find EVERY event carrying event_id, sequence_number, recorded_at AND data (State 2).
+Check 4.2: An auditor MUST find a fresh log instance beginning next_sequence_number at one (State 5).
+Check 5.1: An auditor MUST read a falling recorded_at as a clock finding (Invariant 7.2).
+Check 5.2: An auditor MUST NOT read a falling recorded_at as an order finding (Invariant 7.2).
+```
+
+NOTE: EVERY check names the rule the check tests.
+
+### External checks
+
+```text
+External check 1: An auditor needing the log instance's durability confirmed MUST read the deployment's own store (Durability 2).
+External check 2: An auditor needing the appends serialized confirmed MUST read the host's own concurrency control (Operation 12).
+External check 3: An auditor needing the clock non-decreasing confirmed MUST read the deployment's own clock discipline (Invariant 7.1).
+External check 4: An auditor needing the log untampered confirmed MUST compose [Tamper Evidence](./tamper-evidence.md) (Non-goal 4).
+External check 5: An auditor needing an event's writer confirmed MUST compose [Actor Identity](./actor-identity.md) (Non-goal 6).
+External check 6: An auditor needing the payload cap confirmed MUST read the deployment's own declaration (Operation 5).
+```
+
+WHY:
+`Check 2.4`, `Check 5.1` and `Check 5.2` are the three that stop an auditor filing against a correct log, and each of them is a place where the obvious reading is wrong. A gap in the sequence numbers is not a lost event — `Sequence gap 1` permits an implementation to consume a number on a failed write, so an auditor counting rows against numbers reports a defect the atom has none of. A `recorded_at` that falls is a clock fault and never an ordering fault, because `sequence_number` **is authoritative** for the order and `recorded_at` is an annotation this atom rests nothing on.
+
+The external set is where the real limit sits, and it is larger than a reader expects from a log. **Append-only is not tamper-evidence.** Every check above passes over a log an adversary with store access rewrote, because the atom compares the log against itself; detecting that the store was rewritten is [Tamper Evidence](./tamper-evidence.md)'s and is named here rather than implied. The same holds for who wrote an event and for whether the instance survived a restart at all — `External check 1` is the one a deployment loses silently, since a volatile instance satisfies every conformance check above and loses the journal the composing patterns replay.
+
 ## Non-goals
 
 ```text
@@ -298,11 +340,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation (also: a durable implementation); the deployment; the store; an event; a read; an append.
+Terms › `actors`: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation (also: a durable implementation); the deployment; the store; an event; a read; an append; an auditor.
 
 Terms › `records`: `event` — one recorded fact, carrying `event_id`, `sequence_number`, `recorded_at` and `data`; the log carries `log_name` and `next_sequence_number`.
 
-Terms › `record verbs`: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match.
+Terms › `record verbs`: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match, find.
 
 Terms › `value sets`: append answers = event_id | rejected(invalid-payload | storage-failure). read answers = events | rejected(invalid-query). `event field` = event_id | sequence_number | recorded_at | data.
 
@@ -482,5 +524,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/event-log.md`.
 
 - **2026-09-11 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the two actions as a signature block, rationale under `WHY:`, terms declared where they are used, the invariant numbers frozen exactly as the compositions cite them, Non-goals and Edge cases as two sections, the case table kept beside the rules. *Over:* the prose spec. *Because:* the migration plan takes the atoms the migrated compositions already cite first — Audit Trail and Recoverable Invocation cite this atom's Invariants 1, 2, 3, 5 and 7, and a rewrite that moved a number would break those citations silently (`tools/grace/cites.py --into event-log`).
+
+- **2026-09-14 — The atom gained an acceptance surface, and the external half is the load-bearing half.** *Chose:* fifteen `Check` rules cleared from one log instance and its read surface, and six `External check` rules naming what the log cannot show about itself. *Over:* declining by delegation, which would have been false — this atom is composed directly, not only through a substrate. *Because:* presence became mandatory on 2026-09-14, and this atom is the corpus's Start Here: it claims append-only, total order and read consistency while the evidence sat in a formal model, a twin suite and five independent renders, none of which a first reader has met. The section is the bridge. `External check 4` is the line that had to be written down — **append-only is not tamper-evidence**, every conformance check above passes over a log an adversary rewrote, and the atom compares the log only against itself (council read 65).
 
 NOTE: End of Event Log.

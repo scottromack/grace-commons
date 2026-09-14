@@ -237,6 +237,46 @@ This sequence covers four of the rejection reasons ([Invalid Description], [Dupl
 
 ---
 
+## Generation acceptance
+
+An implementation is acceptable when an external auditor, given the list and the atom's own surface, can clear the checks below without recourse to source code, runbooks or developer narration. This is the corpus's smallest atom and the reference implementation's first worked example, so the section is deliberately plain: every check is one reading of the list against one rule, and the external set is three lines long because almost nothing here needs evidence the list does not carry.
+
+### Conformance checks
+
+```text
+Check 1.1: An auditor MUST find EVERY known unit standing in EXACTLY ONE OF pending, done (Invariant 1.1).
+Check 1.2: An auditor MUST find EVERY unit carrying id, description AND added_at (State 2).
+Check 1.3: An auditor MUST find EVERY done unit carrying completed_at (State 4).
+Check 2.1: An auditor MUST find no deleted unit's id standing in the list (Invariant 4.1).
+Check 2.2: An auditor MUST find no two units sharing an id (Identity 5).
+Check 2.3: An auditor MUST find a unit's id unchanged across an edit (Invariant 8.3).
+Check 3.1: An auditor MUST find no two units in the active set sharing a normalized description (Invariant 6.1).
+Check 3.2: An auditor MUST find an edited unit standing in pending (Invariant 5.1).
+Check 3.3: An auditor MUST find an edit changing no field beside description AND last_edited_at (Invariant 5.2).
+Check 3.4: An auditor MUST find no last_edited_at stamped for an edit answering ok on an unchanged description (Operation 12).
+Check 4.1: An auditor MUST find EVERY unit's added_at not exceeding the unit's last_edited_at (Invariant 7.1).
+Check 4.2: An auditor MUST find EVERY unit's added_at not exceeding the unit's completed_at (Invariant 7.2).
+Check 4.3: An auditor MUST find EVERY unit's last_edited_at not exceeding the unit's completed_at (Invariant 7.3).
+Check 5.1: An auditor MUST find a refused call leaving the unit as the call found the unit (Operation 24).
+```
+
+NOTE: EVERY check names the rule the check tests.
+
+### External checks
+
+```text
+External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Clock semantics 1).
+External check 2: An auditor needing a transition's atomicity confirmed MUST read the implementation's own transactional boundary (Concurrency 2).
+External check 3: An auditor needing a second client's calls accounted for MUST read the deployment's own concurrency-resolution pattern (Concurrency 3).
+```
+
+WHY:
+`Check 4.1` through `Check 4.3` are the three that have to be read as the invariants state them rather than as a chain. Each is conditional on the field existing — a pending unit carries no `completed_at` and an unedited one carries no `last_edited_at` — so an auditor comparing three timestamps as `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a list with nothing wrong with it. The invariants were written as three conditionals for exactly that reason and the checks keep the shape.
+
+`Check 3.4` is the one a reader would not think to run. An edit whose normalized description equals the unit's current description answers `ok` and writes **nothing** — no description change and no stamp — so the auditable evidence of a correct no-op is the *absence* of a `last_edited_at` movement, which is the only check here whose passing condition is that nothing happened.
+
+The external set is three lines because this atom assumes almost nothing it cannot show. What it does assume is the two things no records can carry: that the clock moves forward, which every timestamp check above is best-effort under, and that each transition is atomic, without which `Invariant 1.1` is reachable-false — a crash mid-write leaving a unit in neither state. Both are named here rather than left to a reader to notice they were never proved.
+
 ## Non-goals
 
 ```text
@@ -312,11 +352,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a person; a unit; a call; the store; the list.
+Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a person; a unit; a call; the store; the list; an auditor.
 
 Terms › `records`: `unit` — one thing to do, carrying `id`, `description`, `added_at`, a unit state and, once they land, `last_edited_at` and `completed_at`.
 
-Terms › `record verbs`: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed.
+Terms › `record verbs`: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find.
 
 Terms › `value sets`: add answers = id | rejected(invalid-description | duplicate-active | storage-failure). edit answers = ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure). complete answers = ok | rejected(not-known | not-pending | storage-failure). delete answers = ok | rejected(not-known | storage-failure). `unit state` = pending | done.
 
@@ -548,5 +588,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/personal-todo.md`.
 
 - **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the four actions as a signature block, the description policy as its own rule family, the eight invariant numbers unchanged, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan, and this atom is the corpus's simplest shape — the one a reader meets first.
+
+- **2026-09-14 — The atom gained an acceptance surface, kept deliberately plain.** *Chose:* fourteen `Check` rules and three `External check` rules, each one reading of the list against one rule. *Over:* a richer section. *Because:* presence became mandatory on 2026-09-14, and this atom is the reference implementation's first worked example, so its section teaches the shape more than it audits a risk. Two things it does carry are not decoration: the three timestamp checks keep the invariants' conditional form rather than chaining them, since an auditor comparing `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a correct list; and `Check 3.4`'s passing condition is that **nothing happened** — a no-op edit answers `ok` and writes nothing, so the evidence of conformance is a stamp that did not move (council read 65).
 
 NOTE: End of Personal Todo.

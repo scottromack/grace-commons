@@ -44,6 +44,7 @@ from lint import (  # noqa: E402
     check_seal_key,
     check_ledger,
     check_stale_census,
+    check_acceptance_surface,
     load_patterns,
 )
 
@@ -750,6 +751,68 @@ def check_census_synthetic(problems: list[str]) -> None:
                         "not fire — the count reading is dead")
 
 
+# ── Y-acceptance-surface, pinned synthetically ────────────────────────────── #
+# Presence became mandatory at council read 65, after three atoms took the
+# then-optional Generation acceptance section by saying nothing and eleven
+# compositions rested checks on them. Two shapes satisfy it and the third is the
+# defect, so all three are pinned without a victim -- a corpus pin here would
+# die the day the three atoms gained their sections, which is the same
+# perishability P-atomic-audit's pins had.
+ACCEPT_HEAD = """Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.41 (2026-09-14){decline}.
+
+"""
+ACCEPT_SECTION = """## Generation acceptance
+
+### Conformance checks
+
+```text
+Check 1.1: An auditor MUST find the thing (Operation 1).
+```
+"""
+ACCEPT_EMPTY_SECTION = """## Generation acceptance
+
+An implementation is acceptable when an auditor can read the store.
+"""
+
+
+def check_acceptance_synthetic(problems: list[str]) -> None:
+    def run(name: str, text: str) -> set[str]:
+        path = Path(f"synthetic/atoms/{name}.md")
+        pat = Pattern(path=path, text=text, invariant_count=1, grounded=False)
+        return {f.message for f in check_acceptance_surface({path: pat})}
+
+    # (1) a section carrying a Check rule is the ordinary satisfying shape
+    if run("has_section", ACCEPT_HEAD.format(decline="") + ACCEPT_SECTION):
+        problems.append("Y-acceptance-surface: fired on a spec carrying a section "
+                        "with a Check rule — the ordinary satisfying shape")
+    # (2) a declared decline naming an owner is the other satisfying shape
+    declined = ACCEPT_HEAD.format(
+        decline="; `audit declined` — the audit surface is owned by Audit Trail")
+    if run("declined", declined):
+        problems.append("Y-acceptance-surface: fired on a declared decline that "
+                        "names an owner — a decline by delegation is admitted")
+    # (3) silence is the defect
+    got = run("silent", ACCEPT_HEAD.format(decline=""))
+    if not any("states no acceptance posture" in m for m in got):
+        problems.append("Y-acceptance-surface: did not fire on a migrated spec "
+                        "with no section and no decline — silence is the one "
+                        "thing the rule outlaws")
+    # (4) a section with no Check rule is silence wearing a heading
+    got = run("empty", ACCEPT_HEAD.format(decline="") + ACCEPT_EMPTY_SECTION)
+    if not any("no `Check` and no" in m for m in got):
+        problems.append("Y-acceptance-surface: did not fire on a section carrying "
+                        "no Check and no External check rule")
+    # (5) a decline naming no owner is silence with a label on it
+    got = run("ownerless", ACCEPT_HEAD.format(decline="; `audit declined` — "))
+    if not any("names no owner" in m for m in got):
+        problems.append("Y-acceptance-surface: did not fire on a decline naming "
+                        "no owner — by delegation, never by silence")
+    # (6) an unmigrated spec is not held to the rule at all
+    if run("unmigrated", "Terms › `qualifiers`: none.\n"):
+        problems.append("Y-acceptance-surface: fired on an unmigrated spec — the "
+                        "rule reaches the migrated corpus only")
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -831,6 +894,14 @@ def main(argv: list[str]) -> int:
               "signature and peer arm silent; id-keyed map fires, "
               "position-keyed map silent; straddling bare landings fire, "
               "positioned and same-side landings silent) \u2713")
+
+    accept_problems: list[str] = []
+    check_acceptance_synthetic(accept_problems)
+    failures.extend(accept_problems)
+    if not accept_problems:
+        print("Y-acceptance-surface: 6 synthetic fixtures hold (a section with a "
+              "check and a decline naming an owner silent; silence, an empty "
+              "section and an ownerless decline fire; an unmigrated spec exempt) \u2713")
 
     census_problems: list[str] = []
     check_census_synthetic(census_problems)

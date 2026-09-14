@@ -1304,6 +1304,53 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
     return findings
 
 
+def check_acceptance_surface(patterns: dict[Path, Pattern]) -> list[Finding]:
+    """Y. A migrated spec that states no acceptance posture at all. Generation
+    acceptance was optional for non-regulated primitives, and three atoms took
+    the option by saying nothing -- Duplicate Prevention, Event Log and Personal
+    Todo, the three earliest migrations, composed between them by eleven of the
+    corpus's compositions. The cost is paid one layer up: Undo History rests
+    thirteen Check rules on two constituents that audit none of their own, and
+    no instrument said so, because silence and a considered decline read alike.
+
+    Presence is now mandatory and the posture is what has to be discoverable, so
+    two shapes satisfy this and a third does not. A spec carries an acceptance
+    section with at least one `Check` or `External check` rule, or it declines
+    by delegation on its own `Terms > qualifiers` line -- `audit declined`, with
+    the pattern that owns the surface named after the dash. Silence is the only
+    thing outlawed, and a decline that names no owner is silence with a label on
+    it (council read 65)."""
+    findings: list[Finding] = []
+    for p in patterns.values():
+        if not re.search(r"^Terms › `qualifiers`:.*\bmigrated\b", p.text, re.M):
+            continue  # the unmigrated corpus is not held to this
+        section = re.search(r"^## Generation acceptance\s*$", p.text, re.M)
+        if section:
+            if re.search(r"^\s*(?:Check|External check) \d", p.text, re.M):
+                continue
+            findings.append(Finding(
+                p.path, line_of(p.text, section.start()), "Y-acceptance-surface",
+                "carries a Generation acceptance section with no `Check` and no "
+                "`External check` rule — a section nothing audits is the silence "
+                "the rule forbids, wearing a heading"))
+            continue
+        decline = re.search(r"^Terms › `qualifiers`:.*`audit declined` — (.*)$", p.text, re.M)
+        if decline is None:
+            findings.append(Finding(
+                p.path, 1, "Y-acceptance-surface",
+                "is migrated and states no acceptance posture — carry a "
+                "`## Generation acceptance` section, or decline by delegation on "
+                "the qualifiers line (`audit declined` — <the pattern that owns "
+                "the audit surface>)"))
+            continue
+        if not re.search(r"[A-Za-z]", decline.group(1).split(";")[0]):
+            findings.append(Finding(
+                p.path, line_of(p.text, decline.start()), "Y-acceptance-surface",
+                "declines the audit surface and names no owner — a decline is by "
+                "delegation, never by silence"))
+    return findings
+
+
 def check_migration_seam(patterns: dict[Path, Pattern]) -> list[Finding]:
     """M. A migrated spec carrying a second `## Terms` heading. A migration
     concatenates a rewritten head onto the preserved term entries, so an
@@ -2367,6 +2414,7 @@ def main(argv: list[str]) -> int:
     findings += check_stray_directory(root)
     findings += check_formal_siblings(root, patterns)
     findings += check_stale_census(root, patterns)
+    findings += check_acceptance_surface(patterns)
     findings += check_migration_seam(patterns)
     findings += check_end_marker(patterns)
     findings += check_dead_anchors(patterns)
