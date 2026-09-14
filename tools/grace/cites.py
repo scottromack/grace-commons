@@ -435,8 +435,14 @@ def main(argv: list[str]) -> int:
             if not path.exists() or not MIGRATED.search(path.read_text(encoding="utf-8")):
                 continue
             name = spec_name(path)
+            # A register subject is prose, so it spells a multi-word name the way
+            # English wants it — Session-Gated Authorization for the spec this
+            # tool calls Session Gated Authorization. Match on a hyphen- and
+            # case-insensitive form so a hyphen does not read as an unread spec.
+            flat = lambda t: t.replace("-", " ").casefold()
             hits = [n for n, phrase in reads
-                    if name in phrase or (name == "GRACE-lang" and phrase.startswith("v0."))]
+                    if flat(name) in flat(phrase)
+                    or (name == "GRACE-lang" and phrase.startswith("v0."))]
             rows.append((name, path, hits))
         unread = [r for r in rows if not r[2]]
         print(f"{len(rows)} migrated; {len(unread)} carry no council read.")
