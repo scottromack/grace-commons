@@ -257,7 +257,7 @@ Indeterminate outcome 2: The composition MUST NOT delegate again for a pending e
 Indeterminate outcome 3: The composition MUST compute the candidates from Provisional Commitment's held commitments.
 Indeterminate outcome 4: The composition MUST keep a held commitment whose resource AND requester equal the call's in the candidates.
 Indeterminate outcome 5: IF the candidates NOT EXISTS THEN the composition MUST proceed as a fresh request's delegation.
-Indeterminate outcome 6: IF the candidates EXIST THEN the composition MUST overwrite the pending entry with outcome-unknown naming the candidates.
+Indeterminate outcome 6: IF the candidates EXISTS THEN the composition MUST overwrite the pending entry with outcome-unknown naming the candidates.
 Indeterminate outcome 7: An outcome-unknown answer MUST carry the candidates.
 Indeterminate outcome 8: The composition MUST mark a recovered entry.
 Indeterminate outcome 9: A resolving action MUST run again for a pending entry.

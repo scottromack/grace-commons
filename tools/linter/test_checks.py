@@ -910,6 +910,26 @@ def check_doubled_section_synthetic(problems: list[str]) -> None:
                         "a subsection is not a second copy of its parent")
 
 
+def check_caps_synthetic(problems: list[str]) -> None:
+    """R-caps / W-caps (tools/grace/check.py) — landed at council read 79, when
+    WHILE, WHERE and EXIST were found in three normative rules both checkers
+    passed. Six fixtures, one per shape the split has to hold."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import unreserved_capitals  # noqa: E402
+    cases = (
+        ("a watched form", "A reader MUST NOT read x WHILE y = no.", ["WHILE"], []),
+        ("an inflection of a reserved token", "IF the candidates EXIST THEN x MUST drop y.", ["EXIST"], []),
+        ("a provisional form", "x DEGRADES TO y.", ["DEGRADES", "TO"], []),
+        ("a proper noun in capitals", "A deployment under SOX MUST NOT set advisory.", [], ["SOX"]),
+        ("reserved tokens only", "IF x EXISTS AND y EXCEEDS z THEN EVERY w MUST NOT EXCEED v ONLY AFTER u.", [], []),
+        ("a code span quoting a form", "A spec MUST mark a `DEGRADES TO` pairing.", [], []),
+    )
+    for name, text, shaped, other in cases:
+        got = unreserved_capitals(text)
+        if got != (shaped, other):
+            problems.append(f"R-caps/W-caps: {name} read as {got}, expected {(shaped, other)}")
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -1023,6 +1043,14 @@ def main(argv: list[str]) -> int:
         print("W-stale-census: 4 synthetic fixtures hold (an unlisted family at "
               "three fires; the same family at two, a standard family at three "
               "and a correct listing silent; a stale listed count fires) \u2713")
+
+    caps_problems: list[str] = []
+    check_caps_synthetic(caps_problems)
+    failures.extend(caps_problems)
+    if not caps_problems:
+        print("R-caps / W-caps: 6 synthetic fixtures hold (a watched form, an "
+              "inflection and a provisional form gate; a capitalized proper noun is "
+              "advisory; reserved tokens and a quoted form stay silent) \u2713")
 
     r_problems: list[str] = []
     check_r_synthetic(r_problems)

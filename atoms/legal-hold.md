@@ -36,7 +36,7 @@ Instance 3: The atom MUST NOT reach across store instances.
 Instance 4: The deployment MUST route a call to one store instance.
 Instance 5: [Read] MUST answer the store_name the read was routed to.
 Instance 6: A composing pattern MUST match the answered store_name against the record's own store instance.
-Instance 7: A composing pattern MUST NOT read an empty answer as unheld WHILE the store_name does not match.
+Instance 7: IF the answered store_name != the record's store instance THEN a composing pattern MUST NOT read an empty answer as unheld.
 ```
 
 Terms › `store instance`: one named hold store — a [Store Name] identifies it; a deployment runs one per organization, jurisdiction or business unit.

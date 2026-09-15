@@ -189,7 +189,7 @@ The refusal order is carried by each rule's own condition rather than by the ord
   ```
 - **Invariant 7 — No early purge.**
   ```text
-  Invariant 7.1: A retention MUST NOT stand in purged WHILE purge eligible = no.
+  Invariant 7.1: IF purge eligible = no THEN a retention MUST NOT stand in purged.
   ```
   WHY: this is the regulator's structural guarantee that an obligation cannot be silently shortened, and it is gated per retention_id — a retention's own retention_until and nothing else (Simultaneous retention 1–4).
 - **Invariant 8 — Purge timestamp consistency.**

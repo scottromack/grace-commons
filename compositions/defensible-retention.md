@@ -229,7 +229,7 @@ Primitive policy 8: The composition MUST answer invalid-request for a blank hold
 Primitive policy 9: The composition MUST answer invalid-request for a supplied blank case_ref.
 Primitive policy 10: The composition MUST answer invalid-request for a malformed supplied placed_at.
 Primitive policy 11: The composition MUST answer invalid-request for a malformed supplied released_at.
-Primitive policy 12: The composition MUST answer invalid-request for a payload field EXCEEDING the field's cap.
+Primitive policy 12: IF a payload field EXCEEDS the field's cap THEN the composition MUST answer invalid-request.
 Primitive policy 13: The composition MUST NOT call a constituent BEFORE judging the boundary predicate.
 Primitive policy 14: The composition MUST size the largest record an invocation writes against the field caps.
 Primitive policy 15: The composition MUST size a compensation record against the field caps.

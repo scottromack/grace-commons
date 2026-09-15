@@ -277,7 +277,7 @@ Check 2.2: An auditor MUST NOT need privileged access to the system to verify (I
 Check 3.1: An auditor MUST confirm that a single-byte change to the record set yields proof-invalid (Invariant 2.1, Operation 18).
 Check 4.1: An auditor MUST read verified, failed-verification and not-known as three distinct answers (Operation 14).
 Check 4.2: An auditor MUST read record-set-mismatch, proof-invalid and mechanism-verification-unavailable as three distinct reasons (Operation 16, Operation 17, Operation 18).
-Check 5.1: An auditor MUST bound a detected tampering between two adjacent anchored_at times WHERE anchors EXIST (Invariant 2.1, Identity 8).
+Check 5.1: IF the mechanism anchors at seal time THEN an auditor MUST bound a detected tampering between two adjacent anchored_at times (Invariant 2.1, Identity 8).
 Check 5.2: An auditor MUST read a bound between two adjacent sealed_at times as best-effort (Non-goal 8).
 Check 6.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
 Check 6.2: An auditor MUST read the deployment's mechanism (Operation 26).

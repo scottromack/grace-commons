@@ -48,7 +48,7 @@ Surface 1: EVERY line MUST belong to exactly one surface.
 Surface 2: The parser MUST read an unprefixed line in a normative block as normative.
 Surface 3: The parser MUST NOT read a line outside a normative block as normative.
 Surface 4: EVERY normative line MUST parse.
-Surface 5: A normative line MUST state WHAT.
+Surface 5: A normative line MUST state `WHAT`.
 Surface 6: WHY: MUST NOT create, satisfy or alter an obligation, an enumeration or a reverse-diff result.
 Surface 7: A reader MUST NOT infer normative GRACE from WHY:.
 Surface 8: A human or AI MAY generate WHY: from normative GRACE.
@@ -539,7 +539,7 @@ Reverse diff 5: The reverse diff MUST NOT report a change to WHY: or UX:.
 ```text
 Candidate form 1: The parser MUST treat a form as provisional until §21 admits the form.
 Candidate form 2: A spec MUST state a degraded rule in admitted forms under IF or WHEN.
-Candidate form 3: A spec MUST mark a DEGRADES TO pairing PROVISIONAL:.
+Candidate form 3: A spec MUST mark a `DEGRADES TO` pairing PROVISIONAL:.
 ```
 
 ```text

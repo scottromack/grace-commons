@@ -67,6 +67,65 @@ def vocabulary_categories(grammar_path=None):
 VOCABULARY_CATEGORIES = vocabulary_categories()
 
 
+# The capital-letter tier is the grammar's (Casing 2, Casing 6): a parser reads an
+# upper-case token as reserved before it looks anything up. Nothing checked the
+# converse, so WHILE and WHERE (watched, never admitted) and EXIST (an inflection
+# of EXISTS) sat in normative rules and both checkers passed them (council read
+# 79). The reserved set is derived from the grammar's own declarations, like the
+# category set above, so the checker holds no copy of its own.
+_RESERVED_SOURCES = ("reserved token", "quantifier", "modal", "condition operator",
+                     "tail", "reserved grammar verbs", "surface", "value sets")
+
+
+def reserved_capitals(grammar_path=None):
+    """(reserved, grammar-shaped) upper-case words, both derived from GRACE-lang.md.
+
+    reserved: every upper-case word inside a code span on the declarations that
+    enumerate the reserved tokens. grammar-shaped: the upper-case words of the
+    provisional forms and of the watch list (§18) — forms the grammar has named
+    and not admitted, so one in a rule is a finding and never a proper noun.
+    """
+    p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "GRACE-lang.md")
+    g = open(p, encoding="utf-8").read()
+    reserved: set[str] = set()
+    for name in _RESERVED_SOURCES:
+        m = re.search(r"^Terms › `" + re.escape(name) + r"`:(.*)$", g, re.M)
+        if not m:
+            raise SystemExit(f"check.py: GRACE-lang.md carries no Terms › `{name}` line; "
+                             "the reserved tokens have no authority to derive from (Casing 2)")
+        for span in re.findall(r"`([^`]+)`", m.group(1)):
+            reserved.update(re.findall(r"\b[A-Z]{2,}\b", span))
+    shaped: set[str] = set()
+    for line in re.findall(r"^PROVISIONAL: (.*)$", g, re.M):
+        shaped.update(re.findall(r"\b[A-Z]{2,}\b", line))
+    watch = re.search(r"^During the corpus rewrite.*$", g, re.M)
+    if watch:
+        shaped.update(re.findall(r"`([A-Z]{2,})`", watch.group(0)))
+    return reserved, shaped - reserved
+
+
+RESERVED_CAPITALS, GRAMMAR_SHAPED = reserved_capitals()
+CAPITAL_WORD = re.compile(r"\b[A-Z][A-Z0-9]+\b")
+
+
+def unreserved_capitals(text: str) -> tuple[list[str], list[str]]:
+    """(grammar-shaped, other) upper-case words in a rule that are not reserved.
+
+    Grammar-shaped: a provisional or watched form, or an inflection of a reserved
+    token (EXIST, EXCEEDING). Other: a proper noun written in capitals (an
+    acronym, the language's name) — whether a rule may carry one is a ruling the
+    grammar has not made, so it is reported and not decided.
+    """
+    shaped, other = [], []
+    for w in CAPITAL_WORD.findall(re.sub(r"`[^`]*`", " ", text)):
+        if w in RESERVED_CAPITALS:
+            continue
+        inflected = any(min(len(w), len(r)) >= 4 and (w.startswith(r) or r.startswith(w))
+                        for r in RESERVED_CAPITALS)
+        (shaped if (w in GRAMMAR_SHAPED or inflected) else other).append(w)
+    return shaped, other
+
+
 # a `>=` spelled as a two-arm disjunction: "<X> EXCEEDS <Y> OR <X> = <Y>", the
 # same operand pair in both arms. The condition operator set carries EXCEEDS and
 # `=` and nothing between them (Terms › `condition operator`). Counting this by
@@ -153,7 +212,7 @@ SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-two-obligations", "W-demonstrative", "W-comparator", "W-modal",
             "W-unconditional-effect", "W-condition-operator", "W-duplicate-proposition",
-            "W-ge-disjunction",
+            "W-ge-disjunction", "W-caps",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
 # F-prefix-first gates: a demoted rule is a deleted rule
@@ -403,6 +462,16 @@ def scan(path: Path) -> list[Finding]:
         body = CODE_SPAN.sub("QUOTED", r.text)  # a code span quotes text; never the rule's own tokens
         if body.startswith("PROVISIONAL:"):
             continue  # Surface 14: no normative force; not shape-checked
+        caps_shaped, caps_other = unreserved_capitals(r.text)
+        if caps_shaped:
+            add(r.line, "R-caps",
+                f"{r.label}: {', '.join(caps_shaped)} in capitals is not a reserved token — "
+                f"a watched or provisional form, or an inflection of one (Casing 2, Casing 6)")
+        if caps_other:
+            add(r.line, "W-caps",
+                f"{r.label}: {', '.join(caps_other)} in capitals is not a reserved token, and "
+                f"Casing 6 reads the capital tier as reserved (a proper noun in capitals "
+                f"awaits a ruling)")
         if body.startswith("WHEN "):
             if not body.endswith(":"):
                 add(r.line, "R-when-colon", f"{r.label}: WHEN condition must end with a colon")
