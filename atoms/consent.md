@@ -459,7 +459,7 @@ Who may grant on a subject's behalf, who may withdraw, and who may read the reco
 Clock semantics 1: The deployment MUST own the clock's monotonicity.
 Clock semantics 2: The deployment MUST own the clock's timezone handling.
 Clock semantics 3: The deployment MUST supply an honest now.
-Clock semantics 4: A guard MAY read now ONLY IF the call carries an instant.
+NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
 Clock semantics 5: [Grant] MUST guard a supplied expires_at against now.
 Clock semantics 6: [Revoke] MUST guard a supplied revoked_at against now.
 Clock semantics 7: The transition MUST NOT stamp granted_at from a caller-supplied instant.
@@ -467,9 +467,18 @@ Clock semantics 8: [Revoke] MAY record a revoked_at earlier than now.
 ```
 
 WHY:
-This atom accepts three caller-supplied instants — `expires_at`, `revoked_at` and `at_time` — and that is exactly why its guards read the clock where Message Preference's are forbidden to. A guard consults `now` to refuse a dishonest instant and for nothing else: a bound already in the past, a withdrawal dated in the future (Clock semantics 4–6). A backdated `revoked_at` is accepted on purpose — documenting a withdrawal recognized or communicated earlier is valid, and the floor is [Granted At] rather than [Now] (Clock semantics 8, Invariant 5.1).
+This atom accepts three caller-supplied instants — `expires_at`, `revoked_at` and `at_time` — and that is exactly why its guards read the clock where Message Preference's are forbidden to. A guard consults `now` to refuse a dishonest instant and for nothing else: a bound already in the past, a withdrawal dated in the future (Clock dependence 1, Clock semantics 5, Clock semantics 6). A backdated `revoked_at` is accepted on purpose — documenting a withdrawal recognized or communicated earlier is valid, and the floor is [Granted At] rather than [Now] (Clock semantics 8, Invariant 5.1).
 
 Nothing else consults it. [Granted At] is always the seam's reading and never the caller's, because the moment of agreement is the system's observation rather than the caller's claim (Clock semantics 7).
+
+### Clock dependence
+
+```text
+Clock dependence 1: A guard MAY read now ONLY IF the call carries an instant.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
 
 ### Concurrency
 

@@ -498,13 +498,23 @@ Byte-exactness means two `allocator_ref` values differing only in normalization 
 Clock semantics 1: The deployment MUST own the clock's monotonicity.
 Clock semantics 2: The deployment MUST own the clock's honesty.
 Clock semantics 3: The deployment MUST own the clock's timezone handling.
-Clock semantics 4: A guard MAY read now ONLY IF the guard derives a lapse.
-Clock semantics 5: A guard MUST NOT read now to admit a caller-supplied instant.
+NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
+NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
 Clock semantics 6: The atom MUST NOT reconcile two readers disagreeing across the deadline.
 ```
 
 WHY:
-This atom accepts no caller-supplied instant — the window arrives as a duration and every timestamp is the seam's reading — so the clock has exactly two jobs: stamping three immutable fields, and feeding the lapse derivation that three guards read (Clock semantics 4, Clock semantics 5). Two readers with skewed clocks near the deadline may briefly disagree on whether a record reads [Expired]; that is the read-time-derivation cost, bounded by the deployment's skew envelope, and harmless because no write is at stake (Clock semantics 6).
+This atom accepts no caller-supplied instant — the window arrives as a duration and every timestamp is the seam's reading — so the clock has exactly two jobs: stamping three immutable fields, and feeding the lapse derivation that three guards read (Clock dependence 1, Clock dependence 2). Two readers with skewed clocks near the deadline may briefly disagree on whether a record reads [Expired]; that is the read-time-derivation cost, bounded by the deployment's skew envelope, and harmless because no write is at stake (Clock semantics 6).
+
+### Clock dependence
+
+```text
+Clock dependence 1: A guard MAY read now ONLY IF the guard derives a lapse.
+Clock dependence 2: A guard MUST NOT read now to admit a caller-supplied instant.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
 
 ### Concurrency
 

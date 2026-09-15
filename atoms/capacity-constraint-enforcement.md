@@ -158,7 +158,7 @@ Operation 60: An action MUST answer storage-failure ONLY IF EVERY precondition p
 Operation 61: The host MUST read the clock at the seam.
 Operation 62: The transition MUST NOT read a clock.
 Operation 63: The business caller MUST NOT supply now.
-Operation 64: A guard MUST NOT read now.
+NOTE: Operation 64 deleted — Clock dependence 1 owns it.
 ```
 
 Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
@@ -558,13 +558,13 @@ Invariant 4.1 rests on the sum being computable. A deployment on fixed-width sig
 Clock semantics 1: The deployment MUST own the clock's monotonicity.
 Clock semantics 2: The deployment MUST own the clock's timezone handling.
 Clock semantics 3: The deployment MUST supply an honest now.
-Clock semantics 4: A guard MUST NOT read now.
-Clock semantics 5: A rejection MUST NOT rest on now.
+NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
+NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
 Clock semantics 6: A deployment needing verifiable wall-time order MUST compose a trusted-timestamping pattern.
 ```
 
 WHY:
-The clock has exactly one job here — stamping `declared_at` and each event's `recorded_at` — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock semantics 4, Clock semantics 5).
+The clock has exactly one job here — stamping `declared_at` and each event's `recorded_at` — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock dependence 1, Clock semantics 5).
 
 ## Composition notes
 
@@ -587,6 +587,16 @@ WHY:
 ## Terms
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
+
+### Clock dependence
+
+```text
+Clock dependence 1: A guard MUST NOT read now.
+Clock dependence 2: A rejection MUST NOT rest on now.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
 
 ### Vocabulary
 

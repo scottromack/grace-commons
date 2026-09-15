@@ -466,16 +466,26 @@ The format is the deployment's (Configuration 6, Non-goal 16), but one constrain
 Clock semantics 1: The deployment MUST own the clock's monotonicity.
 Clock semantics 2: The deployment MUST own the clock's honesty.
 Clock semantics 3: The deployment MUST own the clock's synchronization.
-Clock semantics 4: A guard MUST NOT read now.
-Clock semantics 5: A rejection MUST NOT rest on now.
+NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
+NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
 Clock semantics 6: The atom MUST NOT reconcile two readers disagreeing across the deadline.
 Clock semantics 7: A deployment needing an externally verifiable timestamp MUST compose a trusted-timestamping pattern.
 ```
 
 WHY:
-This atom accepts no caller-supplied instant — the window arrives as a duration, and every timestamp is the seam's reading — so no guard needs the clock to refuse anything, and no rejection in the taxonomy depends on it (Clock semantics 4, Clock semantics 5). The clock's only jobs are stamping two immutable fields and feeding one pure derivation.
+This atom accepts no caller-supplied instant — the window arrives as a duration, and every timestamp is the seam's reading — so no guard needs the clock to refuse anything, and no rejection in the taxonomy depends on it (Clock dependence 1, Clock semantics 5). The clock's only jobs are stamping two immutable fields and feeding one pure derivation.
 
 That derivation has a bounded consequence worth naming rather than hiding: two readers with slightly skewed clocks evaluating a session near its deadline may briefly disagree on whether it has lapsed. That is the standard read-time-derivation cost, it is bounded by the deployment's skew envelope, and it is harmless here because no write is at stake and revocation — the only stored terminal — is untouched by it (Clock semantics 6).
+
+### Clock dependence
+
+```text
+Clock dependence 1: A guard MUST NOT read now.
+Clock dependence 2: A rejection MUST NOT rest on now.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
 
 ### Concurrency
 

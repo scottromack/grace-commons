@@ -160,8 +160,8 @@ Operation 38: [Read] MUST NOT write.
 Operation 39: The host MUST read the clock at the seam.
 Operation 40: The transition MUST NOT read a clock.
 Operation 41: The business caller MUST NOT supply now.
-Operation 42: A guard MUST NOT read now.
-Operation 43: A rejection MUST NOT rest on now.
+NOTE: Operation 42 deleted — Clock dependence 1 owns it.
+NOTE: Operation 43 deleted — Clock dependence 2 owns it.
 ```
 
 Terms › `preference field`: `channel_preferences` | `frequency_limit` | `quiet_hours` | `format` — the four values a [Set] call must carry one of; `metadata` is not one.
@@ -490,6 +490,16 @@ Clock semantics 4: The deployment MUST disclose the clock tolerance.
 
 WHY:
 Because no precondition consults the reading, a non-monotonic clock degrades only the annotation and never an admission decision (Operation 42, Operation 43). The declared tolerance is what bounds how a supersession gap should be read, which is why Check 4.3 makes the disclosure part of acceptance rather than a deployment note.
+
+### Clock dependence
+
+```text
+Clock dependence 1: A guard MUST NOT read now.
+Clock dependence 2: A rejection MUST NOT rest on now.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition. Both rules stood under `Operation` until council read 75 swept the corpus by rule text rather than by family name; neither word changed.
 
 ### Supersession atomicity
 

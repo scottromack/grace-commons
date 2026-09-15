@@ -152,7 +152,7 @@ Operation 53: [Read] MUST NOT answer archived.
 Operation 54: The host MUST read the clock at the seam.
 Operation 55: The transition MUST NOT read a clock.
 Operation 56: The business caller MUST NOT supply now.
-Operation 57: A guard MUST NOT read now.
+NOTE: Operation 57 deleted — Clock dependence 2 owns it.
 Operation 58: An ordering rule MUST NOT rest on recorded_at.
 ```
 
@@ -458,12 +458,22 @@ Clock semantics 1: The deployment MUST own the clock's monotonicity.
 Clock semantics 2: The deployment MUST own the clock's honesty.
 Clock semantics 3: The deployment MUST own the clock's synchronization.
 Clock semantics 4: A guard MUST NOT rest on recorded_at.
-Clock semantics 5: A rejection MUST NOT rest on now.
+NOTE: Clock semantics 5 deleted — Clock dependence 1 owns it.
 Clock semantics 6: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
 No invariant here is at risk from a bad clock, because ordering rests on `sequence_number` and never on `recorded_at` (Invariant 5.3, Operation 58). Where a custodial timestamp carries legal force — a chain-of-custody stamp in court proceedings, a pharmaceutical distribution record — the deployment sources time from a trustworthy clock, and RFC (Request for Comments) 3161 trusted timestamping supplies the verifiable anchor (Clock semantics 6).
+
+### Clock dependence
+
+```text
+Clock dependence 1: A rejection MUST NOT rest on now.
+Clock dependence 2: A guard MUST NOT read now.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
 
 ### Concurrency
 

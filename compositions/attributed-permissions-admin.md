@@ -190,6 +190,7 @@ Capability requirement 33: A deployment MUST NOT gate a grantor's authority at t
 ```
 
 Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one nonce here.
+Terms › `now`: the wall-time reading the host injects at the seam, one per invocation (`Clock semantics 1`); never read inside the transition (`Clock semantics 3`).
 
 Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 
@@ -776,18 +777,27 @@ Clock semantics 4: A signature MUST NOT carry a clock reading.
 Clock semantics 5: The request instant MUST stand informational within a proposal.
 Clock semantics 6: The nonce MUST carry a proposal's uniqueness.
 Clock semantics 7: The request instant MUST NOT carry a proposal's uniqueness.
-Clock semantics 8: A guard MUST NOT rest on a clock reading at this composition.
+NOTE: Clock semantics 8 deleted — Clock dependence 1 owns it.
 Clock semantics 9: A reader MUST read a constituent's stamp as that constituent's own seam reading.
 Clock semantics 10: A reader MUST NOT read two constituents' stamps as one clock.
 Clock semantics 11: A check comparing two seams' stamps MUST run under the clock skew allowance.
 ```
 
 WHY:
-Clock semantics 6 through Clock semantics 8 are why a skewed reading here is harmless. Proposal uniqueness rests on the **nonce**, never on the instant, so two proposals sharing a request instant are still distinct; and no guard at this layer is time-gated, so a skewed reading can mis-annotate a proposal and can never admit or refuse a call. A backward clock adjustment shows up as a discontinuity in the records and changes no decision.
+Clock semantics 6, Clock semantics 7 and Clock dependence 1 are why a skewed reading here is harmless. Proposal uniqueness rests on the **nonce**, never on the instant, so two proposals sharing a request instant are still distinct; and no guard at this layer is time-gated, so a skewed reading can mis-annotate a proposal and can never admit or refuse a call. A backward clock adjustment shows up as a discontinuity in the records and changes no decision.
 
 Clock semantics 9 through Clock semantics 11 keep the two constituents' stamps apart. The attestation's stamp is written at Actor Identity's seam and the grant's at Permissions', and nothing here claims they are one clock — which is why Invariant 4 is read under the allowance and why no write rests on it. A deployment that needs an adversarially-defensible ordering composes Trusted Timestamping, which Non-goal 17 says this composition does not do for it.
 
 ---
+
+## Clock dependence
+
+```text
+Clock dependence 1: A guard MUST NOT rest on now at this composition.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what an invocation stamps from it. The rule keeps the words it carried under `Clock semantics`; only the heading changed.
 
 ## Atomic writes
 
