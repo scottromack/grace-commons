@@ -17,13 +17,13 @@ toc: true
 
 ## Summary
 
-Customer Onboarding is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves a problem none of its constituents solves alone: ensuring that an external party (customer, counterparty, beneficial owner) reaches regulated activity only after their identity has been verified through an attributed, tamper-evident process, that the relationship is monitored on an ongoing basis with adverse triggers driving suspension, and that the identity record survives for the regulator-mandated period after the relationship ends. It wires three constituents: Party Identity (the persistent, verifiable identity record with its Unverified → Verified → Suspended → Closed lifecycle), Retention Window (the policy-bounded record lifetime, used in two distinct placements — one at relationship start, one at relationship end), and the Audit Trail substrate (the tamper-evident — designed so unauthorized changes are detectable — regulated-audit substrate that attribution-stamps and seals every state-changing decision).
+Customer Onboarding is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves a problem none of its constituents solves alone: ensuring that an external party (customer, counterparty, beneficial owner) reaches regulated activity only after their identity has been verified through an attributed, tamper-evident process, that the relationship is monitored on an ongoing basis with adverse triggers driving suspension, and that the identity record survives for the regulator-mandated period after the relationship ends. It wires three constituents: Party Identity (the persistent, verifiable identity record with its Unverified → Verified → Suspended → Closed lifecycle), Retention Window (the policy-bounded record lifetime, used in two distinct placements — one renewed through the relationship, one at relationship end), and the Audit Trail substrate (the tamper-evident — designed so unauthorized changes are detectable — regulated-audit substrate that attribution-stamps and seals every state-changing decision).
 
-The composition's defining emergent guarantee (a property that appears only when atoms are combined — no single atom carries it) is verification-gates-activity: a single read-only query, `activity_permitted(party_id)`, returns `permitted` if and only if the party has an onboarding case with this composition **and** Party Identity reports it in `Verified` state — a party verified outside the composition's own case surface does not pass. Activity systems consume this query rather than reading Party Identity directly, so the gate is implemented exactly once instead of re-implemented (or skipped) per activity system. The composition is the layer that centralizes both that the `Verified` state was reached through an attributed, tamper-evident verification (recorded in the Audit Trail) and that the gate query is the single surface activity consumes. This is the structural form of the check-the-customer-before-business obligation that US banking law names Customer Due Diligence (CDD) under the Bank Secrecy Act / Anti-Money Laundering rules (BSA/AML).
+The composition's defining emergent guarantee (a property that appears only when atoms are combined — no single atom carries it) is verification-gates-activity: a single read-only query, [Activity Permitted], answers `permitted` if and only if the party has an onboarding case with Customer Onboarding **and** Party Identity reports the party in `Verified` state — a party verified outside the composition's own case surface does not pass. Activity systems consume this query rather than reading Party Identity directly, so the gate is implemented exactly once instead of re-implemented (or skipped) per activity system. Customer Onboarding is the layer that centralizes both that the `Verified` state was reached through an attributed, tamper-evident verification (recorded in the Audit Trail) and that the gate query is the single surface activity consumes. This is the structural form of the check-the-customer-before-business obligation that US banking law names Customer Due Diligence (CDD) under the Bank Secrecy Act / Anti-Money Laundering rules (BSA/AML).
 
-Beyond the gate, the composition guarantees four further emergent properties. Every `Unverified → Verified` transition produces a tamper-evident Audit Trail event carrying the verification identifiers. Every adverse monitoring trigger produces an Audit Trail event ordered before any suspension it precipitates, so no trigger-driven suspension exists in the records without its precipitating trigger ordered ahead of it. A party reinstated after an adverse trigger has a `passed` verification recorded after the most recent suspend (Party Identity Invariant 4, surfaced at the composition layer with audit coverage). The party record is under a live Retention Window placement at every instant of the relationship — renewed at each periodic review, because a placement is fixed-duration and nothing else renews it — and a closed party's record cannot be purged before its post-closure floor (the BSA/AML five-year period under 31 CFR (Title 31 of the Code of Federal Regulations) §1020.220) elapses.
+Beyond the gate, the composition guarantees four further emergent properties. Every `Unverified → Verified` transition produces a tamper-evident Audit Trail event carrying the verification identifiers. Every adverse monitoring trigger produces an Audit Trail event ordered before any suspension it precipitates, so no trigger-driven suspension exists in the records without its precipitating trigger ordered ahead of it. A party reinstated after an adverse trigger has a `passed` verification recorded after the most recent suspend, and the clearing actor — whose credential this composition verifies — attests that the fresh evidence was recorded before the reinstatement. The party record is under a live Retention Window placement at every instant of the relationship — renewed at each periodic review, because a placement is fixed-duration and nothing else renews it — and a closed party's record cannot be purged before its post-closure floor (the BSA/AML five-year period under 31 CFR (Title 31 of the Code of Federal Regulations) §1020.220) elapses.
 
- Its most common uses are retail and commercial bank customer onboarding under BSA/AML, broker-dealer counterparty onboarding, payments-processor merchant onboarding, and crypto-exchange customer onboarding under the EU 5th Anti-Money Laundering Directive (AMLD5). Any system that must prove, from records alone, that every party with regulated activity was verified before that activity, that adverse triggers were acted on, and that closed-party records were retained for the mandated post-closure period, is a candidate for this composition.
+Its most common uses are retail and commercial bank customer onboarding under BSA/AML, broker-dealer counterparty onboarding, payments-processor merchant onboarding, and crypto-exchange customer onboarding under the EU 5th Anti-Money Laundering Directive (AMLD5). Any system that must prove, from records alone, that every party with regulated activity was verified before that activity, that adverse triggers were acted on, and that closed-party records were retained for the mandated post-closure period, is a candidate for this composition.
 
 ---
 
@@ -31,21 +31,69 @@ Beyond the gate, the composition guarantees four further emergent properties. Ev
 
 Every financial institution that admits an external customer faces the same regulated arc, and the arc is the same whether the institution is a retail bank, a broker-dealer, a payments processor, or a crypto exchange. The customer's identity must be established and verified before regulated activity begins; the verified status must be the precondition any account-opening, transaction, or service-provisioning system checks; the relationship must be monitored on an ongoing basis so that a sanctions match, a politically-exposed-person (PEP — Politically Exposed Person) status change, or adverse media triggers suspension and re-verification; and when the relationship ends, the identity record and its Customer Due Diligence (CDD) evidence must survive for a regulator-mandated period after closure. FATF (Financial Action Task Force — the international standard-setter for anti-money-laundering and counter-terrorist-financing rules) Recommendations 10–12 name the arc as Customer Due Diligence: identify, verify, conduct ongoing monitoring. BSA/AML (Bank Secrecy Act / Anti-Money Laundering) 31 CFR §1020.220 fixes the record-retention floor at five years after the business relationship ends. The domain varies; the structural obligation is constant.
 
-Neither Party Identity nor Retention Window, alone, enforces this arc. Party Identity owns the verification lifecycle — Unverified, Verified, Suspended, Closed — and the structural guarantee that a party cannot reach Verified without a recorded `passed` verification after the most recent suspension (Party Identity Invariant 4). But Party Identity exposes no gate: it records that a party is Verified, but it does not enforce that activity systems consult that state, and it does not know what "regulated activity" means. Retention Window owns the record-lifetime clock, but it has no knowledge of when a relationship begins or ends; it takes a `policy_ref` and a `record_ref` and enforces a no-early-purge guarantee, nothing more. The Audit Trail substrate records attributed, tamper-evident, retention-bounded events, but it does not know which events constitute a verification chain or a monitoring history. The structure that makes the three coherent as a single Customer Due Diligence surface — the gate that centralizes the verification precondition, the monitoring schedule that drives re-verification, the two distinct retention placements that bracket the relationship — belongs to no single constituent. It belongs to the composition, and this composition is that structure.
+Neither Party Identity nor Retention Window, alone, enforces this arc. Party Identity owns the verification lifecycle — Unverified, Verified, Suspended, Closed — and refuses a reinstatement without a recorded `passed` verification after the most recent suspension (Party Identity Invariant 4). But Party Identity exposes no gate: it records that a party is Verified, and it neither enforces that activity systems consult that state nor knows what regulated activity means. Retention Window owns the record-lifetime clock, and knows nothing of when a relationship begins or ends; it takes a `policy_ref` and a `record_ref` and enforces a no-early-purge guarantee, nothing more. The Audit Trail substrate records attributed, tamper-evident, retention-bounded events, and does not know which events constitute a verification chain or a monitoring history. The structure that makes the three coherent as a single Customer Due Diligence surface — the gate that centralizes the verification precondition, the monitoring schedule that drives re-verification, the placements that bracket the relationship — belongs to no single constituent. It belongs to the composition, and this composition is that structure.
 
-This is a composition, not a new primitive. Party Identity, Retention Window, and Audit Trail are unchanged; the composition is the wiring that makes them coherent as a single Customer Due Diligence surface. It introduces emergent actions — [Initiate Onboarding], [Clear Review], [Activity Permitted] — that belong to no single constituent and exist only because the three are wired together. The [Clear Review] action, in particular, wraps a Party Identity `verify(passed)`, a Party Identity `reinstate`, and two Audit Trail records into one named surface, so that clearing an adverse-trigger investigation is a single auditable act rather than a sequence of leaked atom internals an operator must orchestrate by hand.
+This is a composition, not a new primitive. Party Identity, Retention Window, and Audit Trail are unchanged; the composition is the wiring that makes them coherent as a single Customer Due Diligence surface. It introduces emergent actions — [Initiate Onboarding], [Clear Review], [Activity Permitted] — that belong to no single constituent and exist only because the three are wired together. [Clear Review], in particular, wraps a Party Identity `verify(passed)`, a Party Identity `reinstate`, and two Audit Trail records into one named surface, so that clearing an adverse-trigger investigation is a single auditable act rather than a sequence of leaked atom internals an operator must orchestrate by hand.
 
-What the composition is *not*: it is not the verification workflow (document OCR (Optical Character Recognition), biometric check, sanctions-database query — those produce the `verification_result` Party Identity records); it is not the risk-scoring or enhanced-due-diligence (EDD) engine (whether a party requires EDD versus standard CDD is Party Identity's named composing concept, not this composition's); it is not the consent surface for downstream non-obligatory processing (the Customer Due Diligence processing basis is GDPR (General Data Protection Regulation) Article 6(1)(c) legal obligation, not consent — a Pass 2 finding, in the commit history); and it is not the scheduling engine (the composition holds schedule state but an external scheduler fires the monitoring triggers). Each is named explicitly in Edge cases.
+What the composition is *not*: it is not the verification workflow (document OCR (Optical Character Recognition), biometric check, sanctions-database query — those produce the `verification_result` Party Identity records); it is not the risk-scoring or enhanced-due-diligence (EDD) engine; it is not the consent surface for downstream non-obligatory processing (the Customer Due Diligence processing basis is GDPR (General Data Protection Regulation) Article 6(1)(c) legal obligation, not consent); and it is not the scheduling engine (the composition holds schedule state and an external scheduler fires the monitoring triggers). Each is named explicitly in Non-goals.
 
 ---
 
 ## Composes
 
-- **[Party Identity](../atoms/party-identity.md)** — the primary data-bearing constituent: the persistent, verifiable identity record with the Unverified → Verified → Suspended → Closed lifecycle. The composition calls `enroll` (only on the direct-enrollment path; see Flow), `verify`, `suspend`, `reinstate`, and `close`, and reads party state via the atom's declared `read` query (the [Activity Permitted] gate, the external branch's existence-and-state checks, and [Trigger Monitoring Review]'s adverse pre-check all consume it). The composition maintains exactly one Party Identity instance. Party Identity's structural guarantee that `Verified` requires a `passed` verification after the most recent suspend (Invariant 4) is the foundation the verification-gates-activity decision rests on; the composition adds the gate query and the audit coverage that Party Identity by design does not.
-- **[Retention Window](../atoms/retention-window.md)** — the policy-bounded record lifetime. The composition uses **two distinct retention placements over the same `party_id`**, both against this single Retention Window instance: an *active-relationship* placement at [Initiate Onboarding] (governing the party/CDD record while the relationship is live) — **renewed by a fresh placement at every periodic review** ([Trigger Monitoring Review], periodic path), because a Retention Window placement is fixed-duration and its policy immutable per `retention_id`, so a relationship that outlives one placement's `duration` is covered by a chain of them rather than by one record nothing renews — and a *post-closure* placement at [Close Party] (the BSA/AML five-year floor under 31 CFR §1020.220). The placements are separate Retention Window records with distinct `retention_id`s; Retention Window's own edge case on *multiple simultaneous retentions for the same record* is the constituent guarantee that makes the two-placement model valid. This Retention Window instance is **distinct from the Retention Window instance inside the Audit Trail substrate**, which governs the audit *events*; the two instances and their policies differ (see Edge cases — *Two Retention Window instances*). This composition calls `place_under_retention` only; `purge` is the host's or a composing Defensible Retention layer's responsibility, so Retention Window's purge-family rejections (`not-retained`, `retention-period-not-elapsed`, and that family's kin) do not surface at this composition's boundary.
-- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate. Every state-changing action the composition exposes records here as one `record_action` call, producing an Event Log entry, an Actor Identity attestation, a Retention Window record (for the audit event), and a Tamper Evidence seal per the substrate's cadence. The composition maintains exactly one Audit Trail instance configured with the host's regulatory retention policy for audit events. **Actor Identity is reached transitively through Audit Trail** — the composition does not maintain a separate Actor Identity instance; the `actor_ref` and `credential` passed to each composition action flow to `AuditTrail.record_action`, which binds the actor cryptographically via the Actor Identity atom inside the substrate. Event Log, Tamper Evidence, and the audit-event Retention Window are likewise reached transitively. **Instance capability requirement:** every rebuild procedure and every traversal-clearable check this composition states enumerates the audit log in full — Audit Trail's list-shaped read **by sequence-number range**, the one query shape the substrate passes through to Event Log unchanged, over the range beginning at 1 **with an open upper bound** — and selects composition-side on the returned events' `action_ref` and payload fields. The wired Audit Trail instance must therefore expose that open-upper-bound sequence-range read (the same requirement the substrate places on its own Event Log). The composition never asks the substrate for "every event of class X": that is a payload-field query Event Log's *Reverse lookup / indexing* edge case routes to a separate Reverse Index pattern and Audit Trail declines to absorb, so a rebuild written as "find the `customer-onboarding.initiated` events" would name a surface no constituent declares. A deployment that composes Reverse Index over the audit log may use it to accelerate the selection; the enumeration is the declared route and the one an auditor reproduces (Composition state — *Records-alone enumeration*).
+- **[Party Identity](../atoms/party-identity.md)** — the persistent, verifiable identity record and its lifecycle.
+- **[Retention Window](../atoms/retention-window.md)** — the policy-bounded lifetime of the party record.
+- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every decision is recorded through.
 
-The Event Log, Actor Identity, Tamper Evidence, and audit-event Retention Window atoms are reached transitively through Audit Trail; the composition does not maintain separate instances of those atoms at this layer.
+```text
+Composes 1: EXACTLY ONE Party Identity instance MUST serve the composition.
+Composes 2: EXACTLY ONE Retention Window instance MUST serve the composition.
+Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
+Composes 4: The composition MUST NOT change a constituent's spec.
+Composes 5: The composition MUST inherit a constituent's invariants PER `execution-contract.md` §Conformance.
+Composes 6: The composition MUST read Audit Trail as a substrate PER `execution-contract.md` §Substrate composition invocation.
+Composes 7: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
+Composes 8: The party retention instance MUST NOT govern an audit event.
+Composes 9: The composition MUST reach a constituent through the constituent's declared surface.
+Composes 10: The composition MUST NOT read a constituent's store beside the constituent's declared read.
+Composes 11: The composition MUST NOT call Retention Window's purge.
+Composes 12: The composition MUST read the substrate's events by an open-ended sequence range.
+Composes 13: The composition MUST select an event in the composition's own code.
+Composes 14: The composition MUST NOT query the substrate by a payload predicate.
+Composes 15: The composition MUST attest an invocation's audit record under the calling actor's credential.
+Composes 16: The composition MUST attest the reconciliation's audit record under the service identity.
+Composes 17: The composition MUST NOT attest the reconciliation's audit record under a calling actor's credential.
+Composes 18: The composition MUST call Party Identity's enroll ONLY IF the direct path stands.
+Composes 19: The composition MUST own EVERY verification transition on the Party Identity instance.
+Composes 20: A deployment MUST NOT admit a second writer of a verification transition on the Party Identity instance.
+Composes 21: The composition MUST place a party retention through Retention Window's place_under_retention.
+Composes 22: The composition MUST read a placement's policy_ref, retained_at, retention_until AND purge eligibility through Retention Window's declared read.
+Composes 23: The composition MUST read a party's state through Party Identity's declared read.
+Composes 24: The composition MUST read an audit record through Audit Trail's read_record.
+Composes 25: The composition MUST verify an audit record through Audit Trail's verify_record.
+Composes 26: The composition MUST NOT call Audit Trail's purge_event.
+```
+
+Terms › `composition`: this pattern's wiring of party identity(../atoms/party-identity.md), retention window(../atoms/retention-window.md) and the audit trail(./audit-trail.md) substrate — the six actions, the gate, the four indexes and the reconciliation.
+
+Terms › `constituents`: party identity(../atoms/party-identity.md), retention window(../atoms/retention-window.md), audit trail(./audit-trail.md).
+
+Terms › `party retention instance`: the one retention window(../atoms/retention-window.md) instance this composition wires over party records — distinct from the instance audit trail(./audit-trail.md) carries for the substrate's own events.
+
+Terms › `service identity`: `application_actor_ref` and `application_credential` — the composition's own registered actor and credential, and the attested emitter of every record the reconciliation writes.
+
+Terms › `direct path`: an [Initiate Onboarding] call carrying no `party_id`, on which the composition enrolls the party.
+
+Terms › `external path`: an [Initiate Onboarding] call carrying a `party_id` External Onboarding already enrolled.
+
+WHY:
+Composes 6 and Composes 7 name the substrate relation. audit trail(./audit-trail.md) is a composition, not an atom, so Event Log, Actor Identity, Tamper Evidence and the audit instance's own Retention Window are reached *through* it and this composition holds no instance of any of them — `execution-contract.md` §Substrate composition invocation is what makes that a declared topology rather than an accident. Composes 8 is where the corpus's *declared multi-instance topology* clause bites twice in one spec: two Retention Window instances exist here, one governing party records and one governing the audit events that record their governance, and much of this composition's evidence story turns on which of the two a sentence means.
+
+Composes 12 through Composes 14 declare the read capability exactly, because the substrate declares no secondary index. Every selection this spec describes — the rebuilds, the reconciliation's comparisons, the acceptance checks — is enumerate-and-filter in composition code over an open-ended sequence range. That range read is one of the two query shapes the substrate passes through; the other is the singleton range the substrate builds from its own index, which no caller reaches. A payload-predicate query is the forthcoming Reverse Index pattern's shape, and a deployment may compose one over the trail as an instance optimization without changing what any procedure here computes.
+
+Composes 15 through Composes 17 split attestation by who is present. Every write an action makes inside its own invocation is attested by the calling operator, whose credential the substrate verifies inside the write. The reconciliation runs when that operator is gone and their credential was never persisted, so a reconciliation write attested as theirs would be a false attribution; it is attested under the service identity with the human named in the payload instead.
+
+Composes 19 and Composes 20 are the write-side half of the gate. [Activity Permitted] reads Party Identity's state, so a party driven to `Verified` by a second writer on a shared instance would pass the gate with no verification record of this composition's — which is Invariant 2's coverage broken from outside, and the mirror of an activity system bypassing the gate. Composes 22 and Composes 23 name the two constituent reads this composition depends on, so a wired instance that does not expose them is a configuration fault an auditor can name rather than a surprise a rebuild discovers.
 
 ---
 
@@ -53,495 +101,1142 @@ The Event Log, Actor Identity, Tamper Evidence, and audit-event Retention Window
 
 ### Composition state
 
-The composition owns emergent state that wires the three constituents into one queryable Customer Due Diligence surface. None of this state belongs to a single constituent. Every element carries its Contract classification per [`execution-contract.md`](../execution-contract.md) §Composition state — three elements are wholly **derived indexes** over the composition's own audit events, each with a named rebuild procedure; one element, `case_to_monitoring`, splits: its case-to-party binding is a derived index, while its monitoring-schedule half is **extraction-pending** against a named proposed atom.
+```text
+Composition state 1: The composition MUST store a case-to-monitoring index.
+Composition state 2: The composition MUST store a party-to-case index.
+Composition state 3: The composition MUST store a case-to-retentions index.
+Composition state 4: The composition MUST store a case-to-open-triggers index.
+Composition state 5: The composition MUST classify EVERY index as derived index.
+Composition state 6: EVERY index MUST carry a rebuild.
+Composition state 7: An index MUST NOT stand inside an action's atomicity surface.
+Composition state 8: An index MUST NOT claim cross-constituent transactional consistency.
+Composition state 9: An action MUST read an index under rebuild on miss.
+Composition state 10: An absent index entry MUST stand as a miss.
+Composition state 11: An index entry carrying no value for a read field MUST stand as a miss.
+Composition state 12: An empty open-trigger set MUST NOT stand as a miss.
+Composition state 13: A false active flag MUST NOT stand as a miss.
+Composition state 14: An absent post closure placement MUST NOT stand as a miss.
+Composition state 15: A rebuild MUST select an event over an open-ended sequence range.
+Composition state 16: A rebuild MUST select an event by the event's action_ref.
+Composition state 17: A rebuild MUST read an event's action_ref through Audit Trail's read_record.
+Composition state 18: A rebuild MUST NOT read an aged-out event's payload.
+Composition state 19: A rebuild MUST recognize an aged-out event PER event.
+Composition state 20: An entry whose binding-bearing events stand aged out MUST stand unrebuildable.
+Composition state 21: An unrebuildable entry MUST NOT stand as a miss.
+Composition state 22: The composition MUST alert on an unrebuildable entry.
+Composition state 23: The rebuild of the party-to-case index MUST select the initiated events AND the retention renewed events.
+Composition state 24: The rebuild of the party-to-case index MUST take the case_id AND the enrollment_path from the latest selected payload PER party_id.
+Composition state 25: The rebuild of the party-to-case index MUST stand a case active ONLY IF no party closed event names the case_id.
+Composition state 26: The rebuild of the case-to-monitoring index MUST take the party_id from the latest binding-bearing payload PER case_id.
+Composition state 27: The rebuild of the case-to-monitoring index MUST take the opened_at from the initiated payload.
+Composition state 28: The rebuild of the case-to-monitoring index MUST take the next review due from the latest schedule-bearing payload PER case_id.
+Composition state 29: The rebuild of the case-to-retentions index MUST take the current placement from the latest placement-bearing payload PER case_id.
+Composition state 30: The rebuild of the case-to-retentions index MUST take the post closure placement from the party closed payload.
+Composition state 31: The rebuild of the case-to-open-triggers index MUST select the adverse monitoring triggered events PER case_id.
+Composition state 32: The rebuild of the case-to-open-triggers index MUST drop a trigger a trigger voided event names.
+Composition state 33: The rebuild of the case-to-open-triggers index MUST drop a trigger a party closed event's open triggers at close names.
+Composition state 34: The rebuild of the case-to-open-triggers index MUST drop a trigger a review cleared event's closed triggers names ONLY IF the clearance's party reinstated event stands landed.
+Composition state 35: The composition MUST populate an index ONLY AFTER the index's backing outcome.
+Composition state 36: EXACTLY ONE active case MUST stand PER party.
+Composition state 37: A case MUST name EXACTLY ONE party.
+Composition state 38: EXACTLY ONE current placement MUST stand PER active case.
+Composition state 39: A case MUST NOT carry two post closure placements.
+Composition state 40: A closed case MUST carry a post closure placement.
+Composition state 41: An open trigger MUST name EXACTLY ONE case.
+Composition state 42: A case MAY carry no open trigger.
+Composition state 43: A case MAY carry two open triggers.
+Composition state 44: A party-to-case entry MUST name a party the Party Identity instance holds.
+Composition state 45: A case-to-retentions entry MUST name a retention the party retention instance holds.
+Composition state 46: A case-to-monitoring entry MUST stand for a closed case.
+Composition state 47: The composition MUST NOT drop a case-to-monitoring entry.
+Composition state 48: The composition MUST NOT store a review due flag.
+Composition state 49: The composition MUST NOT store an overdue flag.
+Composition state 50: The composition MUST NOT duplicate a constituent's store.
+```
 
-**Records-alone enumeration — the declared route.** Wherever a rebuild procedure or a Generation acceptance check below reads "enumerate the audit log and select", the procedure is: issue Audit Trail's list-shaped read by sequence-number range over `[1 .. open]` — the pass-through query the substrate declares, and the instance capability *Composes* requires — and keep, composition-side, the returned events whose `action_ref` (and, where stated, payload field) matches. Selection is never delegated to the substrate, which declines payload-field queries. Past the audit horizon an event's `data` is destroyed in its entirety while its attestation keeps `action_ref`, `actor_ref` and `attested_at` readable, so an enumeration still *recognizes* a purged `customer-onboarding.*` event by class but can no longer read the `case_id`, `party_id` or ids its payload carried — which is what bounds every rebuild below by the horizon.
+Terms › `case-to-monitoring index`: `case_to_monitoring` — the composition's index from a `case_id` to the case's `party_id`, `opened_at` and [Next Review Due]; the auditor's first query surface for monitoring continuity.
 
-- **`case_to_monitoring`** — map from `case_id` to `{party_id, opened_at, next_review_due}`. The monitoring schedule entry for an active onboarding case. Populated by [Initiate Onboarding]; [Next Review Due] advanced by [Record Verification] (on a state-changing pass), [Trigger Monitoring Review] (on periodic-review-due), and [Clear Review]. It does **not** advance on an adverse-trigger suspension or on a re-verification of an already-`Verified` party; a long-`Suspended` party's `next_review_due` intentionally does not roll forward until [Clear Review] reinstates the party. The entry persists for the life of the active relationship; it is the composition's record that a party is under continuing monitoring. A `Verified` party with no entry here is a structural finding, not a valid state (Invariant 6). This is the auditor's first query surface for monitoring continuity. **The element's classification splits.** *The `case_id → party_id` binding* — **derived index**; *rebuild procedure:* enumerate the audit log and select `customer-onboarding.initiated` **and `customer-onboarding.retention-renewed`** events (the declared route, *Records-alone enumeration*), taking `{case_id, party_id}` from the **latest** such payload per case — every renewal re-carries the binding, so the binding is rebuildable for as long as the relationship keeps being reviewed, not merely for as long as the intake event survives. *The schedule half (`opened_at`, `next_review_due`)* — **extraction-pending**, and rebuildable in the interim: the schedule is a genuine state machine (the advance rules above, plus the deliberate freeze on `Suspended`) whose truth no constituent owns — it clears the extraction gates, and the named proposed atom is a **Review Schedule** atom *(forthcoming)* owning recurring-review deadlines (open / advance / freeze / read) that this composition would then compose; until that extraction lands the pair is flagged debt, named rather than normalized. In the interim the schedule is nonetheless **records-alone rebuildable**, because every schedule-writing action stamps its result into its audit event: `opened_at` and the initial `next_review_due` ride the `customer-onboarding.initiated` payload, and each advance rides the payload of the event its action records ([Record Verification]'s `verification-recorded` on a state-changing pass, [Trigger Monitoring Review]'s `monitoring-triggered` on the periodic path, [Clear Review]'s `party-reinstated` — the record that lands after the reinstate commits, so the trail never carries an advanced deadline for a party still `Suspended`) — the current `next_review_due` is the latest such payload value in Event Log order (Generation acceptance check 5 verifies exactly this).
-- **`party_to_case`** — map from `party_id` to `{case_id, enrollment_path, active}` where `enrollment_path ∈ {direct, external-onboarding}` records whether the party was enrolled by this composition (`direct`) or admitted upstream by External Onboarding (`external-onboarding`), and `active` is a boolean cleared by [Close Party]. Required so the composition can resolve a `party_id` back to its case for the gate query and the closure path, and so an auditor can join activity records (keyed by `party_id`) to the onboarding case. Populated by [Initiate Onboarding]; `active` set false by [Close Party]. *Relation, declared:* **one active case per party** — [Initiate Onboarding] rejects `already-onboarded` while an active entry exists, so the map holds each party's *current* case; a returning customer after [Close Party] re-onboards by fresh enrollment (a **new** `party_id` with its own entry — [Initiate Onboarding] step 2's `party-closed` guard forecloses reusing the Closed party record), and the full case history stays in the `customer-onboarding.initiated` events, which the map never overwrites. **Contract classification: derived index.** *Rebuild procedure:* enumerate the audit log and select `customer-onboarding.initiated` **and `customer-onboarding.retention-renewed`** events, keeping the latest per `party_id` in Event Log order (`{case_id, enrollment_path}` from the payload — every renewal re-carries both, which is what makes a relationship longer than the audit horizon rebuildable at all); `active` is true iff no `customer-onboarding.party-closed` event names that `case_id`. **The rebuild is bounded by the audit instance's horizon, and this map is a live gate rather than an audit convenience.** The traversal reads `customer-onboarding.initiated` payloads, whose `data` the substrate destroys in its entirety at the horizon — the event stays recognizable by the `action_ref` its attestation keeps readable, but `case_id`, `party_id` and `enrollment_path` lived in the payload, so past it the entry is **not rebuildable**. The classification splits by retention state accordingly. **What that costs is the declared one-active-case-per-party relation:** [Initiate Onboarding] rejects `already-onboarded` while an active entry exists, so a party whose entry is lost and unrebuildable reads as never onboarded, and a **second active case is opened for a party that already has one** — the relation this entry declares, broken silently, with both cases thereafter legitimate-looking. `case_id` has **no second source**: Party Identity holds the party, not the case, which is composition-introduced.
+Terms › `party-to-case index`: `party_to_case` — the composition's index from a `party_id` to the party's `case_id`, `enrollment_path` and `active` flag; the gate's first read and the join an auditor makes from an activity record to an onboarding case.
 
-  The ordering that keeps it sound is already expressible in this composition's own vocabulary, which is why it is stated as an obligation rather than a caution: **`audit_trail_retention_policy`'s horizon must exceed `monitoring_interval` plus the deployment's scheduler-lateness tolerance, plus the post-closure retention (`post_closure_retention_policy_ref`)** — because the binding is re-carried by every `customer-onboarding.retention-renewed` event, the live relationship needs the horizon to outlast one *review cadence*, not the relationship: an active case always has a binding-bearing event younger than one interval, and a closed one needs its last renewal or its `party-closed` event to survive the post-closure floor. An earlier draft compared the horizon against one active-relationship placement's `duration`, which bounds nothing — the relationship is a chain of placements as long as the customer stays, and the page's own walkthrough (a nine-year audit horizon over an eleven-year relationship) satisfied that obligation and still lost the binding two years before closure. All three values are Configuration this composition declares, so the comparison is one an auditor can make from the records.
+Terms › `case-to-retentions index`: `case_to_retentions` — the composition's index from a `case_id` to the current placement and the post closure placement.
 
-  The Contract's three obligations follow: the map sits **outside the actions' atomicity surface**, a missing or lost entry is a **rebuild trigger, not data loss** (reads consult it with rebuild-on-miss semantics) within that horizon, and it claims no cross-constituent transactional consistency.
-- **`case_to_retentions`** — map from `case_id` to `{active_relationship_retention_id, post_closure_retention_id?}`. `active_relationship_retention_id` is the **current** active-relationship placement: populated by [Initiate Onboarding] and **repointed by each renewal** the periodic path of [Trigger Monitoring Review] places (step 4) — the superseded placements are not held here; they remain in the Retention Window store and in the `customer-onboarding.retention-renewed` events, and Invariant 5's joint-purge obligation quantifies over them too. `post_closure_retention_id` is populated by [Close Party]. A current active-relationship id plus a post-closure id is the records-alone evidence that the relationship was covered into its post-closure floor (Invariant 5). **Contract classification: derived index.** *Rebuild procedure:* enumerate the audit log and select, per `case_id`, the `customer-onboarding.initiated` payload's `active_relationship_retention_id` followed by each `customer-onboarding.retention-renewed` payload's `active_relationship_retention_id` in Event Log order — the last is current; `post_closure_retention_id` from the `customer-onboarding.party-closed` payload naming the same `case_id`. Same three obligations.
-- **`case_to_open_triggers`** — map from `case_id` to the set of open adverse-trigger records `{trigger_id, trigger_type, trigger_ref, triggered_at}`. An adverse trigger is added by [Trigger Monitoring Review] (adverse path) and removed by [Clear Review] (or swept administratively by [Close Party], which records the swept set on its closure event). A non-empty set means the party is under an unresolved adverse investigation on an active case and is in `Suspended` state. [Clear Review] requires a matching open trigger; closing the trigger is part of clearing the review. **Contract classification: derived index.** *Rebuild procedure:* enumerate the audit log and select the adverse `customer-onboarding.monitoring-triggered` events (payload carries `{trigger_id, trigger_type, trigger_ref, triggered_at}`), then remove every `trigger_id` enumerated in any `customer-onboarding.trigger-voided` event (the voiding of a trigger whose `suspend` was rejected without suspending anyone — every non-idempotent rejection arm, [Trigger Monitoring Review] step 4), in any `customer-onboarding.party-closed` event's `open_triggers_at_close` set, or in any `customer-onboarding.review-cleared` event's `closed_triggers` set **whose corresponding `customer-onboarding.party-reinstated` event (same `case_id`, ordered after the clearance) has landed** — a clearance whose reinstatement is still unrecorded does not yet subtract, because the party is still `Suspended` and the investigation is not fully resolved until the reinstatement lands ([Clear Review]'s step-6 recovery window; either the scoped retry or a full re-invocation then converges against the still-open set). Same three obligations — and because the set derives from the step-3 trigger event (which lands before any outcome event), a trigger whose outcome event is still unrecorded is *in* the rebuilt set, which is what keeps [Clear Review] reachable during outcome-event recovery.
+Terms › `case-to-open-triggers index`: `case_to_open_triggers` — the composition's index from a `case_id` to the open adverse triggers standing against the case, each carrying a `trigger_id`, a `trigger_type`, a `trigger_ref` and a `triggered_at`.
 
-The Party Identity store (party records, verification events, state-change events), the Retention Window store (retention records), and the Audit Trail substrate's emergent state (`event_to_attestation`, `event_to_retention`, `seal_coverage`, `sealed_through`) are owned by their respective constituent instances. The composition does not duplicate them; it indexes into them via the maps above.
+Terms › `index`: the case-to-monitoring index, the party-to-case index, the case-to-retentions index, OR the case-to-open-triggers index.
 
-### Configuration
+Terms › `current placement`: the latest active relationship retention the composition placed over a case's party — `active_relationship_retention_id`.
 
-- **`active_relationship_policy_ref`** — the recommended Retention Window policy reference for the active-relationship retention of the party/CDD record. The caller passes it (or a per-party CDD-tier policy) as the **required** `retention_policy_ref` argument to [Initiate Onboarding], which step 6 consumes. The composition holds no default it substitutes — the argument is authoritative and required; this Configuration entry is the deployment's recommended value, not a fallback the action applies when the argument is omitted. The deployment sets this to the policy governing how long an active customer's CDD record is held under active retention before the relationship ends. Must resolve in the Retention Window's Policy Registry. Multi-jurisdiction policy reconciliation (selecting the longer of competing obligations) is out of scope; a Policy Reconciliation composing pattern produces the reconciled `policy_ref` this composition consumes. **Duration obligation:** the policy's `duration` — for this value and for any per-party tier policy passed in its place — must exceed `monitoring_interval` by at least the deployment's scheduler-lateness tolerance. The active-relationship placement is renewed only when a periodic review fires ([Trigger Monitoring Review] step 4), so a policy no longer than the review interval lapses between reviews and a live customer's CDD record becomes purge-eligible while the relationship is active. The obligation is sufficient only because every schedule advance is **capped at the current placement's `retention_until − scheduler_tolerance`** (*Logic confinement*): an advance that ignored the placement — a verification pass months after intake, a clearance after a long suspension — would push the first renewal past the cover no matter how the two durations compared. This composition cannot read a policy's `duration`, so the obligation is stated here and cleared externally (Generation acceptance); the continuity of the placement chain itself is records-alone checkable (check 4).
-- **`post_closure_retention_policy_ref`** — the Retention Window policy reference applied at [Close Party]. For deployments under BSA/AML this must encode the 31 CFR §1020.220 five-year-after-relationship-end floor; the deployment must not configure a policy whose `duration` is shorter than the applicable post-closure regulatory minimum. Like the active-relationship policy, it must resolve in the Policy Registry and is the deployment's reconciled value.
-- **`audit_trail_retention_policy`** — the `retention_policy` configured on this composition's single Audit Trail instance (a policy reference, or a content-derived policy selector), governing the lifetime of the *audit events* (distinct from the party-record retentions above). It is set once on the instance; Audit Trail's `record_action` takes **no per-call retention argument**, so every audit write this composition makes inherits this configured policy. The audit trail of an onboarding decision should persist at least as long as the party record it describes, and often longer for litigation defensibility after the party record is purged.
-- **`monitoring_interval`** — the duration added to `now` to compute `next_review_due` whenever a verification passes or a periodic review fires. Deployment-configurable; must be a positive duration (e.g., `P1Y` for annual). The minimum interval for a given party tier (standard CDD vs. EDD) is a deployment-policy obligation driven by the risk-tiering framework; this composition enforces that the interval is positive but does not impose a minimum value. Absent a configured value, [Initiate Onboarding] rejects with `invalid-request`. It is instance configuration validated at instance setup and re-checked at [Initiate Onboarding] step 1; the schedule-advancing actions ([Record Verification], [Trigger Monitoring Review], [Clear Review]) consume the validated instance value without re-validating it per call.
+Terms › `post closure placement`: the retention [Close Party] places over the party record at the relationship's end — `post_closure_retention_id`.
 
-- **`onboarding_completion_bound`** — the deployment-declared maximum duration of a state-changing invocation between its intent record and its outcome record, read against the seam-injected `now` the intent carries. It is the **lower edge** of the reconciliation: an intent younger than it may belong to an invocation still between its constituent commit and its outcome append, and a re-emission or a recovery placement fired at it would land a second outcome — or a second retention placement — for one act, which the pre-check traversal cannot see because the invocation has not written yet. The **upper edge** is `audit_trail_retention_policy`'s horizon: past it the intent payload is destroyed and a party or placement whose events aged out is the truth-bearing class the maps' past-horizon rebuild names (Composition state), never an orphan. *Default:* none.
-- **`compensation_window`** and **`reconciliation_cadence`** — the deployment-declared duration within which an orphan the reconciliation has surfaced must close or be escalated as an unresolved finding, and the interval at which the reconciliation runs in addition to its mandatory run at process restart; a cadence longer than the window makes the window unmeetable. Invariant 2's and Invariant 8's liveness arms spend the window.
-- **`scheduler_tolerance`** — the deployment's declared allowance for how late the external scheduler may fire a due review. It caps every [Next Review Due] advance below the current active-relationship placement's `retention_until` (*Logic confinement*), and it is the term the duration obligation on `active_relationship_policy_ref` carries. Deployment-declared, positive.
-- **`application_actor_ref` and `application_credential`** — the composition's **service identity**, a registered actor in the substrate's Actor Identity registry, under which the reconciliation lands what a human invocation could not: composition-attributed re-emissions of owed records (`recovery = true`, the human actor named in `data`), and **constituent commits the reconciliation must make** — a post-closure placement or a renewal whose invocation died — each opened by its own `customer-onboarding.recovery-intended` record so that Invariant 8 holds for the recovery exactly as for the original act (*Cross-store consistency under partial failure*). The same discipline as Multi-Party Approval's Configuration; the deployment provisions and rotates it. An earlier draft prescribed cross-invocation constituent retries while its own [Clear Review] text called them forbidden, and named no actor for them.
-- **`adverse_trigger_types`** — the set of `trigger_type` values the deployment treats as *adverse* (driving suspension). The canonical adverse set is `{sanctions-match, pep-status-change, adverse-media}`; the deployment may extend it. Any `trigger_type` not in this set and not equal to `periodic-review-due` is rejected by [Trigger Monitoring Review] with `invalid-request`. `periodic-review-due` is always a non-adverse trigger and is not configurable into the adverse set.
+Terms › `audit horizon`: the age past which the audit instance has destroyed an event's payload, set by the instance's `audit_trail_retention_policy`.
 
-### Primitive policies
+Terms › `aged-out event`: an event whose age exceeds the audit horizon.
 
-The composition takes string-typed inputs at its action boundaries; each is validated either at this layer or by a constituent.
+Terms › `rebuild`: the composition's named regeneration of an index — select this composition's events over an open-ended sequence range, keep the events the index names by `action_ref`, and take the index's fields from their payloads in Event Log order.
 
-- **`party_id`** — opaque, system-generated by Party Identity's `enroll`. When supplied to [Initiate Onboarding] (the External Onboarding path), it must reference a party known to the Party Identity instance; otherwise [Initiate Onboarding] rejects with [Party Not Known]. The composition does not normalize, case-fold, or trim; `party_id` equality is opaque byte-identity.
-- **`case_id`** — opaque, system-generated by the composition at [Initiate Onboarding]. Immutable; never reused. Composition-generated ids (`case_id`, `trigger_id`) use byte-identity equality as map keys; never normalized.
-- **`trigger_id`** — opaque, system-generated by the composition at [Trigger Monitoring Review] (generated in step 3, before the trigger event is recorded). Immutable; never reused. Carried in the `customer-onboarding.monitoring-triggered`, `customer-onboarding.party-suspended` / `customer-onboarding.trigger-on-suspended-party` / `customer-onboarding.trigger-voided`, `customer-onboarding.retention-renewed`, and `customer-onboarding.review-cleared` audit-event data, so the trigger lifecycle — raised, suspended-on, cleared — is reconstructable from the records alone (the clearance-to-trigger join does not depend on volatile in-memory state).
-- **`enrollment_fields`** — the Party Identity enrollment tuple (`name`, `date_of_birth`, `document_type`, `document_ref`) plus `enrolling_actor_ref`, supplied only on the direct-enrollment path. Validated by Party Identity's `enroll`; the composition propagates Party Identity's `invalid-request` without imposing additional rules.
-- **`actor_ref`, `verifying_actor_ref`, `closing_actor_ref`** — opaque actor identifiers. Each must contain at least one non-whitespace character; empty/whitespace-only is rejected with `invalid-request`. The substrate's Actor Identity binds **the actor whose credential the action carries** cryptographically; the others are recorded, not authenticated. Each action carries exactly one `credential`, so exactly one of these references is verified per invocation, and the distinction is load-bearing rather than pedantic — see Invariant 8's scope paragraph and Invariant 4, which is stated over the actor this composition actually authenticates. On the direct-enrollment branch, `actor_ref` (the case-opening actor, attributed on `customer-onboarding.initiated`) and `enrollment_fields.enrolling_actor_ref` (attributed on the Party Identity enrollment record) may differ — case-opening service vs. enrolling officer — and both appear in the records; the composition does not require them equal — and **only `actor_ref` is authenticated**, since it owns the credential. The same asymmetry holds at [Clear Review], where `actor_ref` (the clearing and reinstating actor) carries the credential while `verifying_actor_ref` names whoever produced the fresh evidence. Requiring the two equal would collapse a real separation of duties — an analyst gathers the evidence, a manager clears the review — so the composition keeps the separation and states the limit instead of pretending to a verification it does not perform. A deployment needing the evidence-producing actor authenticated too composes a second credential per named actor, which is a signature change this composition does not make. The `credential` supplied to an action must belong to the actor its audit write binds: `verifying_actor_ref` for [Record Verification], `closing_actor_ref` for [Close Party], the top-level `actor_ref` otherwise — that actor/credential pair is what the substrate's Actor Identity binds.
-- **`credential`** — validated against the actor registry's public material inside `AuditTrail.record_action`, and **reached before any constituent call that commits**, because every state-changing action opens with an intent record (*Authentication precedes commitment*, Action wiring; Invariant 8) — so a credential that does not verify refuses the action rather than being discovered over a committed enrolment, verification, clearance or closure. Opaque credential material consumed only by `AuditTrail.record_action` (and, where the substrate verifies before recording, by the Actor Identity inside the substrate). The composition does not inspect it; the substrate's Actor Identity validates it at the audit write and may surface `invalid-credential`, mapped per the Action wiring preamble's uniform `record_action` rejection rule (to `invalid-request` when the audit write precedes any state change, otherwise to `recording-failure(outcome)` as an orphan).
-- **`method`, `evidence_ref`** — Party Identity verification metadata; each must contain at least one non-whitespace character. Validated by Party Identity's `verify`; the composition propagates the constituent's `invalid-request`.
-- **`verification_result`** — must be exactly `passed` or `failed` (Party Identity's rule). [Clear Review] always passes `passed`; [Record Verification] accepts either.
-- **`trigger_type`** — must be `periodic-review-due` or a member of `adverse_trigger_types`; otherwise `invalid-request`.
-- **`trigger_ref`** — opaque reference to the external screening result or review record that precipitated the trigger; must contain at least one non-whitespace character, **and is length-capped by composition**: `trigger_ref` (and any deployment-extended `trigger_type` token) must fit such that the composed suspend reason — `"monitoring-trigger:" + trigger_type + ":" + trigger_ref` — stays within Party Identity's 2000-character `reason` cap. [Trigger Monitoring Review] enforces the composed-length check at step 2, rejecting `invalid-request` **before** the trigger event is recorded, so an over-long reference can never produce a recorded trigger whose suspend is doomed to reject.
-- **`reason`** — free-form string supplied to [Clear Review] (passed to `reinstate`) and [Close Party] (passed to `close`); must contain at least one non-whitespace character (Party Identity's rule on `reason`). No length cap beyond Party Identity's 2000-character cap is imposed at this layer.
-- **`retention_policy_ref`** — the active-relationship policy reference supplied to [Initiate Onboarding]. Validated by Retention Window's `place_under_retention`; `invalid-policy` and `policy-not-found` from the constituent are mapped to `invalid-request` at this composition's boundary.
+Terms › `miss`: an index read the composition answers by rebuilding rather than by the stored value.
 
-No primitive is case-sensitivity-normalized at the composition layer; deployments wanting normalization wire it at the calling layer before invoking composition actions.
+Terms › `unrebuildable entry`: an index entry every one of whose binding-bearing events stands aged out.
 
-### Logic confinement
+Terms › `binding-bearing payload`: an initiated payload OR a retention renewed payload — the two that carry a case's `case_id`, `party_id` and `enrollment_path`.
 
-The clock is an **injected input at the composition's single I/O seam**, never read inside a guard or a transition and never threaded through a caller signature. Per the Logic Confinement Principle ([`execution-contract.md`](../execution-contract.md)), the host reads the clock once per invocation and injects `now` (`clock_t`) at the seam before the orchestration runs; the actions below are pure functions of the stored records plus that injected `now`. Because the clock enters at the seam rather than as a parameter, the action signatures below carry **no** `now` argument — the same discipline Retention Window pins for `place_under_retention`.
+Terms › `schedule-bearing payload`: an initiated payload, a verification recorded payload carrying a next review due, a monitoring triggered payload carrying a next review due, OR a party reinstated payload.
 
-`now` is consumed for exactly two clearly separated purposes:
+Terms › `placement-bearing payload`: an initiated payload OR a retention renewed payload.
 
-- **Stamping immutable timestamps** on a committed write — `opened_at` in the `case_to_monitoring` entry at [Initiate Onboarding], and the audit-event stamps `triggered_at` and `suspended_at` / `recorded_at` at [Trigger Monitoring Review], `cleared_at` and `reinstated_at` at [Clear Review], and `closed_at` at [Close Party].
-- **Computing the derived monitoring deadline** from the configured interval — [Next Review Due] `= min(now + monitoring_interval, active placement's retention_until − scheduler_tolerance)`, **capped at the current active-relationship placement's cover** so that the next review — the only event that renews the placement — always fires before the placement lapses (a re-verification months after intake, or a clearance after a long suspension, would otherwise push the first renewal past `retention_until`); `scheduler_tolerance` is the deployment's declared scheduler-lateness allowance (Configuration), written at [Initiate Onboarding] and re-derived by each schedule-advancing action ([Record Verification] on a state-changing pass, [Trigger Monitoring Review] on `periodic-review-due`, [Clear Review]). `monitoring_interval` is instance configuration validated at setup; the deadline is computed from it and the injected `now`, never from a clock sampled inside the transition.
+Terms › `landed record`: an audit record the substrate has appended and attested, whatever the substrate then answered.
 
-**No clock-bearing guard, and no stored review-due flag.** [Activity Permitted] — the composition's only gate — consults `party_to_case` and the live Party Identity state; it compares no timestamp and reads no clock, so the gate is clock-independent by construction. The composition stores the [Next Review Due] deadline, never a derived "review due" or "overdue" boolean: whether a review is due is a read-time projection of the stored deadline against an injected `now` at the moment the question is asked, so nothing can lag the clock (the same discipline Retention Window pins in its Invariant 11). Nor does the composition run a scheduler (Edge cases — *Monitoring scheduler boundary*); the external scheduler that reads [Next Review Due] evaluates due-ness against the `now` injected at its own seam and calls [Trigger Monitoring Review].
+Terms › `owed record`: an audit record this composition must write and the substrate has not appended.
 
-**One injected `now` per invocation, shared.** Within a single invocation the same injected `now` serves every stamp and every deadline computation in that call. At [Initiate Onboarding], `opened_at` and [Next Review Due] derive from one reading, so `next_review_due − opened_at` is exactly `monitoring_interval` rather than the interval plus an inter-read drift. At [Trigger Monitoring Review], `triggered_at` and the adverse path's `suspended_at` / `recorded_at` carry the same instant — Invariant 3's *ordered before* claim rests on the Event Log's insertion order (reached transitively through Audit Trail), not on a timestamp gap that two separate clock reads would manufacture. At [Clear Review], `cleared_at`, `reinstated_at`, and the advanced [Next Review Due] all derive from one reading. Ids come from the seam or from the constituents: `case_id` and `trigger_id` are the injected `id_t`, allocated at the seam; `party_id`, `verification_id`, `state_change_id`, `retention_id`, and `event_id` are minted by Party Identity, Retention Window, and Audit Trail at their own seams. This composition mints no id inside a transition and generates no cryptographic material.
+WHY:
+**All four indexes are derived, and Composition state 5 is a correction the migration makes rather than a restatement.** The prose flagged the monitoring schedule's `opened_at` and [Next Review Due] as *extraction-pending* against a proposed Review Schedule atom, and in the next breath stated that every schedule-writing action stamps its result into its own audit event and that the current deadline is the latest such payload in Event Log order. Those two sentences cannot both be the classification. `execution-contract.md` §Composition state asks one question — *is every fact in this element fully derivable, at any time, from the constituents' stores through their declared read surfaces?* — and the spec's own rebuild answers yes. So the schedule is a derived index on the Contract's own test, bounded by the horizon exactly as the case binding is, and the same reading settles the open-trigger set: its whole lifecycle — raised, voided, cleared, swept at closure — rides audit events, so it is derived too, and the three-elements-derived / one-element-pending split the page carried was an inconsistency rather than a distinction. A Review Schedule atom may still be worth extracting; that is a concept the corpus may take up, and it is named in Non-goals rather than asserted here as a classification the rebuild contradicts.
+
+Composition state 10 through Composition state 14 define *miss* per index, which the prose left to a reader's judgment. The distinction that matters is between an entry that says nothing and an entry that says *nothing yet*: an empty open-trigger set is the answer *no investigation stands*, a false `active` flag is the answer *this case closed*, and an absent post closure placement is the answer *this case has not closed* — none of them a gap a rebuild should fill. A missing entry, or an entry carrying no value for the field being read, is the gap.
+
+Composition state 18 through Composition state 22 are the horizon's edge, stated once for every index. Past the horizon the substrate has destroyed an event's `data` in its entirety while the attestation keeps `action_ref`, `actor_ref` and `attested_at` readable, so an enumeration still *recognizes* an aged-out `customer-onboarding` event by class and can no longer read the `case_id`, `party_id` or ids its payload carried. Recognition is therefore per event through the substrate's own read, not a property of the range read. What that costs is the one-active-case relation: a party whose entry is unrebuildable reads as never onboarded, and [Initiate Onboarding] would open a second active case for a party that already has one, with both cases thereafter legitimate-looking. `case_id` has no second source — Party Identity holds the party, not the case — so the cure is the ordering obligation in Capability requirement rather than a fallback read, and Composition state 22's alert is what keeps the loss visible instead of silent.
+
+Composition state 23 and Composition state 24 are why the loss is bounded by a *review cadence* rather than by the relationship. Every renewal re-carries the binding, so an active case always has a binding-bearing event younger than one monitoring interval, and a closed case needs its last renewal or its closure event to survive the post-closure floor. An earlier draft compared the horizon against one placement's duration, which bounds nothing: the relationship is a chain of placements as long as the customer stays, and the page's own walkthrough — a nine-year horizon over an eleven-year relationship — satisfied that comparison and still lost the binding two years before closure.
+
+Composition state 35 is the map-population-after-event discipline stated once for all four indexes, where the prose stated it three times and broke it twice — `case_to_retentions` was populated at [Close Party] before the closure event landed, and the renewal repointed before its own event landed. An index populated ahead of its record is an index a rebuild disagrees with, and the rebuild is the thing an auditor runs.
+
+Composition state 36 through Composition state 43 are the cardinality and modality the relations carry, which the prose declared for one relation and left implicit for three. Composition state 44 and Composition state 45 are the referential-integrity template of `spec-format.md` §Structural-relation invariant templates, applied to the two indexes that point into a constituent's store.
+
+---
+
+### Capability requirement
+
+```text
+Capability requirement 1: The host MUST supply one clock reading at the seam.
+Capability requirement 2: The host MUST supply a case_id at the seam PER admitted initiation.
+Capability requirement 3: The host MUST supply a trigger_id at the seam PER admitted trigger.
+Capability requirement 4: The transition MUST NOT read a clock.
+Capability requirement 5: The transition MUST NOT mint an id.
+Capability requirement 6: The composition MUST NOT accept a clock reading as an argument.
+Capability requirement 7: The composition MUST NOT mint a party_id.
+Capability requirement 8: The composition MUST NOT mint a verification_id.
+Capability requirement 9: The composition MUST NOT mint a state_change_id.
+Capability requirement 10: The composition MUST NOT mint a retention_id.
+Capability requirement 11: The composition MUST NOT mint an event_id.
+Capability requirement 12: The composition MUST NOT generate cryptographic material.
+Capability requirement 13: A deployment MUST configure the audit instance with an audit retention policy.
+Capability requirement 14: The binding floor MUST NOT EXCEED the audit horizon.
+Capability requirement 15: A deployment MUST set the active relationship policy.
+Capability requirement 16: A deployment MUST set the post closure policy.
+Capability requirement 17: The post closure minimum MUST NOT EXCEED the post closure policy's duration.
+Capability requirement 18: A deployment MUST set the monitoring interval.
+Capability requirement 19: A deployment MUST set the scheduler tolerance.
+Capability requirement 20: A deployment MAY start an instance ONLY IF the active relationship policy's duration EXCEEDS the renewal floor.
+Capability requirement 21: A deployment MUST set the adverse trigger types.
+Capability requirement 22: The adverse trigger types MUST NOT carry the periodic trigger type.
+Capability requirement 23: A deployment MUST set the onboarding completion bound.
+Capability requirement 24: A deployment MUST set the compensation window.
+Capability requirement 25: A deployment MUST set the reconciliation cadence.
+Capability requirement 26: A deployment MUST disclose the audit write latency.
+Capability requirement 27: A deployment MAY start an instance ONLY IF the compensation window EXCEEDS the closure floor.
+Capability requirement 28: A deployment MUST provision the service identity as a registered actor.
+Capability requirement 29: A deployment MUST rotate the service identity's credential.
+Capability requirement 30: A deployment MUST set a field cap PER payload field.
+Capability requirement 31: A field cap MUST NOT EXCEED the audit instance's payload_cap.
+Capability requirement 32: A deployment MUST set the trigger set cap.
+Capability requirement 33: The audit instance MUST serve an open-ended sequence range read.
+Capability requirement 34: The audit instance MUST serve read_record for an aged-out event.
+Capability requirement 35: The party retention instance MUST serve a placement read carrying the policy_ref, the retained_at, the retention_until AND the purge eligibility.
+Capability requirement 36: The Party Identity instance MUST serve a singleton read by party_id.
+Capability requirement 37: A deployment MUST resolve a policy_ref at Retention Window's seam.
+Capability requirement 38: The composition MUST NOT reconcile two policies.
+Capability requirement 39: An activity system MUST NOT read the Party Identity instance.
+Capability requirement 40: A deployment MUST run a review scheduler outside the composition.
+Capability requirement 41: The composition MUST NOT fire a review.
+Capability requirement 42: A deployment under BSA/AML MUST alert on an owed record.
+Capability requirement 43: A deployment MUST NOT set the monitoring interval PER party at this composition.
+```
+
+Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading, one `case_id` and one `trigger_id` here.
+
+Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
+
+Terms › `monitoring interval`: `monitoring_interval` — the deployment's declared duration between a party's periodic reviews.
+
+Terms › `scheduler tolerance`: `scheduler_tolerance` — the deployment's declared allowance for how late the external scheduler may fire a due review.
+
+Terms › `renewal floor`: `monitoring_interval + scheduler_tolerance` — the interval a placement's duration must outlast for the chain to stay continuous under a late review.
+
+Terms › `binding floor`: the monitoring interval taken with the scheduler tolerance and the post closure policy's duration — the age a binding-bearing event's payload must survive to.
+
+Terms › `closure floor`: `onboarding_completion_bound + reconciliation_cadence + audit write latency` — the longest interval in which the reconciliation can close an open marker.
+
+Terms › `onboarding completion bound`: `onboarding_completion_bound` — the deployment's declared maximum duration between an invocation's intent and the invocation's outcome, read against the injected now the intent carries.
+
+Terms › `active relationship policy`: `active_relationship_policy_ref` — the deployment's recommended Retention Window policy for a live relationship's party record.
+
+Terms › `post closure policy`: `post_closure_retention_policy_ref` — the Retention Window policy [Close Party] applies.
+
+Terms › `post closure minimum`: the applicable regulatory floor on a closed party's record — five years after the relationship ends under BSA/AML 31 CFR §1020.220.
+
+Terms › `adverse trigger types`: `adverse_trigger_types` — the deployment's set of `trigger_type` values that drive suspension; canonically `sanctions-match` | `pep-status-change` | `adverse-media`.
+
+Terms › `periodic trigger type`: `periodic-review-due` — the one non-adverse `trigger_type`.
+
+Terms › `trigger set cap`: `trigger_set_cap` — the deployment's declared maximum number of open triggers a payload carries in full.
+
+Terms › `field cap`: the deployment's declared maximum size of one audit payload field.
+
+WHY:
+Capability requirement 14 is the ordering the whole rebuild story rests on. The party-to-case binding is re-carried by every renewal, so the horizon must outlast one review cadence with the scheduler's lateness allowed for, and — for a closed case — the post-closure floor, because a closed case takes no further reviews and its last binding-bearing event is the closure. All three values are this composition's own configuration, so the comparison is one an auditor makes from the deployment's declared knobs rather than from a vendor's assurance.
+
+Capability requirement 20 is the duration obligation stated as the strict lower bound it is. The placement is renewed only when a periodic review fires, so a policy no longer than the review interval lapses between reviews and a live customer's CDD record becomes purge-eligible while the relationship is active. The obligation is sufficient only because every schedule advance is capped below the current placement's cover (Clock semantics): an advance that ignored the placement — a verification pass months after intake, a clearance after a long suspension — would push the first renewal past the cover no matter how the two durations compared. This composition cannot read a policy's duration, so the obligation is cleared externally (External check 5) while the chain the obligation protects is records-alone checkable (Check 4.2).
+
+Capability requirement 27 is the liveness arithmetic written out. An open marker is invisible to the reconciliation until the onboarding completion bound has passed, the reconciliation then sees it no sooner than the next cadence, and the record it writes takes the audit write latency to land — so a compensation window shorter than that sum is a promise the deployment cannot keep, and the rule refuses the instance rather than the finding.
+
+Capability requirement 32 is the repair for a payload that had no bound. [Clear Review]'s clearance intent and clearance record and [Close Party]'s closure record each embed the case's open-trigger set verbatim, and nothing capped it — so a long investigation accumulating triggers could produce a closure event the substrate refuses with `invalid-request`, which is the one arm that cannot recur-and-clear. Past the cap the payload carries the trigger count and a digest of the set, and the full set stays reconstructable from the monitoring triggered events the range read returns.
+
+Capability requirement 39 is the deployment half of the gate, and it is an obligation rather than advice. If each activity system reads Party Identity and applies its own `Verified` check, the gate is re-implemented per system, and the first system that forgets it, reads a stale state, or applies a subtly different predicate breaks the before-activity guarantee silently and per-system. Centralizing it at [Activity Permitted] makes the guarantee exist exactly once; a deployment that bypasses it is a composition-bypass finding, and Invariant 1.3 is where the property is quantified.
+
+Capability requirement 40 and Capability requirement 41 keep the scheduler out. The composition holds the schedule *state* and is not the scheduling *engine* — it sets no timer, fires on no clock and owns no cadence policy. An external scheduler reads [Next Review Due] and the case's `active` flag and calls [Trigger Monitoring Review] when a review is due.
+
+---
+
+### Primitive policy
+
+```text
+Primitive policy 1: An action MUST call a constituent ONLY AFTER the boundary predicate.
+Primitive policy 2: The boundary predicate MUST refuse a blank opaque argument.
+Primitive policy 3: The boundary predicate MUST refuse a blank actor reference.
+Primitive policy 4: The boundary predicate MUST refuse a blank method.
+Primitive policy 5: The boundary predicate MUST refuse a blank evidence_ref.
+Primitive policy 6: The boundary predicate MUST refuse a blank reason.
+Primitive policy 7: The boundary predicate MUST refuse a trigger_type outside the trigger vocabulary.
+Primitive policy 8: The boundary predicate MUST refuse a verification_result outside the verification results.
+Primitive policy 9: The boundary predicate MUST refuse a composed suspend reason exceeding Party Identity's reason cap.
+Primitive policy 10: The composition MUST NOT normalize an opaque argument.
+Primitive policy 11: The composition MUST NOT fold an opaque argument's case.
+Primitive policy 12: The composition MUST NOT trim an opaque argument.
+Primitive policy 13: The composition MUST compare an opaque argument by byte identity.
+Primitive policy 14: An action MUST answer invalid-request for a boundary predicate refusal.
+Primitive policy 15: The composition MUST propagate a constituent's invalid-request as invalid-request.
+Primitive policy 16: The composition MUST NOT judge an enrollment field.
+Primitive policy 17: The composition MUST NOT cap a reason beside Party Identity's reason cap.
+Primitive policy 18: The composition MUST truncate a payload field exceeding the field's cap.
+Primitive policy 19: A truncated payload field MUST carry the truncation marker.
+Primitive policy 20: The composition MUST carry an open-trigger set exceeding the trigger set cap as the trigger count AND the set digest.
+Primitive policy 21: The boundary predicate MUST refuse a blank retention_policy_ref.
+```
+
+Terms › `blank`: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
+
+Terms › `boundary predicate`: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
+
+Terms › `opaque argument`: `party_id` | `case_id` | `trigger_id` | `trigger_ref` | `actor_ref` | `verifying_actor_ref` | `closing_actor_ref` | `credential` | `retention_policy_ref`.
+
+Terms › `actor reference`: `actor_ref` | `verifying_actor_ref` | `closing_actor_ref` | `enrolling_actor_ref`.
+
+Terms › `trigger vocabulary`: the periodic trigger type OR a member of the adverse trigger types.
+
+Terms › `verification results`: `passed` | `failed`.
+
+Terms › `truncation marker`: the marker a payload field carries when the composition has cut the field to the field's cap.
+
+Terms › `set digest`: a content-derived summary of an open-trigger set, standing in the payload where the set itself exceeds the trigger set cap.
+
+WHY:
+Primitive policy 1 is the ordering the whole rejection story rests on, and it has an observable consequence the page states rather than leaves to be found: because the boundary predicate and the cheap index reads sit *before* the intent record, `not-known`, `not-active`, `already-onboarded`, `party-not-known`, `party-not-admissible`, `no-open-trigger`, the trigger pre-check's own arms and every shape failure are answered without the credential ever being verified. That is deliberate — it keeps an unknown `case_id` free of any audit event and avoids attributing events to cases that do not exist — and an auditor asking *was every refusal authenticated?* gets *no, by design*.
+
+Primitive policy 9 is enforced before the trigger is recorded, so an over-long `trigger_ref` can never produce a recorded trigger whose suspend is doomed to reject. The cap it enforces is the constituent's, not a second one this composition invents; Primitive policy 17 says so, because two caps on one field is the shape that drifts.
+
+Primitive policy 10 through Primitive policy 13 keep every identifier opaque. A deployment wanting normalization wires it at the calling layer, before it invokes an action here — normalizing at this boundary would make two callers' spellings of one reference resolve to one party in this composition and two in the constituent.
+
+### Identity
+
+```text
+Identity 1: A case MUST carry a case_id.
+Identity 2: The seam MUST allocate a case_id.
+Identity 3: A case_id MUST stand immutable.
+Identity 4: The composition MUST NOT reuse a case_id.
+Identity 5: A trigger MUST carry a trigger_id.
+Identity 6: The seam MUST allocate a trigger_id.
+Identity 7: A trigger_id MUST stand immutable.
+Identity 8: The composition MUST NOT reuse a trigger_id.
+Identity 9: An intent MUST carry the case_id.
+Identity 10: An intent MUST carry the invocation's arguments.
+Identity 11: An intent MUST NOT carry a constituent-minted id.
+Identity 12: An intent MUST carry the injected now as intended_at.
+Identity 13: An outcome MUST carry the intent's event_id as intent_event_id.
+Identity 14: The composition MUST pair an outcome to an intent by the intent_event_id.
+Identity 15: The composition MUST NOT pair an outcome to an intent by a payload resemblance.
+Identity 16: The composition MUST NOT pair an outcome to an intent by the case_id.
+Identity 17: A trigger path's intent_event_id MUST name the monitoring triggered event.
+Identity 18: A case MUST NOT identify a party.
+Identity 19: A party_id MUST NOT identify a case.
+```
+
+Terms › `intent`: the `record_action` call naming what an invocation is about to do, written before any committing call — `customer-onboarding.initiation-intended` | `customer-onboarding.verification-intended` | `customer-onboarding.clearance-intended` | `customer-onboarding.closure-intended` | `customer-onboarding.monitoring-triggered` | `customer-onboarding.recovery-intended`.
+
+Terms › `outcome`: the `record_action` call naming what an invocation did — `customer-onboarding.initiated` | `customer-onboarding.verification-recorded` | `customer-onboarding.party-suspended` | `customer-onboarding.trigger-on-suspended-party` | `customer-onboarding.trigger-voided` | `customer-onboarding.retention-renewed` | `customer-onboarding.review-cleared` | `customer-onboarding.party-reinstated` | `customer-onboarding.party-closed`.
+
+Terms › `committing call`: `PartyIdentity.enroll` | `PartyIdentity.verify` | `PartyIdentity.suspend` | `PartyIdentity.reinstate` | `PartyIdentity.close` | `RetentionWindow.place_under_retention` — a constituent call that writes outside the audit instance.
+
+WHY:
+Identity 2 and Identity 6 put both of this composition's own ids at the seam, which is what lets an intent name its own case before any constituent id exists. Identity 13 through Identity 16 are the pairing rule, and the distinction they draw was the first thing an earlier acceptance check got wrong: `case_id` is per-case and three of these actions are repeatable against one case, so a `case_id`-plus-actor match is satisfied by a single stale intent standing in front of an unbounded number of later outcomes, and an implementation emitting one intent per case and skipping it thereafter would pass. Matching on the id the intent record itself minted admits no such reading, and it is the frozen rule *Intents pair with outcomes by an invocation identity* applied at this seam.
+
+Identity 17 is why [Trigger Monitoring Review] needs no separate intent: its `monitoring-triggered` write already precedes the adverse path's `suspend` and the periodic path's renewal, so that record *is* the invocation's intent and carries the intent arms.
+
+### Audit arm
+
+```text
+Audit arm 1: An invocation MUST make a committing call ONLY AFTER the landed intent.
+Audit arm 2: IF Audit Trail answers invalid-credential at an intent THEN the action MUST answer invalid-credential.
+Audit arm 3: IF Audit Trail answers invalid-request at an intent THEN the action MUST answer invalid-request.
+Audit arm 4: IF Audit Trail answers recording-failure at an intent THEN the action MUST answer recording-failure carrying intent.
+Audit arm 5: IF Audit Trail answers recording-failure carrying the retention step at an intent THEN the invocation MUST NOT make a committing call.
+Audit arm 6: IF Audit Trail answers recording-failure carrying the retention step at an intent THEN the invocation MUST NOT retry the intent.
+Audit arm 7: The composition MUST leave an appended intent standing as an open marker.
+Audit arm 8: IF Audit Trail answers invalid-credential at an outcome THEN the action MUST answer recording-failure carrying outcome.
+Audit arm 9: IF Audit Trail answers invalid-request at an outcome THEN the action MUST answer recording-failure carrying outcome.
+Audit arm 10: IF Audit Trail answers recording-failure at an outcome THEN the action MUST answer recording-failure carrying outcome.
+Audit arm 11: A caller MUST read recording-failure carrying intent as a committed nothing.
+Audit arm 12: A caller MUST read recording-failure carrying outcome as a committed act.
+Audit arm 13: A caller MUST NOT retry an action answering recording-failure carrying outcome.
+Audit arm 14: An invocation MUST retry an owed record WITHIN the onboarding completion bound.
+Audit arm 15: A yielded invocation MUST NOT retry an owed record.
+Audit arm 16: The reconciliation MUST own a yielded invocation's owed record.
+Audit arm 17: An invocation MUST NOT retry an owed record BEFORE the outcome traversal.
+Audit arm 18: The composition MUST NOT retry Audit Trail's retention step arm.
+Audit arm 19: The composition MUST alert on an owed record.
+Audit arm 20: The composition MUST NOT read an invalid-request answer as a transient fault.
+Audit arm 21: The composition MUST read an invalid-request answer as a deployment fault.
+Audit arm 22: A recovery outcome MUST carry the recovery marker.
+Audit arm 23: A recovery outcome MUST name the acting human in the outcome's data.
+```
+
+Terms › `landed intent`: the invocation's intent the substrate has appended and attested and answered.
+
+Terms › `open marker`: an intent carrying no outcome under the intent's own intent_event_id — an invocation that committed nothing, committed and failed to record, or died between the two.
+
+Terms › `outcome traversal`: the composition's read of the trail over an open-ended sequence range for an outcome carrying a named intent_event_id, taken before any compensating write.
+
+Terms › `yielded invocation`: an invocation whose age exceeds the onboarding completion bound — past which the invocation stops retrying and the owed record is the reconciliation's.
+
+Terms › `recovery marker`: `recovery` — the marker a recovery outcome carries so a reader tells a clean act from a recovered one.
+
+Terms › `recovery outcome`: the outcome the reconciliation emits for a committed act whose own invocation did not record one.
+
+WHY:
+The substrate answers one taxonomy — `invalid-credential`, `invalid-request`, `recording-failure(step)` — and this composition maps it **by the call's position relative to the constituent write**, not uniformly. At an intent nothing has committed, so every arm is a clean pre-state rejection and the caller may retry the whole action. At an outcome a constituent write exists, so no arm can refuse the act, only report it, and a re-run would commit it a second time. Audit arm 11 through Audit arm 13 are that distinction exported: `intent` tells the caller nothing committed, `outcome` tells the caller an act exists and the reconciliation owns the record — the frozen rule *A composition's own rejection arm carries the retry bit*.
+
+Audit arm 5 through Audit arm 7 are the one arm that is neither. The substrate's retention step refuses *after* the event is appended and attested, so the credential was verified and the call still failed: the invocation aborts with nothing committed, and the appended intent stands as an open marker the reconciliation will resolve. Re-recording it would double-append, which is why Audit arm 18 sends that arm to the substrate's own reconciliation rather than retrying it here.
+
+Audit arm 14 through Audit arm 17 bound the retry at both ends. Inside the completion bound the owed record is the invocation's, because the reconciliation cannot see an invocation that has not written yet and a re-emission fired at it would land a second outcome for one act. Past it the record is the reconciliation's, and every compensating write is preceded by a traversal for an outcome already carrying this `intent_event_id` — matched by equality, never by resemblance of payload.
+
+The cost is stated rather than hidden: audit-event volume rises by roughly one event per state-changing invocation, so `audit_trail_retention_policy` governs proportionally more events and each seal covers proportionally more entries.
+
+---
 
 ### Action wiring
 
-The composition exposes six actions. Five are state-changing and record in the Audit Trail; the sixth, [Activity Permitted], is a read-only gate query and records nothing (a read-only query produces no state change, so an audit event would be a false positive in the action record). Every constituent rejection is mapped — propagated, renamed, or surfaced as a new code — at the composition's boundary; silent rejection-code drift is a reference-graph finding.
-
-For every `AuditTrail.record_action` call below, the substrate's rejection taxonomy (`invalid-credential | invalid-request | recording-failure(step)` — the failure arm carries the failed substrate step as its payload) is mapped **by the call's position relative to the constituent write**, not uniformly. Every state-changing action now makes **at least two** such calls: an **intent record before** any constituent call that commits, and an **outcome record after** it (*Authentication precedes commitment*, below). [Clear Review] makes three — its clearance and its reinstatement are separately recorded — and [Trigger Monitoring Review] makes two on both paths: its step-3 trigger record is the intent record (it precedes the adverse path's `suspend` and the periodic path's retention renewal alike), and each path records its own outcome. **The `(step)` payload is load-bearing for recovery:** a `recording-failure` whose step shows the Event Log append did not land is retryable as a fresh `record_action`; the step-4 arm — retention placement over the *already-appended* audit event — leaves the event in the log, appended and attested, so a blind re-record would double-append; that arm is never retried at this layer (the substrate's own reconciliation owns the retention-arm gap), and every compensating write is preceded by a log traversal for an existing event carrying the same identifying payload.
-
-**At the intent record — nothing has committed, so every arm is a clean pre-state rejection.** `invalid-credential` → `rejected(invalid-credential)`: the caller's credential did not validate against the actor registry for the actor this action attests, and the composition refuses before any enrolment, verification, clearance or closure. `invalid-request` → `rejected(invalid-request)`: a deployment fault (an over-cap payload, a misconfigured substrate retention policy), pageable, never retried, since a retry re-sends the identical payload. `recording-failure(step)` → `rejected(recording-failure(intent))`: the one genuinely retryable arm — nothing committed, so the caller may retry the whole action. **The step-4 arm is a distinct case at an intent record and is new:** the event is appended and attested, so the credential *was* verified, and the call still returned a failure. Abort the invocation with nothing committed and leave the appended intent record standing as an open marker — do **not** proceed (the return was a failure) and do **not** blind-retry it (it would double-append). [Trigger Monitoring Review] needs no separate intent record: its step 3 `monitoring-triggered` write already precedes every constituent commit and is where its credential is verified, so that record *is* this action's intent record, and it carries these arms.
-
-**At the outcome record — the constituent write has committed, so no arm can refuse the act, only report it.** All three surface as `rejected(recording-failure(outcome))`, and the resulting orphan (a committed state change with no outcome event) is handled per the *Cross-store consistency under partial failure* edge case. The retry obligation there loops only on the transient `recording-failure(step)`; `invalid-request` cannot recur-and-clear and is a pageable deployment fault; `invalid-credential` — reachable now only as a mid-flight revocation, since the same credential validated at the intent record moments earlier — is answered by composition-attributed re-emission with the acting human named in the payload. **The position rides the exported code:** every state-changing signature carries `recording-failure(intent | outcome)` — `intent` tells the caller nothing has committed in a constituent store and the whole action may be retried; `outcome` tells the caller a constituent write (an enrolment, a verification, a transition, a placement) **exists** and a re-run would commit it a second time, so the caller waits for the reconciliation (§*A composition's own rejection arm carries the retry bit*).
-
-**This composition enforces the seam at its own boundary.** The intent record precedes every constituent call that commits, so a mis-credentialed actor cannot drive a constituent state change and be discovered afterwards; `invalid-credential` is a declared returnable code on every state-changing signature. **An upstream Permissions or Actor Identity pre-check is therefore defence in depth, not a control this composition depends on** — authentication is not inheritable across a composition boundary and these surfaces are independently callable, so their own verification is the direct-call path's only defence. Two consequences stated rather than left to be found. **Rejection ordering is observable:** because intent records sit *after* the cheap read-only gates, `not-known`, `not-active`, `already-onboarded`, `party-not-known`, `party-closed`, `no-open-trigger`, [Trigger Monitoring Review]'s pre-check arms `not-verified(state)` and `state-unavailable`, and every shape failure are returned **without the credential ever being verified**. That is deliberate — it keeps an unknown `case_id` free of any audit event and avoids attributing events to cases that do not exist — but an auditor asking "was every refusal authenticated?" gets "no, by design." And **audit-event volume rises by roughly one event per state-changing invocation** — a doubling for the three actions that had one record, one-and-a-half times for [Clear Review], and a doubling on [Trigger Monitoring Review]'s periodic path now that the retention renewal records its outcome — so `audit_trail_retention_policy` governs proportionally more events and each seal covers proportionally more entries.
-
-#### `initiate_onboarding`
-
 ```
-initiate_onboarding(
- party_id?,
- enrollment_fields?,
- actor_ref,
- credential,
- retention_policy_ref
-) →
-  case_id
- | rejected(
-   invalid-request
-  | invalid-credential
-  | party-not-known
-  | party-closed
-  | already-onboarded
-  | enrollment-failed(invalid-request | storage-failure)
-  | recording-failure(intent | outcome)
-  )
-```
+initiate_onboarding(party_id?, enrollment_fields?, actor_ref, credential, retention_policy_ref) →
+    case_id
+  | rejected(
+      invalid-request
+    | invalid-credential
+    | party-not-known
+    | party-not-admissible(state)
+    | already-onboarded
+    | enrollment-failed(invalid-request | storage-failure)
+    | recording-failure(intent | outcome)
+    )
 
-Opens an onboarding case for a party. The `party_id` argument is **optional**, and the two branches are explicit:
+record_verification(case_id, verifying_actor_ref, method, verification_result, evidence_ref, credential) →
+    recorded
+  | rejected(
+      invalid-request
+    | invalid-credential
+    | not-known
+    | not-active
+    | already-closed
+    | recording-failure(intent | outcome)
+    )
 
-- **Direct-enrollment branch (`party_id` absent).** The composition enrolls the party itself.
-- **External-Onboarding-admitted branch (`party_id` present).** External Onboarding has already admitted the party in `Unverified` state; the composition skips enrollment and proceeds straight to retention placement and monitoring-schedule opening.
+trigger_monitoring_review(case_id, trigger_type, trigger_ref, actor_ref, credential) →
+    recorded
+  | rejected(
+      invalid-request
+    | invalid-credential
+    | not-known
+    | not-active
+    | not-verified(state)
+    | state-unavailable
+    | recording-failure(intent | outcome)
+    )
 
-Both branches converge on the same downstream verification workflow ([Record Verification]).
+clear_review(case_id, verifying_actor_ref, method, evidence_ref, actor_ref, credential, reason) →
+    cleared
+  | rejected(
+      invalid-request
+    | invalid-credential
+    | not-known
+    | no-open-trigger
+    | verification-failed
+    | already-closed
+    | recording-failure(intent | outcome)
+    )
 
-Steps:
+close_party(case_id, closing_actor_ref, reason, credential) →
+    closed
+  | rejected(
+      invalid-request
+    | invalid-credential
+    | not-known
+    | not-active
+    | recording-failure(intent | outcome)
+    )
 
-1. Validate `actor_ref`, `credential`, and `retention_policy_ref` per Primitive policies — and, on the external branch, `party_id` must contain at least one non-whitespace character (the malformed-before-existence ordering the constituent itself pins) — and confirm `monitoring_interval` is configured and is a positive duration (the Configuration obligation that the monitoring schedule can be computed). Any failure → `rejected(invalid-request)`. Stop.
-2. **Resolve the party — read-only on both branches.**
-  - **If `party_id` is absent:** require `enrollment_fields` present; if absent → `rejected(invalid-request)`. Set `enrollment_path = direct`. **No constituent write happens in this step** — the enrolment itself is step 5, after the intent record. The separation is the point: on this branch the party does not exist until `enroll` commits, so resolving and enrolling in one step would leave no moment at which an intent record could precede the commit.
-  - **If `party_id` is present:** if `enrollment_fields` is also supplied → `rejected(invalid-request)` — the two arguments select conflicting branches, and silently ignoring caller-supplied identity fields would hide a caller error. Confirm the id references a known party via `Party Identity.read({party_id})` (the atom's declared `read` query surface; a well-formed singleton query that returns an empty sequence means the party does not exist — and its `invalid-query` arm, defense-in-depth behind step 1's format check, maps to `rejected(invalid-request)`); if empty → `rejected(party-not-known)`. Stop. **Then confirm the party is not `Closed`:** Party Identity's Closed is absorbing — `verify`, `suspend`, and `reinstate` all reject against it — so a case opened for a Closed party could never reach `Verified`, a structurally dead path; if the read shows `Closed` → `rejected(party-closed)`. A returning customer re-onboards by **fresh enrollment** (the direct branch, receiving a new `party_id`), per the constituent's own fresh-enrollment rule; the prior party record and its case history remain as governed records. Stop. Then apply the [Already Onboarded] guard (the one-active-case-per-party relation, Composition state): if `party_to_case[party_id]` exists with `active = true` → `rejected(already-onboarded)` — re-onboarding an actively governed party would silently repoint the case index and orphan the live case's monitoring and retention entries. Stop. (Note that a case closed through [Close Party] also drove `Party Identity.close` — such a party is `Closed` and rejected by the guard above; the `active = false` re-onboarding path exists only for the party the guard admits, and a returning customer whose party record is Closed re-onboards by fresh enrollment on the direct branch.) Set `enrollment_path = external-onboarding`.
-3. Consume the seam-injected `id_t` as `case_id` (opaque, fresh — allocated at the seam, not minted inside the transition; see *Logic confinement*). This precedes the intent record deliberately: `case_id` is seam-allocated rather than constituent-minted, so the intent record can carry it and the intent-to-outcome join is **exact on every action** rather than inferred from the actor and the parameters.
-4. **Intent record.** `AuditTrail.record_action(action_ref=customer-onboarding.initiation-intended, actor_ref, credential, data={case_id, party_id?, enrollment_path, retention_policy_ref, intended_at=now})` — `party_id` present on the external branch, absent on the direct branch by construction, since no party exists yet. This is the earliest point at which the intent is fully determined and the latest that still precedes every commit on **both** branches: the direct branch's `enroll` at step 5 and the external branch's `place_under_retention` at step 6. Nothing has committed, so every arm is a clean pre-state rejection: `invalid-credential` → `rejected(invalid-credential)`; `invalid-request` → `rejected(invalid-request)`, a deployment fault, never retried; `recording-failure(step)` → `rejected(recording-failure(intent))`, the one genuinely retryable arm. **The substrate's step-4 arm is a distinct case here** — the intent event is appended and attested (so the credential *was* verified) and the call still returned a failure: abort with nothing committed and leave the appended intent record standing as an open marker; never proceed, and never blind-retry it, which would double-append.
-5. **Direct branch only — enrol the party.** Call `Party Identity.enroll(name, date_of_birth, document_type, document_ref, enrolling_actor_ref)` → `party_id` (or, on `rejected(invalid-request | storage-failure)`, surface as `rejected(enrollment-failed(<constituent-reason>))` and stop — no case is opened, no retention placed). (Enroll's `storage-failure` is wrapped as [Enrollment Failed] rather than flattened to `recording-failure` precisely because it occurs *before* any case or retention exists — there is no orphan to recover; a `storage-failure` at retention placement (step 6, on this branch) or at the outcome record (step 7) occurs *after* the enrolment has committed and therefore surfaces as `recording-failure(outcome)` with an orphan, which is the deliberate asymmetry.)
-6. Place the party record under **active-relationship retention**: `Retention Window.place_under_retention(record_ref=party_id, policy_ref=retention_policy_ref)` → `active_relationship_retention_id` (the per-call `retention_policy_ref` argument is authoritative and required — the action substitutes nothing; the configured `active_relationship_policy_ref` is the deployment's *recommended* value, which a single-policy deployment simply passes on every call, and per-party CDD-tier policies pass their tier's value) (or map `invalid-policy`/`policy-not-found`/`invalid-request` to `rejected(invalid-request)` and `storage-failure` to `rejected(recording-failure(intent))` on the external branch — nothing has committed, so the whole action may be retried — or to `rejected(recording-failure(outcome))` on the direct branch, where step 5's enrolment has committed and a re-run would enrol a second party; stop on either — if the party was enrolled at step 5's direct branch, the enrolled Party Identity record persists as an `Unverified` party with no onboarding case, surfaced per the *Cross-store consistency under partial failure* edge case).
-7. Record initiation **before any composition map is populated** (the map-population-after-event discipline). The **intent** record at step 4 precedes every constituent write, so this action satisfies Invariant 8; what follows the constituent writes of steps 5 and 6 is the **outcome** record, and it is that record the maps are populated after. The constituent writes of steps 5 and 6 necessarily precede this event): `AuditTrail.record_action(action_ref=customer-onboarding.initiated, actor_ref, credential, data={intent_event_id, case_id, party_id, enrollment_path, active_relationship_retention_id, opened_at = now, next_review_due = now + monitoring_interval})` → `event_id` — the schedule pair rides the payload so the monitoring schedule is records-alone rebuildable (Composition state; Generation acceptance check 5). If this call fails after steps 5 and 6 succeeded → `rejected(recording-failure(outcome))` — the enrolment and the placement exist, and a re-run would commit both again; **no composition maps are populated**, so no `case_id` becomes resolvable by a downstream action without its `customer-onboarding.initiated` event having landed, and the implementation surfaces the orphan (enrolled-and-retained party with no case and no initiation event) per the *Cross-store consistency under partial failure* edge case.
-8. Populate composition state only after the initiation event has landed: `case_to_monitoring[case_id] = {party_id, opened_at = now, next_review_due = now + monitoring_interval}` — `opened_at` and [Next Review Due] both derived from the **single seam-injected `now`** for this invocation (see *Logic confinement*), so the interval between them is exactly `monitoring_interval` — `party_to_case[party_id] = {case_id, enrollment_path, active = true}`, and `case_to_retentions[case_id] = {active_relationship_retention_id, post_closure_retention_id = null}`.
-9. Return `case_id`.
-
-#### `record_verification`
-
-```
-record_verification(
- case_id,
- verifying_actor_ref,
- method,
- verification_result,
- evidence_ref,
- credential
-) →
-  recorded
- | rejected(
-   not-known
-  | invalid-request
-  | invalid-credential
-  | already-closed
-  | recording-failure(intent | outcome)
-  )
-```
-
-Records a verification result against the case's party. This is the action that drives the `Unverified → Verified` transition (when `verification_result = passed` against an `Unverified` party) and that records periodic re-verifications.
-
-Steps:
-
-1. Look up `case_id` in `case_to_monitoring`. If not present → `rejected(not-known)`. Stop. Resolve `party_id` from the entry.
-2. Validate `verifying_actor_ref`, `method`, `evidence_ref`, `credential`, and `verification_result` per Primitive policies. Any failure → `rejected(invalid-request)`. Stop.
-3. **Intent record.** `AuditTrail.record_action(action_ref=customer-onboarding.verification-intended, actor_ref=verifying_actor_ref, credential, data={case_id, party_id, method, result=verification_result, evidence_ref, intended_at=now})` — placed immediately before the composition's most consequential irreversible commit, the `Party Identity.verify` that on an `Unverified` party drives the transition this composition's load-bearing guarantee rests on. Nothing has committed, so every arm is a clean pre-state rejection: `invalid-credential` → `rejected(invalid-credential)`; `invalid-request` → `rejected(invalid-request)`, a deployment fault, never retried; `recording-failure(step)` → `rejected(recording-failure(intent))`, the one genuinely retryable arm. **The substrate's step-4 arm is a distinct case here** — the intent event is appended and attested (so the credential *was* verified) and the call still returned a failure: abort the invocation with nothing committed and leave the appended intent record standing as an open marker; never proceed, and never blind-retry it, which would double-append.
-4. Call `Party Identity.verify(party_id, verifying_actor_ref, method, verification_result, evidence_ref)` — this composition's `method` argument fills the constituent's `verification_method` parameter, a positional rename that is representational only — → `{verification_id, state_change_id?}` (or map: `already-closed` → `rejected(already-closed)`; `not-known` → `rejected(recording-failure(intent))` — a `not-known` here means the case's `party_id` is unknown to Party Identity, an internal-consistency anomaly distinct from the caller-supplied unknown-case `not-known` of step 1, surfaced as a recording-failure orphan per the *Cross-store consistency under partial failure* edge case; `invalid-request` → `rejected(invalid-request)`; `storage-failure` → `rejected(recording-failure(intent))` — the constituent refused and wrote nothing, so the whole action may be retried. Stop on any.). `state_change_id` is present iff this call drove an `Unverified → Verified` transition.
-5. Record: `AuditTrail.record_action(action_ref=customer-onboarding.verification-recorded, actor_ref=verifying_actor_ref, credential, data={intent_event_id, case_id, party_id, verification_id, state_change_id, result=verification_result, next_review_due?})` → `event_id` — `next_review_due = now + monitoring_interval` is included exactly when step 6's advance will occur (`passed` with `state_change_id` present; both facts are known here), so the schedule advance rides the event payload and stays records-alone rebuildable (Composition state). If this call fails after step 4 succeeded → `rejected(recording-failure(outcome))` — a re-run would record a second verification; the verification exists in Party Identity but is unattested. This is the composition's most consequential atomicity gap; recovery is named in the *Cross-store consistency under partial failure* edge case.
-6. If `verification_result = passed` **and** `state_change_id` is present (the `Unverified → Verified` transition occurred): advance `next_review_due` in `case_to_monitoring[case_id]` to `min(now + monitoring_interval, current placement's retention_until − scheduler_tolerance)`, computed from the seam-injected `now` for this invocation and capped at the active placement's cover (see *Logic confinement*). (A re-verification of an already-Verified party — `state_change_id` absent — does not advance the schedule by this path; periodic-review handling belongs to [Trigger Monitoring Review].) Periodic re-reviews **must** be driven through `trigger_monitoring_review(periodic-review-due)`, which advances the schedule; a bare [Record Verification] against a `Verified` party records evidence but is intentionally not a schedule-advancing path, so a deployment that ran periodic checks only through [Record Verification] would leave `next_review_due` stale. Deployments route periodic reviews through the trigger action.
-7. Return `recorded` — the action's guarantee is that a verification event was recorded and attested, **not** that the party is now `Verified` (a `failed` result, or a `passed` result against a `Suspended` party, records the event and drives no transition). Callers query [Activity Permitted] for the resulting gate state.
-
-#### `trigger_monitoring_review`
-
-```
-trigger_monitoring_review(
- case_id,
- trigger_type,
- trigger_ref,
- actor_ref,
- credential
-) →
-  recorded
- | rejected(
-   not-known
-  | not-active
-  | invalid-request
-  | invalid-credential
-  | not-verified(state)
-  | state-unavailable
-  | recording-failure(intent | outcome)
-  )
-```
-
-The entry point an external monitoring scheduler or screening system calls. **Audit-first discipline: the trigger is recorded before any resulting state transition.** This is the structural guarantee behind Invariant 3 — no trigger-driven suspension exists in the records without its precipitating trigger ordered ahead of it.
-
-Steps:
-
-1. Look up `case_id` in `case_to_monitoring`. If not present → `rejected(not-known)`. Stop. Resolve `party_id`. Then apply the **active-case guard**: confirm `party_to_case[party_id].active = true`; if the case is closed → `rejected(not-active)` — monitoring does not fire against a closed relationship (the scheduler reads the `active` flag, but the action guards it itself rather than trusting every caller to). Stop.
-2. Validate `actor_ref`, `credential`, `trigger_ref` per Primitive policies — the composed-length check included (`"monitoring-trigger:" + trigger_type + ":" + trigger_ref` must fit Party Identity's 2000-character `reason` cap; Primitive policies). Validate `trigger_type`: it must be `periodic-review-due` or a member of `adverse_trigger_types`; otherwise → `rejected(invalid-request)`. Stop on any. **Then read the party's state** via `Party Identity.read({party_id})` — for every `trigger_type`, fail-closed exactly as the gate reads (an unanswerable read → `rejected(state-unavailable)`; the arm mirrors [Activity Permitted]'s): the read serves two rules — for an **adverse** `trigger_type`, a party in `Unverified` or `Closed` cannot be suspended, so reject `rejected(not-verified(Unverified | Closed))` **before step 3 records anything**; for a **periodic** one, the state decides whether the schedule advances (a `Suspended` party's does not — step 3's freeze rule), and no state is refused. This pre-check is what keeps the open-set rebuild's unconditional inclusion of step-3 trigger events sound — a recorded adverse trigger always names a party that was `Verified` or already-`Suspended` at recording time — and it demotes step 4's state rejections to defense-in-depth against serialization-obligation breaches.
-3. **Record the trigger first:** consume the seam-injected `id_t` as `trigger_id` (fresh, opaque — allocated at the seam, not minted inside the transition; see *Logic confinement*). `AuditTrail.record_action(action_ref=customer-onboarding.monitoring-triggered, actor_ref, credential, data={case_id, party_id, trigger_id, trigger_type, trigger_ref, triggered_at = now, next_review_due?})` → `trigger_event_id`, where `triggered_at` is stamped from the seam-injected `now` for this invocation (see *Logic confinement*) and `next_review_due = min(now + monitoring_interval, current placement's retention_until − scheduler_tolerance)` is included exactly when `trigger_type = periodic-review-due` **and step 2's read showed the party not `Suspended`** (the advance step 4's periodic branch will apply — deterministic from the same reading), so the schedule advance rides the event payload (Composition state). **The freeze on `Suspended` is a rule of this composition, not a deployment option:** a periodic review that fires during a suspension renews the retention (below) but carries no `next_review_due` and advances nothing — the schedule rolls forward only when [Clear Review] reinstates the party — so the trail never carries an advanced deadline for a `Suspended` party, which is the property Composition state and [Clear Review] step 6 rest on. On the periodic path this record is also the **intent record** for the retention renewal step 4 commits (Invariant 8). If this fails → `rejected(recording-failure(intent))` and **no state transition is attempted** (the record-first ordering guarantees that no suspension occurs without its trigger event landing). Stop.
-4. Branch on `trigger_type`:
-  - **Adverse** (`trigger_type ∈ adverse_trigger_types`): call `Party Identity.suspend(party_id, suspending_actor_ref=actor_ref, reason="monitoring-trigger:" + trigger_type + ":" + trigger_ref)` — the composed reason fits the constituent's cap by construction (step 2's composed-length check). Map rejections: `already-suspended` (a concurrent or prior adverse trigger already suspended the party) → treat as success-for-idempotency: skip the suspend, proceed to add the trigger to the open set, and record the second audit event noting the party was already suspended (see step 5). The state rejections are **defense-in-depth only** — step 2's pre-check forecloses them under the Concurrency serialization obligation: should one nonetheless occur (a serialization breach racing a state change between pre-check and suspend — `not-verifiable` → `rejected(not-verified(Unverified))`, `already-closed` → `rejected(not-verified(Closed))`), the action first records a `customer-onboarding.trigger-voided` outcome event, so the step-3 trigger never haunts the rebuilt open set (Composition state's rebuild subtracts voided triggers). **The three remaining arms are voided the same way, for the same reason.** Party Identity's rejections are fail-closed (its Invariant 11: a rejected `suspend`, `storage-failure` included, wrote nothing), so `not-known`, `invalid-request` and `storage-failure` each leave a landed trigger event and **no suspension** — exactly the shape that, unvoided, rebuilds as an open investigation against a party still `Verified`, which [Clear Review] would then "clear": recording a fresh verification, attempting a `reinstate` the constituent refuses (`not-suspended` → [Verification Failed]), and never landing the `party-reinstated` record whose absence keeps the trigger open forever. Each therefore first records `AuditTrail.record_action(action_ref=customer-onboarding.trigger-voided, actor_ref, credential, data={intent_event_id = trigger_event_id, case_id, party_id, trigger_id, trigger_type, trigger_ref, constituent_rejection, voided_at = now})` — the same payload the serialization-breach arms above write, `constituent_rejection` naming the arm — and then returns: `not-known` → `rejected(not-known)`; `invalid-request` → `rejected(invalid-request)`; `storage-failure` → `rejected(recording-failure(intent))`, the suspend having refused and written nothing, so a re-fired trigger is safe. **No voided arm adds the trigger to the open set** (step 6 is skipped), and the void record is what keeps Invariant 7's correspondence faithful. **The void write has its own failure arm:** if the `trigger-voided` record itself fails, return `rejected(recording-failure(intent))` — no suspension was committed, so a re-fired trigger is safe, but the trigger stands in the rebuilt open set as a false open investigation until the void lands, so the write is retried per the *Cross-store consistency under partial failure* edge case (a log traversal for an existing void naming this `trigger_id` first) and surfaced as a finding meanwhile.
-  - **Periodic** (`trigger_type = periodic-review-due`): no Party Identity transition. **Renew the active-relationship retention.** Read the current placement — `case_to_retentions[case_id].active_relationship_retention_id`, resolved in the Retention Window store for its `policy_ref` — and call `Retention Window.place_under_retention(record_ref=party_id, policy_ref=<that policy_ref>)` → `renewed_retention_id`. The step-3 trigger record is the intent record that precedes this commit (Invariant 8). The renewal is **unconditional on party state** — a `Suspended` party's CDD record needs coverage as much as a `Verified` one's, and the schedule freeze on `Suspended` (step 3; a rule, not an option) freezes the deadline, never the renewal — and unconditional on how much of the current placement remains: Retention Window's policy is immutable per `retention_id`, so coverage across a relationship longer than one placement's `duration` is a chain of placements, continuous exactly when each link is placed before its predecessor's `retention_until` (Configuration's duration obligation on `active_relationship_policy_ref`). Map rejections: `storage-failure` → `rejected(recording-failure(intent))` — nothing was placed, so a re-fired review is safe and is one route to the renewal; `invalid-policy` / `policy-not-found` / `invalid-request` → `rejected(invalid-request)` (the policy resolved when the current placement was made, so this is a registry change — a pageable deployment fault). On either arm **the schedule advance below still runs** (the review fired and its event landed) and the missed renewal is a **time-bounded orphan**: the current placement covers the record only until its `retention_until`, and the retry — a fresh placement plus its outcome record, preceded by a log traversal for a `customer-onboarding.retention-renewed` event naming this `trigger_id` and a Retention Window read for a placement this invocation already made — must land before that instant; a lapse is what Generation acceptance check 4(b) convicts. Then record the outcome: `AuditTrail.record_action(action_ref=customer-onboarding.retention-renewed, actor_ref, credential, data={intent_event_id = trigger_event_id, case_id, party_id, enrollment_path, trigger_id, prior_retention_id, active_relationship_retention_id = renewed_retention_id, policy_ref, renewed_at = now})` — `party_id` and `enrollment_path` re-carried so the case→party binding rebuilds from the latest renewal (Composition state). If this fails → `rejected(recording-failure(outcome))` after the schedule advance; the placement exists but is unrecorded — a re-fired review would place a second one for one review — `case_to_retentions` is **not** repointed until the event lands (map-population-after-event), and the retry is the record alone, preceded by the same traversal. Once it has landed, set `case_to_retentions[case_id].active_relationship_retention_id = renewed_retention_id`. Then, **only if step 2's read showed the party not `Suspended`**, advance `next_review_due` in `case_to_monitoring[case_id]` to `min(now + monitoring_interval, renewed placement's retention_until − scheduler_tolerance)`, computed from the **same seam-injected `now`** that stamped the step-3 `triggered_at` (see *Logic confinement*); a `Suspended` party's deadline stays where it was, matching the payload that carried none. Return `recorded`.
-5. **Adverse path only** — record the outcome, with the event class reflecting whether a transition actually occurred. After a *successful* `suspend` (a real `Verified → Suspended` transition): `AuditTrail.record_action(action_ref=customer-onboarding.party-suspended, actor_ref, credential, data={intent_event_id = trigger_event_id, case_id, party_id, trigger_id, trigger_type, trigger_ref, state_change_id (from suspend), suspended_at = now})`, where `suspended_at` is stamped from the **same seam-injected `now`** that stamped step 3's `triggered_at` (see *Logic confinement*) — the two events therefore carry one instant, and Invariant 3's *ordered before* claim reads the Event Log's insertion order rather than a timestamp gap. In the *already-suspended idempotent case* (no new transition — a prior adverse trigger already suspended the party): record instead `AuditTrail.record_action(action_ref=customer-onboarding.trigger-on-suspended-party, actor_ref, credential, data={intent_event_id = trigger_event_id, case_id, party_id, trigger_id, trigger_type, trigger_ref, prior_state=Suspended, recorded_at = now})` — `recorded_at` stamped from that same injected `now`; a distinct event class, so a second adverse trigger is not read as a second suspension and an auditor does not miscount transitions. If either record fails → **step 6 still runs, then** return `rejected(recording-failure(outcome))` — the suspension (or, in the idempotent case, the trigger's entry in the open set) is committed and its outcome record owed, and a re-fired trigger would raise a second one for one alert: the trigger is added to the open set regardless of the outcome event's fate, because the open set derives from the step-3 trigger event, which already landed (Composition state) — so the party is never stranded `Suspended` with an empty open set and an unreachable [Clear Review]. The outcome is unattested (the precipitating `customer-onboarding.monitoring-triggered` event from step 3 already landed, so the suspension is not *uncaused* in the records, but it is *unrecorded as this trigger's outcome*) and the failed write is retried per the *Cross-store consistency under partial failure* edge case.
-6. Add the trigger to the open set: `case_to_open_triggers[case_id] ∪= {trigger_id (from step 3), trigger_type, trigger_ref, triggered_at}`. (Adverse path only; runs whether or not step 5's outcome write succeeded, and never on an arm step 4 voided.)
-7. Return `recorded`.
-
-#### `clear_review`
-
-```
-clear_review(
- case_id,
- verifying_actor_ref,
- method,
- evidence_ref,
- actor_ref,
- credential,
- reason
-) →
-  cleared
- | rejected(
-   not-known
-  | no-open-trigger
-  | invalid-request
-  | invalid-credential
-  | verification-failed
-  | already-closed
-  | recording-failure(intent | outcome)
-  )
-```
-
-The single emergent action that clears an adverse-trigger investigation and returns the party to `Verified`. It wraps `Party Identity.verify(passed)` + `Party Identity.reinstate` + two Audit Trail records into one named surface, so clearing a review is one auditable act rather than a sequence of leaked atom internals. Party Identity Invariant 4 requires a `passed` verification recorded after the most recent suspend before `reinstate` will succeed; this action satisfies that precondition in the same call.
-
-Steps:
-
-1. Look up `case_id` in `case_to_monitoring`. If not present → `rejected(not-known)`. Stop. Resolve `party_id`.
-2. Confirm an open adverse trigger exists: `case_to_open_triggers[case_id]` is non-empty. If empty → `rejected(no-open-trigger)`. Stop. (Clearing a review with no open trigger is a caller error — there is nothing to clear.)
-3. Validate `verifying_actor_ref`, `method`, `evidence_ref`, `actor_ref`, `credential`, `reason` per Primitive policies. Any failure → `rejected(invalid-request)`. Stop.
-4. **Intent record.** `AuditTrail.record_action(action_ref=customer-onboarding.clearance-intended, actor_ref, credential, data={case_id, party_id, verifying_actor_ref, method, evidence_ref, reason, open_triggers, intended_at=now})`, where `open_triggers` is the set of `(trigger_id, trigger_ref)` pairs step 2 found open. Nothing has committed, so every arm is a clean pre-state rejection: `invalid-credential` → `rejected(invalid-credential)`; `invalid-request` → `rejected(invalid-request)`, a deployment fault, never retried; `recording-failure(step)` → `rejected(recording-failure(intent))`, the one genuinely retryable arm. **The substrate's step-4 arm is a distinct case here** — the intent event is appended and attested (so the credential *was* verified) and the call still returned a failure: abort the invocation with nothing committed and leave the appended intent record standing as an open marker; never proceed, and never blind-retry it, which would double-append.
-5. Record fresh evidence: `Party Identity.verify(party_id, verifying_actor_ref, method, passed, evidence_ref)` → `{verification_id, state_change_id?}`. (Against a `Suspended` party, `verify(passed)` records the event but does not change state, so `state_change_id` is absent — this is expected and correct.) Map rejections: `already-closed` → `rejected(already-closed)` (the party was Closed — terminal; clearing is futile and the caller must not retry); `not-known` → `rejected(not-known)`; `invalid-request` → `rejected(invalid-request)`; `storage-failure` → `rejected(recording-failure(intent))` — the constituent refused and wrote nothing, so the whole action may be retried. Stop on any.
-6. Record the clearance: `AuditTrail.record_action(action_ref=customer-onboarding.review-cleared, actor_ref, credential, data={intent_event_id, case_id, party_id, verification_id, closed_triggers = {the trigger_id/trigger_ref pairs currently in case_to_open_triggers[case_id]}, reason, cleared_at = now})` → `event_id`, where `cleared_at` is stamped from the seam-injected `now` for this invocation (see *Logic confinement*). **The advanced [Next Review Due] does not ride this event.** This record lands *before* the reinstate at step 7 commits; had it carried the advanced deadline, a step-7 failure would leave the trail asserting an advance the freeze rule forbids for a party still `Suspended`, and the rebuild (latest schedule-bearing payload) would convict a map entry that was correct. The advance rides the `customer-onboarding.party-reinstated` record at step 8 — the event that lands only after the reinstate has committed — so the trail never carries a deadline the party's state does not authorize. The `closed_triggers` set makes the clearance-to-trigger join records-alone even when a single clearance resolves multiple open triggers. If this fails → `rejected(recording-failure(outcome))` — the step-5 verification exists, and a re-run would record a second one; the fresh verification exists but the clearance is unattested. Stop (the `reinstate` in step 7 is **not** attempted — clearing without the audit record landing would leave a reinstatement uncaused in the records).
-7. Reinstate: `Party Identity.reinstate(party_id, reinstating_actor_ref=actor_ref, reason)` → `state_change_id`. The `passed` verification recorded at step 5 satisfies Party Identity's `no-passed-verification-since-suspend` precondition. Map rejections: `no-passed-verification-since-suspend` → `rejected(verification-failed)` (should not occur given step 5 succeeded, but mapped for completeness — a concurrent suspend between step 5 and step 7 could in principle re-arm it; reachable only if the host fails to honor the serialization obligation of Edge cases — *Concurrency*, so it is a defense-in-depth code); `not-suspended` → `rejected(verification-failed)` (the party was not Suspended — a concurrent reinstate raced in); `already-closed` → `rejected(already-closed)` (a concurrent close raced in — terminal, do not retry); `not-known` → `rejected(not-known)`; `invalid-request` → `rejected(invalid-request)`; `storage-failure` → `rejected(recording-failure(outcome))` — the reinstate refused and wrote nothing, but the step-5 verification has committed and the step-6 clearance has landed, so the caller is told an act exists rather than that nothing does. Stop on any. **A `storage-failure` here is the recorded-clearance-with-no-reinstatement orphan:** step 6's `review-cleared` event has landed — `closed_triggers` included, the schedule untouched — while the party remains `Suspended`, and steps 8–10 have not run. The recovery is **scoped**: retry the `reinstate` (and then step 8's event, steps 9–10 completing after) — the whole-action retry also converges, because the rebuild does not subtract a clearance's `closed_triggers` until its reinstatement lands (Composition state), so the open set still shows the trigger and step 2 passes; either way the party is never stranded. **The scoped retry is a same-invocation continuation and must not cross a process boundary** — a retry executed in a later invocation would commit `Party Identity.reinstate` under an authentication performed in a *prior* one, which Invariant 8 forbids. Where the invocation is lost before the retry completes, the recovery is not a scoped retry but a fresh [Clear Review], which opens with its own intent record and re-authenticates; the constituent's guards make that safe — a second `reinstate` on an already-reinstated party is refused, and the fresh `passed` verification the atom requires is already recorded. Surfaced per the *Cross-store consistency under partial failure* edge case.
-8. Record the reinstatement: `AuditTrail.record_action(action_ref=customer-onboarding.party-reinstated, actor_ref, credential, data={intent_event_id, case_id, party_id, state_change_id, reinstated_at = now, next_review_due = min(now + monitoring_interval, current placement's retention_until − scheduler_tolerance)})` — `reinstated_at` and the advanced deadline both from the **same seam-injected `now`**, the deadline capped at the active placement's cover (*Logic confinement*) that stamped step 6's `cleared_at` (see *Logic confinement*), so the clearance and the reinstatement it authorizes carry one instant, and the schedule advance rides the payload of the record that lands after the reinstate has committed (Composition state; Generation acceptance check 5). If this fails → `rejected(recording-failure(outcome))`; the party is Verified again but the reinstatement is unattested — **and steps 9–10 do not run.** Both the open-set clearance and the schedule advance key on this event's landing: the rebuild subtracts a clearance's `closed_triggers` only once its `party-reinstated` event has landed and takes the schedule from that payload, so the maps wait for the record rather than diverge from it. The retry is the record alone — the same-invocation continuation, or the reconciliation's composition-attributed re-emission carrying `recovery = true` with the acting human named in the payload — preceded by a log traversal for a `party-reinstated` event carrying this `intent_event_id`; when it lands, steps 9–10 complete **from the recorded payload values**, never from a retry-time clock.
-9. Close the open trigger(s): remove **exactly the `closed_triggers` set the step-6 `review-cleared` event carries** from `case_to_open_triggers[case_id]` — never "clear the set": in the healthy path the two are equal under the serialization, but in the step-8 recovery window the party is already `Verified` and a new adverse trigger can lawfully land, and a delayed completion that cleared the whole set would sweep that trigger while its `monitoring-triggered` event stands and no clearance names it, leaving a `Suspended` party with an empty set and [Clear Review] unreachable (the clearance resolves the adverse investigation it found open; every trigger it closes is enumerated in the event's `closed_triggers` set recorded at step 6, so the closure is records-alone auditable — a deployment requiring per-trigger clearance wires that distinction above the composition layer).
-10. Advance `next_review_due` in `case_to_monitoring[case_id]` to the `next_review_due` the step-8 record carries — `now + monitoring_interval` from that same seam-injected `now` (see *Logic confinement*), read back from the payload so a delayed completion writes the recorded value.
-11. Return `cleared`.
-
-#### `close_party`
-
-```
-close_party(
- case_id,
- closing_actor_ref,
- reason,
- credential
-) →
-  closed
- | rejected(
-   not-known
-  | not-active
-  | invalid-request
-  | invalid-credential
-  | recording-failure(intent | outcome)
-  )
-```
-
-Closes the relationship and places the **post-closure retention** — the second of the two Retention Window operations, setting the BSA/AML five-year-after-relationship-end floor.
-
-Steps:
-
-1. Look up `case_id` in `case_to_monitoring` (and `party_to_case`). If not present → `rejected(not-known)`. Stop. Resolve `party_id`.
-2. Confirm the case is active: `party_to_case[party_id].active = true`. If already closed → `rejected(not-active)`. Stop.
-3. Validate `closing_actor_ref`, `reason`, `credential` per Primitive policies. Any failure → `rejected(invalid-request)`. Stop.
-4. **Intent record.** `AuditTrail.record_action(action_ref=customer-onboarding.closure-intended, actor_ref=closing_actor_ref, credential, data={case_id, party_id, reason, post_closure_retention_policy_ref, intended_at=now})`. Nothing has committed, so every arm is a clean pre-state rejection: `invalid-credential` → `rejected(invalid-credential)`; `invalid-request` → `rejected(invalid-request)`, a deployment fault, never retried; `recording-failure(step)` → `rejected(recording-failure(intent))`, the one genuinely retryable arm. **The substrate's step-4 arm is a distinct case here** — the intent event is appended and attested (so the credential *was* verified) and the call still returned a failure: abort the invocation with nothing committed and leave the appended intent record standing as an open marker; never proceed, and never blind-retry it, which would double-append.
-5. Close the party: `Party Identity.close(party_id, closing_actor_ref, reason)` → `state_change_id`. Map rejections: `already-closed` → **the re-entry arm, before it is a rejection**: if `party_to_case[party_id].active` is still `true` and no `customer-onboarding.party-closed` event names this case (the declared enumeration), a prior [Close Party] invocation closed the party and died before placing the floor or recording the closure — this invocation, whose own intent record at step 4 has just authenticated its caller, **completes steps 6–10** for the earlier closure (the `state_change_id` read from Party Identity's state-change log, `closed_at` from that entry), so the floor is placed under a fresh authentication rather than a forbidden cross-invocation retry; otherwise `rejected(not-active)` (the party is already Closed and its closure recorded — consistent with step 2, possible under a concurrent close); `not-known` → `rejected(not-known)`; `invalid-request` → `rejected(invalid-request)`; `storage-failure` → `rejected(recording-failure(intent))` — the constituent refused and wrote nothing, so the whole action may be retried. Stop on any.
-6. Place **post-closure retention**: `Retention Window.place_under_retention(record_ref=party_id, policy_ref=post_closure_retention_policy_ref)` → `post_closure_retention_id`. This is the second Retention Window operation; it establishes the 31 CFR §1020.220 five-year-after-relationship-end floor and is distinct from the active-relationship retention placed at [Initiate Onboarding]. Map `invalid-policy`/`policy-not-found`/`invalid-request` → `rejected(invalid-request)`; `storage-failure` → `rejected(recording-failure(outcome))` — the closure at step 5 has committed. If this fails after step 5 succeeded, the party is Closed but the post-closure floor is not placed — a high-priority finding surfaced per the *Cross-store consistency under partial failure* edge case. **The orphan is time-bounded, not benign:** the current active-relationship placement covers the record only until its own `retention_until`, and renewal stops with the relationship (a closed case takes no periodic reviews), so past that instant the record is under no retention at all and a diligent purging layer may lawfully destroy it. **The recovery has two Invariant-8-compliant routes and no third:** a re-invocation of [Close Party] completes the closure under its own intent record (step 5's re-entry arm), or the reconciliation places the floor under the composition's service identity, opening a `customer-onboarding.recovery-intended` record first and landing the `party-closed` event with `recovery = true` and the closing actor named in its `data` (Configuration). A bare cross-invocation retry of `place_under_retention` under the original caller's authentication is what [Clear Review] step 7 forbids, and it is forbidden here too. Generation acceptance check 4 convicts both the missing floor and the lapse.
-7. Record `case_to_retentions[case_id].post_closure_retention_id = post_closure_retention_id`.
-8. Record: `AuditTrail.record_action(action_ref=customer-onboarding.party-closed, actor_ref=closing_actor_ref, credential, data={intent_event_id, case_id, party_id, state_change_id, post_closure_retention_id, reason, closed_at = now, open_triggers_at_close = {the trigger_id/trigger_ref pairs currently in case_to_open_triggers[case_id], empty if none}})` → `event_id`, where `closed_at` is stamped from the seam-injected `now` for this invocation (see *Logic confinement*). The `open_triggers_at_close` set records the disposition of any adverse investigation still open at closure — **closed-unresolved by relationship end**, not cleared: the party was `Suspended`, was never reinstated, and the relationship ended with the investigation's outcome recorded as such. If this fails → `rejected(recording-failure(outcome))` — the closure and the floor both exist; surfaced per the partial-failure edge case.
-9. Mark the case closed: `party_to_case[party_id].active = false`, and **sweep the open-trigger set**: clear `case_to_open_triggers[case_id]` — the triggers' disposition is recorded in step 8's `open_triggers_at_close`, so the sweep is records-alone auditable and Invariant 7's correspondence is preserved for the active cases it quantifies over (the gate keeps refusing the party regardless: `not-verified(Closed)`). The `case_to_monitoring` entry is retained (it is the record that monitoring was in force during the relationship); monitoring no longer fires for a closed party because the scheduler reads `active` — and [Trigger Monitoring Review]'s own active-case guard refuses a caller that ignores it.
-10. Return `closed`.
-
-#### `activity_permitted`
-
-```
 activity_permitted(party_id) →
-  permitted
- | rejected(not-verified(state))  // state ∈ {Unverified, Suspended, Closed}
- | rejected(not-known)       // party not governed by an onboarding case
- | rejected(state-unavailable)   // the Party Identity state could not be read — fail closed
+    permitted
+  | rejected(
+      not-known
+    | not-verified(state)
+    | state-unavailable
+    )
 ```
 
-The read-only verification-gates-activity query. **No Audit Trail record is produced** — this is a read-only query that changes no state, and recording it would falsely populate the action record with non-actions. Activity systems consume this query as their single gate; they must not read Party Identity state directly (see Edge cases — *Activity systems reading Party Identity directly*).
+```text
+Action wiring 1: [Initiate Onboarding] MUST answer invalid-request for a call carrying a party_id AND enrollment fields.
+Action wiring 2: [Initiate Onboarding] MUST answer invalid-request for a call carrying no party_id AND no enrollment fields.
+Action wiring 3: [Initiate Onboarding] MUST answer invalid-request for an unset monitoring interval.
+Action wiring 4: An external path call MUST read the party through Party Identity's declared read.
+Action wiring 5: IF the party NOT EXISTS THEN [Initiate Onboarding] MUST answer party-not-known.
+Action wiring 6: IF the party's state stands outside the admissible states THEN [Initiate Onboarding] MUST answer party-not-admissible carrying the state.
+Action wiring 7: IF an active case EXISTS for the party THEN [Initiate Onboarding] MUST answer already-onboarded.
+Action wiring 8: An admitted initiation MUST record an initiation intent.
+Action wiring 9: A direct path initiation MUST NOT carry a party_id on the initiation intent.
+Action wiring 10: A direct path initiation MUST call Party Identity's enroll with the enrollment fields.
+Action wiring 11: IF Party Identity answers invalid-request for an enroll THEN [Initiate Onboarding] MUST answer enrollment-failed carrying invalid-request.
+Action wiring 12: IF Party Identity answers storage-failure for an enroll THEN [Initiate Onboarding] MUST answer enrollment-failed carrying storage-failure.
+Action wiring 13: An admitted initiation MUST call Retention Window's place_under_retention with the party_id AND the retention_policy_ref.
+Action wiring 14: An admitted initiation MUST NOT substitute the active relationship policy for the retention_policy_ref.
+Action wiring 15: IF Retention Window answers invalid-policy for an initiation THEN [Initiate Onboarding] MUST answer invalid-request.
+Action wiring 16: IF Retention Window answers policy-not-found for an initiation THEN [Initiate Onboarding] MUST answer invalid-request.
+Action wiring 17: IF Retention Window answers storage-failure for an external path initiation THEN [Initiate Onboarding] MUST answer recording-failure carrying intent.
+Action wiring 18: IF Retention Window answers storage-failure for a direct path initiation THEN [Initiate Onboarding] MUST answer recording-failure carrying outcome.
+Action wiring 19: An admitted initiation MUST record an initiated outcome carrying the case_id, the party_id, the enrollment_path, the current placement, the opened_at AND the next review due.
+Action wiring 20: An admitted initiation MUST answer the case_id.
+Action wiring 21: The composition MUST read the case-to-monitoring index at [Record Verification].
+Action wiring 22: IF the case NOT EXISTS THEN [Record Verification] MUST answer not-known.
+Action wiring 23: IF the case stands inactive THEN [Record Verification] MUST answer not-active.
+Action wiring 24: An admitted verification MUST record a verification intent.
+Action wiring 25: An admitted verification MUST call Party Identity's verify with the party_id, the verifying_actor_ref, the method, the verification_result AND the evidence_ref.
+Action wiring 26: IF Party Identity answers already-closed for a verify THEN [Record Verification] MUST answer already-closed.
+Action wiring 27: IF Party Identity answers not-known for a verify THEN [Record Verification] MUST answer recording-failure carrying intent.
+Action wiring 28: IF Party Identity answers storage-failure for a verify THEN [Record Verification] MUST answer recording-failure carrying intent.
+Action wiring 29: An admitted verification MUST record a verification recorded outcome carrying the case_id, the party_id, the verification_id, the state_change_id AND the verification_result.
+Action wiring 30: A transitioning verification MUST carry the next review due on the verification recorded outcome.
+Action wiring 31: A verification carrying no state_change_id MUST NOT carry a next review due on the verification recorded outcome.
+Action wiring 32: A transitioning verification MUST advance the next review due.
+Action wiring 33: A verification carrying no state_change_id MUST NOT advance the next review due.
+Action wiring 34: IF the verification recorded record fails THEN [Record Verification] MUST answer recording-failure carrying outcome.
+Action wiring 35: An admitted verification MUST answer recorded.
+Action wiring 36: A reader MUST NOT read recorded as a verified state.
+Action wiring 37: The composition MUST read the case-to-monitoring index at [Trigger Monitoring Review].
+Action wiring 38: IF the case NOT EXISTS THEN [Trigger Monitoring Review] MUST answer not-known.
+Action wiring 39: IF the case stands inactive THEN [Trigger Monitoring Review] MUST answer not-active.
+Action wiring 40: The composition MUST read the party through Party Identity's declared read at [Trigger Monitoring Review].
+Action wiring 41: IF the read stands unanswered THEN [Trigger Monitoring Review] MUST answer state-unavailable.
+Action wiring 42: IF Party Identity answers invalid-query THEN [Trigger Monitoring Review] MUST answer invalid-request.
+Action wiring 43: The composition MUST read an invalid-query answer as the composition's own defect.
+Action wiring 44: IF the trigger_type belongs to the adverse trigger types AND the party's state stands outside the suspendable states THEN [Trigger Monitoring Review] MUST answer not-verified carrying the state.
+Action wiring 45: A periodic trigger MUST NOT refuse a party's state.
+Action wiring 46: An admitted trigger MUST record a monitoring triggered outcome carrying the case_id, the party_id, the trigger_id, the trigger_type, the trigger_ref AND the triggered_at.
+Action wiring 47: An admitted periodic trigger against an unsuspended party MUST carry the next review due on the monitoring triggered record.
+Action wiring 48: An admitted trigger against a suspended party MUST NOT carry a next review due on the monitoring triggered record.
+Action wiring 49: An adverse trigger MUST NOT carry a next review due on the monitoring triggered record.
+Action wiring 50: IF the monitoring triggered record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
+Action wiring 51: IF the monitoring triggered record fails THEN the invocation MUST NOT make a committing call.
+Action wiring 52: An adverse trigger MUST call Party Identity's suspend with the party_id, the actor_ref AND the composed suspend reason.
+Action wiring 53: IF Party Identity answers already-suspended for a suspend THEN the invocation MUST record a trigger on suspended party outcome.
+Action wiring 54: IF Party Identity answers already-suspended for a suspend THEN the invocation MUST add the trigger to the open-trigger set.
+Action wiring 55: IF Party Identity refuses a suspend outside already-suspended THEN the invocation MUST record a trigger voided outcome carrying the constituent's answer.
+Action wiring 56: IF Party Identity refuses a suspend outside already-suspended THEN the invocation MUST NOT add the trigger to the open-trigger set.
+Action wiring 57: IF Party Identity answers not-verifiable for a suspend THEN [Trigger Monitoring Review] MUST answer not-verified carrying unverified.
+Action wiring 58: IF Party Identity answers already-closed for a suspend THEN [Trigger Monitoring Review] MUST answer not-verified carrying closed.
+Action wiring 59: IF Party Identity answers not-known for a suspend THEN [Trigger Monitoring Review] MUST answer not-known.
+Action wiring 60: IF Party Identity answers invalid-request for a suspend THEN [Trigger Monitoring Review] MUST answer invalid-request.
+Action wiring 61: IF Party Identity answers storage-failure for a suspend THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
+Action wiring 62: IF the trigger voided record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
+Action wiring 63: A suspending trigger MUST record a party suspended outcome carrying the case_id, the party_id, the trigger_id, the trigger_type, the trigger_ref, the state_change_id AND the suspended_at.
+Action wiring 64: A suspending trigger MUST add the trigger to the open-trigger set whatever the party suspended record's answer.
+Action wiring 65: IF the party suspended record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying outcome.
+Action wiring 66: A periodic trigger MUST read the current placement's policy_ref through Retention Window's declared read.
+Action wiring 67: A periodic trigger MUST call Retention Window's place_under_retention with the party_id AND the current placement's policy_ref.
+Action wiring 68: A periodic trigger MUST renew the placement whatever the party's state.
+Action wiring 69: A periodic trigger MUST renew the placement whatever the current placement's remaining cover.
+Action wiring 70: IF Retention Window answers storage-failure for a renewal THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
+Action wiring 71: IF Retention Window answers invalid-policy for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
+Action wiring 72: IF Retention Window answers policy-not-found for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
+Action wiring 73: A renewing trigger MUST record a retention renewed outcome carrying the case_id, the party_id, the enrollment_path, the trigger_id, the prior placement, the renewed placement, the policy_ref AND the renewed_at.
+Action wiring 74: IF the retention renewed record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying outcome.
+Action wiring 75: A renewing trigger MUST repoint the case-to-retentions index ONLY AFTER the landed retention renewed record.
+Action wiring 76: A periodic trigger against an unsuspended party MUST advance the next review due whatever the renewal's answer.
+Action wiring 77: A periodic trigger against a suspended party MUST NOT advance the next review due.
+Action wiring 78: The reconciliation MUST match a renewal recovery on the trigger_id.
+Action wiring 79: An admitted trigger MUST answer recorded.
+```
+```text
+Action wiring 80: The composition MUST read the case-to-monitoring index at [Clear Review].
+Action wiring 81: IF the case NOT EXISTS THEN [Clear Review] MUST answer not-known.
+Action wiring 82: IF the open-trigger set stands empty THEN [Clear Review] MUST answer no-open-trigger.
+Action wiring 83: An admitted clearance MUST record a clearance intent carrying the open-trigger set.
+Action wiring 84: An admitted clearance MUST call Party Identity's verify with the party_id, the verifying_actor_ref, the method, passed AND the evidence_ref.
+Action wiring 85: An admitted clearance MUST NOT call Party Identity's verify with failed.
+Action wiring 86: IF Party Identity answers already-closed for a clearance verify THEN [Clear Review] MUST answer already-closed.
+Action wiring 87: IF Party Identity answers not-known for a clearance verify THEN [Clear Review] MUST answer not-known.
+Action wiring 88: IF Party Identity answers invalid-request for a clearance verify THEN [Clear Review] MUST answer invalid-request.
+Action wiring 89: IF Party Identity answers storage-failure for a clearance verify THEN [Clear Review] MUST answer recording-failure carrying intent.
+Action wiring 90: An admitted clearance MUST record a review cleared outcome carrying the case_id, the party_id, the verification_id, the closed triggers, the reason AND the cleared_at.
+Action wiring 91: A review cleared outcome MUST NOT carry a next review due.
+Action wiring 92: IF the review cleared record fails THEN [Clear Review] MUST answer recording-failure carrying outcome.
+Action wiring 93: IF the review cleared record fails THEN the invocation MUST NOT call Party Identity's reinstate.
+Action wiring 94: An admitted clearance MUST call Party Identity's reinstate ONLY AFTER the landed review cleared record.
+Action wiring 95: An admitted clearance MUST call Party Identity's reinstate with the party_id, the actor_ref AND the reason.
+Action wiring 96: IF Party Identity answers no-passed-verification-since-suspend for a reinstate THEN [Clear Review] MUST answer verification-failed.
+Action wiring 97: IF Party Identity answers not-suspended for a reinstate THEN [Clear Review] MUST answer verification-failed.
+Action wiring 98: IF Party Identity answers already-closed for a reinstate THEN [Clear Review] MUST answer already-closed.
+Action wiring 99: IF Party Identity answers not-known for a reinstate THEN [Clear Review] MUST answer not-known.
+Action wiring 100: IF Party Identity answers invalid-request for a reinstate THEN [Clear Review] MUST answer invalid-request.
+Action wiring 101: IF Party Identity answers storage-failure for a reinstate THEN [Clear Review] MUST answer recording-failure carrying outcome.
+Action wiring 102: An admitted clearance MUST record a party reinstated outcome carrying the case_id, the party_id, the state_change_id, the reinstated_at AND the next review due.
+Action wiring 103: IF the party reinstated record fails THEN [Clear Review] MUST answer recording-failure carrying outcome.
+Action wiring 104: An admitted clearance MUST drop the closed triggers from the open-trigger set ONLY AFTER the landed party reinstated record.
+Action wiring 105: An admitted clearance MUST drop exactly the closed triggers the review cleared record names.
+Action wiring 106: An admitted clearance MUST NOT empty the open-trigger set.
+Action wiring 107: An admitted clearance MUST advance the next review due to the party reinstated record's next review due.
+Action wiring 108: A scoped retry MUST stand inside the retrying invocation.
+Action wiring 109: A scoped retry MUST NOT cross a process boundary.
+Action wiring 110: A lost invocation's recovery MUST stand as a fresh [Clear Review].
+Action wiring 111: An admitted clearance MUST answer cleared.
+Action wiring 112: The composition MUST read the case-to-monitoring index at [Close Party].
+Action wiring 113: IF the case NOT EXISTS THEN [Close Party] MUST answer not-known.
+Action wiring 114: IF the case stands inactive THEN [Close Party] MUST answer not-active.
+Action wiring 115: An admitted closure MUST record a closure intent.
+Action wiring 116: An admitted closure MUST call Party Identity's close with the party_id, the closing_actor_ref AND the reason.
+Action wiring 117: IF Party Identity answers already-closed for a close AND no party closed event names the case THEN the invocation MUST complete the earlier closure.
+Action wiring 118: A completing closure MUST read the state_change_id AND the closed_at from Party Identity's declared read.
+Action wiring 119: IF Party Identity answers already-closed for a close AND a party closed event names the case THEN [Close Party] MUST answer not-active.
+Action wiring 120: IF Party Identity answers not-known for a close THEN [Close Party] MUST answer not-known.
+Action wiring 121: IF Party Identity answers invalid-request for a close THEN [Close Party] MUST answer invalid-request.
+Action wiring 122: IF Party Identity answers storage-failure for a close THEN [Close Party] MUST answer recording-failure carrying intent.
+Action wiring 123: An admitted closure MUST call Retention Window's place_under_retention with the party_id AND the post closure policy.
+Action wiring 124: IF Retention Window answers invalid-policy for a closure THEN [Close Party] MUST answer invalid-request.
+Action wiring 125: IF Retention Window answers policy-not-found for a closure THEN [Close Party] MUST answer invalid-request.
+Action wiring 126: IF Retention Window answers storage-failure for a closure THEN [Close Party] MUST answer recording-failure carrying outcome.
+Action wiring 127: An admitted closure MUST record a party closed outcome carrying the case_id, the party_id, the state_change_id, the post closure placement, the reason, the closed_at AND the open triggers at close.
+Action wiring 128: IF the party closed record fails THEN [Close Party] MUST answer recording-failure carrying outcome.
+Action wiring 129: An admitted closure MUST populate the case-to-retentions index's post closure placement ONLY AFTER the landed party closed record.
+Action wiring 130: An admitted closure MUST clear the case's active flag ONLY AFTER the landed party closed record.
+Action wiring 131: An admitted closure MUST empty the open-trigger set ONLY AFTER the landed party closed record.
+Action wiring 132: An admitted closure MUST answer closed.
+Action wiring 133: A caller MUST NOT retry a committing call across an invocation.
+Action wiring 134: The composition MUST read the party-to-case index at [Activity Permitted].
+Action wiring 135: IF the party NOT EXISTS in the party-to-case index THEN [Activity Permitted] MUST answer not-known.
+Action wiring 136: The composition MUST read the party through Party Identity's declared read at [Activity Permitted].
+Action wiring 137: IF the party's state = verified THEN [Activity Permitted] MUST answer permitted.
+Action wiring 138: IF the party's state != verified THEN [Activity Permitted] MUST answer not-verified carrying the state.
+Action wiring 139: IF the read stands unanswered THEN [Activity Permitted] MUST answer state-unavailable.
+Action wiring 140: IF the read answers no party THEN [Activity Permitted] MUST answer state-unavailable.
+Action wiring 141: [Activity Permitted] MUST NOT answer permitted for an unanswered read.
+Action wiring 142: [Activity Permitted] MUST NOT write.
+Action wiring 143: [Activity Permitted] MUST NOT record an audit event.
+Action wiring 144: [Activity Permitted] MUST NOT read a clock.
+Action wiring 145: [Activity Permitted] MUST NOT compare a timestamp.
+```
 
-Steps:
+Terms › `party state`: party identity(../atoms/party-identity.md)'s declared lifecycle states, cited rather than restated.
 
-1. Resolve `party_to_case[party_id]`. If absent → `rejected(not-known)` — the party is not governed by an onboarding case (it was never run through [Initiate Onboarding], or `party_id` is unknown), so this composition makes no verification claim about it. This check is what makes the gate enforce *verified-through this composition*, not merely *Verified*: only a party this composition itself initiated has a case entry, and Invariant 2 guarantees that case's `Unverified → Verified` transition is audited. A party driven to `Verified` outside this composition has no entry and fails the gate here.
-2. Read the party's current state via `Party Identity.read({party_id})` — the atom's declared `read` query surface; the singleton query returns the party record carrying its current state. **The gate fails closed** ([State Unavailable]): if the read cannot be answered — the store is unreachable, or the query cannot complete — return `rejected(state-unavailable)`; an unreadable identity store is never treated as `Verified`, because the cheapest-compliant reading (unavailable ⇒ permit) is exactly the before-activity hole the gate exists to close. (An empty result here — a case entry whose party the store no longer answers for — is an internal-consistency anomaly, returned as `state-unavailable`, never `permitted`.)
-3. If the state is `Verified` → return `permitted`.
-4. Otherwise → return the [Not Verified] rejection, naming the actual state: `Unverified`, `Suspended`, or `Closed`. The named state lets the calling activity system distinguish *not yet verified* (retry after verification) from *suspended* (under investigation) from *closed* (relationship ended).
+Terms › `admissible states`: `unverified` — the one party state an external path initiation admits.
 
-### The load-bearing wiring decision — verification-gates-activity
+Terms › `suspendable states`: `verified` | `suspended` — the party states an adverse trigger's suspend may reach.
 
-The composition's structural reason to exist: **a party reaches regulated activity only through the `Verified` state, that state is reached only through an attributed and tamper-evident verification, and the gate query [Activity Permitted] is the single surface every activity system consumes.**
+Terms › `unanswered read`: a constituent read the host's I/O did not complete, which `execution-contract.md` §Step 1 failure names `state-unavailable`.
 
-*Principle.* BSA/AML and FATF Recommendations 10–12 require that Customer Due Diligence be completed before a business relationship's regulated activity begins. Structurally, that means: no account opening, no transaction, no service provisioning may proceed for a party who is not in a substantiated `Verified` state, and the system must be able to prove — from the records alone — both that the party was verified and that no activity preceded the verification.
+Terms › `admitted initiation`: an [Initiate Onboarding] call whose boundary predicate passed, whose party stands admissible and whose intent landed.
 
-*Likely objection.* Party Identity already owns the `Verified` state and already guarantees (Invariant 4) that `Verified` is not reachable without a `passed` verification after the most recent suspend. Why not have each activity system simply read Party Identity's state directly? The atom already enforces the substance of the gate.
+Terms › `admitted verification`: a [Record Verification] call whose boundary predicate passed, whose case stands active and whose intent landed.
 
-*Mechanism that resolves it.* Party Identity owns the `Verified` state but exposes no gate — it records the state but does not enforce that activity systems consult it, and it does not know what "regulated activity" means (it is a freestanding atom; importing the notion of an activity system would break its freestanding status). The Audit Trail substrate records attributed, tamper-evident events but does not know which events constitute a verification chain. Neither can, alone, guarantee the two halves of the obligation. The composition is the layer that wires them: it ensures that every `Unverified → Verified` transition flows through [Record Verification], which records a `customer-onboarding.verification-recorded` Audit Trail event carrying both the `verification_id` and the `state_change_id` (so the verification is attributed and tamper-evident, Invariant 2); and it exposes [Activity Permitted] as the *single* gate query, so the precondition is implemented exactly once at the composition boundary rather than re-implemented — or quietly skipped — in each activity system. If activity systems read Party Identity directly, the gate is re-implemented per system, and the first system that forgets the check (or reads a stale state) breaks the structural guarantee silently. The gate consults this composition's case index (`party_to_case`) as well as Party Identity state, so it returns `permitted` only for a party this composition itself initiated and verified — a party driven to `Verified` outside this composition has no case entry and fails with `not-known`. The attribution-and-tamper-evidence half of the guarantee is delivered by Invariant 2 (every `Unverified → Verified` transition driven through this composition is audited) together with the exclusive-ownership obligation (Edge cases — *Exclusive verification ownership of the Party Identity instance*), not by the state read alone; the gate's own job is to confine `permitted` to the `Verified` parties this composition governs. Centralizing the gate at the composition is what makes the BSA/AML before-activity guarantee structural rather than conventional.
+Terms › `admitted trigger`: a [Trigger Monitoring Review] call whose boundary predicate passed, whose case stands active and whose pre-check admitted the trigger_type against the party's state.
 
-*Result.* The gate is structural and centralized. An auditor can verify, from the records alone, that for every party with regulated activity a `customer-onboarding.verification-recorded` event with a `state_change_id` predates the activity (Generation acceptance check 1), and that no activity system held its own copy of the gate logic to drift from. The single-surface discipline is the records-alone-defensible signal: the verification precondition lives in one place, is exercised through one query, and produces one tamper-evident event class the auditor reads.
+Terms › `admitted clearance`: a [Clear Review] call whose boundary predicate passed, whose case carries an open trigger and whose intent landed.
+
+Terms › `admitted closure`: a [Close Party] call whose boundary predicate passed, whose case stands active and whose intent landed.
+
+Terms › `transitioning verification`: an admitted verification Party Identity answered with a state_change_id.
+
+Terms › `adverse trigger`: an admitted trigger whose trigger_type belongs to the adverse trigger types.
+
+Terms › `periodic trigger`: an admitted trigger whose trigger_type = the periodic trigger type.
+
+Terms › `suspending trigger`: an adverse trigger whose suspend Party Identity admitted.
+
+Terms › `renewing trigger`: a periodic trigger whose renewal Retention Window admitted.
+
+Terms › `completing closure`: a [Close Party] invocation finishing an earlier closure Party Identity committed and no party closed event records.
+
+Terms › `composed suspend reason`: `"monitoring-trigger:" + trigger_type + ":" + trigger_ref` — the reason an adverse trigger passes to Party Identity's suspend.
+
+Terms › `closed triggers`: the trigger ids a review cleared record names as resolved by the clearance.
+
+Terms › `open triggers at close`: the trigger ids a party closed record names as closed-unresolved at the relationship's end.
+
+Terms › `scoped retry`: the retrying invocation's own continuation of a step whose constituent call refused after a committed sibling call.
+
+Terms › `prior placement`: the current placement a renewal supersedes.
+
+Terms › `renewed placement`: the placement a renewal makes, which becomes the case's current placement once the renewal's record lands.
+
+WHY:
+**The rejection order is the action's shape.** Every action reads its index and runs its boundary predicate first, records an intent second, and calls a constituent third. Action wiring 1 through Action wiring 7 are that first band for [Initiate Onboarding], [Already Onboarded] among them, and Action wiring 6 is a repair the prose owed: the external path guarded `Closed` alone, so a `Suspended` admit opened a case with an empty open-trigger set against a suspended party, and a `Verified` admit passed the gate with no verification record of this composition's at all. The admissible state is `unverified` and nothing else, and the one arm names the state it found rather than the three arms a reader would have to enumerate. The `party-closed` arm the prose exported folds into it: one guard, one arm, one meaning.
+
+Action wiring 9 and Action wiring 18 are the direct path's asymmetry, stated rather than left to be inferred. On the direct path no party exists when the intent is written, so the intent carries no `party_id` and the enrolment is the invocation's first commit; a `storage-failure` at the placement therefore reports an *outcome* position on that path and an *intent* position on the external one, where nothing has committed. Action wiring 11 and Action wiring 12 keep the enrolment's own failure under a composition-layer name — [Enrollment Failed] — rather than flattening it into a recording failure, precisely because it happens before any case or placement exists — there is no orphan to recover.
+
+Action wiring 23, Action wiring 39 and Action wiring 114 are one guard in three places. A closed case reaching a constituent is the defect the prose carried at [Record Verification]: with no active-case guard, a closed case reached the intent record before Party Identity answered `already-closed`, so the trail carried an intent for an act that could never happen. The guard is cheap, it sits before the intent, and it makes [Not Active] an exported code on all three repeatable actions.
+
+Action wiring 41 through Action wiring 43 are the `state-unavailable` repair. Party Identity's `read` declares two answers — the matching parties, or `invalid-query` — and neither is an unreadable store, so mapping `state-unavailable` *from the constituent* named a contract the constituent does not have. It is mapped from the seam instead: an unanswered read is `execution-contract.md`'s own Step 1 failure, and `invalid-query` is this composition's own defect, because every query this composition builds is built from its own indexes and no caller input reaches it.
+
+Action wiring 46 through Action wiring 51 are the audit-first discipline, which is what Invariant 3 rests on. The trigger record precedes the suspend, so no suspension exists in the records without its precipitating trigger ordered ahead of it, and a failed trigger record aborts before any transition is attempted. Action wiring 55 and Action wiring 56 are the arm that repair costs: a rejected `suspend` leaves a landed trigger and no suspension, which — unvoided — rebuilds as an open investigation against a party still `Verified`, which [Clear Review] would then *clear*, recording a fresh verification, attempting a reinstate the constituent refuses, and never landing the record whose absence keeps the trigger open forever. Every non-idempotent rejection arm therefore writes the void first.
+
+Action wiring 68 and Action wiring 69 are the renewal's unconditionality, and both halves matter. A suspended party's CDD record needs cover exactly as much as a verified one's, and the schedule freeze freezes the deadline rather than the renewal; and a placement is immutable per `retention_id`, so cover across a relationship longer than one duration is a chain of placements, continuous exactly when each link is placed before its predecessor's `retention_until`. Action wiring 78 is the match key the recovery owed: a renewal recovery matches on the `trigger_id` the trigger event minted, never on *a placement this invocation already made*, which names no key at all.
+
+Action wiring 91 is the ordering the clearance turns on. The clearance record lands before the reinstate commits, so it must not carry the advanced deadline: a failed reinstate would otherwise leave the trail asserting an advance the freeze rule forbids for a party still `Suspended`, and the rebuild — latest schedule-bearing payload — would convict a map entry that was correct. The advance rides the reinstatement record, which lands only after the reinstate has committed.
+
+Action wiring 105 and Action wiring 106 are why a clearance drops a set rather than clearing one. Inside the window between the reinstate committing and its record landing, the party is already `Verified` and a new adverse trigger can lawfully land; a delayed completion that cleared the whole set would sweep that trigger while its own record stands and no clearance names it, leaving a `Suspended` party with an empty set and [Clear Review] unreachable.
+
+Action wiring 117 and Action wiring 118 are the re-entry arm, and it is the alternative to a forbidden retry. A prior invocation that closed the party and died before placing the floor leaves a closure Party Identity committed and no record of; a fresh [Close Party] authenticates its own caller at its own intent and then completes the earlier act from the constituent's state-change record. Action wiring 133 is what that arm exists to avoid: a bare cross-invocation retry of a committing call would commit under an authentication performed in a prior invocation, which Invariant 8 forbids.
+
+Action wiring 139 through Action wiring 145 are the gate's fail-closed shape. The cheapest-compliant reading — unavailable implies permit — is exactly the before-activity hole the gate exists to close, so an unreadable store and a case entry whose party the store no longer answers for both answer `state-unavailable` and never `permitted`. The gate compares no timestamp and reads no clock, so it is clock-independent by construction, which is why it is excluded from the serialization obligation: its two reads need not be atomic, because the state read is authoritative and any skew yields a spurious `not-known` or a conservative `not-verified`, never a false `permitted`.
+
+---
+
+### Wiring decision
+
+```text
+Wiring decision 1: The composition MUST hold the activity gate.
+Wiring decision 2: [Activity Permitted] MUST answer permitted ONLY IF the composition's own case names the party.
+Wiring decision 3: [Activity Permitted] MUST answer permitted ONLY IF Party Identity reports the party verified.
+Wiring decision 4: The composition MUST NOT answer permitted from a party's state alone.
+Wiring decision 5: An activity system MUST NOT hold a second gate.
+Wiring decision 6: The composition MUST NOT push the gate into a constituent.
+Wiring decision 7: Party Identity MUST NOT know a regulated activity.
+Wiring decision 8: The composition MUST drive a verification transition through [Record Verification].
+Wiring decision 9: The composition MUST drive a reinstatement through [Clear Review].
+```
+
+Terms › `regulated activity`: an account opening, a transaction, a service provisioning, or any other act the deployment's regulator conditions on completed Customer Due Diligence.
+
+WHY:
+*Principle.* BSA/AML and FATF Recommendations 10–12 require that Customer Due Diligence be completed before a business relationship's regulated activity begins. Structurally that means no account opening, no transaction and no service provisioning proceeds for a party outside a substantiated `Verified` state, and the system proves — from the records alone — both that the party was verified and that no activity preceded the verification.
+
+*Likely objection.* Party Identity already owns the `Verified` state and already refuses a reinstatement without a `passed` verification after the most recent suspend. Why not have each activity system read Party Identity's state directly? The atom already enforces the substance of the gate.
+
+*Mechanism that resolves it.* Party Identity owns the state and exposes no gate: it records that a party is Verified, does not enforce that activity systems consult it, and does not know what regulated activity means — importing that notion would break the atom's freestanding status, which is what Wiring decision 6 and Wiring decision 7 refuse. The Audit Trail substrate records attributed, tamper-evident events and does not know which of them constitute a verification chain. Neither can, alone, deliver both halves of the obligation. The composition wires them: every `Unverified → Verified` transition flows through [Record Verification], which records an event carrying both the `verification_id` and the `state_change_id`, so the verification is attributed and tamper-evident (Invariant 2.1); and [Activity Permitted] is the *single* gate query, so the precondition is implemented exactly once at the composition boundary rather than re-implemented — or quietly skipped — in each activity system. Wiring decision 2 is the half a reader most often misses: the gate consults this composition's own case index as well as the party's state, so a party driven to `Verified` outside this composition has no case entry and fails the gate. The attribution half is delivered by Invariant 2.1 together with the exclusive-ownership obligation of Composes 19 and Composes 20, not by the state read; the gate's own job is to confine `permitted` to the `Verified` parties this composition governs.
+
+*Result.* The gate is structural and centralized. An auditor verifies from the records alone that for every party with regulated activity a verification record carrying a `state_change_id` precedes the activity (Check 1.1), and that no activity system held its own copy of the gate logic to drift from. The single-surface discipline is the records-alone-defensible signal: the verification precondition lives in one place, is exercised through one query, and produces one tamper-evident event class the auditor reads.
+
+---
+
+### Reconciliation
+
+```text
+Reconciliation 1: The composition MUST run the reconciliation at process restart.
+Reconciliation 2: The composition MUST run the reconciliation PER reconciliation cadence.
+Reconciliation 3: The reconciliation MUST select an open marker over an open-ended sequence range.
+Reconciliation 4: The reconciliation MUST NOT examine a young marker.
+Reconciliation 5: The reconciliation MUST NOT examine an aged-out event.
+Reconciliation 6: The reconciliation MUST resolve an open marker against the constituents' declared reads.
+Reconciliation 7: IF an open marker's committing call NOT EXISTS THEN the reconciliation MUST close the marker.
+Reconciliation 8: IF an open marker's committing call EXISTS THEN the reconciliation MUST emit the owed outcome.
+Reconciliation 9: The reconciliation MUST emit a recovery outcome ONLY AFTER the landed recovery intent.
+Reconciliation 10: The reconciliation MUST record a recovery intent ONLY AFTER the outcome traversal.
+Reconciliation 11: The reconciliation MUST attest a recovery record under the service identity.
+Reconciliation 12: The reconciliation MUST place an owed post closure placement.
+Reconciliation 13: The reconciliation MUST place an owed renewal.
+Reconciliation 14: The reconciliation MUST NOT enroll a party.
+Reconciliation 15: The reconciliation MUST NOT verify a party.
+Reconciliation 16: The reconciliation MUST NOT suspend a party.
+Reconciliation 17: The reconciliation MUST NOT reinstate a party.
+Reconciliation 18: The reconciliation MUST NOT close a party.
+Reconciliation 19: The reconciliation MUST close an open marker WITHIN the compensation window.
+Reconciliation 20: The reconciliation MUST escalate an open marker outside the compensation window.
+Reconciliation 21: The reconciliation MUST alert on a closed case carrying no post closure placement.
+Reconciliation 22: The reconciliation MUST alert on an active case carrying an elapsed placement.
+Reconciliation 23: The reconciliation MUST alert on a suspended party carrying an empty open-trigger set.
+Reconciliation 24: The reconciliation MUST alert on a landed trigger carrying no outcome.
+Reconciliation 25: The reconciliation MUST alert on a verified party carrying no verification record.
+Reconciliation 26: Two reconciliations MUST NOT run against one case.
+Reconciliation 27: The reconciliation MUST resolve a verification intent's commitment on the party_id, the verifying_actor_ref, the evidence_ref AND the intent's intended_at.
+Reconciliation 28: The reconciliation MUST resolve a placement intent's commitment on the party_id, the policy_ref AND the intent's intended_at.
+Reconciliation 29: The reconciliation MUST NOT resolve an enrolment intent's commitment.
+Reconciliation 30: The reconciliation MUST escalate an unresolved enrolment intent as a finding.
+Reconciliation 31: The reconciliation MUST NOT match a recovery on a payload resemblance.
+Reconciliation 32: The reconciliation MUST answer nothing to a caller.
+Reconciliation 33: A caller MUST NOT invoke the reconciliation.
+```
+
+Terms › `reconciliation`: the leg the composition runs outside any invocation — `Reconciliation 1` through `Reconciliation 33` state it — closing or escalating an open marker within a promised window.
+
+Terms › `young marker`: an open marker whose `intended_at` stands within the onboarding completion bound of the injected now.
+
+Terms › `elapsed placement`: a placement whose `retention_until` does not exceed the injected now.
+
+WHY:
+The reconciliation is a **declared, bounded scan, not an implicit retry**, and both edges are load-bearing. Below the onboarding completion bound it examines nothing, because an intent younger than the bound may belong to an invocation still between its constituent commit and its outcome record, and a re-emission fired at it would land a second outcome — or a second placement — for one act, which no traversal can see because the invocation has not written yet. Above it, the audit horizon: past the horizon an intent's payload is destroyed, and a case whose events aged out is the unrebuildable class Composition state names, never an orphan. That is the frozen rule *A reconciliation is bounded at both ends*.
+
+Reconciliation 11 through Reconciliation 18 fix what the leg may commit. It writes records freely under the service identity, and it commits exactly two constituent calls — a post-closure placement and a renewal — because those are the two whose loss leaves a record under no retention obligation at all and whose replacement is a fresh placement rather than a changed state. It never enrolls, verifies, suspends, reinstates or closes: each of those is a state change a human authorized, and the reconciliation carries no such authorization. The route for those is a fresh invocation, which authenticates its own caller at its own intent — [Close Party]'s re-entry arm is the worked form.
+
+Reconciliation 27 through Reconciliation 31 are the indeterminacy the prose left unaddressed: a constituent call whose response was lost after the write committed. Party Identity and Retention Window carry no invocation identity of this composition's, so the question *did my call commit?* is answered by a re-query keyed on the values the intent already fixed, the invocation's own injected instant among them — one invocation has exactly one `now`, which is what makes the key exact rather than a resemblance. `enroll` is the one call that has no such key, because it mints the identity the key would need: a re-query cannot tell this invocation's party from another's, and a blind retry mints a second party for one customer. So it is never resolved and never retried; the unresolved enrolment intent is escalated, and its residue — an `Unverified` party with no case — is dispositioned administratively rather than joined by guesswork.
+
+Reconciliation 32 and Reconciliation 33 place the leg: nothing awaits its answer inside an invocation, and a caller cannot drive it. What *does* await it is the compensation window Reconciliation 19 spends, which is why this leg is a `Reconciliation` rather than a `Housekeeping` — the boundary GRACE-lang §18 declares once, applied here by the one question it asks.
 
 ---
 
 ## Composition-level invariants
 
-These invariants emerge from the composition. None belongs to a single constituent; each requires two or more working together to hold.
+```text
+Invariant 1.1: [Activity Permitted] MUST answer permitted ONLY IF the party-to-case index names the party AND Party Identity reports the party verified.
+Invariant 1.2: [Activity Permitted] MUST answer permitted for a party the party-to-case index names AND Party Identity reports verified.
+Invariant 1.3: A party MUST reach regulated activity ONLY IF [Activity Permitted] answers permitted.
+Invariant 2.1: A transitioning verification MUST carry a landed verification recorded record naming the verification_id AND the state_change_id.
+Invariant 2.2: A verification recorded record MUST stand under a seal PER Audit Trail's seal cadence.
+Invariant 2.3: A quiescent verified party MUST carry a verification recorded record.
+Invariant 2.4: A verified party MAY carry an owed verification recorded record WITHIN the compensation window.
+Invariant 3.1: A party suspended record MUST stand later in the log than the record's monitoring triggered record.
+Invariant 3.2: A trigger on suspended party record MUST stand later in the log than the record's monitoring triggered record.
+Invariant 3.3: A reader MUST read later in the log as the Event Log's insertion order.
+Invariant 3.4: A reader MUST NOT read later in the log as a timestamp difference.
+Invariant 4.1: A reinstated party MUST carry a passed verification standing later in the log than the party's most recent suspension.
+Invariant 4.2: A reinstated party MUST carry a landed review cleared record naming the verification_id.
+Invariant 4.3: The clearing actor MUST attest the fresh evidence.
+Invariant 4.4: The composition MUST NOT claim the verifying_actor_ref stands authenticated.
+Invariant 5.1: An active case's party record MUST stand under an unelapsed placement.
+Invariant 5.2: An active case's placements MUST stand as a continuous chain.
+Invariant 5.3: A closed case's party record MUST stand under the post closure placement.
+Invariant 5.4: A purging layer MUST destroy a party record ONLY IF EVERY placement over the record stands elapsed.
+Invariant 5.5: The composition MUST NOT expose a purge surface.
+Invariant 5.6: A purging layer MUST NOT destroy a closed case's party record BEFORE the post closure floor.
+Invariant 6.1: A verified party under an active case MUST carry a case-to-monitoring entry.
+Invariant 6.2: A case-to-monitoring entry MUST carry a next review due.
+Invariant 7.1: A quiescent active case MUST carry a non-empty open-trigger set ONLY IF the case's party stands suspended.
+Invariant 7.2: A quiescent suspended party under an active case MUST carry a non-empty open-trigger set.
+Invariant 7.3: A verified party carrying a closed trigger inside the clearance window MUST stand as a surfaced orphan.
+Invariant 7.4: A quiescent closed case MUST carry an empty open-trigger set.
+Invariant 7.5: A party closed record MUST name EVERY trigger the closure swept.
+Invariant 8.1: The composition MUST NOT commit a constituent write under an unvalidated credential.
+Invariant 8.2: An action MUST validate EXACTLY ONE actor's credential.
+Invariant 8.3: The composition MUST NOT claim a recorded actor reference stands authenticated.
+Invariant 8.4: A credential validation MUST NOT establish the presenter's identity.
+Invariant 8.5: A credential validation MUST NOT establish a channel binding.
+Invariant 8.6: A credential validation MUST NOT establish an authorization.
+Invariant 8.7: A credential validation MUST NOT establish the customer's evidence.
+```
 
-- **Invariant 1 — Verification gates activity.** Two claims, distinguished by what enforces each. *(a) Query result — composition-enforced:* `activity_permitted(party_id)` returns `permitted` if and only if the party has an onboarding case entry (`party_to_case[party_id]`) **and** Party Identity reports it in `Verified` state. *Defended in-line:* [Activity Permitted] step 1 rejects a party with no onboarding case as `not-known`, and step 3 returns `permitted` only on `Verified`; every other state returns `rejected(not-verified(state))` — the biconditional is exact and the composition enforces it, so a party driven to `Verified` outside this composition cannot pass the gate. *(b) Gating property — deployment-conditional:* a party reaches regulated activity only through this gate, which holds exactly when activity systems consume [Activity Permitted] rather than reading Party Identity directly. This is the one structural obligation pushed to deployment (named in Edge cases — *Activity systems reading Party Identity directly*); a system that bypasses the gate is a composition-bypass finding, not a valid path. The "iff" is a property of the query result; the gate guarantee additionally requires the single-surface obligation to be honored.
+Terms › `quiescent case`: a case carrying no invocation in flight.
 
-- **Invariant 2 — Verification audit coverage.** Every `Unverified → Verified` transition driven through this composition (i.e., through [Record Verification] with `verification_result = passed` against an `Unverified` party) produces a `customer-onboarding.verification-recorded` Audit Trail event carrying the `verification_id` and the `state_change_id`, tamper-evident via the substrate seal. *Rests on:* Party Identity's return of `state_change_id` on the transition (Party Identity Behavior), [Record Verification] step 5, and Audit Trail's attribution and seal coverage (Audit Trail Invariants 1 and 3).
+Terms › `quiescent verified party`: a party standing verified whose case carries no invocation in flight.
 
-- **Invariant 3 — Adverse trigger precedes state transition.** Every adverse monitoring trigger produces a `customer-onboarding.monitoring-triggered` Audit Trail event before any resulting `suspend` transition; no suspension driven by a trigger exists in the records without its precipitating `customer-onboarding.monitoring-triggered` event ordered before it in the log. *Defended in-line:* [Trigger Monitoring Review] records the trigger (step 3) before attempting `suspend` (step 4) and recording the outcome event (step 5 — `customer-onboarding.party-suspended` for a real transition, or `customer-onboarding.trigger-on-suspended-party` for the already-suspended idempotent case, both carrying the step-3 `trigger_id`); a step-3 recording failure aborts before any state transition. The Event Log's total order (reached transitively through Audit Trail) is what makes "ordered before" a records-alone fact.
+Terms › `quiescent suspended party`: a party standing suspended whose case carries no invocation in flight.
 
-- **Invariant 4 — Reinstatement reflects fresh evidence.** A party reinstated after an adverse trigger has a `passed` verification recorded after the most recent `suspend`, with a corresponding `customer-onboarding.review-cleared` Audit Trail event carrying the `verification_id`. **Whose claim this is, exactly:** the clearing actor — `actor_ref`, the one whose credential this composition verifies at [Clear Review]'s intent record — attests that fresh evidence naming `verifying_actor_ref` was recorded before the reinstatement. It is *not* a claim that `verifying_actor_ref` was authenticated; that reference is caller-supplied and this composition never checks it (Primitive policies). The narrower statement is the true one, and whether the named evidence-producer was who they claimed is an externally-clearable check. *Rests on:* Party Identity Invariant 4 (the atom rejects `reinstate` without a `passed` verification since the most recent suspend) plus [Clear Review]'s ordering (step 5 records the fresh `passed` verification before step 7 reinstates, and step 6 records the clearance carrying the `verification_id`). The composition cannot reinstate without fresh recorded evidence because the constituent forbids it and the composition records it. (The `customer-onboarding.party-reinstated` event recorded at [Clear Review] step 8 is *supplementary* attestation of the transition; Invariant 4 rests on the step-6 `customer-onboarding.review-cleared` event of step 5, which lands before the reinstate — so a lost `customer-onboarding.party-reinstated` event is an orphan to recover per the partial-failure edge case, not an Invariant 4 violation.)
+Terms › `quiescent closed case`: a closed case carrying no invocation in flight.
 
-- **Invariant 5 — Retention coverage: active-relationship renewal and the post-closure floor.** *(a) Active coverage:* at every instant of an active case, the party record is under a `Retained` active-relationship placement whose `retention_until` has not elapsed — the placement made at [Initiate Onboarding], renewed by a fresh placement at every periodic review ([Trigger Monitoring Review] step 4), each link placed before its predecessor's `retention_until` under Configuration's duration obligation. A Retention Window placement is fixed-duration and its policy immutable, so nothing else renews it; without the chain a relationship longer than one placement's `duration` leaves a live `Verified` customer's CDD record lawfully purge-eligible. The clause is conditional on the periodic review firing — a scheduler that stops fires no renewal — which is why check 4(b) tests the chain from the records rather than trusting the schedule. *(b) Post-closure floor:* a `Closed` party record cannot be purged before its post-closure Retention Window record's `retention_until` elapses. *Rests on:* Party Identity Invariant 1 (party records are never deleted by the atom outright) plus Retention Window Invariant 7 (no early purge — purge before `retention_until` is rejected) — **plus a joint-enforcement obligation this composition must declare rather than assume:** Retention Window's no-early-purge is **per-`retention_id`**, and the atom explicitly does not jointly enforce overlapping retentions over one `record_ref` — its *Multiple simultaneous retentions* edge case hands exactly that to the composing layer. This composition exposes no purge surface, so the obligation lands on the purging layer: the party record may be destroyed only when **every** retention over `party_id` — the current active-relationship placement in `case_to_retentions[case_id]`, every superseded one the `customer-onboarding.retention-renewed` events name, and the post-closure placement — is purge-eligible. A deployment that purges through Defensible Retention discharges the obligation structurally (that composition's Invariant 9, cross-retention joint enforcement, is the composed check); a host purging directly against the Retention Window instance owes the same joint check itself. The post-closure retention placed at [Close Party] step 6 governs when archive/scrub becomes permitted; `case_to_retentions[case_id].post_closure_retention_id` is the records-alone evidence that the placement occurred.
+Terms › `continuous chain`: a sequence of placements over one party in which each link's `retained_at` does not exceed the predecessor's `retention_until`.
 
-- **Invariant 6 — Monitoring continuity for active parties.** Every party in `Verified` state governed by this composition with an active case has an open `case_to_monitoring` entry. A `Verified`, active party with no `case_to_monitoring` entry is a structural finding, not a valid state. *Rests on:* [Initiate Onboarding] populating `case_to_monitoring` for every case it opens, and no this composition action removing the entry while the case is active ([Close Party] marks the case inactive but retains the entry as the record that monitoring was in force).
+Terms › `post closure floor`: the instant a closed case's post closure placement reaches the placement's `retention_until` — the earliest lawful destruction of the party record on the post-closure side.
 
-- **Invariant 7 — Open-trigger/suspension correspondence (safety at quiescence, liveness across the step-8 window).** For an **active** case (`party_to_case[party_id].active = true`) under this composition's exclusive ownership of its party's verification transitions, `case_to_open_triggers[case_id]` is non-empty if and only if the party is in `Suspended` state by an unresolved adverse trigger — **at quiescence**; inside [Clear Review]'s step-8 window (reinstate committed, `party-reinstated` not yet landed) a `Verified` party carries the not-yet-subtracted `closed_triggers` as a surfaced orphan, which closes when the reinstatement record lands and step 9 subtracts exactly that set (the correspondence holds under this composition's serialization obligation — Edge cases — *Concurrency*; it is quantified over active cases because [Close Party] administratively sweeps the set, recording the swept triggers as `open_triggers_at_close` on the closure event — a closed case's set is empty by that sweep, and the party's `Closed` state, not this index, is what gates it thereafter). *Rests on:* the adverse path of [Trigger Monitoring Review] adds a `trigger_id` to the set exactly when it suspends (or re-triggers an already-suspended party) — including when the outcome event's write fails, since the set derives from the step-3 trigger event that already landed — and never on an arm whose `suspend` was rejected, each of which records `customer-onboarding.trigger-voided` so the rebuild subtracts the trigger; the periodic path never touches the set; [Clear Review] empties the set exactly when it records the clearance and reinstates; and [Close Party] sweeps it with the recorded disposition; no other this composition action mutates the set. The correspondence is what makes [Clear Review]'s [No Open Trigger] rejection a faithful "nothing to clear" signal and makes the open-trigger set a records-checkable index of triggers not yet cleared. A single [Clear Review] resolves *all* open triggers for the case at once; the `closed_triggers` set on the `customer-onboarding.review-cleared` event records exactly which triggers were swept, so a multi-trigger sweep (a second adverse trigger raised before the first was investigated) remains records-auditable even though one clearance closed them together — a deployment requiring per-trigger investigation before clearance wires that above the composition layer.
+Terms › `unelapsed placement`: a placement whose `retention_until` exceeds the injected now.
 
-- **Invariant 8 — Authentication precedes commitment.** No constituent call that commits is reached on any path before this composition's caller has presented a credential that validates against the actor registry's public material for the actor that action attests. The intent record is the mechanism — an `AuditTrail.record_action` whose substrate validates the credential inside it — standing before `Party Identity.enroll`, before `Party Identity.verify` (the most consequential case: on an `Unverified` party that call drives the `Unverified → Verified` transition Invariant 1 rests on), before `Party Identity.close`, before `Party Identity.reinstate`, and before every `Retention Window.place_under_retention`. [Trigger Monitoring Review] satisfies this without an added record: its `monitoring-triggered` write already precedes its `suspend` and, on the periodic path, its retention renewal. A party is therefore never enrolled, verified, suspended, cleared, or closed without **the actor that action attests** having been verified first — which is the exact claim, and is narrower than it may read: the scope paragraph below names which reference that is for each action, and names the two this composition records without authenticating.
+Terms › `clearance window`: the interval between a clearance's reinstate committing and the clearance's party reinstated record landing.
 
-  **Scope — which principal, and what a validation establishes.** Each action carries one `credential` and therefore authenticates one actor: `actor_ref` at [Initiate Onboarding], [Clear Review] and [Trigger Monitoring Review], `verifying_actor_ref` at [Record Verification], `closing_actor_ref` at [Close Party]. The other actor references an action carries — `enrolling_actor_ref` on the direct branch, `verifying_actor_ref` at [Clear Review] — are **recorded, not authenticated**, and no invariant here claims otherwise (Invariant 4 is stated over the clearing actor for exactly this reason). A successful validation establishes that material matching that actor's registered verifier was presented at that instant. It does *not* establish that the presenter *is* that actor (a stolen credential validates), that the presentation is bound to a channel or session, or that it cannot be replayed; and it establishes nothing about *authorization* — whether this actor was permitted to open, verify, clear or close remains a composing Permissions matter this composition does not gate. **And it says nothing about the customer**: whether the identity evidence is genuine is Party Identity's and the deployment's question, not this one's, which no reading of this invariant may blur.
+Terms › `surfaced orphan`: a state the composition has alerted on and the reconciliation owes a close.
 
-  *Rests on:* Audit Trail's `record_action` and the Actor Identity attestation reached through it. *Defended in-line:* the ordering is visible in every action's step list, and Generation acceptance check 6 tests it from the records alone.
+Terms › `clearing actor`: the `actor_ref` a [Clear Review] call carries — the one actor whose credential the composition validates on that call.
 
-Verification-gates-activity (Invariant 1) plus verification audit coverage (Invariant 2) together give the *substantiated-access* property — every party that can reach activity was verified through an attributed, tamper-evident process. Adverse-trigger ordering (Invariant 3) plus reinstatement-reflects-fresh-evidence (Invariant 4) give the *defensible-monitoring* property — every suspension is caused-in-the-records and every reinstatement is evidenced-in-the-records. Retention coverage (Invariant 5) plus monitoring continuity (Invariant 6) close the relationship lifecycle: the record is under retention throughout its active life and survives its mandated post-closure period, and was monitored throughout. Invariant 7 (open-trigger/suspension correspondence) keeps the composition's adverse-investigation index faithful to the constituent's `Suspended` state, so an auditor reading the open-trigger set sees exactly the unresolved investigations.
+WHY:
+**Invariant 1 is two claims and the split is load-bearing.** Invariant 1.1 and Invariant 1.2 together are the biconditional, and the composition enforces both halves at the gate: step one refuses a party with no case, step three answers `permitted` only on `verified`, and every other state answers the parameterized refusal. Invariant 1.3 is the gating property, and it is the one structural obligation pushed to deployment — it holds exactly when activity systems consume [Activity Permitted] rather than reading Party Identity directly (Capability requirement 39). The *iff* is a property of the query's answer; the gate guarantee additionally requires the single-surface obligation to be honored, and a system that bypasses the gate is a composition-bypass finding rather than a valid path.
+
+**Invariant 2 is conditioned at quiescence, which the prose asserted unconditionally.** The atomicity gap is real: [Record Verification]'s constituent write commits and its outcome record can fail, leaving a `Verified` party whose verification is unattested for as long as the recovery takes. Stating coverage as an always-true property makes every conformance run over a system mid-recovery report a violation of a rule the system is in the act of satisfying. Invariant 2.3 holds where no invocation is in flight; Invariant 2.4 names the window and bounds it by the compensation window the reconciliation spends. That is the same conditioning the substrate models for its own analogous invariants.
+
+**Invariant 3's ordering is insertion order, not clock.** A trigger record and the suspension it precipitates are stamped from the *same* injected `now` and are expected to be identical rather than adjacent, so a timestamp difference between them would be a conformance failure — an implementation that read a clock twice instead of sharing the injected reading — and never the evidence of ordering. The Event Log's total order, reached transitively through Audit Trail, is what makes *later in the log* a records-alone fact.
+
+**Invariant 4 is narrower than it reads, and the narrow statement is the true one.** The clearing actor — whose credential this composition validates at the clearance intent — attests that fresh evidence naming `verifying_actor_ref` was recorded before the reinstatement. It is not a claim that `verifying_actor_ref` was authenticated: that reference is caller-supplied and this composition never checks it, which is Invariant 4.4 and Invariant 8.3 stated where a reader of Invariant 4 will look. Requiring the two references equal would collapse a real separation of duties — an analyst gathers the evidence, a manager clears the review — so the composition keeps the separation and states the limit instead of pretending to a verification it does not perform. Whether the named evidence-producer was who they claimed is External check 3.
+
+**Invariant 5's joint enforcement is declared rather than assumed.** Retention Window's no-early-purge is per-`retention_id`, and the atom explicitly does not jointly enforce overlapping retentions over one `record_ref` — its *Multiple simultaneous retentions* edge case hands exactly that to the composing layer. This composition exposes no purge surface (Invariant 5.5), so the obligation lands on the purging layer and Invariant 5.4 quantifies over *every* placement: the current one, every superseded link the renewal records name, and the post-closure one. Nothing structural forces the post-closure floor to end last — a long active-relationship policy can outlast a short post-closure one — which is exactly why the rule quantifies rather than naming which. A deployment purging through Defensible Retention discharges it structurally; a host purging directly against the Retention Window instance owes the same joint check itself.
+
+**Invariant 7 is safety at quiescence and liveness across one named window.** Inside the clearance window the reinstate has committed and its record has not landed, so a `Verified` party still carries the not-yet-dropped closed triggers — a surfaced orphan that closes when the record lands and the clearance drops exactly that set. The correspondence is quantified over *active* cases, because [Close Party] sweeps the set administratively and records the swept triggers on its closure event; a closed case's set is empty by that sweep, and the party's `Closed` state rather than this index is what gates it thereafter. The correspondence is what makes [No Open Trigger] a faithful *nothing to clear* signal.
+
+**Invariant 8's scope paragraph is the invariant, not a caveat on it.** Each action carries one credential and therefore validates one actor: `actor_ref` at [Initiate Onboarding], [Clear Review] and [Trigger Monitoring Review], `verifying_actor_ref` at [Record Verification], `closing_actor_ref` at [Close Party]. The other references an action carries — `enrolling_actor_ref` on the direct path, `verifying_actor_ref` at [Clear Review] — are recorded and not authenticated. Invariant 8.4 through Invariant 8.7 say what a validation does *not* establish, because each is a reading the rule invites and none of them is true: a stolen credential validates, nothing binds the presentation to a channel or forecloses a replay, authorization is a composing Permissions matter this composition does not gate, and whether the customer's identity evidence is genuine is Party Identity's and the deployment's question.
+
+Invariant 1 with Invariant 2 gives the *substantiated-access* property — every party that can reach activity was verified through an attributed, tamper-evident process. Invariant 3 with Invariant 4 gives *defensible monitoring* — every suspension is caused-in-the-records and every reinstatement is evidenced-in-the-records. Invariant 5 with Invariant 6 closes the relationship lifecycle: the record is under retention throughout its active life and survives its mandated post-closure period, and was monitored throughout. Invariant 7 keeps the adverse-investigation index faithful to the constituent's state, and Invariant 8 is what makes every one of them an act a named, validated actor committed.
 
 ---
 
 ## Examples
 
-### Walkthrough — retail bank customer onboarding under BSA/AML (direct-enrollment path)
+### Walkthrough — retail bank customer onboarding under BSA/AML (direct path)
 
-A bank uses this composition to onboard a retail customer who has no prior system identity. Configuration: `active_relationship_policy_ref = bsa_active_cdd`, `post_closure_retention_policy_ref = bsa_5yr_post_closure` (31 CFR §1020.220 five-year floor), `audit_trail_retention_policy = bsa_audit_9yr`, `adverse_trigger_types = {sanctions-match, pep-status-change, adverse-media}`.
+A bank onboards a retail customer with no prior system identity. Configuration: `active_relationship_policy_ref = bsa_active_cdd`, `post_closure_retention_policy_ref = bsa_5yr_post_closure`, `audit_trail_retention_policy = bsa_audit_9yr`, `monitoring_interval = P1Y`, `adverse_trigger_types = {sanctions-match, pep-status-change, adverse-media}`.
 
-1. **Initiate (direct path).** `initiate_onboarding(party_id=absent, enrollment_fields={name:"Amara Osei", date_of_birth:"1981-03-14", document_type:"passport", document_ref:"doc_p901", enrolling_actor_ref:"officer_r3"}, actor_ref="officer_r3", credential=<officer_r3>, retention_policy_ref="bsa_active_cdd") → case_id = case_5501`. Internally: `Party Identity.enroll` → `party_9017` in `Unverified`; `Retention Window.place_under_retention(party_9017, bsa_active_cdd)` → `ret_active_9017`; `case_to_monitoring[case_5501] = {party_9017, opened_at, next_review_due}`; Audit Trail records `customer-onboarding.initiated` with `enrollment_path = direct`.
+1. **Initiate.** `initiate_onboarding(party_id=absent, enrollment_fields={name:"Amara Osei", date_of_birth:"1981-03-14", document_type:"passport", document_ref:"doc_p901", enrolling_actor_ref:"officer_r3"}, actor_ref="officer_r3", credential=<officer_r3>, retention_policy_ref="bsa_active_cdd") → case_5501`. The intent record `customer-onboarding.initiation-intended` lands first, carrying `case_5501` and no `party_id`; `PartyIdentity.enroll` returns `party_9017` in `Unverified`; `RetentionWindow.place_under_retention(party_9017, bsa_active_cdd)` returns `ret_active_9017`; `customer-onboarding.initiated` lands carrying `intent_event_id`, the schedule pair and the placement; the three indexes are populated after it.
 
-2. **Gate check before verification.** An account-opening system calls `activity_permitted(party_9017) → rejected(not-verified(Unverified))`. The account is not opened. The gate fired correctly — the party is not yet verified.
+2. **Gate before verification.** `activity_permitted(party_9017) → rejected(not-verified(Unverified))`. The account is not opened.
 
-3. **Verification.** The verification workflow runs automated OCR on the passport and calls `record_verification(case_5501, verifying_actor_ref="system_verification_auto", method="automated-ocr", verification_result="passed", evidence_ref="evidence_ocr_442", credential=<system_verification_auto>) → recorded`. Internally: `Party Identity.verify(party_9017, ..., passed, ...)` → `{verification_id: verif_1101, state_change_id: sc_4401}` (the `Unverified → Verified` transition); Audit Trail records `customer-onboarding.verification-recorded` carrying `verif_1101` and `sc_4401`; `next_review_due` advances.
+3. **Verification.** `record_verification(case_5501, verifying_actor_ref="system_verification_auto", method="automated-ocr", verification_result="passed", evidence_ref="evidence_ocr_442", credential=<system_verification_auto>) → recorded`. `customer-onboarding.verification-intended` lands, `PartyIdentity.verify` returns `{verif_1101, sc_4401}` — the `Unverified → Verified` transition — and `customer-onboarding.verification-recorded` lands carrying both ids and the advanced deadline.
 
-4. **Gate check after verification.** `activity_permitted(party_9017) → permitted`. The account-opening system proceeds; `account_a883` is opened and linked to `party_9017`. Invariant 1 fired; Invariant 2's audit event is in the records.
+4. **Gate after verification.** `activity_permitted(party_9017) → permitted`. `account_a883` is opened against `party_9017`.
 
-5. **Periodic review.** A year later the external scheduler fires `trigger_monitoring_review(case_5501, trigger_type="periodic-review-due", trigger_ref="annual-review-2027", actor_ref="system_monitor", credential=<system_monitor>) → recorded`. Internally: Audit Trail records `customer-onboarding.monitoring-triggered`; no state transition; `Retention Window.place_under_retention(party_9017, bsa_active_cdd)` → `ret_active_9017_2` renews the active-relationship placement and Audit Trail records `customer-onboarding.retention-renewed` naming `ret_active_9017` as the prior; `case_to_retentions[case_5501].active_relationship_retention_id` repoints; `next_review_due` advances.
+5. **Periodic review.** A year later the external scheduler calls `trigger_monitoring_review(case_5501, trigger_type="periodic-review-due", trigger_ref="annual-review-2027", actor_ref="system_monitor", credential=<system_monitor>) → recorded`. `customer-onboarding.monitoring-triggered` lands and is this invocation's intent; no state transition; `RetentionWindow.place_under_retention(party_9017, bsa_active_cdd)` returns `ret_active_9017_2`; `customer-onboarding.retention-renewed` lands naming `ret_active_9017` as prior and re-carrying the case binding; the case-to-retentions index repoints after it; the deadline advances.
 
-6. **Closure.** Ten years later: `close_party(case_5501, closing_actor_ref="officer_r3", reason="account-closed-customer-request", credential=<officer_r3>) → closed`. Internally: `Party Identity.close(party_9017, ...)` → `Closed`; `Retention Window.place_under_retention(party_9017, bsa_5yr_post_closure)` → `ret_postclose_9017` (the second retention placement — the five-year floor); Audit Trail records `customer-onboarding.party-closed` carrying `ret_postclose_9017`; `party_to_case[party_9017].active = false`.
+6. **Closure.** Ten years later, `close_party(case_5501, closing_actor_ref="officer_r3", reason="account-closed-customer-request", credential=<officer_r3>) → closed`. `customer-onboarding.closure-intended` lands; `PartyIdentity.close` returns `sc_9901`; `RetentionWindow.place_under_retention(party_9017, bsa_5yr_post_closure)` returns `ret_postclose_9017` — the five-year floor; `customer-onboarding.party-closed` lands carrying the floor and an empty open-triggers set; the indexes follow it.
 
-7. **Gate check after closure.** `activity_permitted(party_9017) → rejected(not-verified(Closed))`. No new activity proceeds for the closed party.
+7. **Gate after closure.** `activity_permitted(party_9017) → rejected(not-verified(Closed))`.
 
-### External-Onboarding-admitted path — upstream enrollment
+### External path — upstream enrollment
 
-A broker-dealer admits a counterparty through External Onboarding, which enrolls the party in `Unverified` state and registers a credential. This composition then runs the verification gate downstream:
-
-1. `initiate_onboarding(party_id="party_4421", enrollment_fields=absent, actor_ref="onboard_svc", credential=<onboard_svc>, retention_policy_ref="bsa_active_cdd") → case_id = case_6602`. The `party_id` is present, so this composition skips enrollment: it confirms `party_4421` is known to Party Identity, places the active-relationship retention, opens the monitoring schedule, and records `customer-onboarding.initiated` with `enrollment_path = external-onboarding`. The verification workflow then proceeds identically to the direct path via [Record Verification].
+A broker-dealer admits a counterparty through External Onboarding, which enrolls the party `Unverified` and registers a credential. `initiate_onboarding(party_id="party_4421", enrollment_fields=absent, actor_ref="onboard_svc", credential=<onboard_svc>, retention_policy_ref="bsa_active_cdd") → case_6602`. The read confirms `party_4421` is known **and `Unverified`**, the intent lands carrying the `party_id`, the placement is made, and `customer-onboarding.initiated` records `enrollment_path = external-onboarding`. A party the read showed `Verified`, `Suspended` or `Closed` answers `rejected(party-not-admissible(<state>))` and opens no case.
 
 ### Adverse trigger and clearance — sanctions match
 
-An existing `Verified` party, `party_7732` (case `case_7700`), triggers a sanctions screening alert:
+An existing `Verified` party, `party_7732` (case `case_7700`), triggers a sanctions screening alert. The screening list is OFAC's SDN list (Office of Foreign Assets Control — the US Treasury office that administers sanctions — Specially Designated Nationals).
 
-1. **Adverse trigger.** `trigger_monitoring_review(case_7700, trigger_type="sanctions-match", trigger_ref="ofac-sdn-12894", actor_ref="compliance_mgr_01", credential=<compliance_mgr_01>) → recorded`. Internally: Audit Trail records `customer-onboarding.monitoring-triggered` **first** (step 3); then `Party Identity.suspend(party_7732, ...)` → `Suspended` with `state_change_id = sc_7701`; then Audit Trail records `customer-onboarding.party-suspended` carrying `sc_7701`; the trigger is added to `case_to_open_triggers[case_7700]`. Invariant 3 holds: the trigger event is ordered before the suspension event.
+1. **Adverse trigger.** `trigger_monitoring_review(case_7700, trigger_type="sanctions-match", trigger_ref="ofac-sdn-12894", actor_ref="compliance_mgr_01", credential=<compliance_mgr_01>) → recorded`. The pre-check reads the party `Verified`; `customer-onboarding.monitoring-triggered` lands **first**; `PartyIdentity.suspend` returns `sc_7701`; `customer-onboarding.party-suspended` lands carrying it; the trigger enters the open set. Invariant 3 holds — the trigger record is ordered before the suspension record.
 
-2. **Gate check during investigation.** `activity_permitted(party_7732) → rejected(not-verified(Suspended))`. Downstream transaction systems freeze new activity.
+2. **Gate during investigation.** `activity_permitted(party_7732) → rejected(not-verified(Suspended))`.
 
-3. **Clearance.** Investigation confirms the match was a false positive. `clear_review(case_7700, verifying_actor_ref="compliance_analyst_02", method="database-check", evidence_ref="evidence_db_clearance_882", actor_ref="compliance_mgr_01", credential=<compliance_mgr_01>, reason="ofac-match-resolved-different-individual") → cleared`. Internally: `Party Identity.verify(party_7732, ..., passed, evidence_db_clearance_882)` → `{verif_3901, state_change_id absent}` (verify against a Suspended party records the event but does not change state); Audit Trail records `customer-onboarding.review-cleared` carrying `verif_3901`; `Party Identity.reinstate(party_7732, ..., reason)` → `sc_7702` (the fresh `passed` verification satisfies Party Identity's precondition); Audit Trail records `customer-onboarding.party-reinstated` carrying `sc_7702` and the advanced `next_review_due`; the open trigger is cleared from `case_to_open_triggers`; `next_review_due` advances to the recorded value. Invariant 4 holds: the reinstatement has a `passed` verification recorded after the most recent suspend, with the `customer-onboarding.review-cleared` event carrying its `verification_id`.
+3. **Clearance.** The match is a false positive. `clear_review(case_7700, verifying_actor_ref="compliance_analyst_02", method="database-check", evidence_ref="evidence_db_clearance_882", actor_ref="compliance_mgr_01", credential=<compliance_mgr_01>, reason="ofac-match-resolved-different-individual") → cleared`. `customer-onboarding.clearance-intended` lands carrying the open set; `PartyIdentity.verify(passed)` returns `verif_3901` with no `state_change_id` — a `passed` verification against a `Suspended` party records the event and changes no state; `customer-onboarding.review-cleared` lands carrying `verif_3901` and the `closed_triggers` set **and no deadline**; `PartyIdentity.reinstate` returns `sc_7702`; `customer-onboarding.party-reinstated` lands carrying `sc_7702` and the advanced deadline; the closed triggers are dropped and the deadline is taken from that payload.
 
-4. **Gate check after clearance.** `activity_permitted(party_7732) → permitted`. Transaction systems resume.
+4. **Gate after clearance.** `activity_permitted(party_7732) → permitted`.
 
 ### Rejection path — clearing a review with no open trigger
 
-A compliance officer mistakenly calls `clear_review(case_5501, ...)` for a party with no open adverse trigger: [Clear Review] step 2 finds `case_to_open_triggers[case_5501]` empty → `rejected(no-open-trigger)`. No verification is recorded, no reinstatement is attempted; there was nothing to clear.
+A compliance officer calls `clear_review(case_5501, …)` for a party with no open adverse trigger: the open set is empty → `rejected(no-open-trigger)`. No intent is recorded, no verification, no reinstatement — and, because the guard sits before the intent, the officer's credential is never validated.
 
 ### Rejection path — periodic trigger against an unknown case
 
-The scheduler fires a trigger against a case that does not exist: `trigger_monitoring_review("case_bogus", ...) → rejected(not-known)` at step 1. No audit event is recorded — the case is unknown, so there is no party to attribute a trigger to.
+`trigger_monitoring_review("case_bogus", …) → rejected(not-known)` at the index read. No audit event is recorded: the case is unknown, so there is no party to attribute a trigger to.
 
-### Failure path — verification committed, audit write fails
+### Rejection path — a credential that does not validate
 
-A [Record Verification] call passes steps 1–3, drives the `Unverified → Verified` transition at step 4, and step 5's `record_action` fails (`storage-failure` in the substrate): the call returns `rejected(recording-failure(outcome))` — the position telling the caller the verification is committed and the action must not be re-run — with the verification committed in Party Identity but unattested — the composition's most consequential atomicity gap. The party *is* `Verified`, so [Activity Permitted] would return `permitted` while Invariant 2's coverage is temporarily broken. The implementation retries the `record_action` until it lands and surfaces the unattested verification as a high-priority compliance finding meanwhile; the compensating event, when it lands, carries `cascade_recovery = true`, so an auditor distinguishes the recovered verification from a clean one, and the step-6 schedule advance is applied with the recovery (Edge cases — *Cross-store consistency under partial failure*). Deployments under BSA/AML exposure treat the open window as a hard alerting condition.
+An operator whose credential was revoked calls `record_verification(case_5501, verifying_actor_ref="officer_r7", method="manual-review", verification_result="passed", evidence_ref="evidence_manual_77", credential=<stale_officer_r7>)`. The index read passes, the boundary predicate passes, and `customer-onboarding.verification-intended` refuses with `invalid-credential` → `rejected(invalid-credential)`. **Nothing committed**: `PartyIdentity.verify` was never called, so a mis-credentialed actor could not drive the transition and be discovered over it afterwards. This is the seam Invariant 8 exists for, and it is the path that makes `invalid-credential` a declared code on every state-changing signature rather than a theoretical arm.
+
+### Failure path — the intent appended and the call still failed
+
+`close_party(case_5501, …)` reaches its closure intent, and `AuditTrail.record_action` answers `recording-failure(step)` naming the substrate's **retention** step: the event is appended and attested — so the credential *was* validated — and the call returned a failure. The invocation **aborts with nothing committed**: `PartyIdentity.close` is not called, the intent is not re-recorded (a blind re-record would double-append), and the appended `customer-onboarding.closure-intended` stands as an open marker. The reconciliation, past the completion bound, finds the marker, re-queries Party Identity, sees no closure, and closes the marker — nothing to compensate. The caller receives `rejected(recording-failure(intent))` and may retry the whole action.
+
+### Failure path — an unmatched intent
+
+A [Record Verification] invocation records its intent, calls `PartyIdentity.verify` — which commits `verif_2210` — and dies before its outcome record. The trail holds `customer-onboarding.verification-intended` with no outcome carrying its `intent_event_id`. Inside the completion bound the reconciliation does not examine it: the invocation may still be between its commit and its record. Past the bound the reconciliation traverses for an outcome carrying that `intent_event_id`, finds none, re-queries Party Identity on `party_id` + `verifying_actor_ref` + `evidence_ref` + the intent's `intended_at`, finds `verif_2210`, records `customer-onboarding.recovery-intended` under the service identity, and emits `customer-onboarding.verification-recorded` carrying `recovery = true` with `officer_r3` named in the payload. An auditor reading the trail sees a recovered verification rather than a clean one — and Check 6.1 compares against the human in the payload rather than the attesting service actor, which is why a recovered action does not read as an authentication failure.
+
+### Failure path — verification committed, outcome record fails
+
+A [Record Verification] call drives the `Unverified → Verified` transition and its outcome record fails: `rejected(recording-failure(outcome))` — the position telling the caller the verification is committed and the action must not be re-run. The party *is* `Verified`, so the gate answers `permitted` while Invariant 2.3's coverage is temporarily broken; Invariant 2.4 is the window, bounded by the compensation window. The composition alerts on the owed record; the invocation retries it to the completion bound and then yields it to the reconciliation. Deployments under BSA/AML exposure treat the open window as a hard alerting condition.
 
 ### Regulated adversarial scenarios
 
-**Regulator audit — "show me that every active customer was verified before regulated activity."** A FATF/BSA examiner queries the Audit Trail and the activity records. For every party with an activity record (e.g., an opened account linked to `party_id`), the examiner confirms a `customer-onboarding.verification-recorded` Audit Trail event with a `state_change_id` (the `Unverified → Verified` transition) exists, that `AuditTrail.verify_record` returns `verified` for it, and that its event timestamp predates the first activity record. Invariant 1 (verification gates activity) is the structural guarantee that no activity path other than `activity_permitted → permitted` exists; Invariant 2 (verification audit coverage) is the guarantee that the verifying transition is in the records, attributed and tamper-evident. The examiner consults no source code or runbooks; every party's verification chain is reconstructable from the records. A party with an activity record but no predating `customer-onboarding.verification-recorded` event with a `state_change_id` is a conformance failure.
+**Regulator audit — show me that every active customer was verified before regulated activity.** A FATF/BSA examiner queries the trail and the activity records. For every party with an activity record, the examiner confirms a `customer-onboarding.verification-recorded` event carrying a non-absent `state_change_id` exists, that `AuditTrail.verify_record` answers `verified` for it, and that it precedes the first activity record. The two halves of Invariant 1 answer two different questions and the examiner asks both: Invariant 1.1 and Invariant 1.2 are the composition's own biconditional — the gate answered `permitted` for exactly the parties this composition initiated and Party Identity reports `Verified` — while Invariant 1.3, that no activity path other than the gate exists, is the deployment's obligation and is cleared by the deployment's own evidence that its activity systems consume [Activity Permitted] (External check 7). Flattening the two loses the distinction between what the records prove and what the deployment must attest. Invariant 2 is the guarantee that the verifying transition is in the records, attributed and tamper-evident. A party with an activity record and no predating, verified verification record carrying a `state_change_id` is a conformance failure.
 
-**Disputed onboarding — party claims they were never properly verified.** A party's counsel challenges the bank's claim that their identity was verified before their account was opened. The investigator retrieves the `customer-onboarding.verification-recorded` events for the party's `case_id`; each carries `verification_id`, `result`, and (for the transition) `state_change_id`. The investigator then retrieves the Party Identity verification event for each `verification_id`, which names `verifying_actor_ref`, `method`, `evidence_ref`, and `verified_at`. Party Identity Invariant 5 (verification events immutable) and Invariant 6 (append-only in insertion order) establish that no verification event was altered or back-inserted; the Audit Trail seal (Tamper Evidence, reached transitively) establishes that the `customer-onboarding.verification-recorded` event itself was not altered. The `evidence_ref` points to the document record that supported the verification — the dispute is resolved by producing that evidence alongside the immutable, sealed verification chain. Invariant 2 plus Party Identity Invariants 5–6 are the rebuttal.
+**Disputed onboarding — the party claims they were never properly verified.** Counsel challenges the bank's claim that the identity was verified before the account opened. The investigator retrieves the case's `customer-onboarding.verification-recorded` events; each carries `verification_id`, `result` and, for the transition, `state_change_id`. The Party Identity verification record for each `verification_id` names `verifying_actor_ref`, `method`, `evidence_ref` and `verified_at`. Party Identity's immutability and append-only invariants establish that no verification event was altered or back-inserted; the substrate's seal establishes that the composition's own record was not altered. The `evidence_ref` points to the document record that supported the verification. Invariant 2 with Party Identity's own invariants is the rebuttal.
 
-**Breach or incident forensics — which parties were Verified during the compromise window, and were any verifications altered.** An incident investigator is given a window (e.g., 2027-03-01 through 2027-03-15) and must reconstruct which parties were in `Verified` state during it and whether any verification chain was tampered with. The investigator replays each case's `customer-onboarding.verification-recorded`, `customer-onboarding.monitoring-triggered`, `customer-onboarding.party-suspended`, `customer-onboarding.trigger-on-suspended-party` (a trigger raised against an already-suspended party — no transition, but part of the monitoring history), and `customer-onboarding.party-reinstated` events in Event Log insertion order (reached transitively through Audit Trail) to determine each party's state at the window's bounds, then runs `AuditTrail.verify_record` against representative events in each seal's coverage to bound any tampering window. Invariant 3 (adverse trigger precedes state transition) is load-bearing here: the investigator can confirm that every suspension in the window has a precipitating trigger ordered ahead of it; a suspension with no precipitating trigger — or a trigger inserted *after* its suspension — is itself a finding (and the append-only, sealed log forecloses an attacker silently reordering them). Invariant 6 (monitoring continuity) lets the investigator confirm that every `Verified`, active party in the window had an open monitoring entry; a `Verified` party with no monitoring entry during the window is a structural anomaly the investigator flags. Where the window has legal force as wall-time (rather than event-index) bounds, a Trusted Timestamping composition supplies the time-anchor; absent it, the reconstruction is event-index-authoritative. The newest events — those in the Audit Trail's unsealed tail — carry Event Log per-event immutability but become seal-verifiable (`AuditTrail.verify_record → verified`) only after the next seal cadence; until then a tail event returns `failed-verification(unsealed)` under the substrate's strict tail mode — the outcome is `unsealed_tail_mode`-configurable, and a lenient deployment reads the tail on per-event immutability alone — so the integrity bound the investigator can assert on the most recent events is the substrate's configured unsealed-tail policy (a tighter `seal_cadence` narrows it).
+**Breach or incident forensics — which parties were Verified during the compromise window, and were any verifications altered.** Given a window, the investigator replays each case's `customer-onboarding.initiated`, `customer-onboarding.verification-recorded`, `customer-onboarding.monitoring-triggered`, `customer-onboarding.party-suspended`, `customer-onboarding.trigger-on-suspended-party`, `customer-onboarding.trigger-voided`, `customer-onboarding.review-cleared`, `customer-onboarding.party-reinstated` and `customer-onboarding.party-closed` events in Event Log insertion order to determine each party's state at the window's bounds — the intake and closure classes included, without which the replay cannot place a case's start or reconstruct a closure at all — then runs `AuditTrail.verify_record` against representative events in each seal's coverage to bound any tampering window. Invariant 3 is load-bearing here: every suspension in the window has a precipitating trigger ordered ahead of it, and a suspension with no precipitating trigger — or a trigger inserted *after* its suspension — is itself a finding, which the append-only sealed log forecloses an attacker doing silently. Invariant 6 lets the investigator confirm that every `Verified`, active party in the window had an open monitoring entry. Where the window has legal force as wall-time rather than event-index bounds, a Trusted Timestamping composition supplies the anchor; absent it the reconstruction is event-index-authoritative. The newest events — the substrate's unsealed tail — carry per-event immutability and become seal-verifiable only after the next seal cadence, so the integrity bound on the most recent events is the substrate's configured unsealed-tail policy.
 
 ---
 
 ## Generation acceptance
 
-A derived implementation of this composition is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's emergent state plus the Party Identity, Retention Window, and Audit Trail substrate stores, can do all of the following without recourse to source code, runbooks, or developer narration.
+A derived implementation is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's indexes plus the Party Identity, Retention Window and Audit Trail stores, clears every check below without recourse to source code, runbooks or developer narration. Every selection is made composition-side over the declared open-ended sequence range, never by asking the substrate for a payload predicate it does not serve.
 
-### Record checks
+### Conformance checks
 
-These checks are answerable by reading the composition's records (including the Audit Trail substrate). Every "event of class X" selection below is made composition-side over the declared full-range enumeration (Composition state — *Records-alone enumeration*), never by asking the substrate for a payload-field query it does not serve:
-
-1. **Verification-before-activity.** For every party with a regulated-activity record, there exists a `customer-onboarding.verification-recorded` Audit Trail event carrying a non-absent `state_change_id`, whose event timestamp predates the activity record, and for which `AuditTrail.verify_record` returns `verified`. Invariant 1 and Invariant 2 are the contract. A party with activity but no predating, verified `customer-onboarding.verification-recorded` event with a `state_change_id` is a conformance failure. (This check assumes this composition's exclusive ownership of verification transitions on its Party Identity instance — see Edge cases — *Exclusive verification ownership of the Party Identity instance*.)
-
-2. **Every Verified party is substantiated.** For every party currently in `Verified` state, there exists a `passed` verification event in Party Identity recorded after the party's most recent `suspend` (or after `enroll` if never suspended). Party Identity Invariant 4 makes this set structurally non-empty; the composition's [Record Verification] and [Clear Review] are the only this composition paths that reach `Verified`, and both record the verification. The auditor sees the structural guarantee, not a procedural claim.
-
-3. **Adverse-trigger ordering.** For every `customer-onboarding.party-suspended` (real transition) or `customer-onboarding.trigger-on-suspended-party` (idempotent re-trigger) Audit Trail event, there exists a `customer-onboarding.monitoring-triggered` event with the same `trigger_id` (and `case_id`) ordered before it in the Event Log. Such an outcome event with no precipitating `customer-onboarding.monitoring-triggered` event ordered ahead of it is a conformance failure. Invariant 3 is the contract.
-
-4. **Retention coverage.** *(a) Post-closure floor:* for every party in `Closed` state, the Retention Window store contains a post-closure retention record (the `post_closure_retention_id` in `case_to_retentions`) in `Retained` state, and no `Closed` party's record is purged before that record's `retention_until` elapses (Retention Window Invariant 7). *(b) Active-relationship chain:* for every active case, `case_to_retentions[case_id].active_relationship_retention_id` names a `Retained` retention over `party_id` that is not purge-eligible at the auditor's injected `now` (Retention Window's read surface carries the derived purge-eligibility projection), and the chain of active-relationship placements — the `customer-onboarding.initiated` payload's id followed by each `customer-onboarding.retention-renewed` payload's id in Event Log order — is continuous: each placement's `retained_at` precedes its predecessor's `retention_until`. A gap in the chain, or a current placement purge-eligible while the case is active, is a conformance failure — for that interval a live customer's CDD record was lawfully destroyable. Invariant 5 is the contract. (Whether the record's `retention_until` *meets the applicable post-closure regulatory minimum* is an externally-clearable check — see below — because it depends on the deployment's configured `post_closure_retention_policy_ref`, not on this composition's records.)
-
-5. **Monitoring continuity.** For every party currently in `Verified` state with an active case, there exists an open `case_to_monitoring` entry. Invariant 6 is the contract; a `Verified`, active party with no monitoring entry is a conformance failure. **The schedule itself is records-alone checkable:** `opened_at` and the initial `next_review_due` ride the `customer-onboarding.initiated` event payload, and every advance rides the payload of the event its action records, so the auditor rebuilds the current `next_review_due` as the latest schedule-bearing payload value in Event Log order and confirms the map entry agrees — a disagreement is an index defect (rebuild trigger), while a schedule whose event trail is missing is the conformance failure.
-
-6. **Authentication precedence.** For every state-changing outcome event in the trail (`customer-onboarding.initiated`, `verification-recorded`, `party-suspended` / `trigger-on-suspended-party` / `trigger-voided` / `retention-renewed` after a `monitoring-triggered`, `review-cleared`, `party-reinstated`, `party-closed`), confirm an intent event of the matching kind (`initiation-intended`, `verification-intended`, `clearance-intended`, `closure-intended`; for [Trigger Monitoring Review] the `monitoring-triggered` event is itself the intent record and precedes its own outcome) precedes it in the Audit Trail's own sequence, under the **same `case_id`** and the same attested `actor_ref`. **The join is by `intent_event_id`, which every outcome event carries** — the id the substrate returned for that invocation's intent record — so it is exact per *invocation*, not merely per case. That distinction is load-bearing and was the first thing to get wrong: `case_id` is per-case and three of these actions are repeatable against one case, so a `case_id`-plus-actor match would be satisfied by a single stale intent event standing in front of an unbounded number of later outcomes, and an implementation that emitted one intent record per case and skipped it thereafter would pass. Matching on the id the intent record itself minted admits no such reading. (`case_id` is still carried on the intent record, and is still seam-allocated rather than constituent-minted so it can be, which is what lets [Initiate Onboarding]'s intent record name its case before any constituent id exists.) Because the substrate validates the caller's credential against the actor registry inside every `record_action`, the earlier intent event *is* the records-alone proof that the acting actor was authenticated before the constituent write committed — which is what makes Invariant 8 verifiable rather than asserted. Where an outcome event carries a recovery marker it is composition-attributed, so compare against the human actor named in its payload rather than its attesting `actor_ref`; the naive comparison would convict every recovered action.
-
-  **An intent event with no outcome event is not a failure.** It names an invocation that committed nothing, or committed and has not yet recorded, or died between; resolve which against the constituent stores, and only the middle case owes compensation (*Cross-store consistency under partial failure*). **What this check does not test:** that the *other* actor references an action carries were authenticated — they are recorded, not verified (Invariant 8's scope paragraph), and confirming `verifying_actor_ref` at [Clear Review] or `enrolling_actor_ref` on the direct branch is an externally-clearable check against the deployment's own identity registry.
-
-7. **Constituent Generation acceptance bars.** Verify each constituent's own Generation acceptance bar over its respective store: Party Identity's six checks, Retention Window's six checks, Audit Trail's eight checks. The composition's invariants depend on the correctness of the constituents' invariants.
+```text
+Check 1.1: An auditor MUST find a verification recorded record carrying a state_change_id PER party carrying a regulated activity record (Invariant 1.3).
+Check 1.2: An auditor MUST confirm Audit Trail's verify_record answers verified for the found verification recorded record (Invariant 2.2).
+Check 1.3: An auditor MUST confirm the found verification recorded record stands earlier in the log than the party's first activity record (Invariant 1.3).
+Check 1.4: An auditor MUST read Check 1.3 as a wall-time comparison ONLY IF the deployment composes Trusted Timestamping (Clock semantics 8).
+Check 1.5: An auditor MUST read Check 1.3 against an activity store carrying no log anchor as best-effort (Clock semantics 8).
+Check 1.6: An auditor MUST confirm the party-to-case index names EVERY party the gate answered permitted for (Invariant 1.1).
+Check 2.1: An auditor MUST find a verification recorded record naming the verification_id AND the state_change_id PER transitioning verification in Party Identity's store (Invariant 2.1).
+Check 2.2: An auditor MUST find a verification recorded record PER quiescent verified party (Invariant 2.3).
+Check 2.3: An auditor MUST read a verified party carrying an owed verification recorded record inside the compensation window as a surfaced orphan (Invariant 2.4).
+Check 3.1: An auditor MUST find a monitoring triggered record carrying the same trigger_id earlier in the log PER party suspended record (Invariant 3.1).
+Check 3.2: An auditor MUST find a monitoring triggered record carrying the same trigger_id earlier in the log PER trigger on suspended party record (Invariant 3.2).
+Check 4.1: An auditor MUST find a review cleared record naming a verification_id earlier in the log PER party reinstated record (Invariant 4.2).
+Check 4.2: An auditor MUST confirm the named verification stands passed in Party Identity's store (Invariant 4.1).
+Check 4.3: An auditor MUST confirm the named verification stands later in the log than the party's most recent suspension (Invariant 4.1).
+Check 4.4: An auditor MUST confirm the review cleared record's attested actor_ref matches the party reinstated record's attested actor_ref (Invariant 4.3).
+Check 5.1: An auditor MUST find a post closure placement standing retained PER closed party outside lawful destruction (Invariant 5.3).
+Check 5.2: An auditor MUST read a closed party's record destroyed inside the post closure floor as a conformance failure (Invariant 5.6).
+Check 5.3: An auditor MUST find a current placement standing unelapsed PER quiescent active case (Invariant 5.1).
+Check 5.4: An auditor MUST reproduce the chain of placements from the initiated payload AND the retention renewed payloads in Event Log order (Composition state 29).
+Check 5.5: An auditor MUST confirm the reproduced chain stands as a continuous chain (Invariant 5.2).
+Check 5.6: An auditor MUST read a party record destroyed under an unelapsed placement as a conformance failure (Invariant 5.4).
+Check 6.1: An auditor MUST find a case-to-monitoring entry PER verified party under an active case (Invariant 6.1).
+Check 6.2: An auditor MUST reproduce the next review due as the latest schedule-bearing payload PER case (Composition state 28).
+Check 6.3: An auditor MUST read a reproduced next review due disagreeing with the index as a rebuild trigger (Composition state 9).
+Check 6.4: An auditor MUST read a case carrying no schedule-bearing payload as a conformance failure (Invariant 6.2).
+Check 7.1: An auditor MUST reproduce the open-trigger set PER active case (Composition state 31).
+Check 7.2: An auditor MUST confirm the party stands suspended PER active case carrying a non-empty reproduced set (Invariant 7.1).
+Check 7.3: An auditor MUST confirm the reproduced set stands non-empty PER suspended party under an active case (Invariant 7.2).
+Check 7.4: An auditor MUST find a trigger outcome PER adverse monitoring triggered record (Invariant 7.1).
+Check 7.5: An auditor MUST confirm a party closed record's open triggers at close names EVERY trigger the reproduced set carried at the closure (Invariant 7.5).
+Check 7.6: An auditor MUST read a verified party carrying a reproduced open trigger whose clearance stands recorded as a surfaced orphan (Invariant 7.3).
+Check 8.1: An auditor MUST find an intent carrying the outcome's intent_event_id earlier in the log PER state-changing outcome (Invariant 8.1).
+Check 8.2: An auditor MUST confirm the found intent and the outcome name one case_id (Identity 9).
+Check 8.3: An auditor MUST compare a recovery outcome against the human the outcome's data names (Audit arm 23).
+Check 8.4: An auditor MUST NOT compare a recovery outcome against the outcome's attesting actor_ref (Audit arm 23).
+Check 8.5: An auditor MUST NOT read an intent carrying no outcome as a conformance failure (Reconciliation 7).
+Check 8.6: An auditor MUST resolve an intent carrying no outcome against the constituents' declared reads (Reconciliation 6).
+Check 9.1: An auditor MUST clear Party Identity's conformance checks over the Party Identity store (Composes 5).
+Check 9.2: An auditor MUST clear Retention Window's conformance checks over the party retention instance (Composes 5).
+Check 9.3: An auditor MUST clear Audit Trail's conformance checks over the audit instance (Composes 5).
+Check 9.4: An auditor MUST recognize an aged-out event PER event through Audit Trail's read_record (Composition state 19).
+Check 9.5: An auditor MUST NOT read an aged-out event's payload (Composition state 18).
+```
 
 ### External checks
 
-These audit questions arise around this composition but cannot be answered from the composition's records alone:
+```text
+External check 1: The deployment MUST establish the verification method's adequacy for the party's risk tier (Non-goal 3).
+External check 2: The deployment MUST establish the screening list's currency at the screening's instant (Non-goal 1).
+External check 3: The deployment MUST establish the verifying_actor_ref's identity (Invariant 8.3).
+External check 4: The deployment MUST establish the enrolling_actor_ref's identity (Invariant 8.3).
+External check 5: The deployment MUST establish an actor's authorization to record a verification (Invariant 8.6).
+External check 6: The deployment MUST establish the lawful basis of a non-obligatory downstream processing (Non-goal 11).
+External check 7: The deployment MUST establish that every activity system consumes [Activity Permitted] (Invariant 1.3).
+External check 8: The deployment MUST establish that no second writer drives a verification transition on the Party Identity instance (Composes 20).
+External check 9: The deployment MUST establish that the active relationship policy's duration exceeds the renewal floor (Capability requirement 20).
+External check 10: The deployment MUST establish that the post closure policy's duration meets the post closure minimum (Capability requirement 17).
+External check 11: The deployment MUST establish the scheduler's lateness against the scheduler tolerance (Capability requirement 19).
+```
 
-- **Whether the verification method was adequate for the party's risk tier.** The composition records the `method` each verification used; it does not verify that the method was adequate for the party's risk classification (enhanced due diligence versus standard CDD). Risk scoring and EDD orchestration are the forthcoming Risk Tiering / EDD composing pattern's (see Edge cases — the delegation is declined by both this composition and Party Identity); verification of method-adequacy requires the deployment's risk-tiering policy.
-- **Whether the sanctions/PEP screening lookup queried a current list.** The composition records the `trigger_result` (via `trigger_ref`) of a screening, but it cannot prove the external sanctions or PEP list the screening queried was live and current at screening time. That assurance requires the screening provider's own evidence; the composition records the trigger, not the freshness of the list behind it.
-- **Whether the actor who recorded a verification was authorized to do so.** The composition records `verifying_actor_ref` and binds it cryptographically via the Audit Trail's Actor Identity attestation. It does not verify that the actor was *authorized under the deployment's organizational policy* to record verifications. That requires a Permissions instance scoped to verification authority — a composing peer, not a constituent of this composition.
-- **Whether downstream non-obligatory processing had a lawful basis.** This composition's processing basis is GDPR Article 6(1)(c) legal obligation; the composition does not record or adjudicate the lawful basis for any *non-obligatory* downstream processing (marketing, profiling, data sharing beyond the Customer Due Diligence obligation). That belongs to Propagate Consent Revocation Downstream, a composing peer.
-- **Whether the active-relationship policy's duration keeps the placement chain continuous.** Check 4(b) reads the chain the records show; whether the configured `active_relationship_policy_ref` (or a tier policy passed in its place) has a `duration` exceeding `monitoring_interval` by the deployment's scheduler-lateness tolerance — the Configuration obligation that keeps the chain continuous under a late review — requires the Retention Window policy registry and the deployment's scheduler guarantees, neither of which this composition's records carry.
-- **Whether the post-closure retention duration meets the regulatory floor.** This composition records that a post-closure retention exists and its `retention_until`, but verifying that the configured `post_closure_retention_policy_ref` encodes at least the applicable post-closure minimum (the 31 CFR §1020.220 five-year floor under BSA/AML) requires the deployment's Retention Window policy registry and knowledge of the regulatory floor — a Configuration deployment obligation, not a records-alone fact (the existence of the Retained record is records-alone clearable per check 4; its regulatory sufficiency is not).
+WHY:
+**Check 1.4 and Check 1.5 are the hedge the check owed.** *The verification predates the activity* is a comparison across two stores, and this composition's own Clock semantics make timestamps advisory: insertion order is authoritative inside the audit log and the activity store is not in that log. So the comparison is a wall-time claim exactly where the deployment composes a time anchor, and best-effort otherwise — stated on the check rather than left for an auditor to discover when a clock skew turns a clean run into a finding.
+
+**Check 2.2 and Check 2.3 carry Invariant 2's conditioning into the check.** An implementation mid-recovery has a `Verified` party whose record is owed and alerted; reading that as a conformance failure convicts a system in the act of satisfying the rule. The check reads it as a surfaced orphan and the compensation window is what bounds it.
+
+**Check 4.1 through Check 4.4 are new, and Invariant 4's composition half had no check at all.** Party Identity's own invariant already forces a `passed` verification since the most recent suspend — that half is the constituent's and Check 9.1 inherits it. What no check reached was the *composition's* half: that the clearance record naming the verification exists, lands before the reinstatement, and is attested by the same actor whose credential the reinstatement was authorized under. That is the whole of what this composition adds to the constituent's guarantee, and it was clearable from the records the entire time.
+
+**Check 5.1 is conditioned on lawful destruction, which the unconditional form got wrong.** *Every `Closed` party has a `Retained` post-closure placement* fails on a record whose floor has elapsed and which a purging layer has lawfully destroyed — the check convicted the correct end of a record's life. The condition is the record still standing, and Check 5.2 carries the part that has no exception: no closed party's record is destroyed before its floor elapses.
+
+**Check 5.3 through Check 5.5 are the active chain, and they test the records rather than the schedule.** Invariant 5.1's active coverage is conditional on the periodic review firing, and a scheduler that stops fires no renewal — so the check reproduces the chain from the intake payload and the renewal payloads and tests continuity, rather than trusting that reviews happened. A gap in the chain, or a current placement purge-eligible while the case is active, is an interval in which a live customer's CDD record was lawfully destroyable.
+
+**Check 7.1 through Check 7.5 are new.** Invariant 7 was named by no check, which is `cites.py --unchecked`'s class and is the third of this composition's own claims to have been unreachable from its acceptance section. It is also cheap: the set is rebuildable from the trail by the procedure Composition state already states, so the correspondence is one comparison against the party's state, and Check 7.4 is the trigger-lifecycle completeness the void arm exists to make true.
+
+**Check 8.1 and Check 8.2 join by the intent's own id, and the distinction is load-bearing.** `case_id` is per-case and three actions are repeatable against one case, so a `case_id`-plus-actor match is satisfied by a single stale intent standing in front of an unbounded number of later outcomes — an implementation emitting one intent per case and skipping it thereafter would pass. Matching on the id the intent record minted admits no such reading. Because the substrate validates the caller's credential inside every `record_action`, the earlier intent *is* the records-alone proof that the acting actor was authenticated before the constituent write committed, which is what makes Invariant 8 verifiable rather than asserted.
+
+**Check 9.4 and Check 9.5 state where recognition lives past the horizon.** The substrate destroys an event's payload in its entirety while the attestation keeps `action_ref`, `actor_ref` and `attested_at` readable, so an aged-out event is recognized *per event* through the substrate's own record read and not through the range read's payload — which is what bounds every reproduction above by the horizon rather than by the log's start.
+
+External check 7 and External check 8 are the two obligations that make the gate a gate, and neither is records-alone: the read side is a property of every activity system the deployment runs, and the write side is a property of who else holds the Party Identity instance. Both are composition-bypass findings when they fail, and both are named here rather than assumed, because a spec that assumed them would be claiming a guarantee its own records cannot carry.
 
 ---
 
-## Non-goals and edge cases
+## Non-goals
 
-- **Cross-store consistency under partial failure.** Several this composition actions write to two or three stores in sequence; a failure between writes leaves partial state, and the consequence differs by action. The most consequential gap is in [Record Verification]: step 4 drives a Party Identity state transition, then step 5 writes the Audit Trail event; if step 4 fails, the verification exists in Party Identity but is **unattested** — a `Verified` party with no `customer-onboarding.verification-recorded` event, violating Invariant 2. Party Identity's verification events are immutable once committed, so synchronous rollback is not available. The implementation must (a) retry the failed write until it lands — a failed *record* re-emitted, a failed *constituent commit* (a post-closure or renewal placement) made by the reconciliation under the composition's service identity behind its own `customer-onboarding.recovery-intended` record, never re-run under a prior invocation's authentication (Configuration; [Close Party] step 5's re-entry arm is the caller-driven alternative) — **partitioned as the Action wiring preamble states, not blindly**: the loop applies only to the transient `recording-failure(step)` whose step shows the Event Log append did not land; the substrate's step-4 arm is never retried here (the event is appended and attested, so a re-record would double-append, and the substrate's own reconciliation owns that gap); `invalid-request` cannot recur-and-clear and is a pageable deployment fault; and every compensating write is preceded by a log traversal for an existing event carrying the same `intent_event_id` — the seam-minted key every outcome carries back to its intent, matched by equality and never by resemblance of payload (on the trigger paths `intent_event_id = trigger_event_id`, so the trigger event is the intent) — and (b) immediately surface the orphan (a verification with no corresponding Audit Trail event) to the compliance dashboard as a high-priority finding, with the compensating Audit Trail entry, once it lands, carrying a `cascade_recovery = true` marker so an auditor can distinguish a clean verification from a recovered one. The analogous gaps in [Initiate Onboarding] (enrolled-and-retained party with no `customer-onboarding.initiated`), [Trigger Monitoring Review] (Suspended party with no `customer-onboarding.party-suspended` — though the precipitating `customer-onboarding.monitoring-triggered` already landed, so the suspension is not *uncaused*, and the trigger still enters the open set so [Clear Review] stays reachable; a rejected `suspend` with no `customer-onboarding.trigger-voided`, which rebuilds as a false open investigation until the void lands; and, on the periodic path, a review that fired with no renewal placed or a renewal placed with no `customer-onboarding.retention-renewed` — the first time-bounded by the current placement's `retention_until`), [Clear Review] (a fresh `passed` verification recorded at step 5 with no `customer-onboarding.review-cleared` event when step 6 fails — the mirror of [Record Verification]'s gap, with the reinstate deliberately not attempted; and a reinstated party with no `customer-onboarding.party-reinstated` when step 8 fails — its open-set clearance and schedule advance held until the record lands), and [Close Party] (Closed party with no post-closure retention, or with no `customer-onboarding.party-closed`) are each handled the same way: retry the failed write, surface the orphan, mark the compensating record. The ordering disciplines built into the actions (record-the-trigger-first in [Trigger Monitoring Review]; record-the-clearance-before-reinstate in [Clear Review]; audit-before-the-irreversible-step where possible) minimize the window in which a state change exists without its caused-in-the-records audit event. Deployments under BSA/AML exposure must treat any such orphan as a hard alerting condition. **The reconciliation is a declared scan, not an implicit retry:** it runs at process restart and on `reconciliation_cadence` (Configuration), **between two edges** — it examines no intent younger than `onboarding_completion_bound` and no case past the audit horizon — and closes each orphan within `compensation_window` or escalates it; every constituent commit it makes runs under the service identity behind its `customer-onboarding.recovery-intended` record, as the retry partition above states. This mirrors Defensible Retention's treatment of its `purge_record` atomicity hole.
+```text
+Non-goal 1: The composition MUST NOT run a verification workflow.
+Non-goal 2: The composition MUST NOT judge an identity document.
+Non-goal 3: The composition MUST NOT decide a risk tier.
+Non-goal 4: The composition MUST NOT decide a verification method.
+Non-goal 5: The composition MUST NOT decide a re-verification cadence PER party.
+Non-goal 6: The composition MUST NOT schedule a review.
+Non-goal 7: The composition MUST NOT model a pending verification.
+Non-goal 8: The composition MUST NOT model an ownership graph.
+Non-goal 9: The composition MUST NOT deduplicate a retried job.
+Non-goal 10: The composition MUST NOT unwind an open commitment for a closed party.
+Non-goal 11: The composition MUST NOT adjudicate a lawful basis.
+Non-goal 12: The composition MUST NOT adjudicate an erasure request.
+Non-goal 13: The composition MUST NOT purge a party record.
+Non-goal 14: The composition MUST NOT purge an audit event.
+Non-goal 15: The composition MUST NOT reconcile two retention policies.
+Non-goal 16: The composition MUST NOT gate an authorization.
+Non-goal 17: The composition MUST NOT own a recurring-review deadline as an atom.
+Non-goal 18: The composition MUST NOT anchor a timestamp to wall time.
+Non-goal 19: The composition MUST NOT index the audit log by a payload field.
+Non-goal 20: The composition MUST NOT admit a second Party Identity writer.
+```
 
-- **Two Retention Window instances and two placements over one record.** There are two distinct Retention Window concepts, and conflating them is a reference ambiguity. (1) The **party-record Retention Window instance** named in *Composes* holds a **chain of placements** over the same `party_id`: the active-relationship retention placed at [Initiate Onboarding] (step 6), its renewals at each periodic review ([Trigger Monitoring Review] step 4), and the post-closure retention placed at [Close Party] (step 6). These are distinct Retention Window *records* with distinct `retention_id`s under one Retention Window *instance*; Retention Window's edge case on multiple simultaneous retentions for the same `record_ref` is the constituent guarantee that makes this valid, and purge eligibility for the party record is governed by the **latest `retention_until` among the placements** — typically the post-closure floor, though nothing structural forces that ordering (a long active-relationship policy can outlast a short post-closure one), which is exactly why the joint-enforcement obligation on Invariant 5 quantifies over *every* placement rather than assuming which ends later. (2) The **audit-event Retention Window instance** lives *inside the Audit Trail substrate* and governs the lifetime of the onboarding audit *events* (`customer-onboarding.initiated`, `customer-onboarding.verification-recorded`, etc.), configured via `audit_trail_retention_policy`. The two instances are separate and their policies differ — audit events should persist at least as long as the party record they describe, and often longer.
 
-- **Monitoring scheduler boundary.** This composition holds the schedule *state* (`next_review_due` in `case_to_monitoring`) but is not the scheduling *engine*. An external scheduler reads `next_review_due` (and the case's `active` flag) and calls [Trigger Monitoring Review] when a review is due; this composition does not set timers, does not fire on a clock, and does not own the cadence policy. A deployment's scheduling engine is the composing surface that drives periodic reviews; this composition records each trigger and advances the schedule when one fires.
+WHY:
+Non-goal 1 and Non-goal 2 name the upstream boundary. What happens *during* verification — document OCR, biometric check, sanctions-database query, adverse-media search — produces the `verification_result`, `method` and `evidence_ref` this composition records. The composition is the lifecycle and the gate; the workflow is upstream, and Party Identity's own *Asynchronous verification workflows* edge case names the same seam from the constituent's side, which is why Non-goal 7 declines to model a pending state: the party simply stands `Unverified` until a `passed` result is recorded.
 
-- **Beneficial ownership / ownership graph.** Each beneficial owner of a legal-entity customer is a Party Identity record in their own right, and this composition verifies each independently as its own onboarding case. This composition does **not** model the ownership graph — the relationship between a beneficial owner and the entity (ownership percentage, control type) under the FinCEN (Financial Crimes Enforcement Network — the US Treasury bureau administering the BSA) Beneficial Ownership Rule 31 CFR §1010.230. That is handled by an Ownership Structure / Beneficial Owner composing pattern *(forthcoming)*, which composes multiple Party Identity records into an ownership structure; this composition is one of its constituents, not its replacement.
+**Non-goal 3 through Non-goal 5 decline a delegation rather than bouncing it back, and that is the point.** Party Identity's own edge case hands enhanced-due-diligence orchestration to its composing layer; this composition *is* that composing layer and does not absorb it either, which for one revision left the responsibility unowned with each side pointing at the other. The named owner is a **Risk Tiering / EDD** composing pattern *(forthcoming)* that reads this composition's verification lifecycle and monitoring schedule and decides tiering, method adequacy and cadence. Party Identity's own pointer needs the matching correction when that atom is next touched.
 
-- **Duplicate Prevention as optional enrichment.** For deployments that need at-most-once semantics on verification jobs under retry (e.g., a screening pipeline that may re-deliver the same verification result), a Duplicate Prevention atom can be wired as an **optional enrichment** in front of [Record Verification] or [Trigger Monitoring Review] to deduplicate retried jobs. It is **not a constituent** of this composition. (This is the Idempotent Reservation demotion recorded in the commit history: Party Identity's `verify` is append-only and idempotent-safe at the *state* level — a re-applied `passed` verification against an already-`Verified` party records a redundant event but drives no spurious transition — so this composition does not require provisional-commitment semantics; deployments that additionally want job-level deduplication compose Duplicate Prevention.)
+Non-goal 6 with Capability requirement 40 and Capability requirement 41 is the scheduler boundary: the composition holds the schedule *state* and is not the scheduling *engine*.
 
-- **Activity systems reading Party Identity directly.** Activity systems (account-opening, transaction, service-provisioning) must call [Activity Permitted] and must **not** read Party Identity's state directly. The prohibition is structural, not stylistic: if each activity system reads Party Identity and applies its own `Verified` check, the gate is re-implemented per system, and the first system that forgets the check, reads a stale state, or applies a subtly different state predicate breaks the BSA/AML before-activity guarantee silently and per-system. Centralizing the gate at [Activity Permitted] makes the guarantee exist exactly once. A deployment in which an activity system reads Party Identity directly is a composition-bypass finding (Invariant 1's deployment obligation), remediated by routing the system through the gate query.
+**Non-goal 17 is where the Review Schedule proposal lives, and it is a Non-goal rather than a classification.** The prose flagged the monitoring schedule as *extraction-pending* against a proposed **Review Schedule** atom *(forthcoming)* owning recurring-review deadlines — open, advance, freeze, read — while stating in the same subsection that every schedule write rides an audit payload and the deadline is rebuildable from the trail. On the Contract's own test that makes the schedule a derived index, so the extraction-pending flag was a misclassification rather than a declared debt (Composition state). The atom may still be worth extracting — a deadline that opens, advances and freezes is a shape more than one composition will want — and that is what this Non-goal records: a concept named as somebody else's to own, not a debt riding this composition's classification.
 
-- **Exclusive verification ownership of the Party Identity instance.** This composition assumes it is the *only* writer of verification and state transitions on its single Party Identity instance. [Activity Permitted] reads Party Identity state directly, so a party driven to `Verified` by a writer outside this composition on a shared instance would pass the gate with no `customer-onboarding.verification-recorded` event — breaking Invariant 2's coverage and Generation acceptance check 1. A deployment that shares the Party Identity instance with another verification writer is a composition-bypass finding, the write-side analogue of an activity system bypassing the gate; this composition requires exclusive ownership of the instance's verification transitions.
+Non-goal 8 names the ownership graph's owner. Each beneficial owner of a legal-entity customer is a Party Identity record in their own right and is verified through its own onboarding case here; the ownership relation itself — percentage, control type, the FinCEN (Financial Crimes Enforcement Network — the US Treasury bureau administering the Bank Secrecy Act) Beneficial Ownership Rule's 25% threshold — belongs to an **Ownership Structure / Beneficial Owner** composing pattern *(forthcoming)*, of which this composition is a constituent rather than a replacement.
 
-- **Risk scoring and enhanced due diligence (EDD).** Whether a party requires EDD based on risk factors (country of origin, transaction volume, PEP status) — and the resulting choice of verification method and re-verification cadence — is out of scope for this composition, **and the delegation is explicitly declined rather than bounced back**: Party Identity's own edge case hands EDD orchestration to its composing layer, and this composition — that composing layer — does not absorb it either (the earlier text claiming the concept "belongs to Party Identity" mis-stated the constituent, which names it out of scope for itself too; each side pointing at the other left the responsibility unowned). The named owner is a **Risk Tiering / EDD** composing pattern *(forthcoming)* that reads this composition's verification lifecycle and monitoring schedule and decides tiering, method adequacy, and cadence; Party Identity's own pointer needs the matching cross-file correction when that atom is next touched. This composition consumes the verification results; it does not decide the rigor required to produce them.
+[Trigger On Suspended Party] and [Trigger Voided] are the two event classes the adverse path records where no transition occurred, and both exist so a rebuild reads the trigger's disposition rather than guessing it. Non-goal 9 is an enrichment declined as a constituent. Party Identity's `verify` is append-only and idempotent at the *state* level — a re-applied `passed` against an already-`Verified` party records a redundant event and drives no transition — so this composition needs no provisional-commitment semantics. A deployment wanting at-most-once semantics on retried verification jobs wires duplicate prevention(../atoms/duplicate-prevention.md) in front of [Record Verification] or [Trigger Monitoring Review] as an optional enrichment.
 
-- **The verification workflow itself.** What happens *during* verification — document OCR, biometric check, sanctions-database query, adverse-media search — is not modeled by this composition. The composing verification workflow produces the `verification_result`, `method`, and `evidence_ref` that [Record Verification] and [Clear Review] record. This composition is the lifecycle and gate; the workflow is upstream.
+Non-goal 11 and Non-goal 12 split the two data-protection questions this composition is asked and answers neither. Customer Due Diligence processing rests on GDPR Article 6(1)(c) — compliance with a legal obligation — not on Article 6(1)(a) consent, and the distinction is load-bearing: a customer cannot revoke the basis for Customer Due Diligence processing while the AML obligation stands. Consent governs *non-obligatory* downstream processing, which propagate consent revocation downstream(./propagate-consent-revocation-downstream.md) owns; an erasure request against a retained record is Resolve a Person's Data Rights' *(forthcoming)*, and the tension it adjudicates is the legal-obligation exception at Article 17(3)(b).
 
-- **Asynchronous verification.** [Record Verification] takes `verification_result` at call time; this composition does not model in-progress or pending verification states (the party simply remains `Unverified` until a `passed` result is recorded). The composing workflow owns the coordination of asynchronous determination, exactly as Party Identity's own *Asynchronous verification workflows* edge case names.
+Non-goal 13 and Non-goal 14 are why Invariant 5.4 quantifies over a purging layer rather than over an action here: this composition places retentions and destroys nothing, so the joint-enforcement obligation lands on whoever purges — defensible retention(./defensible-retention.md) discharges it structurally, and a host purging directly against the Retention Window instance owes the same joint check itself.
 
-- **What "Closed" means for open commitments.** [Close Party] closes the party and gates new activity, but does not automatically unwind existing open accounts, positions, or contracts. The composing system owns the policy for unwinding open commitments against a closed party; this composition's contract is that [Activity Permitted] returns `rejected(not-verified(Closed))` after closure, signaling that no new activity may proceed.
+Non-goal 10 is the closure's honest limit. [Close Party] gates *new* activity and unwinds no open account, position or contract; the composing system owns that policy, and this composition's contract is that the gate answers `not-verified(Closed)` after closure.
 
-- **Concurrency.** Concurrent state-changing actions for the same `case_id` / `party_id` (e.g., a [Trigger Monitoring Review] adverse path racing a [Clear Review], or two [Close Party] calls) resolve under the host environment's serialization guarantees; Party Identity's named edge case on concurrent state transitions governs the constituent layer (the first transition wins, the second observes the updated state and is rejected). This composition's rejection mappings (`not-active`, `not-verified(state)`, [Verification Failed]) surface the loser's outcome. Deployments must serialize state-changing this composition actions on a given `party_id`. [Activity Permitted] is read-only and excluded from that serialization obligation; its two reads (`party_to_case`, then the live Party Identity state) need not be atomic, because the Party Identity state read is authoritative and any skew fails safe — a stale or torn read can only yield a spurious `not-known` or a conservative `not-verified(state)`, never a false `permitted`.
+---
 
-- **Clock semantics.** `now` — used to stamp `opened_at` and the audit-event timestamps (`triggered_at`, `suspended_at` / `recorded_at`, `cleared_at`, `reinstated_at`, `closed_at`) and to compute the derived deadline [Next Review Due] — is the injected `clock_t` supplied at the composition's single I/O seam (see *Logic confinement*); no action reads a wall clock internally and no signature carries a `now` parameter. Clock quality — honesty, monotonicity, skew relative to the constituents' own seams — remains a deployment matter. Where review deadlines or onboarding timestamps have legal force (FATF / BSA/AML require recording when CDD was performed), the deployment must inject a reading sourced from a trustworthy clock; a composed Trusted Timestamping pattern supplies the verifiable time-anchor and binds Event Log insertion order to wall-time. Absent it, insertion order is authoritative and timestamps are advisory — which is also why Invariant 3's *ordered before* claim reads the Event Log's insertion order rather than a timestamp difference: a trigger event and the suspension it precipitates are stamped from the **same** injected `now` and are expected to be *identical*, not merely adjacent, so a divergence between them is a conformance failure (an implementation that read a clock twice instead of sharing the injected reading), not clock granularity. Ids are likewise seam-allocated rather than generated in-transition: `case_id` and `trigger_id` are the injected `id_t`, and `party_id` / `verification_id` / `state_change_id` / `retention_id` / `event_id` are minted at the constituents' own seams. The residual risk under injection is a deployment that injects a dishonest `now`, not an internal race.
+## Concurrency
+
+```text
+Concurrency 1: A deployment MUST serialize a state-changing action over one party_id.
+Concurrency 2: A deployment MUST NOT serialize [Activity Permitted].
+Concurrency 3: [Activity Permitted]'s two reads MUST NOT stand atomic.
+Concurrency 4: A skewed gate read MUST NOT answer permitted.
+Concurrency 5: The composition MUST answer a losing transition's constituent rejection.
+Concurrency 6: The composition MUST read a state rejection the trigger pre-check forecloses as a serialization breach.
+Concurrency 7: Two invocations MUST NOT hold one case's open-trigger set.
+Concurrency 8: The reconciliation MUST NOT run against a case an invocation holds.
+```
+
+WHY:
+Concurrency 1 is the obligation every state rejection behind a pre-check depends on. [Trigger Monitoring Review] reads the party's state before it records the trigger, so the suspend's own state arms are unreachable under the serialization; should one fire anyway, Concurrency 6 names it for what it is — a breach of the host's obligation, not a routine arm — and the trigger is voided so the rebuilt open set never carries an investigation against a party nobody suspended. [Clear Review]'s [Verification Failed] is the same shape: a concurrent suspend between the fresh verification and the reinstate, or a concurrent reinstate, re-arms a precondition the action had just satisfied.
+
+Concurrency 2 through Concurrency 4 exempt the gate, and the exemption is safe by construction rather than by luck. The gate reads its index and then the live state; between the two another writer may commit a transition, and every skew that read admits fails safe — a stale index yields a spurious [Party Not Known] and a stale state read yields a conservative [Not Verified], because the state read is authoritative and `permitted` requires it to answer `verified` at the instant it was read.
+
+---
+
+## Clock semantics
+
+```text
+Clock semantics 1: The seam MUST supply one clock reading PER invocation.
+Clock semantics 2: An invocation MUST stamp EVERY timestamp from the invocation's clock reading.
+Clock semantics 3: An invocation MUST derive the next review due from the invocation's clock reading.
+Clock semantics 4: The next review due MUST NOT EXCEED the placement's cover.
+Clock semantics 5: An invocation MUST NOT read a second clock reading.
+Clock semantics 6: A signature MUST NOT carry a clock reading.
+Clock semantics 7: A reader MUST read insertion order as authoritative.
+Clock semantics 8: A reader MUST read a timestamp as advisory.
+Clock semantics 9: A reader MUST read a divergence between a trigger's triggered_at and the trigger's suspended_at as a conformance failure.
+Clock semantics 10: A deployment MUST inject a trustworthy clock reading.
+Clock semantics 11: The composition MUST NOT detect a dishonest clock reading.
+```
+
+Terms › `placement's cover`: `the current placement's retention_until − scheduler_tolerance` — the instant past which a review would fire too late to renew the placement before the placement lapses.
+
+WHY:
+Clock semantics 2 and Clock semantics 5 are one injected reading shared across an invocation, and the sharing is what several claims rest on. At [Initiate Onboarding] the opening instant and the first deadline derive from one reading, so the interval between them is exactly the monitoring interval rather than the interval plus an inter-read drift. At [Trigger Monitoring Review] the trigger's instant and the adverse path's suspension instant are the same value, which is why Clock semantics 9 reads a *divergence* between them as a conformance failure — an implementation that read a clock twice — rather than as clock granularity, and why Invariant 3 reads ordering from the log instead.
+
+Clock semantics 4 is the cap that makes Capability requirement 20's duration obligation sufficient. Every schedule advance is capped below the current placement's cover, because an advance that ignored the placement — a verification pass months after intake, a clearance after a long suspension — would push the first renewal past the placement's end no matter how the interval and the duration compared. The composition stores the deadline and never a derived *review due* or *overdue* flag (Composition state 48, Composition state 49): whether a review is due is a read-time projection against an injected reading at the moment the question is asked, so nothing lags the clock.
+
+Clock semantics 10 and Clock semantics 11 name the residual honestly. Where review deadlines or onboarding timestamps have legal force — FATF and BSA/AML require recording when Customer Due Diligence was performed — the deployment injects a reading from a trustworthy clock, and a composed Trusted Timestamping pattern supplies the verifiable anchor that binds insertion order to wall time. Under injection the residual risk is a deployment that injects a dishonest reading, not an internal race, and this composition detects neither.
+
+---
+
+## Atomic writes
+
+```text
+Atomic writes 1: An invocation MUST record an outcome ONLY AFTER the invocation's committing call.
+Atomic writes 2: An invocation MUST populate an index ONLY AFTER the invocation's landed outcome.
+Atomic writes 3: An invocation MUST retry a committing call ONLY AFTER the constituent re-query.
+Atomic writes 4: An invocation MUST NOT retry an enroll.
+Atomic writes 5: An invocation MUST NOT retry a committing call outside the invocation.
+Atomic writes 6: An invocation MUST read an indeterminate verify against Party Identity's declared read.
+Atomic writes 7: An invocation MUST read an indeterminate placement against Retention Window's declared read.
+Atomic writes 8: An invocation MUST read an indeterminate enroll as unresolvable.
+Atomic writes 9: An invocation MUST escalate an unresolvable enroll.
+Atomic writes 10: The composition MUST NOT reverse a committed constituent write.
+Atomic writes 11: The composition MUST surface an orphan.
+Atomic writes 12: A deployment MUST treat an orphan as an alerting condition.
+```
+
+Terms › `trigger outcome`: a party suspended record, a trigger on suspended party record, OR a trigger voided record — the three an adverse trigger's own record may be followed by.
+
+Terms › `orphan`: a committed constituent write carrying an owed record, or a committed act carrying an index the composition has not populated.
+
+Terms › `indeterminate committing call`: a committing call whose answer the invocation did not receive.
+
+WHY:
+Several actions write to two or three stores in sequence, and a failure between writes leaves partial state whose consequence differs by action. The sharpest is [Record Verification]'s: the constituent write commits and the outcome record fails, leaving a `Verified` party whose verification is unattested. Party Identity's verification events are immutable once committed, so synchronous reversal is unavailable (Atomic writes 10) and the repair is compensation rather than reversal: retry the record, surface the orphan, mark the compensating record as a recovery.
+
+**Atomic writes 3 through Atomic writes 9 are the indeterminacy the page had not addressed.** A lost response after a commit is not a failure the invocation can tell from a failure before one, and the two demand opposite actions. `verify` and `place_under_retention` are re-queryable: the intent already fixed the values, the invocation's own injected instant is on it, and a read against the constituent's declared surface answers *did my call commit?* exactly. `enroll` is not, because it mints the identity a key would need — a re-query cannot tell this invocation's party from another's, and a blind retry mints a second party for one customer. So it is escalated rather than resolved, and its residue — an `Unverified` party with no case — is dispositioned administratively.
+
+The ordering disciplines are what shrink the windows rather than close them: the trigger is recorded before any transition, the clearance before the reinstatement, and every index after its own record. Atomic writes 2 is why a lost index entry is never a lost fact — the record landed first, so the rebuild regenerates it — and it is the rule the prose stated three times and broke twice.
+
+---
+
+## Composition notes
+
+These are adjacent compositions, **not** constituents of Customer Onboarding:
+
+- **[External Onboarding](./external-onboarding.md)** — the upstream admission gate. External Onboarding admits a party in `Unverified` state (enroll, credential registration and invitation acceptance, all audited); Customer Onboarding is the verification gate downstream. A deployment requiring `Verified` status before granting access places this composition downstream of it: External Onboarding's `party_id` flows into [Initiate Onboarding] on the external path, and the `Unverified` state the admission leaves the party in is exactly the state Action wiring 6 admits.
+- **[Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md)** — governs non-obligatory processing beyond the Customer Due Diligence legal obligation. This composition's processing basis is GDPR Article 6(1)(c); that composition governs the Article 6(1)(a) consent basis for downstream processing this composition does not touch.
+- **[Defensible Retention](./defensible-retention.md)** — the purge-side peer. Invariant 5.4's joint-enforcement obligation is discharged structurally by a deployment that purges party records through that composition's cross-retention gate; a host purging directly against the Retention Window instance owes the same joint check itself.
+- **Resolve a Person's Data Rights** *(forthcoming)* — handles data-subject access and erasure requests against party records, adjudicating the tension between an erasure request and the post-closure floor. This composition records the retention state at request time; that pattern adjudicates.
+- **Ownership Structure / Beneficial Owner** *(forthcoming)* — models the ownership graph across Party Identity records. Each beneficial owner is verified through an onboarding case of their own; this composition is a constituent of that pattern, not its replacement.
 
 ---
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the six actions it exposes — the case intake ([Initiate Onboarding]), the verification record ([Record Verification]), the monitoring trigger ([Trigger Monitoring Review]), the adverse-review clearance ([Clear Review]), the closure ([Close Party]), and the read-only gate ([Activity Permitted]); the [Next Review Due] monitoring-schedule datum; and its own rejections — the load-bearing gate rejection ([Not Verified]), the gate's fail-closed unavailability arm ([State Unavailable]), the clearance guard ([No Open Trigger]), the enroll-wrapper ([Enrollment Failed]), the external-path lookup ([Party Not Known]), the one-active-case guard ([Already Onboarded]), and the reinstate failure ([Verification Failed]). Its load-bearing guarantee — verification-gates-activity: a party reaches regulated activity only through an attributed, tamper-evident Verified state, and [Activity Permitted] is the single gate every activity system consumes (Invariants 1–2) — is a structural property, not a datum. Its emergent state (`case_to_monitoring`, `party_to_case`, `case_to_retentions`, `case_to_open_triggers`) indexes the three constituent stores into one Customer-Due-Diligence surface, left as backticked tokens; the party lifecycle states (`Unverified` → `Verified` → `Suspended` → `Closed`) are the Party Identity constituent's, not carded here. The `customer-onboarding.*` audit event types (`customer-onboarding.initiated`, `customer-onboarding.verification-recorded`, `customer-onboarding.monitoring-triggered`, `customer-onboarding.party-suspended`, `customer-onboarding.review-cleared`, `customer-onboarding.party-reinstated`, `customer-onboarding.party-closed`, and the three the wiring emits on the trigger paths — `customer-onboarding.trigger-on-suspended-party`, `customer-onboarding.trigger-voided`, and `customer-onboarding.retention-renewed`), the four intent records that precede the state-changing outcomes (`customer-onboarding.initiation-intended`, `customer-onboarding.verification-intended`, `customer-onboarding.clearance-intended`, `customer-onboarding.closure-intended`) together with the `intent_event_id` payload token that joins each pair, and the deployment trigger vocabulary (`periodic-review-due`, `sanctions-match`, `pep-status-change`, `adverse-media`) stay backticked as wire values, as do the constituent calls and their outcomes — Party Identity's `enroll` / `verify` / `suspend` / `reinstate` / `close`, Retention Window's `place_under_retention`, Audit Trail's `record_action` — the relayed constituent tokens (`party_id`, `case_id`, `trigger_id`, `retention_id`, `verification_id`, `state_change_id`, `actor_ref`, `credential`, `enrollment_path`, `verification_result`), the generic/relayed rejections (`invalid-request`, `invalid-credential`, `recording-failure(intent | outcome)`, `not-known`, `already-closed`, `not-active`), the deployment configuration knobs (`active_relationship_policy_ref`, `post_closure_retention_policy_ref`, `audit_trail_retention_policy`, `monitoring_interval`, `adverse_trigger_types`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind**, the Type it is a **Member of** or **Field of**, the Operation it is a **Parameter of**, its **Role** where the domain assigns one, and one **Projects** line — the concept's single canonical lowering token. Everything else about casing is derived from that token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. The emergent indexes (`case_to_monitoring`, `party_to_case`, `case_to_retentions`, `case_to_open_triggers`), the `customer-onboarding.*` event classes, the deployment trigger vocabulary, the constituent calls and their outcomes, the relayed constituent tokens and the deployment knobs stay backticked as wire values; the party lifecycle states are party identity(../atoms/party-identity.md)'s and are not carded here.
+
+### Vocabulary
+
+Terms › `actors`: the composition; a deployment; the host; the seam; the transition; the reconciliation; a caller; an auditor; an activity system; an implementation; a reader; a writer; an invocation; a yielded invocation; an action; an intent; an outcome; an open marker; a young marker; a recovery intent; a recovery outcome; the gate; a rebuild; an index; the case-to-monitoring index; the party-to-case index; the case-to-retentions index; the case-to-open-triggers index; an index entry; an unrebuildable entry; a case; a quiescent case; a quiescent closed case; an active case; a closed case; a party; a quiescent verified party; a quiescent suspended party; a reinstated party; a verified party; a suspended party; a case's party; a party state; an admissible state; a suspendable state; a trigger; an adverse trigger; a periodic trigger; a suspending trigger; a renewing trigger; an open trigger; a closed trigger; a trigger set; a verification; a transitioning verification; a clearance; an admitted initiation; an admitted verification; an admitted trigger; an admitted clearance; an admitted closure; a completing closure; a direct path initiation; an external path call; a placement; a current placement; a prior placement; a renewed placement; a post closure placement; an elapsed placement; an unelapsed placement; a continuous chain; a renewal; a purging layer; a scoped retry; a committing call; an indeterminate committing call; a landed record; a landed intent; an owed record; an aged-out event; an audit event; an orphan; a surfaced orphan; a boundary predicate; an opaque argument; an actor reference; the clearing actor; a credential; a credential validation; a field cap; the trigger set cap; the binding floor; the closure floor; the renewal floor; the audit horizon; the monitoring interval; the scheduler tolerance; a policy; the active relationship policy; the post closure policy; the post closure minimum; the adverse trigger types; the periodic trigger type; a regulated activity; a review scheduler; Party Identity; Retention Window; Audit Trail; Event Log; the party retention instance; the audit instance; the service identity; a truncation marker; a set digest; a payload field; a timestamp; insertion order; a clock reading; a skewed gate read; a losing transition; a state rejection; a divergence; two reconciliations; two invocations.
+
+Terms › `record verbs`: serve, change, inherit, read, hold, reach, call, select, query, attest, own, place, admit, drive, know, push, store, classify, carry, stand, claim, populate, name, alert, drop, take, rebuild, recognize, supply, mint, generate, accept, configure, set, provision, rotate, disclose, start, run, fire, serialize, resolve, reconcile, refuse, normalize, fold, trim, compare, judge, propagate, cap, truncate, allocate, reuse, pair, make, retry, leave, record, answer, substitute, add, complete, clear, empty, write, advance, repoint, renew, cross, find, confirm, reproduce, establish, match, escalate, close, emit, examine, expose, validate, commit, detect, inject, stamp, derive, deduplicate, model, schedule, adjudicate, purge, unwind, gate, index, anchor, surface, treat, sweep, spend, enroll, verify, suspend, reinstate, belong, elapse, substantiate, invoke, duplicate, block, govern, identify, decide, reverse, destroy.
+
+Terms › `records`: empty.
+
+Terms › `bounds`: `onboarding completion bound` (`onboarding_completion_bound`), `compensation window` (`compensation_window`), `audit horizon` (`audit_trail_retention_policy`), `monitoring interval` (`monitoring_interval`), `scheduler tolerance` (`scheduler_tolerance`), `renewal floor`, `binding floor`, `closure floor`, `field cap`, `trigger set cap` (`trigger_set_cap`), `placement's cover`, `post closure minimum`, `audit write latency`.
+
+Terms › `cadences`: `reconciliation cadence` (`reconciliation_cadence`), `seal cadence`.
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.41 (2026-09-14).
+
+Terms › `value sets`: initiate_onboarding answers = case_id | rejected(invalid-request | invalid-credential | party-not-known | party-not-admissible(state) | already-onboarded | enrollment-failed(invalid-request | storage-failure) | recording-failure(intent | outcome)). record_verification answers = recorded | rejected(invalid-request | invalid-credential | not-known | not-active | already-closed | recording-failure(intent | outcome)). trigger_monitoring_review answers = recorded | rejected(invalid-request | invalid-credential | not-known | not-active | not-verified(state) | state-unavailable | recording-failure(intent | outcome)). clear_review answers = cleared | rejected(invalid-request | invalid-credential | not-known | no-open-trigger | verification-failed | already-closed | recording-failure(intent | outcome)). close_party answers = closed | rejected(invalid-request | invalid-credential | not-known | not-active | recording-failure(intent | outcome)). activity_permitted answers = permitted | rejected(not-known | not-verified(state) | state-unavailable). `admissible states` = unverified. `suspendable states` = verified | suspended. `verification results` = passed | failed. `trigger vocabulary` = periodic-review-due | a member of the adverse trigger types. `adverse trigger types` = sanctions-match | pep-status-change | adverse-media, extended by the deployment. `intent` = customer-onboarding.initiation-intended | customer-onboarding.verification-intended | customer-onboarding.clearance-intended | customer-onboarding.closure-intended | customer-onboarding.monitoring-triggered | customer-onboarding.recovery-intended. `outcome` = customer-onboarding.initiated | customer-onboarding.verification-recorded | customer-onboarding.party-suspended | customer-onboarding.trigger-on-suspended-party | customer-onboarding.trigger-voided | customer-onboarding.retention-renewed | customer-onboarding.review-cleared | customer-onboarding.party-reinstated | customer-onboarding.party-closed. `enrollment_path` = direct | external-onboarding.
+
+Terms › `terms`: `composition`, `constituents`, `party retention instance`, `service identity`, `direct path`, `external path`, `case-to-monitoring index`, `party-to-case index`, `case-to-retentions index`, `case-to-open-triggers index`, `index`, `current placement`, `post closure placement`, `audit horizon`, `aged-out event`, `rebuild`, `miss`, `unrebuildable entry`, `binding-bearing payload`, `schedule-bearing payload`, `placement-bearing payload`, `landed record`, `owed record`, `seam`, `transition`, `monitoring interval`, `scheduler tolerance`, `renewal floor`, `binding floor`, `closure floor`, `onboarding completion bound`, `active relationship policy`, `post closure policy`, `post closure minimum`, `adverse trigger types`, `periodic trigger type`, `trigger set cap`, `field cap`, `blank`, `boundary predicate`, `opaque argument`, `actor reference`, `trigger vocabulary`, `verification results`, `truncation marker`, `set digest`, `intent`, `outcome`, `committing call`, `landed intent`, `open marker`, `outcome traversal`, `yielded invocation`, `recovery marker`, `recovery outcome`, `party state`, `admissible states`, `suspendable states`, `unanswered read`, `admitted initiation`, `admitted verification`, `admitted trigger`, `admitted clearance`, `admitted closure`, `transitioning verification`, `adverse trigger`, `periodic trigger`, `suspending trigger`, `renewing trigger`, `completing closure`, `composed suspend reason`, `closed triggers`, `open triggers at close`, `scoped retry`, `prior placement`, `renewed placement`, `regulated activity`, `reconciliation`, `young marker`, `elapsed placement`, `quiescent case`, `quiescent verified party`, `quiescent suspended party`, `quiescent closed case`, `continuous chain`, `unelapsed placement`, `post closure floor`, `clearance window`, `surfaced orphan`, `clearing actor`, `placement's cover`, `trigger outcome`, `orphan`, `indeterminate committing call`.
+
+Terms › `cited`: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. `execution-contract.md` §Step 1 failure — the name an unanswered constituent read takes. `spec-format.md` §Structural-relation invariant templates — referential integrity.
+
+Terms › `composing patterns`: Risk Tiering / EDD *(forthcoming)*; Ownership Structure / Beneficial Owner *(forthcoming)*; Review Schedule *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Policy Reconciliation *(forthcoming)*; Resolve a Person's Data Rights *(forthcoming)*; external onboarding(./external-onboarding.md); propagate consent revocation downstream(./propagate-consent-revocation-downstream.md); defensible retention(./defensible-retention.md); duplicate prevention(../atoms/duplicate-prevention.md); permissions(../atoms/permissions.md).
 
 #### Initiate Onboarding
 
-The composition's intake action: open a Customer Due Diligence case for a party — enrolling it directly, or admitting one External Onboarding already enrolled (the `enrollment_path` records which) — placing the active-relationship retention, opening the monitoring schedule, and auditing the case (`customer-onboarding.initiated`). Returns the `case_id`.
+The composition's intake action: open a Customer Due Diligence case for a party — enrolling the party on the direct path, or admitting one External Onboarding already enrolled in `Unverified` state on the external path, with `enrollment_path` recording which — placing the first active-relationship retention, opening the monitoring schedule, and recording the case. Answers the `case_id`.
 
 Kind: Operation
 
 #### Record Verification
 
-The composition action that records a verification result against a case's party (driving the `Unverified → Verified` transition on a passed first verification) and audits it (`customer-onboarding.verification-recorded`) carrying both the verification and state-change identifiers — the attribution-and-tamper-evidence half of verification-gates-activity (Invariant 2). Advances [Next Review Due] on a state-changing pass.
+The action that records a verification result against a case's party, driving the `Unverified → Verified` transition on a passed first verification, and recording the verification and state-change identifiers — the attribution-and-tamper-evidence half of verification-gates-activity (Invariant 2). Advances [Next Review Due] on a state-changing pass and on nothing else.
 
 Kind: Operation
 
 #### Trigger Monitoring Review
 
-The audit-first entry point an external monitoring or screening system calls: it records the trigger *before* any resulting transition (Invariant 3), then — for an adverse trigger — suspends the party, or — for a `periodic-review-due` trigger — renews the active-relationship retention and advances [Next Review Due]. No suspension exists in the records without its precipitating trigger ordered ahead of it.
+The audit-first entry point an external monitoring or screening system calls: it records the trigger *before* any resulting transition (Invariant 3), then — for an adverse trigger — suspends the party, or — for a periodic one — renews the active-relationship retention and advances [Next Review Due] unless the party stands suspended. No suspension exists in the records without its precipitating trigger ordered ahead of it.
 
 Kind: Operation
 
 #### Clear Review
 
-The single emergent action that clears an adverse-trigger investigation and returns the party to Verified — wrapping a fresh `passed` verification, `Party Identity.reinstate`, and two audit records into one act. Requires an open trigger ([No Open Trigger] otherwise); closes every open trigger for the case in one clearance.
+The single emergent action that clears an adverse-trigger investigation and returns the party to Verified — wrapping a fresh `passed` verification, a `reinstate`, and two audit records into one act. Requires an open trigger ([No Open Trigger] otherwise) and closes exactly the triggers its clearance record names.
 
 Kind: Operation
 
 #### Close Party
 
-The composition action that ends the relationship and places the *post-closure* retention — the second Retention Window placement, setting the BSA/AML five-year-after-relationship-end floor — then audits the closure (`customer-onboarding.party-closed`).
+The action that ends the relationship and places the *post-closure* retention — the placement that sets the BSA/AML five-year-after-relationship-end floor — then records the closure with the disposition of any investigation still open at closure.
 
 Kind: Operation
 
 #### Activity Permitted
 
-The read-only verification-gates-activity query every activity system consumes (rather than reading Party Identity directly): returns `permitted` only for a party this composition itself initiated and drove to Verified, else [Not Verified] naming the actual state, or `not-known`. Produces no audit event — it changes no state.
+The read-only verification-gates-activity query every activity system consumes rather than reading Party Identity directly: answers `permitted` only for a party this composition itself initiated and Party Identity reports Verified, else [Not Verified] naming the actual state, [Party Not Known], or [State Unavailable]. Produces no audit event — it changes no state.
 
 Kind: Operation
 
 #### Next Review Due
 
-The monitoring-schedule datum in each `case_to_monitoring` entry: the timestamp by which the party's next periodic review is due, advanced by `monitoring_interval` on a state-changing verification pass, a periodic-review trigger, or a review clearance (stamped on the reinstatement record, once the reinstate has committed). It deliberately does not roll forward while a party is Suspended. A Verified party with no monitoring entry is a structural finding (Invariant 6).
+The monitoring-schedule datum in each case's entry: the instant by which the party's next periodic review is due, advanced on a state-changing verification pass, a periodic review against an unsuspended party, or a review clearance — stamped on the reinstatement record, once the reinstate has committed — and capped below the current placement's cover so the review that renews the placement always fires before the placement lapses. It deliberately does not roll forward while a party is Suspended. A Verified party with no monitoring entry is a structural finding (Invariant 6.1).
 
 Kind:      Field
 Field of:  the monitoring-schedule entry
@@ -550,16 +1245,25 @@ Projects:  next_review_due
 
 #### Not Verified
 
-The load-bearing [Activity Permitted] gate rejection — parameterized by the party's actual state (`Unverified`, `Suspended`, or `Closed`) — returned when the party is not in Verified state, so an activity system can distinguish *not yet verified* from *suspended* from *closed*. Also the `not-verified(state)` outcome of [Trigger Monitoring Review]'s suspend on a never-verified party.
+The load-bearing [Activity Permitted] refusal, parameterized by the party's actual state (`Unverified`, `Suspended` or `Closed`), so an activity system distinguishes *not yet verified* from *under investigation* from *relationship ended* and knows whether to retry, wait or stop. [Trigger Monitoring Review] answers it too, on the adverse pre-check and on the defence-in-depth arm behind it; the gate is the ordinary producer.
 
 Kind:      Member
 Member of: the gate rejection
 Role:      Rejection
 Projects:  not-verified
 
+#### State Unavailable
+
+The [Activity Permitted] fail-closed refusal when the party's state read cannot be answered — an unanswered read at the seam, or a case entry whose party the store no longer answers for. The gate refuses rather than treating an unreadable identity store as `Verified`, because the cheapest-compliant reading — unavailable implies permit — is exactly the before-activity hole the gate exists to close. [Trigger Monitoring Review]'s pre-check mirrors it.
+
+Kind:      Member
+Member of: the gate rejection
+Role:      Rejection
+Projects:  state-unavailable
+
 #### No Open Trigger
 
-The [Clear Review] rejection when the case has no open adverse trigger — there is nothing to clear.
+The [Clear Review] refusal when the case carries no open adverse trigger — there is nothing to clear. Its faithfulness as a *nothing to clear* signal is Invariant 7.
 
 Kind:      Member
 Member of: the clear-review rejection
@@ -568,7 +1272,7 @@ Projects:  no-open-trigger
 
 #### Enrollment Failed
 
-The [Initiate Onboarding] rejection wrapping a Party Identity `enroll` failure on the direct-enrollment branch — surfaced under a composition-layer name (rather than flattened to `recording-failure(intent)`, the position it would otherwise share) precisely because it occurs before any case or retention exists, so there is no orphan to recover.
+The [Initiate Onboarding] refusal wrapping a Party Identity `enroll` failure on the direct path, surfaced under a composition-layer name rather than flattened into a recording failure precisely because it occurs before any case or placement exists — there is no orphan to recover.
 
 Kind:      Member
 Member of: the initiate rejection
@@ -577,44 +1281,69 @@ Projects:  enrollment-failed
 
 #### Party Not Known
 
-The [Initiate Onboarding] rejection on the External-Onboarding-admitted branch when the supplied `party_id` references no party known to the Party Identity instance.
+The [Initiate Onboarding] refusal on the external path when the supplied `party_id` names no party the Party Identity instance holds.
 
 Kind:      Member
 Member of: the initiate rejection
 Role:      Rejection
 Projects:  party-not-known
 
-#### Verification Failed
+#### Party Not Admissible
 
-The [Clear Review] rejection when `Party Identity.reinstate` cannot proceed — the party's reinstatement precondition is unmet (a concurrent suspend re-armed it, or the party was not Suspended) — a defense-in-depth code reachable only when the host fails the per-case serialization obligation.
+The [Initiate Onboarding] refusal on the external path when the named party stands outside `Unverified` — parameterized by the state found. A `Verified` admit would pass the gate with no verification record of this composition's, a `Suspended` admit would open a case with an empty open-trigger set against a suspended party, and a `Closed` party can never reach `Verified` at all, Party Identity's Closed being absorbing. A returning customer whose party record is Closed re-onboards by **fresh enrollment on the direct path, receiving a new `party_id`**; the prior party record and its case history remain as governed records.
 
 Kind:      Member
-Member of: the clear-review rejection
+Member of: the initiate rejection
 Role:      Rejection
-Projects:  verification-failed
+Projects:  party-not-admissible
 
 #### Already Onboarded
 
-The [Initiate Onboarding] rejection on the External-Onboarding-admitted branch when the supplied `party_id` already has an active case (`party_to_case[party_id].active = true`) — the one-active-case-per-party relation; re-onboarding an actively governed party would repoint the case index and orphan the live case's entries. A party whose prior case is closed may be re-onboarded.
+The [Initiate Onboarding] refusal when the named party already has an active case — the one-active-case-per-party relation. Re-onboarding an actively governed party would repoint the case index and orphan the live case's monitoring and retention entries. A party whose prior case closed is a `Closed` party and is refused as [Party Not Admissible]; the route back is fresh enrollment under a new `party_id`, never a second case over the old record.
 
 Kind:      Member
 Member of: the initiate rejection
 Role:      Rejection
 Projects:  already-onboarded
 
-#### State Unavailable
+#### Verification Failed
 
-The [Activity Permitted] fail-closed rejection when the Party Identity state read cannot be answered: the gate refuses rather than treating an unreadable identity store as `Verified` — the cheapest-compliant reading (unavailable ⇒ permit) is exactly the before-activity hole the gate exists to close.
+The [Clear Review] refusal when the reinstatement's precondition is unmet — a concurrent suspend re-armed it, or the party was not Suspended. A defence-in-depth code, reachable only where the host has not honored the per-party serialization obligation.
 
 Kind:      Member
-Member of: the gate rejection
+Member of: the clear-review rejection
 Role:      Rejection
-Projects:  state-unavailable
+Projects:  verification-failed
+
+#### Not Active
+
+The refusal the three repeatable actions answer for a case whose relationship has ended. Monitoring does not fire against a closed relationship, a closed case takes no further verification, and a second closure has nothing to close; the guard sits before the intent, so a closed case never reaches a constituent and never leaves an intent for an act that could not happen.
+
+Kind:      Member
+Member of: the case-guard rejection
+Role:      Rejection
+Projects:  not-active
+
+#### Trigger On Suspended Party
+
+The audit event class an adverse trigger records when the party already stands suspended — a real trigger, no new transition. A distinct class from the suspension record so a second adverse alert is not read as a second suspension and an auditor does not miscount transitions; the trigger still enters the open set, and one clearance closes every trigger it names.
+
+Kind:      Member
+Member of: the outcome event classes
+Role:      Audit event
+Projects:  customer-onboarding.trigger-on-suspended-party
+
+#### Trigger Voided
+
+The audit event class recorded when a trigger landed and its `suspend` was refused, naming the constituent's answer. Without it the landed trigger rebuilds as an open investigation against a party nobody suspended, which [Clear Review] would then *clear* — recording a fresh verification, attempting a reinstate the constituent refuses, and never landing the record whose absence would keep the trigger open forever.
+
+Kind:      Member
+Member of: the outcome event classes
+Role:      Audit event
+Projects:  customer-onboarding.trigger-voided
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
-     output; each resolves a [Term] marker to its term entry heading above (kramdown
-     auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
-     kramdown; no plugin required. -->
+     output; each resolves a [Term] marker to its term entry heading above. -->
 
 [Initiate Onboarding]: #initiate-onboarding
 [Record Verification]: #record-verification
@@ -624,23 +1353,27 @@ Projects:  state-unavailable
 [Activity Permitted]: #activity-permitted
 [Next Review Due]: #next-review-due
 [Not Verified]: #not-verified
+[State Unavailable]: #state-unavailable
 [No Open Trigger]: #no-open-trigger
 [Enrollment Failed]: #enrollment-failed
 [Party Not Known]: #party-not-known
-[Verification Failed]: #verification-failed
+[Party Not Admissible]: #party-not-admissible
 [Already Onboarded]: #already-onboarded
-[State Unavailable]: #state-unavailable
+[Verification Failed]: #verification-failed
+[Not Active]: #not-active
+[Trigger On Suspended Party]: #trigger-on-suspended-party
+[Trigger Voided]: #trigger-voided
 
 ---
 
 ## Standards references
 
-- **FATF Recommendations 10–12** — R.10 (Customer Due Diligence) gathers all the CDD limbs: identify and verify the customer using reliable independent sources, identify and verify beneficial owners, and conduct ongoing due diligence/monitoring of the business relationship. R.11 (record-keeping) requires CDD and transaction records be kept at least five years. R.12 extends enhanced CDD to politically-exposed persons. This composition's [Initiate Onboarding] → [Record Verification] → [Trigger Monitoring Review] arc is the structural form of R.10's identify–verify–monitor obligation; the post-closure retention placement carries R.11's record-keeping floor; the verification-gates-activity decision is the before-relationship-activity limb.
-- **BSA/AML — 31 CFR §1020.220 (Customer Identification Program)** — minimum identity attributes, verification, and **record retention for five years after the business relationship ends**. This composition's [Close Party] post-closure retention placement (the second Retention Window operation) is the structural form of the five-year-post-closure floor (Invariant 5).
-- **FinCEN Beneficial Ownership Rule — 31 CFR §1010.230** — legal-entity customers must identify and verify beneficial owners owning ≥25% and a single control person. Each beneficial owner is a Party Identity record verified through its own onboarding case; the ≥25% relationship graph belongs to the Ownership Structure composing pattern, not this composition.
-- **EU 5th Anti-Money Laundering Directive (AMLD5)** — enhanced CDD requirements, beneficial-ownership registries, and ongoing-monitoring obligations; alignment with FATF. This composition is the onboarding-and-monitoring surface AMLD5 deployments build on.
-- **GDPR Article 6(1)(c) — legal obligation as processing basis.** Customer Due Diligence processing rests on Article 6(1)(c) (compliance with a legal obligation), **not** Article 6(1)(a) (consent). The distinction is load-bearing: the customer cannot revoke the basis for Customer Due Diligence processing while the AML obligation stands, so Consent is not a constituent of this composition (a Pass 2 finding, in the commit history). Consent governs *non-obligatory* downstream processing, which is handled by Propagate Consent Revocation Downstream.
-- **HIPAA (Health Insurance Portability and Accountability Act) §164.312(a)(1) (Access control)** — in covered healthcare deployments where a verified party identity is the precondition to granting access to protected health information, this composition's verification-gates-activity decision is the structural form of the access-granting event: access is provisioned only through a substantiated, audited verification. (this composition is anchored in the BSA/AML/FATF cluster; the HIPAA mapping applies where a covered entity uses verification-based provisioning.)
+- **FATF Recommendations 10–12** — R.10 (Customer Due Diligence) gathers the CDD limbs: identify and verify the customer using reliable independent sources, identify and verify beneficial owners, and conduct ongoing due diligence and monitoring of the business relationship. R.11 (record-keeping) requires CDD and transaction records be kept at least five years. R.12 extends enhanced CDD to politically-exposed persons. This composition's [Initiate Onboarding] → [Record Verification] → [Trigger Monitoring Review] arc is the structural form of R.10's identify–verify–monitor obligation; the post-closure placement carries R.11's record-keeping floor; the verification-gates-activity decision is the before-relationship-activity limb.
+- **BSA/AML — 31 CFR §1020.220 (Customer Identification Program)** — minimum identity attributes, verification, and **record retention for five years after the business relationship ends**. [Close Party]'s post-closure placement is the structural form of that floor (Invariant 5.3), and Capability requirement 17 is where the deployment's configured duration is held to it.
+- **FinCEN Beneficial Ownership Rule — 31 CFR §1010.230** — legal-entity customers must identify and verify beneficial owners owning at least 25% and a single control person. Each beneficial owner is a Party Identity record verified through an onboarding case of their own; the ownership graph belongs to the Ownership Structure composing pattern (Non-goal 8).
+- **EU 5th Anti-Money Laundering Directive (AMLD5)** — enhanced CDD requirements, beneficial-ownership registries, and ongoing-monitoring obligations, aligned with FATF. This composition is the onboarding-and-monitoring surface an AMLD5 deployment builds on.
+- **GDPR Article 6(1)(c) — legal obligation as processing basis.** Customer Due Diligence processing rests on Article 6(1)(c), **not** Article 6(1)(a) consent. The distinction is load-bearing: the customer cannot revoke the basis for Customer Due Diligence processing while the AML obligation stands, which is why Consent is not a constituent. Consent governs *non-obligatory* downstream processing (Non-goal 11).
+- **HIPAA (Health Insurance Portability and Accountability Act) §164.312(a)(1) (Access control)** — in covered healthcare deployments where a verified party identity is the precondition to granting access to protected health information, the verification-gates-activity decision is the structural form of the access-granting event: access is provisioned only through a substantiated, audited verification. This composition is anchored in the BSA/AML/FATF cluster; the HIPAA mapping applies where a covered entity uses verification-based provisioning.
 
 The three constituents carry their own deep standards inheritance — see each constituent's Standards references.
 
@@ -658,45 +1391,7 @@ formal: verified — customer-onboarding.tla + 1 twin, 2026-06-03
 last gate: 2026-08-29 — second gate after closure, fresh reader — 6 foundational (all since closed), 12 refining, 6 rhetorical
 
 open:
-- 2026-08-26-e · refining · [Close Party] steps 6–7 · `case_to_retentions` is populated before its backing event lands, inverting the map-population-after-event discipline → populate after
-- 2026-08-26-f · refining · [Trigger Monitoring Review]; three audit payloads · the open-trigger set is unbounded and embedded verbatim, so a long investigation's closure event can reach `invalid-request` and never land → cap or digest the set
-- 2026-08-26-g · refining · [Trigger Monitoring Review] `state-unavailable` · mapped from a condition Party Identity's `read` contract does not expose → map from the declared contract
-- 2026-08-26-h · refining · Composition state · `case_to_retentions` and `case_to_open_triggers` carry no cardinality or modality declaration → add the canonical line
-- 2026-08-26-i · refining · Generation acceptance · no check for Invariant 7, for Invariant 4's composition half, or for the active-relationship retention's placement → add them
-- 2026-08-26-j · refining · Examples · none exercises `invalid-credential`, the intent record's step-4 abort, or an unmatched intent → add one
-- 2026-08-26-k · refining · extraction-pending claim · asserts the Pass 2 gates rather than running them (Gate 1 needs a second composition forcing the same emergent invariant, and none is named) → run them or reclassify
-- 2026-08-26-l · refining · Terms, [Already Onboarded]; [Initiate Onboarding] step 2 · disagree on whether a closed party may be re-onboarded → reconcile
-- 2026-08-26-m · rhetorical · Terms, [Not Verified] term entry · names the defence-in-depth producer rather than the ordinary one → name the ordinary one
-- 2026-08-26-n · refining · monitoring schedule; [Trigger Monitoring Review] step 4 · the schedule-freeze-on-Suspended claim against the periodic branch's unconditional advance → pin the freeze in the periodic path or correct the two statements
-- 2026-08-26-r · refining · Invariant 2; checks 1 and 4 · lack the at-quiescence conditioning the substrate models for its analogous invariants → add it
-- 2026-08-26-s · refining · Terms registry · omits `trigger-on-suspended-party`, `trigger-voided`, and the `party-closed` rejection → add the cards
-- 2026-08-26-t · refining · Examples, breach-forensics replay list · omits `party-closed` and `initiated`, so the procedure cannot reconstruct closure → add them
-- 2026-08-26-v · refining · Generation acceptance check 4 · every-Closed-party-Retained fails on lawful end-of-life → condition on not-yet-purged
-- 2026-08-26-w · refining · Generation acceptance check 1 · the cross-system wall-time premise lacks the timestamps-advisory hedge Clock semantics applies elsewhere → add the hedge
-- 2026-08-26-x · rhetorical · throughout · "this composition" bare-attributive template glitches → name the pattern
-- 2026-08-26-y · rhetorical · Examples, regulator audit · flattens Invariant 1's (a)/(b) split → keep the split
-- 2026-08-26-z · rhetorical · Terms, [Not Verified] term entry · narrow gloss → widen
-- 2026-08-26-aa · rhetorical · "constituent guarantee" · overreach for a permitted-but-hazardous shape → soften
-- 2026-08-26-ab · rhetorical · substrate emergent-state list · phrased as an enumeration → mark as examples
-- 2026-08-29-a · refining · [Initiate Onboarding] step 6; partial-failure edge case · the direct-branch orphan (enrolled, not retained) is not among the named gaps, its only landing is unstated, and the intent record carries no `party_id` on that branch → name the recovery and its join
-- 2026-08-29-b · refining · [Initiate Onboarding] step 2, external branch · only `Closed` is guarded; a `Suspended` admit opens a case with an empty open set and a `Verified` admit passes the gate with no `verification-recorded` event → require `Unverified`, else reject
-- 2026-08-29-c · refining · [Record Verification] step 1 · no active-case guard, so a closed case reaches the intent record before Party Identity returns `already-closed` → add the guard → `rejected(not-active)`
-- 2026-08-29-d · refining · [Close Party] step 7 · `post_closure_retention_id` is populated before step 8's event lands, against the map-population-after-event discipline → move it after step 8
-- 2026-08-29-e · refining · Composes (Retention Window) · the periodic path, the renewal recovery and check 4(b) read the placement's `policy_ref`, `retained_at`, `retention_until` and purge-eligibility, but no read contract is declared → name the read surface as an instance capability
-- 2026-08-29-f · refining · Edge cases · indeterminate constituent outcomes (a lost response after commit) are unaddressed; `verify` retries are not self-detecting and `enroll` retries duplicate parties → name the re-query-before-retry obligation per action
-- 2026-08-29-g · refining · check 1 · "event timestamp predates the activity record" is a cross-store wall-time comparison while the spec makes timestamps advisory → state that check 1 requires Trusted Timestamping or an activity-store anchor, else best-effort
-- 2026-08-29-h · refining · Composition state, three obligations · rebuild-on-miss is undefined for an entry that exists but is empty → define "miss" per map
-- 2026-08-29-i · refining · Records-alone enumeration · a purged event's class survives only in the attestation reached via `read_record`, not in the pass-through read's payload → state that recognition of purged events is per-event through `read_record`
-- 2026-08-29-j · refining · [Already Onboarded] term entry · "a party whose prior case is closed may be re-onboarded" contradicts step 2 → rewrite to fresh enrollment under a new `party_id`
-- 2026-08-29-k · refining · [Trigger Monitoring Review] periodic recovery · the Retention Window read "for a placement this invocation already made" states no match key → `record_ref = party_id ∧ policy_ref ∧ retained_at = this invocation's now`
-- 2026-08-29-l · refining · Pass 2; Composition state · the adverse-trigger lifecycle (raised → suspended-on / voided → cleared / swept) is a state machine no constituent carries, yet `case_to_open_triggers` is a plain derived index while the schedule is extraction-pending → apply Gate 3 consistently
-- 2026-08-29-m · rhetorical · `initiate_onboarding` signature · missing `|` between `invalid-request` and `invalid-credential` → insert
-- 2026-08-29-n · rhetorical · Composes (Audit Trail) · "the one query shape the substrate passes through" — it passes two → "the sequence-range shape, one of the two"
-- 2026-08-29-o · rhetorical · Invariant 4 parenthetical · "rests on the step-6 `review-cleared` event of step 5" is garbled → repair
-- 2026-08-29-p · rhetorical · [Initiate Onboarding] step 7 · unbalanced parenthesis → repair
-- 2026-08-29-q · rhetorical · Invariants 6, 7; Edge cases · "no this composition action", "Several this composition actions" → reword
 - 2026-08-29-s · refining · formal · the model's reconciliation carries no age bound → extend it
-- 2026-08-29-r · rhetorical · Examples · `OFAC`, `SDN` unglossed → gloss once
 ```
 
 ## Decisions
@@ -706,16 +1401,9 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-26 — Invariant 4 is narrowed to the actor the composition authenticates.** *Chose:* the clearing actor, whose credential is verified, attests that fresh evidence naming the verifying actor was recorded before the reinstatement. *Over:* requiring `verifying_actor_ref == actor_ref`, or taking a second credential. *Because:* the first collapses a real separation of duties (an analyst gathers evidence, a manager clears the review) and the second is a signature change; the guarantee was narrowed to what the records can show.
 - **2026-08-27 — The active-relationship retention is a renewed chain, not one placement.** *Chose:* the periodic path of [Trigger Monitoring Review] places a fresh active-relationship retention at every review, recorded as `customer-onboarding.retention-renewed`, with Configuration requiring the policy's duration to exceed the review interval. *Over:* a single placement at intake, or an active-case purge gate composed through Defensible Retention. *Because:* a Retention Window placement is fixed-duration and its policy immutable, so a single placement lawfully lapses under a relationship longer than its duration; a purge gate would protect the record but leave it under no retention obligation at all, and the composition exposes no purge surface to gate.
 - **2026-08-29 — The reconciliation is a declared, bounded scan whose pre-check keys on the intent.** *Chose:* `onboarding_completion_bound` below and the audit horizon above; `compensation_window` and `reconciliation_cadence` declared; the pre-check traversal matched on `intent_event_id` rather than on "the same identifying payload". *Over:* a retry-until-lands with an undeclared cadence and a payload-resemblance pre-check. *Because:* the pre-check cannot see an invocation that has not written yet, so a re-emission inside the bound lands a second outcome for one act; and resemblance chooses where a key does not (the frozen rules of 2026-08-29 — *A reconciliation is bounded at both ends*, *Intents pair with outcomes*).
-- **2026-08-29 — The binding rides every renewal, every advance is capped at the placement's cover, and recovery commits have an actor.** *Chose:* `retention-renewed` re-carries the case→party binding and the rebuilds read the latest of intake or renewal; the horizon obligation is stated against the review cadence; every [Next Review Due] advance is capped at the current placement's `retention_until − scheduler_tolerance`; the freeze on `Suspended` is a rule (renewal continues, the deadline does not); step 9 subtracts exactly `closed_triggers`; the adverse-path outcomes carry `intent_event_id`; and a declared service identity makes the reconciliation's constituent commits Invariant-8-compliant, with [Close Party] gaining a re-entry arm. *Over:* a binding rebuilt from intake alone, a horizon compared against one placement, uncapped advances, an optional freeze, a clear-all step 9, and cross-invocation constituent retries under a dead invocation's authentication. *Because:* the page's own walkthrough lost a live customer's binding two years before closure; a verification pass three months after intake left the record purge-eligible for two months; the periodic path contradicted the freeze in three places; a delayed step 9 stranded a re-suspended party; check 6 convicted every adverse-path event; and the prescribed recovery was the one the page itself called forbidden.
-- **2026-08-26 — Enhanced due diligence is declined here, with a named owner.** *Chose:* the composition disclaims risk tiering and enhanced due diligence orchestration, naming a forthcoming Risk Tiering / EDD composing pattern as owner. *Over:* the previous mutual delegation to Party Identity, which also disclaimed it. *Because:* a dangling delegation is a gap nobody owns; a declined one with an owner is a boundary.
+- **2026-09-14 — The monitoring schedule and the open-trigger set are derived indexes, not extraction-pending state.** *Chose:* all four indexes classified as derived index, each with a named rebuild, a per-index definition of *miss*, and the same horizon bound; the proposed **Review Schedule** atom kept as `Non-goal 17` rather than as a classification. *Over:* keeping the schedule half flagged extraction-pending, or extending the flag to the open-trigger set for consistency. *Because:* `execution-contract.md` §Composition state asks one question — is every fact derivable from the constituents' stores through their declared reads — and the spec's own rebuild answered yes for both, in the same subsection that flagged one of them as non-derivable. Two sentences cannot both be the classification, and the Contract's test picks which. The extraction may still be worth making; it is a concept named for someone to own, not a debt riding this composition's classification. Closes the Ledger's `2026-08-26-k` (the flag asserted Pass 2 gates nobody ran) and `2026-08-29-l` (Gate 3 applied unevenly across four elements).
+- **2026-09-14 — The external path admits `Unverified` and nothing else.** *Chose:* one guard and one parameterized refusal, [Party Not Admissible], naming the state found. *Over:* keeping the `party-closed` arm and adding a second arm for `Verified` and `Suspended`. *Because:* the prose guarded `Closed` alone, so a `Suspended` admit opened a case with an empty open-trigger set against a suspended party and a `Verified` admit passed the gate with no verification record of this composition's — a hole in the composition's own load-bearing guarantee, reachable from the ordinary external path. A second arm beside `party-closed` would have split one guard's answer across two codes; the fold gives the caller one code and the state it needs.
+- **2026-09-14 — `state-unavailable` is mapped from the seam, not from a constituent arm.** *Chose:* an unanswered constituent read is `execution-contract.md` §Step 1 failure's `state-unavailable`, and Party Identity's declared `invalid-query` arm maps to `invalid-request` as this composition's own defect. *Over:* continuing to map `state-unavailable` from Party Identity's `read`. *Because:* that atom's `read` declares two answers — the matching parties, or `invalid-query` — and neither is an unreadable store, so the mapping named a contract the constituent does not have. The gate's fail-closed behaviour is unchanged; what changed is where the page says it comes from.
+- **2026-09-14 — Rewritten in GRACE lang v0.41.** *Chose:* 180.5 KB of prose replaced by labelled rules across fifteen families, eight invariant numbers unchanged, thirty-eight of thirty-nine Ledger lines closed by the rewrite. *Over:* a mechanical transliteration that would have carried the page's four internal contradictions into the rule surface. *Because:* a defect the rewrite finds is repaired in the pass that finds it; the repairs are named in the entries above and in the commit that lands this.
 
----
-
-## Composition notes
-
-These are adjacent compositions, **not** constituents of this composition:
-
-- **[External Onboarding](./external-onboarding.md)** — the upstream admission gate. External Onboarding admits a party in `Unverified` state (enroll + credential registration + invitation acceptance, all audited); this composition is the verification gate downstream. A deployment requiring `Verified` status before granting access places this composition downstream of External Onboarding: External Onboarding's `party_id` flows into this composition's `initiate_onboarding` on the External-Onboarding-admitted branch (`enrollment_path = external-onboarding`). External Onboarding is the admission gate; this composition is the verification gate.
-- **[Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md)** (`grounded` 2026-06-04) — governs non-obligatory processing beyond the Customer Due Diligence legal obligation. This composition's processing basis is GDPR Article 6(1)(c); Propagate Consent Revocation Downstream governs the Article 6(1)(a) consent basis for downstream processing this composition does not touch. (Pass 2 finding 2.)
-- **Resolve a Person's Data Rights** *(forthcoming)* — handles GDPR data-subject access and erasure requests against party records, adjudicating the tension between an erasure request and this composition's post-closure retention floor (the legal-obligation exception under GDPR Article 17(3)(b)). This composition records the retention state at request time; Resolve a Person's Data Rights adjudicates.
-- **Ownership Structure / Beneficial Owner** *(forthcoming)* — models the ownership graph across Party Identity records under FinCEN 31 CFR §1010.230. Each beneficial owner is verified through its own onboarding case; the ≥25% relationship graph belongs to the Ownership Structure pattern. This composition is a constituent of that pattern, not its replacement.
+NOTE: End of Customer Onboarding.
