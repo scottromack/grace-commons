@@ -1410,27 +1410,45 @@ def check_acceptance_surface(patterns: dict[Path, Pattern]) -> list[Finding]:
 
 
 def check_migration_seam(patterns: dict[Path, Pattern]) -> list[Finding]:
-    """M. A migrated spec carrying a second `## Terms` heading. A migration
-    concatenates a rewritten head onto the preserved term entries, so an
-    extraction that starts one heading too early carries the old section
-    heading in beside the new one, and the spec then has two owners for one
-    section. Neither checker reads headings, so the doubling passed both
-    tools on Selective Disclosure until a council read found it (council
-    read 30)."""
+    """M. A spec carrying the same section heading twice — two owners for one
+    section.
+
+    Built at council read 30 for one heading: a migrated atom carried two
+    `## Terms` headings, because the extraction began at the old section
+    heading rather than at the first term entry. The *shape* is a spec with two
+    owners for one section; the check named the one section it was found on,
+    and stayed that narrow for fifteen versions.
+
+    Widened at council read 72, which found what the narrow cut could not see:
+    Login and Idempotent Reservation each carried `## Generation acceptance`
+    twice — the migrated rules in the declared position, and the pre-migration
+    prose copy surviving after `## Standards references`, with its own
+    `### External checks` beneath it in the second case. Six of Login's open
+    Ledger lines cited the stale copy by ordinal, so the doubling was
+    load-bearing rather than inert, and both specs had passed every run of both
+    tools since they were migrated.
+
+    The narrowing was not a cheaper version of the general check. It is the
+    same lesson `M-orphan-forthcoming` learned at council read 68 between
+    *mentioned* and *listed*: an instrument cut to its first specimen reports
+    that specimen and nothing else. Unmigrated specs are scanned too — a
+    doubled section is a defect whatever language the spec is written in
+    (Authority 3)."""
     findings: list[Finding] = []
     for p in patterns.values():
-        migrated = re.search(r"^Terms › `qualifiers`:.*\bmigrated\b", p.text, re.M)
-        if not migrated:
-            continue  # an unmigrated spec still carries the prose preamble by right
-        heads = [m for m in re.finditer(r"^## Terms\s*$", p.text, re.M)]
-        if len(heads) > 1:
-            findings.append(Finding(
-                p.path, line_of(p.text, heads[1].start()), "M-terms-doubled",
-                "a migrated spec carries two `## Terms` headings — an extraction "
-                "that began at the old section heading rather than at the first "
-                "term entry (Authority 3)"))
+        for level in ("## ", "### "):
+            seen: dict[str, int] = {}
+            for m in re.finditer(rf"^{level}(?!#)(.+?)\s*$", p.text, re.M):
+                name = m.group(1).strip()
+                if name in seen:
+                    findings.append(Finding(
+                        p.path, line_of(p.text, m.start()), "M-section-doubled",
+                        f"the spec carries `{level.strip()} {name}` twice (first at "
+                        f"line {seen[name]}) — two owners for one section, so a "
+                        f"citation of it resolves to either (Authority 3)"))
+                else:
+                    seen[name] = line_of(p.text, m.start())
     return findings
-
 
 def check_end_marker(patterns: dict[Path, Pattern]) -> list[Finding]:
     """M. A migrated spec whose last line is not `NOTE: End of <Name>.`

@@ -34,6 +34,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lint import (  # noqa: E402
+    check_migration_seam,
     Pattern,
     check_atomicity_over_audit,
     check_rebuild_bound,
@@ -873,6 +874,42 @@ def check_acceptance_synthetic(problems: list[str]) -> None:
                         "rule reaches the migrated corpus only")
 
 
+def check_doubled_section_synthetic(problems: list[str]) -> None:
+    """M-section-doubled — widened at council read 72 from the one heading it
+    was built on. Five fixtures: the two doubling shapes fire, and the three
+    that look like doubling to a careless reader stay silent."""
+    def run(name: str, text: str) -> set[str]:
+        path = Path(f"synthetic/atoms/{name}.md")
+        pat = Pattern(path=path, text=text, invariant_count=1, grounded=False)
+        return {f.message for f in check_migration_seam({path: pat})}
+
+    # (1) the specimen the narrow check was built on, still caught
+    got = run("terms_twice", "## Terms\n\nx\n\n## Intent\n\ny\n\n## Terms\n\nz\n")
+    if not any("## Terms` twice" in m for m in got):
+        problems.append("M-section-doubled: did not fire on two `## Terms` "
+                        "headings — council read 30's own specimen")
+    # (2) the shape the narrow cut could not see
+    got = run("accept_twice",
+              "## Generation acceptance\n\nx\n\n## Standards references\n\ny\n"
+              "\n## Generation acceptance\n\nz\n")
+    if not any("## Generation acceptance` twice" in m for m in got):
+        problems.append("M-section-doubled: did not fire on a doubled section "
+                        "other than Terms — the narrowing this check was widened out of")
+    # (3) a doubled subsection is the same defect one level down
+    got = run("sub_twice",
+              "## A\n\n### External checks\n\nx\n\n## B\n\n### External checks\n\ny\n")
+    if not any("### External checks` twice" in m for m in got):
+        problems.append("M-section-doubled: did not fire on a doubled `###` heading")
+    # (4) distinct headings at one level are the ordinary shape
+    if run("distinct", "## Terms\n\nx\n\n## Intent\n\ny\n\n## Status\n\nz\n"):
+        problems.append("M-section-doubled: fired on a spec whose headings are "
+                        "all distinct — the ordinary shape")
+    # (5) one name at two levels is two different sections, not a doubling
+    if run("two_levels", "## Examples\n\nx\n\n### Examples\n\ny\n"):
+        problems.append("M-section-doubled: fired on one name at `##` and `###` — "
+                        "a subsection is not a second copy of its parent")
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -970,6 +1007,14 @@ def main(argv: list[str]) -> int:
         print("M-orphan-forthcoming: 5 synthetic fixtures hold (an unlisted "
               "forthcoming fires; a listed one, a linked one, an unmigrated "
               "spec and a single-word fragment stay silent) \u2713")
+
+    doubled_problems: list[str] = []
+    check_doubled_section_synthetic(doubled_problems)
+    failures.extend(doubled_problems)
+    if not doubled_problems:
+        print("M-section-doubled: 5 synthetic fixtures hold (a doubled `##` "
+              "and a doubled `###` fire; distinct headings and one name at two "
+              "levels stay silent) \u2713")
 
     census_problems: list[str] = []
     check_census_synthetic(census_problems)

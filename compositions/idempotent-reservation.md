@@ -391,7 +391,13 @@ External check 3: An auditor needing Duplicate Prevention's fail-closed posture 
 External check 4: An auditor needing the commitment store's atomicity confirmed MUST read the deployment's own declaration (Capability requirement 17).
 External check 5: An auditor needing the exactly-once claim confirmed MUST read External check 1, External check 2 AND External check 3 (Invariant 8.1).
 External check 6: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 5).
+External check 7: An auditor needing the idempotency window confirmed MUST read the deployment's own configuration (Capability requirement 1).
+External check 8: An auditor needing the token max length confirmed MUST read the deployment's own configuration (Capability requirement 2).
+External check 9: An auditor needing the digest function confirmed MUST read the deployment's own configuration (Capability requirement 3).
 ```
+
+WHY:
+External check 7 through External check 9 are the three knobs an auditor cannot infer from the map. The window decides which entries should still be there, the max length and the digest function decide whether two callers' tokens are the same token at all, and a map read against the wrong three answers the wrong question without saying so.
 
 WHY:
 External check 5 is the one that makes `Invariant 8.1` auditable rather than decorative. The exactly-once claim is conditional on three declared capabilities and none of the three is a record — a critical section, a durability guarantee and a store posture are all operating facts. An auditor who cleared the record checks and stopped would report exactly-once for a deployment that declares none of them, which is the failure this split exists to prevent.
@@ -582,32 +588,6 @@ It inherits from:
 
 ---
 
-## Generation acceptance
-
-A derived implementation of Idempotent Reservation is *acceptable* — in the regulator-acceptance sense — when an external auditor, given the composition's `token_results` store plus the underlying Provisional Commitment and Duplicate Prevention instances, can do all of the following without recourse to source code, runbooks, or developer narration.
-
-### Record-clearable checks
-
-*(Note: the spec-format template labels this tier "Audit-Trail-traversal-clearable" as a baseline. That label is inapplicable here — this composition does not compose Audit Trail — so "Record-clearable" is the correct adaptation.)*
-
-These checks can be answered by reading the composition's stored records directly:
-
-- **Reconstruct the lifecycle of any commitment.** Through the underlying Provisional Commitment instance, as specified by that atom's Generation acceptance.
-- **Verify all eight composition-level invariants over the record set.** Idempotent [Place Hold], idempotent state transitions, token-to-commitment one-to-one, token-action binding, Provisional Commitment invariants preserved, Duplicate Prevention invariants preserved, token expiry releases binding, exactly-once effect.
-- **Trace every commitment to its originating idempotency token** (within the window), and verify no two distinct commitments share a token (Invariant 3).
-- **Verify the cache-the-failure rule and the one-writer rule.** Every complete `token_results` entry contains the original outcome, success or rejection, written by one invocation — an entry carrying `recovery = true` names the re-entry arm as its writer, and no entry carries two results. For [Place Hold], no two commitments share a token: the records-observable form of *not invoked a second time*, since the constituent records no rejected or absent invocations, and non-invocation of a resolving action leaves no record at all — that half is routed to the externally-clearable tier below.
-
-### External checks
-
-These questions arise around the composition but require deployment configuration or external evidence to answer:
-
-- **Identify the composing atoms active in this deployment** and their configurations (window duration, token format, digest function). The window duration, digest function, and token max-length are deployment-settable; the auditor must obtain these from the deployment configuration record or the operator, not from the commitment or token-results stores alone.
-- **Confirm the four host obligations the invariants spend.** From the deployment configuration record: `per_token_serialization` is supplied with the declared release-on-return-or-death semantics and, where it is a lease, a lease exactly `reservation_completion_bound` long; `reservation_completion_bound < idempotency_window` is checked at instance start; `token_results_durability` (for `idempotency_window + reservation_completion_bound` past `pending_at`) and `duplicate_prevention_store` (durable across restarts, fail-closed on `check` unavailability) are met; and whether `commitment_store_acknowledged_atomic` is declared — which decides whether a cached `storage-failure` is definitive or the composition caches `outcome-unknown(candidates)` in its place. And that a retry of a resolving action within the window does not invoke the constituent except on the `pending` re-entry arm — a runtime-surface claim, not one the records carry.
-
-This is the generator's contract: any code generated from this composition must produce records and a runtime surface that pass the four record-clearable checks above. The bar is the regulator's question — *"can you prove no duplicate state change occurred?"* — answered structurally, not procedurally.
-
----
-
 ## Status
 
 `partially resolved` — see the Ledger.
@@ -622,7 +602,6 @@ last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 open:
 - 2026-08-30-a · refining · formal · the invocation is one atomic step — no `pending` intent, no per-token section with a lease terminus, no eviction leg as a second process over one token, no `outcome-unknown` arm; the twin's early-eviction hazard is now the leg's (iii) → extend it
 - 2026-09-15-a · refining · Composition logic, `### Housekeeping` · the heading sits second, immediately after `Composition state`, where `spec-format.md` §Required sections puts the pair's slot after `Wiring decision`, which the other two members of the family both take → move the section (council read 71, moved here from the register at council read 72)
-- 2026-09-15-b · refining · Generation acceptance · the spec carries the section twice — the migrated rules in the declared position, and the pre-migration prose copy after Standards references, each under its own `### External checks` → carry what the rules do not state, then delete the prose copy (council read 72)
 ```
 
 ## Decisions
