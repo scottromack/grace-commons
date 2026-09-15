@@ -110,7 +110,7 @@ Housekeeping 8: The eviction leg MUST NOT call a constituent's write.
 Housekeeping 9: The eviction leg MUST measure an instant against the composition's own seam reading.
 ```
 
-Terms › `eviction leg`: the composition's one leg running outside an invocation — an eviction leg; bounded at both edges and exclusive with the invocations the leg runs beside.
+Terms › `eviction leg`: the leg `Housekeeping 1` through `Housekeeping 9` state — this composition's own, over the token entries the leg evicts.
 
 WHY:
 The two edges are what make the leg safe. Housekeeping 3 is the lower edge — below the completion bound an invocation may still be in flight — and Housekeeping 5 is the upper, past which Invariant 7 already treats the token as fresh. Housekeeping 6 holds the ordering Invariant 7 requires: a token still under Duplicate Prevention's guard keeps its entry, or a replay would find the guard and not the answer.

@@ -508,7 +508,7 @@ Housekeeping 19: A caller MUST retry an orphan's act as a fresh administrative a
 Housekeeping 20: EXACTLY ONE writer MUST land an administrative act.
 ```
 
-Terms › `failed-grant leg`: the leg a deployment may compose outside every invocation to enumerate this composition's attestations and report the ones no attribution entry names — `Housekeeping 1` through `Housekeeping 20` state it.
+Terms › `failed-grant leg`: the leg `Housekeeping 1` through `Housekeeping 20` state — this composition's own, over the attestations no attribution entry names.
 
 Terms › `post-enumeration grant`: a grant a concurrent issuance committed later than a pair-scoped revocation's enumeration.
 
