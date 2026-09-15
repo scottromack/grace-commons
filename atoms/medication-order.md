@@ -542,10 +542,10 @@ Blankness carries more weight here than in most atoms because two whole invarian
 ### Clock semantics
 
 ```text
-Clock semantics 3: IF a timestamp input NOT EXISTS THEN an action MUST record now as the timestamp.
+Clock semantics 4: The atom MUST bound a supplied ordered_at from above by the future bound.
+NOTE: Clock semantics 3 deleted — Operation 4 owns it for ordered_at, and the `resolved dispensed_at`, `resolved administered_at` and `resolved completed_at` declarations own it for the event instants.
 NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
 NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
-Clock semantics 4: The atom MUST bound a supplied ordered_at from above by the future bound.
 Clock semantics 5: The atom MUST NOT bound a supplied event instant.
 Clock semantics 6: The deployment MUST own the clock's skew.
 Clock semantics 7: The deployment MUST own the clock's monotonicity.
@@ -637,13 +637,19 @@ Terms › `cadences`: empty.
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `order`, `order_id`, `store instance`, `core field`, `dosing parameter`, `attribution reference`, `reference`, `seam`, `transition`, `now`, `order action`, `state-changing action`, `held-refusing action`, `state`, `terminal state`, `inactive state`, `pre-dispensing state`, `post-dispensing state`, `actionable state`, `inactive state's rejection`, `state check`, `blank-input rejection`, `field fault`, `required string input`, `future bound`, `clock_skew_allowance`, `event instant`, `query axes`, `field group`, `reason field`, `admitted order`, `admitted amend`, `admitted verify`, `admitted hold`, `admitted reinstate`, `admitted dispense`, `admitted administer`, `admitted complete`, `admitted cancel`, `admitted discontinue`, `admitted read`, `string input`, `blank`, `length bound`.
+Terms › `terms`: `order`, `order_id`, `store instance`, `core field`, `dosing parameter`, `attribution reference`, `reference`, `seam`, `transition`, `now`, `order action`, `state-changing action`, `held-refusing action`, `state`, `terminal state`, `inactive state`, `pre-dispensing state`, `post-dispensing state`, `actionable state`, `inactive state's rejection`, `state check`, `blank-input rejection`, `field fault`, `required string input`, `future bound`, `clock_skew_allowance`, `event instant`, `query axes`, `field group`, `reason field`, `admitted order`, `admitted amend`, `admitted verify`, `admitted hold`, `admitted reinstate`, `admitted dispense`, `admitted administer`, `admitted complete`, `admitted cancel`, `admitted discontinue`, `admitted read`, `string input`, `blank`, `length bound`, `resolved dispensed_at`, `resolved administered_at`, `resolved completed_at`.
 
 Terms › `cited`: `execution-contract.md` Logic confinement — the seam and the transition.
 
 Terms › `composing pattern`: [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Retention Window](./retention-window.md), [Legal Hold](./legal-hold.md), [Duplicate Prevention](./duplicate-prevention.md), a dose-event pattern, a decision-support pattern, a trusted timestamping pattern, a formulary.
 
 Terms › `event instant`: `dispensed_at` | `administered_at` | `completed_at` — every instant a caller may supply for something that happened away from the call.
+
+Terms › `resolved dispensed_at`: the `dispensed_at` the order carries — the supplied value where one exists, and `now` otherwise.
+
+Terms › `resolved administered_at`: the `administered_at` the order carries — the supplied value where one exists, and `now` otherwise.
+
+Terms › `resolved completed_at`: the `completed_at` the order carries — the supplied value where one exists, and `now` otherwise.
 
 Terms › `clock_skew_allowance`: the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
 

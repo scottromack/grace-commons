@@ -239,12 +239,18 @@ State 9: EVERY amended observation MUST carry a successor_id.
 State 10: EVERY successor observation MUST carry predecessor_id, amended_by and amendment_reason.
 State 11: EVERY retracted observation MUST carry retracted_by and retraction_reason.
 State 12: The store instance's observation count MUST NOT fall.
+State 13: The atom MUST store a resolved recorded_at standing within the future bound as the call supplied the value.
+State 14: The atom MUST NOT normalize a recorded_at's timezone.
 ```
 
 WHY:
 State 4 is a deliberate absence. Clinical records are not deleted here, and destruction under a retention obligation or a legal hold belongs to the composing patterns that own those clocks — this atom retains everything and offers no surface that would let it do otherwise (Non-goal 15, Non-goal 16).
 
 Invariant 3 is what makes the chain linear rather than a tree, and the `State` family does not restate it. An observation already carrying a `successor_id` is standing in amended, so a second [Amend] answers `already-amended` (Operation 14) and there is no path by which a branch could be written.
+
+State 13 is the allowance's exact scope and the thing an implementer gets wrong: the margin widens the *refusal's* tolerance and never alters a *value*. A `recorded_at` inside the allowance is stored as supplied, not clamped to `now`.
+
+The consequence is stated rather than hidden: a caller whose clock runs ahead of the seam by more than the allowance is refused as future-dated even though the measurement happened in the past. The width of that margin is the deployment's choice and the refusal is correct at whatever width they pick.
 
 ### Invariants
 
@@ -459,16 +465,12 @@ Clock semantics 1: The deployment MUST own the clock's monotonicity.
 Clock semantics 2: The deployment MUST own the clock's honesty.
 Clock semantics 3: The deployment MUST own the clock's synchronization.
 Clock semantics 4: The deployment MUST declare the clock_skew_allowance.
-Clock semantics 5: The atom MUST store a resolved recorded_at standing within the future bound as the call supplied the value.
-Clock semantics 6: The atom MUST NOT normalize a recorded_at's timezone.
+NOTE: Clock semantics 5 deleted — State 13 owns it.
+NOTE: Clock semantics 6 deleted — State 14 owns it.
 Clock semantics 7: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
-Clock semantics 5 is the allowance's exact scope and the thing an implementer gets wrong: the margin widens the *refusal's* tolerance and never alters a *value*. A `recorded_at` inside the allowance is stored as supplied, not clamped to `now`.
-
-The consequence is stated rather than hidden: a caller whose clock runs ahead of the seam by more than the allowance is refused as future-dated even though the measurement happened in the past. The width of that margin is the deployment's choice and the refusal is correct at whatever width they pick.
-
 `recorded_at` may not increase monotonically across a subject's observations under a skewed clock, and there is no sequence number here to fall back on. Ordering within a history is best-effort wall time, not causal order — which is what Operation 55 forbids a rule from resting on.
 
 ### Concurrency

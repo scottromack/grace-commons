@@ -80,6 +80,7 @@ Composes 27: The composition MUST attest the sweep's audit record under the serv
 Composes 28: The composition MUST NOT attest the sweep's audit record under a calling operator's credential.
 Composes 29: The composition MUST enumerate a credential PER credential type.
 Composes 30: The composition MUST NOT enumerate one credential PER principal.
+Composes 31: The composition MUST NOT supply the substrate's own recording stamp.
 ```
 
 Terms › `composition`: this pattern's wiring of permissions(../atoms/permissions.md), session(../atoms/session.md), credential(../atoms/credential.md) and the audit trail(./audit-trail.md) substrate — the three actions, the actor lifecycle, the two indexes, the mark and the sweep.
@@ -956,14 +957,14 @@ Concurrency 9 exempts the read, and the exemption is safe by construction: the r
 ## Clock semantics
 
 ```text
-Clock semantics 2: An invocation MUST stamp EVERY timestamp from the invocation's clock reading.
+Clock semantics 6: A reader MUST read the substrate's insertion order as the authoritative order.
+NOTE: Clock semantics 2 deleted — Identity 16, Action wiring 48 and Action wiring 84 own it: intended_at, suspended_at and reinstated_at are every timestamp this composition stamps, and each takes the injected now.
 NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
 NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
 NOTE: Clock semantics 4 deleted — `execution-contract.md` §Logic confinement owns it.
 NOTE: Clock semantics 5 deleted — `execution-contract.md` §Logic confinement owns it.
-Clock semantics 6: A reader MUST read the substrate's insertion order as the authoritative order.
 Clock semantics 7: A reader MUST read a stamp this composition wrote as advisory.
-Clock semantics 8: The composition MUST NOT supply the substrate's own recording stamp.
+NOTE: Clock semantics 8 deleted — Composes 31 owns it.
 Clock semantics 9: The composition MUST NOT compare a constituent's stamp against a write.
 Clock semantics 10: A check comparing two seams' stamps MUST run under the clock skew allowance.
 Clock semantics 11: A check comparing two seams' stamps MUST answer inconclusive inside the clock skew allowance.

@@ -770,11 +770,11 @@ Concurrency 6 through Concurrency 9 are the declared degradation, stated in the 
 ## Clock semantics
 
 ```text
-Clock semantics 2: An invocation MUST stamp the invocation's proposals from the invocation's clock reading.
+Clock semantics 5: The request instant MUST stand informational within a proposal.
+NOTE: Clock semantics 2 deleted — Identity 8 owns it: a proposal carries the request instant (Identity 7), and the request instant is the invocation's seam reading.
 NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
 NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
 NOTE: Clock semantics 4 deleted — `execution-contract.md` §Logic confinement owns it.
-Clock semantics 5: The request instant MUST stand informational within a proposal.
 Clock semantics 6: The nonce MUST carry a proposal's uniqueness.
 Clock semantics 7: The request instant MUST NOT carry a proposal's uniqueness.
 NOTE: Clock semantics 8 deleted — Clock dependence 1 owns it.

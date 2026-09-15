@@ -44,6 +44,10 @@ Not a transaction, not the adopter's store, not an audit journal, not a class. A
 - **The bound act** — not a constituent. The adopter's constituent commit call, supplied as a binding together with the read that tells whether it committed. The constituent's own contract governs the commit.
 - **The act's section** — a critical section keyed by the act, supplied by the deployment (*Configuration*, `act_section`). No constituent grants it.
 
+```text
+Composes 1: A record MUST carry only stamps of the substrate (recorded_at) or of the constituent (through probe).
+```
+
 ### Instance capability requirements
 
 Four declared, two optional.
@@ -449,7 +453,7 @@ Primitive policy 12: [Open] MUST size intent_data and the kind's largest record 
 Primitive policy 13: [Open] MUST refuse invalid-request for an act whose largest record would not fit.
 Primitive policy 14: An action signature MUST NOT take now.
 Primitive policy 15: [Open] MUST use now for exactly one comparison: step 3's age of an open intent against recorded_at under clock_skew_allowance.
-Primitive policy 16: The composition MUST NOT stamp a record with now.
+NOTE: Primitive policy 16 deleted — Composes 1 owns it: a stamp the composition takes from now is neither the substrate's nor the constituent's.
 Primitive policy 17: The adopter's action MUST carry invocation_id from [Open] into [Close] and [Refuse] as a parameter of each.
 Primitive policy 18: The sweep MUST read now once per run at the sweep's own seam.
 ```
@@ -1315,9 +1319,9 @@ The adopter's declaration; [Open]'s `act-landed` refusal fires only for `repeata
 ### Clock semantics
 
 ```text
-Clock semantics 2: A record MUST carry only stamps of the substrate (recorded_at) or of the constituent (through probe).
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 3: The composition MUST NOT time the lease.
+NOTE: Clock semantics 2 deleted — Composes 1 owns it.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 WHY: a clock read inside [Resolve] breaks the Contract's logic confinement (`execution-contract.md` §Logic confinement); `-buggy-opclock` shows the cost (Invariant 5: an act abandoned whose commit then lands).

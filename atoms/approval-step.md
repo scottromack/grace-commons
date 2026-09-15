@@ -241,10 +241,13 @@ State 11: EVERY withdrawn step MUST carry withdrawn_by, withdrawal_reason and wi
 State 12: An approved step MAY carry decision_reason.
 State 13: A pending step MUST NOT carry an attribution field.
 State 14: The store instance's step count MUST NOT fall.
+State 15: The atom MUST NOT record a receipt instant.
 ```
 
 WHY:
 State 4 is the one deployments push against. A pending [Approval Step] cannot be revised into a new version; a changed approval need is a new [Submit] producing a new `step_id`, and the original is withdrawn or decided on its own terms. Revision in place would make the record answer *what is being approved now* when the question an auditor asks is *what was presented to the approver, and what did they decide about it*.
+
+State 15 names what makes back-insertion undetectable here. The atom stores the declared instants and no separate creation instant, so a step written today with `submitted_at` a year back reads as a year-old gate. The composing [Audit Trail](../compositions/audit-trail.md) entry carries the receipt instant, and that comparison is where back-insertion surfaces.
 
 ### Invariants
 
@@ -461,14 +464,12 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 Clock semantics 1: The deployment MUST own the clock's monotonicity.
 Clock semantics 2: The deployment MUST own the clock's honesty.
 Clock semantics 3: The deployment MUST own the clock's synchronization.
-Clock semantics 4: The atom MUST NOT record a receipt instant.
+NOTE: Clock semantics 4 deleted — State 15 owns it.
 Clock semantics 5: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
 Clock skew between a caller and the seam can push a `decided_at` the caller believes is current past the injected reading, and Operation 18 rejects it. That is the correct rejection: the bound is enforced against the injected `now`, not against the caller's belief about the time.
-
-Clock semantics 4 names what makes back-insertion undetectable here. The atom stores the declared instants and no separate creation instant, so a step written today with `submitted_at` a year back reads as a year-old gate. The composing [Audit Trail](../compositions/audit-trail.md) entry carries the receipt instant, and that comparison is where back-insertion surfaces.
 
 ### Concurrency
 

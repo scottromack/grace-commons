@@ -65,6 +65,7 @@ Composes 14: The composition MUST NOT query the substrate by a payload predicate
 Composes 15: The composition MUST attest an invocation's audit record under the calling actor's credential.
 Composes 16: The composition MUST attest a sweep's audit record under the service identity.
 Composes 17: The composition MUST NOT attest a sweep's audit record under a calling actor's credential.
+Composes 18: The composition MUST NOT supply the injected now to a constituent.
 ```
 
 Terms › `composition`: this pattern's wiring of legal hold(../atoms/legal-hold.md), retention window(../atoms/retention-window.md) and the audit trail(./audit-trail.md) substrate — the five actions, the hold gate, the two indexes and the sweep.
@@ -827,16 +828,16 @@ Concurrency 4 is the sweep's own version of the same hazard, and it is closed he
 ## Clock semantics
 
 ```text
-Clock semantics 2: The composition MUST stamp an intent's intended_at from the injected now.
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
-Clock semantics 3: The composition MUST stamp a record purged outcome's purged_at from the injected now.
 Clock semantics 4: The composition MUST judge elapsed retention against the injected now.
+NOTE: Clock semantics 2 deleted — Action wiring 8 owns it.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 3 deleted — Action wiring 60 owns it.
 Clock semantics 5: The composition MUST judge a sibling set member's eligibility against the injected now.
-Clock semantics 6: The composition MUST NOT supply the injected now to a constituent.
-Clock semantics 7: Retention Window MUST stamp a retention's purged_at at Retention Window's own seam.
-Clock semantics 8: Legal Hold MUST stamp an omitted placed_at at Legal Hold's own seam.
-Clock semantics 9: Legal Hold MUST stamp an omitted released_at at Legal Hold's own seam.
-Clock semantics 10: Audit Trail MUST stamp an event's recorded_at at Audit Trail's own seam.
+NOTE: Clock semantics 6 deleted — Composes 18 owns it.
+NOTE: Clock semantics 7 deleted — Retention Window Operation 13 owns it.
+NOTE: Clock semantics 8 deleted — Legal Hold Operation 9 owns it.
+NOTE: Clock semantics 9 deleted — Legal Hold Operation 18a owns it.
+NOTE: Clock semantics 10 deleted — Event Log Operation 2 owns it, reached through Audit Trail.
 Clock semantics 11: A reader MUST read a record purged outcome's purged_at as the authoritative destruction instant.
 Clock semantics 12: A reader MUST NOT read a retention's purged_at as the authoritative destruction instant.
 Clock semantics 13: A reader MUST read a divergence exceeding the skew allowance as a clock finding.
@@ -861,9 +862,9 @@ Terms › `post-destruction hold`: a hold whose `hold_placed` outcome sits later
 Terms › `late hold`: a hold placed later than the gate read of an invocation destroying the record.
 
 WHY:
-Clock semantics 2 through Clock semantics 5 enumerate every use this layer makes of the injected reading, across all five actions, because an earlier revision announced three purposes and listed two. One reading serves all four: the intent's stamp, the destruction's stamp, the named retention's eligibility and every sibling's. Clock semantics 16 is the fifth thing a reader expects and does not find — the gate consults the hold store's current state and no timestamp at all.
+Action wiring 8, Action wiring 60, Clock semantics 4 and Clock semantics 5 enumerate every use this layer makes of the injected reading, across all five actions, because an earlier revision announced three purposes and listed two. One reading serves all four: the intent's stamp, the destruction's stamp, the named retention's eligibility and every sibling's. Clock semantics 16 is the fifth thing a reader expects and does not find — the gate consults the hold store's current state and no timestamp at all.
 
-Clock semantics 6 through Clock semantics 12 are the *two readings* discipline. `RetentionWindow.purge` takes no timestamp, so the atom stamps from the reading injected at its own seam while this composition stamps the outcome from the reading injected here. Under the pipeline the two are ordinarily microseconds apart and ordered, and nothing in the declared contracts makes them equal — a spec claiming otherwise would be promising what no constituent signature can deliver. So one of them is designated authoritative and the other is an internal consistency artifact, and `Check 1.3`'s hold-versus-destruction cross-reference reads the designated one.
+Composes 18, Clock semantics 11 and Clock semantics 12 are the *two readings* discipline, over the constituents' own stamping rules (Retention Window Operation 13, Legal Hold Operation 9 and Operation 18a, Event Log Operation 2). `RetentionWindow.purge` takes no timestamp, so the atom stamps from the reading injected at its own seam while this composition stamps the outcome from the reading injected here. Under the pipeline the two are ordinarily microseconds apart and ordered, and nothing in the declared contracts makes them equal — a spec claiming otherwise would be promising what no constituent signature can deliver. So one of them is designated authoritative and the other is an internal consistency artifact, and `Check 1.3`'s hold-versus-destruction cross-reference reads the designated one.
 
 Clock semantics 14 and Clock semantics 15 keep the two meanings of a hold's time apart. A caller-supplied `placed_at` asserts when the obligation arose and may legitimately predate the system entry — oral counsel advice documented afterwards is the ordinary case — while the entry instant is the audit event's own stamp. The gap between them is observable in the records, which is the point; whether a backdated assertion needs elevated authorization is the deployment's question and not this layer's (`Non-goal 8`).
 

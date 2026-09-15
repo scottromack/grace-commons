@@ -181,12 +181,15 @@ State 6: The atom MUST NOT offer a retraction surface.
 State 7: The atom MUST NOT offer a batch record surface.
 State 8: The store instance's record count MUST NOT fall.
 State 9: A later unfiltered [Read] MUST answer EVERY disclosure record an earlier unfiltered [Read] answered.
+State 10: The atom MUST NOT record a receipt instant.
 ```
 
 WHY:
 A disclosure record has no lifecycle (State 2). It is categorically unlike the state-machine atoms — [Legal Hold](./legal-hold.md)'s active and released, [Approval Step](./approval-step.md)'s pending, approved, rejected and withdrawn — because a disclosure simply *is*, from the moment it is recorded. There is no transition to model and therefore no transition to get wrong, and the store's only state is the growing set.
 
 State 3 is what makes the accounting answerable in one pass. Every field is on every record, so an auditor never has to ask whether an absent value means *not applicable* or *not captured* — a distinction no store can make after the fact.
+
+State 10 states the gap that makes backdating undetectable here rather than leaving it implicit. The atom stores the declared instant and nothing else, so a call made today with `disclosed_at: "2024-01-01"` produces a record that reads as a 2024 disclosure. The receipt instant lives in the composing [Event Log](./event-log.md) entry, and External check 3 is where the comparison is made.
 
 ### Invariants
 
@@ -296,7 +299,7 @@ NOTE: EVERY check names the rule the check tests.
 ```text
 External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing authority store (Non-goal 7, Non-goal 8).
 External check 2: A deployment needing Invariant 5.1 cleared MUST read the egress record beside the disclosure store.
-External check 3: A deployment needing a backdated disclosed_at detected MUST read the composing [Event Log](./event-log.md)'s receipt instant (Clock semantics 4).
+External check 3: A deployment needing a backdated disclosed_at detected MUST read the composing [Event Log](./event-log.md)'s receipt instant (State 10).
 External check 4: A deployment needing EVERY issued disclosure_id found in the store MUST capture the recorded answers (Invariant 6.3).
 ```
 
@@ -383,14 +386,12 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 Clock semantics 1: The deployment MUST own the clock's monotonicity.
 Clock semantics 2: The deployment MUST own the clock's honesty.
 Clock semantics 3: The deployment MUST own the clock's synchronization.
-Clock semantics 4: The atom MUST NOT record a receipt instant.
+NOTE: Clock semantics 4 deleted — State 10 owns it.
 Clock semantics 5: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
 Clock skew between a caller and the seam can push a `disclosed_at` the caller believes is current past the injected reading, and Operation 7 rejects it. That is the correct rejection: the temporal invariant is enforced against the injected `now`, not against the caller's belief about the time.
-
-Clock semantics 4 states the gap that makes backdating undetectable here rather than leaving it implicit. The atom stores the declared instant and nothing else, so a call made today with `disclosed_at: "2024-01-01"` produces a record that reads as a 2024 disclosure. The receipt instant lives in the composing [Event Log](./event-log.md) entry, and External check 3 is where the comparison is made.
 
 ### Concurrency
 

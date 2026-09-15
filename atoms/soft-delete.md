@@ -215,6 +215,7 @@ State 9: A lifecycle record MAY carry a restore field.
 State 10: EVERY purged lifecycle record MUST carry purged_by, purge_reason and purged_at.
 State 11: A purged lifecycle record MUST carry the deletion fields the purge found.
 State 12: The store instance's lifecycle record count MUST NOT fall.
+State 13: The atom MUST NOT record a receipt instant.
 ```
 
 WHY:
@@ -423,7 +424,7 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 Clock semantics 1: The deployment MUST own the clock's monotonicity.
 Clock semantics 2: The deployment MUST own the clock's honesty.
 Clock semantics 3: The deployment MUST own the clock's synchronization.
-Clock semantics 4: The atom MUST NOT record a receipt instant.
+NOTE: Clock semantics 4 deleted — State 13 owns it.
 Clock semantics 5: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 

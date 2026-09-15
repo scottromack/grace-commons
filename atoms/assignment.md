@@ -77,6 +77,7 @@ State 9: The atom MUST NOT offer a transition out of transferred.
 State 10: The atom MUST NOT delete an assignment.
 State 11: The atom MUST NOT hold a task's lifecycle.
 State 12: The atom MUST NOT hold an assignee's workload.
+State 13: The atom MUST NOT re-derive a stamp from a later reading.
 ```
 
 Terms › `status`: `active` | `recalled` | `transferred` — in force, withdrawn with nobody after, or handed on to a successor.
@@ -339,7 +340,7 @@ Assign race 3: The second concurrent [Assign] for one task_ref MUST answer alrea
 ```text
 Clock semantics 1: The deployment MUST own the clock's monotonicity.
 Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: The atom MUST NOT re-derive a stamp from a later reading.
+NOTE: Clock semantics 3 deleted — State 13 owns it.
 ```
 
 ## Composition notes
