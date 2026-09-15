@@ -621,6 +621,8 @@ last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open:
 - 2026-08-30-a · refining · formal · the invocation is one atomic step — no `pending` intent, no per-token section with a lease terminus, no eviction leg as a second process over one token, no `outcome-unknown` arm; the twin's early-eviction hazard is now the leg's (iii) → extend it
+- 2026-09-15-a · refining · Composition logic, `### Housekeeping` · the heading sits second, immediately after `Composition state`, where `spec-format.md` §Required sections puts the pair's slot after `Wiring decision`, which the other two members of the family both take → move the section (council read 71, moved here from the register at council read 72)
+- 2026-09-15-b · refining · Generation acceptance · the spec carries the section twice — the migrated rules in the declared position, and the pre-migration prose copy after Standards references, each under its own `### External checks` → carry what the rules do not state, then delete the prose copy (council read 72)
 ```
 
 ## Decisions

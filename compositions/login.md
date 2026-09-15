@@ -612,6 +612,7 @@ open:
 - 2026-08-28-g · refining · Composes; cascade step 2; both rebuilds · the open-upper-bound read's lower bound is never stated → state it
 - 2026-08-28-h · refining · check 1 · quantifies over all of `session_to_credential` while `login_succeeded` payloads are destroyed at the horizon → scope to the horizon
 - 2026-08-29-a · refining · formal · the model's sweep carries no upper edge and no recovery record → extend it
+- 2026-09-15-a · refining · Generation acceptance · the spec carries the section twice — the migrated rules in the declared position, and the pre-migration prose copy after Standards references — and the six open lines above citing `check 1`, `check 2` and `check 3` aim at the prose copy, where the orphan carve-out `2026-08-28-n` added still lives; two of its seven checks (the principal's session-history reconstruction, the `login_map_write_failure` resolution) have no counterpart among the eleven `Check` rules → carry what the rules do not state, re-point the six lines, then delete the prose copy (council read 72)
 - 2026-08-28-i · refining · `login` step 3; Invariant 3 · the sandwich proves an effective-Active record on each side, not the same one; a same-material rotation inside the window roots the session on the predecessor → state the residual or compare ids
 - 2026-08-28-j · refining · Composition state · the credential↔session relation's cardinality and modality are undeclared → declare
 - 2026-08-28-k · refining · Composition state; Edge cases · TTL never spelled out; OIDC used before its gloss → define at first use
