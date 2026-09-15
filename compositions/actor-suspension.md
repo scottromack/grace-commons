@@ -217,7 +217,7 @@ WHY:
 ### Capability requirement
 
 ```text
-Capability requirement 1: The host MUST supply one clock reading at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
 Capability requirement 3: The transition MUST NOT read a clock.
 Capability requirement 4: The transition MUST NOT mint an invocation_id.
@@ -265,6 +265,7 @@ Capability requirement 45: A deployment MUST run the sweep PER reconciliation ca
 ```
 
 Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one `invocation_id` here.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 
@@ -955,8 +956,8 @@ Concurrency 9 exempts the read, and the exemption is safe by construction: the r
 ## Clock semantics
 
 ```text
-Clock semantics 1: The seam MUST supply one clock reading PER invocation.
 Clock semantics 2: An invocation MUST stamp EVERY timestamp from the invocation's clock reading.
+NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
 Clock semantics 3: An invocation MUST NOT read a second clock reading.
 Clock semantics 4: A signature MUST NOT carry a clock reading.
 Clock semantics 5: The transition MUST NOT sample a clock.

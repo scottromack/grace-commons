@@ -133,7 +133,7 @@ Operation 29: [Active For] MUST NOT write.
 Operation 30: [History For] MUST NOT write.
 Operation 30a: [Reassign] MUST read one now per call.
 Operation 30b: [Reassign] MUST stamp transferred_at and assigned_at against that one now.
-Operation 31: The host MUST read the clock at the atom's seam.
+NOTE: Operation 31 deleted — Capability requirement 1 owns it.
 Operation 32: The transition MUST NOT read a clock.
 Operation 33: The business caller MUST NOT supply now.
 ```
@@ -280,6 +280,15 @@ External check 4: An auditor MUST read the serialization evidence from the deplo
 NOTE: Invariant 7.3 and Invariant 7.4 forbid a reader *observing* a state. Records written after the fact cannot show what was observable between two writes, so no conformance check clears them and External check 4 names the probe that can — the records-alone gap `open-questions.md` §*Generation trust* docks, with its first load-bearing resident (council read 14).
 
 NOTE: EVERY check names the rule the check tests. The assignment store answers *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

@@ -138,7 +138,7 @@ Operation 20: [Pending For] MUST NOT answer a terminal notification's notificati
 Operation 21: [Pending For] MUST NOT order the answer.
 Operation 22: [Status Of] MUST NOT write.
 Operation 23: [Pending For] MUST NOT write.
-Operation 24: The host MUST read the clock at the atom's seam.
+NOTE: Operation 24 deleted — Capability requirement 1 owns it.
 Operation 25: The transition MUST NOT read a clock.
 Operation 26: The business caller MUST NOT supply now.
 ```
@@ -290,6 +290,15 @@ External check 4: An auditor MUST read the transport's own outcome from the depl
 ```
 
 NOTE: EVERY check names the rule the check tests. External check 1 is the one that makes cross-deployment audit possible: without the declared policy, one shop's `failed_at` and another's `expired_at` record the same operational event and no reader can tell.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

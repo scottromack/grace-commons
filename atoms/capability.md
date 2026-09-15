@@ -136,7 +136,7 @@ Operation 51: [Read] MUST carry the effective_status on EVERY answered capabilit
 Operation 52: [Read] MUST NOT write.
 Operation 53: A liveness query MUST rest on the effective_status.
 Operation 54: A liveness query MUST NOT rest on the stored status alone.
-Operation 55: The host MUST read the clock at the seam.
+NOTE: Operation 55 deleted — Capability requirement 1 owns it.
 Operation 56: The transition MUST NOT read a clock.
 Operation 57: The business caller MUST NOT supply now.
 Operation 58: The atom MUST NOT offer an expire action.
@@ -432,6 +432,15 @@ WHY:
 Two things this store cannot clear, named rather than assumed. A refused [Redeem] leaves no trace in the record — no counter move, no field — so whether anyone *attempted* a redemption after exhaustion, revocation or lapse is not auditable here and needs the composing journal (External check 1, Expiry 1). And the redeemer's identity is absent by construction, so an audit that needs it is asking the wrong store (External check 2, Invariant 5.2).
 
 Check 4.3 asserts on the reproduced projection rather than on a stored field, because there is no stored field to assert on — an auditor who tested one would be testing a cache the atom refuses to keep.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

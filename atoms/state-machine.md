@@ -196,7 +196,7 @@ Operation 47: [Read Declaration] MUST answer the instance's declaration.
 Operation 48: [Read Declaration] MUST NOT normalize the declaration.
 Operation 49: [Read Declaration] MUST NOT reorder the declaration.
 Operation 50: A reading action MUST NOT write.
-Operation 51: The host MUST read the clock at the seam.
+NOTE: Operation 51 deleted — Capability requirement 1 owns it.
 Operation 52: The transition MUST NOT read a clock.
 Operation 53: The business caller MUST NOT supply now.
 Operation 54: A guard MUST NOT read a clock.
@@ -432,6 +432,15 @@ External check 2 is the check that could not stay in the conformance list. Count
 External check 1 is the atom's central restraint stated as an audit boundary. `guard_satisfied: true` is evidence that a caller asserted a guard, and evidence of nothing else. An auditor reading it as proof the condition held has misread the record, and the atom says so here rather than letting the misreading happen.
 
 ---
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

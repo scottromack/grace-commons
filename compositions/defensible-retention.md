@@ -153,7 +153,7 @@ Composition state 27 through Composition state 32 declare the two relations the 
 ### Capability requirement
 
 ```text
-Capability requirement 1: The host MUST supply one clock reading at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
 Capability requirement 3: The transition MUST NOT read a clock.
 Capability requirement 4: The transition MUST NOT mint an invocation_id.
@@ -191,6 +191,7 @@ Capability requirement 35: A deployment MUST serialize a hold placement and a pu
 ```
 
 Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one `invocation_id` here.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 

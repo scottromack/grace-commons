@@ -140,7 +140,7 @@ Operation 42: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer i
 Operation 43: IF a state filter's value NOT EXISTS in the states THEN [Read] MUST answer invalid-query.
 Operation 44: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 45: [Read] MUST NOT write.
-Operation 46: The host MUST read the clock at the seam.
+NOTE: Operation 46 deleted — Capability requirement 1 owns it.
 Operation 47: The transition MUST NOT read a clock.
 Operation 48: The business caller MUST NOT supply now.
 Operation 49: A guard MUST NOT read a clock.
@@ -351,6 +351,15 @@ External check 1 is the atom's sharpest boundary and the one a deployment can qu
 External check 2 follows from Invariant 6.3. The stored fields carry one deletion epoch and one restore epoch, so an auditor reconstructing *what happened in what order across cycles* needs the transition history, not this summary.
 
 ---
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

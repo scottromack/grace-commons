@@ -157,7 +157,7 @@ Operation 35: [Read] MUST answer a deleted preference record in full.
 Operation 36: [Read] MUST NOT refuse a blank argument.
 Operation 37: [Current For] MUST NOT write.
 Operation 38: [Read] MUST NOT write.
-Operation 39: The host MUST read the clock at the seam.
+NOTE: Operation 39 deleted — Capability requirement 1 owns it.
 Operation 40: The transition MUST NOT read a clock.
 Operation 41: The business caller MUST NOT supply now.
 NOTE: Operation 42 deleted — Clock dependence 1 owns it.
@@ -409,6 +409,15 @@ NOTE: EVERY check names the rule the check tests.
 
 WHY:
 Check 2.2 fixes the interval convention so two auditors reading one store agree: at `t = set_at` the record is in effect, at `t = deleted_at` it is not, and a successor created in the same supersession is the one in effect at that instant. Check 4.2 is the honest answer to a gap the records cannot resolve on their own — the same record structure is produced by an atomic supersession and by an explicit delete followed by a later re-creation, so a material gap is flagged ambiguous-pending-external-evidence rather than scored as a pass or a failure. Deterministic discrimination needs a composed [Audit Trail](../compositions/audit-trail.md) or [Actor Identity](./actor-identity.md), which records each action as its own attributed event. Check 6.2 exists because without the disclosure the same operational situation — no record for a principal — produces different delivery across deployments, and cross-deployment audit cannot read the stores uniformly.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

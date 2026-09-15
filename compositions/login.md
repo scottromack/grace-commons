@@ -117,7 +117,7 @@ With failed-login auditing enabled — the default and the regulated posture —
 ### Capability requirement
 
 ```text
-Capability requirement 1: The host MUST supply one clock reading at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The transition MUST NOT read a clock.
 Capability requirement 3: The composition MUST NOT take a clock reading as an argument.
 Capability requirement 4: The composition MUST NOT mint an id.
@@ -135,6 +135,7 @@ Capability requirement 15: A deployment MUST set whether a failed login reaches 
 ```
 
 Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading here.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 

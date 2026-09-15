@@ -155,7 +155,7 @@ Operation 57: IF the store refuses a write THEN a writing action MUST answer sto
 Operation 58: A refused action MUST leave the pool as the call found the pool.
 Operation 59: A refused action MUST NOT append an audit event.
 Operation 60: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
-Operation 61: The host MUST read the clock at the seam.
+NOTE: Operation 61 deleted — Capability requirement 1 owns it.
 Operation 62: The transition MUST NOT read a clock.
 Operation 63: The business caller MUST NOT supply now.
 NOTE: Operation 64 deleted — Clock dependence 1 owns it.
@@ -443,6 +443,15 @@ WHY:
 Check 3.1 and Check 3.2 are per-event and that is the point of carrying before-and-after on every entry: an auditor clears the bound at a single event without replaying the log to that index. Replay stays authoritative under Check 2.1 — the snapshots witness the arithmetic rather than replace it — and Check 2.2 states the honest scope, because a composed purge bounds what any replay can reach.
 
 The three External checks name what this store cannot answer. Refused calls leave no trace here at all; per-unit history is a different grain; an actor reference is the caller's claim until something attests it.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

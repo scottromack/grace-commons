@@ -147,7 +147,7 @@ Operation 38: [Read] MUST carry the effective_status on EVERY answered session.
 Operation 39: [Read] MUST NOT write.
 Operation 40: A liveness query MUST rest on the effective_status.
 Operation 41: A liveness query MUST NOT rest on the stored status alone.
-Operation 42: The host MUST read the clock at the seam.
+NOTE: Operation 42 deleted — Capability requirement 1 owns it.
 Operation 43: The transition MUST NOT read a clock.
 Operation 44: The business caller MUST NOT supply now.
 Operation 45: The atom MUST NOT offer an expire action.
@@ -385,6 +385,15 @@ WHY:
 Check 3.1 is the reconstruction [Validate] itself applies: a session was in force at an instant when its `issued_at` does not follow that instant, its `expires_at` does, and its `revoked_at` is either absent or later. The stored status need not be consulted beyond *not revoked at that instant*, because the lapse is computed from the deadline rather than remembered — which is the whole point of Invariant 12 and the reason this check needs the store and a clock and nothing else.
 
 Check 5.1 is the one check that reads a contract rather than records. Four distinguishable answers is a behavioural commitment, and no arrangement of stored fields can evidence it — a conforming store behind an implementation that collapses [Invalid Expired] and [Invalid Revoked] into one boolean fails Invariant 6.2 while every record looks correct.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

@@ -124,7 +124,7 @@ Operation 22: [Subscribers For] MUST answer an empty list for an event_scope no 
 Operation 23: [Subscribers For] MUST NOT order the answer.
 Operation 24: [Subscribed] MUST NOT write.
 Operation 25: [Subscribers For] MUST NOT write.
-Operation 26: The host MUST read the clock at the atom's seam.
+NOTE: Operation 26 deleted — Capability requirement 1 owns it.
 Operation 27: The transition MUST NOT read a clock.
 Operation 28: The business caller MUST NOT supply now.
 ```
@@ -246,6 +246,15 @@ Check 5.1: An auditor MUST identify which composing patterns a deployment wired 
 ```
 
 NOTE: EVERY check names the rule the check tests.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

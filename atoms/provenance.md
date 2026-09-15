@@ -149,7 +149,7 @@ Operation 50: [Read] MUST NOT write.
 Operation 51: [Read] MUST NOT answer storage-failure.
 Operation 52: IF the store refuses a read THEN [Read] MUST NOT answer a partial entry sequence.
 Operation 53: [Read] MUST NOT answer archived.
-Operation 54: The host MUST read the clock at the seam.
+NOTE: Operation 54 deleted — Capability requirement 1 owns it.
 Operation 55: The transition MUST NOT read a clock.
 Operation 56: The business caller MUST NOT supply now.
 NOTE: Operation 57 deleted — Clock dependence 2 owns it.
@@ -383,6 +383,15 @@ Check 3.1 is the replay the atom's own guards apply, run offline. It needs the e
 Check 5.1 rests on `sequence_number` rather than `recorded_at` deliberately: a best-effort wall-time annotation later than the archive stamp is a clock artifact, not a broken chain (Operation 58).
 
 ---
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

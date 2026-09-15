@@ -83,7 +83,7 @@ Operation 4: [Record] MUST NOT refuse.
 Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen.
 Operation 6: [Check] MUST answer seen for an identity under guard.
 Operation 7: [Check] MUST answer not-seen for an identity that is not under guard.
-Operation 8: The host MUST read the clock at the atom's seam.
+NOTE: Operation 8 deleted — Capability requirement 1 owns it.
 Operation 9: The transition MUST NOT read a clock.
 Operation 10: The business caller MUST NOT supply now.
 Operation 11: The containing pattern MUST supply window duration.
@@ -198,6 +198,15 @@ The three checks worth the section are `Check 1.2`, `Check 1.3` and `Check 2.1`,
 `Check 3.4` is the one a reader does not expect and the one that proves the atom sells behaviour rather than storage. A lazy host still holding an expired entry must answer `not-seen` for it, so an auditor who finds the entry present and the answer `not-seen` has confirmed conformance rather than found a leak — and an auditor told only to compare the set against the window would report the opposite.
 
 The external set is short and each member is a value the records cannot carry. The window duration and the matching rule belong to the containing pattern by construction (`Non-goal 8`); a guard missed by a failed write leaves no trace at all, which is `Record failure 2` stated from the auditor's side; and the unavailability policy is a deployment's declared posture rather than an observation.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

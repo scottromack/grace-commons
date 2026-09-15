@@ -154,7 +154,7 @@ Composition state 27 and Composition state 28 are the retention scope this compo
 ### Capability requirement
 
 ```text
-Capability requirement 1: The host MUST supply one clock reading at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one nonce at the seam PER issuance.
 Capability requirement 3: The transition MUST NOT read a clock.
 Capability requirement 4: The transition MUST NOT mint a nonce.
@@ -770,8 +770,8 @@ Concurrency 6 through Concurrency 9 are the declared degradation, stated in the 
 ## Clock semantics
 
 ```text
-Clock semantics 1: The seam MUST supply one clock reading PER invocation.
 Clock semantics 2: An invocation MUST stamp the invocation's proposals from the invocation's clock reading.
+NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
 Clock semantics 3: The transition MUST NOT sample a clock.
 Clock semantics 4: A signature MUST NOT carry a clock reading.
 Clock semantics 5: The request instant MUST stand informational within a proposal.

@@ -151,7 +151,7 @@ Operation 31: [Read] MUST answer an empty sequence for a well-formed query match
 Operation 32: [Read] MUST NOT answer an active hold under a released_at filter.
 Operation 33: [Read] MUST NOT answer a hold carrying no case_ref under a case_ref filter.
 Operation 34: [Read] MUST NOT write.
-Operation 35: The host MUST read the clock at the atom's seam.
+NOTE: Operation 35 deleted — Capability requirement 1 owns it.
 Operation 36: The transition MUST NOT read a clock.
 Operation 37: The business caller MUST NOT supply now.
 Operation 38: The business caller MAY supply placed_at.
@@ -311,6 +311,15 @@ External check 4: An auditor MUST read the matter a case_ref names from the depl
 ```
 
 NOTE: EVERY check names the rule the check tests. The hold store answers *what was preserved, by whom, and for how long*; whether the preservation was honoured at the purge surface is the composing pattern's record, because this atom deliberately enforces nothing (Non-goal 1).
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

@@ -78,7 +78,7 @@ The contract classification is *conforming, no stored composition state* (`execu
 ### Capability requirement
 
 ```text
-Capability requirement 1: The host MUST supply one clock reading at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one fanout id at the seam.
 Capability requirement 3: The host MUST draw a fanout id meeting the entropy floor.
 Capability requirement 4: The transition MUST NOT read a clock.
@@ -88,6 +88,7 @@ Capability requirement 7: A deployment MUST disclose Subscription's clock tolera
 ```
 
 Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one fanout id here.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 Terms › `transition`: the composition's evaluation of one [Fanout] call against the two stores, as `execution-contract.md` §Logic confinement declares it.
 

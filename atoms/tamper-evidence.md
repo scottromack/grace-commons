@@ -113,7 +113,7 @@ Operation 17: IF record set match = yes AND seal check = unavailable THEN [Verif
 Operation 18: IF record set match = yes AND seal check = failed THEN [Verify] MUST answer proof-invalid.
 Operation 19: [Verify] MUST answer verified ONLY IF seal check = held.
 Operation 20: [Verify] MUST NOT write.
-Operation 21: The host MUST read the clock at the atom's seam.
+NOTE: Operation 21 deleted — Capability requirement 1 owns it.
 Operation 22: The host MUST supply the cryptographic material at the atom's seam.
 Operation 22a: The host MUST supply record set match at the atom's seam.
 Operation 22b: The atom MUST NOT judge record set match.
@@ -293,6 +293,15 @@ External check 2: An auditor MUST read the anchor's trust from the anchoring aut
 NOTE: mechanism health and anchor trust are what the seal store does not carry — the External check family v0.35 declares exists for exactly this (council read 13).
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove these records were not altered?* — answered from the records and the proof, never from a runtime claim.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

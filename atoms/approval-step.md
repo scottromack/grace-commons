@@ -157,7 +157,7 @@ Operation 45: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer i
 Operation 46: IF a state filter's value NOT EXISTS in the states THEN [Read] MUST answer invalid-query.
 Operation 47: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 48: [Read] MUST NOT write.
-Operation 49: The host MUST read the clock at the seam.
+NOTE: Operation 49 deleted — Capability requirement 1 owns it.
 Operation 50: The transition MUST NOT read a clock.
 Operation 51: The business caller MUST NOT supply now.
 Operation 52: A guard MUST NOT read a clock.
@@ -388,6 +388,15 @@ External check 2 is the boundary that most resembles a gap and is not one. This 
 External check 4 records a deliberate silence. A refused call writes nothing here, so an `unauthorized` attempt leaves no trace in this store at all. That is correct for a record whose subject is decisions rather than attempts, and it means an investigation into attempted unauthorized approvals must read the composing audit log, not this one.
 
 ---
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

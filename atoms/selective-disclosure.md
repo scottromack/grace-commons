@@ -125,7 +125,7 @@ Operation 27: An admitted read MUST answer EVERY disclosure record matching the 
 Operation 28: An admitted read MUST NOT answer a disclosure record failing a supplied filter.
 Operation 29: [Read] MUST NOT write.
 Operation 30: [Read] MUST NOT answer storage-failure.
-Operation 31: The host MUST read the clock at the seam.
+NOTE: Operation 31 deleted — Capability requirement 1 owns it.
 Operation 32: The transition MUST NOT read a clock.
 Operation 33: The business caller MUST NOT supply now.
 Operation 34: A guard MUST NOT read a clock.
@@ -306,6 +306,15 @@ External check 4 is a check that left the conformance list. Finding every issued
 The three external checks are the audit boundary stated rather than left to be discovered, and each names where the question goes. Authority *legitimacy* is unclearable here by construction: a record carrying `{type: consent, reference: "consent-3301"}` proves the calling system claimed that consent, and whether the consent was granted, in scope and unrevoked at `disclosed_at` lives in [Consent](./consent.md)'s store — as does semantic agreement between the type and the reference, which this atom cannot judge on an opaque string. Invariant 5.1 is unclearable from inside because a gap is invisible to a query that sees only what was recorded; the store is the positive evidence and the negative evidence lives at the egress boundary. Backdating is unclearable because the atom stores the declared instant and no separate creation instant; the composing [Event Log](./event-log.md) entry carries the receipt instant, and a `disclosed_at` materially earlier than it is the audit signal. [Audit Trail](../compositions/audit-trail.md) is where that comparison is surfaced.
 
 ---
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

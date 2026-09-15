@@ -135,7 +135,7 @@ Operation 21: IF the store refuses the write THEN [Edit] MUST answer storage-fai
 Operation 22: IF the store refuses the write THEN [Complete] MUST answer storage-failure.
 Operation 23: IF the store refuses the write THEN [Delete] MUST answer storage-failure.
 Operation 24: A refused call MUST leave the unit as the call found the unit.
-Operation 25: The host MUST read the clock at the atom's seam.
+NOTE: Operation 25 deleted — Capability requirement 1 owns it.
 Operation 26: The transition MUST NOT read a clock.
 Operation 27: The business caller MUST NOT supply now.
 ```
@@ -276,6 +276,15 @@ WHY:
 `Check 3.4` is the one a reader would not think to run. An edit whose normalized description equals the unit's current description answers `ok` and writes **nothing** — no description change and no stamp — so the auditable evidence of a correct no-op is the *absence* of a `last_edited_at` movement, which is the only check here whose passing condition is that nothing happened.
 
 The external set is three lines because this atom assumes almost nothing it cannot show. What it does assume is the two things no records can carry: that the clock moves forward, which every timestamp check above is best-effort under, and that each transition is atomic, without which `Invariant 1.1` is reachable-false — a crash mid-write leaving a unit in neither state. Both are named here rather than left to a reader to notice they were never proved.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

@@ -206,7 +206,7 @@ Composition state 36 through Composition state 43 are the cardinality and modali
 ### Capability requirement
 
 ```text
-Capability requirement 1: The host MUST supply one clock reading at the seam.
+Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply a case_id at the seam PER admitted initiation.
 Capability requirement 3: The host MUST supply a trigger_id at the seam PER admitted trigger.
 Capability requirement 4: The transition MUST NOT read a clock.
@@ -252,6 +252,7 @@ Capability requirement 43: A deployment MUST NOT set the monitoring interval PER
 ```
 
 Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading, one `case_id` and one `trigger_id` here.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 
@@ -1104,8 +1105,8 @@ Concurrency 2 through Concurrency 4 exempt the gate, and the exemption is safe b
 ## Clock semantics
 
 ```text
-Clock semantics 1: The seam MUST supply one clock reading PER invocation.
 Clock semantics 2: An invocation MUST stamp EVERY timestamp from the invocation's clock reading.
+NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
 Clock semantics 3: An invocation MUST derive the next review due from the invocation's clock reading.
 Clock semantics 4: The next review due MUST NOT EXCEED the placement's cover.
 Clock semantics 5: An invocation MUST NOT read a second clock reading.

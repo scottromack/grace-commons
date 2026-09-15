@@ -132,7 +132,7 @@ Operation 19: [Check] MUST NOT refuse a call.
 Operation 20: [Check] MUST NOT write.
 Operation 21: [Check] MUST match a subject_ref exactly.
 Operation 22: [Check] MUST match an action_scope exactly.
-Operation 23: The host MUST read the clock at the atom's seam.
+NOTE: Operation 23 deleted — Capability requirement 1 owns it.
 Operation 24: The transition MUST NOT read a clock.
 Operation 25: The business caller MUST NOT supply now.
 ```
@@ -276,6 +276,15 @@ External check 4: An auditor MUST read the serialization evidence for concurrent
 ```
 
 NOTE: EVERY check names the rule the check tests. The grant store answers *who could do what, and since when*; who authorized it, who tried, and whether a leaver's access was fully removed are the composing patterns' records.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

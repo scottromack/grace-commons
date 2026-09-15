@@ -160,7 +160,7 @@ Operation 57: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer i
 Operation 58: IF a state filter's value NOT EXISTS in state THEN [Read] MUST answer invalid-query.
 Operation 59: IF a time range's end precedes the time range's start THEN [Read] MUST answer invalid-query.
 Operation 60: [Read] MUST exclude a consent record carrying no value for a time range's field.
-Operation 61: The host MUST read the clock at the seam.
+NOTE: Operation 61 deleted — Capability requirement 1 owns it.
 Operation 62: The transition MUST NOT read a clock.
 Operation 63: The business caller MUST NOT supply now.
 ```
@@ -414,6 +414,15 @@ NOTE: EVERY check names the rule the check tests.
 
 WHY:
 Check 5.1 asserts on [Check]'s answer and not on a stored [Expired] field, because the stored field is a cache that Stored state 1 constrains rather than the authority that decides — an auditor who tested the cache would be testing the implementation's write strategy instead of the atom's commitment (Check 5.2).
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

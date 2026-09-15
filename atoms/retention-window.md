@@ -128,7 +128,7 @@ Operation 19: IF the retention store refuses the write THEN [Purge] MUST answer 
 Operation 20: [Purge] MUST leave the retention in retained on storage-failure.
 Operation 21: [Purge] MUST read one now per call.
 Operation 22: [Purge] MUST judge eligibility and stamp purged_at against that one now.
-Operation 23: The host MUST read the clock at the atom's seam.
+NOTE: Operation 23 deleted — Capability requirement 1 owns it.
 Operation 24: The host MUST resolve the policy at the atom's seam.
 Operation 25: The transition MUST NOT read a clock.
 Operation 26: The transition MUST NOT read the policy registry.
@@ -301,6 +301,15 @@ External check 3: An auditor MUST read the deployment's declared time resolution
 NOTE: the atom cannot answer these from the retention store — Simultaneous retention 3 forecloses reading a sibling, so the evidence that joint enforcement happened lives in the composing pattern's records, not here (council read 11).
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *was every record's obligation honored, and what is overdue now?* — answered from the records, never from a runtime claim.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

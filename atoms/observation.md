@@ -161,7 +161,7 @@ Operation 48: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer i
 Operation 49: IF a state filter's value NOT EXISTS in the states THEN [Read] MUST answer invalid-query.
 Operation 50: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 51: [Read] MUST NOT write.
-Operation 52: The host MUST read the clock at the seam.
+NOTE: Operation 52 deleted — Capability requirement 1 owns it.
 Operation 53: The transition MUST NOT read a clock.
 Operation 54: The business caller MUST NOT supply now.
 Operation 55: An ordering rule MUST NOT rest on a causal claim.
@@ -379,6 +379,15 @@ External check 1 is the answer-capture split, which is a docket row rather than 
 External check 4 is the boundary a reader most wants the atom to cross and it cannot. The store says a value was recorded, by whom, when, and what it was corrected to. It does not say the measurement was taken correctly, that the cuff was the right size, or that 148 was the patient's actual pressure. That is clinical truth, and no record structure supplies it.
 
 ---
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

@@ -119,7 +119,7 @@ Operation 18: IF registry answer = material AND proof check = failed THEN [Verif
 Operation 19: [Verify] MUST answer verified ONLY IF proof check = held.
 Operation 20: [Verify] MUST NOT write.
 Operation 21: [Verify] MUST read the actor registry's public material for the actor_ref.
-Operation 22: The host MUST read the clock at the atom's seam.
+NOTE: Operation 22 deleted — Capability requirement 1 owns it.
 Operation 23: The host MUST supply the cryptographic material at the atom's seam.
 Operation 24: The transition MUST NOT read a clock.
 Operation 25: The transition MUST NOT mint entropy.
@@ -262,6 +262,15 @@ Check 5.1: An auditor MUST identify which composing patterns a deployment wired 
 ```
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove who authorized this action?* — never the developer's intuition.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 

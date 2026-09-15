@@ -46,6 +46,7 @@ Identity 10: A composing pattern MUST own how many log instances a deployment ru
 Terms › `event_id`: the opaque value naming one event — an [Event Id]; allocated once, never again.
 
 Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the event_id here.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 Terms › `transition`: the atom's evaluation of one call against the log, as `execution-contract.md` §Logic confinement declares it.
 
@@ -115,7 +116,7 @@ Operation 15: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 16: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
 Operation 17: [Read] MUST NOT write.
 Operation 18: The implementation MUST own the query's shape.
-Operation 19: The host MUST read the clock at the atom's seam.
+NOTE: Operation 19 deleted — Capability requirement 1 owns it.
 Operation 20: The transition MUST NOT read a clock.
 Operation 21: The business caller MUST NOT supply recorded_at.
 ```
@@ -256,6 +257,15 @@ WHY:
 `Check 2.4`, `Check 5.1` and `Check 5.2` are the three that stop an auditor filing against a correct log, and each of them is a place where the obvious reading is wrong. A gap in the sequence numbers is not a lost event — `Sequence gap 1` permits an implementation to consume a number on a failed write, so an auditor counting rows against numbers reports a defect the atom has none of. A `recorded_at` that falls is a clock fault and never an ordering fault, because `sequence_number` **is authoritative** for the order and `recorded_at` is an annotation this atom rests nothing on.
 
 The external set is where the real limit sits, and it is larger than a reader expects from a log. **Append-only is not tamper-evidence.** Every check above passes over a log an adversary with store access rewrote, because the atom compares the log against itself; detecting that the store was rewritten is [Tamper Evidence](./tamper-evidence.md)'s and is named here rather than implied. The same holds for who wrote an event and for whether the instance survived a restart at all — `External check 1` is the one a deployment loses silently, since a volatile instance satisfies every conformance check above and loses the journal the composing patterns replay.
+
+### Capability requirements
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ## Non-goals
 
