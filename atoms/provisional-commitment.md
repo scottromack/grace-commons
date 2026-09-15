@@ -58,23 +58,23 @@ Identity 12: The atom MUST NOT hold the resource's content.
 Identity 13: The deployment MUST route EVERY call to one store instance.
 ```
 
-Terms › `commitment`: the record this atom holds — one resource held for one requester for a bounded window, then resolved to exactly one terminal state.
+Term commitment: the record this atom holds — one resource held for one requester for a bounded window, then resolved to exactly one terminal state.
 
-Terms › `id`: the opaque value naming one commitment — an [Id]; assigned from the id material the seam supplies and never reused.
+Term id: the opaque value naming one commitment — an [Id]; assigned from the id material the seam supplies and never reused.
 
-Terms › `property`: `resource` | `requester` | `placed_at` | `expires_at` — what a commitment carries that is not the commitment's identity.
+Term property: `resource` | `requester` | `placed_at` | `expires_at` — what a commitment carries that is not the commitment's identity.
 
-Terms › `reference`: `id`, `resource` OR `requester` — every opaque reference this atom records.
+Term reference: `id`, `resource` OR `requester` — every opaque reference this atom records.
 
-Terms › `registry`: the deployment's owner of what a resource is and what availability means; outside this atom (Non-goal 11).
+Term registry: the deployment's owner of what a resource is and what availability means; outside this atom (Non-goal 11).
 
-Terms › `store instance`: one named commitment store a call is routed to; `id` uniqueness ranges over one instance.
+Term store instance: one named commitment store a call is routed to; `id` uniqueness ranges over one instance.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the id material and the registry's availability verdict here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the id material and the registry's availability verdict here.
 
-Terms › `transition`: the atom's evaluation of one call against the commitment store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the commitment store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 5 ranges over a store instance's whole lifetime, which is what makes id reuse a case of sharing rather than a rule of its own — the reason the shipped Invariant 9 is a tombstone below.
@@ -194,39 +194,39 @@ NOTE: Operation 36 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 37 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `resolving action`: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.
+Term resolving action: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.
 
-Terms › `well-formedness check`: Operation 1, Operation 2, Operation 3 and Operation 4 — every check [Place Hold] makes on the call's own arguments.
+Term well-formedness check: Operation 1, Operation 2, Operation 3 and Operation 4 — every check [Place Hold] makes on the call's own arguments.
 
-Terms › `duration bounds`: the implementation's admitted range for a `duration`; every admitted value exceeds zero.
+Term duration bounds: the implementation's admitted range for a `duration`; every admitted value exceeds zero.
 
-Terms › `window bound`: `placed_at` raised by the `duration` — the value an admitted place hold records as `expires_at`.
+Term window bound: `placed_at` raised by the `duration` — the value an admitted place hold records as `expires_at`.
 
-Terms › `window reading`: `open` | `lapsed` — how a held commitment's window reads against `now`.
+Term window reading: `open` | `lapsed` — how a held commitment's window reads against `now`.
 
-Terms › `open`: the window reading of a held commitment whose `expires_at` exceeds `now`.
+Term open: the window reading of a held commitment whose `expires_at` exceeds `now`.
 
-Terms › `lapsed`: the window reading of a held commitment whose `expires_at` does not exceed `now`; the boundary instant — `expires_at` equal to `now` — reads lapsed.
+Term lapsed: the window reading of a held commitment whose `expires_at` does not exceed `now`; the boundary instant — `expires_at` equal to `now` — reads lapsed.
 
-Terms › `window rejection`: `window-elapsed` | `window-not-elapsed`.
+Term window rejection: `window-elapsed` | `window-not-elapsed`.
 
-Terms › `terminal state`: `confirmed` | `released` | `expired`.
+Term terminal state: `confirmed` | `released` | `expired`.
 
-Terms › `terminal instant`: `confirmed_at` | `released_at` | `expired_at`.
+Term terminal instant: `confirmed_at` | `released_at` | `expired_at`.
 
-Terms › `admitted place hold`: a [Place Hold] call that passes every precondition and whose store write commits.
+Term admitted place hold: a [Place Hold] call that passes every precondition and whose store write commits.
 
-Terms › `admitted confirm`: a [Confirm] call that passes every precondition and whose store write commits.
+Term admitted confirm: a [Confirm] call that passes every precondition and whose store write commits.
 
-Terms › `admitted release`: a [Release] call that passes every precondition and whose store write commits.
+Term admitted release: a [Release] call that passes every precondition and whose store write commits.
 
-Terms › `admitted expire`: a [Expire] call that passes every precondition and whose store write commits.
+Term admitted expire: a [Expire] call that passes every precondition and whose store write commits.
 
-Terms › `admitted resolving action`: an admitted confirm, an admitted release OR an admitted expire.
+Term admitted resolving action: an admitted confirm, an admitted release OR an admitted expire.
 
-Terms › `releasing action`: an admitted release OR an admitted expire.
+Term releasing action: an admitted release OR an admitted expire.
 
-Terms › `reclamation lag`: the span between a commitment's `expires_at` and the admitted expire that settles the commitment.
+Term reclamation lag: the span between a commitment's `expires_at` and the admitted expire that settles the commitment.
 
 WHY:
 Operation 6, Operation 16, Operation 20 and Operation 29 are the rejection priority, written as guards rather than as an order — nothing may be inferred from rule order (GRACE-lang Timing 13). For a resolving action the effect is `not-known` before `not-held` before the window rejection before `storage-failure`; for [Place Hold] it is `invalid-request` before `resource-unavailable` before `storage-failure`. A caller who reads `not-held` therefore knows the id resolved, and one who reads `window-elapsed` knows the commitment is still held.
@@ -285,15 +285,15 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   Invariant 10.3: A storage-failure rejection MUST leave no partial commitment in the store.
   ```
 
-Terms › `degenerate window`: a commitment whose `expires_at` does not exceed the commitment's `placed_at`.
+Term degenerate window: a commitment whose `expires_at` does not exceed the commitment's `placed_at`.
 
-Terms › `late resolution`: a commitment standing in confirmed whose `expires_at` does not exceed the commitment's `confirmed_at`, OR one standing in released whose `expires_at` does not exceed the commitment's `released_at`.
+Term late resolution: a commitment standing in confirmed whose `expires_at` does not exceed the commitment's `confirmed_at`, OR one standing in released whose `expires_at` does not exceed the commitment's `released_at`.
 
-Terms › `premature expiry`: a commitment standing in expired whose `expired_at` precedes the commitment's `expires_at`.
+Term premature expiry: a commitment standing in expired whose `expired_at` precedes the commitment's `expires_at`.
 
-Terms › `re-hold`: a [Place Hold] naming a resource and a requester a resolved commitment already names.
+Term re-hold: a [Place Hold] naming a resource and a requester a resolved commitment already names.
 
-Terms › `capacity decision`: a composing capacity constraint pattern's reading of the pool's capacity rule for one place hold.
+Term capacity decision: a composing capacity constraint pattern's reading of the pool's capacity rule for one place hold.
 
 WHY:
 Membership exclusivity, single-resolution and terminal absorption together give the *audit-friendly* property: once a commitment settles, its record is a fact about the past rather than a candidate for revision. Invariant 7 gives the *honored-window* property. Identity 5 and Invariant 5 give the *one-commitment-one-id* property that makes per-event reconstruction tractable. Invariant 10 gives the *irrevocable-record* property — the audit surface cannot be silently reduced by deletion.
@@ -454,9 +454,9 @@ String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
 ```
 
-Terms › `string input`: `resource` OR `requester` — every caller-supplied string this atom accepts.
+Term string input: `resource` OR `requester` — every caller-supplied string this atom accepts.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 This family was missing from a draft of this migration, and its absence was invisible rather than benign: Operation 1 and Operation 2 read `NOT EXISTS` on caller-supplied strings, so without String 5 and String 6 a whitespace-only `resource` had no declared reading at all and two implementations could disagree about whether it is a hold (council read 38). The `blank` declaration is the corpus's, word for word across eleven specs, which is the point — the reading is shared and nobody owns it, and the *absence-as-nonexistence* watch entry counts it.
@@ -496,25 +496,25 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the deployment; the implementation; the registry; the store; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; a data subject; an investigator; a reader; a commitment; a held commitment; a confirmed commitment; a released commitment; an expired commitment; an action; a resolving action; a refused action; a losing resolving action; a losing [Place Hold]; a rejection; a crash; a re-hold; an opaque reference; the store instance's commitment count.
+Term actors: the atom; the deployment; the implementation; the registry; the store; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; a data subject; an investigator; a reader; a commitment; a held commitment; a confirmed commitment; a released commitment; an expired commitment; an action; a resolving action; a refused action; a losing resolving action; a losing [Place Hold]; a rejection; a crash; a re-hold; an opaque reference; the store instance's commitment count.
 
-Terms › `records`: `commitment` — one resource held for one requester for a bounded window, carrying `id`, `resource`, `requester`, `placed_at`, `expires_at`, a state and, where set, `confirmed_at`, `released_at` or `expired_at`.
+Term records: `commitment` — one resource held for one requester for a bounded window, carrying `id`, `resource`, `requester`, `placed_at`, `expires_at`, a state and, where set, `confirmed_at`, `released_at` or `expired_at`.
 
-Terms › `record verbs`: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, own, admit, offer, hold, return, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, route, consult, append, place, produce, map, attest, fall, precede, sample, consume, supply, release, run, acknowledge, canonicalize, declare, compose, wire, remove, bind, decide, define, bound, surface, pass, reach, accept, pause, call, guarantee, trim, case-fold.
+Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, own, admit, offer, hold, return, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, route, consult, append, place, produce, map, attest, fall, precede, sample, consume, supply, release, run, acknowledge, canonicalize, declare, compose, wire, remove, bind, decide, define, bound, surface, pass, reach, accept, pause, call, guarantee, trim, case-fold.
 
-Terms › `value sets`: place_hold answers = id | rejected(invalid-request | resource-unavailable | storage-failure). confirm answers = ok | rejected(not-known | not-held | window-elapsed | storage-failure). release answers = ok | rejected(not-known | not-held | window-elapsed | storage-failure). expire answers = ok | rejected(not-known | not-held | window-not-elapsed | storage-failure). `state` = held | confirmed | released | expired. `terminal state` = confirmed | released | expired. `terminal instant` = confirmed_at | released_at | expired_at. `window reading` = open | lapsed. `window rejection` = window-elapsed | window-not-elapsed. `property` = resource | requester | placed_at | expires_at.
+Term value sets: place_hold answers = id | rejected(invalid-request | resource-unavailable | storage-failure). confirm answers = ok | rejected(not-known | not-held | window-elapsed | storage-failure). release answers = ok | rejected(not-known | not-held | window-elapsed | storage-failure). expire answers = ok | rejected(not-known | not-held | window-not-elapsed | storage-failure). `state` = held | confirmed | released | expired. `terminal state` = confirmed | released | expired. `terminal instant` = confirmed_at | released_at | expired_at. `window reading` = open | lapsed. `window rejection` = window-elapsed | window-not-elapsed. `property` = resource | requester | placed_at | expires_at.
 
-Terms › `bounds`: `duration bounds`, `window bound`.
+Term bounds: `duration bounds`, `window bound`.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `commitment`, `id`, `property`, `reference`, `registry`, `store instance`, `seam`, `transition`, `now`, `resolving action`, `well-formedness check`, `duration bounds`, `window bound`, `window reading`, `open`, `lapsed`, `window rejection`, `terminal state`, `terminal instant`, `admitted place hold`, `admitted confirm`, `admitted release`, `admitted expire`, `admitted resolving action`, `releasing action`, `string input`, `blank`, `reclamation lag`, `capacity decision`, `degenerate window`, `late resolution`, `premature expiry`, `re-hold`.
+Term terms: `commitment`, `id`, `property`, `reference`, `registry`, `store instance`, `seam`, `transition`, `now`, `resolving action`, `well-formedness check`, `duration bounds`, `window bound`, `window reading`, `open`, `lapsed`, `window rejection`, `terminal state`, `terminal instant`, `admitted place hold`, `admitted confirm`, `admitted release`, `admitted expire`, `admitted resolving action`, `releasing action`, `string input`, `blank`, `reclamation lag`, `capacity decision`, `degenerate window`, `late resolution`, `premature expiry`, `re-hold`.
 
-Terms › `cited`: `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: `execution-contract.md` §Logic confinement — the seam and the transition.
 
-Terms › `composing pattern`: [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Actor Identity](./actor-identity.md), [Permissions](./permissions.md), a capacity constraint pattern, a reversal pattern.
+Term composing pattern: [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Actor Identity](./actor-identity.md), [Permissions](./permissions.md), a capacity constraint pattern, a reversal pattern.
 
 #### Place Hold
 

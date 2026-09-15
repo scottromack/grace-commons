@@ -74,17 +74,17 @@ Composes 25: The composition MUST verify an audit record through Audit Trail's v
 Composes 26: The composition MUST NOT call Audit Trail's purge_event.
 ```
 
-Terms › `composition`: this pattern's wiring of party identity(../atoms/party-identity.md), retention window(../atoms/retention-window.md) and the audit trail(./audit-trail.md) substrate — the six actions, the gate, the four indexes and the reconciliation.
+Term composition: this pattern's wiring of party identity(../atoms/party-identity.md), retention window(../atoms/retention-window.md) and the audit trail(./audit-trail.md) substrate — the six actions, the gate, the four indexes and the reconciliation.
 
-Terms › `constituents`: party identity(../atoms/party-identity.md), retention window(../atoms/retention-window.md), audit trail(./audit-trail.md).
+Term constituents: party identity(../atoms/party-identity.md), retention window(../atoms/retention-window.md), audit trail(./audit-trail.md).
 
-Terms › `party retention instance`: the one retention window(../atoms/retention-window.md) instance this composition wires over party records — distinct from the instance audit trail(./audit-trail.md) carries for the substrate's own events.
+Term party retention instance: the one retention window(../atoms/retention-window.md) instance this composition wires over party records — distinct from the instance audit trail(./audit-trail.md) carries for the substrate's own events.
 
-Terms › `service identity`: `application_actor_ref` and `application_credential` — the composition's own registered actor and credential, and the attested emitter of every record the reconciliation writes.
+Term service identity: `application_actor_ref` and `application_credential` — the composition's own registered actor and credential, and the attested emitter of every record the reconciliation writes.
 
-Terms › `direct path`: an [Initiate Onboarding] call carrying no `party_id`, on which the composition enrolls the party.
+Term direct path: an [Initiate Onboarding] call carrying no `party_id`, on which the composition enrolls the party.
 
-Terms › `external path`: an [Initiate Onboarding] call carrying a `party_id` External Onboarding already enrolled.
+Term external path: an [Initiate Onboarding] call carrying a `party_id` External Onboarding already enrolled.
 
 WHY:
 Composes 6 and Composes 7 name the substrate relation. audit trail(./audit-trail.md) is a composition, not an atom, so Event Log, Actor Identity, Tamper Evidence and the audit instance's own Retention Window are reached *through* it and this composition holds no instance of any of them — `execution-contract.md` §Substrate composition invocation is what makes that a declared topology rather than an accident. Composes 8 is where the corpus's *declared multi-instance topology* clause bites twice in one spec: two Retention Window instances exist here, one governing party records and one governing the audit events that record their governance, and much of this composition's evidence story turns on which of the two a sentence means.
@@ -154,39 +154,39 @@ Composition state 49: The composition MUST NOT store an overdue flag.
 Composition state 50: The composition MUST NOT duplicate a constituent's store.
 ```
 
-Terms › `case-to-monitoring index`: `case_to_monitoring` — the composition's index from a `case_id` to the case's `party_id`, `opened_at` and [Next Review Due]; the auditor's first query surface for monitoring continuity.
+Term case-to-monitoring index: `case_to_monitoring` — the composition's index from a `case_id` to the case's `party_id`, `opened_at` and [Next Review Due]; the auditor's first query surface for monitoring continuity.
 
-Terms › `party-to-case index`: `party_to_case` — the composition's index from a `party_id` to the party's `case_id`, `enrollment_path` and `active` flag; the gate's first read and the join an auditor makes from an activity record to an onboarding case.
+Term party-to-case index: `party_to_case` — the composition's index from a `party_id` to the party's `case_id`, `enrollment_path` and `active` flag; the gate's first read and the join an auditor makes from an activity record to an onboarding case.
 
-Terms › `case-to-retentions index`: `case_to_retentions` — the composition's index from a `case_id` to the current placement and the post closure placement.
+Term case-to-retentions index: `case_to_retentions` — the composition's index from a `case_id` to the current placement and the post closure placement.
 
-Terms › `case-to-open-triggers index`: `case_to_open_triggers` — the composition's index from a `case_id` to the open adverse triggers standing against the case, each carrying a `trigger_id`, a `trigger_type`, a `trigger_ref` and a `triggered_at`.
+Term case-to-open-triggers index: `case_to_open_triggers` — the composition's index from a `case_id` to the open adverse triggers standing against the case, each carrying a `trigger_id`, a `trigger_type`, a `trigger_ref` and a `triggered_at`.
 
-Terms › `index`: the case-to-monitoring index, the party-to-case index, the case-to-retentions index, OR the case-to-open-triggers index.
+Term index: the case-to-monitoring index, the party-to-case index, the case-to-retentions index, OR the case-to-open-triggers index.
 
-Terms › `current placement`: the latest active relationship retention the composition placed over a case's party — `active_relationship_retention_id`.
+Term current placement: the latest active relationship retention the composition placed over a case's party — `active_relationship_retention_id`.
 
-Terms › `post closure placement`: the retention [Close Party] places over the party record at the relationship's end — `post_closure_retention_id`.
+Term post closure placement: the retention [Close Party] places over the party record at the relationship's end — `post_closure_retention_id`.
 
-Terms › `audit horizon`: the age past which the audit instance has destroyed an event's payload, set by the instance's `audit_trail_retention_policy`.
+Term audit horizon: the age past which the audit instance has destroyed an event's payload, set by the instance's `audit_trail_retention_policy`.
 
-Terms › `aged-out event`: an event whose age exceeds the audit horizon.
+Term aged-out event: an event whose age exceeds the audit horizon.
 
-Terms › `rebuild`: the composition's named regeneration of an index — select this composition's events over an open-ended sequence range, keep the events the index names by `action_ref`, and take the index's fields from their payloads in Event Log order.
+Term rebuild: the composition's named regeneration of an index — select this composition's events over an open-ended sequence range, keep the events the index names by `action_ref`, and take the index's fields from their payloads in Event Log order.
 
-Terms › `miss`: an index read the composition answers by rebuilding rather than by the stored value.
+Term miss: an index read the composition answers by rebuilding rather than by the stored value.
 
-Terms › `unrebuildable entry`: an index entry every one of whose binding-bearing events stands aged out.
+Term unrebuildable entry: an index entry every one of whose binding-bearing events stands aged out.
 
-Terms › `binding-bearing payload`: an initiated payload OR a retention renewed payload — the two that carry a case's `case_id`, `party_id` and `enrollment_path`.
+Term binding-bearing payload: an initiated payload OR a retention renewed payload — the two that carry a case's `case_id`, `party_id` and `enrollment_path`.
 
-Terms › `schedule-bearing payload`: an initiated payload, a verification recorded payload carrying a next review due, a monitoring triggered payload carrying a next review due, OR a party reinstated payload.
+Term schedule-bearing payload: an initiated payload, a verification recorded payload carrying a next review due, a monitoring triggered payload carrying a next review due, OR a party reinstated payload.
 
-Terms › `placement-bearing payload`: an initiated payload OR a retention renewed payload.
+Term placement-bearing payload: an initiated payload OR a retention renewed payload.
 
-Terms › `landed record`: an audit record the substrate has appended and attested, whatever the substrate then answered.
+Term landed record: an audit record the substrate has appended and attested, whatever the substrate then answered.
 
-Terms › `owed record`: an audit record this composition must write and the substrate has not appended.
+Term owed record: an audit record this composition must write and the substrate has not appended.
 
 WHY:
 **All four indexes are derived, and Composition state 5 is a correction the migration makes rather than a restatement.** The prose flagged the monitoring schedule's `opened_at` and [Next Review Due] as *extraction-pending* against a proposed Review Schedule atom, and in the next breath stated that every schedule-writing action stamps its result into its own audit event and that the current deadline is the latest such payload in Event Log order. Those two sentences cannot both be the classification. `execution-contract.md` §Composition state asks one question — *is every fact in this element fully derivable, at any time, from the constituents' stores through their declared read surfaces?* — and the spec's own rebuild answers yes. So the schedule is a derived index on the Contract's own test, bounded by the horizon exactly as the case binding is, and the same reading settles the open-trigger set: its whole lifecycle — raised, voided, cleared, swept at closure — rides audit events, so it is derived too, and the three-elements-derived / one-element-pending split the page carried was an inconsistency rather than a distinction. A Review Schedule atom may still be worth extracting; that is a concept the corpus may take up, and it is named in Non-goals rather than asserted here as a classification the rebuild contradicts.
@@ -250,36 +250,36 @@ Capability requirement 43: A deployment MUST NOT set the monitoring interval PER
 Capability requirement 44: The deployment MUST own the clock's honesty.
 ```
 
-Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading, one `case_id` and one `trigger_id` here.
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading, one `case_id` and one `trigger_id` here.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `monitoring interval`: `monitoring_interval` — the deployment's declared duration between a party's periodic reviews.
+Term monitoring interval: `monitoring_interval` — the deployment's declared duration between a party's periodic reviews.
 
-Terms › `scheduler tolerance`: `scheduler_tolerance` — the deployment's declared allowance for how late the external scheduler may fire a due review.
+Term scheduler tolerance: `scheduler_tolerance` — the deployment's declared allowance for how late the external scheduler may fire a due review.
 
-Terms › `renewal floor`: `monitoring_interval + scheduler_tolerance` — the interval a placement's duration must outlast for the chain to stay continuous under a late review.
+Term renewal floor: `monitoring_interval + scheduler_tolerance` — the interval a placement's duration must outlast for the chain to stay continuous under a late review.
 
-Terms › `binding floor`: the monitoring interval taken with the scheduler tolerance and the post closure policy's duration — the age a binding-bearing event's payload must survive to.
+Term binding floor: the monitoring interval taken with the scheduler tolerance and the post closure policy's duration — the age a binding-bearing event's payload must survive to.
 
-Terms › `closure floor`: `onboarding_completion_bound + reconciliation_cadence + audit write latency` — the longest interval in which the reconciliation can close an open marker.
+Term closure floor: `onboarding_completion_bound + reconciliation_cadence + audit write latency` — the longest interval in which the reconciliation can close an open marker.
 
-Terms › `onboarding completion bound`: `onboarding_completion_bound` — the deployment's declared maximum duration between an invocation's intent and the invocation's outcome, read against the injected now the intent carries.
+Term onboarding completion bound: `onboarding_completion_bound` — the deployment's declared maximum duration between an invocation's intent and the invocation's outcome, read against the injected now the intent carries.
 
-Terms › `active relationship policy`: `active_relationship_policy_ref` — the deployment's recommended Retention Window policy for a live relationship's party record.
+Term active relationship policy: `active_relationship_policy_ref` — the deployment's recommended Retention Window policy for a live relationship's party record.
 
-Terms › `post closure policy`: `post_closure_retention_policy_ref` — the Retention Window policy [Close Party] applies.
+Term post closure policy: `post_closure_retention_policy_ref` — the Retention Window policy [Close Party] applies.
 
-Terms › `post closure minimum`: the applicable regulatory floor on a closed party's record — five years after the relationship ends under BSA/AML 31 CFR §1020.220.
+Term post closure minimum: the applicable regulatory floor on a closed party's record — five years after the relationship ends under BSA/AML 31 CFR §1020.220.
 
-Terms › `adverse trigger types`: `adverse_trigger_types` — the deployment's set of `trigger_type` values that drive suspension; canonically `sanctions-match` | `pep-status-change` | `adverse-media`.
+Term adverse trigger types: `adverse_trigger_types` — the deployment's set of `trigger_type` values that drive suspension; canonically `sanctions-match` | `pep-status-change` | `adverse-media`.
 
-Terms › `periodic trigger type`: `periodic-review-due` — the one non-adverse `trigger_type`.
+Term periodic trigger type: `periodic-review-due` — the one non-adverse `trigger_type`.
 
-Terms › `trigger set cap`: `trigger_set_cap` — the deployment's declared maximum number of open triggers a payload carries in full.
+Term trigger set cap: `trigger_set_cap` — the deployment's declared maximum number of open triggers a payload carries in full.
 
-Terms › `field cap`: the deployment's declared maximum size of one audit payload field.
+Term field cap: the deployment's declared maximum size of one audit payload field.
 
 WHY:
 Capability requirement 14 is the ordering the whole rebuild story rests on. The party-to-case binding is re-carried by every renewal, so the horizon must outlast one review cadence with the scheduler's lateness allowed for, and — for a closed case — the post-closure floor, because a closed case takes no further reviews and its last binding-bearing event is the closure. All three values are this composition's own configuration, so the comparison is one an auditor makes from the deployment's declared knobs rather than from a vendor's assurance.
@@ -320,21 +320,21 @@ Primitive policy 20: The composition MUST carry an open-trigger set exceeding th
 Primitive policy 21: The boundary predicate MUST refuse a blank retention_policy_ref.
 ```
 
-Terms › `blank`: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
-Terms › `boundary predicate`: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
+Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
 
-Terms › `opaque argument`: `party_id` | `case_id` | `trigger_id` | `trigger_ref` | `actor_ref` | `verifying_actor_ref` | `closing_actor_ref` | `credential` | `retention_policy_ref`.
+Term opaque argument: `party_id` | `case_id` | `trigger_id` | `trigger_ref` | `actor_ref` | `verifying_actor_ref` | `closing_actor_ref` | `credential` | `retention_policy_ref`.
 
-Terms › `actor reference`: `actor_ref` | `verifying_actor_ref` | `closing_actor_ref` | `enrolling_actor_ref`.
+Term actor reference: `actor_ref` | `verifying_actor_ref` | `closing_actor_ref` | `enrolling_actor_ref`.
 
-Terms › `trigger vocabulary`: the periodic trigger type OR a member of the adverse trigger types.
+Term trigger vocabulary: the periodic trigger type OR a member of the adverse trigger types.
 
-Terms › `verification results`: `passed` | `failed`.
+Term verification results: `passed` | `failed`.
 
-Terms › `truncation marker`: the marker a payload field carries when the composition has cut the field to the field's cap.
+Term truncation marker: the marker a payload field carries when the composition has cut the field to the field's cap.
 
-Terms › `set digest`: a content-derived summary of an open-trigger set, standing in the payload where the set itself exceeds the trigger set cap.
+Term set digest: a content-derived summary of an open-trigger set, standing in the payload where the set itself exceeds the trigger set cap.
 
 WHY:
 Primitive policy 1 is the ordering the whole rejection story rests on, and it has an observable consequence the page states rather than leaves to be found: because the boundary predicate and the cheap index reads sit *before* the intent record, `not-known`, `not-active`, `already-onboarded`, `party-not-known`, `party-not-admissible`, `no-open-trigger`, the trigger pre-check's own arms and every shape failure are answered without the credential ever being verified. That is deliberate — it keeps an unknown `case_id` free of any audit event and avoids attributing events to cases that do not exist — and an auditor asking *was every refusal authenticated?* gets *no, by design*.
@@ -367,11 +367,11 @@ Identity 18: A case MUST NOT identify a party.
 Identity 19: A party_id MUST NOT identify a case.
 ```
 
-Terms › `intent`: the `record_action` call naming what an invocation is about to do, written before any committing call — `customer-onboarding.initiation-intended` | `customer-onboarding.verification-intended` | `customer-onboarding.clearance-intended` | `customer-onboarding.closure-intended` | `customer-onboarding.monitoring-triggered` | `customer-onboarding.recovery-intended`.
+Term intent: the `record_action` call naming what an invocation is about to do, written before any committing call — `customer-onboarding.initiation-intended` | `customer-onboarding.verification-intended` | `customer-onboarding.clearance-intended` | `customer-onboarding.closure-intended` | `customer-onboarding.monitoring-triggered` | `customer-onboarding.recovery-intended`.
 
-Terms › `outcome`: the `record_action` call naming what an invocation did — `customer-onboarding.initiated` | `customer-onboarding.verification-recorded` | `customer-onboarding.party-suspended` | `customer-onboarding.trigger-on-suspended-party` | `customer-onboarding.trigger-voided` | `customer-onboarding.retention-renewed` | `customer-onboarding.review-cleared` | `customer-onboarding.party-reinstated` | `customer-onboarding.party-closed`.
+Term outcome: the `record_action` call naming what an invocation did — `customer-onboarding.initiated` | `customer-onboarding.verification-recorded` | `customer-onboarding.party-suspended` | `customer-onboarding.trigger-on-suspended-party` | `customer-onboarding.trigger-voided` | `customer-onboarding.retention-renewed` | `customer-onboarding.review-cleared` | `customer-onboarding.party-reinstated` | `customer-onboarding.party-closed`.
 
-Terms › `committing call`: `PartyIdentity.enroll` | `PartyIdentity.verify` | `PartyIdentity.suspend` | `PartyIdentity.reinstate` | `PartyIdentity.close` | `RetentionWindow.place_under_retention` — a constituent call that writes outside the audit instance.
+Term committing call: `PartyIdentity.enroll` | `PartyIdentity.verify` | `PartyIdentity.suspend` | `PartyIdentity.reinstate` | `PartyIdentity.close` | `RetentionWindow.place_under_retention` — a constituent call that writes outside the audit instance.
 
 WHY:
 Identity 2 and Identity 6 put both of this composition's own ids at the seam, which is what lets an intent name its own case before any constituent id exists. Identity 13 through Identity 16 are the pairing rule, and the distinction they draw was the first thing an earlier acceptance check got wrong: `case_id` is per-case and three of these actions are repeatable against one case, so a `case_id`-plus-actor match is satisfied by a single stale intent standing in front of an unbounded number of later outcomes, and an implementation emitting one intent per case and skipping it thereafter would pass. Matching on the id the intent record itself minted admits no such reading, and it is the frozen rule *Intents pair with outcomes by an invocation identity* applied at this seam.
@@ -406,17 +406,17 @@ Audit arm 22: A recovery outcome MUST carry the recovery marker.
 Audit arm 23: A recovery outcome MUST name the acting human in the outcome's data.
 ```
 
-Terms › `landed intent`: the invocation's intent the substrate has appended and attested and answered.
+Term landed intent: the invocation's intent the substrate has appended and attested and answered.
 
-Terms › `open marker`: an intent carrying no outcome under the intent's own intent_event_id — an invocation that committed nothing, committed and failed to record, or died between the two.
+Term open marker: an intent carrying no outcome under the intent's own intent_event_id — an invocation that committed nothing, committed and failed to record, or died between the two.
 
-Terms › `outcome traversal`: the composition's read of the trail over an open-ended sequence range for an outcome carrying a named intent_event_id, taken before any compensating write.
+Term outcome traversal: the composition's read of the trail over an open-ended sequence range for an outcome carrying a named intent_event_id, taken before any compensating write.
 
-Terms › `yielded invocation`: an invocation whose age exceeds the onboarding completion bound — past which the invocation stops retrying and the owed record is the reconciliation's.
+Term yielded invocation: an invocation whose age exceeds the onboarding completion bound — past which the invocation stops retrying and the owed record is the reconciliation's.
 
-Terms › `recovery marker`: `recovery` — the marker a recovery outcome carries so a reader tells a clean act from a recovered one.
+Term recovery marker: `recovery` — the marker a recovery outcome carries so a reader tells a clean act from a recovered one.
 
-Terms › `recovery outcome`: the outcome the reconciliation emits for a committed act whose own invocation did not record one.
+Term recovery outcome: the outcome the reconciliation emits for a committed act whose own invocation did not record one.
 
 WHY:
 The substrate answers one taxonomy — `invalid-credential`, `invalid-request`, `recording-failure(step)` — and this composition maps it **by the call's position relative to the constituent write**, not uniformly. At an intent nothing has committed, so every arm is a clean pre-state rejection and the caller may retry the whole action. At an outcome a constituent write exists, so no arm can refuse the act, only report it, and a re-run would commit it a second time. Audit arm 11 through Audit arm 13 are that distinction exported: `intent` tells the caller nothing committed, `outcome` tells the caller an act exists and the reconciliation owns the record — the frozen rule *A composition's own rejection arm carries the retry bit*.
@@ -496,9 +496,9 @@ activity_permitted(party_id) →
     )
 ```
 
-Terms › `enrollment failure`: `invalid-request` | `storage-failure` — Party Identity's enroll codes an initiation passes through.
+Term enrollment failure: `invalid-request` | `storage-failure` — Party Identity's enroll codes an initiation passes through.
 
-Terms › `position`: `intent` | `outcome` — the record a write lands: the intent or the outcome.
+Term position: `intent` | `outcome` — the record a write lands: the intent or the outcome.
 
 ```text
 Action wiring 1: [Initiate Onboarding] MUST answer invalid-request for a call carrying a party_id AND enrollment fields.
@@ -650,49 +650,49 @@ Action wiring 144: [Activity Permitted] MUST NOT read a clock.
 Action wiring 145: [Activity Permitted] MUST NOT compare a timestamp.
 ```
 
-Terms › `party state`: party identity(../atoms/party-identity.md)'s declared lifecycle states, cited rather than restated.
+Term party state: party identity(../atoms/party-identity.md)'s declared lifecycle states, cited rather than restated.
 
-Terms › `admissible states`: `unverified` — the one party state an external path initiation admits.
+Term admissible states: `unverified` — the one party state an external path initiation admits.
 
-Terms › `suspendable states`: `verified` | `suspended` — the party states an adverse trigger's suspend may reach.
+Term suspendable states: `verified` | `suspended` — the party states an adverse trigger's suspend may reach.
 
-Terms › `unanswered read`: a constituent read the host's I/O did not complete, which `execution-contract.md` §Step 1 failure names `state-unavailable`.
+Term unanswered read: a constituent read the host's I/O did not complete, which `execution-contract.md` §Step 1 failure names `state-unavailable`.
 
-Terms › `admitted initiation`: an [Initiate Onboarding] call whose boundary predicate passed, whose party stands admissible and whose intent landed.
+Term admitted initiation: an [Initiate Onboarding] call whose boundary predicate passed, whose party stands admissible and whose intent landed.
 
-Terms › `admitted verification`: a [Record Verification] call whose boundary predicate passed, whose case stands active and whose intent landed.
+Term admitted verification: a [Record Verification] call whose boundary predicate passed, whose case stands active and whose intent landed.
 
-Terms › `admitted trigger`: a [Trigger Monitoring Review] call whose boundary predicate passed, whose case stands active and whose pre-check admitted the trigger_type against the party's state.
+Term admitted trigger: a [Trigger Monitoring Review] call whose boundary predicate passed, whose case stands active and whose pre-check admitted the trigger_type against the party's state.
 
-Terms › `admitted clearance`: a [Clear Review] call whose boundary predicate passed, whose case carries an open trigger and whose intent landed.
+Term admitted clearance: a [Clear Review] call whose boundary predicate passed, whose case carries an open trigger and whose intent landed.
 
-Terms › `admitted closure`: a [Close Party] call whose boundary predicate passed, whose case stands active and whose intent landed.
+Term admitted closure: a [Close Party] call whose boundary predicate passed, whose case stands active and whose intent landed.
 
-Terms › `transitioning verification`: an admitted verification Party Identity answered with a state_change_id.
+Term transitioning verification: an admitted verification Party Identity answered with a state_change_id.
 
-Terms › `adverse trigger`: an admitted trigger whose trigger_type belongs to the adverse trigger types.
+Term adverse trigger: an admitted trigger whose trigger_type belongs to the adverse trigger types.
 
-Terms › `periodic trigger`: an admitted trigger whose trigger_type = the periodic trigger type.
+Term periodic trigger: an admitted trigger whose trigger_type = the periodic trigger type.
 
-Terms › `suspending trigger`: an adverse trigger whose suspend Party Identity admitted.
+Term suspending trigger: an adverse trigger whose suspend Party Identity admitted.
 
-Terms › `renewing trigger`: a periodic trigger whose renewal Retention Window admitted.
+Term renewing trigger: a periodic trigger whose renewal Retention Window admitted.
 
-Terms › `completing closure`: a [Close Party] invocation finishing an earlier closure Party Identity committed and no party closed event records.
+Term completing closure: a [Close Party] invocation finishing an earlier closure Party Identity committed and no party closed event records.
 
-Terms › `committing closure`: an admitted closure Party Identity answered with a state_change_id.
+Term committing closure: an admitted closure Party Identity answered with a state_change_id.
 
-Terms › `composed suspend reason`: `"monitoring-trigger:" + trigger_type + ":" + trigger_ref` — the reason an adverse trigger passes to Party Identity's suspend.
+Term composed suspend reason: `"monitoring-trigger:" + trigger_type + ":" + trigger_ref` — the reason an adverse trigger passes to Party Identity's suspend.
 
-Terms › `closed triggers`: the trigger ids a review cleared record names as resolved by the clearance.
+Term closed triggers: the trigger ids a review cleared record names as resolved by the clearance.
 
-Terms › `open triggers at close`: the trigger ids a party closed record names as closed-unresolved at the relationship's end.
+Term open triggers at close: the trigger ids a party closed record names as closed-unresolved at the relationship's end.
 
-Terms › `scoped retry`: the retrying invocation's own continuation of a step whose constituent call refused after a committed sibling call.
+Term scoped retry: the retrying invocation's own continuation of a step whose constituent call refused after a committed sibling call.
 
-Terms › `prior placement`: the current placement a renewal supersedes.
+Term prior placement: the current placement a renewal supersedes.
 
-Terms › `renewed placement`: the placement a renewal makes, which becomes the case's current placement once the renewal's record lands.
+Term renewed placement: the placement a renewal makes, which becomes the case's current placement once the renewal's record lands.
 
 WHY:
 **The rejection order is the action's shape.** Every action reads its index and runs its boundary predicate first, records an intent second, and calls a constituent third. Action wiring 1 through Action wiring 7 are that first band for [Initiate Onboarding], [Already Onboarded] among them, and Action wiring 6 is a repair the prose owed: the external path guarded `Closed` alone, so a `Suspended` admit opened a case with an empty open-trigger set against a suspended party, and a `Verified` admit passed the gate with no verification record of this composition's at all. The admissible state is `unverified` and nothing else, and the one arm names the state it found rather than the three arms a reader would have to enumerate. The `party-closed` arm the prose exported folds into it: one guard, one arm, one meaning.
@@ -743,7 +743,7 @@ Wiring decision 8: The composition MUST drive a verification transition through 
 Wiring decision 9: The composition MUST drive a reinstatement through [Clear Review].
 ```
 
-Terms › `regulated activity`: an account opening, a transaction, a service provisioning, or any other act the deployment's regulator conditions on completed Customer Due Diligence.
+Term regulated activity: an account opening, a transaction, a service provisioning, or any other act the deployment's regulator conditions on completed Customer Due Diligence.
 
 WHY:
 *Principle.* BSA/AML and FATF Recommendations 10–12 require that Customer Due Diligence be completed before a business relationship's regulated activity begins. Structurally that means no account opening, no transaction and no service provisioning proceeds for a party outside a substantiated `Verified` state, and the system proves — from the records alone — both that the party was verified and that no activity preceded the verification.
@@ -792,11 +792,11 @@ Reconciliation 32: The reconciliation MUST answer nothing to a caller.
 Reconciliation 33: A caller MUST NOT invoke the reconciliation.
 ```
 
-Terms › `reconciliation`: the leg `Reconciliation 1` through `Reconciliation 33` state — this composition's own, over its open markers.
+Term reconciliation: the leg `Reconciliation 1` through `Reconciliation 33` state — this composition's own, over its open markers.
 
-Terms › `young marker`: an open marker whose `intended_at` stands within the onboarding completion bound of the injected now.
+Term young marker: an open marker whose `intended_at` stands within the onboarding completion bound of the injected now.
 
-Terms › `elapsed placement`: a placement whose `retention_until` does not exceed the injected now.
+Term elapsed placement: a placement whose `retention_until` does not exceed the injected now.
 
 WHY:
 The reconciliation is a **declared, bounded scan, not an implicit retry**, and both edges are load-bearing. Below the onboarding completion bound it examines nothing, because an intent younger than the bound may belong to an invocation still between its constituent commit and its outcome record, and a re-emission fired at it would land a second outcome — or a second placement — for one act, which no traversal can see because the invocation has not written yet. Above it, the audit horizon: past the horizon an intent's payload is destroyed, and a case whose events aged out is the unrebuildable class Composition state names, never an orphan. That is the frozen rule *A reconciliation is bounded at both ends*.
@@ -849,25 +849,25 @@ Invariant 8.6: A credential validation MUST NOT establish an authorization.
 Invariant 8.7: A credential validation MUST NOT establish the customer's evidence.
 ```
 
-Terms › `quiescent case`: a case carrying no invocation in flight.
+Term quiescent case: a case carrying no invocation in flight.
 
-Terms › `quiescent verified party`: a party standing verified whose case carries no invocation in flight.
+Term quiescent verified party: a party standing verified whose case carries no invocation in flight.
 
-Terms › `quiescent suspended party`: a party standing suspended whose case carries no invocation in flight.
+Term quiescent suspended party: a party standing suspended whose case carries no invocation in flight.
 
-Terms › `quiescent closed case`: a closed case carrying no invocation in flight.
+Term quiescent closed case: a closed case carrying no invocation in flight.
 
-Terms › `continuous chain`: a sequence of placements over one party in which each link's `retained_at` does not exceed the predecessor's `retention_until`.
+Term continuous chain: a sequence of placements over one party in which each link's `retained_at` does not exceed the predecessor's `retention_until`.
 
-Terms › `post closure floor`: the instant a closed case's post closure placement reaches the placement's `retention_until` — the earliest lawful destruction of the party record on the post-closure side.
+Term post closure floor: the instant a closed case's post closure placement reaches the placement's `retention_until` — the earliest lawful destruction of the party record on the post-closure side.
 
-Terms › `unelapsed placement`: a placement whose `retention_until` exceeds the injected now.
+Term unelapsed placement: a placement whose `retention_until` exceeds the injected now.
 
-Terms › `clearance window`: the interval between a clearance's reinstate committing and the clearance's party reinstated record landing.
+Term clearance window: the interval between a clearance's reinstate committing and the clearance's party reinstated record landing.
 
-Terms › `surfaced orphan`: a state the composition has alerted on and the reconciliation owes a close.
+Term surfaced orphan: a state the composition has alerted on and the reconciliation owes a close.
 
-Terms › `clearing actor`: the `actor_ref` a [Clear Review] call carries — the one actor whose credential the composition validates on that call.
+Term clearing actor: the `actor_ref` a [Clear Review] call carries — the one actor whose credential the composition validates on that call.
 
 WHY:
 **Invariant 1 is two claims and the split is load-bearing.** Invariant 1.1 and Invariant 1.2 together are the biconditional, and the composition enforces both halves at the gate: step one refuses a party with no case, step three answers `permitted` only on `verified`, and every other state answers the parameterized refusal. Invariant 1.3 is the gating property, and it is the one structural obligation pushed to deployment — it holds exactly when activity systems consume [Activity Permitted] rather than reading Party Identity directly (Capability requirement 39). The *iff* is a property of the query's answer; the gate guarantee additionally requires the single-surface obligation to be honored, and a system that bypasses the gate is a composition-bypass finding rather than a valid path.
@@ -1112,11 +1112,11 @@ Atomic writes 11: The composition MUST surface an orphan.
 Atomic writes 12: A deployment MUST treat an orphan as an alerting condition.
 ```
 
-Terms › `trigger outcome`: a party suspended record, a trigger on suspended party record, OR a trigger voided record — the three an adverse trigger's own record may be followed by.
+Term trigger outcome: a party suspended record, a trigger on suspended party record, OR a trigger voided record — the three an adverse trigger's own record may be followed by.
 
-Terms › `orphan`: a committed constituent write carrying an owed record, or a committed act carrying an index the composition has not populated.
+Term orphan: a committed constituent write carrying an owed record, or a committed act carrying an index the composition has not populated.
 
-Terms › `indeterminate committing call`: a committing call whose answer the invocation did not receive.
+Term indeterminate committing call: a committing call whose answer the invocation did not receive.
 
 WHY:
 Several actions write to two or three stores in sequence, and a failure between writes leaves partial state whose consequence differs by action. The sharpest is [Record Verification]'s: the constituent write commits and the outcome record fails, leaving a `Verified` party whose verification is unattested. Party Identity's verification events are immutable once committed, so synchronous reversal is unavailable (Atomic writes 10) and the repair is compensation rather than reversal: retry the record, surface the orphan, mark the compensating record as a recovery.
@@ -1141,7 +1141,7 @@ NOTE: Clock semantics 10 deleted — Capability requirement 1 and Capability req
 NOTE: Clock semantics 11 deleted — Non-goal 21 owns it.
 ```
 
-Terms › `placement's cover`: `the current placement's retention_until − scheduler_tolerance` — the instant past which a review would fire too late to renew the placement before the placement lapses.
+Term placement's cover: `the current placement's retention_until − scheduler_tolerance` — the instant past which a review would fire too late to renew the placement before the placement lapses.
 
 WHY:
 Action wiring 146 through Action wiring 153 stamp from the one reading an invocation shares (`execution-contract.md` §Logic confinement), and the sharing is what several claims rest on. At [Initiate Onboarding] the opening instant and the first deadline derive from one reading, so the interval between them is exactly the monitoring interval rather than the interval plus an inter-read drift. At [Trigger Monitoring Review] the trigger's instant and the adverse path's suspension instant are the same value, which is why Clock semantics 9 reads a *divergence* between them as a conformance failure — an implementation that read a clock twice — rather than as clock granularity, and why Invariant 3 reads ordering from the log instead.
@@ -1188,25 +1188,25 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 ### Vocabulary
 
-Terms › `actors`: the composition; a deployment; the host; the seam; the transition; the reconciliation; a caller; an auditor; an activity system; an implementation; a reader; a writer; an invocation; a yielded invocation; an action; an intent; an outcome; an open marker; a young marker; a recovery intent; a recovery outcome; the gate; a rebuild; an index; the case-to-monitoring index; the party-to-case index; the case-to-retentions index; the case-to-open-triggers index; an index entry; an unrebuildable entry; a case; a quiescent case; a quiescent closed case; an active case; a closed case; a party; a quiescent verified party; a quiescent suspended party; a reinstated party; a verified party; a suspended party; a case's party; a party state; an admissible state; a suspendable state; a trigger; an adverse trigger; a periodic trigger; a suspending trigger; a renewing trigger; an open trigger; a closed trigger; a trigger set; a verification; a transitioning verification; a clearance; an admitted initiation; an admitted verification; an admitted trigger; an admitted clearance; an admitted closure; a completing closure; a direct path initiation; an external path call; a placement; a current placement; a prior placement; a renewed placement; a post closure placement; an elapsed placement; an unelapsed placement; a continuous chain; a renewal; a purging layer; a scoped retry; a committing call; an indeterminate committing call; a landed record; a landed intent; an owed record; an aged-out event; an audit event; an orphan; a surfaced orphan; a boundary predicate; an opaque argument; an actor reference; the clearing actor; a credential; a credential validation; a field cap; the trigger set cap; the binding floor; the closure floor; the renewal floor; the audit horizon; the monitoring interval; the scheduler tolerance; a policy; the active relationship policy; the post closure policy; the post closure minimum; the adverse trigger types; the periodic trigger type; a regulated activity; a review scheduler; Party Identity; Retention Window; Audit Trail; Event Log; the party retention instance; the audit instance; the service identity; a truncation marker; a set digest; a payload field; a timestamp; insertion order; a clock reading; a skewed gate read; a losing transition; a state rejection; a divergence; two reconciliations; two invocations.
+Term actors: the composition; a deployment; the host; the seam; the transition; the reconciliation; a caller; an auditor; an activity system; an implementation; a reader; a writer; an invocation; a yielded invocation; an action; an intent; an outcome; an open marker; a young marker; a recovery intent; a recovery outcome; the gate; a rebuild; an index; the case-to-monitoring index; the party-to-case index; the case-to-retentions index; the case-to-open-triggers index; an index entry; an unrebuildable entry; a case; a quiescent case; a quiescent closed case; an active case; a closed case; a party; a quiescent verified party; a quiescent suspended party; a reinstated party; a verified party; a suspended party; a case's party; a party state; an admissible state; a suspendable state; a trigger; an adverse trigger; a periodic trigger; a suspending trigger; a renewing trigger; an open trigger; a closed trigger; a trigger set; a verification; a transitioning verification; a clearance; an admitted initiation; an admitted verification; an admitted trigger; an admitted clearance; an admitted closure; a completing closure; a direct path initiation; an external path call; a placement; a current placement; a prior placement; a renewed placement; a post closure placement; an elapsed placement; an unelapsed placement; a continuous chain; a renewal; a purging layer; a scoped retry; a committing call; an indeterminate committing call; a landed record; a landed intent; an owed record; an aged-out event; an audit event; an orphan; a surfaced orphan; a boundary predicate; an opaque argument; an actor reference; the clearing actor; a credential; a credential validation; a field cap; the trigger set cap; the binding floor; the closure floor; the renewal floor; the audit horizon; the monitoring interval; the scheduler tolerance; a policy; the active relationship policy; the post closure policy; the post closure minimum; the adverse trigger types; the periodic trigger type; a regulated activity; a review scheduler; Party Identity; Retention Window; Audit Trail; Event Log; the party retention instance; the audit instance; the service identity; a truncation marker; a set digest; a payload field; a timestamp; insertion order; a clock reading; a skewed gate read; a losing transition; a state rejection; a divergence; two reconciliations; two invocations.
 
-Terms › `record verbs`: serve, change, inherit, read, hold, reach, call, select, query, attest, own, place, admit, drive, know, push, store, classify, carry, stand, claim, populate, name, alert, drop, take, rebuild, recognize, supply, mint, generate, accept, configure, set, provision, rotate, disclose, start, run, fire, serialize, resolve, reconcile, refuse, normalize, fold, trim, compare, judge, propagate, cap, truncate, allocate, reuse, pair, make, retry, leave, record, answer, substitute, add, complete, clear, empty, write, advance, repoint, renew, cross, find, confirm, reproduce, establish, match, escalate, close, emit, examine, expose, validate, commit, detect, inject, stamp, derive, deduplicate, model, schedule, adjudicate, purge, unwind, gate, index, anchor, surface, treat, sweep, spend, enroll, verify, suspend, reinstate, belong, elapse, substantiate, invoke, duplicate, block, govern, identify, decide, reverse, destroy.
+Term record verbs: serve, change, inherit, read, hold, reach, call, select, query, attest, own, place, admit, drive, know, push, store, classify, carry, stand, claim, populate, name, alert, drop, take, rebuild, recognize, supply, mint, generate, accept, configure, set, provision, rotate, disclose, start, run, fire, serialize, resolve, reconcile, refuse, normalize, fold, trim, compare, judge, propagate, cap, truncate, allocate, reuse, pair, make, retry, leave, record, answer, substitute, add, complete, clear, empty, write, advance, repoint, renew, cross, find, confirm, reproduce, establish, match, escalate, close, emit, examine, expose, validate, commit, detect, inject, stamp, derive, deduplicate, model, schedule, adjudicate, purge, unwind, gate, index, anchor, surface, treat, sweep, spend, enroll, verify, suspend, reinstate, belong, elapse, substantiate, invoke, duplicate, block, govern, identify, decide, reverse, destroy.
 
-Terms › `records`: empty.
+Term records: empty.
 
-Terms › `bounds`: `onboarding completion bound` (`onboarding_completion_bound`), `compensation window` (`compensation_window`), `audit horizon` (`audit_trail_retention_policy`), `monitoring interval` (`monitoring_interval`), `scheduler tolerance` (`scheduler_tolerance`), `renewal floor`, `binding floor`, `closure floor`, `field cap`, `trigger set cap` (`trigger_set_cap`), `placement's cover`, `post closure minimum`, `audit write latency`.
+Term bounds: `onboarding completion bound` (`onboarding_completion_bound`), `compensation window` (`compensation_window`), `audit horizon` (`audit_trail_retention_policy`), `monitoring interval` (`monitoring_interval`), `scheduler tolerance` (`scheduler_tolerance`), `renewal floor`, `binding floor`, `closure floor`, `field cap`, `trigger set cap` (`trigger_set_cap`), `placement's cover`, `post closure minimum`, `audit write latency`.
 
-Terms › `cadences`: `reconciliation cadence` (`reconciliation_cadence`), `seal cadence`.
+Term cadences: `reconciliation cadence` (`reconciliation_cadence`), `seal cadence`.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.41 (2026-09-14).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.41 (2026-09-14).
 
-Terms › `value sets`: initiate_onboarding answers = case_id | rejected(invalid-request | invalid-credential | party-not-known | party-not-admissible(state) | already-onboarded | enrollment-failed(enrollment failure) | recording-failure(position)). record_verification answers = recorded | rejected(invalid-request | invalid-credential | not-known | not-active | already-closed | recording-failure(position)). trigger_monitoring_review answers = recorded | rejected(invalid-request | invalid-credential | not-known | not-active | not-verified(state) | state-unavailable | recording-failure(position)). clear_review answers = cleared | rejected(invalid-request | invalid-credential | not-known | no-open-trigger | verification-failed | already-closed | recording-failure(position)). close_party answers = closed | rejected(invalid-request | invalid-credential | not-known | not-active | recording-failure(position)). activity_permitted answers = permitted | rejected(not-known | not-verified(state) | state-unavailable). `admissible states` = unverified. `suspendable states` = verified | suspended. `verification results` = passed | failed. `trigger vocabulary` = periodic-review-due | a member of the adverse trigger types. `adverse trigger types` = sanctions-match | pep-status-change | adverse-media, extended by the deployment. `intent` = customer-onboarding.initiation-intended | customer-onboarding.verification-intended | customer-onboarding.clearance-intended | customer-onboarding.closure-intended | customer-onboarding.monitoring-triggered | customer-onboarding.recovery-intended. `outcome` = customer-onboarding.initiated | customer-onboarding.verification-recorded | customer-onboarding.party-suspended | customer-onboarding.trigger-on-suspended-party | customer-onboarding.trigger-voided | customer-onboarding.retention-renewed | customer-onboarding.review-cleared | customer-onboarding.party-reinstated | customer-onboarding.party-closed. `enrollment_path` = direct | external-onboarding.
+Term value sets: initiate_onboarding answers = case_id | rejected(invalid-request | invalid-credential | party-not-known | party-not-admissible(state) | already-onboarded | enrollment-failed(enrollment failure) | recording-failure(position)). record_verification answers = recorded | rejected(invalid-request | invalid-credential | not-known | not-active | already-closed | recording-failure(position)). trigger_monitoring_review answers = recorded | rejected(invalid-request | invalid-credential | not-known | not-active | not-verified(state) | state-unavailable | recording-failure(position)). clear_review answers = cleared | rejected(invalid-request | invalid-credential | not-known | no-open-trigger | verification-failed | already-closed | recording-failure(position)). close_party answers = closed | rejected(invalid-request | invalid-credential | not-known | not-active | recording-failure(position)). activity_permitted answers = permitted | rejected(not-known | not-verified(state) | state-unavailable). `admissible states` = unverified. `suspendable states` = verified | suspended. `verification results` = passed | failed. `trigger vocabulary` = periodic-review-due | a member of the adverse trigger types. `adverse trigger types` = sanctions-match | pep-status-change | adverse-media, extended by the deployment. `intent` = customer-onboarding.initiation-intended | customer-onboarding.verification-intended | customer-onboarding.clearance-intended | customer-onboarding.closure-intended | customer-onboarding.monitoring-triggered | customer-onboarding.recovery-intended. `outcome` = customer-onboarding.initiated | customer-onboarding.verification-recorded | customer-onboarding.party-suspended | customer-onboarding.trigger-on-suspended-party | customer-onboarding.trigger-voided | customer-onboarding.retention-renewed | customer-onboarding.review-cleared | customer-onboarding.party-reinstated | customer-onboarding.party-closed. `enrollment_path` = direct | external-onboarding.
 
-Terms › `terms`: `composition`, `constituents`, `party retention instance`, `service identity`, `direct path`, `external path`, `case-to-monitoring index`, `party-to-case index`, `case-to-retentions index`, `case-to-open-triggers index`, `index`, `current placement`, `post closure placement`, `audit horizon`, `aged-out event`, `rebuild`, `miss`, `unrebuildable entry`, `binding-bearing payload`, `schedule-bearing payload`, `placement-bearing payload`, `landed record`, `owed record`, `seam`, `transition`, `monitoring interval`, `scheduler tolerance`, `renewal floor`, `binding floor`, `closure floor`, `onboarding completion bound`, `active relationship policy`, `post closure policy`, `post closure minimum`, `adverse trigger types`, `periodic trigger type`, `trigger set cap`, `field cap`, `blank`, `boundary predicate`, `opaque argument`, `actor reference`, `trigger vocabulary`, `verification results`, `truncation marker`, `set digest`, `intent`, `outcome`, `committing call`, `landed intent`, `open marker`, `outcome traversal`, `yielded invocation`, `recovery marker`, `recovery outcome`, `party state`, `admissible states`, `suspendable states`, `unanswered read`, `admitted initiation`, `admitted verification`, `admitted trigger`, `admitted clearance`, `admitted closure`, `transitioning verification`, `adverse trigger`, `periodic trigger`, `suspending trigger`, `renewing trigger`, `completing closure`, `committing closure`, `composed suspend reason`, `closed triggers`, `open triggers at close`, `scoped retry`, `prior placement`, `renewed placement`, `regulated activity`, `reconciliation`, `young marker`, `elapsed placement`, `quiescent case`, `quiescent verified party`, `quiescent suspended party`, `quiescent closed case`, `continuous chain`, `unelapsed placement`, `post closure floor`, `clearance window`, `surfaced orphan`, `clearing actor`, `placement's cover`, `trigger outcome`, `orphan`, `indeterminate committing call`, `enrollment failure`, `position`.
+Term terms: `composition`, `constituents`, `party retention instance`, `service identity`, `direct path`, `external path`, `case-to-monitoring index`, `party-to-case index`, `case-to-retentions index`, `case-to-open-triggers index`, `index`, `current placement`, `post closure placement`, `audit horizon`, `aged-out event`, `rebuild`, `miss`, `unrebuildable entry`, `binding-bearing payload`, `schedule-bearing payload`, `placement-bearing payload`, `landed record`, `owed record`, `seam`, `transition`, `monitoring interval`, `scheduler tolerance`, `renewal floor`, `binding floor`, `closure floor`, `onboarding completion bound`, `active relationship policy`, `post closure policy`, `post closure minimum`, `adverse trigger types`, `periodic trigger type`, `trigger set cap`, `field cap`, `blank`, `boundary predicate`, `opaque argument`, `actor reference`, `trigger vocabulary`, `verification results`, `truncation marker`, `set digest`, `intent`, `outcome`, `committing call`, `landed intent`, `open marker`, `outcome traversal`, `yielded invocation`, `recovery marker`, `recovery outcome`, `party state`, `admissible states`, `suspendable states`, `unanswered read`, `admitted initiation`, `admitted verification`, `admitted trigger`, `admitted clearance`, `admitted closure`, `transitioning verification`, `adverse trigger`, `periodic trigger`, `suspending trigger`, `renewing trigger`, `completing closure`, `committing closure`, `composed suspend reason`, `closed triggers`, `open triggers at close`, `scoped retry`, `prior placement`, `renewed placement`, `regulated activity`, `reconciliation`, `young marker`, `elapsed placement`, `quiescent case`, `quiescent verified party`, `quiescent suspended party`, `quiescent closed case`, `continuous chain`, `unelapsed placement`, `post closure floor`, `clearance window`, `surfaced orphan`, `clearing actor`, `placement's cover`, `trigger outcome`, `orphan`, `indeterminate committing call`, `enrollment failure`, `position`.
 
-Terms › `cited`: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. `execution-contract.md` §Step 1 failure — the name an unanswered constituent read takes. `spec-format.md` §Structural-relation invariant templates — referential integrity.
+Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. `execution-contract.md` §Step 1 failure — the name an unanswered constituent read takes. `spec-format.md` §Structural-relation invariant templates — referential integrity.
 
-Terms › `composing patterns`: Risk Tiering / EDD *(forthcoming)*; Ownership Structure / Beneficial Owner *(forthcoming)*; Review Schedule *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Policy Reconciliation *(forthcoming)*; resolve a person's data rights(./resolve-a-persons-data-rights.md); external onboarding(./external-onboarding.md); propagate consent revocation downstream(./propagate-consent-revocation-downstream.md); defensible retention(./defensible-retention.md); duplicate prevention(../atoms/duplicate-prevention.md); permissions(../atoms/permissions.md).
+Term composing patterns: Risk Tiering / EDD *(forthcoming)*; Ownership Structure / Beneficial Owner *(forthcoming)*; Review Schedule *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Policy Reconciliation *(forthcoming)*; resolve a person's data rights(./resolve-a-persons-data-rights.md); external onboarding(./external-onboarding.md); propagate consent revocation downstream(./propagate-consent-revocation-downstream.md); defensible retention(./defensible-retention.md); duplicate prevention(../atoms/duplicate-prevention.md); permissions(../atoms/permissions.md).
 
 #### Initiate Onboarding
 

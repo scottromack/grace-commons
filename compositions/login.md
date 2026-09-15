@@ -59,11 +59,11 @@ Composes 16: The composition MUST select an event in the composition's own code.
 Composes 17: The composition MUST NOT query the substrate by a payload predicate.
 ```
 
-Terms › `composition`: this pattern's wiring of credential(../atoms/credential.md), session(../atoms/session.md) and the audit trail(./audit-trail.md) substrate — the issuance gate, the revocation cascade, the two maps and the sweep.
+Term composition: this pattern's wiring of credential(../atoms/credential.md), session(../atoms/session.md) and the audit trail(./audit-trail.md) substrate — the issuance gate, the revocation cascade, the two maps and the sweep.
 
-Terms › `constituents`: credential(../atoms/credential.md), session(../atoms/session.md), audit trail(./audit-trail.md).
+Term constituents: credential(../atoms/credential.md), session(../atoms/session.md), audit trail(./audit-trail.md).
 
-Terms › `service identity`: the composition's own registered actor and credential — a service identity; the attested emitter of every audit event this composition writes.
+Term service identity: the composition's own registered actor and credential — a service identity; the attested emitter of every audit event this composition writes.
 
 WHY:
 Composes 6 and Composes 7 are the corpus's first migrated use of a **composition as a constituent**. audit trail(./audit-trail.md) is a substrate, not an atom, so Event Log, Actor Identity, Retention Window and Tamper Evidence are reached *through* it and this composition holds no instance of any of them — which `execution-contract.md` §Substrate composition invocation is what makes legitimate rather than a topology accident.
@@ -93,11 +93,11 @@ Composition state 11: The composition MUST hold the login event log durable acro
 Composition state 12: The composition MUST NOT rebuild the login event log at a restart.
 ```
 
-Terms › `credential-to-sessions map`: the composition's own map from a `credential_id` to the session tokens issued under it — a credential to sessions map; the cascade's root index.
+Term credential-to-sessions map: the composition's own map from a `credential_id` to the session tokens issued under it — a credential to sessions map; the cascade's root index.
 
-Terms › `login event log`: the composition's own append-only record of every login call, successful or refused — a login event log.
+Term login event log: the composition's own append-only record of every login call, successful or refused — a login event log.
 
-Terms › `login-family events`: the substrate's `login_succeeded`, `login_map_write_failure` and `login_failed` events.
+Term login-family events: the substrate's `login_succeeded`, `login_map_write_failure` and `login_failed` events.
 
 **Contract classification: two derived indexes and one extraction-pending element** ([`execution-contract.md`](../execution-contract.md) §Composition state).
 
@@ -133,14 +133,14 @@ Capability requirement 14: A deployment MUST set the login completion bound.
 Capability requirement 15: A deployment MUST set whether a failed login reaches the substrate.
 ```
 
-Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading here.
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading here.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `issuer refs`: the `issued_by_ref` values the deployment's calling layers pass into login — the scope of every sweep comparison against the session store.
+Term issuer refs: the `issued_by_ref` values the deployment's calling layers pass into login — the scope of every sweep comparison against the session store.
 
-Terms › `login completion bound`: the deployment's declared maximum duration between a session issuing and the login event log entry landing — also the bound between a cascade's initiation and its completion.
+Term login completion bound: the deployment's declared maximum duration between a session issuing and the login event log entry landing — also the bound between a cascade's initiation and its completion.
 
 WHY:
 The clock reading serves exactly one purpose at this layer: stamping the login event log entry, one reading per invocation whichever arm writes it. **No guard here is time-gated.** Input validation, the verify gate and the cascade's active check are state- and outcome-valued; session expiry is session(../atoms/session.md)'s own temporal rule evaluated against the reading injected at *that* constituent's seam. Two seams, two readings, never claimed equal.
@@ -163,9 +163,9 @@ Primitive policy 8: The composition MUST NOT persist a presented_material.
 Primitive policy 9: The composition MUST NOT answer a presented_material.
 ```
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
-Terms › `opaque argument`: `principal_ref` | `credential_type` | `session_token` | `credential_id`.
+Term opaque argument: `principal_ref` | `credential_type` | `session_token` | `credential_id`.
 
 WHY:
 Primitive policy 8 and Primitive policy 9 inherit credential(../atoms/credential.md)'s consumed-never-stored discipline and restate it here only because this composition **holds** the material briefly on its way to `verify`. The constituent's guarantee is about the constituent's store; this rule is about the composition's own hands.
@@ -235,13 +235,13 @@ Action wiring 25: An admitted cascade MUST record a cascade completion event nam
 Action wiring 26: An admitted cascade MUST answer the revoked count, the skipped count AND the failed count.
 ```
 
-Terms › `admitted login`: a login call whose arguments cleared the boundary predicate.
+Term admitted login: a login call whose arguments cleared the boundary predicate.
 
-Terms › `admitted logout`: a logout call whose arguments cleared the boundary predicate.
+Term admitted logout: a logout call whose arguments cleared the boundary predicate.
 
-Terms › `admitted cascade`: a [Revoke Sessions For Credential] call whose arguments cleared the boundary predicate.
+Term admitted cascade: a [Revoke Sessions For Credential] call whose arguments cleared the boundary predicate.
 
-Terms › `cascade set`: the union of the credential-to-sessions map's entry for a credential_id and the event-derived set the substrate's login-family events carry for it.
+Term cascade set: the union of the credential-to-sessions map's entry for a credential_id and the event-derived set the substrate's login-family events carry for it.
 
 WHY:
 Action wiring 5 through Action wiring 7 are the sandwich, and it exists because two reads of one credential store can straddle a rotation. The first read names the credential the verify gated on; the second confirms it is still the effective-active one after the session committed. A disagreement means the credential rotated mid-login, and the honest answer is a storage failure at the named stage rather than a session pinned to a credential that no longer gates it.
@@ -285,7 +285,7 @@ Reconciliation 13: The sweep MUST escalate a discrepancy the reconciliation wind
 Reconciliation 14: The sweep MUST NOT examine an event the substrate's horizon EXCEEDS.
 ```
 
-Terms › `revocation-family event`: `logout_succeeded` | `session_revoked_by_cascade` | `orphan_session_revoked` — the exact family a revoked session's record must belong to.
+Term revocation-family event: `logout_succeeded` | `session_revoked_by_cascade` | `orphan_session_revoked` — the exact family a revoked session's record must belong to.
 
 WHY:
 The sweep is four comparisons and each closes a different partial. **Entry versus events** re-emits a record the log holds and the trail lacks — which is why the log's durability is a Composition state rule and not an implementation note, since the entry *is* the intent the re-emission is built from. **Sessions versus records** finds a session the constituent holds and neither the trail nor the log names: a login that died between issuing and recording, which is the one comparison that *revokes* rather than records, because a session nobody can attribute is a session nobody can audit. **Revocations versus events** finds the mirror case, a revoked session with no revocation-family event. **Initiations versus completions** finds a cascade that died mid-flight and abandons it explicitly rather than leaving an initiation open forever.
@@ -470,15 +470,15 @@ The canonical concepts this spec refers to. Each `term` marker in the prose abov
 
 ### Vocabulary
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `terms`: `composition`, `constituents`, `service identity`, `credential-to-sessions map`, `login event log`, `login-family events`, `seam`, `transition`, `issuer refs`, `login completion bound`, `blank`, `opaque argument`, `admitted login`, `admitted logout`, `admitted cascade`, `cascade set`, `revocation-family event`.
+Term terms: `composition`, `constituents`, `service identity`, `credential-to-sessions map`, `login event log`, `login-family events`, `seam`, `transition`, `issuer refs`, `login completion bound`, `blank`, `opaque argument`, `admitted login`, `admitted logout`, `admitted cascade`, `cascade set`, `revocation-family event`.
 
-Terms › `record verbs`: call, answer, read, write, append, store, key, hold, remove, change, rest, rebuild, record, retry, re-emit, close, escalate, examine, revoke, issue, gate, cascade, verify, attest, carry, select, query, offer, serve, compose, inherit, declare, set, configure, provision, rotate, own, act, adopt, bound, renew, bind, authorize, register, count, stand, follow, name, equal, agree, match, find, persist, generate, mint, normalize, compare, skip, union, supply, take, alert, run, limit, derive, shrink.
+Term record verbs: call, answer, read, write, append, store, key, hold, remove, change, rest, rebuild, record, retry, re-emit, close, escalate, examine, revoke, issue, gate, cascade, verify, attest, carry, select, query, offer, serve, compose, inherit, declare, set, configure, provision, rotate, own, act, adopt, bound, renew, bind, authorize, register, count, stand, follow, name, equal, agree, match, find, persist, generate, mint, normalize, compare, skip, union, supply, take, alert, run, limit, derive, shrink.
 
-Terms › `actors`: the composition; the constituents; the substrate; the host; the transition; a deployment; an auditor; a caller; a principal; the sweep; a session; a credential; an event.
+Term actors: the composition; the constituents; the substrate; the host; the transition; a deployment; an auditor; a caller; a principal; the sweep; a session; a credential; an event.
 
-Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the derived-index and extraction-pending classifications. `execution-contract.md` §Substrate composition invocation — what naming a composition as a constituent means at runtime. `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the derived-index and extraction-pending classifications. `execution-contract.md` §Substrate composition invocation — what naming a composition as a constituent means at runtime. `execution-contract.md` §Logic confinement — the seam and the transition.
 
 #### Revoke Sessions For Credential
 

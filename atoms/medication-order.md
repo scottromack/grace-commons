@@ -59,25 +59,25 @@ Identity 14: The deployment MUST route EVERY call to one store instance.
 Identity 15: The atom MUST NOT resolve an order_id across two store instances.
 ```
 
-Terms › `order`: the record this atom holds — one prescription's whole life, from placement to its end.
+Term order: the record this atom holds — one prescription's whole life, from placement to its end.
 
-Terms › `order_id`: the opaque value naming one order — an [Order Id]; assigned from the id material the seam supplies, unique within one store instance.
+Term order_id: the opaque value naming one order — an [Order Id]; assigned from the id material the seam supplies, unique within one store instance.
 
-Terms › `store instance`: one named order store a call is routed to, named by a `store_name`; `order_id` uniqueness ranges over one instance, and a `patient_ref` may appear in several.
+Term store instance: one named order store a call is routed to, named by a `store_name`; `order_id` uniqueness ranges over one instance, and a `patient_ref` may appear in several.
 
-Terms › `core field`: `patient_ref` | `prescriber_ref` | `medication_ref` | `dose` | `dose_unit` | `route` | `frequency` | `duration` | `clinical_evidence_ref` | `ordered_at` — what an order carries from placement and never changes.
+Term core field: `patient_ref` | `prescriber_ref` | `medication_ref` | `dose` | `dose_unit` | `route` | `frequency` | `duration` | `clinical_evidence_ref` | `ordered_at` — what an order carries from placement and never changes.
 
-Terms › `dosing parameter`: `dose` | `dose_unit` | `route` | `frequency` | `duration` — the core fields an amendment may correct on a successor.
+Term dosing parameter: `dose` | `dose_unit` | `route` | `frequency` | `duration` — the core fields an amendment may correct on a successor.
 
-Terms › `attribution reference`: `prescriber_ref`, `amended_by`, `verifier_ref`, `held_by`, `reinstated_by`, `dispenser_ref`, `administerer_ref`, `completed_by`, `cancelled_by` OR `discontinued_by` — the reference each action records for who acted.
+Term attribution reference: `prescriber_ref`, `amended_by`, `verifier_ref`, `held_by`, `reinstated_by`, `dispenser_ref`, `administerer_ref`, `completed_by`, `cancelled_by` OR `discontinued_by` — the reference each action records for who acted.
 
-Terms › `reference`: `order_id`, `patient_ref`, `medication_ref`, `clinical_evidence_ref`, an attribution reference, `predecessor_id` OR `successor_id` — every opaque reference this atom records.
+Term reference: `order_id`, `patient_ref`, `medication_ref`, `clinical_evidence_ref`, an attribution reference, `predecessor_id` OR `successor_id` — every opaque reference this atom records.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` Logic confinement declares it; the host injects the clock reading, the id material and the clock_offset_allowance here.
+Term seam: the atom's I/O boundary as `execution-contract.md` Logic confinement declares it; the host injects the clock reading, the id material and the clock_offset_allowance here.
 
-Terms › `transition`: the atom's evaluation of one call against the order store, as `execution-contract.md` Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the order store, as `execution-contract.md` Logic confinement declares it.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 11 and Identity 13 are the atom's sharpest refusal, and the one a clinical reader expects to find broken. This spec never reads what a `medication_ref` *means* — not its schedule, not its interactions, not its formulary status — which is why it can be one atom rather than a pharmacopoeia. What it guarantees is that the reference recorded at placement is the reference on every record downstream, and Invariant 2.1 makes changing it structurally impossible rather than merely refused: [Amend] does not take a `medication_ref` at all.
@@ -251,61 +251,61 @@ NOTE: Operation 78 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 79 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `order action`: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by `order_id`, including a refused one.
+Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by `order_id`, including a refused one.
 
-Terms › `state-changing action`: an order action that would change the order's state — every order action.
+Term state-changing action: an order action that would change the order's state — every order action.
 
-Terms › `held-refusing action`: an order action beside [Reinstate] — every action an on-hold order refuses.
+Term held-refusing action: an order action beside [Reinstate] — every action an on-hold order refuses.
 
-Terms › `state`: `ordered` | `verified` | `amended` | `on-hold` | `dispensed` | `administered` | `completed` | `cancelled` | `discontinued`.
+Term state: `ordered` | `verified` | `amended` | `on-hold` | `dispensed` | `administered` | `completed` | `cancelled` | `discontinued`.
 
-Terms › `terminal state`: `completed` | `cancelled` | `discontinued`.
+Term terminal state: `completed` | `cancelled` | `discontinued`.
 
-Terms › `inactive state`: `amended` | `completed` | `cancelled` | `discontinued` — every state that admits no further transition.
+Term inactive state: `amended` | `completed` | `cancelled` | `discontinued` — every state that admits no further transition.
 
-Terms › `pre-dispensing state`: `ordered` | `verified`.
+Term pre-dispensing state: `ordered` | `verified`.
 
-Terms › `post-dispensing state`: `dispensed` | `administered`.
+Term post-dispensing state: `dispensed` | `administered`.
 
-Terms › `actionable state`: a pre-dispensing state OR a post-dispensing state — every state a hold may suspend.
+Term actionable state: a pre-dispensing state OR a post-dispensing state — every state a hold may suspend.
 
-Terms › `inactive state's rejection`: `already-amended` for amended, `already-completed` for completed, `already-cancelled` for cancelled, `already-discontinued` for discontinued.
+Term inactive state's rejection: `already-amended` for amended, `already-completed` for completed, `already-cancelled` for cancelled, `already-discontinued` for discontinued.
 
-Terms › `state check`: Operation 11, Operation 13, Operation 14 and Operations 15 through 26 — every check an order action makes on the order's own standing before reading the call's remaining arguments.
+Term state check: Operation 11, Operation 13, Operation 14 and Operations 15 through 26 — every check an order action makes on the order's own standing before reading the call's remaining arguments.
 
-Terms › `blank-input rejection`: `invalid-order` for [Order], `invalid-request` for an order action.
+Term blank-input rejection: `invalid-order` for [Order], `invalid-request` for an order action.
 
-Terms › `field fault`: a blank required string input beside `order_id`, a non-positive `dose`, a non-positive `quantity`, a supplied `ordered_at` exceeding the future bound, OR an [Amend] whose supplied dosing parameters all match the original.
+Term field fault: a blank required string input beside `order_id`, a non-positive `dose`, a non-positive `quantity`, a supplied `ordered_at` exceeding the future bound, OR an [Amend] whose supplied dosing parameters all match the original.
 
-Terms › `required string input`: `patient_ref`, `prescriber_ref`, `medication_ref`, `dose_unit`, `route`, `frequency`, a supplied `clinical_evidence_ref`, a supplied `lot_number`, `reason`, an attribution reference OR `order_id` — every string an action refuses when blank.
+Term required string input: `patient_ref`, `prescriber_ref`, `medication_ref`, `dose_unit`, `route`, `frequency`, a supplied `clinical_evidence_ref`, a supplied `lot_number`, `reason`, an attribution reference OR `order_id` — every string an action refuses when blank.
 
-Terms › `future bound`: `now` raised by the `clock_offset_allowance`.
+Term future bound: `now` raised by the `clock_offset_allowance`.
 
-Terms › `query axes`: `order_id`, `patient_ref`, `medication_ref`, `prescriber_ref`, `state` and a range over `ordered_at` — every filter axis [Read] admits.
+Term query axes: `order_id`, `patient_ref`, `medication_ref`, `prescriber_ref`, `state` and a range over `ordered_at` — every filter axis [Read] admits.
 
-Terms › `field group`: the fields one transition writes, carried on the order from that transition onward.
+Term field group: the fields one transition writes, carried on the order from that transition onward.
 
-Terms › `admitted order`: an [Order] call that passes every precondition and whose store write commits.
+Term admitted order: an [Order] call that passes every precondition and whose store write commits.
 
-Terms › `admitted amend`: an [Amend] call that passes every precondition and whose store writes commit.
+Term admitted amend: an [Amend] call that passes every precondition and whose store writes commit.
 
-Terms › `admitted verify`: a [Verify] call that passes every precondition and whose store write commits.
+Term admitted verify: a [Verify] call that passes every precondition and whose store write commits.
 
-Terms › `admitted hold`: a [Hold] call that passes every precondition and whose store write commits.
+Term admitted hold: a [Hold] call that passes every precondition and whose store write commits.
 
-Terms › `admitted reinstate`: a [Reinstate] call that passes every precondition and whose store write commits.
+Term admitted reinstate: a [Reinstate] call that passes every precondition and whose store write commits.
 
-Terms › `admitted dispense`: a [Dispense] call that passes every precondition and whose store write commits.
+Term admitted dispense: a [Dispense] call that passes every precondition and whose store write commits.
 
-Terms › `admitted administer`: an [Administer] call that passes every precondition and whose store write commits.
+Term admitted administer: an [Administer] call that passes every precondition and whose store write commits.
 
-Terms › `admitted complete`: a [Complete] call that passes every precondition and whose store write commits.
+Term admitted complete: a [Complete] call that passes every precondition and whose store write commits.
 
-Terms › `admitted cancel`: a [Cancel] call that passes every precondition and whose store write commits.
+Term admitted cancel: a [Cancel] call that passes every precondition and whose store write commits.
 
-Terms › `admitted discontinue`: a [Discontinue] call that passes every precondition and whose store write commits.
+Term admitted discontinue: a [Discontinue] call that passes every precondition and whose store write commits.
 
-Terms › `admitted read`: a [Read] call that answers.
+Term admitted read: a [Read] call that answers.
 
 WHY:
 Operation 12, Operation 15, Operation 28 and Operation 63 are the rejection priority, written as guards rather than as an order (GRACE-lang Timing 13): [Not Known] before the on-hold rejection before an inactive-state rejection before a state-specific one before [Invalid Request] before [Storage Failure]. The placement of `on-hold` second is the reason the family exists — a held order refuses everything but [Reinstate], and a caller must learn that the order is held rather than learn something about the state underneath the hold.
@@ -584,11 +584,11 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer a blank-input rejection.
 ```
 
-Terms › `string input`: a required string input OR a filter value — every caller-supplied string this atom accepts.
+Term string input: a required string input OR a filter value — every caller-supplied string this atom accepts.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
-Terms › `length bound`: the maximum length the deployment declares for a `string input`.
+Term length bound: the maximum length the deployment declares for a `string input`.
 
 WHY:
 Blankness carries more weight here than in most atoms because two whole invariant families rest on it. A whitespace-only `dispenser_ref` would satisfy a naive presence check and leave a dispensing event with nobody's name on it; a whitespace-only `discontinuation_reason` would leave a stopped controlled substance with no stated basis. Invariant 10.1 and Invariant 11.1 are stated over what the *order carries* for that reason — the guarantee has to hold of the record an investigator reads.
@@ -625,37 +625,37 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the deployment; the implementation; the store; the store instance; the seam; the transition; a composing pattern; a caller; a prescriber; a pharmacist; a dispenser; an auditor; a regulator; an investigator; an order; a successor order; an original; an amended order; an on-hold order; a verified order; a dispensed order; an administered order; a completed order; a cancelled order; a discontinued order; a reinstated order; an action; an order action; a state-changing action; a held-refusing action; a losing order action; a refused action; a refused amend; a rejection; an opaque reference; a string input; a filter; a filter axis; a filter value; a field group; the store instance's order count.
+Term actors: the atom; the deployment; the implementation; the store; the store instance; the seam; the transition; a composing pattern; a caller; a prescriber; a pharmacist; a dispenser; an auditor; a regulator; an investigator; an order; a successor order; an original; an amended order; an on-hold order; a verified order; a dispensed order; an administered order; a completed order; a cancelled order; a discontinued order; a reinstated order; an action; an order action; a state-changing action; a held-refusing action; a losing order action; a refused action; a refused amend; a rejection; an opaque reference; a string input; a filter; a filter axis; a filter value; a field group; the store instance's order count.
 
-Terms › `records`: `order` — one prescription's whole life, carrying `order_id`, `patient_ref`, `prescriber_ref`, `medication_ref`, `dose`, `dose_unit`, `route`, `frequency`, `ordered_at`, a `state`, and — where a transition wrote them — `duration`, `clinical_evidence_ref`, `verifier_ref`, `verified_at`, `predecessor_id`, `successor_id`, `amended_by`, `amendment_reason`, `prior_state`, `held_by`, `hold_reason`, `held_at`, `reinstated_by`, `reinstated_at`, `dispenser_ref`, `quantity`, `lot_number`, `dispensed_at`, `administerer_ref`, `administered_at`, `completed_by`, `completed_at`, `cancelled_by`, `cancellation_reason`, `cancelled_at`, `discontinued_by`, `discontinuation_reason` and `discontinued_at`.
+Term records: `order` — one prescription's whole life, carrying `order_id`, `patient_ref`, `prescriber_ref`, `medication_ref`, `dose`, `dose_unit`, `route`, `frequency`, `ordered_at`, a `state`, and — where a transition wrote them — `duration`, `clinical_evidence_ref`, `verifier_ref`, `verified_at`, `predecessor_id`, `successor_id`, `amended_by`, `amendment_reason`, `prior_state`, `held_by`, `hold_reason`, `held_at`, `reinstated_by`, `reinstated_at`, `dispenser_ref`, `quantity`, `lot_number`, `dispensed_at`, `administerer_ref`, `administered_at`, `completed_by`, `completed_at`, `cancelled_by`, `cancellation_reason`, `cancelled_at`, `discontinued_by`, `discontinuation_reason` and `discontinued_at`.
 
-Terms › `record verbs`: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, replace, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, acknowledge, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, serialize, evaluate, block, place, cancel, exceed, retry, model, remove, release, amend, append, map, advise.
+Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, replace, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, acknowledge, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, serialize, evaluate, block, place, cancel, exceed, retry, model, remove, release, amend, append, map, advise.
 
-Terms › `value sets`: order answers = order_id | rejected(invalid-order | storage-failure). amend answers = new_order_id | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-dispensed | invalid-request | storage-failure). verify answers = verified | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-in-ordered-state | invalid-request | storage-failure). hold answers = held | rejected(not-known | already-on-hold | already-amended | already-cancelled | already-discontinued | already-completed | invalid-request | storage-failure). reinstate answers = reinstated | rejected(not-known | not-on-hold | invalid-request | storage-failure). dispense answers = dispensed | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-verified | already-dispensed | invalid-request | storage-failure). administer answers = administered | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | already-administered | invalid-request | storage-failure). complete answers = completed | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-administered | invalid-request | storage-failure). cancel answers = cancelled | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | already-dispensed | invalid-request | storage-failure). discontinue answers = discontinued | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | invalid-request | storage-failure). read answers = the matching orders | rejected(invalid-query). `state` = ordered | verified | amended | on-hold | dispensed | administered | completed | cancelled | discontinued. `terminal state` = completed | cancelled | discontinued. `inactive state` = amended | completed | cancelled | discontinued. `pre-dispensing state` = ordered | verified. `post-dispensing state` = dispensed | administered. `core field` = patient_ref | prescriber_ref | medication_ref | dose | dose_unit | route | frequency | duration | clinical_evidence_ref | ordered_at. `dosing parameter` = dose | dose_unit | route | frequency | duration. `blank-input rejection` = invalid-order | invalid-request.
+Term value sets: order answers = order_id | rejected(invalid-order | storage-failure). amend answers = new_order_id | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-dispensed | invalid-request | storage-failure). verify answers = verified | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-in-ordered-state | invalid-request | storage-failure). hold answers = held | rejected(not-known | already-on-hold | already-amended | already-cancelled | already-discontinued | already-completed | invalid-request | storage-failure). reinstate answers = reinstated | rejected(not-known | not-on-hold | invalid-request | storage-failure). dispense answers = dispensed | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-verified | already-dispensed | invalid-request | storage-failure). administer answers = administered | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | already-administered | invalid-request | storage-failure). complete answers = completed | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-administered | invalid-request | storage-failure). cancel answers = cancelled | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | already-dispensed | invalid-request | storage-failure). discontinue answers = discontinued | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | invalid-request | storage-failure). read answers = the matching orders | rejected(invalid-query). `state` = ordered | verified | amended | on-hold | dispensed | administered | completed | cancelled | discontinued. `terminal state` = completed | cancelled | discontinued. `inactive state` = amended | completed | cancelled | discontinued. `pre-dispensing state` = ordered | verified. `post-dispensing state` = dispensed | administered. `core field` = patient_ref | prescriber_ref | medication_ref | dose | dose_unit | route | frequency | duration | clinical_evidence_ref | ordered_at. `dosing parameter` = dose | dose_unit | route | frequency | duration. `blank-input rejection` = invalid-order | invalid-request.
 
-Terms › `bounds`: `future bound`, `length bound`, `clock_offset_allowance`.
+Term bounds: `future bound`, `length bound`, `clock_offset_allowance`.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `order`, `order_id`, `store instance`, `core field`, `dosing parameter`, `attribution reference`, `reference`, `seam`, `transition`, `now`, `order action`, `state-changing action`, `held-refusing action`, `state`, `terminal state`, `inactive state`, `pre-dispensing state`, `post-dispensing state`, `actionable state`, `inactive state's rejection`, `state check`, `blank-input rejection`, `field fault`, `required string input`, `future bound`, `clock_offset_allowance`, `event instant`, `query axes`, `field group`, `reason field`, `admitted order`, `admitted amend`, `admitted verify`, `admitted hold`, `admitted reinstate`, `admitted dispense`, `admitted administer`, `admitted complete`, `admitted cancel`, `admitted discontinue`, `admitted read`, `string input`, `blank`, `length bound`, `resolved dispensed_at`, `resolved administered_at`, `resolved completed_at`.
+Term terms: `order`, `order_id`, `store instance`, `core field`, `dosing parameter`, `attribution reference`, `reference`, `seam`, `transition`, `now`, `order action`, `state-changing action`, `held-refusing action`, `state`, `terminal state`, `inactive state`, `pre-dispensing state`, `post-dispensing state`, `actionable state`, `inactive state's rejection`, `state check`, `blank-input rejection`, `field fault`, `required string input`, `future bound`, `clock_offset_allowance`, `event instant`, `query axes`, `field group`, `reason field`, `admitted order`, `admitted amend`, `admitted verify`, `admitted hold`, `admitted reinstate`, `admitted dispense`, `admitted administer`, `admitted complete`, `admitted cancel`, `admitted discontinue`, `admitted read`, `string input`, `blank`, `length bound`, `resolved dispensed_at`, `resolved administered_at`, `resolved completed_at`.
 
-Terms › `cited`: `execution-contract.md` Logic confinement — the seam and the transition.
+Term cited: `execution-contract.md` Logic confinement — the seam and the transition.
 
-Terms › `composing pattern`: [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Retention Window](./retention-window.md), [Legal Hold](./legal-hold.md), [Duplicate Prevention](./duplicate-prevention.md), a dose-event pattern, a decision-support pattern, a trusted timestamping pattern, a formulary.
+Term composing pattern: [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Retention Window](./retention-window.md), [Legal Hold](./legal-hold.md), [Duplicate Prevention](./duplicate-prevention.md), a dose-event pattern, a decision-support pattern, a trusted timestamping pattern, a formulary.
 
-Terms › `event instant`: `dispensed_at` | `administered_at` | `completed_at` — every instant a caller may supply for something that happened away from the call.
+Term event instant: `dispensed_at` | `administered_at` | `completed_at` — every instant a caller may supply for something that happened away from the call.
 
-Terms › `resolved dispensed_at`: the `dispensed_at` the order carries — the supplied value where one exists, and `now` otherwise.
+Term resolved dispensed_at: the `dispensed_at` the order carries — the supplied value where one exists, and `now` otherwise.
 
-Terms › `resolved administered_at`: the `administered_at` the order carries — the supplied value where one exists, and `now` otherwise.
+Term resolved administered_at: the `administered_at` the order carries — the supplied value where one exists, and `now` otherwise.
 
-Terms › `resolved completed_at`: the `completed_at` the order carries — the supplied value where one exists, and `now` otherwise.
+Term resolved completed_at: the `completed_at` the order carries — the supplied value where one exists, and `now` otherwise.
 
-Terms › `clock_offset_allowance`: the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
+Term clock_offset_allowance: the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
 
-Terms › `reason field`: `amendment_reason` | `hold_reason` | `cancellation_reason` | `discontinuation_reason` — every field recording why an action was taken.
+Term reason field: `amendment_reason` | `hold_reason` | `cancellation_reason` | `discontinuation_reason` — every field recording why an action was taken.
 
 #### Order
 

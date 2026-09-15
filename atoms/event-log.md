@@ -42,14 +42,14 @@ Identity 9: The atom MUST NOT identify an event by the event's data.
 Identity 10: A composing pattern MUST own how many log instances a deployment runs.
 ```
 
-Terms › `event_id`: the opaque value naming one event — an [Event Id]; allocated once, never again.
+Term event_id: the opaque value naming one event — an [Event Id]; allocated once, never again.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the event_id here.
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the event_id here.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `transition`: the atom's evaluation of one call against the log, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the log, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
 WHY:
 Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2–4). Ordering is `sequence_number`'s alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
@@ -68,23 +68,23 @@ State 8: The atom MUST NOT offer a delete surface.
 State 9: The atom MUST NOT offer an edit surface.
 ```
 
-Terms › `event`: one recorded fact in the log — an [Event]; fixed in place once landed.
+Term event: one recorded fact in the log — an [Event]; fixed in place once landed.
 
-Terms › `sequence_number`: the strictly rising integer an event carries — a [Sequence Number]; the log's order and nothing else.
+Term sequence_number: the strictly rising integer an event carries — a [Sequence Number]; the log's order and nothing else.
 
-Terms › `recorded_at`: the wall-time instant an event was appended, stamped from the injected clock — a [Recorded At]; an annotation, never the order.
+Term recorded_at: the wall-time instant an event was appended, stamped from the injected clock — a [Recorded At]; an annotation, never the order.
 
-Terms › `data`: the opaque payload a composing pattern supplies — [Data]; the atom stores the payload and reads nothing in it.
+Term data: the opaque payload a composing pattern supplies — [Data]; the atom stores the payload and reads nothing in it.
 
-Terms › `log_name`: the name telling one log instance from another — a [Log Name].
+Term log_name: the name telling one log instance from another — a [Log Name].
 
-Terms › `next_sequence_number`: the sequence_number the next landed event carries — a [Next Sequence Number]; part of the instance's persistent state.
+Term next_sequence_number: the sequence_number the next landed event carries — a [Next Sequence Number]; part of the instance's persistent state.
 
-Terms › `durability mechanism`: a write-ahead log, or another mechanism making a committed write survive a crash.
+Term durability mechanism: a write-ahead log, or another mechanism making a committed write survive a crash.
 
-Terms › `landed`: an event a successful [Append] wrote; a consumed sequence_number under which nothing was written is not landed.
+Term landed: an event a successful [Append] wrote; a consumed sequence_number under which nothing was written is not landed.
 
-Terms › `event field`: `event_id` | `sequence_number` | `recorded_at` | `data`.
+Term event field: `event_id` | `sequence_number` | `recorded_at` | `data`.
 
 WHY:
 A volatile instance that restarts `next_sequence_number` at one has broken Invariant 4 for the life of the instance while every individual append looks correct — which is why durability of that one datum is stated here and not left to a deployment note (State 7). There is no delete and no edit, and their absence is a rule rather than an omission, because *the log only grows* is the property every composing pattern rests on (State 8, State 9).
@@ -129,9 +129,9 @@ NOTE: Operation 20 deleted — `execution-contract.md` §Logic confinement owns 
 Operation 21: The business caller MUST NOT supply recorded_at.
 ```
 
-Terms › `query`: what a read asks for — a [Query]: a sequence_number range, a wall-time range, a payload predicate, or a combination.
+Term query: what a read asks for — a [Query]: a sequence_number range, a wall-time range, a payload predicate, or a combination.
 
-Terms › `payload cap`: the per-instance bound on data's size; 64 kilobytes where a deployment declares none.
+Term payload cap: the per-instance bound on data's size; 64 kilobytes where a deployment declares none.
 
 The case space, and the rule that owns each case:
 
@@ -349,21 +349,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation (also: a durable implementation); the deployment; the store; an event; a read; an append; an auditor.
+Term actors: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation (also: a durable implementation); the deployment; the store; an event; a read; an append; an auditor.
 
-Terms › `records`: `event` — one recorded fact, carrying `event_id`, `sequence_number`, `recorded_at` and `data`; the log carries `log_name` and `next_sequence_number`.
+Term records: `event` — one recorded fact, carrying `event_id`, `sequence_number`, `recorded_at` and `data`; the log carries `log_name` and `next_sequence_number`.
 
-Terms › `record verbs`: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match, find.
+Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match, find.
 
-Terms › `value sets`: append answers = event_id | rejected(invalid-payload | storage-failure). read answers = events | rejected(invalid-query). `event field` = event_id | sequence_number | recorded_at | data.
+Term value sets: append answers = event_id | rejected(invalid-payload | storage-failure). read answers = events | rejected(invalid-query). `event field` = event_id | sequence_number | recorded_at | data.
 
-Terms › `bounds`: `payload cap` (the per-instance bound on data's size).
+Term bounds: `payload cap` (the per-instance bound on data's size).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `landed` — written by a successful append.
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `landed` — written by a successful append.
 
-Terms › `terms`: `durability mechanism`, `event_id`, `seam`, `transition`, `business caller`, `event`, `sequence_number`, `recorded_at`, `data`, `log_name`, `next_sequence_number`, `landed`, `event field`, `query`, `payload cap`.
+Term terms: `durability mechanism`, `event_id`, `seam`, `transition`, `business caller`, `event`, `sequence_number`, `recorded_at`, `data`, `log_name`, `next_sequence_number`, `landed`, `event field`, `query`, `payload cap`.
 
 #### Event Log
 

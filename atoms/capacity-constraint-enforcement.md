@@ -60,19 +60,19 @@ Identity 17: The deployment MUST NOT reuse an event id across the event classes.
 Identity 18: The atom MUST NOT hold a per-unit identity.
 ```
 
-Terms › `pool`: one bounded resource with a declared maximum and a running total — the record this atom holds.
+Term pool: one bounded resource with a declared maximum and a running total — the record this atom holds.
 
-Terms › `pool_id`: the opaque value naming one pool — a [Pool Id]; host-allocated at the seam, compared by exact byte identity.
+Term pool_id: the opaque value naming one pool — a [Pool Id]; host-allocated at the seam, compared by exact byte identity.
 
-Terms › `colliding write`: a [Declare Pool] write whose injected `pool_id` a live pool already carries.
+Term colliding write: a [Declare Pool] write whose injected `pool_id` a live pool already carries.
 
-Terms › `event id`: the opaque value naming one audit event — an [Allocation Event Id], a [Release Event Id], an [Adjustment Event Id] or a [State Change Id], by the event's class.
+Term event id: the opaque value naming one audit event — an [Allocation Event Id], a [Release Event Id], an [Adjustment Event Id] or a [State Change Id], by the event's class.
 
-Terms › `event class`: `allocation` | `release` | `adjustment` | `state change` — the four kinds of entry the audit log carries.
+Term event class: `allocation` | `release` | `adjustment` | `state change` — the four kinds of entry the audit log carries.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the pool_id and the event ids here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the pool_id and the event ids here.
 
-Terms › `transition`: the atom's evaluation of one call against the pool store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the pool store, as `execution-contract.md` §Logic confinement declares it.
 
 WHY:
 A pool's *name* is a deployment concept — a flight, a ward, a primary connection pool — and names get re-tagged, re-categorized and reused across regions. Identity by name would silently merge two pools that share a label and split one that was renamed, and either mistake merges or splits arithmetic (Identity 9).
@@ -109,17 +109,17 @@ State 22: The atom MUST NOT hold a cross-pool bound.
 State 23: The atom MUST NOT interpret a unit.
 ```
 
-Terms › `declaration field`: `pool_id` | `declared_at` | `declaring_actor_ref` | `declaration_reason` — set at [Declare Pool] and never changed.
+Term declaration field: `pool_id` | `declared_at` | `declaring_actor_ref` | `declaration_reason` — set at [Declare Pool] and never changed.
 
-Terms › `allocated_before`: the running total an audit event found — an [Allocated Before].
+Term allocated_before: the running total an audit event found — an [Allocated Before].
 
-Terms › `allocated_after`: the running total an audit event left — an [Allocated After]; the requested total on an allocation event, the released total on a release event.
+Term allocated_after: the running total an audit event left — an [Allocated After]; the requested total on an allocation event, the released total on a release event.
 
-Terms › `recorded_at`: the instant an audit event was written — a [Recorded At]; stamped from the injected now, and advisory rather than authoritative for order.
+Term recorded_at: the instant an audit event was written — a [Recorded At]; stamped from the injected now, and advisory rather than authoritative for order.
 
-Terms › `audit-identifier surface`: an audit event's event id, `pool_id`, event class, arithmetic fields, state fields and `recorded_at` — everything the atom never rewrites and the arithmetic chain rests on.
+Term audit-identifier surface: an audit event's event id, `pool_id`, event class, arithmetic fields, state fields and `recorded_at` — everything the atom never rewrites and the arithmetic chain rests on.
 
-Terms › `attribution surface`: an audit event's actor reference and reason — what makes a record personally identifying, and what a composed erasure mechanism may scrub.
+Term attribution surface: an audit event's actor reference and reason — what makes a record personally identifying, and what a composed erasure mechanism may scrub.
 
 WHY:
 Drained is not a state, and that is the sharpest boundary in the atom. `allocated` reaching `capacity` is a number reaching another number: observable through [Query], enforced by the allocate guard, and derivable at any moment. A state, by contrast, is something an actor decided — suspend, resume, close. Promoting an arithmetic condition to a state would put a policy name on a computation and invite a transition nobody performs (State 6).
@@ -231,39 +231,39 @@ NOTE: Operation 63 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 64 deleted — Clock dependence 1 owns it.
 ```
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `capacity`: the declared maximum a pool admits — a [Capacity]; a whole count, set at declaration and changed only by [Adjust Capacity].
+Term capacity: the declared maximum a pool admits — a [Capacity]; a whole count, set at declaration and changed only by [Adjust Capacity].
 
-Terms › `allocated`: the pool's running total — an [Allocated]; changed only by [Allocate] and [Release].
+Term allocated: the pool's running total — an [Allocated]; changed only by [Allocate] and [Release].
 
-Terms › `available`: `capacity − allocated` — an [Available]; computed wherever it is reported and never stored, so it cannot lag its operands.
+Term available: `capacity − allocated` — an [Available]; computed wherever it is reported and never stored, so it cannot lag its operands.
 
-Terms › `count`: the units one [Allocate] or [Release] call operates on — a [Count]; a positive count.
+Term count: the units one [Allocate] or [Release] call operates on — a [Count]; a positive count.
 
-Terms › `whole count`: a count of zero or more; what `capacity` and `new_capacity` must be.
+Term whole count: a count of zero or more; what `capacity` and `new_capacity` must be.
 
-Terms › `positive count`: a count of one or more; what `count` must be, which is why a zero-unit call is refused rather than admitted as a no-op.
+Term positive count: a count of one or more; what `count` must be, which is why a zero-unit call is refused rather than admitted as a no-op.
 
-Terms › `requested total`: `allocated + count` — the running total an [Allocate] call would reach, and the value the capacity guard compares.
+Term requested total: `allocated + count` — the running total an [Allocate] call would reach, and the value the capacity guard compares.
 
-Terms › `released total`: `allocated − count` — the running total a [Release] call would reach.
+Term released total: `allocated − count` — the running total a [Release] call would reach.
 
-Terms › `new_capacity`: the maximum an [Adjust Capacity] call asks for — a [New Capacity]; a whole count, and refused where it equals the current capacity.
+Term new_capacity: the maximum an [Adjust Capacity] call asks for — a [New Capacity]; a whole count, and refused where it equals the current capacity.
 
-Terms › `pool state`: `open` | `suspended` | `closed` — accepting allocations, halted, or terminal. A [State].
+Term pool state: `open` | `suspended` | `closed` — accepting allocations, halted, or terminal. A [State].
 
-Terms › `addressed action`: any action carrying a `pool_id` — every action but [Declare Pool].
+Term addressed action: any action carrying a `pool_id` — every action but [Declare Pool].
 
-Terms › `state-changing action`: [Suspend Pool] | [Resume Pool] | [Close Pool] — the three that move a pool's state.
+Term state-changing action: [Suspend Pool] | [Resume Pool] | [Close Pool] — the three that move a pool's state.
 
-Terms › `writing action`: every action but [Query].
+Term writing action: every action but [Query].
 
-Terms › `pool snapshot`: `capacity`, `allocated`, `available` and the pool state together — what [Query] answers, and deliberately not the declaration fields or the audit log.
+Term pool snapshot: `capacity`, `allocated`, `available` and the pool state together — what [Query] answers, and deliberately not the declaration fields or the audit log.
 
-Terms › `audit event`: one entry on a pool's log — an allocation, a release, an adjustment or a state change, each carrying its own event id and a `recorded_at`.
+Term audit event: one entry on a pool's log — an allocation, a release, an adjustment or a state change, each carrying its own event id and a `recorded_at`.
 
 The case space, and the rule that owns each case:
 
@@ -548,15 +548,15 @@ String 11: The atom MUST store a string field as the call supplied the string fi
 String 12: The deployment MUST normalize a string field the deployment compares.
 ```
 
-Terms › `integer width`: the largest count the deployment's integers carry without loss.
+Term integer width: the largest count the deployment's integers carry without loss.
 
-Terms › `reason cap`: 2000 codepoints — the ceiling a reason is measured against, counted in codepoints rather than bytes so a multi-byte script is not penalized against a single-byte one.
+Term reason cap: 2000 codepoints — the ceiling a reason is measured against, counted in codepoints rather than bytes so a multi-byte script is not penalized against a single-byte one.
 
-Terms › `control character`: a codepoint in Unicode's `Cc` category.
+Term control character: a codepoint in Unicode's `Cc` category.
 
-Terms › `zero-width character`: a codepoint in `U+200B` to `U+200D`, or `U+FEFF`.
+Term zero-width character: a codepoint in `U+200B` to `U+200D`, or `U+FEFF`.
 
-Terms › `bidi-override character`: a codepoint in `U+202A` to `U+202E`, or `U+2066` to `U+2069`.
+Term bidi-override character: a codepoint in `U+202A` to `U+202E`, or `U+2066` to `U+2069`.
 
 WHY:
 String 6 to String 8 are audit-surface rules wearing validation clothes. A reason made of control bytes, of zero-width characters, or spoofed with bidi overrides passes every syntactic check and is invisibly empty or deceptively rendered to the human auditor the field exists to serve — so admitting it would satisfy the format and defeat the purpose.
@@ -608,21 +608,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; an operator; an auditor; a reader; the store; a pool; a pool state; an audit event; an audit log; a crash; a write; an action; a rejection; a string field; the pool count.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; an operator; an auditor; a reader; the store; a pool; a pool state; an audit event; an audit log; a crash; a write; an action; a rejection; a string field; the pool count.
 
-Terms › `records`: `pool` — one bounded resource, carrying `pool_id`, `capacity`, `allocated`, a pool state, the declaration fields and an audit log; `audit event` — one entry on that log, carrying an event id, the `pool_id`, an event class, a `recorded_at` and the fields the event's class names.
+Term records: `pool` — one bounded resource, carrying `pool_id`, `capacity`, `allocated`, a pool state, the declaration fields and an audit log; `audit event` — one entry on that log, carrying an event id, the `pool_id`, an event class, a `recorded_at` and the fields the event's class names.
 
-Terms › `record verbs`: identify, offer, share, re-order, retain, allocate, change, match, normalize, order, write, refuse, draw, reuse, hold, record, stand, set, stamp, answer, append, raise, lower, admit, release, fit, interpret, leave, insert, remove, carry, read, supply, rest, fall, commit, scrub, reconstruct, replay, bound, find, equal, purge, evict, expire, attest, move, merge, split, notify, seal, compose, gate, distinguish, serialize, make, discharge, compute, own, declare, call, name, store, case-fold, exceed.
+Term record verbs: identify, offer, share, re-order, retain, allocate, change, match, normalize, order, write, refuse, draw, reuse, hold, record, stand, set, stamp, answer, append, raise, lower, admit, release, fit, interpret, leave, insert, remove, carry, read, supply, rest, fall, commit, scrub, reconstruct, replay, bound, find, equal, purge, evict, expire, attest, move, merge, split, notify, seal, compose, gate, distinguish, serialize, make, discharge, compute, own, declare, call, name, store, case-fold, exceed.
 
-Terms › `value sets`: declare_pool answers = pool_id | rejected(invalid-request | storage-failure). allocate answers = allocation_event_id | rejected(not-known | over-capacity | suspended | closed | invalid-request | storage-failure). release answers = release_event_id | rejected(not-known | over-release | invalid-request | storage-failure). adjust_capacity answers = adjustment_event_id | rejected(not-known | closed | over-allocated | invalid-request | storage-failure). suspend_pool, resume_pool and close_pool answers = state_change_id | rejected(not-known | not-open | not-suspended | already-closed | invalid-request | storage-failure). query answers = pool_snapshot | rejected(not-known). `pool state` and `event class` are declared above and cited here (Closed vocabulary 15).
+Term value sets: declare_pool answers = pool_id | rejected(invalid-request | storage-failure). allocate answers = allocation_event_id | rejected(not-known | over-capacity | suspended | closed | invalid-request | storage-failure). release answers = release_event_id | rejected(not-known | over-release | invalid-request | storage-failure). adjust_capacity answers = adjustment_event_id | rejected(not-known | closed | over-allocated | invalid-request | storage-failure). suspend_pool, resume_pool and close_pool answers = state_change_id | rejected(not-known | not-open | not-suspended | already-closed | invalid-request | storage-failure). query answers = pool_snapshot | rejected(not-known). `pool state` and `event class` are declared above and cited here (Closed vocabulary 15).
 
-Terms › `bounds`: `reason cap` (2000 codepoints); `maximum length` (the deployment's cap per string field); `whole count` and `positive count` (the integer floors); `capacity` (the pool's own declared bound).
+Term bounds: `reason cap` (2000 codepoints); `maximum length` (the deployment's cap per string field); `whole count` and `positive count` (the integer floors); `capacity` (the pool's own declared bound).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.36 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.36 (2026-09-12).
 
-Terms › `terms`: `pool`, `pool_id`, `event id`, `event class`, `seam`, `transition`, `now`, `business caller`, `capacity`, `allocated`, `available`, `count`, `whole count`, `positive count`, `requested total`, `released total`, `new_capacity`, `pool state`, `addressed action`, `state-changing action`, `writing action`, `pool snapshot`, `audit event`, `declaration field`, `allocated_before`, `allocated_after`, `recorded_at`, `colliding write`, `integer width`, `audit-identifier surface`, `attribution surface`, `reason cap`, `control character`, `zero-width character`, `bidi-override character`, `maximum length`.
+Term terms: `pool`, `pool_id`, `event id`, `event class`, `seam`, `transition`, `now`, `business caller`, `capacity`, `allocated`, `available`, `count`, `whole count`, `positive count`, `requested total`, `released total`, `new_capacity`, `pool state`, `addressed action`, `state-changing action`, `writing action`, `pool snapshot`, `audit event`, `declaration field`, `allocated_before`, `allocated_after`, `recorded_at`, `colliding write`, `integer width`, `audit-identifier surface`, `attribution surface`, `reason cap`, `control character`, `zero-width character`, `bidi-override character`, `maximum length`.
 
 #### Declare Pool
 

@@ -25,9 +25,9 @@ Identity 4: The atom MUST compare holders by byte identity.
 Identity 5: The atom MUST NOT identify a grant across terms.
 ```
 
-Terms › `key`: the opaque value a lease protects — a [Key]; two keys that differ by a byte are two leases.
+Term key: the opaque value a lease protects — a [Key]; two keys that differ by a byte are two leases.
 
-Terms › `holder`: the opaque value naming who holds — a [Holder]; a party, not a process.
+Term holder: the opaque value naming who holds — a [Holder]; a party, not a process.
 
 WHY:
 Take, release, take again on one pair is two [Lease] grants under one name, told apart by expires_at and by nothing else; a pattern that must prove which grant it held records the grant (Identity 5, Non-goal 9). A holder that restarts and resumes is the same holder only if the pattern gives it the same holder value; a pattern that mints a fresh value per attempt has said that a restart is a different party. Both are legitimate and the choice is the pattern's. The pair matters because [Remaining] and [Release] answer against it (Invariant 5.1): a party that has lost standing finds out from the host, and neither answer is an error.
@@ -40,9 +40,9 @@ State 2: The host MUST derive free from a passed instant at the moment a questio
 State 3: The host MUST NOT store a transition for a passed instant.
 ```
 
-Terms › `lease state`: `free` | `held` — held by one holder until one instant.
+Term lease state: `free` | `held` — held by one holder until one instant.
 
-Terms › `question`: a [Take], a [Try Take], a [Remaining] or a [Release] call, and a waiter's standing waiting term — the occasions State 2 derives at.
+Term question: a [Take], a [Try Take], a [Remaining] or a [Release] call, and a waiter's standing waiting term — the occasions State 2 derives at.
 
 WHY:
 There is no third state, and the passing of the instant is compared against a reading at the moment a question is asked. That is the atom's one storage claim, and it is what makes the concept implementable over a host that offers nothing but compare-and-set with an expiry.
@@ -73,15 +73,15 @@ Operation 13: [Release] MUST NOT reach another holder's grant.
 Operation 14: An implementer MUST NOT treat not-held as a failure.
 ```
 
-Terms › `remaining term`: the part of a holder's term not yet elapsed, as the host reads the part.
+Term remaining term: the part of a holder's term not yet elapsed, as the host reads the part.
 
-Terms › `waiting term`: the term a waiter has stood at [Take], as the host reads the term.
+Term waiting term: the term a waiter has stood at [Take], as the host reads the term.
 
-Terms › `arrival term`: the remaining term of the holder that held the key at the moment the waiter arrived.
+Term arrival term: the remaining term of the holder that held the key at the moment the waiter arrived.
 
-Terms › `asking party`: the party naming itself as holder in a [Remaining] or [Release] call.
+Term asking party: the party naming itself as holder in a [Remaining] or [Release] call.
 
-Terms › `the holder`: the party the host holds the key for.
+Term the holder: the party the host holds the key for.
 
 WHY:
 A key frees by release or by the current holder's instant passing. The bound is fixed at arrival and never extended: a second waiter admitted while a first still holds fails on its own bound rather than waiting out the first's whole term, so a pattern that reasons about how long a take can block is entitled to that number and no other (Operation 3–5). [Try Take] exists for a caller with other work to do. [Remaining] is a host query and never a clock read by the caller: a caller that subtracts its own reading from a remembered `expires_at` has introduced a second clock and lost the property the atom exists to provide, since the two are minted at different seams (Operation 10). `not-held` covers a party whose term has passed and whose key another holder now holds; callers normally discard the answer, and it is declared because an implementer who treats it as a failure will retry it (Operation 14).
@@ -136,15 +136,15 @@ Fence 9: A holder MUST NOT derive a second fence bare from a minted fence.
 Fence 10: A work item MUST NOT carry an effect instant.
 ```
 
-Terms › `fence`: an instant no later than the fence ceiling, handed to a third party as a deadline (a [Fence]) — refuse this holder's work if the work would take effect after this instant.
+Term fence: an instant no later than the fence ceiling, handed to a third party as a deadline (a [Fence]) — refuse this holder's work if the work would take effect after this instant.
 
-Terms › `fence ceiling`: `expires_at − allowance`.
+Term fence ceiling: `expires_at − allowance`.
 
-Terms › `effect instant`: the instant a work item takes effect, read on the fenced party's own clock at the moment of judgement.
+Term effect instant: the instant a work item takes effect, read on the fenced party's own clock at the moment of judgement.
 
-Terms › `allowance`: the declared cross-seam allowance between the granting host's clock and the judging party's clock; one allowance per fenced party.
+Term allowance: the declared cross-seam allowance between the granting host's clock and the judging party's clock; one allowance per fenced party.
 
-Terms › `fenced party`: the third party a fence is handed to.
+Term fenced party: the third party a fence is handed to.
 
 WHY:
 `expires_at` is the point of the atom ([Expires At]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. The ceiling is a ceiling and not an equation: a holder may hand over an earlier instant and keep more margin, never a later one (Fence 5, Check 6.1). Two fenced parties are two seams with two allowances, which is what makes minting each fence separately more than bookkeeping (Fence 8). Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
@@ -178,7 +178,7 @@ Check 6.1: An auditor MUST confirm that the allowance does not exceed the fence 
 Check 6.2: An auditor MUST confirm that an instant derived from another is minted with the allowance rather than inheriting the allowance (Fence 8, Fence 9, Invariant 6.2).
 ```
 
-Terms › `fence margin`: `expires_at − fence`.
+Term fence margin: `expires_at − fence`.
 
 NOTE: EVERY check names the rule the check tests. A check that names none is a check whose failure nobody can state (council read 8).
 
@@ -222,21 +222,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; a holder (also: the holder, the asking holder, the current holder, a former holder); a waiter; a caller; a party; the asking party; a third party (also: the fenced party, the judging party); an implementation (also: an implementer); a composing pattern (also: a pattern); the deployment; an auditor; a key; a grant; a lease; a take; an instant; a work item.
+Term actors: the atom; the host; a holder (also: the holder, the asking holder, the current holder, a former holder); a waiter; a caller; a party; the asking party; a third party (also: the fenced party, the judging party); an implementation (also: an implementer); a composing pattern (also: a pattern); the deployment; an auditor; a key; a grant; a lease; a take; an instant; a work item.
 
-Terms › `records`: empty — the atom writes nothing.
+Term records: empty — the atom writes nothing.
 
-Terms › `record verbs`: identify, compare, normalize, hold, derive, store, wait, succeed, answer, extend, compute, end, reach, treat, return, pass, refuse, judge, mint, apply, stand, report, equal, take, offer, admit, carry, make, roll, isolate, write, record, choose, state, check, name, supply, share, own, invent, confirm, fail.
+Term record verbs: identify, compare, normalize, hold, derive, store, wait, succeed, answer, extend, compute, end, reach, treat, return, pass, refuse, judge, mint, apply, stand, report, equal, take, offer, admit, carry, make, roll, isolate, write, record, choose, state, check, name, supply, share, own, invent, confirm, fail.
 
-Terms › `value sets`: `lease state` = free | held. grant terminus = release | instant. take answers = expires_at | unavailable. try_take answers = taken(expires_at) | held. remaining answers = duration | none. release answers = released | not-held.
+Term value sets: `lease state` = free | held. grant terminus = release | instant. take answers = expires_at | unavailable. try_take answers = taken(expires_at) | held. remaining answers = duration | none. release answers = released | not-held.
 
-Terms › `bounds`: `duration` (the term a take asks for); the allowance; the fence ceiling.
+Term bounds: `duration` (the term a take asks for); the allowance; the fence ceiling.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Terms › `terms`: `key`, `holder`, `lease state`, `question`, `waiting term`, `remaining term`, `arrival term`, `asking party`, `the holder`, `fence`, `fence ceiling`, `effect instant`, `allowance`, `fenced party`, `fence margin`, and `expires_at` ([Expires At]).
+Term terms: `key`, `holder`, `lease state`, `question`, `waiting term`, `remaining term`, `arrival term`, `asking party`, `the holder`, `fence`, `fence ceiling`, `effect instant`, `allowance`, `fenced party`, `fence margin`, and `expires_at` ([Expires At]).
 
 #### Lease
 

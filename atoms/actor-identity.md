@@ -41,21 +41,21 @@ Identity 8: The atom MUST NOT identify an attestation by attested_at.
 Identity 9: Two attestations over one action by one actor MUST carry two attestation_ids.
 ```
 
-Terms › `attestation`: one recorded binding of an actor to an action — an [Attestation].
+Term attestation: one recorded binding of an actor to an action — an [Attestation].
 
-Terms › `attestation_id`: the opaque value naming one attestation — an [Attestation Id].
+Term attestation_id: the opaque value naming one attestation — an [Attestation Id].
 
-Terms › `action_ref`: the opaque reference naming what was attested — an [Action Ref]; the host owns what an action is.
+Term action_ref: the opaque reference naming what was attested — an [Action Ref]; the host owns what an action is.
 
-Terms › `actor_ref`: the opaque reference naming who attested — an [Actor Ref]; the actor registry is a separate concept.
+Term actor_ref: the opaque reference naming who attested — an [Actor Ref]; the actor registry is a separate concept.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the attestation_id and the cryptographic material here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the attestation_id and the cryptographic material here.
 
-Terms › `transition`: the atom's evaluation of one call against the attestation store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the attestation store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity by action and actor together would collapse the re-attestation the regime produces — a retry after a partial failure, a second proof after a key rotation, a step in a multi-action sequence — and identity by time would lose two concurrent attestations (Identity 6–9). One attestation, one id, is what makes per-event audit reconstruction tractable.
@@ -72,19 +72,19 @@ State 6: The atom MUST NOT offer a deletion surface.
 State 7: The atom MUST NOT hold the actor registry's public material.
 ```
 
-Terms › `attested`: the atom's one state — recorded, and nothing further to become.
+Term attested: the atom's one state — recorded, and nothing further to become.
 
-Terms › `proof`: the cryptographic or procedural artifact binding the actor_ref to the action_ref — a [Proof]; a signature, a message authentication code, a card-bound proof, a qualified electronic signature, a witnessed approval.
+Term proof: the cryptographic or procedural artifact binding the actor_ref to the action_ref — a [Proof]; a signature, a message authentication code, a card-bound proof, a qualified electronic signature, a witnessed approval.
 
-Terms › `attested_at`: the wall-time instant the attestation was recorded, stamped from the injected now — an [Attested At].
+Term attested_at: the wall-time instant the attestation was recorded, stamped from the injected now — an [Attested At].
 
-Terms › `credential`: the private material the actor uses to produce the proof — a [Credential]; consumed at [Attest] and never stored.
+Term credential: the private material the actor uses to produce the proof — a [Credential]; consumed at [Attest] and never stored.
 
-Terms › `public material`: what the actor registry holds for an actor_ref and a verifier reads.
+Term public material: what the actor registry holds for an actor_ref and a verifier reads.
 
-Terms › `durability mechanism`: a write-ahead log, or another mechanism making a committed write survive a crash.
+Term durability mechanism: a write-ahead log, or another mechanism making a committed write survive a crash.
 
-Terms › `attestation field`: `attestation_id` | `action_ref` | `actor_ref` | `proof` | `attested_at`.
+Term attestation field: `attestation_id` | `action_ref` | `actor_ref` | `proof` | `attested_at`.
 
 WHY:
 One state and no way out: an attestation that could be revoked would prove nothing, because the party who wanted the attribution undone is the party who would revoke it. Reinterpretation under a compromised credential is real and is a Compromise Disclosure pattern's *(forthcoming)* — it writes new records rather than editing old ones (State 2, State 5, Non-goal 9). The credential is consumed and never stored: an atom holding actors' private material would be the highest-value target in the deployment (State 4).
@@ -105,7 +105,7 @@ attest(action_ref, actor_ref, credential) → attestation_id | rejected(invalid-
 verify(attestation_id) → verified | failed-verification(verification failure) | not-known
 ```
 
-Terms › `verification failure`: `proof-invalid` | `actor-unknown-in-registry` | `registry-unavailable` — the reasons [Verify] gives for a failed verification.
+Term verification failure: `proof-invalid` | `actor-unknown-in-registry` | `registry-unavailable` — the reasons [Verify] gives for a failed verification.
 
 ```text
 Operation 1: [Attest] MUST compute the proof over the action_ref and the actor_ref from the credential.
@@ -136,11 +136,11 @@ Operation 25: The transition MUST NOT mint entropy.
 Operation 26: The business caller MUST NOT supply attested_at.
 ```
 
-Terms › `registry answer`: `material` | `unknown-actor` | `unreachable` — what the actor registry gives a verifier for an actor_ref.
+Term registry answer: `material` | `unknown-actor` | `unreachable` — what the actor registry gives a verifier for an actor_ref.
 
-Terms › `proof check`: `held` | `failed` — the recorded proof run against the recorded action_ref and actor_ref under the registry's current public material.
+Term proof check: `held` | `failed` — the recorded proof run against the recorded action_ref and actor_ref under the registry's current public material.
 
-Terms › `verification set`: the attestation's own fields together with the registry's public material for the actor_ref — and, where the credential mechanism embeds it, the revocation status the proof carries (Revocation status 1, Revocation status 2); everything [Verify] is allowed to read, and nothing else.
+Term verification set: the attestation's own fields together with the registry's public material for the actor_ref — and, where the credential mechanism embeds it, the revocation status the proof carries (Revocation status 1, Revocation status 2); everything [Verify] is allowed to read, and nothing else.
 
 The case space, and the rule that owns each case:
 
@@ -361,21 +361,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment (also: a high-assurance deployment); a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an actor; the actor registry; the attestation store; a credential mechanism (also: a mechanism); an attestation; a rotation; a proof.
+Term actors: the atom; the host; the transition; the implementation; the deployment (also: a high-assurance deployment); a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an actor; the actor registry; the attestation store; a credential mechanism (also: a mechanism); an attestation; a rotation; a proof.
 
-Terms › `records`: `attestation` — one binding, carrying `attestation_id`, `action_ref`, `actor_ref`, `proof` and `attested_at`.
+Term records: `attestation` — one binding, carrying `attestation_id`, `action_ref`, `actor_ref`, `proof` and `attested_at`.
 
-Terms › `record verbs`: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, agree, fail.
+Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, agree, fail.
 
-Terms › `value sets`: attest answers = attestation_id | rejected(invalid-request | invalid-credential | storage-failure). verify answers = verified | failed-verification(verification failure) | not-known. `registry answer` = material | unknown-actor | unreachable. `proof check` = held | failed. `attestation field` = attestation_id | action_ref | actor_ref | proof | attested_at.
+Term value sets: attest answers = attestation_id | rejected(invalid-request | invalid-credential | storage-failure). verify answers = verified | failed-verification(verification failure) | not-known. `registry answer` = material | unknown-actor | unreachable. `proof check` = held | failed. `attestation field` = attestation_id | action_ref | actor_ref | proof | attested_at.
 
-Terms › `bounds`: empty.
+Term bounds: empty.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12); `uncompromised` — a credential no disclosure names as compromised at or before the instant in question.
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12); `uncompromised` — a credential no disclosure names as compromised at or before the instant in question.
 
-Terms › `terms`: `now`, `verification set`, `durability mechanism`, `attestation`, `attestation_id`, `action_ref`, `actor_ref`, `seam`, `transition`, `business caller`, `attested`, `proof`, `attested_at`, `credential`, `public material`, `attestation field`, `registry answer`, `proof check`, `verification failure`.
+Term terms: `now`, `verification set`, `durability mechanism`, `attestation`, `attestation_id`, `action_ref`, `actor_ref`, `seam`, `transition`, `business caller`, `attested`, `proof`, `attested_at`, `credential`, `public material`, `attestation field`, `registry answer`, `proof check`, `verification failure`.
 
 #### Attestation
 

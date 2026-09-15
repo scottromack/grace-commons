@@ -57,17 +57,17 @@ Identity 12: The atom MUST NOT interpret an allocator_ref.
 Identity 13: The atom MUST NOT confirm an allocator_ref's authority.
 ```
 
-Terms › `capability`: one bearer-token authorization with a redemption envelope — the record this atom holds.
+Term capability: one bearer-token authorization with a redemption envelope — the record this atom holds.
 
-Terms › `capability_token`: the opaque value naming one capability — a [Capability Token]; unguessable, host-allocated at the seam, and the capability [Redeem] and [Revoke] accept.
+Term capability_token: the opaque value naming one capability — a [Capability Token]; unguessable, host-allocated at the seam, and the capability [Redeem] and [Revoke] accept.
 
-Terms › `allocator_ref`: the opaque reference naming the actor that created the capability — an [Allocator Ref].
+Term allocator_ref: the opaque reference naming the actor that created the capability — an [Allocator Ref].
 
-Terms › `scope`: the opaque value describing what the capability authorizes — a [Scope]; stored at allocation, answered at redemption, never evaluated.
+Term scope: the opaque value describing what the capability authorizes — a [Scope]; stored at allocation, answered at redemption, never evaluated.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the capability_token's random material here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the capability_token's random material here.
 
-Terms › `transition`: the atom's evaluation of one call against the capability store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the capability store, as `execution-contract.md` §Logic confinement declares it.
 
 WHY:
 Identity 11 is the half of uniqueness that randomness cannot supply. Unguessability comes from the entropy source; *uniqueness* comes from the store refusing a colliding write, which is why Invariant 12.2 is a store obligation rather than a probabilistic hope (Identity 9, Identity 11, Invariant 12.1, Invariant 12.2).
@@ -92,9 +92,9 @@ State 14: The atom MUST NOT evaluate a scope.
 State 15: The atom MUST NOT hold an authorization policy.
 ```
 
-Terms › `revocation field`: `revoked_at` | `revoked_by_ref` | `revocation_reason` — what [Revoke] writes and nothing else does.
+Term revocation field: `revoked_at` | `revoked_by_ref` | `revocation_reason` — what [Revoke] writes and nothing else does.
 
-Terms › `status`: `allocated` | `redeemed` | `revoked` — redeemable, exhausted, or cancelled. `expired` is not a value of it.
+Term status: `allocated` | `redeemed` | `revoked` — redeemable, exhausted, or cancelled. `expired` is not a value of it.
 
 #### Expiry
 
@@ -143,7 +143,7 @@ revoke(capability_token, revoked_by_ref, reason) → revoked | rejected(invalid-
 read(filter) → capability_records
 ```
 
-Terms › `redemption failure`: `exhausted` | `expired` | `revoked` | `not-known` — the reasons [Redeem] gives for an invalid capability.
+Term redemption failure: `exhausted` | `expired` | `revoked` | `not-known` — the reasons [Redeem] gives for an invalid capability.
 
 ```text
 Operation 1: [Allocate] MUST record EXACTLY ONE capability per successful call.
@@ -208,53 +208,53 @@ Operation 59: The atom MUST NOT offer a re-scope action.
 Operation 60: The atom MUST NOT offer an extend action.
 ```
 
-Terms › `uncommitted crash`: a crash inside [Redeem] whose lowering the store has not committed.
+Term uncommitted crash: a crash inside [Redeem] whose lowering the store has not committed.
 
-Terms › `committed crash`: a crash inside [Redeem] whose lowering the store has committed.
+Term committed crash: a crash inside [Redeem] whose lowering the store has committed.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `max_redemptions`: the number of redemptions the capability permits — a [Max Redemptions]; set at allocation, never changed.
+Term max_redemptions: the number of redemptions the capability permits — a [Max Redemptions]; set at allocation, never changed.
 
-Terms › `single-use default`: a `max_redemptions` of one — what [Allocate] applies where the call supplies none.
+Term single-use default: a `max_redemptions` of one — what [Allocate] applies where the call supplies none.
 
-Terms › `remaining_redemptions`: the redemptions the capability has left — a [Remaining Redemptions]; the one field that moves between allocation and a terminal write.
+Term remaining_redemptions: the redemptions the capability has left — a [Remaining Redemptions]; the one field that moves between allocation and a terminal write.
 
-Terms › `ttl`: the validity duration a [Allocate] call asks for — a [TTL] (time-to-live); consumed to compute the expiry deadline, never stored under this name.
+Term ttl: the validity duration a [Allocate] call asks for — a [TTL] (time-to-live); consumed to compute the expiry deadline, never stored under this name.
 
-Terms › `default capability ttl`: the validity duration [Allocate] applies where the call supplies no `ttl`; deployment configuration, and its absence is a misconfiguration rather than an operating state.
+Term default capability ttl: the validity duration [Allocate] applies where the call supplies no `ttl`; deployment configuration, and its absence is a misconfiguration rather than an operating state.
 
-Terms › `zero duration`: a duration of no length — the floor a `ttl` must exceed, which refuses zero and every negative value.
+Term zero duration: a duration of no length — the floor a `ttl` must exceed, which refuses zero and every negative value.
 
-Terms › `zero`: the count of nothing — the floor a `max_redemptions` must exceed, and the value `remaining_redemptions` reaches at exhaustion.
+Term zero: the count of nothing — the floor a `max_redemptions` must exceed, and the value `remaining_redemptions` reaches at exhaustion.
 
-Terms › `allocated_at`: the instant the capability was recorded — an [Allocated At].
+Term allocated_at: the instant the capability was recorded — an [Allocated At].
 
-Terms › `expiry deadline`: `allocated_at + ttl` — what [Allocate] stores as `expires_at`, computed once at allocation.
+Term expiry deadline: `allocated_at + ttl` — what [Allocate] stores as `expires_at`, computed once at allocation.
 
-Terms › `expires_at`: the instant the capability's window closes — an [Expires At]; stamped at allocation, never changed, never absent.
+Term expires_at: the instant the capability's window closes — an [Expires At]; stamped at allocation, never changed, never absent.
 
-Terms › `lapsed`: the capability stands in `allocated` and `now` is no earlier than the capability's `expires_at` — the condition the guards derive and never stamp.
+Term lapsed: the capability stands in `allocated` and `now` is no earlier than the capability's `expires_at` — the condition the guards derive and never stamp.
 
-Terms › `revocable`: the capability stands in `allocated` and the capability is not lapsed — what [Revoke] requires.
+Term revocable: the capability stands in `allocated` and the capability is not lapsed — what [Revoke] requires.
 
-Terms › `effective_status`: `expired` where the capability is lapsed, and the stored status otherwise — an [Effective Status]; a pure projection over the capability and `now`, never stored.
+Term effective_status: `expired` where the capability is lapsed, and the stored status otherwise — an [Effective Status]; a pure projection over the capability and `now`, never stored.
 
-Terms › `redeemed_at`: the instant the capability exhausted — a [Redeemed At].
+Term redeemed_at: the instant the capability exhausted — a [Redeemed At].
 
-Terms › `revoked_at`: the instant the capability was cancelled — a [Revoked At].
+Term revoked_at: the instant the capability was cancelled — a [Revoked At].
 
-Terms › `revoked_by_ref`: the opaque reference naming the actor that cancelled the capability — a [Revoked By Ref].
+Term revoked_by_ref: the opaque reference naming the actor that cancelled the capability — a [Revoked By Ref].
 
-Terms › `revocation_reason`: the stated ground for the cancellation — a [Revocation Reason], carried from the call's [Reason].
+Term revocation_reason: the stated ground for the cancellation — a [Revocation Reason], carried from the call's [Reason].
 
-Terms › `reason`: the [Revoke] argument the capability keeps as `revocation_reason` — a [Reason].
+Term reason: the [Revoke] argument the capability keeps as `revocation_reason` — a [Reason].
 
-Terms › `filter`: the selection a [Read] call scopes the answer by; consumed per call, never stored.
+Term filter: the selection a [Read] call scopes the answer by; consumed per call, never stored.
 
-Terms › `liveness query`: any query for the capabilities still redeemable — the administrative surfaces, and the auditor's triage.
+Term liveness query: any query for the capabilities still redeemable — the administrative surfaces, and the auditor's triage.
 
 The case space, and the rule that owns each case:
 
@@ -532,7 +532,7 @@ String 7: IF a string input EXCEEDS the maximum length THEN the action MUST answ
 String 8: The deployment MUST canonicalize an opaque reference.
 ```
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness means two `allocator_ref` values differing only in normalization form are two distinct allocators here, and the audit queries that range over the field inherit that — so canonicalization is the deployment's, before the call (String 1, String 8).
@@ -561,21 +561,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a bearer; an allocator; an auditor; the store; a capability; a status; a lapse; a liveness query; a crash; a write; an action; a string input; an opaque reference; the capability count; the capability_token's random material.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a bearer; an allocator; an auditor; the store; a capability; a status; a lapse; a liveness query; a crash; a write; an action; a string input; an opaque reference; the capability count; the capability_token's random material.
 
-Terms › `records`: `capability` — one bearer-token authorization, carrying `capability_token`, `allocator_ref`, `scope`, `max_redemptions`, `remaining_redemptions`, `allocated_at`, `expires_at`, `status` and, once terminal, `redeemed_at` or `revoked_at` with `revoked_by_ref` and `revocation_reason`.
+Term records: `capability` — one bearer-token authorization, carrying `capability_token`, `allocator_ref`, `scope`, `max_redemptions`, `remaining_redemptions`, `allocated_at`, `expires_at`, `status` and, once terminal, `redeemed_at` or `revoked_at` with `revoked_by_ref` and `revocation_reason`.
 
-Terms › `record verbs`: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, commit, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, canonicalize, reconcile, serialize, make, discharge, attest, declare, call.
+Term record verbs: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, commit, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, canonicalize, reconcile, serialize, make, discharge, attest, declare, call.
 
-Terms › `value sets`: allocate answers = capability_token | rejected(invalid-request | storage-failure). redeem answers = redeemed(scope, allocator_ref) | invalid(redemption failure). revoke answers = revoked | rejected(invalid-request | already-terminal | not-known | storage-failure). read answers = the matching capabilities, each carrying its `effective_status`. `status` = allocated | redeemed | revoked.
+Term value sets: allocate answers = capability_token | rejected(invalid-request | storage-failure). redeem answers = redeemed(scope, allocator_ref) | invalid(redemption failure). revoke answers = revoked | rejected(invalid-request | already-terminal | not-known | storage-failure). read answers = the matching capabilities, each carrying its `effective_status`. `status` = allocated | redeemed | revoked.
 
-Terms › `bounds`: `default capability ttl` (the validity duration [Allocate] applies where the call supplies none); `single-use default` (the `max_redemptions` [Allocate] applies where the call supplies none); `zero duration` (the floor a ttl must exceed); `zero` (the floor a max_redemptions must exceed); `maximum length` (the deployment's cap per string input).
+Term bounds: `default capability ttl` (the validity duration [Allocate] applies where the call supplies none); `single-use default` (the `max_redemptions` [Allocate] applies where the call supplies none); `zero duration` (the floor a ttl must exceed); `zero` (the floor a max_redemptions must exceed); `maximum length` (the deployment's cap per string input).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `capability`, `capability_token`, `allocator_ref`, `scope`, `seam`, `transition`, `now`, `business caller`, `max_redemptions`, `single-use default`, `remaining_redemptions`, `ttl`, `default capability ttl`, `zero duration`, `zero`, `allocated_at`, `expiry deadline`, `expires_at`, `lapsed`, `revocable`, `effective_status`, `redeemed_at`, `revoked_at`, `revoked_by_ref`, `revocation_reason`, `reason`, `filter`, `liveness query`, `status`, `revocation field`, `blank`, `maximum length`, `redemption failure`.
+Term terms: `capability`, `capability_token`, `allocator_ref`, `scope`, `seam`, `transition`, `now`, `business caller`, `max_redemptions`, `single-use default`, `remaining_redemptions`, `ttl`, `default capability ttl`, `zero duration`, `zero`, `allocated_at`, `expiry deadline`, `expires_at`, `lapsed`, `revocable`, `effective_status`, `redeemed_at`, `revoked_at`, `revoked_by_ref`, `revocation_reason`, `reason`, `filter`, `liveness query`, `status`, `revocation field`, `blank`, `maximum length`, `redemption failure`.
 
 #### Allocate
 

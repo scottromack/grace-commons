@@ -41,10 +41,10 @@ from pathlib import Path
 
 LABEL = re.compile(
     r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?):\s*(.*)$")
-TERM_DECL = re.compile(r"^\s*Terms › `([^`]+)`:\s*(.*)$")
+TERM_DECL = re.compile(r"^\s*Term ([^:`]+?): (.*)$")
 FENCE = re.compile(r"^\s*```(\w*)")
 REGISTER = re.compile(r"\*\*Council read (?P<n>\d+) — \w+ on (?P<spec>[^,]+),")
-MIGRATED = re.compile(r"^Terms › `qualifiers`:[^\n]*`migrated`", re.M)
+MIGRATED = re.compile(r"^Term qualifiers:[^\n]*`migrated`", re.M)
 NAME_NUM = re.compile(r"( step [\d½]+(?:\.\d+[a-z]?)?| \d+(?:\.\d+)?[a-z]?)$")
 
 
@@ -182,7 +182,7 @@ def across(specs: list[Spec], seeds: dict[Path, set[str]]) -> dict[str, list[str
 
 CATEGORY_NAMES = {"actors", "records", "record verbs", "value sets", "bounds",
                   "cadences", "terms", "qualifiers", "composing patterns", "cited"}
-_FAMILY_LINE = re.compile(r"^Terms › `standard label family`:(.+)$", re.M)
+_FAMILY_LINE = re.compile(r"^Term standard label family:(.+)$", re.M)
 
 
 def standard_families(grammar_path=None):
@@ -203,7 +203,7 @@ def standard_families(grammar_path=None):
         m = None
     if not m:
         raise SystemExit(
-            "cites.py: GRACE-lang.md carries no Terms › `standard label family` "
+            "cites.py: GRACE-lang.md carries no `Term standard label family` "
             "line; the standard set has no authority to derive from "
             "(GRACE-lang Standard label 1)")
     return set(re.findall(r"`([^`]+)`", m.group(1)))
@@ -225,13 +225,13 @@ _GLOSS_STOP = frozenset(
 
 def standard_glosses(grammar_path=None) -> dict[str, str]:
     """Each standard family with the meaning the grammar declares for it —
-    the parenthetical on the same `Terms › standard label family` line
+    the parenthetical on the same `Term standard label family` line
     `standard_families` reads the names from. Derived, never copied, for the
     reason that function's docstring gives."""
     g = Path(grammar_path) if grammar_path else Path(__file__).resolve().parents[2] / "GRACE-lang.md"
     m = _FAMILY_LINE.search(g.read_text(encoding="utf-8"))
     if not m:
-        raise SystemExit("cites.py: GRACE-lang.md carries no Terms › `standard label family` line")
+        raise SystemExit("cites.py: GRACE-lang.md carries no `Term standard label family` line")
     return {f: gl for f, gl in re.findall(r"`([^`]+)` \(([^)]*)\)", m.group(1))}
 
 
@@ -254,7 +254,7 @@ def promote(specs: list["Spec"], family: str, means: str | None) -> int:
 
     This is not a classifier and does not decide. The maintainer supplies the
     meaning the promotion would declare (Principle 8, Standard label 6); the
-    tool supplies the reading order, ranking each member spec's `Terms ›`
+    tool supplies the reading order, ranking each member spec's `Term`
     declarations by how much of that meaning they already carry. A verdict
     from word overlap would be a second owner for a judgment the grammar
     reserves to a person — and `Audit arm`'s meaning is written in the
@@ -288,7 +288,7 @@ def promote(specs: list["Spec"], family: str, means: str | None) -> int:
             shared = want & _content(text)
             if len(shared) >= 2:
                 rows.append((len(shared), spec_name(s.path), term, line, sorted(shared)))
-    print(f"\n  `Terms ›` declarations in the member specs, most of the meaning first —"
+    print(f"\n  `Term` declarations in the member specs, most of the meaning first —"
           f"\n  every one of these is a Standard label 2 defect if it states the meaning "
           f"rather than pointing at the spec's own rules:")
     if not rows:

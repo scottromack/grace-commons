@@ -8,7 +8,7 @@ The document under review; the checker's output for it; `GRACE-lang.md` at its c
 
 ## Report
 
-1. **Unresolved identifiers (Closed vocabulary 4).** A subject, object, term or value a rule uses that no `Terms ›` declaration and no Vocabulary line owns — or that two declarations own with different definitions.
+1. **Unresolved identifiers (Closed vocabulary 4).** A subject, object, term or value a rule uses that no `Term` declaration and no Vocabulary line owns — or that two declarations own with different definitions.
 2. **Meaning, against the source.** *Dropped:* an obligation the prose stated that no rule or declaration carries. *Altered:* a rule that says something the prose did not — a different actor, step, arm, condition, or a weaker or stronger modal. *Contradiction:* two rules that normalize to `X MUST a` and `X MUST NOT a` under one condition.
 3. **Owners.** An obligation stated at two sites; a claim in prose or `WHY:` that reads as an obligation no rule carries (a place for everything: `spec-format.md` §*The normative surface*).
 4. **Collisions across specs.** A term borrowed with a name and a different definition (the `run_floor` class); two specs claiming authority for one proposition (Authority 3); a section title used as a rule's subject or object; a cross-spec reference to a label the other spec does not carry.

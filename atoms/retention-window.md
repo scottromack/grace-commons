@@ -41,21 +41,21 @@ Identity 8: The atom MUST NOT identify a retention by retained_at.
 Identity 9: Two retentions over one record MUST carry two retention_ids.
 ```
 
-Terms › `retention`: one recorded obligation over one record under one policy — a [Retention Window] instance's record.
+Term retention: one recorded obligation over one record under one policy — a [Retention Window] instance's record.
 
-Terms › `retention_id`: the opaque value naming one retention — a [Retention Id].
+Term retention_id: the opaque value naming one retention — a [Retention Id].
 
-Terms › `record_ref`: the opaque reference naming what is retained — a [Record Ref]; the host owns what a record is.
+Term record_ref: the opaque reference naming what is retained — a [Record Ref]; the host owns what a record is.
 
-Terms › `policy_ref`: the opaque reference naming which rules apply — a [Policy Ref]; the policy registry is a separate concept.
+Term policy_ref: the opaque reference naming which rules apply — a [Policy Ref]; the policy registry is a separate concept.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the retention_id and the resolved policy scalars here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the retention_id and the resolved policy scalars here.
 
-Terms › `transition`: the atom's evaluation of one call against the retention store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the retention store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity by record and policy together would collapse the policy-transition case the regime actually produces — an old retention completing while a new one runs over the same record — and identity by time would lose two concurrent placements (Identity 6–9). One retention, one id, is what lets an auditor read a record's policy history as a sequence.
@@ -75,23 +75,23 @@ State 9: The atom MUST NOT offer a policy-change surface.
 State 10: The atom MUST NOT hold a storage tier.
 ```
 
-Terms › `retention state`: `retained` | `purged` — under obligation, or destroyed and terminal.
+Term retention state: `retained` | `purged` — under obligation, or destroyed and terminal.
 
-Terms › `retained_at`: the instant the retention was placed, stamped from the injected now — a [Retained At].
+Term retained_at: the instant the retention was placed, stamped from the injected now — a [Retained At].
 
-Terms › `retention_until`: `retained_at + duration` — a [Retention Until]; the instant the obligation ends.
+Term retention_until: `retained_at + duration` — a [Retention Until]; the instant the obligation ends.
 
-Terms › `purge_deadline`: `retention_until + max_purge_delay` — a [Purge Deadline]; the latest the regulator expects destruction.
+Term purge_deadline: `retention_until + max_purge_delay` — a [Purge Deadline]; the latest the regulator expects destruction.
 
-Terms › `purged_at`: the instant the purge was recorded, stamped from the injected now — a [Purged At].
+Term purged_at: the instant the purge was recorded, stamped from the injected now — a [Purged At].
 
-Terms › `duration`: the retention period the policy carries — a [Duration]; positive.
+Term duration: the retention period the policy carries — a [Duration]; positive.
 
-Terms › `degenerate duration`: a duration that does not carry retention_until past retained_at at the deployment's time resolution — a positive number too small to make a deadline, or a number in a policy that names no unit.
+Term degenerate duration: a duration that does not carry retention_until past retained_at at the deployment's time resolution — a positive number too small to make a deadline, or a number in a policy that names no unit.
 
-Terms › `max_purge_delay`: the lag the policy allows between retention-end and purge — a [Max Purge Delay]; not negative.
+Term max_purge_delay: the lag the policy allows between retention-end and purge — a [Max Purge Delay]; not negative.
 
-Terms › `purge eligible`: `yes` | `no` — a [Purge Eligible]; `yes` exactly when the retention stands in retained AND retention_until has passed against the injected now. Derived at the moment a question is asked, never written; the term entry's `purge_eligible` is the projection of this answer.
+Term purge eligible: `yes` | `no` — a [Purge Eligible]; `yes` exactly when the retention stands in retained AND retention_until has passed against the injected now. Derived at the moment a question is asked, never written; the term entry's `purge_eligible` is the projection of this answer.
 
 WHY:
 Two states and no third: a storage tier is an orthogonal axis a Storage Tier pattern *(forthcoming)* owns, and a record moves from active to cold storage without its obligation changing (State 10). Eligibility is derived rather than stored because a stored flag lags the clock — nothing fires when a retention crosses `retention_until`, no scheduler runs, and the only write is the purge that actually happened (State 7, Invariant 11.1). There is no un-purge and no policy edit: extending an obligation means a new retention under a new policy, which is a new audit record rather than a quiet overwrite of an old one (State 8, State 9).
@@ -410,21 +410,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment (also: a high-assurance deployment); a composing pattern (also: a pattern, a writer); a business caller; a caller; a reader; an auditor; the policy registry; the retention store; the storage layer; a retention; a record; a policy; a purge.
+Term actors: the atom; the host; the transition; the implementation; the deployment (also: a high-assurance deployment); a composing pattern (also: a pattern, a writer); a business caller; a caller; a reader; an auditor; the policy registry; the retention store; the storage layer; a retention; a record; a policy; a purge.
 
-Terms › `records`: `retention` — one obligation, carrying `retention_id`, `record_ref`, `policy_ref`, `retained_at`, `retention_until`, `purge_deadline`, a retention state and, once purged, `purged_at`.
+Term records: `retention` — one obligation, carrying `retention_id`, `record_ref`, `policy_ref`, `retained_at`, `retention_until`, `purge_deadline`, a retention state and, once purged, `purged_at`.
 
-Terms › `record verbs`: identify, allocate, supply, reuse, carry, stand, set, store, offer, hold, record, answer, read, resolve, stamp, judge, leave, refuse, write, derive, change, delete, shrink, share, admit, gate, destroy, retry, alert, coordinate, confirm, serialize, own, disagree, compose, place, define, version, retain, permit, purge, choose, suspend, renumber, add, find, reproduce, compute, reconstruct, declare, exceed, bound.
+Term record verbs: identify, allocate, supply, reuse, carry, stand, set, store, offer, hold, record, answer, read, resolve, stamp, judge, leave, refuse, write, derive, change, delete, shrink, share, admit, gate, destroy, retry, alert, coordinate, confirm, serialize, own, disagree, compose, place, define, version, retain, permit, purge, choose, suspend, renumber, add, find, reproduce, compute, reconstruct, declare, exceed, bound.
 
-Terms › `value sets`: place_under_retention answers = retention_id | rejected(invalid-request | invalid-policy | policy-not-found | storage-failure). purge answers = ok | rejected(not-known | not-retained | retention-period-not-elapsed | storage-failure). `retention state` = retained | purged. `purge eligible` = yes | no.
+Term value sets: place_under_retention answers = retention_id | rejected(invalid-request | invalid-policy | policy-not-found | storage-failure). purge answers = ok | rejected(not-known | not-retained | retention-period-not-elapsed | storage-failure). `retention state` = retained | purged. `purge eligible` = yes | no.
 
-Terms › `bounds`: `duration` (the policy's retention period); `max_purge_delay` (the lag the policy allows); `retention_until`; `purge_deadline`.
+Term bounds: `duration` (the policy's retention period); `max_purge_delay` (the lag the policy allows); `retention_until`; `purge_deadline`.
 
-Terms › `cadences`: empty — a purge cadence is the composing pattern's (Composition note 1).
+Term cadences: empty — a purge cadence is the composing pattern's (Composition note 1).
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `degenerate duration`, `now`, `retention`, `retention_id`, `record_ref`, `policy_ref`, `seam`, `transition`, `business caller`, `retention state`, `retained_at`, `retention_until`, `purge_deadline`, `purged_at`, `duration`, `max_purge_delay`, `purge eligible`.
+Term terms: `degenerate duration`, `now`, `retention`, `retention_id`, `record_ref`, `policy_ref`, `seam`, `transition`, `business caller`, `retention state`, `retained_at`, `retention_until`, `purge_deadline`, `purged_at`, `duration`, `max_purge_delay`, `purge eligible`.
 
 #### Retention Window
 

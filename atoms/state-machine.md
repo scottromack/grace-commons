@@ -66,25 +66,25 @@ Identity 15: The atom MUST NOT confirm that a subject_ref names a known subject.
 Identity 16: The atom MUST NOT interpret an instance_metadata.
 ```
 
-Terms › `instance`: one workflow instance — one declaration, one current state and one transition history; the record this atom holds.
+Term instance: one workflow instance — one declaration, one current state and one transition history; the record this atom holds.
 
-Terms › `instance_id`: the opaque value naming one instance — an [Instance Id]; host-allocated at the seam.
+Term instance_id: the opaque value naming one instance — an [Instance Id]; host-allocated at the seam.
 
-Terms › `history entry`: one recorded transition on one instance, carrying `transition_id`, `sequence_number`, `from_state`, `to_state`, `action`, `fired_at` and, where supplied, `actor_ref` and `guard_satisfied`.
+Term history entry: one recorded transition on one instance, carrying `transition_id`, `sequence_number`, `from_state`, `to_state`, `action`, `fired_at` and, where supplied, `actor_ref` and `guard_satisfied`.
 
-Terms › `transition_id`: the opaque value naming one history entry — a [Transition Id]; host-allocated at the seam.
+Term transition_id: the opaque value naming one history entry — a [Transition Id]; host-allocated at the seam.
 
-Terms › `subject_ref`: the opaque reference naming the entity whose lifecycle the instance governs — a [Subject Ref]; a property of the instance, never the instance's identity.
+Term subject_ref: the opaque reference naming the entity whose lifecycle the instance governs — a [Subject Ref]; a property of the instance, never the instance's identity.
 
-Terms › `instance_metadata`: the opaque payload the caller supplies at [Instantiate] for deployment context — an [Instance Metadata]; recorded, never interpreted.
+Term instance_metadata: the opaque payload the caller supplies at [Instantiate] for deployment context — an [Instance Metadata]; recorded, never interpreted.
 
-Terms › `store instance`: one named workflow store a call is routed to; `instance_id` uniqueness ranges over one instance.
+Term store instance: one named workflow store a call is routed to; `instance_id` uniqueness ranges over one instance.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the instance_id and the transition_id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the instance_id and the transition_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the workflow store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the workflow store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `declared transition`: one `from_state`, `action`, `to_state` and optional `guard` in the declaration — a move the instance may make. Distinct from the transition above, which is the atom's evaluation of a call.
+Term declared transition: one `from_state`, `action`, `to_state` and optional `guard` in the declaration — a move the instance may make. Distinct from the transition above, which is the atom's evaluation of a call.
 
 WHY:
 The corpus's word *transition* carries two senses here and the atom cannot avoid either: the execution contract's transition (one evaluation of one call) and the state machine's declared transition (one edge in the declaration). Both are declared, and every rule names which.
@@ -199,45 +199,45 @@ NOTE: Operation 54 deleted — `execution-contract.md` §Logic confinement owns 
 Operation 55: An ordering rule MUST NOT rest on fired_at.
 ```
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `addressed action`: any action carrying an instance_id — every action but [Instantiate].
+Term addressed action: any action carrying an instance_id — every action but [Instantiate].
 
-Terms › `writing action`: [Instantiate] | [Fire] — the two actions that write.
+Term writing action: [Instantiate] | [Fire] — the two actions that write.
 
-Terms › `reading action`: [Current] | [History] | [Read Declaration] — the three that do not.
+Term reading action: [Current] | [History] | [Read Declaration] — the three that do not.
 
-Terms › `current state`: the state the instance stands in — a [Current State]; the initial state until a fire lands, and the latest history entry's to_state after.
+Term current state: the state the instance stands in — a [Current State]; the initial state until a fire lands, and the latest history entry's to_state after.
 
-Terms › `next_sequence_number`: the counter [Fire] takes a sequence_number from — a [Next Sequence Number]; begins at one, rises by one per append, and survives a restart.
+Term next_sequence_number: the counter [Fire] takes a sequence_number from — a [Next Sequence Number]; begins at one, rises by one per append, and survives a restart.
 
-Terms › `sequence_number`: the strictly increasing integer a history entry takes at append — a [Sequence Number]; the history's order source, and never taken from a clock.
+Term sequence_number: the strictly increasing integer a history entry takes at append — a [Sequence Number]; the history's order source, and never taken from a clock.
 
-Terms › `fired_at`: the instant a declared transition fired — a [Fired At]; a best-effort annotation, and never an order source.
+Term fired_at: the instant a declared transition fired — a [Fired At]; a best-effort annotation, and never an order source.
 
-Terms › `instantiated_at`: the instant an instance was created — an [Instantiated At].
+Term instantiated_at: the instant an instance was created — an [Instantiated At].
 
-Terms › `resolved fired_at`: the `fired_at` the history entry carries — the supplied value where one exists, and `now` otherwise.
+Term resolved fired_at: the `fired_at` the history entry carries — the supplied value where one exists, and `now` otherwise.
 
-Terms › `resolved instantiated_at`: the `instantiated_at` the instance carries — the supplied value where one exists, and `now` otherwise.
+Term resolved instantiated_at: the `instantiated_at` the instance carries — the supplied value where one exists, and `now` otherwise.
 
-Terms › `actor_ref`: the opaque reference naming who fired a declared transition — an [Actor Ref]; optional, and recorded where supplied.
+Term actor_ref: the opaque reference naming who fired a declared transition — an [Actor Ref]; optional, and recorded where supplied.
 
-Terms › `guard`: the opaque label naming the condition a caller asserts before a declared transition fires — a [Guard].
+Term guard: the opaque label naming the condition a caller asserts before a declared transition fires — a [Guard].
 
-Terms › `guard_satisfied`: the caller's assertion that a guard holds — a [Guard Satisfied]; an assertion, never a verdict.
+Term guard_satisfied: the caller's assertion that a guard holds — a [Guard Satisfied]; an assertion, never a verdict.
 
-Terms › `matched transition`: the one declared transition whose from_state is the current state and whose action is the call's action (Declaration 13).
+Term matched transition: the one declared transition whose from_state is the current state and whose action is the call's action (Declaration 13).
 
-Terms › `filter axes`: `transition_id` | `sequence_number` | `from_state` | `to_state` | `action` | `actor_ref` | `fired_at` — the seven axes [History] accepts, and no others.
+Term filter axes: `transition_id` | `sequence_number` | `from_state` | `to_state` | `action` | `actor_ref` | `fired_at` — the seven axes [History] accepts, and no others.
 
-Terms › `admitted instantiate`: an [Instantiate] call whose declaration, actor_ref and resolved instantiated_at the guards all admit.
+Term admitted instantiate: an [Instantiate] call whose declaration, actor_ref and resolved instantiated_at the guards all admit.
 
-Terms › `admitted fire`: a [Fire] call whose instance_id names a live instance, whose action matches a declared transition the current state offers, whose guard the caller asserted where one is carried, and whose actor_ref and resolved fired_at the guards admit.
+Term admitted fire: a [Fire] call whose instance_id names a live instance, whose action matches a declared transition the current state offers, whose guard the caller asserted where one is carried, and whose actor_ref and resolved fired_at the guards admit.
 
-Terms › `admitted history`: a [History] call whose instance_id names an instance and whose every filter axis and filter value the guards admit.
+Term admitted history: a [History] call whose instance_id names an instance and whose every filter axis and filter value the guards admit.
 
 | # | Condition | [Fire] answers |
 |---|---|---|
@@ -343,15 +343,15 @@ Declaration 16: The terminal states MAY carry no member.
 Declaration 17: A declared transition MAY carry no guard.
 ```
 
-Terms › `declaration`: the immutable map governing one instance — a [Declaration]; carries `states`, the declared transitions, the initial state and the terminal states.
+Term declaration: the immutable map governing one instance — a [Declaration]; carries `states`, the declared transitions, the initial state and the terminal states.
 
-Terms › `states`: the named states one declaration admits — a [States]; every state name the instance may stand in.
+Term states: the named states one declaration admits — a [States]; every state name the instance may stand in.
 
-Terms › `initial state`: the state an instance stands in at [Instantiate] — an [Initial State]; a member of `states` and never a terminal state.
+Term initial state: the state an instance stands in at [Instantiate] — an [Initial State]; a member of `states` and never a terminal state.
 
-Terms › `terminal states`: the absorbing members of `states` — a [Terminal States]; possibly none.
+Term terminal states: the absorbing members of `states` — a [Terminal States]; possibly none.
 
-Terms › `well-formed declaration`: a declaration Declaration 5 through Declaration 15 all admit.
+Term well-formed declaration: a declaration Declaration 5 through Declaration 15 all admit.
 
 WHY:
 Declaration 13 is the determinism constraint and the load-bearing one: at most one declared transition per `from_state` and `action` pair means a [Fire] either matches exactly one edge or none, and the atom never chooses between two. Without it *fire the approve action* would be ambiguous in a declaration that named two approve edges, and an implementation would have to invent a tiebreak the spec does not have.
@@ -491,9 +491,9 @@ Atomic writes 4: The implementation MUST resolve a dangling transition.
 Atomic writes 5: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
 ```
 
-Terms › `uncommitted crash`: a crash BEFORE an admitted fire's commit lands.
+Term uncommitted crash: a crash BEFORE an admitted fire's commit lands.
 
-Terms › `dangling transition`: an admitted fire's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
+Term dangling transition: an admitted fire's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
 
 WHY:
 Every admitted fire couples three durable mutations — the entry, the counter raise and the state change (Operation 27) — and a crash between any two breaks Invariant 6 or Invariant 7 in a way a later read cannot distinguish from a correct history. The obligation is all-or-none observability: a partly applied fire is not a transient condition to be repaired later, it must never be servable.
@@ -533,9 +533,9 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Terms › `string input`: `instance_id`, `action`, `actor_ref`, `subject_ref`, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
+Term string input: `instance_id`, `action`, `actor_ref`, `subject_ref`, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness reaches further here than in most atoms, because state names and action names are caller-supplied strings that the declaration and every later [Fire] must agree on. A declaration naming `Tested` and a fire naming `tested` are two different tokens, the match fails, and the answer is `invalid-transition` — correct, and mystifying to a caller who believes they are the same state. Canonicalization is the deployment's (String 7).
@@ -574,21 +574,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the store; an instance; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a rejection; a crash; a reader; a state name; a string input; an opaque reference; the store instance's instance count; the instance's history entry count; the instance's admitted fire count.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the store; an instance; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a rejection; a crash; a reader; a state name; a string input; an opaque reference; the store instance's instance count; the instance's history entry count; the instance's admitted fire count.
 
-Terms › `records`: `instance` — one workflow instance, carrying `instance_id`, a declaration, a current state, a transition history, `next_sequence_number` and, where supplied, `subject_ref` and `instance_metadata`. `history entry` — one recorded transition, carrying `transition_id`, `sequence_number`, `from_state`, `to_state`, `action`, `fired_at` and, where supplied, `actor_ref` and `guard_satisfied`.
+Term records: `instance` — one workflow instance, carrying `instance_id`, a declaration, a current state, a transition history, `next_sequence_number` and, where supplied, `subject_ref` and `instance_metadata`. `history entry` — one recorded transition, carrying `transition_id`, `sequence_number`, `from_state`, `to_state`, `action`, `fired_at` and, where supplied, `actor_ref` and `guard_satisfied`.
 
-Terms › `record verbs`: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, commit, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, observe, resolve, complete, serve, serialize, shrink, fall, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, survive, canonicalize.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, commit, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, observe, resolve, complete, serve, serialize, shrink, fall, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, survive, canonicalize.
 
-Terms › `value sets`: instantiate answers = instance_id | rejected(invalid-declaration | invalid-request | storage-failure). fire answers = the matched transition's to_state | rejected(invalid-request | not-known | terminal | invalid-transition | guard-not-satisfied | storage-failure). current answers = the instance's current state | rejected(invalid-request | not-known). history answers = the matching history entries | rejected(invalid-request | not-known | invalid-query). read_declaration answers = the instance's declaration | rejected(invalid-request | not-known).
+Term value sets: instantiate answers = instance_id | rejected(invalid-declaration | invalid-request | storage-failure). fire answers = the matched transition's to_state | rejected(invalid-request | not-known | terminal | invalid-transition | guard-not-satisfied | storage-failure). current answers = the instance's current state | rejected(invalid-request | not-known). history answers = the matching history entries | rejected(invalid-request | not-known | invalid-query). read_declaration answers = the instance's declaration | rejected(invalid-request | not-known).
 
-Terms › `bounds`: empty.
+Term bounds: empty.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Terms › `terms`: `instance`, `instance_id`, `history entry`, `transition_id`, `subject_ref`, `instance_metadata`, `store instance`, `seam`, `transition`, `declared transition`, `declaration`, `states`, `initial state`, `terminal states`, `well-formed declaration`, `now`, `business caller`, `addressed action`, `writing action`, `reading action`, `current state`, `next_sequence_number`, `sequence_number`, `fired_at`, `instantiated_at`, `resolved fired_at`, `resolved instantiated_at`, `actor_ref`, `guard`, `guard_satisfied`, `matched transition`, `filter axes`, `admitted instantiate`, `admitted fire`, `admitted history`, `string input`, `blank`, `uncommitted crash`, `dangling transition`.
+Term terms: `instance`, `instance_id`, `history entry`, `transition_id`, `subject_ref`, `instance_metadata`, `store instance`, `seam`, `transition`, `declared transition`, `declaration`, `states`, `initial state`, `terminal states`, `well-formed declaration`, `now`, `business caller`, `addressed action`, `writing action`, `reading action`, `current state`, `next_sequence_number`, `sequence_number`, `fired_at`, `instantiated_at`, `resolved fired_at`, `resolved instantiated_at`, `actor_ref`, `guard`, `guard_satisfied`, `matched transition`, `filter axes`, `admitted instantiate`, `admitted fire`, `admitted history`, `string input`, `blank`, `uncommitted crash`, `dangling transition`.
 
 #### Instantiate
 

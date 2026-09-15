@@ -42,21 +42,21 @@ Identity 7: The atom MUST NOT identify an assignment by the task_ref with the as
 Identity 8: Two assignments over one task MUST carry two assignment_ids.
 ```
 
-Terms › `assignment`: one binding of a unit of work to a responsible actor — an [Assignment].
+Term assignment: one binding of a unit of work to a responsible actor — an [Assignment].
 
-Terms › `assignment_id`: the opaque value naming one assignment — an [Assignment Id].
+Term assignment_id: the opaque value naming one assignment — an [Assignment Id].
 
-Terms › `task_ref`: the opaque reference naming the unit of work — a [Task Ref]; the host owns what a task is.
+Term task_ref: the opaque reference naming the unit of work — a [Task Ref]; the host owns what a task is.
 
-Terms › `assignee_ref`: the opaque reference naming the responsible actor — an [Assignee Ref]; the actor registry is a separate concept.
+Term assignee_ref: the opaque reference naming the responsible actor — an [Assignee Ref]; the actor registry is a separate concept.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the assignment_id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the assignment_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the assignment store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the assignment store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity by task would make a reassignment overwrite its predecessor, which destroys the answer to *who held this before*; identity by the task-and-assignee pair would collapse a re-assignment of the same actor after an intervening recall, which destroys *how many times* (Identity 6, Identity 7). One binding, one id, is what makes Invariant 9.1's chain recoverable.
@@ -79,13 +79,13 @@ State 12: The atom MUST NOT hold an assignee's workload.
 State 13: The atom MUST NOT re-derive a stamp from a later reading.
 ```
 
-Terms › `status`: `active` | `recalled` | `transferred` — in force, withdrawn with nobody after, or handed on to a successor.
+Term status: `active` | `recalled` | `transferred` — in force, withdrawn with nobody after, or handed on to a successor.
 
-Terms › `assigned_at`: the instant the assignment was created — an [Assigned At].
+Term assigned_at: the instant the assignment was created — an [Assigned At].
 
-Terms › `recalled_at`: the instant the assignment was withdrawn — a [Recalled At].
+Term recalled_at: the instant the assignment was withdrawn — a [Recalled At].
 
-Terms › `transferred_at`: the instant the assignment was handed on — a [Transferred At].
+Term transferred_at: the instant the assignment was handed on — a [Transferred At].
 
 WHY:
 Recalled and transferred are two terminal values of the [Status] rather than one because they answer different audit questions: recalled means the task is nobody's, transferred means it is somebody else's, and a single *closed* state would make an auditor infer the difference from the presence of a successor (State 8, State 9). Nothing is deleted, so the chain of responsibility is the store rather than a reconstruction (State 10).
@@ -152,7 +152,7 @@ NOTE: Operation 32 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 33 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `new_assignee_ref`: the opaque reference naming the successor a reassignment hands the task to — a [New Assignee Ref].
+Term new_assignee_ref: the opaque reference naming the successor a reassignment hands the task to — a [New Assignee Ref].
 
 The case space, and the rule that owns each case:
 
@@ -358,21 +358,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; an assigner; an assignee; an auditor; a reader; the store; an assignment; a task; a call; a crash.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; an assigner; an assignee; an auditor; a reader; the store; an assignment; a task; a call; a crash.
 
-Terms › `records`: `assignment` — one binding, carrying `assignment_id`, `task_ref`, `assignee_ref`, `assigned_at`, `status` and, once it ends, `recalled_at` or `transferred_at`.
+Term records: `assignment` — one binding, carrying `assignment_id`, `task_ref`, `assignee_ref`, `assigned_at`, `status` and, once it ends, `recalled_at` or `transferred_at`.
 
-Terms › `record verbs`: identify, allocate, supply, reuse, carry, stand, stamp, offer, delete, hold, record, answer, leave, write, read, commit, withdraw, order, set, change, move, take, share, observe, shrink, make, repair, accept, require, expire, check, cap, bind, recall, compose, own, attest, declare, find, reconstruct, re-derive, exceed.
+Term record verbs: identify, allocate, supply, reuse, carry, stand, stamp, offer, delete, hold, record, answer, leave, write, read, commit, withdraw, order, set, change, move, take, share, observe, shrink, make, repair, accept, require, expire, check, cap, bind, recall, compose, own, attest, declare, find, reconstruct, re-derive, exceed.
 
-Terms › `value sets`: assign answers = assignment_id | rejected(invalid-request | already-assigned | storage-failure). recall answers = ok | rejected(not-known | not-active | storage-failure). reassign answers = new_assignment_id | rejected(not-known | not-active | invalid-request | storage-failure). active_for answers = an assignment | none. history_for answers = the assignments carrying the task_ref, by assigned_at. `status` = active | recalled | transferred.
+Term value sets: assign answers = assignment_id | rejected(invalid-request | already-assigned | storage-failure). recall answers = ok | rejected(not-known | not-active | storage-failure). reassign answers = new_assignment_id | rejected(not-known | not-active | invalid-request | storage-failure). active_for answers = an assignment | none. history_for answers = the assignments carrying the task_ref, by assigned_at. `status` = active | recalled | transferred.
 
-Terms › `bounds`: empty.
+Term bounds: empty.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `assignment`, `assignment_id`, `task_ref`, `assignee_ref`, `seam`, `transition`, `business caller`, `now`, `status`, `assigned_at`, `recalled_at`, `transferred_at`, `new_assignee_ref`.
+Term terms: `assignment`, `assignment_id`, `task_ref`, `assignee_ref`, `seam`, `transition`, `business caller`, `now`, `status`, `assigned_at`, `recalled_at`, `transferred_at`, `new_assignee_ref`.
 
 #### Assignment
 

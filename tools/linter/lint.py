@@ -432,7 +432,7 @@ def check_orphan_forthcoming(root: Path, patterns: dict[Path, Pattern]) -> list[
         if ln.lstrip().startswith(("|", "- ", "* ", "#"))
     )
     for p in patterns.values():
-        if not re.search(r"^Terms \u203a `qualifiers`:.*\bmigrated\b", p.text, re.M):
+        if not re.search(r"^Term qualifiers:.*\bmigrated\b", p.text, re.M):
             continue  # the unmigrated corpus is not held to this
         seen: set[str] = set()
         for m in ORPHAN_FORTHCOMING.finditer(p.text):
@@ -1346,7 +1346,7 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
     # promotion candidates (council read 63).
     listed = {n for n, _ in re.findall(r"`([A-Z][A-Za-z ]+)` \((\d+)\)", text)}
     std: set[str] = set()
-    sm = re.search(r"^Terms › `standard label family`: (.+)$", text, re.M)
+    sm = re.search(r"^Term standard label family: (.+)$", text, re.M)
     if sm:
         std = {x.strip() for x in re.findall(r"`([^`]+)`", sm.group(1))}
     clause = re.search(r"a label family recurring across specs outside the standard set", text)
@@ -1374,13 +1374,13 @@ def check_acceptance_surface(patterns: dict[Path, Pattern]) -> list[Finding]:
     Presence is now mandatory and the posture is what has to be discoverable, so
     two shapes satisfy this and a third does not. A spec carries an acceptance
     section with at least one `Check` or `External check` rule, or it declines
-    by delegation on its own `Terms > qualifiers` line -- `audit declined`, with
+    by delegation on its own `Term qualifiers` line -- `audit declined`, with
     the pattern that owns the surface named after the dash. Silence is the only
     thing outlawed, and a decline that names no owner is silence with a label on
     it (council read 65)."""
     findings: list[Finding] = []
     for p in patterns.values():
-        if not re.search(r"^Terms › `qualifiers`:.*\bmigrated\b", p.text, re.M):
+        if not re.search(r"^Term qualifiers:.*\bmigrated\b", p.text, re.M):
             continue  # the unmigrated corpus is not held to this
         section = re.search(r"^## Generation acceptance\s*$", p.text, re.M)
         if section:
@@ -1392,7 +1392,7 @@ def check_acceptance_surface(patterns: dict[Path, Pattern]) -> list[Finding]:
                 "`External check` rule — a section nothing audits is the silence "
                 "the rule forbids, wearing a heading"))
             continue
-        decline = re.search(r"^Terms › `qualifiers`:.*`audit declined` — (.*)$", p.text, re.M)
+        decline = re.search(r"^Term qualifiers:.*`audit declined` — (.*)$", p.text, re.M)
         if decline is None:
             findings.append(Finding(
                 p.path, 1, "Y-acceptance-surface",
@@ -1466,7 +1466,7 @@ def check_end_marker(patterns: dict[Path, Pattern]) -> list[Finding]:
     enforcement is a convention with an expiry date."""
     findings: list[Finding] = []
     for p in patterns.values():
-        if not re.search(r"^Terms › `qualifiers`:.*\bmigrated\b", p.text, re.M):
+        if not re.search(r"^Term qualifiers:.*\bmigrated\b", p.text, re.M):
             continue  # the marker is a migration convention
         lines = [ln for ln in p.text.rstrip().split("\n") if ln.strip()]
         if not lines:
@@ -1500,7 +1500,7 @@ def check_term_coverage(patterns: dict[Path, Pattern]) -> list[Finding]:
     (council read 45).
 
     The fifth way — a field the rules turn on with no entry at all — is real and
-    is NOT checked here. Deciding it needs the `Terms › records` line to
+    is NOT checked here. Deciding it needs the `Term records` line to
     distinguish a record name from a field name from a derived index, and it
     does not: Provenance declares two records on that line and Audit Trail
     declares named indexes there, so a naive read reports both as missing
@@ -1644,7 +1644,7 @@ def check_provenance_drift(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
 
 def check_seam_injections(patterns: dict[Path, Pattern]) -> list[Finding]:
     """M. A spec obliging the deployment to supply something at the seam, whose
-    own `Terms › seam` declaration does not name it.
+    own `Term seam` declaration does not name it.
 
     The seam declaration is a spec's list of what crosses its I/O boundary, and
     it is how a reader decides whether a transition is the pure function the
@@ -1662,7 +1662,7 @@ def check_seam_injections(patterns: dict[Path, Pattern]) -> list[Finding]:
     input its rules reach only through a declared term."""
     findings: list[Finding] = []
     SUPPLY = re.compile(r"MUST supply (.+?) at the seam")
-    SEAM = re.compile(r"^Terms › `seam`:(.+)$", re.M)
+    SEAM = re.compile(r"^Term seam:(.+)$", re.M)
     STOP = {"the", "a", "an", "and", "or", "s"}
     for p in patterns.values():
         seam = SEAM.search(p.text)
@@ -2546,7 +2546,7 @@ def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
     retired = retired_heading_names(sf_text)
     findings: list[Finding] = []
     for p in patterns.values():
-        if not re.search(r"^Terms › `qualifiers`:.*\bmigrated\b", p.text, re.M):
+        if not re.search(r"^Term qualifiers:.*\bmigrated\b", p.text, re.M):
             continue
         shape = "composition" if "/compositions/" in p.path.as_posix() else "atom"
         rows = tables[shape]

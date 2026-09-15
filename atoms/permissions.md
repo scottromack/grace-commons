@@ -40,21 +40,21 @@ Identity 7: A subject_ref MAY hold two active grants over one action_scope.
 Identity 8: [Revoke] MUST reach EXACTLY ONE grant.
 ```
 
-Terms › `grant record`: one recorded binding of a subject to a scope; [Grant] the marker names the operation that writes one, and the two are not the same concept (council read 15).
+Term grant record: one recorded binding of a subject to a scope; [Grant] the marker names the operation that writes one, and the two are not the same concept (council read 15).
 
-Terms › `grant_id`: the opaque value naming one grant — a [Grant Id]; the handle revocation takes.
+Term grant_id: the opaque value naming one grant — a [Grant Id]; the handle revocation takes.
 
-Terms › `subject_ref`: the opaque reference naming who holds the grant — a [Subject Ref]; the actor registry is a separate concept.
+Term subject_ref: the opaque reference naming who holds the grant — a [Subject Ref]; the actor registry is a separate concept.
 
-Terms › `action_scope`: the opaque reference naming what the grant covers — an [Action Scope]; matched exactly, and the composing system owns the vocabulary.
+Term action_scope: the opaque reference naming what the grant covers — an [Action Scope]; matched exactly, and the composing system owns the vocabulary.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the grant_id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the grant_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the grant store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the grant store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Many grants over one pair is the deliberate opposite of [Subscription](./subscription.md)'s at-most-one, and the reason is the audit question each atom answers: a second subscription means a duplicate notification, while a second grant means a second authorization with its own issuer, date and reason (Identity 7). Collapsing them by identifying on the pair would make revoking one revoke all, and would erase which grant authorized which access (Identity 6, Identity 8).
@@ -74,11 +74,11 @@ NOTE: State 9 deleted — Non-goal 3 owns it.
 NOTE: State 10 deleted — Non-goal 6 owns it.
 ```
 
-Terms › `status`: `active` | `revoked` — in force, or withdrawn and terminal.
+Term status: `active` | `revoked` — in force, or withdrawn and terminal.
 
-Terms › `granted_at`: the instant the grant was recorded — a [Granted At].
+Term granted_at: the instant the grant was recorded — a [Granted At].
 
-Terms › `revoked_at`: the instant the grant was withdrawn — a [Revoked At].
+Term revoked_at: the instant the grant was withdrawn — a [Revoked At].
 
 WHY:
 There is no stored denial, because absence is denial (Invariant 7.1) — an explicit deny would need a precedence rule against every allow, and precedence is where authorization systems go wrong. A revoked grant stays in the store because *who could do what, when* is the question the store exists to answer, and deleting the grant deletes the answer (State 7, Invariant 10.1).
@@ -133,9 +133,9 @@ NOTE: Operation 24 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 25 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `pair`: one `subject_ref` with one `action_scope` — what [Check] matches over.
+Term pair: one `subject_ref` with one `action_scope` — what [Check] matches over.
 
-Terms › `live at an instant`: `granted_at` at or before the instant, and `revoked_at` either absent or after the instant — the reconstruction an auditor runs over stored fields, never over `status`, which carries the present rather than the past.
+Term live at an instant: `granted_at` at or before the instant, and `revoked_at` either absent or after the instant — the reconstruction an auditor runs over stored fields, never over `status`, which carries the present rather than the past.
 
 The case space, and the rule that owns each case:
 
@@ -314,7 +314,7 @@ String 6: IF a string input EXCEEDS the string cap THEN [Grant] MUST answer inva
 String 7: [Check] MUST read an over-length string input as matching nothing.
 ```
 
-Terms › `string cap`: the deployment's bound on a string input's length; a cap of zero refuses every [Grant], which is the degenerate configuration a deployment owns rather than a state the atom admits.
+Term string cap: the deployment's bound on a string input's length; a cap of zero refuses every [Grant], which is the degenerate configuration a deployment owns rather than a state the atom admits.
 
 WHY:
 Byte-exact and nothing else. A scope vocabulary that needs case-insensitivity or normalization has a vocabulary the composing system owns, and an atom that quietly folded case would make `Documents:Read` and `documents:read` the same authorization in a system that meant them differently (String 1–4).
@@ -374,21 +374,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the deployment (also: a high-assurance deployment); a composing pattern (also: a pattern); a business caller; a caller; a subject; an auditor; the store; a grant; a status.
+Term actors: the atom; the host; the transition; the deployment (also: a high-assurance deployment); a composing pattern (also: a pattern); a business caller; a caller; a subject; an auditor; the store; a grant; a status.
 
-Terms › `records`: `grant record` — one binding, carrying `grant_id`, `subject_ref`, `action_scope`, `granted_at`, `status` and, once withdrawn, `revoked_at`.
+Term records: `grant record` — one binding, carrying `grant_id`, `subject_ref`, `action_scope`, `granted_at`, `status` and, once withdrawn, `revoked_at`.
 
-Terms › `record verbs`: identify, allocate, supply, reuse, hold, reach, compare, trim, normalize, case-fold, read, stand, carry, stamp, offer, delete, record, answer, refuse, leave, take, write, match, rest, consult, change, move, set, share, shrink, evaluate, expand, model, expire, authenticate, bind, revoke, retry, raise, enumerate, call, guard, succeed, compose, resolve, attest, own, declare, find, reconstruct, commit, exceed.
+Term record verbs: identify, allocate, supply, reuse, hold, reach, compare, trim, normalize, case-fold, read, stand, carry, stamp, offer, delete, record, answer, refuse, leave, take, write, match, rest, consult, change, move, set, share, shrink, evaluate, expand, model, expire, authenticate, bind, revoke, retry, raise, enumerate, call, guard, succeed, compose, resolve, attest, own, declare, find, reconstruct, commit, exceed.
 
-Terms › `value sets`: grant answers = grant_id | rejected(invalid-request | storage-failure). revoke answers = ok | rejected(not-known | not-active | storage-failure). permitted answers = permitted | denied. `status` = active | revoked.
+Term value sets: grant answers = grant_id | rejected(invalid-request | storage-failure). revoke answers = ok | rejected(not-known | not-active | storage-failure). permitted answers = permitted | denied. `status` = active | revoked.
 
-Terms › `bounds`: `string cap` (the deployment's bound on a string input's length).
+Term bounds: `string cap` (the deployment's bound on a string input's length).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `grant record`, `live at an instant`, `grant_id`, `subject_ref`, `action_scope`, `seam`, `transition`, `business caller`, `now`, `string cap`, `status`, `granted_at`, `revoked_at`, `pair`.
+Term terms: `grant record`, `live at an instant`, `grant_id`, `subject_ref`, `action_scope`, `seam`, `transition`, `business caller`, `now`, `string cap`, `status`, `granted_at`, `revoked_at`, `pair`.
 
 #### Grant
 

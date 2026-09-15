@@ -39,9 +39,9 @@ Identity 4: The atom MUST NOT normalize an identity.
 Identity 5: The containing pattern MUST supply the matching rule.
 ```
 
-Terms › `identity`: the opaque value a containing pattern asks the atom to remember and recognize — an [Identity].
+Term identity: the opaque value a containing pattern asks the atom to remember and recognize — an [Identity].
 
-Terms › `matching rule`: the containing pattern's rule for judging two identities the same — string equality, case-insensitive, trimmed, normalized, hashed.
+Term matching rule: the containing pattern's rule for judging two identities the same — string equality, case-insensitive, trimmed, normalized, hashed.
 
 WHY:
 The atom stores a value and compares a value; what counts as *the same thing seen again* is the containing pattern's question. That is why one mechanic serves a to-do title, a payment key and a normalized comment body without a line of difference (Identity 3–5).
@@ -54,15 +54,15 @@ State 2: The host MUST derive under guard from the elapsed term at the moment a 
 State 3: The atom MUST NOT hold state beyond the recorded set.
 ```
 
-Terms › `recorded set`: the identities under guard, each held with the identity's `recorded_at` — the [Recorded Set].
+Term recorded set: the identities under guard, each held with the identity's `recorded_at` — the [Recorded Set].
 
-Terms › `recorded_at`: the instant an identity was placed under guard, stamped from the injected `now` — a [Recorded At].
+Term recorded_at: the instant an identity was placed under guard, stamped from the injected `now` — a [Recorded At].
 
-Terms › `window duration`: the length a containing pattern chooses for a guard — a [Window Duration]; the value the elapsed term is measured against. The [Window] the length sizes is the interval, and carries no separate name in a rule.
+Term window duration: the length a containing pattern chooses for a guard — a [Window Duration]; the value the elapsed term is measured against. The [Window] the length sizes is the interval, and carries no separate name in a rule.
 
-Terms › `elapsed term`: `now − recorded_at`.
+Term elapsed term: `now − recorded_at`.
 
-Terms › `under guard`: an identity in the recorded set whose elapsed term is less than `window duration` — the state [Check] answers `seen` for.
+Term under guard: an identity in the recorded set whose elapsed term is less than `window duration` — the state [Check] answers `seen` for.
 
 WHY:
 One set and one stamp per entry are the whole of the atom's storage, and *under guard* is derived at the moment of the question rather than stored. That is what lets a host implement the atom over a store offering nothing but a key with an expiry (State 2).
@@ -109,13 +109,13 @@ The case space, and the rule that owns each case:
 
 A failed store write sits outside the table: [Record] still answers `ok`, and the guard is missed rather than refused (Record failure 1–3).
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `transition`: the atom's evaluation of one call against the recorded set, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the recorded set, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading here.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
 WHY:
 Both calls are total. The containing pattern has already acted when it records — the item is already removed, the charge already made — so a refusal would have nothing to roll back, and a failed write is a liveness miss rather than a safety violation (Operation 4, Record failure 1–3). [Check] reads and nothing else, which is what makes asking twice safe (Invariant 3.1). The clock is read once, at the seam, and handed in: a transition reading a clock of the transition's own would answer two ways for one input (`execution-contract.md` §Logic confinement). What a `seen` answer means — reject, absorb, replay a cached result — is the containing pattern's to decide, and the atom is useful across four domains because the atom never decides it (Operation 12).
@@ -290,21 +290,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host (also: a host, a lazy host); the transition; a containing pattern (also: the containing pattern, a pattern); a business caller; an implementation (also: a fail-open implementation, a fail-closed implementation); the deployment (also: a deployment); an identity; a guarded entry; an entry; a check; an auditor.
+Term actors: the atom; the host (also: a host, a lazy host); the transition; a containing pattern (also: the containing pattern, a pattern); a business caller; an implementation (also: a fail-open implementation, a fail-closed implementation); the deployment (also: a deployment); an identity; a guarded entry; an entry; a check; an auditor.
 
-Terms › `records`: `recorded set` — the identities under guard, one `recorded_at` per entry.
+Term records: `recorded set` — the identities under guard, one `recorded_at` per entry.
 
-Terms › `record verbs`: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, require, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct, find.
+Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, require, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct, find.
 
-Terms › `value sets`: check answers = seen | not-seen. record answers = ok. store policy = fail-open | fail-closed.
+Term value sets: check answers = seen | not-seen. record answers = ok. store policy = fail-open | fail-closed.
 
-Terms › `bounds`: `window duration` (the length a containing pattern chooses for a guard; `window` is the lowering token the [Window Duration] term entry carries).
+Term bounds: `window duration` (the length a containing pattern chooses for a guard; `window` is the lowering token the [Window Duration] term entry carries).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `under guard` — recorded, and the guard's term not yet elapsed.
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `under guard` — recorded, and the guard's term not yet elapsed.
 
-Terms › `terms`: `identity`, `matching rule`, `recorded set`, `recorded_at`, `window duration`, `elapsed term`, `under guard`, `now`, `transition`, `seam`, `business caller`.
+Term terms: `identity`, `matching rule`, `recorded set`, `recorded_at`, `window duration`, `elapsed term`, `under guard`, `now`, `transition`, `seam`, `business caller`.
 
 #### Identity
 

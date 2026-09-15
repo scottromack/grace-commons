@@ -83,17 +83,17 @@ Composes 30: The composition MUST NOT enumerate one credential PER principal.
 Composes 31: The composition MUST NOT supply the substrate's own recording stamp.
 ```
 
-Terms › `composition`: this pattern's wiring of permissions(../atoms/permissions.md), session(../atoms/session.md), credential(../atoms/credential.md) and the audit trail(./audit-trail.md) substrate — the three actions, the actor lifecycle, the two indexes, the mark and the sweep.
+Term composition: this pattern's wiring of permissions(../atoms/permissions.md), session(../atoms/session.md), credential(../atoms/credential.md) and the audit trail(./audit-trail.md) substrate — the three actions, the actor lifecycle, the two indexes, the mark and the sweep.
 
-Terms › `constituents`: permissions(../atoms/permissions.md), session(../atoms/session.md), audit trail(./audit-trail.md), and — where the credential arm stands composed — credential(../atoms/credential.md).
+Term constituents: permissions(../atoms/permissions.md), session(../atoms/session.md), audit trail(./audit-trail.md), and — where the credential arm stands composed — credential(../atoms/credential.md).
 
-Terms › `credential arm`: `revoke_credential_on_suspend` standing true with a Credential instance wired — the arm under which the cascade also closes the re-authentication surface.
+Term credential arm: `revoke_credential_on_suspend` standing true with a Credential instance wired — the arm under which the cascade also closes the re-authentication surface.
 
-Terms › `service identity`: `application_actor_ref` and `application_credential` — the composition's own registered actor and credential, and the attested emitter of every record the sweep writes and the named revoker of every revocation the sweep makes.
+Term service identity: `application_actor_ref` and `application_credential` — the composition's own registered actor and credential, and the attested emitter of every record the sweep writes and the named revoker of every revocation the sweep makes.
 
-Terms › `operator`: `suspended_by_ref` — the principal a [Suspend Actor] call names as performing the suspension, and the principal whose credential the call carries.
+Term operator: `suspended_by_ref` — the principal a [Suspend Actor] call names as performing the suspension, and the principal whose credential the call carries.
 
-Terms › `resumer`: the `suspended_by_ref` of a [Suspend Actor] call that finds the actor suspending — the principal whose credential the resume record verifies and whom the resumed cascade's constituent revocations name.
+Term resumer: the `suspended_by_ref` of a [Suspend Actor] call that finds the actor suspending — the principal whose credential the resume record verifies and whom the resumed cascade's constituent revocations name.
 
 WHY:
 Composes 7 through Composes 9 name the substrate relation. audit trail(./audit-trail.md) is a composition, not an atom, so Event Log, Actor Identity, Tamper Evidence and the audit instance's own Retention Window are reached *through* it and this composition holds no instance of any of them. Actor Identity is the one constituent this composition never calls directly: it is the attestation surface, reached inside every `record_action`, and Composes 23 is the limit that matters — an attestation is immutable, so the suspension attests *over* the registry and changes nothing in it.
@@ -166,43 +166,43 @@ Composition state 52: A revoked set member absent from the plan MUST stand as a 
 Composition state 53: The composition MUST NOT duplicate a constituent's store.
 ```
 
-Terms › `suspension-state index`: `actor_suspension_state` — the composition's index from an `actor_ref` to the actor's lifecycle state and the record that put the actor there; the surface the issuance gate reads and [Suspension Report] answers from.
+Term suspension-state index: `actor_suspension_state` — the composition's index from an `actor_ref` to the actor's lifecycle state and the record that put the actor there; the surface the issuance gate reads and [Suspension Report] answers from.
 
-Terms › `high-water mark`: `index_high_water` — the log position through which the sweep has reconciled the suspension-state index with the trail; every intent at or below it carries an index entry or an outcome naming the intent's `invocation_id`.
+Term high-water mark: `index_high_water` — the log position through which the sweep has reconciled the suspension-state index with the trail; every intent at or below it carries an index entry or an outcome naming the intent's `invocation_id`.
 
-Terms › `suspension log`: `suspension_log` — the composition's append-only record of every [Suspend Actor] and [Reinstate Actor] call, whether the call transitioned, stood as a no-op, or refused.
+Term suspension log: `suspension_log` — the composition's append-only record of every [Suspend Actor] and [Reinstate Actor] call, whether the call transitioned, stood as a no-op, or refused.
 
-Terms › `mirrored log entry`: a suspension log entry an audit event of this composition carries the same act for — a suspended, a reinstated, a revocation failure, or an outcome recording failure, each with the entry's intent behind it.
+Term mirrored log entry: a suspension log entry an audit event of this composition carries the same act for — a suspended, a reinstated, a revocation failure, or an outcome recording failure, each with the entry's intent behind it.
 
-Terms › `refusal log entry`: a suspension log entry no audit event carries — an already-suspended, an already-active, an invalid-request, an intent recording failure, or a refusal that stopped before the intent.
+Term refusal log entry: a suspension log entry no audit event carries — an already-suspended, an already-active, an invalid-request, an intent recording failure, or a refusal that stopped before the intent.
 
-Terms › `tail read`: the substrate's open-ended sequence range read from the high-water mark, filtered in the composition's own code to the composition's `action_ref`s naming one actor.
+Term tail read: the substrate's open-ended sequence range read from the high-water mark, filtered in the composition's own code to the composition's `action_ref`s naming one actor.
 
-Terms › `audit horizon`: the age past which the audit instance has destroyed an event's payload, set by the instance's `audit_trail_retention_policy`.
+Term audit horizon: the age past which the audit instance has destroyed an event's payload, set by the instance's `audit_trail_retention_policy`.
 
-Terms › `aged-out event`: an event whose age exceeds the audit horizon.
+Term aged-out event: an event whose age exceeds the audit horizon.
 
-Terms › `aged-out entry`: a suspension-state entry every one of whose lifecycle-bearing events stands aged out.
+Term aged-out entry: a suspension-state entry every one of whose lifecycle-bearing events stands aged out.
 
-Terms › `aged-out log entry`: a mirrored log entry whose audit event stands aged out.
+Term aged-out log entry: a mirrored log entry whose audit event stands aged out.
 
-Terms › `aged-out actor`: an actor every one of whose lifecycle-bearing events stands aged out.
+Term aged-out actor: an actor every one of whose lifecycle-bearing events stands aged out.
 
-Terms › `aged-out outcome`: an outcome whose payload the audit instance has destroyed.
+Term aged-out outcome: an outcome whose payload the audit instance has destroyed.
 
-Terms › `aged-out open cascade`: an open cascade whose intent stands aged out.
+Term aged-out open cascade: an open cascade whose intent stands aged out.
 
-Terms › `post-snapshot member`: a grant, a session, OR a credential a constituent registered later than the snapshot.
+Term post-snapshot member: a grant, a session, OR a credential a constituent registered later than the snapshot.
 
-Terms › `rebuild`: the composition's named regeneration of the suspension-state index — select the composition's own events over an open-ended sequence range and take each actor's latest lifecycle-bearing event.
+Term rebuild: the composition's named regeneration of the suspension-state index — select the composition's own events over an open-ended sequence range and take each actor's latest lifecycle-bearing event.
 
-Terms › `miss`: an index read the composition answers by the tail read rather than by the stored entry.
+Term miss: an index read the composition answers by the tail read rather than by the stored entry.
 
-Terms › `plan`: the enumerated active set an intent carries — `planned_grants`, `planned_sessions` and `planned_credentials`.
+Term plan: the enumerated active set an intent carries — `planned_grants`, `planned_sessions` and `planned_credentials`.
 
-Terms › `revoked set`: the members an outcome names closed — `revoked_grants`, `revoked_sessions` and `revoked_credentials`.
+Term revoked set: the members an outcome names closed — `revoked_grants`, `revoked_sessions` and `revoked_credentials`.
 
-Terms › `open cascade`: an intent carrying no outcome under the intent's own `invocation_id`.
+Term open cascade: an intent carrying no outcome under the intent's own `invocation_id`.
 
 WHY:
 **An absent key is a miss, not an answer, and the mark is what makes the miss affordable.** The index is written after the intent record is durable, so a crash between the two leaves a plan in the trail and no entry; a read that took absence for *active* would let a second intent be written for one actor and let the issuance gate re-open an actor whose plan is already recorded. The total cure — enumerate the whole retained trail on every absent key — is unaffordable, because the issuance gate reads this index for every actor who was never suspended. So the mark draws the line. Above it the trail answers and the tail read is a tail; below it the index answers, and Composition state 30 says plainly what that costs: an entry lost there is not a miss a read can observe and repair, it is a durability breach — an actor the gate reads as active who was suspended — surfaced by Check 3.2's trail-to-index comparison. The obligation is declared (`state_durability`) rather than left for the mark to convert absence silently back into an answer, which is §*A derived index is trustworthy only where a miss is observable* answered at the one place this composition cannot pay the total price.
@@ -264,28 +264,28 @@ Capability requirement 45: A deployment MUST run the sweep PER reconciliation ca
 Capability requirement 46: The deployment MUST own the clock's honesty.
 ```
 
-Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one `invocation_id` here.
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one `invocation_id` here.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `unified actor namespace`: `unified_actor_namespace` — the deployment's declaration that the `actor_ref` this composition suspends is the same identity value under which the actor holds grants as `subject_ref`, sessions as `principal_ref` and credentials as Credential's own `principal_ref`.
+Term unified actor namespace: `unified_actor_namespace` — the deployment's declaration that the `actor_ref` this composition suspends is the same identity value under which the actor holds grants as `subject_ref`, sessions as `principal_ref` and credentials as Credential's own `principal_ref`.
 
-Terms › `section`: `per_actor_serialization` — the host-supplied mutual exclusion keyed by `actor_ref`, taken at the state gate and held through the index write, taken by a resume, and taken by the sweep for every actor the sweep examines.
+Term section: `per_actor_serialization` — the host-supplied mutual exclusion keyed by `actor_ref`, taken at the state gate and held through the index write, taken by a resume, and taken by the sweep for every actor the sweep examines.
 
-Terms › `suspension completion bound`: `suspension_completion_bound` — the deployment's declared maximum duration between an invocation's intent and the invocation's outcome, read against the seam-injected now the intent carries.
+Term suspension completion bound: `suspension_completion_bound` — the deployment's declared maximum duration between an invocation's intent and the invocation's outcome, read against the seam-injected now the intent carries.
 
-Terms › `completion window`: `completion_window` — the deployment's declared duration within which a suspending actor reaches suspended or escalates as an unresolved compliance finding.
+Term completion window: `completion_window` — the deployment's declared duration within which a suspending actor reaches suspended or escalates as an unresolved compliance finding.
 
-Terms › `closure floor`: `suspension_completion_bound + reconciliation_cadence + outcome_write_latency` — the longest interval in which the sweep can close an open cascade.
+Term closure floor: `suspension_completion_bound + reconciliation_cadence + outcome_write_latency` — the longest interval in which the sweep can close an open cascade.
 
-Terms › `access retention floor`: the longest retention obligation standing over the access a suspension closed — what `audit_trail_retention_policy` must outlast, so the proof the access was lawfully closed outlives the access.
+Term access retention floor: the longest retention obligation standing over the access a suspension closed — what `audit_trail_retention_policy` must outlast, so the proof the access was lawfully closed outlives the access.
 
-Terms › `planned set cap`: `planned_set_cap` — the most members one suspension may plan.
+Term planned set cap: `planned_set_cap` — the most members one suspension may plan.
 
-Terms › `maximal outcome`: the largest record the act can write — the sweep's compensating outcome carrying a full planned set's revoked set, the unresolved members, the recovery marker, the operator, the plan-unavailable marker, the intent_event_id and the invocation_id.
+Term maximal outcome: the largest record the act can write — the sweep's compensating outcome carrying a full planned set's revoked set, the unresolved members, the recovery marker, the operator, the plan-unavailable marker, the intent_event_id and the invocation_id.
 
-Terms › `clock offset allowance`: `clock_offset_allowance` — the declared envelope within which a stamp this composition wrote at its seam may be compared with a stamp a constituent wrote at its own.
+Term clock offset allowance: `clock_offset_allowance` — the declared envelope within which a stamp this composition wrote at its seam may be compared with a stamp a constituent wrote at its own.
 
 WHY:
 Capability requirement 12 through Capability requirement 15 are the enumeration's declaring source, and they are the composition's largest audit gap stated as an obligation rather than a claim. This composition enumerates grants by `subject_ref`, sessions by `principal_ref` and credentials by Credential's own `principal_ref` — three namespaces — and the enumeration is complete only where all three coincide with the `actor_ref`. A deployment satisfies that through authenticated actor(./authenticated-actor.md)'s binding or by convention; whether it actually did is External check 1, because verifying that two opaque namespaces coincide is not a records-alone question at this layer. A divergent namespace under-enumerates *silently*, which is why the knob is a declaration the deployment makes rather than a default the composition assumes.
@@ -325,17 +325,17 @@ Primitive policy 21: The composition MUST NOT digest the revoked set.
 Primitive policy 22: The composition MUST carry the revoked set on an outcome in full.
 ```
 
-Terms › `blank`: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
-Terms › `boundary predicate`: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
+Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
 
-Terms › `opaque argument`: `actor_ref` | `suspended_by_ref` | `reinstated_by_ref` | `credential` | `grant_id` | `session_token` | `credential_id`.
+Term opaque argument: `actor_ref` | `suspended_by_ref` | `reinstated_by_ref` | `credential` | `grant_id` | `session_token` | `credential_id`.
 
-Terms › `operator reference`: `suspended_by_ref` | `reinstated_by_ref`.
+Term operator reference: `suspended_by_ref` | `reinstated_by_ref`.
 
-Terms › `resume prefix`: `"suspension-resume:"` — what a resumed cascade's constituent reason opens with, so the constituent's own record traces to the plan.
+Term resume prefix: `"suspension-resume:"` — what a resumed cascade's constituent reason opens with, so the constituent's own record traces to the plan.
 
-Terms › `completion prefix`: `"suspension-completion:"` — what a swept cascade's constituent reason opens with.
+Term completion prefix: `"suspension-completion:"` — what a swept cascade's constituent reason opens with.
 
 WHY:
 Primitive policy 12 through Primitive policy 14 are why an auditor can walk backwards from a constituent's own revocation record to the suspension that ordered it. Permissions, Session and Credential each record a revoker and a reason of their own; a reason this composition composed from the operator's, prefixed by who is closing and carrying the intent's id, makes each of those records self-locating without this composition storing a second index of them.
@@ -367,11 +367,11 @@ Identity 19: A suspension log entry MUST carry the invocation_id.
 Identity 20: A suspension-state entry MUST carry the invocation_id.
 ```
 
-Terms › `intent`: the `record_action` call naming what an invocation is about to do, written before any committing call — `actor.suspension_intended` | `actor.resume_intended` | `actor.recovery_intended`.
+Term intent: the `record_action` call naming what an invocation is about to do, written before any committing call — `actor.suspension_intended` | `actor.resume_intended` | `actor.recovery_intended`.
 
-Terms › `outcome`: the `record_action` call naming what an invocation did — `actor.suspended` | `actor.reinstated`.
+Term outcome: the `record_action` call naming what an invocation did — `actor.suspended` | `actor.reinstated`.
 
-Terms › `committing call`: `Permissions.revoke` | `Session.revoke` | `Credential.revoke` — a constituent call that writes outside the audit instance, and is irreversible once it commits.
+Term committing call: `Permissions.revoke` | `Session.revoke` | `Credential.revoke` — a constituent call that writes outside the audit instance, and is irreversible once it commits.
 
 WHY:
 Identity 6 through Identity 12 make the `invocation_id` the one field every pairing runs on, and Identity 15 is what it buys: one outcome per act, whoever wrote it. Three writers can reach an act — the original invocation, a caller's resume and the sweep — and all three write under the *cascade's* key rather than their own, so a resume's own seam id rides beside as `resume_invocation_id` and never displaces the key the checks pair on. Identity 13 and Identity 14 close the other end: a second suspension intent would be a second plan for one actor, which the sweep would pair twice and complete twice, and which Check 3.1 convicts.
@@ -411,15 +411,15 @@ Audit arm 27: The composition MUST NOT read an invalid-request answer as a trans
 Audit arm 28: The composition MUST alert on an owed outcome.
 ```
 
-Terms › `landed intent`: an intent the substrate has appended and attested, whatever the substrate then answered.
+Term landed intent: an intent the substrate has appended and attested, whatever the substrate then answered.
 
-Terms › `append step`: the substrate step whose refusal leaves no event in the log — `step-2` and `step-3` of Audit Trail's `record_action`.
+Term append step: the substrate step whose refusal leaves no event in the log — `step-2` and `step-3` of Audit Trail's `record_action`.
 
-Terms › `retention step`: the substrate step whose refusal leaves the event appended and attested with only its retention placement failed — `step-4` of Audit Trail's `record_action`.
+Term retention step: the substrate step whose refusal leaves the event appended and attested with only its retention placement failed — `step-4` of Audit Trail's `record_action`.
 
-Terms › `read-back`: the tail read filtered to an event of the invocation's own class carrying the invocation's `invocation_id`, taken to decide whether a refused `record_action` left the event in the log.
+Term read-back: the tail read filtered to an event of the invocation's own class carrying the invocation's `invocation_id`, taken to decide whether a refused `record_action` left the event in the log.
 
-Terms › `owed outcome`: an outcome this composition must write for a cascade whose revocations have committed and the substrate has not appended.
+Term owed outcome: an outcome this composition must write for a cascade whose revocations have committed and the substrate has not appended.
 
 WHY:
 **The substrate's step payload is load-bearing at every position, the intent's included, and that is the arm this page most nearly got wrong.** `record_action` refuses at four steps, and its retention step refuses *after* the event is appended and attested — so a caller told *nothing committed* retries as a fresh call and lands a second plan for one actor: two intents for the sweep to pair, then two completions, a Check 3.1 breach. Audit arm 7 through Audit arm 12 make the invocation read the log before it decides which happened, and Audit arm 25 forbids the retry that reading exists to prevent. The same read-back settles the substrate's `invalid-request`, which is a deployment fault reachable from two sources — a mis-derived payload cap, on which nothing is appended, and the substrate's own retention configuration, on which the event is.
@@ -459,9 +459,9 @@ reinstate_actor(actor_ref, reinstated_by_ref, credential, reason) →
     )
 ```
 
-Terms › `position`: `intent` | `outcome` — the record a write lands: the intent or the outcome.
+Term position: `intent` | `outcome` — the record a write lands: the intent or the outcome.
 
-Terms › `not-suspended state`: `active` | `suspending` — the actor states a reinstatement refuses.
+Term not-suspended state: `active` | `suspending` — the actor states a reinstatement refuses.
 
 ```text
 Action wiring 1: The composition MUST take the actor's section at [Suspend Actor] ONLY AFTER the boundary predicate.
@@ -555,31 +555,31 @@ Action wiring 88: [Reinstate Actor] MUST NOT issue a session.
 Action wiring 89: An admitted reinstatement MUST answer the reinstated outcome's event_id.
 ```
 
-Terms › `stored active`: the status a constituent's own record carries, before any derivation the constituent applies at read time.
+Term stored active: the status a constituent's own record carries, before any derivation the constituent applies at read time.
 
-Terms › `effective active`: Credential's derived active status, cited rather than restated — credential(../atoms/credential.md)'s own reading of a credential that has neither been revoked nor lapsed.
+Term effective active: Credential's derived active status, cited rather than restated — credential(../atoms/credential.md)'s own reading of a credential that has neither been revoked nor lapsed.
 
-Terms › `snapshot`: the enumerated active set a fresh cascade reads from the constituents at one instant, which becomes the plan.
+Term snapshot: the enumerated active set a fresh cascade reads from the constituents at one instant, which becomes the plan.
 
-Terms › `fresh cascade`: a [Suspend Actor] call against an active actor — the call that records a suspension intent.
+Term fresh cascade: a [Suspend Actor] call against an active actor — the call that records a suspension intent.
 
-Terms › `resume`: a [Suspend Actor] call against a suspending actor — the call that records a resume intent and continues the open cascade.
+Term resume: a [Suspend Actor] call against a suspending actor — the call that records a resume intent and continues the open cascade.
 
-Terms › `cascade`: a fresh cascade, a resume, OR the sweep's completion of an open cascade.
+Term cascade: a fresh cascade, a resume, OR the sweep's completion of an open cascade.
 
-Terms › `benign terminal answer`: `not-active` from Permissions' revoke, OR `already-terminal` from Session's revoke or Credential's revoke — the answer naming a member another act already closed.
+Term benign terminal answer: `not-active` from Permissions' revoke, OR `already-terminal` from Session's revoke or Credential's revoke — the answer naming a member another act already closed.
 
-Terms › `non-benign refusal`: a constituent's answer to a revoke outside a benign terminal answer and outside a committed revocation.
+Term non-benign refusal: a constituent's answer to a revoke outside a benign terminal answer and outside a committed revocation.
 
-Terms › `open members`: the planned members a cascade left unclosed and a later cascade may still close.
+Term open members: the planned members a cascade left unclosed and a later cascade may still close.
 
-Terms › `unresolved members`: the planned members no cascade can close, because the constituent no longer knows the member or refused the composition's reference.
+Term unresolved members: the planned members no cascade can close, because the constituent no longer knows the member or refused the composition's reference.
 
-Terms › `closed plan`: a plan every member of which stands closed or unresolved.
+Term closed plan: a plan every member of which stands closed or unresolved.
 
-Terms › `recovery marker`: `cascade_recovery` — the marker an outcome carries when a resume or the sweep completed the cascade, so a reader tells a completed act from a clean one.
+Term recovery marker: `cascade_recovery` — the marker an outcome carries when a resume or the sweep completed the cascade, so a reader tells a completed act from a clean one.
 
-Terms › `enumeration availability`: what [Suspension Report] answers in place of a revoked set the audit instance has lawfully destroyed — `available` | `unavailable-past-horizon`.
+Term enumeration availability: what [Suspension Report] answers in place of a revoked set the audit instance has lawfully destroyed — `available` | `unavailable-past-horizon`.
 
 WHY:
 **Action wiring 13 through Action wiring 15 pin which status the plan is built from, and the ambiguity they remove was reachable.** Session carries a stored status and a status it derives at read time, and a session whose lifetime has lapsed is stored-active and derived-terminal. Enumerating by the derived status would drop such a member from the plan, which is the wrong direction: the plan is the record of what the suspension set out to close, and a lapsed session belongs in it. So the snapshot reads the stored status, the member enters the plan, and the revoke on it answers `already-terminal` by the constituent's own derivation — a benign closure counted toward completion, with nothing written in the constituent's store and nothing hidden in this composition's.
@@ -653,13 +653,13 @@ Reconciliation 31: The sweep MUST answer nothing to a caller.
 Reconciliation 32: A caller MUST NOT invoke the sweep.
 ```
 
-Terms › `sweep`: the completion leg `Reconciliation 1` through `Reconciliation 32` state — this composition's own, over its open cascades.
+Term sweep: the completion leg `Reconciliation 1` through `Reconciliation 32` state — this composition's own, over its open cascades.
 
-Terms › `pre-check`: the read of the trail for an outcome already carrying a cascade's `invocation_id`, taken under the actor's section before any outcome is appended.
+Term pre-check: the read of the trail for an outcome already carrying a cascade's `invocation_id`, taken under the actor's section before any outcome is appended.
 
-Terms › `young intent`: an intent whose `intended_at` stands within the suspension completion bound of the injected now.
+Term young intent: an intent whose `intended_at` stands within the suspension completion bound of the injected now.
 
-Terms › `plan-unavailable marker`: `plan_unavailable` — the marker the sweep's outcome carries when the intent aged out and the sweep completed from the constituents rather than from a plan it could read.
+Term plan-unavailable marker: `plan_unavailable` — the marker the sweep's outcome carries when the intent aged out and the sweep completed from the constituents rather than from a plan it could read.
 
 WHY:
 The sweep is a **declared, bounded scan, not an implicit retry**, and both edges earn their rule. Below the completion bound it examines nothing, because an intent younger than the bound may belong to an invocation still revoking, and completing it there would revoke beside that invocation and append a second outcome. Above it, the audit horizon: past the horizon the plan is destroyed, so the sweep completes from the live constituents and says so on its outcome — Reconciliation 25 and Reconciliation 26 — rather than inventing a plan it cannot read. That is the frozen rule *A reconciliation is bounded at both ends*, with the honest addition that past the far edge the leg still runs and reports what it did.
@@ -722,15 +722,15 @@ Invariant 5.8: A credential validation MUST NOT establish a channel binding.
 Invariant 5.9: A credential validation MUST NOT establish an authorization.
 ```
 
-Terms › `admitted suspension`: a [Suspend Actor] call whose boundary predicate passed, whose actor stood active or suspending, and whose intent landed.
+Term admitted suspension: a [Suspend Actor] call whose boundary predicate passed, whose actor stood active or suspending, and whose intent landed.
 
-Terms › `admitted reinstatement`: a [Reinstate Actor] call whose boundary predicate passed and whose actor stood suspended.
+Term admitted reinstatement: a [Reinstate Actor] call whose boundary predicate passed and whose actor stood suspended.
 
-Terms › `accounted cascade`: an open cascade standing suspending with the open members named, closed within the completion window, OR named by an escalated finding.
+Term accounted cascade: an open cascade standing suspending with the open members named, closed within the completion window, OR named by an escalated finding.
 
-Terms › `accounted member`: a planned member standing in the revoked set, standing in the unresolved members, OR standing terminal in the constituent's store before the outcome.
+Term accounted member: a planned member standing in the revoked set, standing in the unresolved members, OR standing terminal in the constituent's store before the outcome.
 
-Terms › `escalated finding`: an open cascade the composition has raised to the deployment as unresolved, past the point where the sweep's own closure was owed.
+Term escalated finding: an open cascade the composition has raised to the deployment as unresolved, past the point where the sweep's own closure was owed.
 
 WHY:
 **Invariant 1 is the load-bearing claim and it is safety plus liveness, stated as two things because they fail differently.** The safety half is Invariant 1.1 through Invariant 1.4: over the plan, a suspended actor holds nothing, and the outcome is appended only after every revocation has committed — so there is no reachable state in which the records say suspended while a planned member is still active. The second safety half is Invariant 1.5 through Invariant 1.7, and it is the one the retired posture lost: a cascade that stops leaves the actor `suspending`, never active and never suspended, because the intent is trail-resident and the index reads it. The liveness half is Invariant 1.8 through Invariant 1.10, a bounded claim rather than an *eventually*: the window is declared, the inequality makes it meetable, and exactly one writer closes an act — the invocation yields at the outcome position, the sweep examines nothing young, both serialize on the actor's key, and a stalled invocation adopts a landed outcome rather than writing beside it.
@@ -946,9 +946,9 @@ Atomic writes 11: A deployment MUST treat an orphan as an alerting condition.
 Atomic writes 12: The composition MUST NOT repair an orphan by fabrication.
 ```
 
-Terms › `orphan`: a committed revocation carrying an owed outcome, or an open cascade carrying no record of why it stopped.
+Term orphan: a committed revocation carrying an owed outcome, or an open cascade carrying no record of why it stopped.
 
-Terms › `indeterminate committing call`: a committing call whose answer the invocation did not receive.
+Term indeterminate committing call: a committing call whose answer the invocation did not receive.
 
 WHY:
 Two partials are reachable here and both are completed rather than repaired. **The stopped cascade:** the intent landed and one or more revocations did not, so the actor is suspending, the plan is on the intent, and the committed revocations stand in their stores. **The unsealed cascade:** every revocation committed and the outcome did not land, so the actor is suspending with no open members and the invocation that owed the outcome has yielded it. Neither is fixed by undoing anything — Atomic writes 3 and Atomic writes 4 say why there is nothing to undo — and both are closed by the sweep from the plan and the constituents' own records.
@@ -1022,25 +1022,25 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 ### Vocabulary
 
-Terms › `actors`: the composition; a deployment; the host; the seam; the transition; the sweep; a caller; an auditor; a reader; a writer; an implementation; an invocation; an action; a call; a cascade; a fresh cascade; a resume; a stopped cascade; a clean cascade; a resumed cascade; a swept cascade; an open cascade; an intent; a resume intent; a recovery intent; an outcome; a suspended outcome; a reinstated outcome; a record; a landed record; a landed intent; an owed outcome; a read-back; a pre-check; the tail read; the rebuild; an index; the suspension-state index; the high-water mark; the suspension log; a log entry; a mirrored log entry; a refusal log entry; an index entry; an actor; a suspended actor; a suspending actor; an active actor; a lifecycle state; the state gate; an operator; a resumer; the service identity; a principal; a credential; a credential validation; a revoker; a member; a planned member; an open member; an unresolved member; an accounted member; a grant; a session; a plan; a revoked set; a snapshot; a closed plan; the actor's section; a lease; a constituent; a committing call; an indeterminate committing call; a benign terminal answer; a non-benign refusal; an orphan; an escalated finding; a durability breach; a miss; an aged-out event; the audit horizon; the completion window; the closure floor; the suspension completion bound; the access retention floor; the planned set cap; the maximal outcome; the clock offset allowance; the unified actor namespace; the credential arm; an issuance; an activity; Permissions; Session; Credential; Actor Identity; Audit Trail; Event Log; the audit instance; a surface; a timestamp; insertion order; a clock reading; a payload field; two calls; two sweeps.
+Term actors: the composition; a deployment; the host; the seam; the transition; the sweep; a caller; an auditor; a reader; a writer; an implementation; an invocation; an action; a call; a cascade; a fresh cascade; a resume; a stopped cascade; a clean cascade; a resumed cascade; a swept cascade; an open cascade; an intent; a resume intent; a recovery intent; an outcome; a suspended outcome; a reinstated outcome; a record; a landed record; a landed intent; an owed outcome; a read-back; a pre-check; the tail read; the rebuild; an index; the suspension-state index; the high-water mark; the suspension log; a log entry; a mirrored log entry; a refusal log entry; an index entry; an actor; a suspended actor; a suspending actor; an active actor; a lifecycle state; the state gate; an operator; a resumer; the service identity; a principal; a credential; a credential validation; a revoker; a member; a planned member; an open member; an unresolved member; an accounted member; a grant; a session; a plan; a revoked set; a snapshot; a closed plan; the actor's section; a lease; a constituent; a committing call; an indeterminate committing call; a benign terminal answer; a non-benign refusal; an orphan; an escalated finding; a durability breach; a miss; an aged-out event; the audit horizon; the completion window; the closure floor; the suspension completion bound; the access retention floor; the planned set cap; the maximal outcome; the clock offset allowance; the unified actor namespace; the credential arm; an issuance; an activity; Permissions; Session; Credential; Actor Identity; Audit Trail; Event Log; the audit instance; a surface; a timestamp; insertion order; a clock reading; a payload field; two calls; two sweeps.
 
-Terms › `record verbs`: serve, change, inherit, read, hold, reach, call, select, query, attest, own, place, admit, drive, know, push, store, classify, carry, stand, claim, populate, name, alert, drop, take, rebuild, recognize, supply, mint, generate, accept, configure, set, provision, rotate, disclose, start, run, fire, serialize, resolve, reconcile, refuse, normalize, fold, trim, compare, judge, propagate, cap, truncate, allocate, reuse, pair, make, retry, leave, record, answer, substitute, add, complete, clear, empty, write, advance, repoint, renew, cross, find, confirm, reproduce, establish, match, escalate, close, emit, examine, expose, validate, commit, detect, inject, stamp, derive, deduplicate, model, schedule, adjudicate, purge, unwind, gate, index, anchor, surface, treat, sweep, spend, enroll, verify, suspend, reinstate, belong, elapse, invoke, duplicate, block, govern, identify, decide, reverse, destroy, revoke, enlist, snapshot, size, skip, adopt, yield, release, count, abort, log, prove, weaken, lapse, deactivate, restore, issue, terminate, enumerate, declare, diverge, persist, inspect, digest, proceed, open, continue, append, compute, transition, produce, sample, repair, resume, restart, retake.
+Term record verbs: serve, change, inherit, read, hold, reach, call, select, query, attest, own, place, admit, drive, know, push, store, classify, carry, stand, claim, populate, name, alert, drop, take, rebuild, recognize, supply, mint, generate, accept, configure, set, provision, rotate, disclose, start, run, fire, serialize, resolve, reconcile, refuse, normalize, fold, trim, compare, judge, propagate, cap, truncate, allocate, reuse, pair, make, retry, leave, record, answer, substitute, add, complete, clear, empty, write, advance, repoint, renew, cross, find, confirm, reproduce, establish, match, escalate, close, emit, examine, expose, validate, commit, detect, inject, stamp, derive, deduplicate, model, schedule, adjudicate, purge, unwind, gate, index, anchor, surface, treat, sweep, spend, enroll, verify, suspend, reinstate, belong, elapse, invoke, duplicate, block, govern, identify, decide, reverse, destroy, revoke, enlist, snapshot, size, skip, adopt, yield, release, count, abort, log, prove, weaken, lapse, deactivate, restore, issue, terminate, enumerate, declare, diverge, persist, inspect, digest, proceed, open, continue, append, compute, transition, produce, sample, repair, resume, restart, retake.
 
-Terms › `records`: empty.
+Term records: empty.
 
-Terms › `bounds`: `suspension completion bound` (`suspension_completion_bound`), `completion window` (`completion_window`), `outcome write latency` (`outcome_write_latency`), `closure floor`, `audit horizon` (`audit_trail_retention_policy`), `access retention floor`, `planned set cap` (`planned_set_cap`), `clock offset allowance` (`clock_offset_allowance`), `maximal outcome`.
+Term bounds: `suspension completion bound` (`suspension_completion_bound`), `completion window` (`completion_window`), `outcome write latency` (`outcome_write_latency`), `closure floor`, `audit horizon` (`audit_trail_retention_policy`), `access retention floor`, `planned set cap` (`planned_set_cap`), `clock offset allowance` (`clock_offset_allowance`), `maximal outcome`.
 
-Terms › `cadences`: `reconciliation cadence` (`reconciliation_cadence`), `seal cadence`.
+Term cadences: `reconciliation cadence` (`reconciliation_cadence`), `seal cadence`.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.41 (2026-09-15).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.41 (2026-09-15).
 
-Terms › `value sets`: suspend_actor answers = the suspension result | rejected(invalid-request | invalid-credential(position) | already-suspended | revocation-failure(surface, open_members) | recording-failure(position)). suspension_report answers = the suspension record | rejected(invalid-request). reinstate_actor answers = the reinstatement result | rejected(invalid-request | invalid-credential | already-active(not-suspended state) | recording-failure). `lifecycle state` = active | suspending | suspended. `intent` = actor.suspension_intended | actor.resume_intended | actor.recovery_intended. `outcome` = actor.suspended | actor.reinstated. `surface` = permissions | session | credential. `enumeration availability` = available | unavailable-past-horizon. `already-active` reason = active | suspending. `benign terminal answer` = not-active | already-terminal.
+Term value sets: suspend_actor answers = the suspension result | rejected(invalid-request | invalid-credential(position) | already-suspended | revocation-failure(surface, open_members) | recording-failure(position)). suspension_report answers = the suspension record | rejected(invalid-request). reinstate_actor answers = the reinstatement result | rejected(invalid-request | invalid-credential | already-active(not-suspended state) | recording-failure). `lifecycle state` = active | suspending | suspended. `intent` = actor.suspension_intended | actor.resume_intended | actor.recovery_intended. `outcome` = actor.suspended | actor.reinstated. `surface` = permissions | session | credential. `enumeration availability` = available | unavailable-past-horizon. `already-active` reason = active | suspending. `benign terminal answer` = not-active | already-terminal.
 
-Terms › `terms`: `composition`, `constituents`, `credential arm`, `service identity`, `operator`, `resumer`, `suspension-state index`, `high-water mark`, `suspension log`, `mirrored log entry`, `refusal log entry`, `tail read`, `audit horizon`, `aged-out event`, `rebuild`, `miss`, `aged-out entry`, `aged-out log entry`, `aged-out actor`, `aged-out outcome`, `aged-out open cascade`, `post-snapshot member`, `admitted suspension`, `admitted reinstatement`, `plan`, `revoked set`, `open cascade`, `seam`, `transition`, `unified actor namespace`, `section`, `suspension completion bound`, `completion window`, `closure floor`, `access retention floor`, `planned set cap`, `maximal outcome`, `clock offset allowance`, `blank`, `boundary predicate`, `opaque argument`, `operator reference`, `resume prefix`, `completion prefix`, `intent`, `outcome`, `committing call`, `landed intent`, `append step`, `retention step`, `read-back`, `owed outcome`, `stored active`, `effective active`, `snapshot`, `fresh cascade`, `resume`, `cascade`, `benign terminal answer`, `non-benign refusal`, `open members`, `unresolved members`, `closed plan`, `recovery marker`, `enumeration availability`, `sweep`, `pre-check`, `young intent`, `plan-unavailable marker`, `accounted cascade`, `accounted member`, `escalated finding`, `orphan`, `indeterminate committing call`, `position`, `not-suspended state`.
+Term terms: `composition`, `constituents`, `credential arm`, `service identity`, `operator`, `resumer`, `suspension-state index`, `high-water mark`, `suspension log`, `mirrored log entry`, `refusal log entry`, `tail read`, `audit horizon`, `aged-out event`, `rebuild`, `miss`, `aged-out entry`, `aged-out log entry`, `aged-out actor`, `aged-out outcome`, `aged-out open cascade`, `post-snapshot member`, `admitted suspension`, `admitted reinstatement`, `plan`, `revoked set`, `open cascade`, `seam`, `transition`, `unified actor namespace`, `section`, `suspension completion bound`, `completion window`, `closure floor`, `access retention floor`, `planned set cap`, `maximal outcome`, `clock offset allowance`, `blank`, `boundary predicate`, `opaque argument`, `operator reference`, `resume prefix`, `completion prefix`, `intent`, `outcome`, `committing call`, `landed intent`, `append step`, `retention step`, `read-back`, `owed outcome`, `stored active`, `effective active`, `snapshot`, `fresh cascade`, `resume`, `cascade`, `benign terminal answer`, `non-benign refusal`, `open members`, `unresolved members`, `closed plan`, `recovery marker`, `enumeration availability`, `sweep`, `pre-check`, `young intent`, `plan-unavailable marker`, `accounted cascade`, `accounted member`, `escalated finding`, `orphan`, `indeterminate committing call`, `position`, `not-suspended state`.
 
-Terms › `cited`: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. credential(../atoms/credential.md) — the effective-active reading and the per-pair bound.
+Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. credential(../atoms/credential.md) — the effective-active reading and the per-pair bound.
 
-Terms › `composing patterns`: Actor Registry *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; login(./login.md); authenticated actor(./authenticated-actor.md); multi-party approval(./multi-party-approval.md); permissions(../atoms/permissions.md).
+Term composing patterns: Actor Registry *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; login(./login.md); authenticated actor(./authenticated-actor.md); multi-party approval(./multi-party-approval.md); permissions(../atoms/permissions.md).
 
 #### Suspend Actor
 

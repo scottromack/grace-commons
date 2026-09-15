@@ -57,23 +57,23 @@ Identity 11: The atom MUST confirm that a credential_type names a derivation fun
 Identity 12: The deployment MUST route EVERY call to one store instance.
 ```
 
-Terms › `credential`: the record this atom holds — one principal's binding to one verifier, for one credential type.
+Term credential: the record this atom holds — one principal's binding to one verifier, for one credential type.
 
-Terms › `credential_id`: the opaque value naming one credential — a [Credential Id]; assigned from the id material the seam supplies.
+Term credential_id: the opaque value naming one credential — a [Credential Id]; assigned from the id material the seam supplies.
 
-Terms › `pair`: `principal_ref` and `credential_type` together — the key the effective-active bound ranges over.
+Term pair: `principal_ref` and `credential_type` together — the key the effective-active bound ranges over.
 
-Terms › `property`: `principal_ref` | `credential_type` | `verifier` | `registered_at` | `expires_at` — what a credential carries from registration and never changes.
+Term property: `principal_ref` | `credential_type` | `verifier` | `registered_at` | `expires_at` — what a credential carries from registration and never changes.
 
-Terms › `reference`: `credential_id`, `principal_ref`, `revoked_by_ref` OR `successor_credential_id` — every opaque reference this atom records.
+Term reference: `credential_id`, `principal_ref`, `revoked_by_ref` OR `successor_credential_id` — every opaque reference this atom records.
 
-Terms › `store instance`: one named credential store a call is routed to; `credential_id` uniqueness ranges over one instance.
+Term store instance: one named credential store a call is routed to; `credential_id` uniqueness ranges over one instance.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the id material and the derivation registry here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the id material and the derivation registry here.
 
-Terms › `transition`: the atom's evaluation of one call against the credential store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the credential store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 6 is the one that earns the opaque id. Keying a credential by its pair would fold the whole rotation history into one mutable record, and the chain a PCI auditor walks — *was this rotated inside ninety days* — would become a field that was overwritten rather than a sequence of records that each stand. Separate records with separate ids are what make Invariant 7.1 reconstructable.
@@ -163,7 +163,7 @@ revoke(credential_id, revoked_by_ref, reason)
 read(filter) → the matching credentials
 ```
 
-Terms › `verification failure`: `material-mismatch` | `no-active-credential` — the reasons [Verify] gives for a failed verification.
+Term verification failure: `material-mismatch` | `no-active-credential` — the reasons [Verify] gives for a failed verification.
 
 ```text
 Operation 1: IF principal_ref NOT EXISTS THEN [Register] MUST answer invalid-request.
@@ -225,51 +225,51 @@ NOTE: Operation 56 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 57 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `transitioning write`: [Rotate] | [Revoke] — every call that would take an effective-active credential to a stored terminal, including a refused one.
+Term transitioning write: [Rotate] | [Revoke] — every call that would take an effective-active credential to a stored terminal, including a refused one.
 
-Terms › `stored terminal`: `rotated` | `revoked`.
+Term stored terminal: `rotated` | `revoked`.
 
-Terms › `status`: `active` | `rotated` | `revoked` — the value a credential stores.
+Term status: `active` | `rotated` | `revoked` — the value a credential stores.
 
-Terms › `standing check`: Operation 27, Operation 28 and Operation 29 — every check a transitioning write makes on the credential's own standing before reading the call's arguments.
+Term standing check: Operation 27, Operation 28 and Operation 29 — every check a transitioning write makes on the credential's own standing before reading the call's arguments.
 
-Terms › `standing rejection`: `not-active` | `already-terminal`.
+Term standing rejection: `not-active` | `already-terminal`.
 
-Terms › `well-formedness check`: Operation 1, Operation 2, Operation 3, Operation 4 and Operation 5 — every check [Register] makes on the call's own arguments.
+Term well-formedness check: Operation 1, Operation 2, Operation 3, Operation 4 and Operation 5 — every check [Register] makes on the call's own arguments.
 
-Terms › `window reading`: `live` | `lapsed` — how an active credential's window reads against `now`.
+Term window reading: `live` | `lapsed` — how an active credential's window reads against `now`.
 
-Terms › `live`: the window reading of an active credential whose `expires_at` NOT EXISTS, OR whose `expires_at` exceeds `now`.
+Term live: the window reading of an active credential whose `expires_at` NOT EXISTS, OR whose `expires_at` exceeds `now`.
 
-Terms › `lapsed`: the window reading of an active credential whose `expires_at` EXISTS and does not exceed `now`; the boundary instant — `expires_at` equal to `now` — reads lapsed.
+Term lapsed: the window reading of an active credential whose `expires_at` EXISTS and does not exceed `now`; the boundary instant — `expires_at` equal to `now` — reads lapsed.
 
-Terms › `effective-active credential`: a credential standing in active that reads live — what every bound, guard and lookup in this atom means by *the active credential*.
+Term effective-active credential: a credential standing in active that reads live — what every bound, guard and lookup in this atom means by *the active credential*.
 
-Terms › `lapsed credential`: a credential standing in active that reads lapsed.
+Term lapsed credential: a credential standing in active that reads lapsed.
 
-Terms › `proceeding verify`: a [Verify] call whose pair carries an effective-active credential.
+Term proceeding verify: a [Verify] call whose pair carries an effective-active credential.
 
-Terms › `effective status`: `expired` where the credential reads lapsed, and the stored `status` otherwise — a projection over the credential and `now`, never stored.
+Term effective status: `expired` where the credential reads lapsed, and the stored `status` otherwise — a projection over the credential and `now`, never stored.
 
-Terms › `verifier`: the artifact a derivation function produces from credential material — what this atom stores in place of the material.
+Term verifier: the artifact a derivation function produces from credential material — what this atom stores in place of the material.
 
-Terms › `derivation function`: the deployment's one-way function from material to a `verifier`, declared for one `credential_type`.
+Term derivation function: the deployment's one-way function from material to a `verifier`, declared for one `credential_type`.
 
-Terms › `derivation registry`: the deployment's declared map from a `credential_type` to a `derivation function`; supplied at the seam.
+Term derivation registry: the deployment's declared map from a `credential_type` to a `derivation function`; supplied at the seam.
 
-Terms › `foldable difference`: a difference between two strings that trimming, case-folding OR Unicode normalization would remove.
+Term foldable difference: a difference between two strings that trimming, case-folding OR Unicode normalization would remove.
 
-Terms › `default expires_at`: the `expires_at` the deployment declares for a [Register] carrying none; a deployment declaring no deadline leaves the credential's `expires_at` absent.
+Term default expires_at: the `expires_at` the deployment declares for a [Register] carrying none; a deployment declaring no deadline leaves the credential's `expires_at` absent.
 
-Terms › `terminal field`: `rotated_at` | `successor_credential_id` | `revoked_at` | `revoked_by_ref` | `revocation_reason` — every field a transitioning write records.
+Term terminal field: `rotated_at` | `successor_credential_id` | `revoked_at` | `revoked_by_ref` | `revocation_reason` — every field a transitioning write records.
 
-Terms › `admitted register`: a [Register] call that passes every precondition and whose store write commits.
+Term admitted register: a [Register] call that passes every precondition and whose store write commits.
 
-Terms › `admitted rotate`: a [Rotate] call that passes every precondition and whose store writes commit.
+Term admitted rotate: a [Rotate] call that passes every precondition and whose store writes commit.
 
-Terms › `admitted revoke`: a [Revoke] call that passes every precondition and whose store write commits.
+Term admitted revoke: a [Revoke] call that passes every precondition and whose store write commits.
 
-Terms › `admitted read`: a [Read] call that answers.
+Term admitted read: a [Read] call that answers.
 
 WHY:
 Operation 7, Operation 30, Operation 34 and Operation 46 are the rejection priority, written as guards rather than as an order (GRACE-lang Timing 13). For a transitioning write the effect is `not-known` before the standing rejection before `invalid-request` before `storage-failure`; for [Register] it is `invalid-request` before `duplicate-active-credential` before `storage-failure`.
@@ -348,7 +348,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   Invariant 12.2: An admitted read MUST compute the effective status from the credential's expires_at and now.
   ```
 
-Terms › `resolution instant`: `rotated_at` | `revoked_at`.
+Term resolution instant: `rotated_at` | `revoked_at`.
 
 WHY:
 Invariant 2.1 and Invariant 3.1 together give the *authentication integrity* property — a principal's verify is answered by exactly the credential they registered, only them, and only while it is effective-active. Invariants 4, 5, 11 and 12 give *terminal finality*: the system cannot be raced into verifying against a revoked, rotated or lapsed credential, and expiry achieves it with no stored flag to revert. Invariants 6 and 7 give *rotation auditability* — how a principal's credential evolved is reconstructable without source code or runbooks.
@@ -513,11 +513,11 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
 ```
 
-Terms › `string input`: a reference, `credential_type` OR `reason` — every caller-supplied string this atom accepts beside material.
+Term string input: a reference, `credential_type` OR `reason` — every caller-supplied string this atom accepts beside material.
 
-Terms › `length bound`: the maximum length the deployment declares for a `string input`.
+Term length bound: the maximum length the deployment declares for a `string input`.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness bites hardest on `credential_type`, because that string is half the key Invariant 2.1 ranges over: under a folding comparison `password` and `Password ` would be one type, and under a byte-exact one they are two, so a principal could hold two effective-active credentials that no invariant catches. Identity 11 is what closes it — a type naming no derivation function is refused, so the near-duplicate never reaches the store. Material is exempt from the length bound only insofar as a derivation function declares its own (Capability requirement 14).
@@ -555,25 +555,25 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the deployment; the implementation; the store; the seam; the transition; a composing pattern; a caller; a principal; an auditor; a regulator; an investigator; a reader; a credential; an active credential; an effective-active credential; a lapsed credential; a rotated credential; a revoked credential; a successor credential; a prior credential; an action; a transitioning write; a losing transitioning write; a losing [Register]; a refused action; a refused rotate; a rejection; an answer; a derivation function; an opaque reference; a string input; a filter; the store instance's credential count.
+Term actors: the atom; the deployment; the implementation; the store; the seam; the transition; a composing pattern; a caller; a principal; an auditor; a regulator; an investigator; a reader; a credential; an active credential; an effective-active credential; a lapsed credential; a rotated credential; a revoked credential; a successor credential; a prior credential; an action; a transitioning write; a losing transitioning write; a losing [Register]; a refused action; a refused rotate; a rejection; an answer; a derivation function; an opaque reference; a string input; a filter; the store instance's credential count.
 
-Terms › `records`: `credential` — one principal's binding to one verifier for one credential type, carrying `credential_id`, `principal_ref`, `credential_type`, `verifier`, `registered_at`, a `status` and, where supplied or set, `expires_at`, `rotated_at`, `successor_credential_id`, `revoked_at`, `revoked_by_ref` and `revocation_reason`.
+Term records: `credential` — one principal's binding to one verifier for one credential type, carrying `credential_id`, `principal_ref`, `credential_type`, `verifier`, `registered_at`, a `status` and, where supplied or set, `expires_at`, `rotated_at`, `successor_credential_id`, `revoked_at`, `revoked_by_ref` and `revocation_reason`.
 
-Terms › `record verbs`: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, acknowledge, canonicalize, declare, compose, remove, bind, decide, define, bound, reach, accept, retain, trim, case-fold, compute, reproduce, reconstruct, verify, issue, detect, guarantee, take, derive, expose, store, own, persist, enumerate, distinguish, select, walk, mutate, serialize, rotate, revoke, block, invalidate, migrate, recover, reinterpret, constrain, count, sequence, release, run.
+Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, acknowledge, canonicalize, declare, compose, remove, bind, decide, define, bound, reach, accept, retain, trim, case-fold, compute, reproduce, reconstruct, verify, issue, detect, guarantee, take, derive, expose, store, own, persist, enumerate, distinguish, select, walk, mutate, serialize, rotate, revoke, block, invalidate, migrate, recover, reinterpret, constrain, count, sequence, release, run.
 
-Terms › `value sets`: register answers = credential_id | rejected(invalid-request | duplicate-active-credential | storage-failure). verify answers = verified | failed-verification(verification failure). rotate answers = new_credential_id | rejected(not-known | not-active | invalid-request | storage-failure). revoke answers = revoked | rejected(not-known | already-terminal | invalid-request | storage-failure). read answers = the matching credentials. `status` = active | rotated | revoked. `stored terminal` = rotated | revoked. `standing rejection` = not-active | already-terminal. `window reading` = live | lapsed. `property` = principal_ref | credential_type | verifier | registered_at | expires_at. `terminal field` = rotated_at | successor_credential_id | revoked_at | revoked_by_ref | revocation_reason.
+Term value sets: register answers = credential_id | rejected(invalid-request | duplicate-active-credential | storage-failure). verify answers = verified | failed-verification(verification failure). rotate answers = new_credential_id | rejected(not-known | not-active | invalid-request | storage-failure). revoke answers = revoked | rejected(not-known | already-terminal | invalid-request | storage-failure). read answers = the matching credentials. `status` = active | rotated | revoked. `stored terminal` = rotated | revoked. `standing rejection` = not-active | already-terminal. `window reading` = live | lapsed. `property` = principal_ref | credential_type | verifier | registered_at | expires_at. `terminal field` = rotated_at | successor_credential_id | revoked_at | revoked_by_ref | revocation_reason.
 
-Terms › `bounds`: `default expires_at`, `length bound`.
+Term bounds: `default expires_at`, `length bound`.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `credential`, `credential_id`, `pair`, `property`, `reference`, `store instance`, `seam`, `transition`, `now`, `transitioning write`, `stored terminal`, `status`, `standing check`, `standing rejection`, `well-formedness check`, `window reading`, `live`, `lapsed`, `effective-active credential`, `lapsed credential`, `proceeding verify`, `effective status`, `verifier`, `derivation function`, `derivation registry`, `foldable difference`, `length bound`, `default expires_at`, `terminal field`, `resolution instant`, `admitted register`, `admitted rotate`, `admitted revoke`, `admitted read`, `string input`, `blank`, `verification failure`.
+Term terms: `credential`, `credential_id`, `pair`, `property`, `reference`, `store instance`, `seam`, `transition`, `now`, `transitioning write`, `stored terminal`, `status`, `standing check`, `standing rejection`, `well-formedness check`, `window reading`, `live`, `lapsed`, `effective-active credential`, `lapsed credential`, `proceeding verify`, `effective status`, `verifier`, `derivation function`, `derivation registry`, `foldable difference`, `length bound`, `default expires_at`, `terminal field`, `resolution instant`, `admitted register`, `admitted rotate`, `admitted revoke`, `admitted read`, `string input`, `blank`, `verification failure`.
 
-Terms › `cited`: `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: `execution-contract.md` §Logic confinement — the seam and the transition.
 
-Terms › `composing pattern`: [Party Identity](./party-identity.md), [Session](./session.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Login](../compositions/login.md), [External Onboarding](../compositions/external-onboarding.md), a compromise disclosure pattern.
+Term composing pattern: [Party Identity](./party-identity.md), [Session](./session.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Login](../compositions/login.md), [External Onboarding](../compositions/external-onboarding.md), a compromise disclosure pattern.
 
 #### Register
 

@@ -40,19 +40,19 @@ Identity 7: The atom MUST NOT identify evidence by sealed_at.
 Identity 8: Two seals over one record set MUST carry two evidence_ids.
 ```
 
-Terms › `evidence`: one recorded commitment over a record set — an [Evidence]; carries the proof and nothing that changes.
+Term evidence: one recorded commitment over a record set — an [Evidence]; carries the proof and nothing that changes.
 
-Terms › `evidence_id`: the opaque value naming one evidence — an [Evidence Id].
+Term evidence_id: the opaque value naming one evidence — an [Evidence Id].
 
-Terms › `record_set_ref`: the opaque reference naming what was sealed — a [Record Set Ref]; the host owns what a record set is.
+Term record_set_ref: the opaque reference naming what was sealed — a [Record Set Ref]; the host owns what a record set is.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the evidence_id, the cryptographic material and record set match here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the evidence_id, the cryptographic material and record set match here.
 
-Terms › `transition`: the atom's evaluation of one call against the seal store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the seal store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity by record set would collapse a legitimate re-seal — a stronger mechanism after a deprecation, a second anchor over the same records — into an overwrite, and identity by time would lose two concurrent seals (Identity 6–8). Each evidence is its own audit record, so an auditor reconstructs a record set's integrity history as a sequence of them.
@@ -69,17 +69,17 @@ State 6: The atom MUST NOT offer a deletion surface.
 State 7: The atom MUST NOT offer a revocation surface.
 ```
 
-Terms › `sealed`: the atom's one state — recorded, and nothing further to become.
+Term sealed: the atom's one state — recorded, and nothing further to become.
 
-Terms › `proof`: the artifact the mechanism produced over the record set — a [Proof]: a hash chain, a Merkle root, a signed root, a timestamp token, a blockchain transaction id, or a composite.
+Term proof: the artifact the mechanism produced over the record set — a [Proof]: a hash chain, a Merkle root, a signed root, a timestamp token, a blockchain transaction id, or a composite.
 
-Terms › `sealed_at`: the wall-time instant the evidence was recorded, stamped from the injected now — a [Sealed At].
+Term sealed_at: the wall-time instant the evidence was recorded, stamped from the injected now — a [Sealed At].
 
-Terms › `anchored_at`: the time an external anchor recorded at seal time — an [Anchored At]; absent where the mechanism anchors nothing.
+Term anchored_at: the time an external anchor recorded at seal time — an [Anchored At]; absent where the mechanism anchors nothing.
 
-Terms › `mechanism_credential`: the material the mechanism consumes to produce the proof — a [Mechanism Credential]; keying material for a keyed mechanism, and an empty value — present, carrying nothing — for an unkeyed one. Absent is not empty: Operation 7 refuses the argument that was never supplied, Operation 8 accepts the one supplied with no content.
+Term mechanism_credential: the material the mechanism consumes to produce the proof — a [Mechanism Credential]; keying material for a keyed mechanism, and an empty value — present, carrying nothing — for an unkeyed one. Absent is not empty: Operation 7 refuses the argument that was never supplied, Operation 8 accepts the one supplied with no content.
 
-Terms › `evidence field`: `evidence_id` | `record_set_ref` | `proof` | `sealed_at` | `anchored_at`.
+Term evidence field: `evidence_id` | `record_set_ref` | `proof` | `sealed_at` | `anchored_at`.
 
 WHY:
 One state, no transitions out, no deletion and no revocation: an evidence that could be withdrawn would prove nothing, since the party who wanted the records rewritten is the party who would withdraw it (State 2, State 6, State 7, Invariant 9.1). The credential is consumed and never stored — key storage, rotation and recovery are a separate concept, and an atom that kept the key would be the weakest place in the deployment to keep it (State 5).
@@ -100,9 +100,9 @@ seal(record_set_ref, mechanism_credential) → evidence_id | rejected(invalid-re
 verify(evidence_id, original_record_set) → verified | failed-verification(verification failure) | not-known
 ```
 
-Terms › `mechanism failure reason`: `unreadable-records` | `keying-precondition` | `anchor-unreachable` — the reasons [Seal] gives for a mechanism failure.
+Term mechanism failure reason: `unreadable-records` | `keying-precondition` | `anchor-unreachable` — the reasons [Seal] gives for a mechanism failure.
 
-Terms › `verification failure`: `proof-invalid` | `record-set-mismatch` | `mechanism-verification-unavailable` — the reasons [Verify] gives for a failed verification.
+Term verification failure: `proof-invalid` | `record-set-mismatch` | `mechanism-verification-unavailable` — the reasons [Verify] gives for a failed verification.
 
 ```text
 Operation 1: [Seal] MUST compute the proof over the record set from the mechanism_credential.
@@ -135,13 +135,13 @@ Operation 25: The business caller MUST NOT supply sealed_at.
 Operation 26: The implementation MUST own the mechanism.
 ```
 
-Terms › `record set match`: `yes` | `no` — the host's answer, injected at the seam, to whether the presented original_record_set is the record set the evidence's record_set_ref names. The atom cannot judge it: record_set_ref is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (council read 13).
+Term record set match: `yes` | `no` — the host's answer, injected at the seam, to whether the presented original_record_set is the record set the evidence's record_set_ref names. The atom cannot judge it: record_set_ref is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (council read 13).
 
-Terms › `seal check`: `held` | `failed` | `unavailable` — the mechanism's verification function, run over the presented record set against the recorded proof. Named for the seal because [Actor Identity](./actor-identity.md) declares its own `proof check` over an attestation, and [Audit Trail](../compositions/audit-trail.md) wires both: one name for two judgments is a collision a composition cannot resolve (council read 13).
+Term seal check: `held` | `failed` | `unavailable` — the mechanism's verification function, run over the presented record set against the recorded proof. Named for the seal because [Actor Identity](./actor-identity.md) declares its own `proof check` over an attestation, and [Audit Trail](../compositions/audit-trail.md) wires both: one name for two judgments is a collision a composition cannot resolve (council read 13).
 
-Terms › `original_record_set`: the record set a verifier presents at [Verify] — an [Original Record Set]; the proof commits to content, so the verifier holds the content.
+Term original_record_set: the record set a verifier presents at [Verify] — an [Original Record Set]; the proof commits to content, so the verifier holds the content.
 
-Terms › `verification set`: the evidence's own fields together with the presented original_record_set — and, where the mechanism's verification function consults one, that mechanism's own external anchor; everything [Verify] is allowed to read, and nothing else.
+Term verification set: the evidence's own fields together with the presented original_record_set — and, where the mechanism's verification function consults one, that mechanism's own external anchor; everything [Verify] is allowed to read, and nothing else.
 
 The case space, and the rule that owns each case:
 
@@ -390,21 +390,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an adversary; the mechanism; the seal store; an evidence; a seal; a verification.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an adversary; the mechanism; the seal store; an evidence; a seal; a verification.
 
-Terms › `records`: `evidence` — one commitment, carrying `evidence_id`, `record_set_ref`, `proof`, `sealed_at` and, where the mechanism anchors, `anchored_at`.
+Term records: `evidence` — one commitment, carrying `evidence_id`, `record_set_ref`, `proof`, `sealed_at` and, where the mechanism anchors, `anchored_at`.
 
-Terms › `record verbs`: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, make, cache, declare, renumber, add.
+Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, make, cache, declare, renumber, add.
 
-Terms › `value sets`: seal answers = evidence_id | rejected(invalid-request | mechanism-failure(mechanism failure reason) | storage-failure). verify answers = verified | failed-verification(verification failure) | not-known. `record set match` = yes | no. `seal check` = held | failed | unavailable. `evidence field` = evidence_id | record_set_ref | proof | sealed_at | anchored_at. evidence state = sealed.
+Term value sets: seal answers = evidence_id | rejected(invalid-request | mechanism-failure(mechanism failure reason) | storage-failure). verify answers = verified | failed-verification(verification failure) | not-known. `record set match` = yes | no. `seal check` = held | failed | unavailable. `evidence field` = evidence_id | record_set_ref | proof | sealed_at | anchored_at. evidence state = sealed.
 
-Terms › `bounds`: empty.
+Term bounds: empty.
 
-Terms › `cadences`: empty — a seal cadence is the composing pattern's (Composition note 1).
+Term cadences: empty — a seal cadence is the composing pattern's (Composition note 1).
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `sound` — a mechanism with no known practical collision or forgery attack.
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `sound` — a mechanism with no known practical collision or forgery attack.
 
-Terms › `terms`: `now`, `evidence`, `evidence_id`, `record_set_ref`, `seam`, `transition`, `business caller`, `sealed`, `proof`, `sealed_at`, `anchored_at`, `mechanism_credential`, `evidence field`, `record set match`, `seal check`, `original_record_set`, `mechanism failure reason`, `verification failure`.
+Term terms: `now`, `evidence`, `evidence_id`, `record_set_ref`, `seam`, `transition`, `business caller`, `sealed`, `proof`, `sealed_at`, `anchored_at`, `mechanism_credential`, `evidence field`, `record set match`, `seal check`, `original_record_set`, `mechanism failure reason`, `verification failure`.
 
 #### Evidence
 

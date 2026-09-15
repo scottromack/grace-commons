@@ -58,17 +58,17 @@ Identity 11: The atom MUST NOT interpret a principal_ref.
 Identity 12: The atom MUST NOT confirm that a principal_ref names an authenticated principal.
 ```
 
-Terms › `session`: one bounded-lifetime attestation that a principal completed authentication — a [Session], the record this atom holds.
+Term session: one bounded-lifetime attestation that a principal completed authentication — a [Session], the record this atom holds.
 
-Terms › `session_token`: the opaque value naming one session — a [Session Token]; unguessable, host-allocated at the seam, and the capability [Validate] and [Revoke] accept.
+Term session_token: the opaque value naming one session — a [Session Token]; unguessable, host-allocated at the seam, and the capability [Validate] and [Revoke] accept.
 
-Terms › `principal_ref`: the opaque reference naming the authenticated principal — a [Principal Ref].
+Term principal_ref: the opaque reference naming the authenticated principal — a [Principal Ref].
 
-Terms › `issued_by_ref`: the opaque reference naming the mechanism that issued the session — an [Issued By Ref].
+Term issued_by_ref: the opaque reference naming the mechanism that issued the session — an [Issued By Ref].
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the session_token and the token's random material here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the session_token and the token's random material here.
 
-Terms › `transition`: the atom's evaluation of one call against the session store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the session store, as `execution-contract.md` §Logic confinement declares it.
 
 WHY:
 The token is both identity and bearer credential, and that is deliberate rather than a shortcut: it is how session systems actually work — the cookie *is* the session identifier — and it makes [Validate] a lookup rather than a join. A separate opaque id beside the token would add indirection and buy nothing at this atom's scope (Identity 7).
@@ -94,7 +94,7 @@ State 13: The atom MUST NOT hold a device context.
 State 14: The atom MUST NOT hold a concurrency bound per principal_ref.
 ```
 
-Terms › `status`: `active` | `revoked` — the stored status; in force, or cancelled and terminal. `expired` is not a value of it.
+Term status: `active` | `revoked` — the stored status; in force, or cancelled and terminal. `expired` is not a value of it.
 
 WHY:
 The stored state space is two values because lapsing needs no third. [Expired] is a *read projection*, so the store holds what was decided and derives what the clock decides (State 1, State 8, Expiry 1–5). That is what removes the stored-flag-that-lags-the-clock failure mode `pressure-testing.md` §Formal-model authoring pitfalls names.
@@ -143,9 +143,9 @@ NOTE: Clock semantics 7 deleted — Non-goal 26 owns it.
 WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
-Terms › `default session duration`: the window [Issue] applies where the call supplies no `session_duration`; deployment configuration, and its absence is a misconfiguration rather than an operating state.
+Term default session duration: the window [Issue] applies where the call supplies no `session_duration`; deployment configuration, and its absence is a misconfiguration rather than an operating state.
 
-Terms › `token entropy`: 128 bits of cryptographically secure random material — the floor a `session_token` is drawn from, sufficient for negligible collision probability and for unguessability.
+Term token entropy: 128 bits of cryptographically secure random material — the floor a `session_token` is drawn from, sufficient for negligible collision probability and for unguessability.
 
 WHY:
 A session store with no duration policy is a misconfigured deployment, not a store that issues unbounded sessions — so the absence is a refusal at [Issue] rather than a silent default of forever (Capability requirement 2, Operation 48, Invariant 10).
@@ -166,7 +166,7 @@ revoke(session_token, revoked_by_ref, reason) → revoked | rejected(invalid-req
 read(filter) → session_records
 ```
 
-Terms › `validation failure`: `expired` | `revoked` | `not-known` — the reasons [Validate] gives for an invalid session.
+Term validation failure: `expired` | `revoked` | `not-known` — the reasons [Validate] gives for an invalid session.
 
 ```text
 Operation 1: [Issue] MUST record EXACTLY ONE session per successful call.
@@ -220,35 +220,35 @@ Operation 48: IF the default session duration NOT EXISTS THEN [Issue] MUST answe
 Operation 49: The transition MUST NOT generate the session_token's random material.
 ```
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `session_duration`: the window a [Issue] call asks for — a [Session Duration]; consumed to compute the expiry deadline, never stored under this name.
+Term session_duration: the window a [Issue] call asks for — a [Session Duration]; consumed to compute the expiry deadline, never stored under this name.
 
-Terms › `zero duration`: a duration of no length — the floor a `session_duration` must exceed, which refuses zero and every negative value.
+Term zero duration: a duration of no length — the floor a `session_duration` must exceed, which refuses zero and every negative value.
 
-Terms › `issued_at`: the instant the session was recorded — an [Issued At].
+Term issued_at: the instant the session was recorded — an [Issued At].
 
-Terms › `expiry deadline`: `issued_at + session_duration` — what [Issue] stores as `expires_at`, computed once at issue.
+Term expiry deadline: `issued_at + session_duration` — what [Issue] stores as `expires_at`, computed once at issue.
 
-Terms › `expires_at`: the instant the session's validity ends — an [Expires At]; stamped at issue, never changed, never absent.
+Term expires_at: the instant the session's validity ends — an [Expires At]; stamped at issue, never changed, never absent.
 
-Terms › `lapsed`: the session stands in `active` and `now` is no earlier than the session's `expires_at` — the condition [Validate] derives and never stamps.
+Term lapsed: the session stands in `active` and `now` is no earlier than the session's `expires_at` — the condition [Validate] derives and never stamps.
 
-Terms › `effective_status`: `expired` where the session is lapsed, and the stored status otherwise — an [Effective Status]; a pure projection over the session and `now`, never stored.
+Term effective_status: `expired` where the session is lapsed, and the stored status otherwise — an [Effective Status]; a pure projection over the session and `now`, never stored.
 
-Terms › `revoked_at`: the instant the session was cancelled — a [Revoked At].
+Term revoked_at: the instant the session was cancelled — a [Revoked At].
 
-Terms › `revoked_by_ref`: the opaque reference naming the actor that cancelled the session — a [Revoked By Ref].
+Term revoked_by_ref: the opaque reference naming the actor that cancelled the session — a [Revoked By Ref].
 
-Terms › `revocation_reason`: the stated ground for the cancellation — a [Revocation Reason], carried from the call's [Reason].
+Term revocation_reason: the stated ground for the cancellation — a [Revocation Reason], carried from the call's [Reason].
 
-Terms › `reason`: the [Revoke] argument the session keeps as `revocation_reason` — a [Reason].
+Term reason: the [Revoke] argument the session keeps as `revocation_reason` — a [Reason].
 
-Terms › `filter`: the selection a [Read] call scopes the answer by — a [Filter]; consumed per call, never stored.
+Term filter: the selection a [Read] call scopes the answer by — a [Filter]; consumed per call, never stored.
 
-Terms › `liveness query`: any query for the sessions in force — the administrative surfaces, and the auditor's reconstruction.
+Term liveness query: any query for the sessions in force — the administrative surfaces, and the auditor's reconstruction.
 
 The case space, and the rule that owns each case:
 
@@ -486,13 +486,13 @@ String 7: IF a string input EXCEEDS the maximum length THEN the action MUST answ
 String 8: The deployment MUST canonicalize an opaque reference.
 ```
 
-Terms › `verified answer`: the `verified` outcome [Credential](./credential.md)'s verification produces; cited from that atom, never restated here (Closed vocabulary 15).
+Term verified answer: the `verified` outcome [Credential](./credential.md)'s verification produces; cited from that atom, never restated here (Closed vocabulary 15).
 
-Terms › `invalid answer`: [Validate]'s answer standing in `expired`, `revoked` OR `not-known` — every answer outside `valid`.
+Term invalid answer: [Validate]'s answer standing in `expired`, `revoked` OR `not-known` — every answer outside `valid`.
 
-Terms › `authentication credential`: the material a principal presents to prove identity, as [Credential](./credential.md) declares it; distinct from the `session_token`, which is the bearer credential this atom's own [Validate] accepts (Identity 2).
+Term authentication credential: the material a principal presents to prove identity, as [Credential](./credential.md) declares it; distinct from the `session_token`, which is the bearer credential this atom's own [Validate] accepts (Identity 2).
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness means callers own canonicalization: two references differing only in case or normalization form are two distinct principals to this atom, and nothing here will reconcile them (String 1, String 8).
@@ -504,7 +504,7 @@ Token format 1: A claim set token's expiry claim MUST NOT differ from the sessio
 Token format 2: A deployment extending a claim set token MUST call [Issue].
 ```
 
-Terms › `claim set token`: a `session_token` whose format carries its own expiry claim — a JWT (JSON Web Token — a compact, signed token format carrying claims), for instance.
+Term claim set token: a `session_token` whose format carries its own expiry claim — a JWT (JSON Web Token — a compact, signed token format carrying claims), for instance.
 
 WHY:
 The format is the deployment's (Capability requirement 5, Non-goal 16), but one constraint survives the choice: where the token carries its own expiry, this atom's immutability takes precedence over the format's native extension claims. A claim set that disagrees with the record is a second authority for when validity ends, and the record is the authority (Invariant 2.1).
@@ -538,21 +538,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a principal; an auditor; the store; a session; a status; a lapse; a liveness query; a rejection; a write; an action; a string input; an opaque reference; the session count; the session_token's random material.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a principal; an auditor; the store; a session; a status; a lapse; a liveness query; a rejection; a write; an action; a string input; an opaque reference; the session count; the session_token's random material.
 
-Terms › `records`: `session` — one bounded-lifetime attestation, carrying `session_token`, `principal_ref`, `issued_by_ref`, `issued_at`, `expires_at`, `status` and, once cancelled, `revoked_at`, `revoked_by_ref` and `revocation_reason`.
+Term records: `session` — one bounded-lifetime attestation, carrying `session_token`, `principal_ref`, `issued_by_ref`, `issued_at`, `expires_at`, `status` and, once cancelled, `revoked_at`, `revoked_by_ref` and `revocation_reason`.
 
-Terms › `record verbs`: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, commit, leave, rest, remove, merge, return, reach, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, exceed, differ, give, reduce, detect, canonicalize, reconcile, serialize, declare.
+Term record verbs: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, commit, leave, rest, remove, merge, return, reach, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, exceed, differ, give, reduce, detect, canonicalize, reconcile, serialize, declare.
 
-Terms › `value sets`: issue answers = session_token | rejected(invalid-request | storage-failure). validate answers = valid(principal_ref, expires_at) | invalid(validation failure). revoke answers = revoked | rejected(invalid-request | already-terminal | not-known | storage-failure). read answers = the matching sessions, each carrying its `effective_status`. `status` = active | revoked.
+Term value sets: issue answers = session_token | rejected(invalid-request | storage-failure). validate answers = valid(principal_ref, expires_at) | invalid(validation failure). revoke answers = revoked | rejected(invalid-request | already-terminal | not-known | storage-failure). read answers = the matching sessions, each carrying its `effective_status`. `status` = active | revoked.
 
-Terms › `bounds`: `token entropy` (the floor a session_token's random material is drawn from); `default session duration` (the window [Issue] applies where the call supplies none); `zero duration` (the floor a session_duration must exceed); `maximum length` (the deployment's cap per string input).
+Term bounds: `token entropy` (the floor a session_token's random material is drawn from); `default session duration` (the window [Issue] applies where the call supplies none); `zero duration` (the floor a session_duration must exceed); `maximum length` (the deployment's cap per string input).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `session`, `session_token`, `principal_ref`, `issued_by_ref`, `seam`, `transition`, `default session duration`, `token entropy`, `now`, `business caller`, `session_duration`, `zero duration`, `issued_at`, `expiry deadline`, `expires_at`, `lapsed`, `effective_status`, `revoked_at`, `revoked_by_ref`, `revocation_reason`, `reason`, `filter`, `liveness query`, `status`, `blank`, `maximum length`, `validation failure`.
+Term terms: `session`, `session_token`, `principal_ref`, `issued_by_ref`, `seam`, `transition`, `default session duration`, `token entropy`, `now`, `business caller`, `session_duration`, `zero duration`, `issued_at`, `expiry deadline`, `expires_at`, `lapsed`, `effective_status`, `revoked_at`, `revoked_by_ref`, `revocation_reason`, `reason`, `filter`, `liveness query`, `status`, `blank`, `maximum length`, `validation failure`.
 
 #### Session
 

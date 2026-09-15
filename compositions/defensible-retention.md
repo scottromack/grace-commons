@@ -68,13 +68,13 @@ Composes 17: The composition MUST NOT attest a sweep's audit record under a call
 Composes 18: The composition MUST NOT supply the injected now to a constituent.
 ```
 
-Terms › `composition`: this pattern's wiring of legal hold(../atoms/legal-hold.md), retention window(../atoms/retention-window.md) and the audit trail(./audit-trail.md) substrate — the five actions, the hold gate, the two indexes and the sweep.
+Term composition: this pattern's wiring of legal hold(../atoms/legal-hold.md), retention window(../atoms/retention-window.md) and the audit trail(./audit-trail.md) substrate — the five actions, the hold gate, the two indexes and the sweep.
 
-Terms › `constituents`: legal hold(../atoms/legal-hold.md), retention window(../atoms/retention-window.md), audit trail(./audit-trail.md).
+Term constituents: legal hold(../atoms/legal-hold.md), retention window(../atoms/retention-window.md), audit trail(./audit-trail.md).
 
-Terms › `business retention instance`: the one retention window(../atoms/retention-window.md) instance this composition wires over business records — distinct from the instance audit trail(./audit-trail.md) carries for the substrate's own events.
+Term business retention instance: the one retention window(../atoms/retention-window.md) instance this composition wires over business records — distinct from the instance audit trail(./audit-trail.md) carries for the substrate's own events.
 
-Terms › `service identity`: `application_actor_ref` and `application_credential` — the composition's own registered actor and credential, and the attested emitter of every record the sweep writes.
+Term service identity: `application_actor_ref` and `application_credential` — the composition's own registered actor and credential, and the attested emitter of every record the sweep writes.
 
 WHY:
 Composes 6 and Composes 7 name the substrate relation. audit trail(./audit-trail.md) is a composition, not an atom, so Event Log, Actor Identity, Tamper Evidence and the audit instance's own Retention Window are reached *through* it and this composition holds no instance of any of them — `execution-contract.md` §Substrate composition invocation is what makes that a declared topology rather than an accident. Composes 8 is the one place the corpus's *declared multi-instance topology* clause bites twice in one spec: two Retention Window instances exist here, one governing business records and one governing the audit events that record their governance, and the whole of this composition's evidence story turns on which of the two a sentence means.
@@ -124,21 +124,21 @@ Composition state 31: A record MAY carry no hold.
 Composition state 32: A hold MUST NOT rest on a retention.
 ```
 
-Terms › `record-to-retentions index`: `record_to_retentions` — the composition's index from a `record_ref` to the retentions standing retained over the record — the auditor's first query surface and a read-path convenience, never the gate's input.
+Term record-to-retentions index: `record_to_retentions` — the composition's index from a `record_ref` to the retentions standing retained over the record — the auditor's first query surface and a read-path convenience, never the gate's input.
 
-Terms › `retention-to-record index`: `retention_to_record` — the composition's index from a `retention_id` to the record the retention covers, with the retention's `retention_until` and `purge_deadline` read back from Retention Window's declared Outputs.
+Term retention-to-record index: `retention_to_record` — the composition's index from a `retention_id` to the record the retention covers, with the retention's `retention_until` and `purge_deadline` read back from Retention Window's declared Outputs.
 
-Terms › `audit horizon`: the age past which the audit instance has destroyed an event's payload, set by the instance's `audit_trail_retention_policy`.
+Term audit horizon: the age past which the audit instance has destroyed an event's payload, set by the instance's `audit_trail_retention_policy`.
 
-Terms › `surviving placement event`: a `retention_placed` event whose payload the audit instance has not destroyed.
+Term surviving placement event: a `retention_placed` event whose payload the audit instance has not destroyed.
 
-Terms › `purged placement event`: a `retention_placed` event whose payload the audit instance has destroyed.
+Term purged placement event: a `retention_placed` event whose payload the audit instance has destroyed.
 
-Terms › `rebuild`: the composition's named regeneration of an index — select this composition's placement events over an open-ended sequence range, take a surviving event's `record_ref` and `retention_id`, read Retention Window's store for an entry a purged placement event covers, and drop every retention the store reports purged.
+Term rebuild: the composition's named regeneration of an index — select this composition's placement events over an open-ended sequence range, take a surviving event's `record_ref` and `retention_id`, read Retention Window's store for an entry a purged placement event covers, and drop every retention the store reports purged.
 
-Terms › `sibling set`: the retentions standing retained over one record beside the named retention, read from Retention Window's store.
+Term sibling set: the retentions standing retained over one record beside the named retention, read from Retention Window's store.
 
-Terms › `pending sibling`: a sibling set member whose own purge has not landed.
+Term pending sibling: a sibling set member whose own purge has not landed.
 
 WHY:
 The two indexes carry no truth of their own, and the rebuild is what makes that claim checkable rather than asserted. Every fact either holds lives in a constituent: the `{record_ref, retention_id}` binding is immutable audit content on a `retention_placed` event **and** a field of Retention Window's own retention record, and `retention_until` and `purge_deadline` are that record's declared Outputs.
@@ -192,18 +192,18 @@ Capability requirement 35: A deployment MUST serialize a hold placement and a pu
 Capability requirement 36: The deployment MUST declare the clock offset allowance.
 ```
 
-Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one `invocation_id` here.
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one `invocation_id` here.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `evidence floor`: the longest retention policy in use on the business retention instance taken with the longest hold the deployment admits — what `audit_trail_retention_policy` must outlast — the age a placement event's payload must survive to.
+Term evidence floor: the longest retention policy in use on the business retention instance taken with the longest hold the deployment admits — what `audit_trail_retention_policy` must outlast — the age a placement event's payload must survive to.
 
-Terms › `closure floor`: the retention completion bound taken with the `reconciliation_cadence` and the audit write latency — the longest interval in which the sweep can close an open marker.
+Term closure floor: the retention completion bound taken with the `reconciliation_cadence` and the audit write latency — the longest interval in which the sweep can close an open marker.
 
-Terms › `retention completion bound`: `retention_completion_bound` — the deployment's declared maximum duration between an invocation's intent record and the invocation's outcome record, read against the injected now the intent carries.
+Term retention completion bound: `retention_completion_bound` — the deployment's declared maximum duration between an invocation's intent record and the invocation's outcome record, read against the injected now the intent carries.
 
-Terms › `hold check mode`: `hold_check_mode` — `strict` | `advisory`.
+Term hold check mode: `hold_check_mode` — `strict` | `advisory`.
 
 WHY:
 Capability requirement 11 is the ordering the whole evidence story rests on, and it is an obligation rather than the advice an earlier revision gave. The audit trail is not only the proof that a destruction was lawful; it is the **rebuild source** for the `record_ref` binding, so an audit horizon shorter than a live business retention destroys the placement evidence of exactly the long retention the gate exists to honour, and destroys it *before* that retention elapses. That is the shorter-versus-longer failure `Invariant 9` forbids, reappearing one layer up in the records. The floor is stated over **record lifetime and not policy duration**, because a hold suspends purge indefinitely while the events proving the hold die at an age measured from their own `recorded_at` — which is why Capability requirement 12 and Capability requirement 13 exist at all, and why a deployment that cannot bound its holds owes the audit-side gate this composition declines to wire (`Non-goal 20` through `Non-goal 23`).
@@ -243,11 +243,11 @@ Primitive policy 21: A truncated hold id list MUST carry the list's true count.
 Primitive policy 22: The composition MUST NOT read a truncated hold id list as an empty hold check result.
 ```
 
-Terms › `blank`: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
-Terms › `boundary predicate`: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
+Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
 
-Terms › `opaque argument`: `record_ref` | `policy_ref` | `actor_ref` | `placed_by` | `released_by` | `hold_id` | `retention_id` | `case_ref`.
+Term opaque argument: `record_ref` | `policy_ref` | `actor_ref` | `placed_by` | `released_by` | `hold_id` | `retention_id` | `case_ref`.
 
 WHY:
 Primitive policy 14 and Primitive policy 15 are why a substrate `invalid-request` over a payload is a deployment fault here and never a live arm. The composition sizes the **largest** record an invocation can write — the outcome, not the intent, and the compensation record a sweep would write for it, which is larger than either because it carries the acting human and the candidate list besides. Sizing the intent alone is the failure mode the corpus names: the intent fits, the constituent commits, and the outcome that would bind it cannot be written. The set-valued fields resolve to the same bound rather than to caps of their own — the sibling set is enumerated before the outcome is sized, and the hold id list is truncated with its count carried (Primitive policy 20, Primitive policy 21).
@@ -290,9 +290,9 @@ Audit arm 14: The composition MUST alert on an invalid-request answer.
 Audit arm 15: The composition MUST NOT retry an invalid-request answer in a loop.
 ```
 
-Terms › `landed record`: an audit record the substrate has appended and attested, whatever the substrate then answered.
+Term landed record: an audit record the substrate has appended and attested, whatever the substrate then answered.
 
-Terms › `owed record`: an audit record this composition must write and the substrate has not appended.
+Term owed record: an audit record this composition must write and the substrate has not appended.
 
 WHY:
 One arm rule per answer the substrate can give, stated once and cited at every `record_action` site, because a site claiming an arm unreachable would be wrong about this substrate. The steps are audit trail(./audit-trail.md)'s own: `record_action` fails at step 2 with nothing committed, at step 3 with an orphan attestation, and at step 4 with **the event already appended** — so the three arms are not one arm, and a composition that retried them alike would append a second destruction record under the failure the retry was written for.
@@ -351,7 +351,7 @@ purge_record(retention_id, actor_ref, credential) →
     )
 ```
 
-Terms › `position`: `intent` | `outcome` — the record a write lands: the intent or the outcome.
+Term position: `intent` | `outcome` — the record a write lands: the intent or the outcome.
 
 ```text
 Action wiring 1: The composition MUST NOT record an intent BEFORE the boundary predicate passes.
@@ -431,33 +431,33 @@ NOTE: Action wiring 46 deleted — Composition state 19 owns it.
 NOTE: Action wiring 51 deleted — Invariant 1.3 owns it.
 ```
 
-Terms › `intent`: the `record_action` call naming what an invocation is about to do, written before any committing call — `retention_placement_intended` | `hold_placement_intended` | `hold_release_intended` | `purge_intended`.
+Term intent: the `record_action` call naming what an invocation is about to do, written before any committing call — `retention_placement_intended` | `hold_placement_intended` | `hold_release_intended` | `purge_intended`.
 
-Terms › `outcome`: the `record_action` call naming what an invocation did — `retention_placed` | `hold_placed` | `hold_released` | `record_purged`.
+Term outcome: the `record_action` call naming what an invocation did — `retention_placed` | `hold_placed` | `hold_released` | `record_purged`.
 
-Terms › `gate record`: the `purge_blocked_by_hold` record a strict-mode refusal writes at the gate — a self-standing record, neither an intent nor an outcome.
+Term gate record: the `purge_blocked_by_hold` record a strict-mode refusal writes at the gate — a self-standing record, neither an intent nor an outcome.
 
-Terms › `committing call`: `RetentionWindow.place_under_retention` | `RetentionWindow.purge` | `LegalHold.place` | `LegalHold.release` — a constituent call that writes outside the audit instance.
+Term committing call: `RetentionWindow.place_under_retention` | `RetentionWindow.purge` | `LegalHold.place` | `LegalHold.release` — a constituent call that writes outside the audit instance.
 
-Terms › `admitted placement`: a [Place Record Under Retention] call whose boundary predicate passed and whose intent landed.
+Term admitted placement: a [Place Record Under Retention] call whose boundary predicate passed and whose intent landed.
 
-Terms › `admitted hold placement`: a [Place Hold] call whose boundary predicate passed and whose intent landed.
+Term admitted hold placement: a [Place Hold] call whose boundary predicate passed and whose intent landed.
 
-Terms › `admitted hold release`: a [Release Hold] call whose boundary predicate passed, whose named hold stands active and whose intent landed.
+Term admitted hold release: a [Release Hold] call whose boundary predicate passed, whose named hold stands active and whose intent landed.
 
-Terms › `admitted purge`: a [Purge Record] call whose boundary predicate passed, whose sibling set carries no retention outside elapsed retention, whose hold check admitted the destruction and whose intent landed.
+Term admitted purge: a [Purge Record] call whose boundary predicate passed, whose sibling set carries no retention outside elapsed retention, whose hold check admitted the destruction and whose intent landed.
 
-Terms › `elapsed retention`: a retention whose `retention_until` does not exceed the injected now — the eligibility predicate, derived at read time and never stored.
+Term elapsed retention: a retention whose `retention_until` does not exceed the injected now — the eligibility predicate, derived at read time and never stored.
 
-Terms › `hold check result`: what Legal Hold's read answered at the gate — `empty`, or the blocking hold ids with the blocking count.
+Term hold check result: what Legal Hold's read answered at the gate — `empty`, or the blocking hold ids with the blocking count.
 
-Terms › `hold override`: the marker a record purged outcome carries when the hold check result stands non-empty under advisory mode, and only then.
+Term hold override: the marker a record purged outcome carries when the hold check result stands non-empty under advisory mode, and only then.
 
-Terms › `unavailable sentinel`: `unavailable` — the one non-integer value a hold count admits — what [Purge Eligible] answers for a retention whose hold store could not be read, and what a reader treats as hold-blocked rather than as zero.
+Term unavailable sentinel: `unavailable` — the one non-integer value a hold count admits — what [Purge Eligible] answers for a retention whose hold store could not be read, and what a reader treats as hold-blocked rather than as zero.
 
-Terms › `purged retention ids`: the named retention and every sibling set member a record purged outcome names, each marked purged or pending.
+Term purged retention ids: the named retention and every sibling set member a record purged outcome names, each marked purged or pending.
 
-Terms › `sweep`: the reconciliation leg `Reconciliation 1` through `Reconciliation 24` state.
+Term sweep: the reconciliation leg `Reconciliation 1` through `Reconciliation 24` state.
 
 WHY:
 Action wiring 1 and Action wiring 2 are the whole authentication story, and they are two rules rather than one because they order three things, not two. The commit-free checks come first — a malformed argument, an unknown id, a released hold, a live sibling, an unreadable hold store — so a premature call leaves nothing in the trail at all. The intent comes next, and it is where the caller's credential is verified, because the substrate validates it inside `record_action` against the registry's material for the supplied actor. The committing call comes last. An `invalid-credential` is therefore always a pre-state refusal with nothing committed and nothing destroyed, which is `Invariant 10`, and the intent is simultaneously the recovery marker `Reconciliation 5` reads.
@@ -531,17 +531,17 @@ Reconciliation 26: The sweep MUST NOT emit a datum no constituent store carries.
 Reconciliation 27: IF a constituent store carries no datum a recovery outcome needs THEN the sweep MUST close the open marker as intent_abandoned.
 ```
 
-Terms › `open marker`: an intent carrying no outcome under the intent's own `invocation_id` — an invocation that committed nothing, committed and failed to record, or died between the two.
+Term open marker: an intent carrying no outcome under the intent's own `invocation_id` — an invocation that committed nothing, committed and failed to record, or died between the two.
 
-Terms › `young marker`: an open marker whose `intended_at` stands within the retention completion bound of the injected now.
+Term young marker: an open marker whose `intended_at` stands within the retention completion bound of the injected now.
 
-Terms › `aged-out event`: an event whose age exceeds the audit horizon.
+Term aged-out event: an event whose age exceeds the audit horizon.
 
-Terms › `recovery intent`: the `retention.recovery_intended` record the sweep writes before a leg commits or re-emits, naming the leg and the plan.
+Term recovery intent: the `retention.recovery_intended` record the sweep writes before a leg commits or re-emits, naming the leg and the plan.
 
-Terms › `recovery marker`: the marker a recovery outcome carries so a reader tells a clean act from a recovered one.
+Term recovery marker: the marker a recovery outcome carries so a reader tells a clean act from a recovered one.
 
-Terms › `recovery outcome`: the outcome the sweep emits for a committed act whose own invocation did not record one.
+Term recovery outcome: the outcome the sweep emits for a committed act whose own invocation did not record one.
 
 WHY:
 The sweep is four comparisons and two edges. **Intent against outcome** is the general one: an intent with no outcome names an invocation whose fate the records do not yet state, and the sweep decides it from durable constituent state rather than from anything the dead invocation remembered. **Retention against trail**, **hold against trail** and **pending sibling against store** are the three particular ones, and only the last commits anything — which is why it alone is preceded by a recovery intent as well as attested under the service identity.
@@ -856,19 +856,19 @@ Clock semantics 16: The gate MUST NOT read a clock.
 NOTE: Clock semantics 17 deleted — Capability requirement 36 owns it.
 ```
 
-Terms › `clock offset allowance`: `clock_offset_allowance` — the deployment's declared envelope between two seams' readings of one request — what a reader allows before reading a divergence as a clock finding.
+Term clock offset allowance: `clock_offset_allowance` — the deployment's declared envelope between two seams' readings of one request — what a reader allows before reading a divergence as a clock finding.
 
-Terms › `constituent commit`: the instant a committing call's write lands in the constituent's own store.
+Term constituent commit: the instant a committing call's write lands in the constituent's own store.
 
-Terms › `gate read`: the composition's read of a record's active holds at [Purge Record], taken before any destruction.
+Term gate read: the composition's read of a record's active holds at [Purge Record], taken before any destruction.
 
-Terms › `seal coverage`: the point at which the substrate's seal cadence covers an event.
+Term seal coverage: the point at which the substrate's seal cadence covers an event.
 
-Terms › `yielded invocation`: an invocation whose age exceeds the retention completion bound — past which the invocation stops retrying and the owed record is the sweep's.
+Term yielded invocation: an invocation whose age exceeds the retention completion bound — past which the invocation stops retrying and the owed record is the sweep's.
 
-Terms › `post-destruction hold`: a hold whose `hold_placed` outcome sits later in the log than the destroyed record's own destruction record.
+Term post-destruction hold: a hold whose `hold_placed` outcome sits later in the log than the destroyed record's own destruction record.
 
-Terms › `late hold`: a hold placed later than the gate read of an invocation destroying the record.
+Term late hold: a hold placed later than the gate read of an invocation destroying the record.
 
 WHY:
 Action wiring 8, Action wiring 60, Clock semantics 4 and Clock semantics 5 enumerate every use this layer makes of the injected reading, across all five actions, because an earlier revision announced three purposes and listed two. One reading serves all four: the intent's stamp, the destruction's stamp, the named retention's eligibility and every sibling's. Clock semantics 16 is the fifth thing a reader expects and does not find — the gate consults the hold store's current state and no timestamp at all.
@@ -922,27 +922,27 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the composition; a deployment; the host; the transition; the seam; the sweep; a caller; an auditor; a reader; an implementation; an invocation; an action; an intent; an outcome; a gate record; an open marker; a young marker; a recovery intent; the gate; the rebuild; an index; the record-to-retentions index; the retention-to-record index; a record; a retention; a sibling; a pending sibling; a hold; a hold check result; a hold count; a placement; a hold placement; a hold release; a purge; a release; a destruction; a committing call; a landed record; an owed record; an aged-out event; a surviving placement event; a purged placement event; a field cap; the evidence floor; the closure floor; the audit horizon; a policy; Legal Hold; Retention Window; Audit Trail; Event Log; a presenter; a presentation; a hold id list; a truncated hold id list; a divergence; two sweeps; a renamed record.
+Term actors: the composition; a deployment; the host; the transition; the seam; the sweep; a caller; an auditor; a reader; an implementation; an invocation; an action; an intent; an outcome; a gate record; an open marker; a young marker; a recovery intent; the gate; the rebuild; an index; the record-to-retentions index; the retention-to-record index; a record; a retention; a sibling; a pending sibling; a hold; a hold check result; a hold count; a placement; a hold placement; a hold release; a purge; a release; a destruction; a committing call; a landed record; an owed record; an aged-out event; a surviving placement event; a purged placement event; a field cap; the evidence floor; the closure floor; the audit horizon; a policy; Legal Hold; Retention Window; Audit Trail; Event Log; a presenter; a presentation; a hold id list; a truncated hold id list; a divergence; two sweeps; a renamed record.
 
-Terms › `record verbs`: serve, change, inherit, read, hold, reach, call, gate, select, query, attest, govern, store, add, remove, leave, stand, rest, admit, drop, report, agree, cover, name, carry, claim, supply, mint, accept, configure, declare, wire, set, provision, rotate, disclose, start, run, resolve, reconcile, serialize, answer, judge, size, compare, normalize, truncate, fold, trim, discharge, place, canonicalize, retry, alert, record, make, pass, write, order, refuse, own, destroy, intercept, compose, release, match, close, emit, escalate, examine, derive, follow, decide, purge, validate, bind, resist, find, join, reconstruct, clear, act, surface, keep, adjudicate, verify, stamp, block, commit, reverse, mark, need.
+Term record verbs: serve, change, inherit, read, hold, reach, call, gate, select, query, attest, govern, store, add, remove, leave, stand, rest, admit, drop, report, agree, cover, name, carry, claim, supply, mint, accept, configure, declare, wire, set, provision, rotate, disclose, start, run, resolve, reconcile, serialize, answer, judge, size, compare, normalize, truncate, fold, trim, discharge, place, canonicalize, retry, alert, record, make, pass, write, order, refuse, own, destroy, intercept, compose, release, match, close, emit, escalate, examine, derive, follow, decide, purge, validate, bind, resist, find, join, reconstruct, clear, act, surface, keep, adjudicate, verify, stamp, block, commit, reverse, mark, need.
 
-Terms › `records`: empty.
+Term records: empty.
 
-Terms › `bounds`: `retention completion bound` (`retention_completion_bound`), `compensation window` (`compensation_window`), `audit horizon` (`audit_trail_retention_policy`), `evidence floor`, `closure floor`, `clock offset allowance` (`clock_offset_allowance`), `field cap`, `hold ids cap` (`hold_ids_cap`), `audit write latency`.
+Term bounds: `retention completion bound` (`retention_completion_bound`), `compensation window` (`compensation_window`), `audit horizon` (`audit_trail_retention_policy`), `evidence floor`, `closure floor`, `clock offset allowance` (`clock_offset_allowance`), `field cap`, `hold ids cap` (`hold_ids_cap`), `audit write latency`.
 
-Terms › `cadences`: `reconciliation cadence` (`reconciliation_cadence`), `seal cadence`.
+Term cadences: `reconciliation cadence` (`reconciliation_cadence`), `seal cadence`.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `value sets`: place_record_under_retention answers = retention_id | rejected(invalid-request | invalid-credential | storage-failure | recording-failure(position)). place_hold answers = hold_id | rejected(invalid-request | invalid-credential | storage-failure | recording-failure(position)). release_hold answers = released | rejected(invalid-request | invalid-credential | not-known | already-released | storage-failure | recording-failure(position)). purge_eligible answers = the eligibility tuples. purge_record answers = ok | rejected(invalid-request | invalid-credential | not-known | not-eligible | under-active-retention | under-legal-hold(hold_ids, count) | hold-check-unavailable | storage-failure | recording-failure(position)). `hold check mode` = strict | advisory. `hold check result` = empty | the blocking hold ids with the blocking count. `intent` = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. `outcome` = retention_placed | hold_placed | hold_released | record_purged. sibling disposition = purged | pending.
+Term value sets: place_record_under_retention answers = retention_id | rejected(invalid-request | invalid-credential | storage-failure | recording-failure(position)). place_hold answers = hold_id | rejected(invalid-request | invalid-credential | storage-failure | recording-failure(position)). release_hold answers = released | rejected(invalid-request | invalid-credential | not-known | already-released | storage-failure | recording-failure(position)). purge_eligible answers = the eligibility tuples. purge_record answers = ok | rejected(invalid-request | invalid-credential | not-known | not-eligible | under-active-retention | under-legal-hold(hold_ids, count) | hold-check-unavailable | storage-failure | recording-failure(position)). `hold check mode` = strict | advisory. `hold check result` = empty | the blocking hold ids with the blocking count. `intent` = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. `outcome` = retention_placed | hold_placed | hold_released | record_purged. sibling disposition = purged | pending.
 
-Terms › `terms`: `composition`, `constituents`, `business retention instance`, `service identity`, `record`, `record-to-retentions index`, `retention-to-record index`, `audit horizon`, `surviving placement event`, `purged placement event`, `rebuild`, `sibling set`, `pending sibling`, `seam`, `transition`, `evidence floor`, `closure floor`, `retention completion bound`, `hold check mode`, `blank`, `boundary predicate`, `opaque argument`, `landed record`, `owed record`, `intent`, `outcome`, `gate record`, `committing call`, `admitted placement`, `admitted hold placement`, `admitted hold release`, `admitted purge`, `elapsed retention`, `hold check result`, `hold override`, `unavailable sentinel`, `purged retention ids`, `sweep`, `open marker`, `young marker`, `aged-out event`, `recovery intent`, `recovery marker`, `recovery outcome`, `clock offset allowance`, `constituent commit`, `gate read`, `seal coverage`, `yielded invocation`, `post-destruction hold`, `late hold`, `position`.
+Term terms: `composition`, `constituents`, `business retention instance`, `service identity`, `record`, `record-to-retentions index`, `retention-to-record index`, `audit horizon`, `surviving placement event`, `purged placement event`, `rebuild`, `sibling set`, `pending sibling`, `seam`, `transition`, `evidence floor`, `closure floor`, `retention completion bound`, `hold check mode`, `blank`, `boundary predicate`, `opaque argument`, `landed record`, `owed record`, `intent`, `outcome`, `gate record`, `committing call`, `admitted placement`, `admitted hold placement`, `admitted hold release`, `admitted purge`, `elapsed retention`, `hold check result`, `hold override`, `unavailable sentinel`, `purged retention ids`, `sweep`, `open marker`, `young marker`, `aged-out event`, `recovery intent`, `recovery marker`, `recovery outcome`, `clock offset allowance`, `constituent commit`, `gate read`, `seal coverage`, `yielded invocation`, `post-destruction hold`, `late hold`, `position`.
 
-Terms › `cited`: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam.
+Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam.
 
-Terms › `composing patterns`: Policy Reconciliation *(forthcoming)*; Hold-Aware Audit Retention *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; a cryptographic shredding pattern *(forthcoming)*; permissions(../atoms/permissions.md).
+Term composing patterns: Policy Reconciliation *(forthcoming)*; Hold-Aware Audit Retention *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; a cryptographic shredding pattern *(forthcoming)*; permissions(../atoms/permissions.md).
 
-Terms › `record`: the host's business record this composition governs — named by a `record_ref`, held in the host's own store, and destroyed by `RetentionWindow.purge`.
+Term record: the host's business record this composition governs — named by a `record_ref`, held in the host's own store, and destroyed by `RetentionWindow.purge`.
 
 #### Place Record Under Retention
 

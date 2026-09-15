@@ -55,11 +55,11 @@ Identity 10: The atom MUST match a principal_ref exactly.
 Identity 11: The deployment MUST canonicalize a principal_ref.
 ```
 
-Terms › `preference_id`: the opaque value naming one preference record — a [Preference Id]; host-allocated at the seam, never reused.
+Term preference_id: the opaque value naming one preference record — a [Preference Id]; host-allocated at the seam, never reused.
 
-Terms › `principal_ref`: the opaque reference naming the principal whose preferences the record holds — a [Principal Ref]; compared by exact equality.
+Term principal_ref: the opaque reference naming the principal whose preferences the record holds — a [Principal Ref]; compared by exact equality.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Identity by principal alone would collapse a principal's update history into one mutable row, which is exactly the audit story the atom exists to keep: three updates are three records, three ids, three independently queryable rows. Identity by principal and timestamp would entangle identity with the clock, on an axis at-most-one already polices (Identity 6, Identity 7, Invariant 3.1). *Principal* rather than *recipient* or *subscriber* because a preference record is held against an identity, not against having been the target of anything.
@@ -91,25 +91,25 @@ State 19: The atom MUST NOT hold a topic subscription.
 State 20: The atom MUST NOT hold a legal permission.
 ```
 
-Terms › `status`: `active` | `suspended` | `deleted` — in force, paused, or retired and terminal.
+Term status: `active` | `suspended` | `deleted` — in force, paused, or retired and terminal.
 
-Terms › `channel_preferences`: the optional map from a declared channel name to an opaque per-channel preference value — a [Channel Preferences].
+Term channel_preferences: the optional map from a declared channel name to an opaque per-channel preference value — a [Channel Preferences].
 
-Terms › `frequency_limit`: the optional opaque value carrying the principal's frequency cap — a [Frequency Limit].
+Term frequency_limit: the optional opaque value carrying the principal's frequency cap — a [Frequency Limit].
 
-Terms › `quiet_hours`: the optional opaque value carrying the windows delivery should skip — a [Quiet Hours].
+Term quiet_hours: the optional opaque value carrying the windows delivery should skip — a [Quiet Hours].
 
-Terms › `format`: the optional opaque value carrying format preferences — a [Format].
+Term format: the optional opaque value carrying format preferences — a [Format].
 
-Terms › `metadata`: the optional opaque payload the atom stores unchanged — a [Metadata]; deployment context, never a preference field.
+Term metadata: the optional opaque payload the atom stores unchanged — a [Metadata]; deployment context, never a preference field.
 
-Terms › `declared_channels`: the declared channel set stamped onto a preference record at [Set] — a [Declared Channels]; the record's own validation context.
+Term declared_channels: the declared channel set stamped onto a preference record at [Set] — a [Declared Channels]; the record's own validation context.
 
-Terms › `set_at`: the instant the preference record was created — a [Set At].
+Term set_at: the instant the preference record was created — a [Set At].
 
-Terms › `suspended_at`: the instant the preference record was paused — a [Suspended At].
+Term suspended_at: the instant the preference record was paused — a [Suspended At].
 
-Terms › `deleted_at`: the instant the preference record was retired — a [Deleted At].
+Term deleted_at: the instant the preference record was retired — a [Deleted At].
 
 WHY:
 A deleted record stays in the store because *what this principal stated, and when* is the audit surface the atom exists to hold — the atom answers *what now* from the set currently in effect and leaves *what then* reconstructable from the three timestamps (State 17, Check 2.1). Absence is the one stored form of no-channel-preferences: a supplied-but-empty map is stored as absent, so a reader branches on presence alone and never on emptiness (Operation 6, Operation 7, State 4).
@@ -194,17 +194,17 @@ NOTE: Operation 42 deleted — Clock dependence 1 owns it.
 NOTE: Operation 43 deleted — Clock dependence 2 owns it.
 ```
 
-Terms › `preference field`: `channel_preferences` | `frequency_limit` | `quiet_hours` | `format` — the four values a [Set] call must carry one of; `metadata` is not one.
+Term preference field: `channel_preferences` | `frequency_limit` | `quiet_hours` | `format` — the four values a [Set] call must carry one of; `metadata` is not one.
 
-Terms › `currently in effect`: a preference record standing in active OR in suspended — what at-most-one ranges over and what [Current For] answers.
+Term currently in effect: a preference record standing in active OR in suspended — what at-most-one ranges over and what [Current For] answers.
 
-Terms › `supersession`: the one operation in which a [Set] call stands a principal's prior preference record in deleted and records the new preference record.
+Term supersession: the one operation in which a [Set] call stands a principal's prior preference record in deleted and records the new preference record.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `guard`: a transition's precondition test; reads the stored preference record and the call's arguments, and writes nothing.
+Term guard: a transition's precondition test; reads the stored preference record and the call's arguments, and writes nothing.
 
 The case space, and the rule that owns each case:
 
@@ -314,9 +314,9 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   ```
   WHY: best-effort, and deliberately outside the invariant numbering — Invariants 1 to 10 are the hard set, and giving this a slot among them would read it as their peer. The hard set holds over every state the atom's own accepted actions can reach, given the named host obligations; these four inequalities hold only where the clock does not move backward. They are labelled apart because audit reconstruction depends on the directional guarantee (Check 2.1, Check 4.1), and a violation here is observable and diagnosable rather than silently corrupting.
 
-Terms › `supersession gap`: the interval from a superseded preference record's `deleted_at` to the successor's `set_at`.
+Term supersession gap: the interval from a superseded preference record's `deleted_at` to the successor's `set_at`.
 
-Terms › `supersession gap bound`: the largest supersession gap the deployment expects between two writes inside one operation; declared by the deployment.
+Term supersession gap bound: the largest supersession gap the deployment expects between two writes inside one operation; declared by the deployment.
 
 Immutability and durability together give *auditability* — the full history of every principal's preferences is recoverable from the store alone, with no gaps. At-most-one-in-effect and supersession atomicity together give *unambiguous currency* — at any moment a principal has at most one record governing delivery, and the moment of transition is recorded. Suspension being value-preserving gives *cheap resumption* — a principal who pauses and later returns loses nothing.
 
@@ -341,19 +341,19 @@ Instance 15: IF the injected declared channel set is degenerate THEN [Set] MUST 
 Instance 16: IF the injected declared channel set is degenerate THEN the deployment MUST surface the fault.
 ```
 
-Terms › `preference record`: one principal's stated delivery shaping — the record this atom holds.
+Term preference record: one principal's stated delivery shaping — the record this atom holds.
 
-Terms › `store instance`: one named preference store a call is routed to; `preference_id` uniqueness ranges over one instance.
+Term store instance: one named preference store a call is routed to; `preference_id` uniqueness ranges over one instance.
 
-Terms › `store_name`: the identifier naming one store instance — a [Store Name]; deployment routing, never an argument and never a stored field.
+Term store_name: the identifier naming one store instance — a [Store Name]; deployment routing, never an argument and never a stored field.
 
-Terms › `declared channel set`: the named delivery surfaces a preference record in this deployment may reference; deployment configuration the host resolves, never state this atom holds.
+Term declared channel set: the named delivery surfaces a preference record in this deployment may reference; deployment configuration the host resolves, never state this atom holds.
 
-Terms › `degenerate`: a declared channel set that is empty, that repeats a channel name, OR that carries a channel name with no non-whitespace character.
+Term degenerate: a declared channel set that is empty, that repeats a channel name, OR that carries a channel name with no non-whitespace character.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the preference_id and the declared channel set here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the preference_id and the declared channel set here.
 
-Terms › `transition`: the atom's evaluation of one call against the preference store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the preference store, as `execution-contract.md` §Logic confinement declares it.
 
 WHY:
 The channel vocabulary is the deployment's, and the atom's job is to consume the resolution and prove the consumption — not to absorb a registry. So the set arrives at the seam like the clock and the id, the transition validates against it, and the transition stamps what it validated against onto the record (Instance 10, Instance 12). Two things follow, and both are the point. The audit surface is self-contained per record: one record, one stamped set, no cross-record join and no configuration artifact (Invariant 5.1, Invariant 10.1, Check 5.1). And a channel-set change is visible only forward — records made after the change carry the new set, historical records keep the set in force at their own creation, which is what keeps them verifiable forever.
@@ -588,21 +588,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a principal; an auditor; a reader; the store; a preference record; a status; a supersession; a supersession gap; a write; a rejection; a crash; a recovered store; the preference record count; the recorded timestamps; a store_name.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a principal; an auditor; a reader; the store; a preference record; a status; a supersession; a supersession gap; a write; a rejection; a crash; a recovered store; the preference record count; the recorded timestamps; a store_name.
 
-Terms › `records`: `preference record` — one principal's stated delivery shaping, carrying `preference_id`, `principal_ref`, `declared_channels`, `set_at`, `status`, the supplied preference fields and `metadata`, and, once stamped, `suspended_at` and `deleted_at`.
+Term records: `preference record` — one principal's stated delivery shaping, carrying `preference_id`, `principal_ref`, `declared_channels`, `set_at`, `status`, the supplied preference fields and `metadata`, and, once stamped, `suspended_at` and `deleted_at`.
 
-Terms › `record verbs`: route, share, read, name, accept, carry, hold, offer, resolve, inject, stamp, validate, write, answer, surface, identify, allocate, reuse, change, interpret, normalize, match, canonicalize, record, stand, compare, commit, remove, leave, refuse, supply, rest, appear, move, call, observe, clear, fall, own, enumerate, find, reconstruct, mark, disclose, fire, create, deliver, compose, evaluate, declare, detect, gate, expire, redact, seal, guarantee, push, replay, drop, make, serialize, choose, witness, store, bound, return, capture, apply.
+Term record verbs: route, share, read, name, accept, carry, hold, offer, resolve, inject, stamp, validate, write, answer, surface, identify, allocate, reuse, change, interpret, normalize, match, canonicalize, record, stand, compare, commit, remove, leave, refuse, supply, rest, appear, move, call, observe, clear, fall, own, enumerate, find, reconstruct, mark, disclose, fire, create, deliver, compose, evaluate, declare, detect, gate, expire, redact, seal, guarantee, push, replay, drop, make, serialize, choose, witness, store, bound, return, capture, apply.
 
-Terms › `value sets`: set answers = preference_id | rejected(invalid-request | undeclared-channel | storage-failure). suspend answers = ok | rejected(not-known | not-active | storage-failure). delete answers = ok | rejected(not-known | already-deleted | storage-failure). current_for answers = the preference record currently in effect | none. read answers = the whole preference record | not-known. `status` = active | suspended | deleted. `preference field` = channel_preferences | frequency_limit | quiet_hours | format.
+Term value sets: set answers = preference_id | rejected(invalid-request | undeclared-channel | storage-failure). suspend answers = ok | rejected(not-known | not-active | storage-failure). delete answers = ok | rejected(not-known | already-deleted | storage-failure). current_for answers = the preference record currently in effect | none. read answers = the whole preference record | not-known. `status` = active | suspended | deleted. `preference field` = channel_preferences | frequency_limit | quiet_hours | format.
 
-Terms › `bounds`: `supersession gap bound` (the largest supersession gap one operation is expected to span); `opaque input size bound` (the deployment's cap on a stored opaque value).
+Term bounds: `supersession gap bound` (the largest supersession gap one operation is expected to span); `opaque input size bound` (the deployment's cap on a stored opaque value).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `preference record`, `store instance`, `store_name`, `declared channel set`, `degenerate`, `seam`, `transition`, `preference_id`, `principal_ref`, `blank`, `preference field`, `currently in effect`, `supersession`, `now`, `business caller`, `guard`, `status`, `channel_preferences`, `frequency_limit`, `quiet_hours`, `format`, `metadata`, `declared_channels`, `set_at`, `suspended_at`, `deleted_at`, `supersession gap`, `supersession gap bound`.
+Term terms: `preference record`, `store instance`, `store_name`, `declared channel set`, `degenerate`, `seam`, `transition`, `preference_id`, `principal_ref`, `blank`, `preference field`, `currently in effect`, `supersession`, `now`, `business caller`, `guard`, `status`, `channel_preferences`, `frequency_limit`, `quiet_hours`, `format`, `metadata`, `declared_channels`, `set_at`, `suspended_at`, `deleted_at`, `supersession gap`, `supersession gap bound`.
 
 #### Set
 

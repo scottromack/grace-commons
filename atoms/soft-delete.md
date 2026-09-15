@@ -59,19 +59,19 @@ Identity 10: The atom MUST NOT confirm that a record_id names a known host recor
 Identity 11: The atom MUST NOT hold the host record's content.
 ```
 
-Terms › `lifecycle record`: the state and attribution this atom holds for one host record — a state, the most recent deletion's attribution, and where they exist the most recent restore's and the purge's; the record this atom holds.
+Term lifecycle record: the state and attribution this atom holds for one host record — a state, the most recent deletion's attribution, and where they exist the most recent restore's and the purge's; the record this atom holds.
 
-Terms › `record_id`: the opaque value naming one lifecycle record — a [Record Id]; the host record's identity, supplied by the caller and never allocated here.
+Term record_id: the opaque value naming one lifecycle record — a [Record Id]; the host record's identity, supplied by the caller and never allocated here.
 
-Terms › `tracked record`: a host record carrying a lifecycle record — one that has undergone at least one [Soft Delete].
+Term tracked record: a host record carrying a lifecycle record — one that has undergone at least one [Soft Delete].
 
-Terms › `reference`: `record_id`, `deleted_by`, `restored_by` OR `purged_by` — every opaque reference this atom records.
+Term reference: `record_id`, `deleted_by`, `restored_by` OR `purged_by` — every opaque reference this atom records.
 
-Terms › `store instance`: one named lifecycle store a call is routed to; `record_id` uniqueness ranges over one instance.
+Term store instance: one named lifecycle store a call is routed to; `record_id` uniqueness ranges over one instance.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading here.
 
-Terms › `transition`: the atom's evaluation of one call against the lifecycle store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the lifecycle store, as `execution-contract.md` §Logic confinement declares it.
 
 WHY:
 Identity 2 and Identity 3 are the atom's one departure from the corpus's usual identity shape, and the departure is the point: this atom does not own records, it overlays a lifecycle onto records the host already owns. There is nothing for it to allocate an id *for*. Identity 11 states the other half — the content stays in the host system, and what a purge destroys is the host's content, not anything held here (Non-goal 3).
@@ -188,41 +188,41 @@ NOTE: Operation 48 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 49 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `states`: `active` | `deleted` | `purged` — a [State], and the whole state space a tracked record may stand in.
+Term states: `active` | `deleted` | `purged` — a [State], and the whole state space a tracked record may stand in.
 
-Terms › `transitioning action`: [Soft Delete] | [Restore] | [Purge] — the three actions that move a lifecycle record.
+Term transitioning action: [Soft Delete] | [Restore] | [Purge] — the three actions that move a lifecycle record.
 
-Terms › `acting reference`: `deleted_by` on [Soft Delete], `restored_by` on [Restore], and `purged_by` on [Purge] — the actor reference a transitioning action carries.
+Term acting reference: `deleted_by` on [Soft Delete], `restored_by` on [Restore], and `purged_by` on [Purge] — the actor reference a transitioning action carries.
 
-Terms › `transition instant`: `deleted_at` on [Soft Delete], `restored_at` on [Restore], and `purged_at` on [Purge] — the instant a transitioning action records.
+Term transition instant: `deleted_at` on [Soft Delete], `restored_at` on [Restore], and `purged_at` on [Purge] — the instant a transitioning action records.
 
-Terms › `resolved transition instant`: the transition instant the lifecycle record carries — the supplied value where one exists, and `now` otherwise.
+Term resolved transition instant: the transition instant the lifecycle record carries — the supplied value where one exists, and `now` otherwise.
 
-Terms › `state rejection`: `already-deleted`, `already-purged` OR `not-deleted` — every refusal that rests on the lifecycle record's state.
+Term state rejection: `already-deleted`, `already-purged` OR `not-deleted` — every refusal that rests on the lifecycle record's state.
 
-Terms › `deletion field`: `deleted_by`, `deleted_at` OR `deletion_reason` — the fields [Soft Delete] sets.
+Term deletion field: `deleted_by`, `deleted_at` OR `deletion_reason` — the fields [Soft Delete] sets.
 
-Terms › `restore field`: `restored_by`, `restored_at` OR `restoration_reason` — the fields [Restore] sets.
+Term restore field: `restored_by`, `restored_at` OR `restoration_reason` — the fields [Restore] sets.
 
-Terms › `purge field`: `purged_by`, `purged_at` OR `purge_reason` — the fields [Purge] sets.
+Term purge field: `purged_by`, `purged_at` OR `purge_reason` — the fields [Purge] sets.
 
-Terms › `deletion epoch`: the span from one admitted soft delete to the lifecycle record's next admitted soft delete; the deletion fields carry one epoch's attribution and no more.
+Term deletion epoch: the span from one admitted soft delete to the lifecycle record's next admitted soft delete; the deletion fields carry one epoch's attribution and no more.
 
-Terms › `latest transition instant`: the most recent of a lifecycle record's `deleted_at`, `restored_at` and `purged_at`.
+Term latest transition instant: the most recent of a lifecycle record's `deleted_at`, `restored_at` and `purged_at`.
 
-Terms › `filter axes`: `record_id` | `deleted_by` | `purged_by` | `state` | `deleted_at` | `restored_at` | `purged_at` — the seven axes [Read] accepts, and no others.
+Term filter axes: `record_id` | `deleted_by` | `purged_by` | `state` | `deleted_at` | `restored_at` | `purged_at` — the seven axes [Read] accepts, and no others.
 
-Terms › `admitted soft delete`: a [Soft Delete] call whose record_id and deleted_by exist, whose lifecycle record stands outside deleted and purged, and whose resolved deleted_at the guards admit.
+Term admitted soft delete: a [Soft Delete] call whose record_id and deleted_by exist, whose lifecycle record stands outside deleted and purged, and whose resolved deleted_at the guards admit.
 
-Terms › `admitted restore`: a [Restore] call whose record_id names a lifecycle record standing in deleted, and whose restored_by and resolved restored_at the guards admit.
+Term admitted restore: a [Restore] call whose record_id names a lifecycle record standing in deleted, and whose restored_by and resolved restored_at the guards admit.
 
-Terms › `admitted purge`: a [Purge] call whose record_id names a lifecycle record standing in deleted, and whose purged_by, reason and resolved purged_at the guards admit.
+Term admitted purge: a [Purge] call whose record_id names a lifecycle record standing in deleted, and whose purged_by, reason and resolved purged_at the guards admit.
 
-Terms › `admitted read`: a [Read] call whose every filter axis and filter value the guards admit.
+Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
 | # | Condition | a transitioning action answers |
 |---|---|---|
@@ -416,9 +416,9 @@ Atomic writes 3: The implementation MUST resolve a dangling transition.
 Atomic writes 4: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
 ```
 
-Terms › `uncommitted crash`: a crash BEFORE a transitioning action's commit lands.
+Term uncommitted crash: a crash BEFORE a transitioning action's commit lands.
 
-Terms › `dangling transition`: a transitioning action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
+Term dangling transition: a transitioning action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
 
 WHY:
 Every transitioning action writes the state and its fields together (Operation 29), and a crash between them produces a purged record with no purge reason — Invariant 5 violated in exactly the way an auditor cannot tell from an implementation that never wrote one. The obligation is all-or-none observability.
@@ -448,9 +448,9 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Terms › `string input`: a reference, `reason` OR a filter's value — every caller-supplied string this atom accepts.
+Term string input: a reference, `reason` OR a filter's value — every caller-supplied string this atom accepts.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness costs more here than in most atoms, because `record_id` is the *caller's* identifier rather than one this atom issued (Identity 2). A host that supplies `Post-8821` on delete and `post-8821` on purge has two lifecycle records, and the purge answers `not-known` on a record that visibly exists. Canonicalization is the deployment's (String 7, Identity 9).
@@ -486,21 +486,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the host system; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; an investigator; the store; a lifecycle record; a tracked record; a host record; a purged lifecycle record; a deleted lifecycle record; a transitioning action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a state rejection; a rejection; a crash; a reader; a deletion epoch; a string input; an opaque reference; the store instance's lifecycle record count.
+Term actors: the atom; the host; the host system; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; an investigator; the store; a lifecycle record; a tracked record; a host record; a purged lifecycle record; a deleted lifecycle record; a transitioning action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a state rejection; a rejection; a crash; a reader; a deletion epoch; a string input; an opaque reference; the store instance's lifecycle record count.
 
-Terms › `records`: `lifecycle record` — the state and attribution this atom holds for one host record, carrying `record_id`, a state, `deleted_by`, `deleted_at` and, where supplied or set, `deletion_reason`, `restored_by`, `restored_at`, `restoration_reason`, `purged_by`, `purged_at` and `purge_reason`.
+Term records: `lifecycle record` — the state and attribution this atom holds for one host record, carrying `record_id`, a state, `deleted_by`, `deleted_at` and, where supplied or set, `deletion_reason`, `restored_by`, `restored_at`, `restoration_reason`, `purged_by`, `purged_at` and `purge_reason`.
 
-Terms › `record verbs`: identify, allocate, change, carry, stand, answer, record, set, replace, leave, own, match, normalize, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, order, name, bind, destroy, hold, gate, retain, define, canonicalize, register, untrack.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, set, replace, leave, own, match, normalize, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, order, name, bind, destroy, hold, gate, retain, define, canonicalize, register, untrack.
 
-Terms › `value sets`: soft_delete answers = deleted | rejected(invalid-request | already-deleted | already-purged | storage-failure). restore answers = restored | rejected(invalid-request | not-known | not-deleted | already-purged | storage-failure). purge answers = purged | rejected(invalid-request | not-known | not-deleted | storage-failure). read answers = the matching lifecycle records | rejected(invalid-query). `state` = active | deleted | purged.
+Term value sets: soft_delete answers = deleted | rejected(invalid-request | already-deleted | already-purged | storage-failure). restore answers = restored | rejected(invalid-request | not-known | not-deleted | already-purged | storage-failure). purge answers = purged | rejected(invalid-request | not-known | not-deleted | storage-failure). read answers = the matching lifecycle records | rejected(invalid-query). `state` = active | deleted | purged.
 
-Terms › `bounds`: empty.
+Term bounds: empty.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `lifecycle record`, `record_id`, `tracked record`, `reference`, `store instance`, `seam`, `transition`, `now`, `business caller`, `states`, `transitioning action`, `acting reference`, `transition instant`, `resolved transition instant`, `state rejection`, `deletion field`, `restore field`, `purge field`, `deletion epoch`, `latest transition instant`, `filter axes`, `admitted soft delete`, `admitted restore`, `admitted purge`, `admitted read`, `string input`, `blank`, `uncommitted crash`, `dangling transition`.
+Term terms: `lifecycle record`, `record_id`, `tracked record`, `reference`, `store instance`, `seam`, `transition`, `now`, `business caller`, `states`, `transitioning action`, `acting reference`, `transition instant`, `resolved transition instant`, `state rejection`, `deletion field`, `restore field`, `purge field`, `deletion epoch`, `latest transition instant`, `filter axes`, `admitted soft delete`, `admitted restore`, `admitted purge`, `admitted read`, `string input`, `blank`, `uncommitted crash`, `dangling transition`.
 
 #### Soft Delete
 

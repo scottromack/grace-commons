@@ -49,15 +49,15 @@ Composes 6: The composition MUST NOT change a constituent's spec.
 Composes 7: The composition MUST replace Personal Todo's own caller surface.
 ```
 
-Terms › `composition`: this pattern's wiring of [Personal Todo](../atoms/personal-todo.md) and [Event Log](../atoms/event-log.md) — the actions below, the event schemas and the replay.
+Term composition: this pattern's wiring of [Personal Todo](../atoms/personal-todo.md) and [Event Log](../atoms/event-log.md) — the actions below, the event schemas and the replay.
 
-Terms › `event log instance`: the one [Event Log](../atoms/event-log.md) instance the composition owns for one Personal Todo shape; the composition's sole truth.
+Term event log instance: the one [Event Log](../atoms/event-log.md) instance the composition owns for one Personal Todo shape; the composition's sole truth.
 
-Terms › `derived state`: the Personal Todo shape the replay produces — a derived index by construction, regenerable from the event log instance and never a second truth.
+Term derived state: the Personal Todo shape the replay produces — a derived index by construction, regenerable from the event log instance and never a second truth.
 
-Terms › `unit`: one task in the derived state, named by an `id` as [Personal Todo](../atoms/personal-todo.md)'s identity model declares it.
+Term unit: one task in the derived state, named by an `id` as [Personal Todo](../atoms/personal-todo.md)'s identity model declares it.
 
-Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects a new unit's `id` here.
+Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects a new unit's `id` here.
 
 WHY:
 Composes 4 and Composes 5 are the whole composition stated twice, from the storage side and from the call side. The log is the truth and the state is a projection, so an undo is a re-derivation rather than a reversal — and the constituent is never asked to move a unit from done back to pending, which is a transition Personal Todo's own spec forbids. The composition operates one level down, at the log, where the atom only ever sees forward valid actions during replay.
@@ -94,9 +94,9 @@ Replay 16: The implementation MUST rebuild a materialized derived state on a mis
 Replay 17: An auditor MUST NOT read a materialized derived state in preference to a fresh replay.
 ```
 
-Terms › `replay`: the named rebuild procedure Replay 1 through Replay 13 state — the composition's only route from the event log instance to the derived state.
+Term replay: the named rebuild procedure Replay 1 through Replay 13 state — the composition's only route from the event log instance to the derived state.
 
-Terms › `surviving event`: a forward event whose `event_id` NOT EXISTS in the undone set.
+Term surviving event: a forward event whose `event_id` NOT EXISTS in the undone set.
 
 WHY:
 Replay 5 rests on something worth stating: a surviving event was recorded only because its action succeeded, so Personal Todo's preconditions held when it was written and hold again at every replay step. The replay never has to validate — it is re-running a history that was valid when it happened. Event Log Invariant 5 is what bounds the replay to exactly that set.
@@ -138,25 +138,25 @@ Action wiring 20: [Read History] MUST answer Event Log's read for the query.
 Action wiring 21: [Read History] MUST NOT change the derived state.
 ```
 
-Terms › `forward action`: [Add] | [Edit] | [Complete] | [Delete] — every action appending a forward event.
+Term forward action: [Add] | [Edit] | [Complete] | [Delete] — every action appending a forward event.
 
-Terms › `no-op edit`: an [Edit] whose normalized new description equals the unit's current description — an accepted write of nothing, as [Personal Todo](../atoms/personal-todo.md) declares it.
+Term no-op edit: an [Edit] whose normalized new description equals the unit's current description — an accepted write of nothing, as [Personal Todo](../atoms/personal-todo.md) declares it.
 
-Terms › `undone set`: the `undone_event_id` of every undo event in the event log instance.
+Term undone set: the `undone_event_id` of every undo event in the event log instance.
 
-Terms › `undo target`: the most recent forward event whose `event_id` NOT EXISTS in the undone set.
+Term undo target: the most recent forward event whose `event_id` NOT EXISTS in the undone set.
 
-Terms › `admitted add`: an [Add] call whose preconditions pass and whose append commits.
+Term admitted add: an [Add] call whose preconditions pass and whose append commits.
 
-Terms › `admitted edit`: an [Edit] call whose preconditions pass and whose append commits, or a no-op edit.
+Term admitted edit: an [Edit] call whose preconditions pass and whose append commits, or a no-op edit.
 
-Terms › `admitted complete`: a [Complete] call whose preconditions pass and whose append commits.
+Term admitted complete: a [Complete] call whose preconditions pass and whose append commits.
 
-Terms › `admitted delete`: a [Delete] call whose preconditions pass and whose append commits.
+Term admitted delete: a [Delete] call whose preconditions pass and whose append commits.
 
-Terms › `admitted undo`: an [Undo] call whose undo target exists and whose append commits.
+Term admitted undo: an [Undo] call whose undo target exists and whose append commits.
 
-Terms › `admitted action`: an admitted add, an admitted edit, an admitted complete, an admitted delete OR an admitted undo.
+Term admitted action: an admitted add, an admitted edit, an admitted complete, an admitted delete OR an admitted undo.
 
 WHY:
 Action wiring 4 through Action wiring 7 are the order the whole composition rests on: validate, append, then recompute. A state recomputed before the append would expose a change the log does not carry, and a `storage-failure` after a recompute would leave the derived state ahead of its own truth. The action did not happen unless the append landed.
@@ -205,11 +205,11 @@ Event schema 7: The replay MUST NOT read a prior description.
 Event schema 8: The composition MUST NOT answer Event Log's invalid-payload to a caller.
 ```
 
-Terms › `event type`: `add` | `edit` | `complete` | `delete` | `undo`.
+Term event type: `add` | `edit` | `complete` | `delete` | `undo`.
 
-Terms › `forward event`: an event carrying `add`, `edit`, `complete` OR `delete` — every event an [Undo] may target.
+Term forward event: an event carrying `add`, `edit`, `complete` OR `delete` — every event an [Undo] may target.
 
-Terms › `snapshot`: the unit's full state at a delete — its description, its Personal Todo state and every instant it carries.
+Term snapshot: the unit's full state at a delete — its description, its Personal Todo state and every instant it carries.
 
 WHY:
 Event schema 6 and Event schema 7 are the load-bearing absence. Both fields exist and neither feeds the replay: what a delete removed and what an edit replaced are readable straight from the log through [Read History], with no replay at all, and they are kept in the schemas for *that* reading. A replay that consumed them would be restoring state from a snapshot, which is the design this composition exists to reject (§Wiring decision).
@@ -357,23 +357,23 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the composition; the deployment; the implementation; the seam; a caller; a user; an auditor; a reader; the replay; an event; a forward event; an undo event; a surviving event; a unit; an action; a forward action; a refused action; an admitted action; a no-op edit; the derived state; the event log instance; the undone set; the undo target; a snapshot; a query.
+Term actors: the composition; the deployment; the implementation; the seam; a caller; a user; an auditor; a reader; the replay; an event; a forward event; an undo event; a surviving event; a unit; an action; a forward action; a refused action; an admitted action; a no-op edit; the derived state; the event log instance; the undone set; the undo target; a snapshot; a query.
 
-Terms › `records`: `event` — one appended record in the event log instance, carrying `event_id`, `recorded_at`, a `type` and the type's own fields.
+Term records: `event` — one appended record in the event log instance, carrying `event_id`, `recorded_at`, a `type` and the type's own fields.
 
-Terms › `record verbs`: serve, derive, store, call, change, replace, append, assign, read, skip, apply, introduce, remove, move, record, answer, validate, refuse, recompute, capture, restore, preserve, hold, carry, stand, commit, leave, name, mirror, bound, compose, wire, decide, define, guarantee, confirm, reach, walk, target, generate, materialize, rebuild, equal, follow, reverse, surface, claim, build, produce, rewrite, find, run, reconstruct, offer, undo, reapply.
+Term record verbs: serve, derive, store, call, change, replace, append, assign, read, skip, apply, introduce, remove, move, record, answer, validate, refuse, recompute, capture, restore, preserve, hold, carry, stand, commit, leave, name, mirror, bound, compose, wire, decide, define, guarantee, confirm, reach, walk, target, generate, materialize, rebuild, equal, follow, reverse, surface, claim, build, produce, rewrite, find, run, reconstruct, offer, undo, reapply.
 
-Terms › `value sets`: add answers = id | rejected(invalid-description | duplicate-active | storage-failure). edit answers = ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure). complete answers = ok | rejected(not-known | not-pending | storage-failure). delete answers = ok | rejected(not-known | storage-failure). undo answers = undone_event_type | rejected(nothing-to-undo | storage-failure). read_history answers = the matching events | rejected(invalid-query). `event type` = add | edit | complete | delete | undo. `forward event` = add | edit | complete | delete.
+Term value sets: add answers = id | rejected(invalid-description | duplicate-active | storage-failure). edit answers = ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure). complete answers = ok | rejected(not-known | not-pending | storage-failure). delete answers = ok | rejected(not-known | storage-failure). undo answers = undone_event_type | rejected(nothing-to-undo | storage-failure). read_history answers = the matching events | rejected(invalid-query). `event type` = add | edit | complete | delete | undo. `forward event` = add | edit | complete | delete.
 
-Terms › `bounds`: empty.
+Term bounds: empty.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `terms`: `composition`, `event log instance`, `derived state`, `unit`, `seam`, `event type`, `forward event`, `snapshot`, `forward action`, `no-op edit`, `undone set`, `undo target`, `replay`, `surviving event`, `admitted add`, `admitted edit`, `admitted complete`, `admitted delete`, `admitted undo`, `admitted action`.
+Term terms: `composition`, `event log instance`, `derived state`, `unit`, `seam`, `event type`, `forward event`, `snapshot`, `forward action`, `no-op edit`, `undone set`, `undo target`, `replay`, `surviving event`, `admitted add`, `admitted edit`, `admitted complete`, `admitted delete`, `admitted undo`, `admitted action`.
 
-Terms › `cited`: `execution-contract.md` §Logic confinement — the seam. `execution-contract.md` §Composition state — the derived index and its rebuild obligations.
+Term cited: `execution-contract.md` §Logic confinement — the seam. `execution-contract.md` §Composition state — the derived index and its rebuild obligations.
 
 #### Add
 

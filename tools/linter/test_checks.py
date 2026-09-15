@@ -701,10 +701,10 @@ CENSUS_GRAMMAR = """### 18. Candidate Forms
 NOTE:
 Also watched, and counted: a label family recurring across specs outside the standard set: {listing}.
 
-Terms › `standard label family`: `Identity` (what identifies an instance) | `Invariant` (a property of every reachable state).
+Term standard label family: `Identity` (what identifies an instance) | `Invariant` (a property of every reachable state).
 """
 
-CENSUS_PATTERN = """Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+CENSUS_PATTERN = """Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
 ```text
 {family} 1: The composition MUST stand.
@@ -766,7 +766,7 @@ ORPHAN_SPEC = """# Ghost Pattern
 
 ## Terms
 
-Terms › `qualifiers`: {qualifier}
+Term qualifiers: {qualifier}
 """
 
 
@@ -820,7 +820,7 @@ def check_orphan_synthetic(problems: list[str]) -> None:
 # defect, so all three are pinned without a victim -- a corpus pin here would
 # die the day the three atoms gained their sections, which is the same
 # perishability P-atomic-audit's pins had.
-ACCEPT_HEAD = """Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.41 (2026-09-14){decline}.
+ACCEPT_HEAD = """Term qualifiers: `migrated` — rewritten in GRACE lang v0.41 (2026-09-14){decline}.
 
 """
 ACCEPT_SECTION = """## Generation acceptance
@@ -870,7 +870,7 @@ def check_acceptance_synthetic(problems: list[str]) -> None:
         problems.append("Y-acceptance-surface: did not fire on a decline naming "
                         "no owner — by delegation, never by silence")
     # (6) an unmigrated spec is not held to the rule at all
-    if run("unmigrated", "Terms › `qualifiers`: none.\n"):
+    if run("unmigrated", "Term qualifiers: none.\n"):
         problems.append("Y-acceptance-surface: fired on an unmigrated spec — the "
                         "rule reaches the migrated corpus only")
 
@@ -936,7 +936,7 @@ def check_heading_synthetic(problems: list[str]) -> None:
     standard: a conforming atom stays silent, and each of the five defect
     shapes the sweep cleared fires."""
     root = Path(__file__).resolve().parents[2]
-    head = "Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.44 (2026-09-15).\n\n"
+    head = "Term qualifiers: `migrated` — rewritten in GRACE lang v0.44 (2026-09-15).\n\n"
     good = ["Summary", "Intent", "Structure", "### Identity model", "### State", "### Operations",
             "### Invariants", "### Store instance model", "Examples", "### Walkthrough",
             "Generation acceptance", "### Conformance checks", "Non-goals", "Edge cases",
@@ -966,6 +966,31 @@ def check_heading_synthetic(problems: list[str]) -> None:
     for name, names, needle in cases:
         if not any(needle in m for m in run(name, names)):
             problems.append(f"H-heading: {name} did not fire ({needle!r})")
+
+
+def check_decl_form_synthetic(problems: list[str]) -> None:
+    """D-decl-form (tools/grace/check.py) — landed with the `Term name:` form at
+    council read 86. Five fixtures: the form stays silent, and the retired
+    separator, a backticked name, a missing space and a missing period fire."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = "Term qualifiers: `migrated` — rewritten in GRACE lang v0.45 (2026-09-15).\n\n"
+    cases = (
+        ("the form", "Term clock offset allowance: the declared envelope.\n", False),
+        ("the retired separator", "Terms \u203a `clock offset allowance`: the declared envelope.\n", True),
+        ("a backticked name", "Term `clock offset allowance`: the declared envelope.\n", True),
+        ("no space after the colon", "Term clock offset allowance:the declared envelope.\n", True),
+        ("no closing period", "Term clock offset allowance: the declared envelope\n", True),
+    )
+    with tempfile.TemporaryDirectory() as d:
+        for name, line, fires in cases:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir(exist_ok=True)
+            f.write_text(head + line, encoding="utf-8")
+            got = any(x.code == "D-decl-form" for x in scan(f))
+            if got != fires:
+                problems.append(f"D-decl-form: {name} {'did not fire' if fires else 'fired'}")
 
 
 def main(argv: list[str]) -> int:
@@ -1089,6 +1114,13 @@ def main(argv: list[str]) -> int:
         print("H-heading: 8 synthetic fixtures hold (a conforming atom silent; a loose "
               "family, a wrong parent, a wrong order, an unplaced heading first, a "
               "missing required heading, a retired name and a plural variant fire) \u2713")
+
+    decl_problems: list[str] = []
+    check_decl_form_synthetic(decl_problems)
+    failures.extend(decl_problems)
+    if not decl_problems:
+        print("D-decl-form: 5 synthetic fixtures hold (the form silent; the retired "
+              "separator, a backticked name, a missing space and a missing period fire) \u2713")
 
     caps_problems: list[str] = []
     check_caps_synthetic(caps_problems)

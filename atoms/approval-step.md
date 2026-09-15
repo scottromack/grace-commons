@@ -66,25 +66,25 @@ Identity 13: The atom MUST NOT interpret a scope.
 Identity 14: The deployment MUST supply a reference in one canonical byte form.
 ```
 
-Terms › `step`: one authorization gate — one subject, one approver, one submitter, one scope and one outcome; the record this atom holds.
+Term step: one authorization gate — one subject, one approver, one submitter, one scope and one outcome; the record this atom holds.
 
-Terms › `step_id`: the opaque value naming one step — a [Step Id]; host-allocated at the seam.
+Term step_id: the opaque value naming one step — a [Step Id]; host-allocated at the seam.
 
-Terms › `subject_ref`: the opaque reference naming the thing being approved — a [Subject Ref]; a property of the step, never the step's identity.
+Term subject_ref: the opaque reference naming the thing being approved — a [Subject Ref]; a property of the step, never the step's identity.
 
-Terms › `approver_ref`: the opaque reference naming the actor required to approve — an [Approver Ref]; the authorization anchor.
+Term approver_ref: the opaque reference naming the actor required to approve — an [Approver Ref]; the authorization anchor.
 
-Terms › `submitter_ref`: the opaque reference naming the actor requesting approval — a [Submitter Ref]; the attribution anchor for the submission.
+Term submitter_ref: the opaque reference naming the actor requesting approval — a [Submitter Ref]; the attribution anchor for the submission.
 
-Terms › `scope`: the string naming the kind of approval requested — a [Scope]; recorded and filtered on, never interpreted.
+Term scope: the string naming the kind of approval requested — a [Scope]; recorded and filtered on, never interpreted.
 
-Terms › `reference`: `subject_ref`, `approver_ref`, `submitter_ref`, `decided_by`, `withdrawn_by` OR `scope` — every string this atom compares for equality.
+Term reference: `subject_ref`, `approver_ref`, `submitter_ref`, `decided_by`, `withdrawn_by` OR `scope` — every string this atom compares for equality.
 
-Terms › `store instance`: one named step store a call is routed to; `step_id` uniqueness ranges over one instance.
+Term store instance: one named step store a call is routed to; `step_id` uniqueness ranges over one instance.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the step_id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the step_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the step store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the step store, as `execution-contract.md` §Logic confinement declares it.
 
 WHY:
 Identity 10 is the rule the exclusivity invariants rest on. `decided_by` against `approver_ref` (Invariant 4) and `withdrawn_by` against `submitter_ref` (Invariant 5) are exact byte-sequence comparisons on the values as supplied — no Unicode normalization, no case folding, no trimming. Two references that render identically and differ in bytes are different actors to this atom, and a precomposed accented character will not match its decomposed twin. That is unforgiving, and it is the only comparison an exclusivity guard can safely make: a normalizing comparison would let the atom decide that two spellings name one actor, which is an identity judgment this atom has no standing to make. Canonicalization is the deployment's (Identity 14).
@@ -207,47 +207,47 @@ NOTE: Operation 51 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 52 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `states`: `pending` | `approved` | `rejected` | `withdrawn` — a [State], and the whole state space.
+Term states: `pending` | `approved` | `rejected` | `withdrawn` — a [State], and the whole state space.
 
-Terms › `terminal state`: `approved` | `rejected` OR `withdrawn` — the three absorbing members of `states`.
+Term terminal state: `approved` | `rejected` OR `withdrawn` — the three absorbing members of `states`.
 
-Terms › `resolving action`: [Approve] | [Reject] | [Withdraw] — the three actions that close a pending step.
+Term resolving action: [Approve] | [Reject] | [Withdraw] — the three actions that close a pending step.
 
-Terms › `deciding action`: [Approve] | [Reject] — the two a guard on approver_ref covers.
+Term deciding action: [Approve] | [Reject] — the two a guard on approver_ref covers.
 
-Terms › `writing action`: [Submit] | [Approve] | [Reject] | [Withdraw] — every action but [Read].
+Term writing action: [Submit] | [Approve] | [Reject] | [Withdraw] — every action but [Read].
 
-Terms › `deciding reference`: `decided_by` on a deciding action, and `withdrawn_by` on [Withdraw] — the actor reference a resolving action carries.
+Term deciding reference: `decided_by` on a deciding action, and `withdrawn_by` on [Withdraw] — the actor reference a resolving action carries.
 
-Terms › `decision instant`: `decided_at` on a deciding action, and `withdrawn_at` on [Withdraw] — the instant a resolving action records.
+Term decision instant: `decided_at` on a deciding action, and `withdrawn_at` on [Withdraw] — the instant a resolving action records.
 
-Terms › `resolved decision instant`: the decision instant the step carries — the supplied value where one exists, and `now` otherwise.
+Term resolved decision instant: the decision instant the step carries — the supplied value where one exists, and `now` otherwise.
 
-Terms › `resolved submitted_at`: the `submitted_at` the step carries — the supplied value where one exists, and `now` otherwise.
+Term resolved submitted_at: the `submitted_at` the step carries — the supplied value where one exists, and `now` otherwise.
 
-Terms › `submission field`: `step_id`, `subject_ref`, `approver_ref`, `submitter_ref`, `scope`, `submitted_at` OR `reason` — every field [Submit] sets.
+Term submission field: `step_id`, `subject_ref`, `approver_ref`, `submitter_ref`, `scope`, `submitted_at` OR `reason` — every field [Submit] sets.
 
-Terms › `attribution field`: `decided_by`, `decision_reason`, `decided_at`, `withdrawn_by`, `withdrawal_reason` OR `withdrawn_at` — every field a resolving action sets.
+Term attribution field: `decided_by`, `decision_reason`, `decided_at`, `withdrawn_by`, `withdrawal_reason` OR `withdrawn_at` — every field a resolving action sets.
 
-Terms › `attribution check`: Operation 15 through Operation 19 — every check a resolving action makes before the actor guard.
+Term attribution check: Operation 15 through Operation 19 — every check a resolving action makes before the actor guard.
 
-Terms › `filter axes`: `step_id` | `subject_ref` | `approver_ref` | `submitter_ref` | `scope` | `state` | `submitted_at` | `decided_at` | `withdrawn_at` — the nine axes [Read] accepts, and no others.
+Term filter axes: `step_id` | `subject_ref` | `approver_ref` | `submitter_ref` | `scope` | `state` | `submitted_at` | `decided_at` | `withdrawn_at` — the nine axes [Read] accepts, and no others.
 
-Terms › `admitted submit`: a [Submit] call whose references, scope, supplied reason and resolved submitted_at the guards all admit.
+Term admitted submit: a [Submit] call whose references, scope, supplied reason and resolved submitted_at the guards all admit.
 
-Terms › `admitted resolve`: a resolving action whose step_id names a pending step and whose reason, deciding reference and resolved decision instant the guards admit, and whose deciding reference matches the step's anchor.
+Term admitted resolve: a resolving action whose step_id names a pending step and whose reason, deciding reference and resolved decision instant the guards admit, and whose deciding reference matches the step's anchor.
 
-Terms › `admitted approve`: an admitted resolve on [Approve].
+Term admitted approve: an admitted resolve on [Approve].
 
-Terms › `admitted reject`: an admitted resolve on [Reject].
+Term admitted reject: an admitted resolve on [Reject].
 
-Terms › `admitted withdraw`: an admitted resolve on [Withdraw].
+Term admitted withdraw: an admitted resolve on [Withdraw].
 
-Terms › `admitted read`: a [Read] call whose every filter axis and filter value the guards admit.
+Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
 | # | Condition | a resolving action answers |
 |---|---|---|
@@ -456,9 +456,9 @@ Atomic writes 3: The implementation MUST resolve a dangling transition.
 Atomic writes 4: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
 ```
 
-Terms › `uncommitted crash`: a crash BEFORE an admitted resolve's commit lands.
+Term uncommitted crash: a crash BEFORE an admitted resolve's commit lands.
 
-Terms › `dangling transition`: an admitted resolve's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
+Term dangling transition: an admitted resolve's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
 
 WHY:
 Every resolving action writes the state and its attribution fields together (Operation 31), and a crash between them produces a terminal step with a missing decider or a missing instant — which is Invariant 6 violated in exactly the way an auditor cannot distinguish from an implementation that never wrote them. The obligation is all-or-none observability: a partly applied resolve must never be servable.
@@ -497,9 +497,9 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Terms › `string input`: a reference, `reason` OR a filter's value — every caller-supplied string this atom accepts.
+Term string input: a reference, `reason` OR a filter's value — every caller-supplied string this atom accepts.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 The cost of byte-exactness lands hardest on the exclusivity guards. An approver whose reference is stored one way and supplied another gets `unauthorized` on their own step — correct by Identity 10, and indistinguishable to them from being the wrong actor. A deployment that does not canonicalize will discover this as an approver who cannot approve.
@@ -539,21 +539,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an examiner; an investigator; an actor; an approver; a submitter; the store; a step; a pending step; a terminal step; an approved step; a rejected step; a withdrawn step; a resolving action; a deciding action; a writing action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a rejection; a crash; a reader; a string input; an opaque reference; the store instance's step count; an attribution check.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an examiner; an investigator; an actor; an approver; a submitter; the store; a step; a pending step; a terminal step; an approved step; a rejected step; a withdrawn step; a resolving action; a deciding action; a writing action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a rejection; a crash; a reader; a string input; an opaque reference; the store instance's step count; an attribution check.
 
-Terms › `records`: `step` — one authorization gate, carrying `step_id`, `subject_ref`, `approver_ref`, `submitter_ref`, `scope`, `submitted_at`, a state and, where supplied or set, `reason`, `decided_by`, `decision_reason`, `decided_at`, `withdrawn_by`, `withdrawal_reason` and `withdrawn_at`.
+Term records: `step` — one authorization gate, carrying `step_id`, `subject_ref`, `approver_ref`, `submitter_ref`, `scope`, `submitted_at`, a state and, where supplied or set, `reason`, `decided_by`, `decision_reason`, `decided_at`, `withdrawn_by`, `withdrawal_reason` and `withdrawn_at`.
 
-Terms › `record verbs`: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, order, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, capture, choose, canonicalize, retry, permit.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, order, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, capture, choose, canonicalize, retry, permit.
 
-Terms › `value sets`: submit answers = step_id | rejected(invalid-request | storage-failure). approve answers = approved | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure). reject answers = rejected_outcome | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure). withdraw answers = withdrawn | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure). read answers = the matching steps | rejected(invalid-query). `state` = pending | approved | rejected | withdrawn.
+Term value sets: submit answers = step_id | rejected(invalid-request | storage-failure). approve answers = approved | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure). reject answers = rejected_outcome | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure). withdraw answers = withdrawn | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure). read answers = the matching steps | rejected(invalid-query). `state` = pending | approved | rejected | withdrawn.
 
-Terms › `bounds`: empty.
+Term bounds: empty.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Terms › `terms`: `step`, `step_id`, `subject_ref`, `approver_ref`, `submitter_ref`, `scope`, `reference`, `store instance`, `seam`, `transition`, `now`, `business caller`, `states`, `terminal state`, `resolving action`, `deciding action`, `writing action`, `deciding reference`, `decision instant`, `resolved decision instant`, `resolved submitted_at`, `submission field`, `attribution field`, `attribution check`, `filter axes`, `admitted submit`, `admitted resolve`, `admitted approve`, `admitted reject`, `admitted withdraw`, `admitted read`, `string input`, `blank`, `uncommitted crash`, `dangling transition`.
+Term terms: `step`, `step_id`, `subject_ref`, `approver_ref`, `submitter_ref`, `scope`, `reference`, `store instance`, `seam`, `transition`, `now`, `business caller`, `states`, `terminal state`, `resolving action`, `deciding action`, `writing action`, `deciding reference`, `decision instant`, `resolved decision instant`, `resolved submitted_at`, `submission field`, `attribution field`, `attribution check`, `filter axes`, `admitted submit`, `admitted resolve`, `admitted approve`, `admitted reject`, `admitted withdraw`, `admitted read`, `string input`, `blank`, `uncommitted crash`, `dangling transition`.
 
 #### Approval Step
 

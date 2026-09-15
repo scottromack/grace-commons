@@ -59,21 +59,21 @@ Identity 13: The atom MUST NOT match an accepting_identity_ref against an invite
 Identity 14: The deployment MUST route EVERY call to one store instance.
 ```
 
-Terms › `invitation`: the record this atom holds — one invitation issued by one inviter to join one context, resolved by at most one write.
+Term invitation: the record this atom holds — one invitation issued by one inviter to join one context, resolved by at most one write.
 
-Terms › `invitation_token`: the opaque value naming one invitation — an [Invitation Token]; assigned from the token material the seam supplies, and the bearer credential a holder presents.
+Term invitation_token: the opaque value naming one invitation — an [Invitation Token]; assigned from the token material the seam supplies, and the bearer credential a holder presents.
 
-Terms › `property`: `inviter_ref` | `invitee_ref` | `context` | `initiated_at` | `expires_at` — what an invitation carries from initiation that is not the invitation's identity.
+Term property: `inviter_ref` | `invitee_ref` | `context` | `initiated_at` | `expires_at` — what an invitation carries from initiation that is not the invitation's identity.
 
-Terms › `reference`: `invitation_token`, `inviter_ref`, `invitee_ref`, `accepting_identity_ref` OR `revoked_by_ref` — every opaque reference this atom records.
+Term reference: `invitation_token`, `inviter_ref`, `invitee_ref`, `accepting_identity_ref` OR `revoked_by_ref` — every opaque reference this atom records.
 
-Terms › `store instance`: one named invitation store a call is routed to; `invitation_token` uniqueness ranges over one instance.
+Term store instance: one named invitation store a call is routed to; `invitation_token` uniqueness ranges over one instance.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the token material here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the token material here.
 
-Terms › `transition`: the atom's evaluation of one call against the invitation store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the invitation store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 5 and Identity 6 are a pair, and the pair is the point. An absolute uniqueness claim over a value drawn from a random source is not made true by the source being wide: 128 bits makes a collision fantastically unlikely and leaves the invariant logically false. Identity 6 is the cure [Capability](./capability.md) carries — the *store* refuses the colliding write, so a collision surfaces as an outcome the signature already names and uniqueness is enforced rather than hoped for. This atom is the second to carry it, and the docket row counting the atoms that do not is where the corpus-wide ruling sits.
@@ -98,7 +98,7 @@ State 12: The atom MUST NOT offer an invitation removal surface.
 State 13: The store instance's invitation count MUST NOT fall.
 ```
 
-Terms › `resolution field`: `accepting_identity_ref` | `accepted_at` | `declined_at` | `revoked_at` | `revoked_by_ref` | `revocation_reason` — every field a resolving write records.
+Term resolution field: `accepting_identity_ref` | `accepted_at` | `declined_at` | `revoked_at` | `revoked_by_ref` | `revocation_reason` — every field a resolving write records.
 
 WHY:
 State 7 and State 8 are the derived-expiry posture on the record surface, and they are two rules rather than one because an implementation can breach each without the other: a stored `expired` status, and an `expired_at` column beside a status that stays pending. Either one reintroduces the flag that lags the clock.
@@ -203,41 +203,41 @@ NOTE: Operation 45 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 46 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `resolving write`: [Accept] | [Decline] | [Revoke] — every write taking a pending invitation to a stored terminal.
+Term resolving write: [Accept] | [Decline] | [Revoke] — every write taking a pending invitation to a stored terminal.
 
-Terms › `stored terminal`: `accepted` | `declined` | `revoked`.
+Term stored terminal: `accepted` | `declined` | `revoked`.
 
-Terms › `status`: `pending` | `accepted` | `declined` | `revoked` — the value an invitation stores.
+Term status: `pending` | `accepted` | `declined` | `revoked` — the value an invitation stores.
 
-Terms › `status check`: Operation 15, Operation 16 and Operation 20 — every check a resolving write makes on the invitation's own standing before reading the call's arguments.
+Term status check: Operation 15, Operation 16 and Operation 20 — every check a resolving write makes on the invitation's own standing before reading the call's arguments.
 
-Terms › `ttl bounds`: the deployment's admitted range for a `ttl`; every admitted value exceeds zero.
+Term ttl bounds: the deployment's admitted range for a `ttl`; every admitted value exceeds zero.
 
-Terms › `default ttl`: the `ttl` the deployment declares for an [Initiate] carrying none.
+Term default ttl: the `ttl` the deployment declares for an [Initiate] carrying none.
 
-Terms › `expiry bound`: `initiated_at` raised by the `ttl` — the value an admitted initiate records as `expires_at`.
+Term expiry bound: `initiated_at` raised by the `ttl` — the value an admitted initiate records as `expires_at`.
 
-Terms › `window reading`: `live` | `lapsed` — how a pending invitation's window reads against `now`.
+Term window reading: `live` | `lapsed` — how a pending invitation's window reads against `now`.
 
-Terms › `live`: the window reading of a pending invitation whose `expires_at` exceeds `now`.
+Term live: the window reading of a pending invitation whose `expires_at` exceeds `now`.
 
-Terms › `lapsed`: the window reading of a pending invitation whose `expires_at` does not exceed `now`; the boundary instant — `expires_at` equal to `now` — reads lapsed.
+Term lapsed: the window reading of a pending invitation whose `expires_at` does not exceed `now`; the boundary instant — `expires_at` equal to `now` — reads lapsed.
 
-Terms › `effective status`: `expired` where the invitation reads lapsed, and the stored `status` otherwise — a projection over the invitation and `now`, never stored.
+Term effective status: `expired` where the invitation reads lapsed, and the stored `status` otherwise — a projection over the invitation and `now`, never stored.
 
-Terms › `acting reference`: `accepting_identity_ref` OR `revoked_by_ref` — the reference a write records for who acted.
+Term acting reference: `accepting_identity_ref` OR `revoked_by_ref` — the reference a write records for who acted.
 
-Terms › `admitted initiate`: an [Initiate] call that passes every precondition and whose store write commits.
+Term admitted initiate: an [Initiate] call that passes every precondition and whose store write commits.
 
-Terms › `admitted accept`: an [Accept] call that passes every precondition and whose store write commits.
+Term admitted accept: an [Accept] call that passes every precondition and whose store write commits.
 
-Terms › `admitted decline`: a [Decline] call that passes every precondition and whose store write commits.
+Term admitted decline: a [Decline] call that passes every precondition and whose store write commits.
 
-Terms › `admitted revoke`: a [Revoke] call that passes every precondition and whose store write commits.
+Term admitted revoke: a [Revoke] call that passes every precondition and whose store write commits.
 
-Terms › `admitted resolving write`: an admitted accept, an admitted decline OR an admitted revoke.
+Term admitted resolving write: an admitted accept, an admitted decline OR an admitted revoke.
 
-Terms › `admitted read`: a [Read] call that answers.
+Term admitted read: a [Read] call that answers.
 
 WHY:
 Operation 19, Operation 21, Operation 26 and Operation 36 are the rejection priority, written as guards rather than as an order — nothing may be inferred from rule order (GRACE-lang Timing 13). The effect is `not-known` before `already-resolved` before `expired` before `invalid-request` before `storage-failure`, and the placement of `invalid-request` *after* the status checks is deliberate: a caller who supplied a blank `reason` to revoke an already-accepted invitation learns that the invitation is accepted, which is the fact that ends the conversation, rather than being sent to fix an argument that would not have helped.
@@ -465,9 +465,9 @@ String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
 ```
 
-Terms › `string input`: a reference, `context` OR `reason` — every caller-supplied string this atom accepts.
+Term string input: a reference, `context` OR `reason` — every caller-supplied string this atom accepts.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness is sharper here than in most atoms because the `invitation_token` is a bearer credential: a lookup that trimmed or case-folded would make a family of near-miss tokens resolve to a real invitation, which is a guessing surface rather than a convenience. Canonicalization, where a deployment wants it, happens before the call (Capability requirement 8, Identity 9).
@@ -503,27 +503,27 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the deployment; the implementation; the store; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a reader; an invitation; a pending invitation; an accepted invitation; a declined invitation; a revoked invitation; a lapsed invitation; an action; a resolving write; a losing resolving write; a refused action; a rejection; an answer; a token holder; an opaque reference; a string input; a filter; the store instance's invitation count.
+Term actors: the atom; the deployment; the implementation; the store; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a reader; an invitation; a pending invitation; an accepted invitation; a declined invitation; a revoked invitation; a lapsed invitation; an action; a resolving write; a losing resolving write; a refused action; a rejection; an answer; a token holder; an opaque reference; a string input; a filter; the store instance's invitation count.
 
-Terms › `records`: `invitation` — one invitation issued by one inviter to join one context, carrying `invitation_token`, `inviter_ref`, `context`, `initiated_at`, `expires_at`, a `status` and, where supplied or set, `invitee_ref`, `accepting_identity_ref`, `accepted_at`, `declined_at`, `revoked_by_ref`, `revocation_reason` and `revoked_at`.
+Term records: `invitation` — one invitation issued by one inviter to join one context, carrying `invitation_token`, `inviter_ref`, `context`, `initiated_at`, `expires_at`, a `status` and, where supplied or set, `invitee_ref`, `accepting_identity_ref`, `accepted_at`, `declined_at`, `revoked_by_ref`, `revocation_reason` and `revoked_at`.
 
-Terms › `record verbs`: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, deliver, acknowledge, canonicalize, declare, compose, remove, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, draw, verify, sequence, issue, detect, guarantee, take, store, own.
+Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, deliver, acknowledge, canonicalize, declare, compose, remove, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, draw, verify, sequence, issue, detect, guarantee, take, store, own.
 
-Terms › `value sets`: initiate answers = invitation_token | rejected(invalid-request | storage-failure). accept answers = accepted | rejected(not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure). decline answers = declined | rejected(not-known | already-resolved(stored terminal) | expired | storage-failure). revoke answers = revoked | rejected(not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure). read answers = the matching invitations. `status` = pending | accepted | declined | revoked. `stored terminal` = accepted | declined | revoked. `window reading` = live | lapsed. `property` = inviter_ref | invitee_ref | context | initiated_at | expires_at. `resolution field` = accepting_identity_ref | accepted_at | declined_at | revoked_at | revoked_by_ref | revocation_reason.
+Term value sets: initiate answers = invitation_token | rejected(invalid-request | storage-failure). accept answers = accepted | rejected(not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure). decline answers = declined | rejected(not-known | already-resolved(stored terminal) | expired | storage-failure). revoke answers = revoked | rejected(not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure). read answers = the matching invitations. `status` = pending | accepted | declined | revoked. `stored terminal` = accepted | declined | revoked. `window reading` = live | lapsed. `property` = inviter_ref | invitee_ref | context | initiated_at | expires_at. `resolution field` = accepting_identity_ref | accepted_at | declined_at | revoked_at | revoked_by_ref | revocation_reason.
 
-Terms › `bounds`: `ttl bounds`, `default ttl`, `expiry bound`.
+Term bounds: `ttl bounds`, `default ttl`, `expiry bound`.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `invitation`, `invitation_token`, `property`, `reference`, `store instance`, `seam`, `transition`, `now`, `resolving write`, `stored terminal`, `status`, `status check`, `ttl bounds`, `default ttl`, `expiry bound`, `window reading`, `live`, `lapsed`, `effective status`, `acting reference`, `admitted initiate`, `admitted accept`, `admitted decline`, `admitted revoke`, `admitted resolving write`, `admitted read`, `resolution field`, `resolution instant`, `string input`, `blank`.
+Term terms: `invitation`, `invitation_token`, `property`, `reference`, `store instance`, `seam`, `transition`, `now`, `resolving write`, `stored terminal`, `status`, `status check`, `ttl bounds`, `default ttl`, `expiry bound`, `window reading`, `live`, `lapsed`, `effective status`, `acting reference`, `admitted initiate`, `admitted accept`, `admitted decline`, `admitted revoke`, `admitted resolving write`, `admitted read`, `resolution field`, `resolution instant`, `string input`, `blank`.
 
-Terms › `cited`: `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: `execution-contract.md` §Logic confinement — the seam and the transition.
 
-Terms › `composing pattern`: [Party Identity](./party-identity.md), [Credential](./credential.md), [Session](./session.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Capability](./capability.md), [External Onboarding](../compositions/external-onboarding.md).
+Term composing pattern: [Party Identity](./party-identity.md), [Credential](./credential.md), [Session](./session.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Capability](./capability.md), [External Onboarding](../compositions/external-onboarding.md).
 
-Terms › `resolution instant`: `accepted_at` | `declined_at` | `revoked_at`.
+Term resolution instant: `accepted_at` | `declined_at` | `revoked_at`.
 
 #### Initiate
 

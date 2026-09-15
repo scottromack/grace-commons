@@ -8,7 +8,7 @@ python3 tools/grace/check.py <paths...>      # named files
 python3 tools/grace/check.py --gate          # exit 1 on any non-advisory finding
 ```
 
-Both tools read one whitelist: a spec is scanned when its `Terms › qualifiers` line declares `migrated`. Nothing is inferred from the presence of a fence, so an unmigrated spec that grows one is not suddenly held to the language.
+Both tools read one whitelist: a spec is scanned when its `Term qualifiers` line declares `migrated`. Nothing is inferred from the presence of a fence, so an unmigrated spec that grows one is not suddenly held to the language.
 
 Standard library only. One finding per line, `path:line: [CODE] message`. Non-gating by default — landed 2026-09-11 against a corpus of three migrated documents, and it starts by measuring, not defending (the linter's rule for a new check, `tools/linter/README.md` §Advisory codes).
 
@@ -22,6 +22,7 @@ Standard library only. One finding per line, `path:line: [CODE] message`. Non-ga
 | **B-before / B-after / B-banned / B-exceed** | Positive `MUST … BEFORE` (Timing 6, Hard invariant 11); `AFTER` under `MUST NOT` (Timing 4); `AT LEAST`, `STRICTLY` (Timing 10, Timing 11); `MUST EXCEED` (Timing 9). |
 | **A-arith** | An arithmetic operator in a rule (Hard invariant 24, Closed vocabulary 9). |
 | **P-pronoun** | A pronoun in a rule (Hard invariant 4). |
+| **D-decl-form** | A line outside every fence that opens like a declaration and is not the one form, `Term name: definition.` — a bare name running to the first colon, one space, a closing period — or that still carries the retired `Terms ›` separator (GRACE-lang v0.45). |
 | **R-caps** | A word in capitals that is not a reserved token (Casing 2, Casing 6) — a watched or provisional form, an inflection of a reserved token (`WHILE`, `DEGRADES TO`, `EXIST`), or a proper noun or acronym (`SOX`, `KB`), which a rule spells out (ruled at council read 85, no exceptions). Both sets derive from `GRACE-lang.md`. Landed at council read 79, when three such words were found in rules both checkers passed. |
 | **C-copula / C-verb** | A copula after the modal; a verb after the modal the spec's record-verb declaration does not carry (Closed vocabulary 8). |
 | **F-bracket** | A bracketed range in a rule — read as a term marker by the corpus linter, and arithmetic besides. |
@@ -29,9 +30,9 @@ Standard library only. One finding per line, `path:line: [CODE] message`. Non-ga
 | **D-decl-modal / D-decl-selfref / D-decl-unresolved** *(advisory)* | What a declaration carries. A definition is not a rule, so a modal in one is an obligation in a definition's clothes (Closed vocabulary 12, Closed vocabulary 14); a definition that computes over itself, or over a datum the spec declares nowhere (Closed vocabulary 4). A declaration may carry the arithmetic a rule may not (Closed vocabulary 9, Closed vocabulary 11), which is where complexity goes when a rule cannot hold it — and, until these landed, the one place nothing read. |
 | **K-check-bare** *(advisory)* | A `Check` or `External check` rule naming no rule. The auditor is the last reader nobody audits: a check whose failure nobody can state passes forever, and Lease's Check 6.1 was vacuous against the very rule it rested on for a day (council read 8). Landed 2026-09-11 against a baseline of 83, most of them checks citing an invariant in prose rather than by label. |
 | **F-prefix-first** | A tombstone opening a fenced block: `Surface 18` classifies the block by its first line, so a `NOTE: … deleted` written at the top silently demotes every rule beneath it. The edit looks like housekeeping and reads like a deletion — it happened once, during council read 15's repair pass, and the checker caught it. |
-| **V-dup-vocab** | A `Terms › record verbs` or `Terms › terms` line naming the same name twice. The corpus's rewrite template shipped `identify` twice and five atoms inherited it, plus two compositions with their own — the defect a template repeats is the defect no reader sees (council read 16). |
+| **V-dup-vocab** | A `Term record verbs` or `Term terms` line naming the same name twice. The corpus's rewrite template shipped `identify` twice and five atoms inherited it, plus two compositions with their own — the defect a template repeats is the defect no reader sees (council read 16). |
 | **E-not-exclusive** *(advisory)* | An `EXACTLY ONE OF` whose members are not exclusive — one member containing another, so the exclusive choice does not exclude (Earned vocabulary 4). Two instances on file before it landed, both in a self-containment invariant, both repaired by declaring the set as a term (council read 9, council read 13). |
-| **W-or-word / W-watch-word / W-term-unused** *(advisory)* | A lower-case `or` inside an obligation; `after`, `before`, `until`, `while`, `unless` inside a rule (§18's watch list); a `Terms ›` declaration nothing uses. |
+| **W-or-word / W-watch-word / W-term-unused** *(advisory)* | A lower-case `or` inside an obligation; `after`, `before`, `until`, `while`, `unless` inside a rule (§18's watch list); a `Term` declaration nothing uses. |
 
 A code span inside a rule is read as quoted text, never as the rule's own tokens — the grammar's meta-rules mention the tokens they govern (`GRACE-lang.md` §18, provisional).
 

@@ -59,9 +59,9 @@ journal_fence 3: The substrate MUST land a fenced-out write on the position's ex
 journal_fence 4: A sweep run MUST absorb a fenced-out closing write into skipped and leave the intent open.
 ```
 
-Terms › `position's existing arm`: `recording-failure(intent)` at [Open]; `recording-failure(outcome)` at [Close]; `recording-failure(refusal, constituent_code)` at [Refuse]; `recording-failure(resolution)` at [Resolve].
+Term position's existing arm: `recording-failure(intent)` at [Open]; `recording-failure(outcome)` at [Close]; `recording-failure(refusal, constituent_code)` at [Refuse]; `recording-failure(resolution)` at [Resolve].
 
-Terms › `journal_fence instant`: the earlier of the writer's lease terminus and the write's per-write terminus.
+Term journal_fence instant: the earlier of the writer's lease terminus and the write's per-write terminus.
 
 WHY:
 `record_action` carries no deadline parameter, so the first conveyance is unavailable in this library. Without the per-write instant a write may land after `journal_write_bound` and inside the lease — after the read-back, which then retries and appends the duplicate (`-buggy-perwrite`, rejected).
@@ -81,7 +81,7 @@ journal_fence none 6: A surface MAY report the intents key ONLY IF the act kind 
 
 Three surfaces make journal_fence none 2 checkable and read §*Which closing stands* for both keys: [Read Invocation]'s two `binding_duplicate` fields (read_invocation 7, read_invocation 8), [Reconcile] step 5's scan over the delta (reconcile step 5.2–5.4), and Generation acceptance check 2.
 
-Terms › `quiescence`: no invocation in flight and no sweep run mid-pass.
+Term quiescence: no invocation in flight and no sweep run mid-pass.
 
 WHY:
 No auditor can enumerate which writers were paused, so the guarantee is over records alone. The scan rides the delta, where a late append appears, because step 1 keeps only open intents and an act with two closings is not open. The intent is inside this: [Open] releases on the intent write's return, so a late-landing intent leaves the next waiter's pre-check reading nothing and a second live intent appears, both escalating (Invariant 3) — invisible to any surface keyed on `invocation_id`, hence the intents key. The fence prevents it and the gate does not (`probe-fenceless-intent` violates, `probe-fenced-ungated-intent` holds); the gate is kept because it is this page's rule for every write. With the fence none of this machinery fires.
@@ -125,9 +125,9 @@ Five elements, each carrying the Contract classification of [`execution-contract
   sequence_high_water 5: IF now EXCEEDS an intent's retention_end THEN EVERY read of open_invocations MUST drop the intent.
   sequence_high_water 6: A lost mark MUST rebuild both maps from the log's beginning.
   ```
-  Terms › `settle_bound`: `journal_write_bound + clock_offset_allowance`.
+  Term settle_bound: `journal_write_bound + clock_offset_allowance`.
 
-  Terms › `retention_end`: `recorded_at + retention_period`.
+  Term retention_end: `recorded_at + retention_period`.
   WHY: the delta rule needs a prefix-closed read, which Event Log does not grant. Contiguity cannot be the test: `next_sequence_number` counts allocations, so a gap is normal. A purge writes no log record, so the horizon is applied on read.
 - **`findings`** — the register of what the sweep could not close and what the instance could not do, written to the deployment's `compliance_surface`. *Extraction-pending*; the named proposed atom is a **Condition Register** *(forthcoming)*.
   ```text
@@ -146,9 +146,9 @@ Five elements, each carrying the Contract classification of [`execution-contract
   findings 12: The register MUST hold one record per standing condition.
   findings 13: A reader MUST NOT rely on an order across act_keys.
   ```
-  Terms › `act finding`: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation_id, finding); carries no last_seen and no span.
+  Term act finding: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation_id, finding); carries no last_seen and no span.
 
-  Terms › `instance finding`: {finding, kind, first_seen, last_seen, run_id}; deduplicates on (finding, kind).
+  Term instance finding: {finding, kind, first_seen, last_seen, run_id}; deduplicates on (finding, kind).
   The five conditions:
   - `journal-unavailable` — instance finding, no `kind`: the journal could not be read or written this run ([Reconcile] step 1).
   - `store-unavailable` — instance finding, `kind` present: the kind's adopter's store answered `unavailable` to `probe` ([Reconcile] step 3).
@@ -181,13 +181,13 @@ Capability requirement 10: A read_record that cannot reach the journal MUST NOT 
 Capability requirement 11: IF the range read, read-your-writes or act_section is absent THEN the composition MUST NOT start.
 ```
 
-Terms › `delta range`: the sequence-number range from `sequence_high_water + 1` with no upper bound.
+Term delta range: the sequence-number range from `sequence_high_water + 1` with no upper bound.
 
-Terms › `open-upper-bound sequence-range read`: `EventLog.read` over the delta range, reached through Audit Trail's list-shaped pass-through.
+Term open-upper-bound sequence-range read: `EventLog.read` over the delta range, reached through Audit Trail's list-shaped pass-through.
 
-Terms › `read path`: [Open] step 3, [Reconcile] step 1, [Read Invocation], and the re-reads at [Close], [Refuse] and [Resolve]. The first three transcribe `unavailable` as `journal-unavailable`; the last three land it on the position's `recording-failure` arm.
+Term read path: [Open] step 3, [Reconcile] step 1, [Read Invocation], and the re-reads at [Close], [Refuse] and [Resolve]. The first three transcribe `unavailable` as `journal-unavailable`; the last three land it on the position's `recording-failure` arm.
 
-Terms › `read-your-writes`: Capability requirement 7 and Capability requirement 8 together. The filtering of every range read on `action_ref`, `invocation_id` or a payload field is this composition's code; the substrate offers no such selector.
+Term read-your-writes: Capability requirement 7 and Capability requirement 8 together. The filtering of every range read on `action_ref`, `invocation_id` or a payload field is this composition's code; the substrate offers no such selector.
 
 WHY:
 The section is released on the holder's return, well inside `journal_write_bound`, so a waiter admitted then re-reads before a time-only guarantee says anything, sees no closing, and writes the second one (`-buggy-visible`, rejected). Without Capability requirement 9 an outage at [Resolve]'s purge check reads as absence.
@@ -212,17 +212,17 @@ The section is released on the holder's return, well inside `journal_write_bound
   act_section 13: A sweep run MUST leave a closing write in flight at expiry for the next run.
   act_section 14: The section MUST admit re-entry by the section's own holder alone.
   ```
-  Terms › `section key`: `(kind, act_key)`.
+  Term section key: `(kind, act_key)`.
 
-  Terms › `section holder`: the invocation_id for an invocation; the run's own seam-injected id for a sweep run; operator_run_id for [Resolve].
+  Term section holder: the invocation_id for an invocation; the run's own seam-injected id for a sweep run; operator_run_id for [Resolve].
 
-  Terms › `section duration`: `completion_bound` for an invocation; `sweep_lease` for a sweep run or an operator.
+  Term section duration: `completion_bound` for an invocation; `sweep_lease` for a sweep run or an operator.
   WHY: `completion_bound` no shorter, so a conforming invocation is never evicted mid-section; no longer, so a stalled holder blocks the sweep for at most the bound. The lease ends the hold; the `journal_fence` keeps a dead holder's write from landing — with the fence Invariant 2 holds with or without the gate, without it Invariant 2 fails with or without the gate. The gate stops a holder starting a write the fence will refuse.
 - **`journal_write_bound`** — the disclosed bound on a `record_action` from issue to landing: the substrate's `record_action_completion_bound` plus issue-to-first-commit latency, with headroom. *Default:* none.
   ```text
   journal_write_bound 1: IF journal_write_bound EXCEEDS remaining THEN a writer MUST NOT issue a journal write under the section.
   ```
-  Terms › `sweep_lease`: `closure_latency + journal_write_bound`.
+  Term sweep_lease: `closure_latency + journal_write_bound`.
 - **`reconciliation_cadence`** — the interval at which the sweep runs after the mandatory run at process restart. *Default:* none.
 - **`read_bound`** — the disclosed bound on one under-section journal read ([Open] step 3, [Close] step 2, [Refuse], [Resolve]). Conditions 3 and 5. *Default:* none.
 - **`closure_latency`** — the disclosed bound on one whole closure: re-read, `probe`, `<kind>.recovery_intended`, the closing record, the index update. Condition 5. *Default:* none.
@@ -261,25 +261,25 @@ Primitive policy 17: The adopter's action MUST carry invocation_id from [Open] i
 Primitive policy 18: The sweep MUST read now once per run at the sweep's own seam.
 ```
 
-Terms › `act_key`: opaque, adopter-typed; equality is byte-identity.
+Term act_key: opaque, adopter-typed; equality is byte-identity.
 
-Terms › `invocation_id`: injected at the adopter's seam alongside `now`, fresh per invocation, unique across every node of the instance for the journal's lifetime; opaque, byte-identity.
+Term invocation_id: injected at the adopter's seam alongside `now`, fresh per invocation, unique across every node of the instance for the journal's lifetime; opaque, byte-identity.
 
-Terms › `now`: the seam-injected reading — at the adopter's seam per invocation, at the sweep's seam once per run, at the operator's seam once per [Resolve] call alongside `operator_run_id`, at the reader's seam once per [Read Invocation] call; each as `execution-contract.md` §Logic confinement declares it, never read inside the transition.
+Term now: the seam-injected reading — at the adopter's seam per invocation, at the sweep's seam once per run, at the operator's seam once per [Resolve] call alongside `operator_run_id`, at the reader's seam once per [Read Invocation] call; each as `execution-contract.md` §Logic confinement declares it, never read inside the transition.
 
-Terms › `operator_run_id`: injected at the operator's seam once per [Resolve] call; the section holder for [Resolve].
+Term operator_run_id: injected at the operator's seam once per [Resolve] call; the section holder for [Resolve].
 
-Terms › `caller_kind`: EXACTLY ONE OF human, service — service where `actor_ref` names the kind's `service_identity`.
+Term caller_kind: EXACTLY ONE OF human, service — service where `actor_ref` names the kind's `service_identity`.
 
-Terms › `examine_edge`: `recorded_at + completion_bound + clock_offset_allowance`.
+Term examine_edge: `recorded_at + completion_bound + clock_offset_allowance`.
 
-Terms › `in-flight`: an open intent for which `examine_edge` EXCEEDS `now`.
+Term in-flight: an open intent for which `examine_edge` EXCEEDS `now`.
 
-Terms › `aged`: an open intent for which `now` EXCEEDS `examine_edge` OR `now` = `examine_edge`.
+Term aged: an open intent for which `now` EXCEEDS `examine_edge` OR `now` = `examine_edge`.
 
-Terms › `horizon_edge`: `recorded_at + retention_period − clock_offset_allowance`.
+Term horizon_edge: `recorded_at + retention_period − clock_offset_allowance`.
 
-Terms › `as the substrate measures a payload`: the serialized envelope `{action_ref, actor_ref, attestation_id, data}` with the longer of the caller's and the service identity's `actor_ref`, the substrate's `attestation_id_width`, and the framing. The sweep's two closings — the recovered outcome (`outcome_data` plus `recovery`, `acting_actor_ref`) and the escalation (`store_candidates` plus the same) — are sized separately; the bound is the larger.
+Term as the substrate measures a payload: the serialized envelope `{action_ref, actor_ref, attestation_id, data}` with the longer of the caller's and the service identity's `actor_ref`, the substrate's `attestation_id_width`, and the framing. The sweep's two closings — the recovered outcome (`outcome_data` plus `recovery`, `acting_actor_ref`) and the escalation (`store_candidates` plus the same) — are sized separately; the bound is the larger.
 
 WHY:
 The four seam-against-stamp comparisons — step 3's age, the retention drop, the too-young guard, the mark advance — all only exclude; the mark advance comes nearest to deciding and is kept safe by the full rebuild at every restart and cadence. The substrate stamps `recorded_at` at its own seam.
@@ -365,7 +365,7 @@ open(kind, act_key, actor_ref, credential, intent_data) →
     )
 ```
 
-Terms › `resolve refusal`: `purged` | `malformed` | `too-young` | `already-abandoned` | `candidates-over-cap` — the reasons [Resolve] gives for an invalid request.
+Term resolve refusal: `purged` | `malformed` | `too-young` | `already-abandoned` | `candidates-over-cap` — the reasons [Resolve] gives for an invalid request.
 
 Opens one invocation of the act: takes the section, sizes the records, writes the intent record — where the caller's credential is verified — and returns the pair the adopter carries through the commit to [Close].
 
@@ -666,19 +666,19 @@ reconcile 4: A run over a mixed instance MUST report the kinds that declare no s
 reconcile 5: The run MUST sum the counts over both.
 ```
 
-Terms › `examined`: an act step 1 kept and the run reached — took, or attempted to take, the act's section.
+Term examined: an act step 1 kept and the run reached — took, or attempted to take, the act's section.
 
-Terms › `partition`: `closed + abandoned + escalated + reported + skipped + closed_already = examined`.
+Term partition: `closed + abandoned + escalated + reported + skipped + closed_already = examined`.
 
-Terms › `surfaced`: the unbound-kind intents step 1 reports; outside the partition.
+Term surfaced: the unbound-kind intents step 1 reports; outside the partition.
 
-Terms › `unreached`: the acts step 1 kept that the run stopped short of after the service identity's credential was refused; outside the partition.
+Term unreached: the acts step 1 kept that the run stopped short of after the service identity's credential was refused; outside the partition.
 
-Terms › `closed_already`: an act step 2's re-read finds another writer closed since step 1.
+Term closed_already: an act step 2's re-read finds another writer closed since step 1.
 
-Terms › `skipped`: an act the run examined and left for the next run — a failed take; a probe answering unavailable; a closing write whose retries the lease cut short; a closing write left for the next run after step 3 counted the act; an act whose remaining fell below journal_write_bound at step 2 before any write; an act the fence refused a write for while the intent was short of abandon_edge. The list is exhaustive.
+Term skipped: an act the run examined and left for the next run — a failed take; a probe answering unavailable; a closing write whose retries the lease cut short; a closing write left for the next run after step 3 counted the act; an act whose remaining fell below journal_write_bound at step 2 before any write; an act the fence refused a write for while the intent was short of abandon_edge. The list is exhaustive.
 
-Terms › `reported`: an act of a service_identity = none kind the run examined.
+Term reported: an act of a service_identity = none kind the run examined.
 
 WHY:
 Without reconcile 1 a journal outage returns zero counts and step 5 surfaces nothing, silently suppressing the at-risk report the window rests on. `surfaced` and `unreached` sit outside the partition because neither act was examined; counting either inside broke the identity. A persistently high `closed_already` says the run is racing another run or an operator. `reported` is in the partition because the run examined the act, and not `skipped` because an operator, not a later run, will close it.
@@ -761,9 +761,9 @@ Without reconcile 1 a journal outage returns zero counts and step 5 surfaces not
    reconcile step 5.8: The run MUST return the counts.
    ```
 
-Terms › `at_risk_threshold`: `compensation_window − 2 × run_bound − reconciliation_cadence − clock_offset_allowance`.
+Term at_risk_threshold: `compensation_window − 2 × run_bound − reconciliation_cadence − clock_offset_allowance`.
 
-Terms › `intent_age`: `now − recorded_at`.
+Term intent_age: `now − recorded_at`.
 
 WHY:
 Below the examine edge the invocation may still hold its lease and a take would wait on a live act, which the cadence does not budget; the second writer is forbidden by the section, not the edge (the model holds with the edge removed at zero skew). The upper edge is an inequality because the direction of the allowance decides whether an intent whose closings may already be purge-eligible is examined; a re-close past it would be the duplicate. reconcile step 3.4 is final only under a fence past the abandon edge; reconcile step 3.5's `not-observed` is the honest degree for a fenceless store, where a paused process may still land the write. reconcile step 3.13's per-act count carries no span; the instance finding does. reconcile step 3.20: an outcome that outgrew the envelope cannot shrink, and the escalation record fits.
@@ -870,7 +870,7 @@ An unbound kind has no `probe`, no `completion_bound` and no `retention_period`,
       commit 14a: The sweep MUST NOT write abandoned for the act kind.
       commit 14b: The sweep MUST write escalated for a not-committed answer.
   ```
-  Terms › `commit_fence`: an instance capability requirement on the constituent's store under which a write issued under the act's section is never applied after the fence's instant; `none` or `declared`.
+  Term commit_fence: an instance capability requirement on the constituent's store under which a write issued under the act's section is never applied after the fence's instant; `none` or `declared`.
 
   WHY: a lost reply mapped to a refusal closes the intent over an act that may have committed, and nothing looks at it again. No atom in this library declares a deadline parameter today.
 - **`pairing_datum`** — the field the intent record and the constituent's record both carry by construction: the seam-injected `now` passed into `commit`, an adopter-minted nonce stored by the constituent, or a constituent-minted id the store exposes by the intent's parameters.
@@ -899,7 +899,7 @@ An unbound kind has no `probe`, no `completion_bound` and no `retention_period`,
   probe 7: WHEN the outcome's authoritative datum exists nowhere but in the dead invocation's memory:
       probe 7a: probe MUST answer undecidable.
   ```
-  Terms › `payload_match`: `pairing_datum = none` AND at least one store record matches the intent's payload.
+  Term payload_match: `pairing_datum = none` AND at least one store record matches the intent's payload.
 - **`completion_bound`** — the longest a conforming invocation of the kind takes from [Open]'s section take to [Close]'s last write, including the constituent round-trip. The lease length of the section, the lower edge of the sweep, the first term of the liveness inequality. Read against the seam clock [Open] was injected with.
 - **`commit_round_trip`** — the longest one `commit` call takes from issue to reply; charged by `lease_spend`.
 - **`probe_round_trip`** — the longest one `probe` call takes from issue to answer; charged by `closure_spend`.
@@ -930,7 +930,7 @@ An unbound kind has no `probe`, no `completion_bound` and no `retention_period`,
   retry_terminus 2: IF journal_write_bound EXCEEDS remaining OR remaining = none THEN [Close] MUST NOT write.
   retry_terminus 3: retry_terminus MUST NOT move the terminus.
   ```
-  Terms › `terminus`: the section's lease — an invocation's standing to write ends at the lease's expiry, under every retry_terminus value.
+  Term terminus: the section's lease — an invocation's standing to write ends at the lease's expiry, under every retry_terminus value.
 
 ### Instance start
 
@@ -941,15 +941,15 @@ Instance start 2: The instance MUST check EVERY condition at start for EVERY bou
 Instance start 3: IF any condition fails for any bound kind THEN the instance MUST NOT start.
 ```
 
-Terms › `worst_closure`: `completion_bound + 2 × clock_offset_allowance + 2 × reconciliation_cadence + 3 × run_bound` — `completion_bound` the kind's, the rest the instance's, the allowance counted twice for every kind, fenced or not.
+Term worst_closure: `completion_bound + 2 × clock_offset_allowance + 2 × reconciliation_cadence + 3 × run_bound` — `completion_bound` the kind's, the rest the instance's, the allowance counted twice for every kind, fenced or not.
 
-Terms › `window_end`: `completion_bound + clock_offset_allowance + compensation_window`.
+Term window_end: `completion_bound + clock_offset_allowance + compensation_window`.
 
-Terms › `lease_spend`: `2 × read_bound + 2 × journal_write_bound + commit_round_trip`, plus `clock_offset_allowance` ONLY IF the act kind declares `commit_fence` OR the substrate declares `journal_fence` (Allowance 11).
+Term lease_spend: `2 × read_bound + 2 × journal_write_bound + commit_round_trip`, plus `clock_offset_allowance` ONLY IF the act kind declares `commit_fence` OR the substrate declares `journal_fence` (Allowance 11).
 
-Terms › `run_floor`: `max(completion_bound, closure_latency + journal_write_bound) + closure_latency`.
+Term run_floor: `max(completion_bound, closure_latency + journal_write_bound) + closure_latency`.
 
-Terms › `closure_spend`: `read_bound + 2 × journal_write_bound + probe_round_trip`.
+Term closure_spend: `read_bound + 2 × journal_write_bound + probe_round_trip`.
 
 ```text
 Instance start 4: The instance MAY start ONLY IF compensation_window EXCEEDS worst_closure.
@@ -959,7 +959,7 @@ Instance start 7: run_floor MUST NOT EXCEED run_bound.
 Instance start 8: The instance MAY start ONLY IF closure_latency EXCEEDS closure_spend.
 ```
 
-Terms › `conditions of instance start`: condition 1 = Instance start 4; condition 2 = Instance start 5; condition 3 = Instance start 6; condition 4 = Instance start 7; condition 5 = Instance start 8; there is no sixth condition on the sweep's lease.
+Term conditions of instance start: condition 1 = Instance start 4; condition 2 = Instance start 5; condition 3 = Instance start 6; condition 4 = Instance start 7; condition 5 = Instance start 8; there is no sixth condition on the sweep's lease.
 
 WHY:
 *Condition 1's three `run_bound` terms.* A budgeted death involves three runs: the run in flight when the act crossed the examine edge, which read `now` once and may lawfully finish its pass without the act; the run that examines the act and dies; the run that closes it. Two cadences, one after each of the first two. Over 432 parameter tuples the one-term form breaches on 420 and a two-term correction on 396; this form holds on every tuple meeting condition 4, with one tick of slack. The model has no backlog, so it could not catch this.
@@ -994,11 +994,11 @@ Seven clocks meet on this page: the adopter's seam ([Open] step 3), the sweep's 
 
 **Minted — three instants.**
 
-Terms › `commit_fence deadline`: minted by the section host as the act's `expires_at`, judged by the adopter's constituent store, value `expires_at − clock_offset_allowance`; bound at *Bindings*, §`commit`.
+Term commit_fence deadline: minted by the section host as the act's `expires_at`, judged by the adopter's constituent store, value `expires_at − clock_offset_allowance`; bound at *Bindings*, §`commit`.
 
-Terms › `journal_fence lease terminus`: minted by the section host as the writer's `expires_at`, judged by the substrate, value `expires_at − clock_offset_allowance`; bound at *Composes*, §`journal_fence`.
+Term journal_fence lease terminus: minted by the section host as the writer's `expires_at`, judged by the substrate, value `expires_at − clock_offset_allowance`; bound at *Composes*, §`journal_fence`.
 
-Terms › `journal_fence per-write terminus`: minted by the writer's own seam at the write's issue, judged by the substrate, value `issue + journal_write_bound − clock_offset_allowance`; bound at *Composes*, §`journal_fence`.
+Term journal_fence per-write terminus: minted by the writer's own seam at the write's issue, judged by the substrate, value `issue + journal_write_bound − clock_offset_allowance`; bound at *Composes*, §`journal_fence`.
 
 **Applied — every other cross-seam comparison on this page:** [Open] step 3's age of an open intent; the retention drop on every read of `open_invocations`; [Resolve]'s too-young guard; the `sequence_high_water` advance; the sweep's edges and window; [Read Invocation]'s rebuild.
 
@@ -1010,9 +1010,9 @@ Allowance 12: The sweep MUST NOT write abandoned BEFORE abandon_edge.
 Allowance 13: IF journal_fence = declared THEN the deployment MUST disclose journal_write_bound with clock_offset_allowance of headroom over the substrate's own worst case.
 ```
 
-Terms › `abandon_edge`: the examine edge plus one further `clock_offset_allowance` — `recorded_at + completion_bound + 2 × clock_offset_allowance`.
+Term abandon_edge: the examine edge plus one further `clock_offset_allowance` — `recorded_at + completion_bound + 2 × clock_offset_allowance`.
 
-Terms › `usable_term`: `completion_bound − clock_offset_allowance` — the term a fenced lease's operations have to finish in.
+Term usable_term: `completion_bound − clock_offset_allowance` — the term a fenced lease's operations have to finish in.
 
 WHY:
 A judge whose clock lags the minter admits, for the lag, a write the minter would call late (`-buggy-skew`, rejected; with clocks in step the bare instant holds, so the skew decides). The margin is required on every instant (`-buggy-perwrite`). One allowance in Allowance 11: both fences pull the same terminus in. Allowance 12 is sweep-to-store, a different pair from the minting's host-to-store. Without Allowance 13 a write taking the full bound is fenced out and retried — safe, an undisclosed liveness cost; the model carries the fence, not the disclosure (Ledger, NOT MODELED).
@@ -1036,18 +1036,18 @@ Which closing stands 10: A surface MAY report the intents key ONLY IF the act ki
 Which closing stands 11: A surface MUST report the closings key under every binding.
 ```
 
-Terms › `standing closing`: the closing no other closing names.
+Term standing closing: the closing no other closing names.
 
-Terms › `closings key`: two unsuperseded closings on one `invocation_id`; carried on the entry.
+Term closings key: two unsuperseded closings on one `invocation_id`; carried on the entry.
 
-Terms › `intents key`: two open intents on one `(kind, act_key)`; carried on the act.
+Term intents key: two open intents on one `(kind, act_key)`; carried on the act.
 
 WHY:
 Four surfaces need the answer and for two rounds each carried its own; transitive at one, pairwise at three, and a lawful correction read as a duplicate. Chains occur: a sweep escalates, an operator abandons naming it, check 6 shows the abandonment false, a second [Resolve] writes an outcome naming the abandonment — pairwise, the middle record belongs to two pairs. Which closing stands 10: open step 3.8 instructs a report-only deployment to leave an old intent open, so an unbranched second key reports this page's own instruction as a conformance failure. Which closing stands 11: no report-only instruction produces two closings.
 
 **Which `state` a standing closing projects.**
 
-Terms › `state projection`: no standing closing → `open`; an outcome record `<kind>.<outcome>` → `closed`; `<kind>.refused` → `refused`; `<kind>.abandoned` without `resolved_by` → `abandoned`; `<kind>.abandoned` with `resolved_by` → `resolved`; `<kind>.escalated` → `escalated`.
+Term state projection: no standing closing → `open`; an outcome record `<kind>.<outcome>` → `closed`; `<kind>.refused` → `refused`; `<kind>.abandoned` without `resolved_by` → `abandoned`; `<kind>.abandoned` with `resolved_by` → `resolved`; `<kind>.escalated` → `escalated`.
 
 An `escalated` entry becomes `resolved` when an operator's abandonment names it, and `closed` when any outcome names it. `resolved` is reserved for the case where a human's judgement is the only thing that closed an act and the act did not happen; an operator's outcome is `closed`. The `abandoned` split is the one check 6 reads: the sweep's abandonments are tested against `probe`, the operator's are exempt, and `resolved_by` separates them at both surfaces.
 
@@ -1241,9 +1241,9 @@ Check 7.2: An auditor MUST quantify Check 1, Check 2 and Check 3 over intents wh
 Check 8.1: An auditor MUST clear Audit Trail's eight traversal checks over the journal instance.
 ```
 
-Terms › `outcome shape`: `recovery` absent with `actor_ref` = the intent's `actor_ref`; `recovery = true` with `resolved_by`, `actor_ref` = `resolved_by`, no `recovery_intended` owed; `recovery = true` without `resolved_by`, `actor_ref` = the service identity, preceded by one or more `<kind>.recovery_intended` naming the same `invocation_id`.
+Term outcome shape: `recovery` absent with `actor_ref` = the intent's `actor_ref`; `recovery = true` with `resolved_by`, `actor_ref` = `resolved_by`, no `recovery_intended` owed; `recovery = true` without `resolved_by`, `actor_ref` = the service identity, preceded by one or more `<kind>.recovery_intended` naming the same `invocation_id`.
 
-Terms › `invariant map`: Invariant 1 → Check 1; Invariants 2 and 5 → Check 2; Invariant 4 → Check 3 and Check 4 (conditions 1, 4, 5; with Invariant 7 for condition 2); Invariant 5 → Check 5 and Check 6; Invariant 7 → Check 7.
+Term invariant map: Invariant 1 → Check 1; Invariants 2 and 5 → Check 2; Invariant 4 → Check 3 and Check 4 (conditions 1, 4, 5; with Invariant 7 for condition 2); Invariant 5 → Check 5 and Check 6; Invariant 7 → Check 7.
 
 ### External checks
 
@@ -1330,41 +1330,41 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: invocation; sweep run (also: the sweep, the run); operator; adopter's action (also: the adopter, the action); caller; deployment; auditor; substrate; section host (also: the host); writer — EXACTLY ONE OF invocation, sweep run, operator; minter — the section host or a writer's seam; reader; register (the deployment's findings surface); surface — [Read Invocation], [Reconcile] step 5, or Generation acceptance check 2.
+Term actors: invocation; sweep run (also: the sweep, the run); operator; adopter's action (also: the adopter, the action); caller; deployment; auditor; substrate; section host (also: the host); writer — EXACTLY ONE OF invocation, sweep run, operator; minter — the section host or a writer's seam; reader; register (the deployment's findings surface); surface — [Read Invocation], [Reconcile] step 5, or Generation acceptance check 2.
 
-Terms › `records`: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.recovery_intended`, `<kind>.abandoned`, `<kind>.escalated`, [Finding].
+Term records: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.recovery_intended`, `<kind>.abandoned`, `<kind>.escalated`, [Finding].
 
-Terms › `record verbs`: write, read, read back, take, release, hold, yield, adopt, retry, refuse, return, surface, count, probe, close, examine, keep, drop, name, carry, size, validate, land, supersede, rebuild, populate, clear, discard, report, proceed, wait, persist, start, derive, sample, declare, bind, treat, transcribe, issue, mint, reach, reveal, escalate, abandon, open, advance, set, move, admit, absorb, exclude, stand, serialize, time, query, run, pass, decide, pair, share, stay, sum, rely, trigger, exist, answer, call, follow, re-read, leave, supply, perform, exempt, bound, block, use, re-run, match, map, make, export, classify, choose, cap, vary, update, touch, suppress, stamp, retain, resolve, remove, reject, recover, record, re-take, partition, own, owe, omit, offer, know, inspect, govern, free, fire, end, disclose, describe, corroborate, confirm, compare, collapse, check, charge, change, belong, add, commit, append, quantify.
+Term record verbs: write, read, read back, take, release, hold, yield, adopt, retry, refuse, return, surface, count, probe, close, examine, keep, drop, name, carry, size, validate, land, supersede, rebuild, populate, clear, discard, report, proceed, wait, persist, start, derive, sample, declare, bind, treat, transcribe, issue, mint, reach, reveal, escalate, abandon, open, advance, set, move, admit, absorb, exclude, stand, serialize, time, query, run, pass, decide, pair, share, stay, sum, rely, trigger, exist, answer, call, follow, re-read, leave, supply, perform, exempt, bound, block, use, re-run, match, map, make, export, classify, choose, cap, vary, update, touch, suppress, stamp, retain, resolve, remove, reject, recover, record, re-take, partition, own, owe, omit, offer, know, inspect, govern, free, fire, end, disclose, describe, corroborate, confirm, compare, collapse, check, charge, change, belong, add, commit, append, quantify.
 
-Terms › `cited`: `take`, `try_take`, `remaining`, `release`, `expires_at`: Lease. `record_action`, `read_record`, `payload_cap`, `reference_length_cap`, `attestation_id_width`, `retention_policy`, `recorded_at`, `sequence_number`, `next_sequence_number`, `record_action_completion_bound`: Audit Trail.
+Term cited: `take`, `try_take`, `remaining`, `release`, `expires_at`: Lease. `record_action`, `read_record`, `payload_cap`, `reference_length_cap`, `attestation_id_width`, `retention_policy`, `recorded_at`, `sequence_number`, `next_sequence_number`, `record_action_completion_bound`: Audit Trail.
 
-Terms › `value sets`: `landed_by` = invocation | sweep | operator. `state` = open | closed | refused | abandoned | escalated | resolved. `disposition` = outcome | abandoned | escalated. `probe` answers = committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. `repeatable` = yes | no. `retry_terminus` = lease | counted(n). `commit_fence` = none | declared. `journal_fence` = none | declared. `service_identity` = an actor | none. findings = journal-unavailable | store-unavailable | closure-at-risk | binding_duplicate | unbound-kind. [Resolve]'s `invalid-request` causes = purged | malformed | too-young | already-abandoned | candidates-over-cap. Cross-seam comparisons = applied | minted.
+Term value sets: `landed_by` = invocation | sweep | operator. `state` = open | closed | refused | abandoned | escalated | resolved. `disposition` = outcome | abandoned | escalated. `probe` answers = committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. `repeatable` = yes | no. `retry_terminus` = lease | counted(n). `commit_fence` = none | declared. `journal_fence` = none | declared. `service_identity` = an actor | none. findings = journal-unavailable | store-unavailable | closure-at-risk | binding_duplicate | unbound-kind. [Resolve]'s `invalid-request` causes = purged | malformed | too-young | already-abandoned | candidates-over-cap. Cross-seam comparisons = applied | minted.
 
-Terms › `position`: `intent` | `outcome` | `refusal` | `resolution` — the record a write lands: the intent at [Open], the outcome at [Close] or after [Yield], the refusal at [Refuse], the resolution at [Resolve].
+Term position: `intent` | `outcome` | `refusal` | `resolution` — the record a write lands: the intent at [Open], the outcome at [Close] or after [Yield], the refusal at [Refuse], the resolution at [Resolve].
 
-Terms › `intent payload`: `intent_data` with `invocation_id`, `kind` and `act_key` added.
+Term intent payload: `intent_data` with `invocation_id`, `kind` and `act_key` added.
 
-Terms › `outcome payload`: `outcome_data` with `invocation_id`, `intent_event_id`, `kind` and `act_key` added.
+Term outcome payload: `outcome_data` with `invocation_id`, `intent_event_id`, `kind` and `act_key` added.
 
-Terms › `recovered outcome payload`: the outcome payload with `recovery = true` and `acting_actor_ref` = the intent's `actor_ref` added.
+Term recovered outcome payload: the outcome payload with `recovery = true` and `acting_actor_ref` = the intent's `actor_ref` added.
 
-Terms › `run_id`: a sweep run's own seam-injected id; the section holder for the run.
+Term run_id: a sweep run's own seam-injected id; the section holder for the run.
 
-Terms › `true maximum`: the largest record a kind writes, as External check 7 clears.
+Term true maximum: the largest record a kind writes, as External check 7 clears.
 
-Terms › `cause`: `not-committed` | `not-observed` | `undecidable` | `outcome-unrecordable` — the closing record's escalation or abandonment cause.
+Term cause: `not-committed` | `not-observed` | `undecidable` | `outcome-unrecordable` — the closing record's escalation or abandonment cause.
 
-Terms › `external evidence`: evidence outside the records — documentation, configuration, the deployment's own logs.
+Term external evidence: evidence outside the records — documentation, configuration, the deployment's own logs.
 
-Terms › `recording-failure(step-4)`: the substrate's code for an append that committed and a retention placement that did not; the record is appended.
+Term recording-failure(step-4): the substrate's code for an append that committed and a retention placement that did not; the record is appended.
 
-Terms › `bounds`: `completion_bound`, `commit_round_trip`, `probe_round_trip`, `journal_write_bound`, `read_bound`, `closure_latency`, `run_bound`, `compensation_window`, `clock_offset_allowance`, `retention_period`, `intent_candidates_cap`, `read_cap`.
+Term bounds: `completion_bound`, `commit_round_trip`, `probe_round_trip`, `journal_write_bound`, `read_bound`, `closure_latency`, `run_bound`, `compensation_window`, `clock_offset_allowance`, `retention_period`, `intent_candidates_cap`, `read_cap`.
 
-Terms › `cadences`: `reconciliation_cadence`.
+Term cadences: `reconciliation_cadence`.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Terms › `terms`: (named expressions, each declared where it is used) `worst_closure`, `window_end`, `lease_spend`, `run_floor`, `closure_spend`, `examine_edge`, `abandon_edge`, `horizon_edge`, `at_risk_threshold`, `intent_age`, `settle_bound`, `retention_end`, `usable_term`, `sweep_lease`, `in-flight`, `aged`, `partition`, `examined`, `skipped`, `reported`, `surfaced`, `unreached`, `closed_already`, `standing closing`, `closings key`, `intents key`, `terminus`, `caller_kind`, `payload_match`, `quiescence`, `read path`, `read-your-writes`, `position's existing arm`, `journal_fence instant`, `commit_fence`, `section key`, `section holder`, `section duration`, `act finding`, `instance finding`, `act_key`, `invocation_id`, `now`, `operator_run_id`, `resolve refusal`.
+Term terms: (named expressions, each declared where it is used) `worst_closure`, `window_end`, `lease_spend`, `run_floor`, `closure_spend`, `examine_edge`, `abandon_edge`, `horizon_edge`, `at_risk_threshold`, `intent_age`, `settle_bound`, `retention_end`, `usable_term`, `sweep_lease`, `in-flight`, `aged`, `partition`, `examined`, `skipped`, `reported`, `surfaced`, `unreached`, `closed_already`, `standing closing`, `closings key`, `intents key`, `terminus`, `caller_kind`, `payload_match`, `quiescence`, `read path`, `read-your-writes`, `position's existing arm`, `journal_fence instant`, `commit_fence`, `section key`, `section holder`, `section duration`, `act finding`, `instance finding`, `act_key`, `invocation_id`, `now`, `operator_run_id`, `resolve refusal`.
 
 #### Open
 

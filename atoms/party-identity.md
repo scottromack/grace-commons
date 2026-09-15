@@ -62,29 +62,29 @@ Identity 16: The atom MUST NOT match two parties as one natural person.
 Identity 17: The deployment MUST route EVERY call to one store instance.
 ```
 
-Terms › `party`: the record this atom holds — one external party's enrollment, verification history and state history.
+Term party: the record this atom holds — one external party's enrollment, verification history and state history.
 
-Terms › `party_id`: the opaque value naming one party — a [Party Id]; assigned from the id material the seam supplies.
+Term party_id: the opaque value naming one party — a [Party Id]; assigned from the id material the seam supplies.
 
-Terms › `verification event`: the record of one identity check — its method, result, evidence and acting reference — appended to a party and never changed.
+Term verification event: the record of one identity check — its method, result, evidence and acting reference — appended to a party and never changed.
 
-Terms › `state change event`: the record of one transition — the prior state, the new state, the acting reference, the instant and, where the action carries one, the reason — appended to a party and never changed.
+Term state change event: the record of one transition — the prior state, the new state, the acting reference, the instant and, where the action carries one, the reason — appended to a party and never changed.
 
-Terms › `identifier`: `party_id`, `verification_id` OR `state_change_id` — every opaque name this atom assigns.
+Term identifier: `party_id`, `verification_id` OR `state_change_id` — every opaque name this atom assigns.
 
-Terms › `enrollment field`: `name` | `date_of_birth` | `document_type` | `document_ref` | `enrolled_at` | `enrolling_actor_ref` — what a party carries from enrollment and never changes.
+Term enrollment field: `name` | `date_of_birth` | `document_type` | `document_ref` | `enrolled_at` | `enrolling_actor_ref` — what a party carries from enrollment and never changes.
 
-Terms › `acting reference`: `enrolling_actor_ref`, `verifying_actor_ref`, `suspending_actor_ref`, `reinstating_actor_ref` OR `closing_actor_ref` — the reference an action records for who acted.
+Term acting reference: `enrolling_actor_ref`, `verifying_actor_ref`, `suspending_actor_ref`, `reinstating_actor_ref` OR `closing_actor_ref` — the reference an action records for who acted.
 
-Terms › `reference`: an identifier, an acting reference, `document_ref` OR `evidence_ref` — every opaque reference this atom records.
+Term reference: an identifier, an acting reference, `document_ref` OR `evidence_ref` — every opaque reference this atom records.
 
-Terms › `store instance`: one named party store a call is routed to; identifier uniqueness ranges over one instance.
+Term store instance: one named party store a call is routed to; identifier uniqueness ranges over one instance.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the id material here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the id material here.
 
-Terms › `transition`: the atom's evaluation of one call against the party store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the party store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 10 is what an external party's life requires. A [Name] changes by law, a [Document Ref] is superseded when the document is renewed, a [Document Type] differs between two enrollments of one person, and none of that makes the party a different party — so identifying by a content field would collapse attribute change with distinct-party disambiguation. The opaque id is what lets a composition link a lifetime of activity to one durable reference.
@@ -208,41 +208,41 @@ NOTE: Operation 58 deleted — `execution-contract.md` §Logic confinement owns 
 Operation 59: The atom MUST NOT accept a caller-supplied instant.
 ```
 
-Terms › `party action`: [Verify] | [Suspend] | [Reinstate] | [Close] — every action naming a party by `party_id`, including a refused one.
+Term party action: [Verify] | [Suspend] | [Reinstate] | [Close] — every action naming a party by `party_id`, including a refused one.
 
-Terms › `transitioning action`: a party action that changes the party's state — an admitted suspend, an admitted reinstate, an admitted close, OR an admitted verify driving the unverified-to-verified transition.
+Term transitioning action: a party action that changes the party's state — an admitted suspend, an admitted reinstate, an admitted close, OR an admitted verify driving the unverified-to-verified transition.
 
-Terms › `reasoned action`: an admitted suspend, an admitted reinstate OR an admitted close — every transitioning action that carries a caller-supplied `reason`.
+Term reasoned action: an admitted suspend, an admitted reinstate OR an admitted close — every transitioning action that carries a caller-supplied `reason`.
 
-Terms › `state`: `unverified` | `verified` | `suspended` | `closed`.
+Term state: `unverified` | `verified` | `suspended` | `closed`.
 
-Terms › `state rejection`: `already-closed` | `not-verifiable` | `already-suspended` | `not-suspended`.
+Term state rejection: `already-closed` | `not-verifiable` | `already-suspended` | `not-suspended`.
 
-Terms › `state check`: Operation 11, Operation 13, Operation 14, Operation 15, Operation 16 and Operation 18 — every check a party action makes on the party's own standing before reading the call's remaining arguments.
+Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operation 16 and Operation 18 — every check a party action makes on the party's own standing before reading the call's remaining arguments.
 
-Terms › `required string input`: `name`, `document_type`, `document_ref`, `verification_method`, `evidence_ref`, `reason`, an acting reference OR `party_id` — every string an action refuses when blank.
+Term required string input: `name`, `document_type`, `document_ref`, `verification_method`, `evidence_ref`, `reason`, an acting reference OR `party_id` — every string an action refuses when blank.
 
-Terms › `fresh verification`: a verification event carrying `verification_result = passed` that follows the party's most recent suspend in insertion order, or that follows the enrollment where no suspend EXISTS.
+Term fresh verification: a verification event carrying `verification_result = passed` that follows the party's most recent suspend in insertion order, or that follows the enrollment where no suspend EXISTS.
 
-Terms › `evidence reference`: `document_ref` OR `evidence_ref` — every pointer this atom records into the composing document store.
+Term evidence reference: `document_ref` OR `evidence_ref` — every pointer this atom records into the composing document store.
 
-Terms › `custody field`: `party_id` | `enrolled_at` | `enrolling_actor_ref` — the fields an erasure scrub leaves, so the chain of custody outlives the personal data.
+Term custody field: `party_id` | `enrolled_at` | `enrolling_actor_ref` — the fields an erasure scrub leaves, so the chain of custody outlives the personal data.
 
-Terms › `insertion order`: the order a store instance appended its records; authoritative for this atom, where a recorded instant is advisory.
+Term insertion order: the order a store instance appended its records; authoritative for this atom, where a recorded instant is advisory.
 
-Terms › `query axes`: `party_id`, `state` and a range over `enrolled_at` — every filter axis [Read] admits.
+Term query axes: `party_id`, `state` and a range over `enrolled_at` — every filter axis [Read] admits.
 
-Terms › `admitted enroll`: an [Enroll] call that passes every precondition and whose store write commits.
+Term admitted enroll: an [Enroll] call that passes every precondition and whose store write commits.
 
-Terms › `admitted verify`: a [Verify] call that passes every precondition and whose store write commits.
+Term admitted verify: a [Verify] call that passes every precondition and whose store write commits.
 
-Terms › `admitted suspend`: a [Suspend] call that passes every precondition and whose store write commits.
+Term admitted suspend: a [Suspend] call that passes every precondition and whose store write commits.
 
-Terms › `admitted reinstate`: a [Reinstate] call that passes every precondition and whose store write commits.
+Term admitted reinstate: a [Reinstate] call that passes every precondition and whose store write commits.
 
-Terms › `admitted close`: a [Close] call that passes every precondition and whose store write commits.
+Term admitted close: a [Close] call that passes every precondition and whose store write commits.
 
-Terms › `admitted read`: a [Read] call that answers.
+Term admitted read: a [Read] call that answers.
 
 WHY:
 Operation 10 and Operation 12 split one answer that most atoms leave joined, and the split is worth its cost. A blank `party_id` is the caller sending garbage; a well-formed `party_id` naming nothing is a reference to a party that is not there. The first is [Invalid Request] and is decided before the store is consulted at all; the second is [Not Known]. A caller that cannot tell them apart cannot tell a bug in its own code from a party that was never enrolled.
@@ -495,11 +495,11 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
 ```
 
-Terms › `string input`: a required string input, `date_of_birth` OR a filter value — every caller-supplied string this atom accepts.
+Term string input: a required string input, `date_of_birth` OR a filter value — every caller-supplied string this atom accepts.
 
-Terms › `length bound`: the maximum length the deployment declares for a `string input`.
+Term length bound: the maximum length the deployment declares for a `string input`.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 The blank rule earns its keep on `reason` more than anywhere else. A suspension, a reinstatement and a closure each require a stated basis, and a whitespace placeholder would satisfy a naive presence check while leaving the audit surface exactly as empty as no reason at all. Storing a name as supplied — no normalization, no transliteration — is the other half: the enrollment record says what was presented, and how a deployment matches or displays it is the deployment's (Capability requirement 6).
@@ -536,25 +536,25 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the deployment; the implementation; the store; the store instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a losing party action; a refused action; an identifier; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; the store instance's party count; a party's verification event list length; a party's state change log length.
+Term actors: the atom; the deployment; the implementation; the store; the store instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a losing party action; a refused action; an identifier; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; the store instance's party count; a party's verification event list length; a party's state change log length.
 
-Terms › `records`: `party` — one external party, carrying `party_id`, `name`, `date_of_birth`, `document_type`, `document_ref`, `enrolled_at`, `enrolling_actor_ref`, a `state`, a state change log and a verification event list. `verification event` — one identity check, carrying `verification_id`, `verifying_actor_ref`, `verification_method`, `verification_result`, `evidence_ref` and `verified_at`. `state change event` — one transition, carrying `state_change_id`, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a `reason`.
+Term records: `party` — one external party, carrying `party_id`, `name`, `date_of_birth`, `document_type`, `document_ref`, `enrolled_at`, `enrolling_actor_ref`, a `state`, a state change log and a verification event list. `verification event` — one identity check, carrying `verification_id`, `verifying_actor_ref`, `verification_method`, `verification_result`, `evidence_ref` and `verified_at`. `state change event` — one transition, carrying `state_change_id`, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a `reason`.
 
-Terms › `record verbs`: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, acknowledge, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, serialize, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
+Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, acknowledge, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, serialize, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
 
-Terms › `value sets`: enroll answers = party_id | rejected(invalid-request | storage-failure). verify answers = (verification_id, state_change_id?) | rejected(not-known | already-closed | invalid-request | storage-failure). suspend answers = state_change_id | rejected(not-known | already-closed | not-verifiable | already-suspended | invalid-request | storage-failure). reinstate answers = state_change_id | rejected(not-known | already-closed | not-suspended | no-passed-verification-since-suspend | invalid-request | storage-failure). close answers = state_change_id | rejected(not-known | already-closed | invalid-request | storage-failure). read answers = the matching parties | rejected(invalid-query). `state` = unverified | verified | suspended | closed. `verification_result` = passed | failed. `state rejection` = already-closed | not-verifiable | already-suspended | not-suspended. `enrollment field` = name | date_of_birth | document_type | document_ref | enrolled_at | enrolling_actor_ref.
+Term value sets: enroll answers = party_id | rejected(invalid-request | storage-failure). verify answers = (verification_id, state_change_id?) | rejected(not-known | already-closed | invalid-request | storage-failure). suspend answers = state_change_id | rejected(not-known | already-closed | not-verifiable | already-suspended | invalid-request | storage-failure). reinstate answers = state_change_id | rejected(not-known | already-closed | not-suspended | no-passed-verification-since-suspend | invalid-request | storage-failure). close answers = state_change_id | rejected(not-known | already-closed | invalid-request | storage-failure). read answers = the matching parties | rejected(invalid-query). `state` = unverified | verified | suspended | closed. `verification_result` = passed | failed. `state rejection` = already-closed | not-verifiable | already-suspended | not-suspended. `enrollment field` = name | date_of_birth | document_type | document_ref | enrolled_at | enrolling_actor_ref.
 
-Terms › `bounds`: `length bound`.
+Term bounds: `length bound`.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `party`, `party_id`, `verification event`, `state change event`, `identifier`, `enrollment field`, `acting reference`, `reference`, `store instance`, `seam`, `transition`, `now`, `party action`, `transitioning action`, `state`, `state rejection`, `state check`, `required string input`, `fresh verification`, `insertion order`, `length bound`, `reasoned action`, `custody field`, `evidence reference`, `query axes`, `admitted enroll`, `admitted verify`, `admitted suspend`, `admitted reinstate`, `admitted close`, `admitted read`, `string input`, `blank`.
+Term terms: `party`, `party_id`, `verification event`, `state change event`, `identifier`, `enrollment field`, `acting reference`, `reference`, `store instance`, `seam`, `transition`, `now`, `party action`, `transitioning action`, `state`, `state rejection`, `state check`, `required string input`, `fresh verification`, `insertion order`, `length bound`, `reasoned action`, `custody field`, `evidence reference`, `query axes`, `admitted enroll`, `admitted verify`, `admitted suspend`, `admitted reinstate`, `admitted close`, `admitted read`, `string input`, `blank`.
 
-Terms › `cited`: `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: `execution-contract.md` §Logic confinement — the seam and the transition.
 
-Terms › `composing pattern`: [Actor Identity](./actor-identity.md), [Consent](./consent.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Audit Trail](../compositions/audit-trail.md), [Customer Onboarding](../compositions/customer-onboarding.md), [External Onboarding](../compositions/external-onboarding.md), an identity resolution pattern, an attribute update pattern, an erasure coordination pattern, a trusted timestamping pattern, a document store.
+Term composing pattern: [Actor Identity](./actor-identity.md), [Consent](./consent.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Audit Trail](../compositions/audit-trail.md), [Customer Onboarding](../compositions/customer-onboarding.md), [External Onboarding](../compositions/external-onboarding.md), an identity resolution pattern, an attribute update pattern, an erasure coordination pattern, a trusted timestamping pattern, a document store.
 
 #### Enroll
 

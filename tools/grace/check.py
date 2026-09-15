@@ -2,7 +2,7 @@
 """GRACE lang surface checker — the mechanical slice of `GRACE-lang.md`.
 
 Reads a spec's normative surface the way §2 and §17 of the grammar say a parser
-must — a fenced ```text block classified by its first line, `Terms ›`
+must — a fenced ```text block classified by its first line, `Term`
 declarations — and reports what a form-reader can decide without semantics:
 fence classification (Surface 18, Surface 19) and signature blocks (Surface 20), unlabelled lines (Hard invariant 1, Sugar 3), label uniqueness
 and tombstone reuse (Hard invariant 25, Hard invariant 27), the rule form and the statement shapes (Rule shape 1, Rule shape 2,
@@ -33,10 +33,10 @@ from pathlib import Path
 
 # the vocabulary's categories, derived from the grammar rather than held here:
 # check.py carried its own copy through v0.39 and recognized `cited` and
-# `composing patterns` two versions before Terms › `category` did (council read
+# `composing patterns` two versions before `Term category` did (council read
 # 29). Deriving it means the grammar is the single authority (Authority 3) and
 # the two cannot drift again.
-_CATEGORY_LINE = re.compile(r"^Terms › `category`:(.+)$", re.M)
+_CATEGORY_LINE = re.compile(r"^Term category:(.+)$", re.M)
 
 def vocabulary_categories(grammar_path=None):
     """The plural category names a Terms section may carry, from GRACE-lang.md."""
@@ -47,7 +47,7 @@ def vocabulary_categories(grammar_path=None):
         m = None
     if not m:
         raise SystemExit(
-            "check.py: GRACE-lang.md carries no Terms › `category` line; the "
+            "check.py: GRACE-lang.md carries no `Term category` line; the "
             "category set has no authority to derive from (Closed vocabulary 2)")
     names = re.findall(r"`([^`]+)`", m.group(1))
     # a Terms line names its category in the plural; the value set names it singular
@@ -89,9 +89,9 @@ def reserved_capitals(grammar_path=None):
     g = open(p, encoding="utf-8").read()
     reserved: set[str] = set()
     for name in _RESERVED_SOURCES:
-        m = re.search(r"^Terms › `" + re.escape(name) + r"`:(.*)$", g, re.M)
+        m = re.search(r"^Term " + re.escape(name) + r":(.*)$", g, re.M)
         if not m:
-            raise SystemExit(f"check.py: GRACE-lang.md carries no Terms › `{name}` line; "
+            raise SystemExit(f"check.py: GRACE-lang.md carries no `Term {name}` line; "
                              "the reserved tokens have no authority to derive from (Casing 2)")
         for span in re.findall(r"`([^`]+)`", m.group(1)):
             reserved.update(re.findall(r"\b[A-Z]{2,}\b", span))
@@ -128,7 +128,7 @@ def unreserved_capitals(text: str) -> tuple[list[str], list[str]]:
 
 # a `>=` spelled as a two-arm disjunction: "<X> EXCEEDS <Y> OR <X> = <Y>", the
 # same operand pair in both arms. The condition operator set carries EXCEEDS and
-# `=` and nothing between them (Terms › `condition operator`). Counting this by
+# `=` and nothing between them (`Term condition operator`). Counting this by
 # hand mis-measured it twice: a loose "EXCEEDS ... OR ... =" match also catches
 # "X EXCEEDS Y OR Y = none", which is two propositions and not a comparison at
 # all (council read 31).
@@ -178,8 +178,12 @@ LABEL = re.compile(r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d�
 LABEL_PARTS = re.compile(r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 PREFIX = re.compile(r"^(WHY|NOTE|UX|PROVISIONAL):")
 FENCE = re.compile(r"^(\s*)```(\w*)\s*$")
-MIGRATED = re.compile(r"^Terms › `qualifiers`:[^\n]*`migrated`", re.M)
-TERM_DECL = re.compile(r"^\s*Terms › `([^`]+)`:\s*(.*)$")
+MIGRATED = re.compile(r"^Term qualifiers:[^\n]*`migrated`", re.M)
+TERM_DECL = re.compile(r"^\s*Term ([^:`]+?): (.*)$")
+# The one declaration form (GRACE-lang Closed vocabulary 10, v0.45), read strictly:
+# the name runs to the first colon, bare; one space; the definition ends with a period.
+TERM_DECL_STRICT = re.compile(r"^\s*Term ([^:`\s](?:[^:`]*[^:`\s])?): \S.*\.$")
+DECL_OPENER = re.compile(r"^\s*(Terms ›|Term\b)")
 MODAL = re.compile(r"\b(MUST NOT|MUST|MAY)\b")
 TOMBSTONE = re.compile(r"^NOTE:\s*((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?)\s+deleted\b")
 PRONOUN = re.compile(r"\b(it|its|itself|they|their|them|he|she|his|her)\b")
@@ -265,7 +269,7 @@ def _matches(word: str, heading_words: list[str]) -> bool:
 
 
 def declared_verbs(text: str) -> set[str] | None:
-    m = re.search(r"^\s*(?:Terms › `record verbs`|Record verbs):\s*(.*)$", text, re.M)
+    m = re.search(r"^\s*(?:Term record verbs|Record verbs):\s*(.*)$", text, re.M)
     if not m:
         return None
     return {v.strip().strip("`").rstrip(".") for v in m.group(1).split(",") if v.strip()}
@@ -293,6 +297,19 @@ def scan(path: Path) -> list[Finding]:
 
     def add(line: int, code: str, msg: str) -> None:
         findings.append(Finding(path, line, code, msg))
+
+    # D-decl-form: every line that opens like a declaration is one, in the one form
+    in_fence = False
+    for k, ln in enumerate(lines, start=1):
+        if ln.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence or not DECL_OPENER.match(ln):
+            continue
+        if ln.lstrip().startswith("Terms ›"):
+            add(k, "D-decl-form", "a declaration in the retired `Terms ›` form; write `Term name: definition.` (GRACE-lang v0.45)")
+        elif not TERM_DECL_STRICT.match(ln):
+            add(k, "D-decl-form", f"not the declaration form `Term name: definition.` — a bare name, one space after the colon, a closing period: {ln.strip()[:70]}")
 
     ctx = {"h2": "", "h3": "", "h4": "", "bullet": "", "italic": "", "inv": None, "step": None}
 
@@ -607,7 +624,7 @@ def scan(path: Path) -> list[Finding]:
 
     # what a declaration carries: an obligation, or a name that resolves nowhere
     decls = declared_terms(text)
-    # every name the spec declares anywhere: a Terms › name, a name inside a
+    # every name the spec declares anywhere: a `Term` name, a name inside a
     # vocabulary declaration (the records, bounds, cadences and value-set
     # lines), a signature block's action and argument names.
     CATEGORIES = VOCABULARY_CATEGORIES
@@ -638,13 +655,13 @@ def scan(path: Path) -> list[Finding]:
         bare = CODE_SPAN.sub(" ", body)
         if MODAL.search(bare):
             add(k, "D-decl-modal",
-                f"Terms › `{name}` carries a modal — a definition is not a rule "
+                f"`Term {name}` carries a modal — a definition is not a rule "
                 f"(Closed vocabulary 12, Closed vocabulary 14)")
         for span in re.findall(r"`([^`]+)`", body):
             if not DECL_ARITH.search(span):
                 continue
             if re.search(r"(?<![\w-])" + re.escape(name) + r"(?![\w-])", span):
-                add(k, "D-decl-selfref", f"Terms › `{name}` computes over `{name}`")
+                add(k, "D-decl-selfref", f"`Term {name}` computes over `{name}`")
                 continue
             for ident in DECL_TOKEN.findall(span):
                 # a datum this corpus would declare looks like a datum: prose
@@ -653,7 +670,7 @@ def scan(path: Path) -> list[Finding]:
                     continue
                 if ident not in universe:
                     add(k, "D-decl-unresolved",
-                        f"Terms › `{name}` computes over `{ident}`, which this spec declares nowhere "
+                        f"`Term {name}` computes over `{ident}`, which this spec declares nowhere "
                         f"(Closed vocabulary 4)")
 
     # an action that rejects and also carries an unconditional effect rule
@@ -776,7 +793,7 @@ def scan(path: Path) -> list[Finding]:
         dupes = sorted(w for w, n in seen_here.items() if n > 1 and w)
         if dupes:
             add(k, "V-dup-vocab",
-                f"Terms › `{name}` lists {', '.join(dupes)} twice (Closed vocabulary 1)")
+                f"`Term {name}` lists {', '.join(dupes)} twice (Closed vocabulary 1)")
 
     # declared terms nothing uses (advisory)
     for name, k in declared_terms(text).items():
@@ -787,7 +804,7 @@ def scan(path: Path) -> list[Finding]:
         elsewhere = "\n".join(x for j, x in enumerate(lines, start=1) if j != k)
         uses = len(re.findall(pat, elsewhere))
         if uses < 1:
-            add(k, "W-term-unused", f"Terms › `{name}` is declared and used nowhere")
+            add(k, "W-term-unused", f"`Term {name}` is declared and used nowhere")
     return findings
 
 

@@ -55,9 +55,9 @@ Composes 8: The composition MUST discharge Assignment Composition note 2.
 Composes 9: The composition MUST NOT answer a constituent's rejection changed.
 ```
 
-Terms › `composition`: this pattern's wiring of [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md) — the gate, the cascade, the scope vocabulary and the actions below.
+Term composition: this pattern's wiring of [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md) — the gate, the cascade, the scope vocabulary and the actions below.
 
-Terms › `constituents`: [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md).
+Term constituents: [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md).
 
 WHY:
 Composes 6 is one rule where the prose carried three. [`execution-contract.md`](../execution-contract.md) §Conformance already settles it — *no composing layer is obligated to re-verify what the substrate's own conformance already establishes; inheriting a guarantee by reference is the point of naming a substrate* — so a composition that re-asserts each constituent's invariants as its own is restating a rule it cites (Authority 6, council read 53). What the prose's three rules carried beyond the blanket is Composes 9, which is not inherited at all: a constituent's guarantee says nothing about whether the composing layer relays the constituent's refusal intact, and this composition does.
@@ -77,9 +77,9 @@ Composition state 3: The composition MUST derive the visible tasks from Personal
 Composition state 4: The composition MUST NOT materialize a derived query.
 ```
 
-Terms › `responsible actor`: the assignee_ref of the active assignment Assignment's active_for answers for a task_id — none if Assignment answers none.
+Term responsible actor: the assignee_ref of the active assignment Assignment's active_for answers for a task_id — none if Assignment answers none.
 
-Terms › `visible tasks`: EVERY task of the Personal Todo instance IF the actor_ref holds tasks:view — none otherwise.
+Term visible tasks: EVERY task of the Personal Todo instance IF the actor_ref holds tasks:view — none otherwise.
 
 WHY:
 The contract classification is *conforming, no stored composition state* (`execution-contract.md` §Composition state), and there is no element to classify, which is that rule's best case. Both derived queries are joins over surfaces the constituents already declare, computed per call, so nothing here can go stale and nothing needs a rebuild.
@@ -110,19 +110,19 @@ Action wiring 18: The composition MUST answer the constituent's answer.
 Action wiring 19: The composition MUST NOT answer an empty task set for a denied tasks:view.
 ```
 
-Terms › `admitted add`: an [Add Task] call whose tasks:add check answered permitted.
+Term admitted add: an [Add Task] call whose tasks:add check answered permitted.
 
-Terms › `admitted edit`: an [Edit Task] call whose tasks:edit check answered permitted.
+Term admitted edit: an [Edit Task] call whose tasks:edit check answered permitted.
 
-Terms › `admitted complete`: a [Complete Task] call whose tasks:complete check answered permitted.
+Term admitted complete: a [Complete Task] call whose tasks:complete check answered permitted.
 
-Terms › `admitted delete`: a [Delete Task] call whose tasks:delete check answered permitted.
+Term admitted delete: a [Delete Task] call whose tasks:delete check answered permitted.
 
-Terms › `admitted assign`: an [Assign Task] call whose tasks:assign check answered permitted.
+Term admitted assign: an [Assign Task] call whose tasks:assign check answered permitted.
 
-Terms › `admitted reassign`: a [Reassign Task] call whose tasks:assign check answered permitted.
+Term admitted reassign: a [Reassign Task] call whose tasks:assign check answered permitted.
 
-Terms › `admitted recall`: a [Recall Assignment] call whose tasks:recall check answered permitted.
+Term admitted recall: a [Recall Assignment] call whose tasks:recall check answered permitted.
 
 WHY:
 Action wiring 1 through Action wiring 3 are the whole gate, stated once for seven actions rather than seven times. Every action's shape is identical — check, then call — and the rules below name only what each action does *after* the gate clears.
@@ -158,7 +158,7 @@ Scope vocabulary 10: A deployment MAY define a finer action scope.
 Scope vocabulary 11: A deployment defining a finer action scope MUST wire the gate to the finer action scope.
 ```
 
-Terms › `action scopes`: `tasks:view` | `tasks:add` | `tasks:edit` | `tasks:complete` | `tasks:delete` | `tasks:assign` | `tasks:recall` — the canonical vocabulary, and the minimum useful set.
+Term action scopes: `tasks:view` | `tasks:add` | `tasks:edit` | `tasks:complete` | `tasks:delete` | `tasks:assign` | `tasks:recall` — the canonical vocabulary, and the minimum useful set.
 
 WHY:
 [Permissions](../atoms/permissions.md) treats an action scope as an opaque string and `Composition note 2` assigns the vocabulary to a composing pattern; this section is that assignment discharged. Scope vocabulary 7 and Scope vocabulary 8 share one scope deliberately — reassign is an assign with a recall folded in, and a deployment that wants them separable takes Scope vocabulary 10.
@@ -355,15 +355,15 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 ### Vocabulary
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `terms`: `composition`, `constituents`, `responsible actor`, `visible tasks`, `action scopes`, `admitted add`, `admitted edit`, `admitted complete`, `admitted delete`, `admitted assign`, `admitted reassign`, `admitted recall`.
+Term terms: `composition`, `constituents`, `responsible actor`, `visible tasks`, `action scopes`, `admitted add`, `admitted edit`, `admitted complete`, `admitted delete`, `admitted assign`, `admitted reassign`, `admitted recall`.
 
-Terms › `record verbs`: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, recheck, rest, leave, wrap, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply.
+Term record verbs: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, recheck, rest, leave, wrap, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply.
 
-Terms › `actors`: the composition; the constituents; a deployment; an auditor; an actor; an assignee; a task; an assignment; a grant; a caller.
+Term actors: the composition; the constituents; a deployment; an auditor; an actor; an assignee; a task; an assignment; a grant; a caller.
 
-Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the no-stored-state classification. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding, declined. [Assignment](../atoms/assignment.md) `Composition note 2` — what a task is. [Assignment](../atoms/assignment.md) `Composition note 4` — the completed task's assignment, declined.
+Term cited: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the no-stored-state classification. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding, declined. [Assignment](../atoms/assignment.md) `Composition note 2` — what a task is. [Assignment](../atoms/assignment.md) `Composition note 4` — the completed task's assignment, declined.
 
 #### Add Task
 

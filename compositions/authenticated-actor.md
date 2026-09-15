@@ -56,9 +56,9 @@ Composes 9: The composition MUST key the gate on the principal_ref AND the crede
 Composes 10: The composition MUST NOT key the gate on a credential_id.
 ```
 
-Terms › `composition`: this pattern's wiring of credential(../atoms/credential.md) and actor identity(../atoms/actor-identity.md) — the namespace binding, the cascade gate and the three actions below.
+Term composition: this pattern's wiring of credential(../atoms/credential.md) and actor identity(../atoms/actor-identity.md) — the namespace binding, the cascade gate and the three actions below.
 
-Terms › `constituents`: credential(../atoms/credential.md), actor identity(../atoms/actor-identity.md).
+Term constituents: credential(../atoms/credential.md), actor identity(../atoms/actor-identity.md).
 
 WHY:
 Composes 5 is the decision that makes the gate affordable. Calling `Credential.verify` at every attestation would require re-presenting the login secret on every signature; the gate instead reads Credential's declared `read` surface for the pair's effective-status projection, exactly as login(./login.md)'s own step 3 reads the store directly.
@@ -89,11 +89,11 @@ Composition state 10: EXACTLY ONE writer MUST write an attest log entry.
 Composition state 11: The composition MUST NOT store a constituent's record.
 ```
 
-Terms › `principal binding`: the composition's own map from a `principal_ref` to the bound `actor_ref`, the gating `credential_type`, the initial `credential_id` and the bound instant — a principal binding; one half of the bijection.
+Term principal binding: the composition's own map from a `principal_ref` to the bound `actor_ref`, the gating `credential_type`, the initial `credential_id` and the bound instant — a principal binding; one half of the bijection.
 
-Terms › `attest log`: the composition's own append-only record of every [Attest As Actor] call, refused calls included — an attest log.
+Term attest log: the composition's own append-only record of every [Attest As Actor] call, refused calls included — an attest log.
 
-Terms › `bijection`: the principal binding and the inverse together, unique on both keys — what neither constituent provides.
+Term bijection: the principal binding and the inverse together, unique on both keys — what neither constituent provides.
 
 **Contract classification: extraction-pending, two elements** ([`execution-contract.md`](../execution-contract.md) §Composition state). The extraction rule is unconditional — *composition state that carries truth not reconstructible from constituent stores is a not-yet-extracted atom* — and it reaches both, because credential(../atoms/credential.md) keys on `principal_ref`, actor identity(../atoms/actor-identity.md) keys on `actor_ref`, and neither relates the two.
 
@@ -123,11 +123,11 @@ Capability requirement 10: The deployment MUST declare the clock offset allowanc
 Capability requirement 11: The composition MUST refuse to start for a bound the deployment did not set.
 ```
 
-Terms › `attest surface separation`: the deployment's declaration that the attestation key material is provisioned distinct from the authentication credential material — an attest surface separation; the declaring source for Invariant 2's distinct-provisioning half.
+Term attest surface separation: the deployment's declaration that the attestation key material is provisioned distinct from the authentication credential material — an attest surface separation; the declaring source for Invariant 2's distinct-provisioning half.
 
-Terms › `section`: the host-supplied mutual exclusion keyed by `principal_ref` — a section; taken by [Attest As Actor] at the gate and by [Register Authenticated Actor] at the guard, held through the last write.
+Term section: the host-supplied mutual exclusion keyed by `principal_ref` — a section; taken by [Attest As Actor] at the gate and by [Register Authenticated Actor] at the guard, held through the last write.
 
-Terms › `clock offset allowance`: `clock_offset_allowance` — the declared bound on disagreement between this composition's seam, Credential's and Actor Identity's — a clock offset allowance.
+Term clock offset allowance: `clock_offset_allowance` — the declared bound on disagreement between this composition's seam, Credential's and Actor Identity's — a clock offset allowance.
 
 WHY:
 Capability requirement 3 is the one neither constituent grants. credential(../atoms/credential.md) serializes its own writes per record and its uniqueness constraint is a storage constraint on `register`, not a lock a composer can hold; actor identity(../atoms/actor-identity.md) serializes nothing across calls. A section spanning a call into each is the deployment's, and a deployment supplying none has no conforming gate.
@@ -153,9 +153,9 @@ Primitive policy 11: The composition MUST NOT interpret an action_ref.
 Primitive policy 12: The composition MUST NOT confirm an actor_ref in the actor registry.
 ```
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
-Terms › `opaque argument`: `principal_ref` | `actor_ref` | `credential_type` | `action_ref` | `attestation_id`.
+Term opaque argument: `principal_ref` | `actor_ref` | `credential_type` | `action_ref` | `attestation_id`.
 
 WHY:
 Primitive policy 12 is a refusal to duplicate a constituent's judgment. actor identity(../atoms/actor-identity.md)'s `attest` and `verify` surface a registry-unknown `actor_ref` through their own outcomes, so a composition-layer existence check would be a second opinion with no store behind it.
@@ -185,11 +185,11 @@ attest_as_actor(principal_ref, action_ref, attest_credential) →
 verify_actor_attestation(attestation_id) → {result, actor_ref?, principal_ref?}
 ```
 
-Terms › `conflict position`: `guard` | `binding` — where a namespace conflict is found: at the guard or at the binding write.
+Term conflict position: `guard` | `binding` — where a namespace conflict is found: at the guard or at the binding write.
 
-Terms › `storage position`: `credential` | `binding` — the write that failed: the credential or the binding.
+Term storage position: `credential` | `binding` — the write that failed: the credential or the binding.
 
-Terms › `attest position`: `attestation` | `log(attestation_id)` — where an attest failed: at the attestation, or at the log write carrying the attestation_id.
+Term attest position: `attestation` | `log(attestation_id)` — where an attest failed: at the attestation, or at the log write carrying the attestation_id.
 
 ```text
 Action wiring 1: An admitted registration MUST run the guard ONLY AFTER taking the principal's section.
@@ -223,11 +223,11 @@ Action wiring 28: [Verify Actor Attestation] MUST NOT write.
 Action wiring 29: The composition MUST take a principal_ref, an actor_ref AND a credential_material on register_authenticated_actor.
 ```
 
-Terms › `admitted registration`: a [Register Authenticated Actor] call whose arguments cleared the boundary predicate.
+Term admitted registration: a [Register Authenticated Actor] call whose arguments cleared the boundary predicate.
 
-Terms › `admitted attestation`: an [Attest As Actor] call whose arguments cleared the boundary predicate.
+Term admitted attestation: an [Attest As Actor] call whose arguments cleared the boundary predicate.
 
-Terms › `effective-active`: Credential's derived status projection reading active — stored active AND the credential's expiry instant not reached, evaluated by Credential against the clock reading at Credential's own seam.
+Term effective-active: Credential's derived status projection reading active — stored active AND the credential's expiry instant not reached, evaluated by Credential against the clock reading at Credential's own seam.
 
 WHY:
 Action wiring 5 through Action wiring 8 are the re-entry arm, and possession is what makes it safe. A binding is an authority-bearing transition — it makes the presenter the principal every signature under `actor_ref` resolves to — so it may not rest on the caller's word that the existing credential is theirs. The arm calls `Credential.verify` against the existing record, and only a verified presenter reaches the binding step. That is also why the bare `duplicate-active-credential` is never exported: every landing of it is this arm, which is what lets a re-invocation after a binding-position failure reach the step that failed instead of dying at the one before it.
@@ -447,15 +447,15 @@ The canonical concepts this spec refers to. Each `term` marker in the prose abov
 
 ### Vocabulary
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `terms`: `composition`, `constituents`, `principal binding`, `attest log`, `bijection`, `attest surface separation`, `section`, `clock offset allowance`, `blank`, `opaque argument`, `admitted registration`, `admitted attestation`, `effective-active`, `conflict position`, `storage position`, `attest position`.
+Term terms: `composition`, `constituents`, `principal binding`, `attest log`, `bijection`, `attest surface separation`, `section`, `clock offset allowance`, `blank`, `opaque argument`, `admitted registration`, `admitted attestation`, `effective-active`, `conflict position`, `storage position`, `attest position`.
 
-Terms › `record verbs`: call, answer, read, write, append, store, key, hold, take, release, serialize, resolve, bind, register, revoke, rotate, gate, precede, close, produce, provision, pass, agree, carry, stand, change, report, examine, promise, run, refuse, set, declare, own, act, compose, inherit, confirm, interpret, normalize, case-fold, compare, authorize, invalidate, rebind, wrap, find, serve, supply, ask, route, record.
+Term record verbs: call, answer, read, write, append, store, key, hold, take, release, serialize, resolve, bind, register, revoke, rotate, gate, precede, close, produce, provision, pass, agree, carry, stand, change, report, examine, promise, run, refuse, set, declare, own, act, compose, inherit, confirm, interpret, normalize, case-fold, compare, authorize, invalidate, rebind, wrap, find, serve, supply, ask, route, record.
 
-Terms › `actors`: the composition; the constituents; the host; a deployment; an auditor; a caller; a principal; an actor; the orphaned-credential leg; an invocation; an attestation; a credential.
+Term actors: the composition; the constituents; the host; a deployment; an auditor; a caller; a principal; an actor; the orphaned-credential leg; an invocation; an attestation; a credential.
 
-Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the extraction-pending classification. `pressure-testing.md` §Capability provenance — the declared-source discipline every invariant's rests-on clause follows.
+Term cited: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the extraction-pending classification. `pressure-testing.md` §Capability provenance — the declared-source discipline every invariant's rests-on clause follows.
 
 #### Register Authenticated Actor
 

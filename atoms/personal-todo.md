@@ -39,17 +39,17 @@ Identity 6: The atom MUST NOT identify a unit by the description.
 Identity 7: The implementation MUST own the id's scheme.
 ```
 
-Terms › `unit`: one thing to do — the record this atom holds; recorded, revised, finished or abandoned.
+Term unit: one thing to do — the record this atom holds; recorded, revised, finished or abandoned.
 
-Terms › `id`: the opaque value naming one unit — an [Id]; stable across sessions, unique for the system's life.
+Term id: the opaque value naming one unit — an [Id]; stable across sessions, unique for the system's life.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the id here.
 
-Terms › `transition`: the atom's evaluation of one call against the list, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the list, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 ### State
 
@@ -66,15 +66,15 @@ State 9: The atom MUST NOT offer a done-to-pending transition.
 State 10: The atom MUST NOT hold a deleted unit.
 ```
 
-Terms › `unit state`: `pending` | `done` — recorded and unfinished, or finished and unremoved.
+Term unit state: `pending` | `done` — recorded and unfinished, or finished and unremoved.
 
-Terms › `added_at`: the instant the unit was recorded — an [Added At].
+Term added_at: the instant the unit was recorded — an [Added At].
 
-Terms › `last_edited_at`: the instant the unit's description last changed — a [Last Edited At]; absent until an edit lands.
+Term last_edited_at: the instant the unit's description last changed — a [Last Edited At]; absent until an edit lands.
 
-Terms › `completed_at`: the instant the unit was finished — a [Completed At].
+Term completed_at: the instant the unit was finished — a [Completed At].
 
-Terms › `active set`: the units standing in pending together with the units standing in done — what uniqueness ranges over.
+Term active set: the units standing in pending together with the units standing in done — what uniqueness ranges over.
 
 WHY:
 Deletion is the only way out and it is terminal: the atom keeps no memory of what left, which is why re-adding a deleted description succeeds and why a system that wants *not twice this morning* composes [Duplicate Prevention](./duplicate-prevention.md) rather than asking this atom to remember (State 10, Composition note 2). There is no reopening, because a person who reopens a finished thing is describing a different pattern — one with history — and adding the transition here would quietly take that pattern's job (State 9).
@@ -133,7 +133,7 @@ NOTE: Operation 26 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 27 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `new_description`: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
+Term new_description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
 
 The case space, and the rule that owns each case:
 
@@ -209,9 +209,9 @@ Description 7: The atom MUST compare two descriptions on the normalized form.
 Description 8: The atom MUST show the normalized form.
 ```
 
-Terms › `description`: the text the person gives a unit — a [Description]; normalized before it enters the list and before any comparison.
+Term description: the text the person gives a unit — a [Description]; normalized before it enters the list and before any comparison.
 
-Terms › `description cap`: the bound on a normalized description's length; 1024 codepoints where a deployment declares none.
+Term description cap: the bound on a normalized description's length; 1024 codepoints where a deployment declares none.
 
 WHY:
 Normalization before comparison is what makes *café* typed and *café* pasted the same text — different sources produce different Unicode forms, and without normal form C the uniqueness rule would let one list hold both (Description 2, Invariant 6.1). Case sensitivity and internal whitespace are kept verbatim because the person's own text is what the person recognizes; a case-insensitive or fuzzy variant is a wrapping pattern's policy, not this atom's (Description 3, Description 6).
@@ -358,21 +358,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a person; a unit; a call; the store; the list; an auditor.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a person; a unit; a call; the store; the list; an auditor.
 
-Terms › `records`: `unit` — one thing to do, carrying `id`, `description`, `added_at`, a unit state and, once they land, `last_edited_at` and `completed_at`.
+Term records: `unit` — one thing to do, carrying `id`, `description`, `added_at`, a unit state and, once they land, `last_edited_at` and `completed_at`.
 
-Terms › `record verbs`: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find.
+Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find.
 
-Terms › `value sets`: add answers = id | rejected(invalid-description | duplicate-active | storage-failure). edit answers = ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure). complete answers = ok | rejected(not-known | not-pending | storage-failure). delete answers = ok | rejected(not-known | storage-failure). `unit state` = pending | done.
+Term value sets: add answers = id | rejected(invalid-description | duplicate-active | storage-failure). edit answers = ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure). complete answers = ok | rejected(not-known | not-pending | storage-failure). delete answers = ok | rejected(not-known | storage-failure). `unit state` = pending | done.
 
-Terms › `bounds`: `description cap` (the bound on a normalized description's length).
+Term bounds: `description cap` (the bound on a normalized description's length).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `now`, `unit`, `id`, `seam`, `transition`, `business caller`, `description`, `description cap`, `unit state`, `added_at`, `last_edited_at`, `completed_at`, `active set`, `new_description`.
+Term terms: `now`, `unit`, `id`, `seam`, `transition`, `business caller`, `description`, `description cap`, `unit state`, `added_at`, `last_edited_at`, `completed_at`, `active set`, `new_description`.
 
 #### Add
 

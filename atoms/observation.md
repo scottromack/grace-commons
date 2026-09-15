@@ -66,25 +66,25 @@ Identity 15: The atom MUST NOT interpret a unit.
 Identity 16: An action MUST NOT accept a store_name.
 ```
 
-Terms › `observation`: one recorded measurement about one subject — a value, a unit, a type, an observer and an instant; the record this atom holds.
+Term observation: one recorded measurement about one subject — a value, a unit, a type, an observer and an instant; the record this atom holds.
 
-Terms › `observation_id`: the opaque value naming one observation — an [Observation Id]; host-allocated at the seam.
+Term observation_id: the opaque value naming one observation — an [Observation Id]; host-allocated at the seam.
 
-Terms › `subject_ref`: the opaque reference naming what the measurement is about — a [Subject Ref]; a property of the observation, never the observation's identity.
+Term subject_ref: the opaque reference naming what the measurement is about — a [Subject Ref]; a property of the observation, never the observation's identity.
 
-Terms › `recorded_by`: the opaque reference naming the observer who took the measurement — a [Recorded By].
+Term recorded_by: the opaque reference naming the observer who took the measurement — a [Recorded By].
 
-Terms › `observation_type`: the opaque string naming what was measured — an [Observation Type]; recorded and filtered on, never interpreted.
+Term observation_type: the opaque string naming what was measured — an [Observation Type]; recorded and filtered on, never interpreted.
 
-Terms › `unit`: the opaque string naming the measurement's unit — a [Unit].
+Term unit: the opaque string naming the measurement's unit — a [Unit].
 
-Terms › `reference`: `subject_ref`, `recorded_by`, `amended_by` OR `retracted_by` — every opaque reference this atom records.
+Term reference: `subject_ref`, `recorded_by`, `amended_by` OR `retracted_by` — every opaque reference this atom records.
 
-Terms › `store instance`: one named observation store a call is routed to; `observation_id` uniqueness ranges over one instance.
+Term store instance: one named observation store a call is routed to; `observation_id` uniqueness ranges over one instance.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the observation_id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the observation_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the observation store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the observation store, as `execution-contract.md` §Logic confinement declares it.
 
 WHY:
 Identity 9 and Identity 10 state the two scopes that a multi-site deployment gets wrong in opposite directions. `subject_ref` is portable by design — the same subject appears in one store and another — and `observation_id` is not, so a cross-instance query that treats two ids from two stores as comparable is reading coincidence. Identity 16 is what makes the boundary visible in the signature: no action takes a [Store Name], so a caller cannot address two instances in one call and a composition that needs to must do its own routing.
@@ -216,43 +216,43 @@ NOTE: Operation 54 deleted — `execution-contract.md` §Logic confinement owns 
 Operation 55: An ordering rule MUST NOT rest on a causal claim.
 ```
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `states`: `recorded` | `amended` | `retracted` — a [State], and the whole state space.
+Term states: `recorded` | `amended` | `retracted` — a [State], and the whole state space.
 
-Terms › `chain action`: [Amend] | [Retract] — the two actions that address a recorded observation.
+Term chain action: [Amend] | [Retract] — the two actions that address a recorded observation.
 
-Terms › `content-checking action`: [Record] | [Amend] — the two actions that carry a value and a unit.
+Term content-checking action: [Record] | [Amend] — the two actions that carry a value and a unit.
 
-Terms › `writing action`: [Record] | [Amend] | [Retract] — every action but [Read].
+Term writing action: [Record] | [Amend] | [Retract] — every action but [Read].
 
-Terms › `state rejection`: `already-amended` OR `already-retracted` — the refusals that rest on the observation's state.
+Term state rejection: `already-amended` OR `already-retracted` — the refusals that rest on the observation's state.
 
-Terms › `value constraint`: the bound a deployment declares for one `observation_type` — what a valid value for that measurement is; declared by the deployment, applied by the atom, and defined by neither the atom nor this grammar.
+Term value constraint: the bound a deployment declares for one `observation_type` — what a valid value for that measurement is; declared by the deployment, applied by the atom, and defined by neither the atom nor this grammar.
 
-Terms › `clock_offset_allowance`: the non-negative duration a deployment declares as the margin between a caller's clock and the seam's; `0` means no tolerance.
+Term clock_offset_allowance: the non-negative duration a deployment declares as the margin between a caller's clock and the seam's; `0` means no tolerance.
 
-Terms › `future bound`: `now` raised by the `clock_offset_allowance` — the ceiling a resolved recorded_at is checked against (Operation 7).
+Term future bound: `now` raised by the `clock_offset_allowance` — the ceiling a resolved recorded_at is checked against (Operation 7).
 
-Terms › `resolved recorded_at`: the `recorded_at` the observation carries — the supplied value where one exists, and `now` otherwise.
+Term resolved recorded_at: the `recorded_at` the observation carries — the supplied value where one exists, and `now` otherwise.
 
-Terms › `content field`: `observation_id`, `subject_ref`, `recorded_by`, `observation_type`, `value`, `unit` OR `recorded_at` — every field [Record] sets and nothing changes.
+Term content field: `observation_id`, `subject_ref`, `recorded_by`, `observation_type`, `value`, `unit` OR `recorded_at` — every field [Record] sets and nothing changes.
 
-Terms › `transition metadata`: `successor_id`, `predecessor_id`, `amended_by`, `amendment_reason`, `retracted_by` OR `retraction_reason` — every field a chain action writes.
+Term transition metadata: `successor_id`, `predecessor_id`, `amended_by`, `amendment_reason`, `retracted_by` OR `retraction_reason` — every field a chain action writes.
 
-Terms › `amendment chain`: the observations one `predecessor_id` and `successor_id` sequence links — one measurement's correction history for one subject.
+Term amendment chain: the observations one `predecessor_id` and `successor_id` sequence links — one measurement's correction history for one subject.
 
-Terms › `filter axes`: `observation_id` | `subject_ref` | `observation_type` | `state` | `recorded_at` — the five axes [Read] accepts, and no others.
+Term filter axes: `observation_id` | `subject_ref` | `observation_type` | `state` | `recorded_at` — the five axes [Read] accepts, and no others.
 
-Terms › `admitted record`: a [Record] call whose references, observation_type, unit, value constraint, value and resolved recorded_at the guards all admit.
+Term admitted record: a [Record] call whose references, observation_type, unit, value constraint, value and resolved recorded_at the guards all admit.
 
-Terms › `admitted amend`: an [Amend] call whose observation_id names an observation standing in recorded, and whose amended_by, reason, value and unit the guards admit.
+Term admitted amend: an [Amend] call whose observation_id names an observation standing in recorded, and whose amended_by, reason, value and unit the guards admit.
 
-Terms › `admitted retract`: a [Retract] call whose observation_id names an observation standing outside retracted, and whose retracted_by and reason the guards admit.
+Term admitted retract: a [Retract] call whose observation_id names an observation standing outside retracted, and whose retracted_by and reason the guards admit.
 
-Terms › `admitted read`: a [Read] call whose every filter axis and filter value the guards admit.
+Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
 | # | Condition | a chain action answers |
 |---|---|---|
@@ -456,9 +456,9 @@ Atomic writes 3: An uncommitted crash MUST leave the store as the call found the
 Atomic writes 4: The implementation MUST NOT repair a dangling amend.
 ```
 
-Terms › `uncommitted crash`: a crash BEFORE an admitted amend's commit lands.
+Term uncommitted crash: a crash BEFORE an admitted amend's commit lands.
 
-Terms › `dangling amend`: an admitted amend's two writes standing partly applied once a crash has landed.
+Term dangling amend: an admitted amend's two writes standing partly applied once a crash has landed.
 
 WHY:
 This atom forbids outright the repair-later posture the corpus's other append-only stores are permitted, and the argument is worth keeping. [Amend] makes two durable writes — the successor, and the original's move to amended with its `successor_id` — and both are writes to this atom's own store, so one transaction covers them and an abort takes both back (Operation 33).
@@ -480,7 +480,7 @@ Concurrency 7: The atom MUST NOT offer a reconciliation leg.
 Concurrency 8: The atom MUST admit two concurrent [Record] calls against one subject_ref.
 ```
 
-Terms › `per-observation section`: the critical section an implementation holds over one `observation_id` while a chain action's state check and transition run.
+Term per-observation section: the critical section an implementation holds over one `observation_id` while a chain action's state check and transition run.
 
 WHY:
 Concurrency 2 and Concurrency 3 close the window that makes the state checks meaningful. A state check read outside the section is a fact about the past by the time the transition runs, and two amends that both read *recorded* would both write — producing the branch Invariant 3.1 forbids. Taking the section first makes the check and the transition one step, so a second amend that waited re-reads under the section and lands `already-amended`.
@@ -501,9 +501,9 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Terms › `string input`: a reference, `observation_type`, `unit`, `reason` OR a filter's value — every caller-supplied string this atom accepts.
+Term string input: a reference, `observation_type`, `unit`, `reason` OR a filter's value — every caller-supplied string this atom accepts.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 A whitespace-only observer reference, reason or type is blank and refused exactly as an empty one is (String 5). The alternative — accepting a space as an observer identity — produces a record that satisfies a presence check and attributes nothing, which is the failure the attribution invariants exist to prevent.
@@ -544,21 +544,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an observer; a subject; an investigator; the store; an observation; a successor observation; an original; an amended observation; a retracted observation; a chain action; a content-checking action; a writing action; a refused action; an ordering rule; an action; a query; a filter; a reference filter; a state filter; a range filter; a state rejection; an amendment chain; a rejection; a crash; a reader; a string input; an opaque reference; the store instance's observation count.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an observer; a subject; an investigator; the store; an observation; a successor observation; an original; an amended observation; a retracted observation; a chain action; a content-checking action; a writing action; a refused action; an ordering rule; an action; a query; a filter; a reference filter; a state filter; a range filter; a state rejection; an amendment chain; a rejection; a crash; a reader; a string input; an opaque reference; the store instance's observation count.
 
-Terms › `records`: `observation` — one recorded measurement, carrying `observation_id`, `subject_ref`, `recorded_by`, `observation_type`, `value`, `unit`, `recorded_at` and a state, plus the transition metadata a chain action writes.
+Term records: `observation` — one recorded measurement, carrying `observation_id`, `subject_ref`, `recorded_by`, `observation_type`, `value`, `unit`, `recorded_at` and a state, plus the transition metadata a chain action writes.
 
-Terms › `record verbs`: identify, allocate, change, carry, stand, answer, record, set, take, stamp, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, raise, compare, trim, case-fold, refuse, write, read, find, observe, repair, commit, fall, bound, decide, declare, compose, wire, supply, remove, order, sort, name, bind, derive, map, define, apply, hold, release, serialize, lapse, return, canonicalize, store, fail, accept, rest, capture.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, stamp, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, raise, compare, trim, case-fold, refuse, write, read, find, observe, repair, commit, fall, bound, decide, declare, compose, wire, supply, remove, order, sort, name, bind, derive, map, define, apply, hold, release, serialize, lapse, return, canonicalize, store, fail, accept, rest, capture.
 
-Terms › `value sets`: record answers = observation_id | rejected(invalid-observation | storage-failure). amend answers = the successor's observation_id | rejected(not-known | already-amended | already-retracted | invalid-request | invalid-observation | storage-failure). retract answers = retracted | rejected(not-known | already-retracted | invalid-request | storage-failure). read answers = the matching observations | rejected(invalid-query). `state` = recorded | amended | retracted.
+Term value sets: record answers = observation_id | rejected(invalid-observation | storage-failure). amend answers = the successor's observation_id | rejected(not-known | already-amended | already-retracted | invalid-request | invalid-observation | storage-failure). retract answers = retracted | rejected(not-known | already-retracted | invalid-request | storage-failure). read answers = the matching observations | rejected(invalid-query). `state` = recorded | amended | retracted.
 
-Terms › `bounds`: `clock_offset_allowance` (the margin a deployment declares between a caller's clock and the seam's); `value constraint` (the bound a deployment declares per observation_type).
+Term bounds: `clock_offset_allowance` (the margin a deployment declares between a caller's clock and the seam's); `value constraint` (the bound a deployment declares per observation_type).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `observation`, `observation_id`, `subject_ref`, `recorded_by`, `observation_type`, `unit`, `reference`, `store instance`, `seam`, `transition`, `now`, `business caller`, `states`, `content field`, `chain action`, `content-checking action`, `writing action`, `state rejection`, `value constraint`, `clock_offset_allowance`, `future bound`, `resolved recorded_at`, `transition metadata`, `amendment chain`, `filter axes`, `admitted record`, `admitted amend`, `admitted retract`, `admitted read`, `per-observation section`, `string input`, `blank`, `uncommitted crash`, `dangling amend`.
+Term terms: `observation`, `observation_id`, `subject_ref`, `recorded_by`, `observation_type`, `unit`, `reference`, `store instance`, `seam`, `transition`, `now`, `business caller`, `states`, `content field`, `chain action`, `content-checking action`, `writing action`, `state rejection`, `value constraint`, `clock_offset_allowance`, `future bound`, `resolved recorded_at`, `transition metadata`, `amendment chain`, `filter axes`, `admitted record`, `admitted amend`, `admitted retract`, `admitted read`, `per-observation section`, `string input`, `blank`, `uncommitted crash`, `dangling amend`.
 
 #### Record
 

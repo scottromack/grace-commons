@@ -39,21 +39,21 @@ Identity 6: The atom MUST NOT identify a notification by the recipient_ref with 
 Identity 7: Two notifications carrying one recipient_ref and one payload MUST carry two notification_ids.
 ```
 
-Terms › `notification`: one delivery record — one recipient, one payload, one outcome.
+Term notification: one delivery record — one recipient, one payload, one outcome.
 
-Terms › `notification_id`: the opaque value naming one notification — a [Notification Id].
+Term notification_id: the opaque value naming one notification — a [Notification Id].
 
-Terms › `recipient_ref`: the opaque reference naming who the notification is for — a [Recipient Ref]; compared by equality and never interpreted.
+Term recipient_ref: the opaque reference naming who the notification is for — a [Recipient Ref]; compared by equality and never interpreted.
 
-Terms › `payload`: the opaque content the notification carries — a [Payload]; stored and returned unchanged.
+Term payload: the opaque content the notification carries — a [Payload]; stored and returned unchanged.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the notification_id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the notification_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the notification store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the notification store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 One attempt, one record. A retry is a new notification with a new id rather than a second outcome on the old one, which is what keeps *how many times did we try* answerable and stops a terminal record being rewritten (Identity 7, Non-goal 3).
@@ -75,11 +75,11 @@ State 11: The atom MUST NOT hold a transport.
 State 12: The atom MUST NOT hold a retry.
 ```
 
-Terms › `status`: `pending` | `delivered` | `failed` | `expired` — the [Status] field's four values: awaiting an outcome, reached, attempted without success, or out of time.
+Term status: `pending` | `delivered` | `failed` | `expired` — the [Status] field's four values: awaiting an outcome, reached, attempted without success, or out of time.
 
-Terms › `terminal stamp`: `delivered_at` | `failed_at` | `expired_at` — the one stamp a terminal status carries.
+Term terminal stamp: `delivered_at` | `failed_at` | `expired_at` — the one stamp a terminal status carries.
 
-Terms › `created_at`: the instant the notification was recorded — a [Created At].
+Term created_at: the instant the notification was recorded — a [Created At].
 
 WHY:
 Four states and exactly one terminal stamp each, because the audit question is *what happened to this one*, and a record carrying two terminal stamps answers it twice (State 6, Invariant 3.1). Nothing about transport lives here: a webhook, a push and an email produce the same three outcomes, and an atom that knew the difference would have to be re-specified every time a deployment changed channel (State 11).
@@ -140,9 +140,9 @@ NOTE: Operation 25 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 26 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `terminal transition`: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
+Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
 
-Terms › `pending at an instant`: `created_at` at or before the instant, and the terminal stamp either absent or after the instant — the reconstruction an auditor runs over stored fields, never over `status`, which carries the present rather than the past.
+Term pending at an instant: `created_at` at or before the instant, and the terminal stamp either absent or after the instant — the reconstruction an auditor runs over stored fields, never over `status`, which carries the present rather than the past.
 
 The case space, and the rule that owns each case:
 
@@ -330,7 +330,7 @@ String 8: [Pending For] MUST read an over-length recipient_ref as matching nothi
 String 9: [Pending For] MUST read a whitespace-only recipient_ref as matching nothing.
 ```
 
-Terms › `string cap`: the deployment's bound on a string input's length.
+Term string cap: the deployment's bound on a string input's length.
 
 ### Atomicity of a terminal transition
 
@@ -398,21 +398,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a recipient; an auditor; the store; a notification; a status.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a recipient; an auditor; the store; a notification; a status.
 
-Terms › `records`: `notification` — one delivery record, carrying `notification_id`, `recipient_ref`, `payload`, `created_at`, `status` and, once it ends, one terminal stamp.
+Term records: `notification` — one delivery record, carrying `notification_id`, `recipient_ref`, `payload`, `created_at`, `status` and, once it ends, one terminal stamp.
 
-Terms › `record verbs`: identify, allocate, supply, reuse, carry, compare, trim, normalize, case-fold, read, stand, stamp, offer, delete, hold, record, answer, accept, leave, refuse, order, write, change, move, set, share, shrink, keep, own, evaluate, choose, retry, create, deliver, validate, deduplicate, purge, gate, expire, enumerate, call, serialize, compose, guard, declare, find, reconstruct, raise, require, exceed.
+Term record verbs: identify, allocate, supply, reuse, carry, compare, trim, normalize, case-fold, read, stand, stamp, offer, delete, hold, record, answer, accept, leave, refuse, order, write, change, move, set, share, shrink, keep, own, evaluate, choose, retry, create, deliver, validate, deduplicate, purge, gate, expire, enumerate, call, serialize, compose, guard, declare, find, reconstruct, raise, require, exceed.
 
-Terms › `value sets`: create answers = notification_id | rejected(invalid-request | storage-failure). deliver answers = ok | rejected(not-known | not-pending | storage-failure). fail answers = ok | rejected(not-known | not-pending | storage-failure). expire answers = ok | rejected(not-known | not-pending | storage-failure). status_of answers = the notification's stored fields | not-known. pending_for answers = a list of notification_id, empty where nothing pends. `status` = pending | delivered | failed | expired. `terminal stamp` = delivered_at | failed_at | expired_at.
+Term value sets: create answers = notification_id | rejected(invalid-request | storage-failure). deliver answers = ok | rejected(not-known | not-pending | storage-failure). fail answers = ok | rejected(not-known | not-pending | storage-failure). expire answers = ok | rejected(not-known | not-pending | storage-failure). status_of answers = the notification's stored fields | not-known. pending_for answers = a list of notification_id, empty where nothing pends. `status` = pending | delivered | failed | expired. `terminal stamp` = delivered_at | failed_at | expired_at.
 
-Terms › `bounds`: `string cap` (the deployment's bound on a string input's length).
+Term bounds: `string cap` (the deployment's bound on a string input's length).
 
-Terms › `cadences`: empty — a delivery window is the composing pattern's (Operation 14b, Composition note 7).
+Term cadences: empty — a delivery window is the composing pattern's (Operation 14b, Composition note 7).
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `notification`, `notification_id`, `recipient_ref`, `payload`, `seam`, `transition`, `business caller`, `now`, `string cap`, `status`, `terminal stamp`, `created_at`, `terminal transition`.
+Term terms: `notification`, `notification_id`, `recipient_ref`, `payload`, `seam`, `transition`, `business caller`, `now`, `string cap`, `status`, `terminal stamp`, `created_at`, `terminal transition`.
 
 #### Create
 

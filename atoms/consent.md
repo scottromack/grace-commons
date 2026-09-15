@@ -55,15 +55,15 @@ Identity 10: The atom MUST NOT interpret a purpose.
 Identity 11: The atom MUST NOT confirm that a subject_ref names a known data subject.
 ```
 
-Terms › `consent_id`: the opaque value naming one consent record — a [Consent Id]; host-allocated at the seam, never reused.
+Term consent_id: the opaque value naming one consent record — a [Consent Id]; host-allocated at the seam, never reused.
 
-Terms › `subject_ref`: the opaque reference naming the data subject whose agreement the record holds — a [Subject Ref].
+Term subject_ref: the opaque reference naming the data subject whose agreement the record holds — a [Subject Ref].
 
-Terms › `purpose`: the opaque value naming the processing purpose the agreement covers — a [Purpose]; caller-declared vocabulary, matched exactly.
+Term purpose: the opaque value naming the processing purpose the agreement covers — a [Purpose]; caller-declared vocabulary, matched exactly.
 
-Terms › `granted_by`: the opaque reference naming the actor that recorded the subject's affirmative signal — a [Granted By].
+Term granted_by: the opaque reference naming the actor that recorded the subject's affirmative signal — a [Granted By].
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Identity by subject and purpose would be the natural-looking choice and it is wrong here: the atom deliberately admits several records over one pair, because re-consent after expiry is a new agreement and not an edit of the old one, and a regulator asking *what did this person agree to, and when* needs both rows (Identity 6, Non-goal 12). The id is the only identity anchor.
@@ -90,9 +90,9 @@ State 15: The atom MUST NOT hold a purpose taxonomy.
 NOTE: State 1 deleted — Invariant 2.1 owns it.
 ```
 
-Terms › `state`: `granted` | `revoked` | `expired` — in effect, withdrawn, or run out; a [State], derived per Expiry 1–4 against the evaluation instant.
+Term state: `granted` | `revoked` | `expired` — in effect, withdrawn, or run out; a [State], derived per Expiry 1–4 against the evaluation instant.
 
-Terms › `grant field`: `consent_id` | `subject_ref` | `purpose` | `granted_by` | `granted_at` | `expires_at` | `metadata` — what [Grant] writes and Invariant 1.1 freezes.
+Term grant field: `consent_id` | `subject_ref` | `purpose` | `granted_by` | `granted_at` | `expires_at` | `metadata` — what [Grant] writes and Invariant 1.1 freezes.
 
 #### Expiry
 
@@ -207,43 +207,43 @@ NOTE: Operation 62 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 63 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `at_time`: the instant a [Check] evaluates against — an [At Time]; a caller-supplied query input, resolving to `now` where the call supplies none.
+Term at_time: the instant a [Check] evaluates against — an [At Time]; a caller-supplied query input, resolving to `now` where the call supplies none.
 
-Terms › `grant guard`: [Grant]'s preconditions — `subject_ref`, `purpose` and `granted_by` each present, and `expires_at`, where supplied, exceeding `now`.
+Term grant guard: [Grant]'s preconditions — `subject_ref`, `purpose` and `granted_by` each present, and `expires_at`, where supplied, exceeding `now`.
 
-Terms › `expires_at`: the optional instant a consent record's agreement runs out — an [Expires At]; set at [Grant], never stamped later.
+Term expires_at: the optional instant a consent record's agreement runs out — an [Expires At]; set at [Grant], never stamped later.
 
-Terms › `metadata`: the optional opaque payload the atom stores unchanged — a [Metadata]; consent-form version, signal type, jurisdiction.
+Term metadata: the optional opaque payload the atom stores unchanged — a [Metadata]; consent-form version, signal type, jurisdiction.
 
-Terms › `revoked_by`: the opaque reference naming the actor that recorded the withdrawal — a [Revoked By].
+Term revoked_by: the opaque reference naming the actor that recorded the withdrawal — a [Revoked By].
 
-Terms › `revocation_reason`: the stated ground for the withdrawal — a [Revocation Reason], carried from the call's [Reason].
+Term revocation_reason: the stated ground for the withdrawal — a [Revocation Reason], carried from the call's [Reason].
 
-Terms › `reason`: the [Revoke] argument the record keeps as `revocation_reason` — a [Reason].
+Term reason: the [Revoke] argument the record keeps as `revocation_reason` — a [Reason].
 
-Terms › `revoked_at`: the instant the withdrawal takes effect — a [Revoked At]; caller-supplied or resolved from `now`.
+Term revoked_at: the instant the withdrawal takes effect — a [Revoked At]; caller-supplied or resolved from `now`.
 
-Terms › `granted_at`: the instant the consent record was created — a [Granted At]; always stamped from `now`.
+Term granted_at: the instant the consent record was created — a [Granted At]; always stamped from `now`.
 
-Terms › `evaluation instant`: the instant a consent record's state is read against — the resolved `at_time` in [Check], `now` everywhere else.
+Term evaluation instant: the instant a consent record's state is read against — the resolved `at_time` in [Check], `now` everywhere else.
 
-Terms › `withdrawn`: the consent record carries a `revoked_at` no later than the evaluation instant.
+Term withdrawn: the consent record carries a `revoked_at` no later than the evaluation instant.
 
-Terms › `elapsed`: the consent record carries an `expires_at` no later than the evaluation instant.
+Term elapsed: the consent record carries an `expires_at` no later than the evaluation instant.
 
-Terms › `candidate record`: among the consent records carrying the call's `subject_ref` and `purpose`, the one whose `granted_at` is the latest that the resolved `at_time` does not precede; a tie on `granted_at` resolves to the greatest `consent_id` in lexicographic byte-order.
+Term candidate record: among the consent records carrying the call's `subject_ref` and `purpose`, the one whose `granted_at` is the latest that the resolved `at_time` does not precede; a tie on `granted_at` resolves to the greatest `consent_id` in lexicographic byte-order.
 
-Terms › `later write`: a consent record written with a `granted_at`, a `revoked_at` or an `expires_at` later than the resolved `at_time`.
+Term later write: a consent record written with a `granted_at`, a `revoked_at` or an `expires_at` later than the resolved `at_time`.
 
-Terms › `query`: the filter set [Read] accepts — a [Query]; any combination of the supported filter axes.
+Term query: the filter set [Read] accepts — a [Query]; any combination of the supported filter axes.
 
-Terms › `supported filter axes`: `consent_id` | `subject_ref` | `purpose` | `granted_by` | `state` | a time range on `granted_at` | a time range on `revoked_at` | a time range on `expires_at`.
+Term supported filter axes: `consent_id` | `subject_ref` | `purpose` | `granted_by` | `state` | a time range on `granted_at` | a time range on `revoked_at` | a time range on `expires_at`.
 
-Terms › `reference filter`: a `consent_id`, `subject_ref`, `purpose` or `granted_by` filter on a query.
+Term reference filter: a `consent_id`, `subject_ref`, `purpose` or `granted_by` filter on a query.
 
 The case space, and the rule that owns each case:
 
@@ -350,15 +350,15 @@ Instance 4: The atom MUST NOT accept a store_name as an argument.
 Instance 5: A consent record MUST NOT carry a store_name.
 ```
 
-Terms › `consent record`: one data subject's agreement to one named processing purpose — the record this atom holds.
+Term consent record: one data subject's agreement to one named processing purpose — the record this atom holds.
 
-Terms › `store instance`: one named consent store a call is routed to; `consent_id` uniqueness ranges over one instance.
+Term store instance: one named consent store a call is routed to; `consent_id` uniqueness ranges over one instance.
 
-Terms › `store_name`: the identifier naming one store instance — a [Store Name]; deployment routing, never an argument and never a stored field.
+Term store_name: the identifier naming one store instance — a [Store Name]; deployment routing, never an argument and never a stored field.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the consent_id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the consent_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the consent store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the consent store, as `execution-contract.md` §Logic confinement declares it.
 
 ---
 
@@ -530,21 +530,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a data subject; an auditor; a reader; the store; a consent record; a state; a store_name; a query; a time range; a reference filter; a later write; the consent record count; the stored state.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a data subject; an auditor; a reader; the store; a consent record; a state; a store_name; a query; a time range; a reference filter; a later write; the consent record count; the stored state.
 
-Terms › `records`: `consent record` — one agreement to one purpose, carrying `consent_id`, `subject_ref`, `purpose`, `granted_by`, `granted_at`, `state`, the `expires_at` and `metadata` supplied at grant, and, once withdrawn, `revoked_by`, `revocation_reason` and `revoked_at`.
+Term records: `consent record` — one agreement to one purpose, carrying `consent_id`, `subject_ref`, `purpose`, `granted_by`, `granted_at`, `state`, the `expires_at` and `metadata` supplied at grant, and, once withdrawn, `revoked_by`, `revocation_reason` and `revoked_at`.
 
-Terms › `record verbs`: route, share, name, accept, carry, identify, allocate, reuse, change, draw, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, exclude, ignore, leave, read, supply, rest, offer, remove, suppress, hold, poll, equal, serialize, appear, meet, fall, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, guard, declare, call, run, merge, precede.
+Term record verbs: route, share, name, accept, carry, identify, allocate, reuse, change, draw, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, exclude, ignore, leave, read, supply, rest, offer, remove, suppress, hold, poll, equal, serialize, appear, meet, fall, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, guard, declare, call, run, merge, precede.
 
-Terms › `value sets`: grant answers = consent_id | rejected(invalid-request | storage-failure). revoke answers = revoked | rejected(invalid-request | not-known | already-revoked | already-expired | storage-failure). check answers = granted | revoked | expired | not-known. read answers = an ordered sequence of consent records, empty where nothing matches | rejected(invalid-query). `state` = granted | revoked | expired. `supported filter axes` and `grant field` are declared above and cited here (Closed vocabulary 15).
+Term value sets: grant answers = consent_id | rejected(invalid-request | storage-failure). revoke answers = revoked | rejected(invalid-request | not-known | already-revoked | already-expired | storage-failure). check answers = granted | revoked | expired | not-known. read answers = an ordered sequence of consent records, empty where nothing matches | rejected(invalid-query). `state` = granted | revoked | expired. `supported filter axes` and `grant field` are declared above and cited here (Closed vocabulary 15).
 
-Terms › `bounds`: empty.
+Term bounds: empty.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `consent record`, `store instance`, `store_name`, `seam`, `transition`, `consent_id`, `subject_ref`, `purpose`, `granted_by`, `blank`, `now`, `business caller`, `at_time`, `grant guard`, `expires_at`, `metadata`, `revoked_by`, `revocation_reason`, `reason`, `revoked_at`, `granted_at`, `evaluation instant`, `withdrawn`, `elapsed`, `candidate record`, `later write`, `query`, `supported filter axes`, `reference filter`, `state`, `grant field`.
+Term terms: `consent record`, `store instance`, `store_name`, `seam`, `transition`, `consent_id`, `subject_ref`, `purpose`, `granted_by`, `blank`, `now`, `business caller`, `at_time`, `grant guard`, `expires_at`, `metadata`, `revoked_by`, `revocation_reason`, `reason`, `revoked_at`, `granted_at`, `evaluation instant`, `withdrawn`, `elapsed`, `candidate record`, `later write`, `query`, `supported filter axes`, `reference filter`, `state`, `grant field`.
 
 #### Grant
 

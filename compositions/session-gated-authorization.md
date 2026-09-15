@@ -49,9 +49,9 @@ Composes 6: The composition MUST discharge Permissions Composition note 3.
 Composes 7: The composition MUST obey Session Composition note 4.
 ```
 
-Terms › `composition`: this pattern's wiring of [Session](../atoms/session.md) and [Permissions](../atoms/permissions.md) — the gate, the principal binding and the one action below.
+Term composition: this pattern's wiring of [Session](../atoms/session.md) and [Permissions](../atoms/permissions.md) — the gate, the principal binding and the one action below.
 
-Terms › `constituents`: [Session](../atoms/session.md), [Permissions](../atoms/permissions.md).
+Term constituents: [Session](../atoms/session.md), [Permissions](../atoms/permissions.md).
 
 WHY:
 Composes 5 is the enclosure the other rules rest on. A deployment that exposes `Session.validate` or `Permissions.permitted` beside [Check Permitted] gives a caller a route to the permission store that never passes the gate, and every guarantee below is a guarantee about the route through [Check Permitted] alone. Non-goal 9 states what a deployment owes when it exposes both anyway.
@@ -121,17 +121,17 @@ Action wiring 14: [Check Permitted] MUST NOT read a validate answer a prior call
 Action wiring 15: [Check Permitted] MUST NOT write.
 ```
 
-Terms › `boundary predicate`: the composition's own argument check — an argument NOT EXISTS, is blank OR EXCEEDS the length bound.
+Term boundary predicate: the composition's own argument check — an argument NOT EXISTS, is blank OR EXCEEDS the length bound.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
-Terms › `length bound`: the cap a deployment pins for an opaque argument — a [Length Bound]; the value is the deployment's, the existence is this composition's contract.
+Term length bound: the cap a deployment pins for an opaque argument — a [Length Bound]; the value is the deployment's, the existence is this composition's contract.
 
-Terms › `valid answer`: Session's validate answer carrying a principal_ref and an expires_at.
+Term valid answer: Session's validate answer carrying a principal_ref and an expires_at.
 
-Terms › `invalid answer`: Session's validate answer carrying expired, revoked OR not-known.
+Term invalid answer: Session's validate answer carrying expired, revoked OR not-known.
 
-Terms › `admitted gate`: a [Check Permitted] call whose arguments cleared the boundary predicate AND whose Session validate gave a valid answer.
+Term admitted gate: a [Check Permitted] call whose arguments cleared the boundary predicate AND whose Session validate gave a valid answer.
 
 WHY:
 Action wiring 2 and Wiring decision 1 are the whole composition stated as order. The boundary check runs before either constituent, the gate runs before Permissions, and both are `ONLY AFTER` rather than `BEFORE` because the grammar admits the positive form only in that direction (Timing 6, Hard invariant 11).
@@ -372,17 +372,17 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 ### Vocabulary
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `terms`: `composition`, `constituents`, `boundary predicate`, `blank`, `length bound`, `valid answer`, `invalid answer`, `admitted gate`.
+Term terms: `composition`, `constituents`, `boundary predicate`, `blank`, `length bound`, `valid answer`, `invalid answer`, `admitted gate`.
 
-Terms › `record verbs`: validate, call, answer, accept, read, write, store, derive, evaluate, compare, trim, normalize, equal, stand, follow, reach, find, name, own, discharge, obey, change, replace, hold, serve, compose, declare, pin, bound, issue, terminate, grant, revoke, expand, match, aggregate, distinguish, record, detect, claim, query, receive, cover, case-fold.
+Term record verbs: validate, call, answer, accept, read, write, store, derive, evaluate, compare, trim, normalize, equal, stand, follow, reach, find, name, own, discharge, obey, change, replace, hold, serve, compose, declare, pin, bound, issue, terminate, grant, revoke, expand, match, aggregate, distinguish, record, detect, claim, query, receive, cover, case-fold.
 
-Terms › `actors`: the composition; the constituents; a deployment; an auditor; a caller; a principal; a session; a grant; an argument; an answer.
+Term actors: the composition; the constituents; a deployment; an auditor; a caller; a principal; a session; a grant; an argument; an answer.
 
-Terms › `value sets`: check_permitted answers = permitted | denied | rejected(invalid-request | session-invalid(validation failure)). `invalid answer` reasons = expired | revoked | not-known.
+Term value sets: check_permitted answers = permitted | denied | rejected(invalid-request | session-invalid(validation failure)). `invalid answer` reasons = expired | revoked | not-known.
 
-Terms › `cited`: `execution-contract.md` §Composition state — the no-stored-state classification. [Session](../atoms/session.md) `Composition note 4` — the gate obligation. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding; `validation failure`: Session.
+Term cited: `execution-contract.md` §Composition state — the no-stored-state classification. [Session](../atoms/session.md) `Composition note 4` — the gate obligation. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding; `validation failure`: Session.
 
 #### Check Permitted
 

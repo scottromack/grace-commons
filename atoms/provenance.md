@@ -61,23 +61,23 @@ Identity 16: Two entries in one chain MUST NOT share an entry_id.
 Identity 17: The deployment MUST route EVERY call to one store instance.
 ```
 
-Terms › `chain`: one artifact's custody history for one episode, from a genesis entry to a terminal disposition — the record this atom holds.
+Term chain: one artifact's custody history for one episode, from a genesis entry to a terminal disposition — the record this atom holds.
 
-Terms › `entry`: one appended event on a chain, carrying an `entry_id`, a `sequence_number`, an `event_type`, a custodian and a `recorded_at`.
+Term entry: one appended event on a chain, carrying an `entry_id`, a `sequence_number`, an `event_type`, a custodian and a `recorded_at`.
 
-Terms › `chain_id`: the opaque value naming one chain — a [Chain Id]; host-allocated at the seam.
+Term chain_id: the opaque value naming one chain — a [Chain Id]; host-allocated at the seam.
 
-Terms › `artifact_ref`: the opaque reference naming what a chain tracks — an [Artifact Ref]; a property of the chain, never the chain's identity.
+Term artifact_ref: the opaque reference naming what a chain tracks — an [Artifact Ref]; a property of the chain, never the chain's identity.
 
-Terms › `entry_id`: the opaque value naming one entry — an [Entry Id]; host-allocated at the seam.
+Term entry_id: the opaque value naming one entry — an [Entry Id]; host-allocated at the seam.
 
-Terms › `custodian_ref`: the opaque reference naming who holds the artifact — a [Custodian Ref]; compared by exact byte identity.
+Term custodian_ref: the opaque reference naming who holds the artifact — a [Custodian Ref]; compared by exact byte identity.
 
-Terms › `store instance`: one named chain store a call is routed to; `chain_id` uniqueness ranges over one instance.
+Term store instance: one named chain store a call is routed to; `chain_id` uniqueness ranges over one instance.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the chain_id and the entry_id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the chain_id and the entry_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the chain store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the chain store, as `execution-contract.md` §Logic confinement declares it.
 
 WHY:
 Identity by artifact would be the natural-looking choice and it destroys the thing the atom is for. A returned-and-reprocessed batch, a re-introduced exhibit, a reissued instrument — each is a *second episode* of the same artifact, and merging the two histories under one identity makes the gap between them invisible. So the chain owns identity and the artifact reference is a field (Identity 9, Identity 10).
@@ -197,45 +197,45 @@ NOTE: Operation 57 deleted — Clock dependence 2 owns it.
 Operation 58: An ordering rule MUST NOT rest on recorded_at.
 ```
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `genesis_type`: the call argument selecting a genesis entry's event_type — a [Genesis Type]; an input name, never a stored field.
+Term genesis_type: the call argument selecting a genesis entry's event_type — a [Genesis Type]; an input name, never a stored field.
 
-Terms › `genesis types`: `originated` | `received` — what a genesis entry's event_type may be.
+Term genesis types: `originated` | `received` — what a genesis entry's event_type may be.
 
-Terms › `event_type`: `originated` | `received` | `transferred` | `transformed` | `disclosed` | `archived` — an [Event Type], set at append and never changed.
+Term event_type: `originated` | `received` | `transferred` | `transformed` | `disclosed` | `archived` — an [Event Type], set at append and never changed.
 
-Terms › `event types`: the six members of `event_type`, cited here from that declaration (Closed vocabulary 15).
+Term event types: the six members of `event_type`, cited here from that declaration (Closed vocabulary 15).
 
-Terms › `chain state`: `open` | `archived` — accepting entries, or at terminal disposition. A [Chain State].
+Term chain state: `open` | `archived` — accepting entries, or at terminal disposition. A [Chain State].
 
-Terms › `current custodian`: the `to_custodian_ref` of the chain's latest `transferred` entry, or the genesis entry's `custodian_ref` where no transfer has landed — a [Current Custodian]; a projection of the entry chain, cached as chain state so a guard need not replay.
+Term current custodian: the `to_custodian_ref` of the chain's latest `transferred` entry, or the genesis entry's `custodian_ref` where no transfer has landed — a [Current Custodian]; a projection of the entry chain, cached as chain state so a guard need not replay.
 
-Terms › `sequence_number`: the strictly increasing integer an entry takes at append — a [Sequence Number]; the chain's order source, and never taken from a clock.
+Term sequence_number: the strictly increasing integer an entry takes at append — a [Sequence Number]; the chain's order source, and never taken from a clock.
 
-Terms › `next_sequence_number`: the counter an appending action takes a `sequence_number` from — a [Next Sequence Number]; begins at one, rises by one per append, and survives a restart.
+Term next_sequence_number: the counter an appending action takes a `sequence_number` from — a [Next Sequence Number]; begins at one, rises by one per append, and survives a restart.
 
-Terms › `recorded_at`: the instant an entry was appended — a [Recorded At]; a best-effort annotation, and never an order source.
+Term recorded_at: the instant an entry was appended — a [Recorded At]; a best-effort annotation, and never an order source.
 
-Terms › `addressed action`: any action carrying a `chain_id` — every action but [Originate].
+Term addressed action: any action carrying a `chain_id` — every action but [Originate].
 
-Terms › `custodian-guarded action`: [Transform] | [Disclose] | [Archive] — the three an attribution guard covers.
+Term custodian-guarded action: [Transform] | [Disclose] | [Archive] — the three an attribution guard covers.
 
-Terms › `appending action`: [Originate] | [Transfer] | [Transform] | [Disclose] | [Archive] — every action but [Read].
+Term appending action: [Originate] | [Transfer] | [Transform] | [Disclose] | [Archive] — every action but [Read].
 
-Terms › `chain-state rejection`: the `archived` answer a writer gives against a closed chain, and the `already-archived` answer [Archive] gives.
+Term chain-state rejection: the `archived` answer a writer gives against a closed chain, and the `already-archived` answer [Archive] gives.
 
-Terms › `admitted originate`: an [Originate] call whose artifact_ref, custodian_ref and genesis_type the guards all admit.
+Term admitted originate: an [Originate] call whose artifact_ref, custodian_ref and genesis_type the guards all admit.
 
-Terms › `admitted transfer`: a [Transfer] call whose chain_id names an open chain and whose to_custodian_ref exists.
+Term admitted transfer: a [Transfer] call whose chain_id names an open chain and whose to_custodian_ref exists.
 
-Terms › `admitted transform`: a [Transform] call whose chain_id names an open chain, whose references and descriptor exist, and whose custodian_ref matches the current custodian.
+Term admitted transform: a [Transform] call whose chain_id names an open chain, whose references and descriptor exist, and whose custodian_ref matches the current custodian.
 
-Terms › `admitted disclose`: a [Disclose] call whose chain_id names an open chain, whose references exist, and whose custodian_ref matches the current custodian.
+Term admitted disclose: a [Disclose] call whose chain_id names an open chain, whose references exist, and whose custodian_ref matches the current custodian.
 
-Terms › `admitted archive`: an [Archive] call whose chain_id names an open chain, whose custodian_ref exists and matches the current custodian.
+Term admitted archive: an [Archive] call whose chain_id names an open chain, whose custodian_ref exists and matches the current custodian.
 
 The case space, and the rule that owns each case:
 
@@ -448,9 +448,9 @@ Atomic writes 6: The store MUST NOT serve a read BEFORE the implementation resol
 Atomic writes 7: The store MUST NOT accept an action BEFORE the implementation resolves the dangling transition.
 ```
 
-Terms › `uncommitted crash`: a crash BEFORE an appending action's commit lands.
+Term uncommitted crash: a crash BEFORE an appending action's commit lands.
 
-Terms › `dangling transition`: an appending action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
+Term dangling transition: an appending action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
 
 WHY:
 Every append couples at least two durable mutations — the entry and the counter raise — and [Transfer] and [Archive] carry a third (Operation 36–38). The obligation is an observability guarantee, all-or-none: a partly applied append is not a transient condition an implementation may expose and repair later; it must never be servable. A [Storage Failure] answer carries the same guarantee from the caller's side (Operation 41, Invariant 9.2).
@@ -505,13 +505,13 @@ String 8: IF transformation_descriptor EXCEEDS the maximum length THEN [Transfor
 String 9: IF metadata EXCEEDS the maximum length THEN [Originate] MUST answer invalid-ref.
 ```
 
-Terms › `string input`: `artifact_ref`, `custodian_ref`, `to_custodian_ref`, `recipient_ref`, `transformation_descriptor` OR `metadata` — every caller-supplied string this atom accepts.
+Term string input: `artifact_ref`, `custodian_ref`, `to_custodian_ref`, `recipient_ref`, `transformation_descriptor` OR `metadata` — every caller-supplied string this atom accepts.
 
-Terms › `reference`: `artifact_ref`, `custodian_ref`, `to_custodian_ref` OR `recipient_ref` — every string input naming a party or an artifact.
+Term reference: `artifact_ref`, `custodian_ref`, `to_custodian_ref` OR `recipient_ref` — every string input naming a party or an artifact.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
-Terms › `maximum length`: the deployment's cap per string input.
+Term maximum length: the deployment's cap per string input.
 
 WHY:
 The cap's value is a deployment choice; the cap's existence is part of the contract. An uncapped opaque field turns an append-only chain that is never deleted (Invariant 9.1) into an unbounded-payload sink, and a regulated store must be able to state its maximum record size.
@@ -560,21 +560,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; the store; a reader; a chain; an entry; a genesis entry; a transferred entry; a non-transferred entry; a transformed entry; a disclosed entry; an archived entry; a custodian-guarded entry; an addressed action; an appending action; a custodian-guarded action; a writer action; a refused action; an ordering rule; a query; a replay; a rejection; a correction; a crash; a string input; a reference; an opaque reference; the chain count; the entry count.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; the store; a reader; a chain; an entry; a genesis entry; a transferred entry; a non-transferred entry; a transformed entry; a disclosed entry; an archived entry; a custodian-guarded entry; an addressed action; an appending action; a custodian-guarded action; a writer action; a refused action; an ordering rule; a query; a replay; a rejection; a correction; a crash; a string input; a reference; an opaque reference; the chain count; the entry count.
 
-Terms › `records`: `chain` — one artifact's custody history for one episode, carrying `chain_id`, `artifact_ref`, a chain state, a current custodian and `next_sequence_number`. `entry` — one appended event on a chain, carrying `entry_id`, `sequence_number`, `event_type`, `custodian_ref` and `recorded_at`, and the per-type fields `from_custodian_ref`, `to_custodian_ref`, `transformation_descriptor`, `recipient_ref` and `metadata`.
+Term records: `chain` — one artifact's custody history for one episode, carrying `chain_id`, `artifact_ref`, a chain state, a current custodian and `next_sequence_number`. `entry` — one appended event on a chain, carrying `entry_id`, `sequence_number`, `event_type`, `custodian_ref` and `recorded_at`, and the per-type fields `from_custodian_ref`, `to_custodian_ref`, `transformation_descriptor`, `recipient_ref` and `metadata`.
 
-Terms › `record verbs`: identify, allocate, change, carry, stand, answer, record, append, set, read, take, raise, commit, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, govern, survive, route, share, equal, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, replay, reconstruct, repeat, observe, complete, roll back, serve, accept, serialize, name, claim, detect, bound, dispose, decide, compose, declare, wire, guard, rest, apply, supply, inject, fall, remove, edit, reorder, empty, move, cache, resolve, run.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, read, take, raise, commit, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, govern, survive, route, share, equal, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, replay, reconstruct, repeat, observe, complete, roll back, serve, accept, serialize, name, claim, detect, bound, dispose, decide, compose, declare, wire, guard, rest, apply, supply, inject, fall, remove, edit, reorder, empty, move, cache, resolve, run.
 
-Terms › `value sets`: originate answers = chain_id | rejected(invalid-ref | invalid-genesis-type | storage-failure). transfer answers = entry_id | rejected(not-known | archived | invalid-ref | storage-failure). transform answers = entry_id | rejected(not-known | archived | invalid-ref | invalid-descriptor | not-current-custodian | storage-failure). disclose answers = entry_id | rejected(not-known | archived | invalid-ref | not-current-custodian | storage-failure). archive answers = entry_id | rejected(not-known | already-archived | invalid-ref | not-current-custodian | storage-failure). read answers = the matching entries | rejected(not-known | invalid-query). `event_type` = originated | received | transferred | transformed | disclosed | archived. `genesis types` = originated | received. `chain state` = open | archived.
+Term value sets: originate answers = chain_id | rejected(invalid-ref | invalid-genesis-type | storage-failure). transfer answers = entry_id | rejected(not-known | archived | invalid-ref | storage-failure). transform answers = entry_id | rejected(not-known | archived | invalid-ref | invalid-descriptor | not-current-custodian | storage-failure). disclose answers = entry_id | rejected(not-known | archived | invalid-ref | not-current-custodian | storage-failure). archive answers = entry_id | rejected(not-known | already-archived | invalid-ref | not-current-custodian | storage-failure). read answers = the matching entries | rejected(not-known | invalid-query). `event_type` = originated | received | transferred | transformed | disclosed | archived. `genesis types` = originated | received. `chain state` = open | archived.
 
-Terms › `bounds`: `maximum length` (the deployment's cap per string input).
+Term bounds: `maximum length` (the deployment's cap per string input).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.39 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.39 (2026-09-12).
 
-Terms › `terms`: `chain`, `entry`, `chain_id`, `artifact_ref`, `entry_id`, `custodian_ref`, `store instance`, `seam`, `transition`, `now`, `business caller`, `genesis_type`, `genesis types`, `event_type`, `event types`, `chain state`, `current custodian`, `sequence_number`, `next_sequence_number`, `recorded_at`, `from_custodian_ref`, `to_custodian_ref`, `transformation_descriptor`, `recipient_ref`, `metadata`, `addressed action`, `custodian-guarded action`, `appending action`, `chain-state rejection`, `admitted originate`, `admitted transfer`, `admitted transform`, `admitted disclose`, `admitted archive`, `string input`, `reference`, `blank`, `maximum length`, `uncommitted crash`, `dangling transition`.
+Term terms: `chain`, `entry`, `chain_id`, `artifact_ref`, `entry_id`, `custodian_ref`, `store instance`, `seam`, `transition`, `now`, `business caller`, `genesis_type`, `genesis types`, `event_type`, `event types`, `chain state`, `current custodian`, `sequence_number`, `next_sequence_number`, `recorded_at`, `from_custodian_ref`, `to_custodian_ref`, `transformation_descriptor`, `recipient_ref`, `metadata`, `addressed action`, `custodian-guarded action`, `appending action`, `chain-state rejection`, `admitted originate`, `admitted transfer`, `admitted transform`, `admitted disclose`, `admitted archive`, `string input`, `reference`, `blank`, `maximum length`, `uncommitted crash`, `dangling transition`.
 
 #### Originate
 

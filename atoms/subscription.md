@@ -49,19 +49,19 @@ Identity 6: The deployment MUST draw a subscription_id from a cryptographically 
 Identity 7: The deployment MUST NOT draw a subscription_id from the subscription's public properties.
 ```
 
-Terms › `subscription`: one actor's standing interest in one class of events — the record this atom holds.
+Term subscription: one actor's standing interest in one class of events — the record this atom holds.
 
-Terms › `subscription_id`: the opaque value naming one subscription — a [Subscription Id]; unguessable, and the capability [Cancel] accepts.
+Term subscription_id: the opaque value naming one subscription — a [Subscription Id]; unguessable, and the capability [Cancel] accepts.
 
-Terms › `subscriber_ref`: the opaque reference naming who holds the subscription — a [Subscriber Ref].
+Term subscriber_ref: the opaque reference naming who holds the subscription — a [Subscriber Ref].
 
-Terms › `event_scope`: the opaque reference naming the class of events covered — an [Event Scope]; matched exactly.
+Term event_scope: the opaque reference naming the class of events covered — an [Event Scope]; matched exactly.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the subscription_id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the subscription_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the subscription store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the subscription store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `id entropy`: the random material a subscription_id is drawn from; 128 bits where a deployment declares none.
+Term id entropy: the random material a subscription_id is drawn from; 128 bits where a deployment declares none.
 
 WHY:
 The id is the capability: knowing it is what lets a caller cancel, so it is drawn from a secure source and is unguessable from the subscribe time or the subscriber (Identity 6, Identity 7, Cancel capability 1–3). Identity by the pair would make a cancel-and-resubscribe look like an edit of one record, when it is two records with two histories — which is exactly what an auditor reconstructing a scope's audience needs (Identity 5, Invariant 4.1).
@@ -80,11 +80,11 @@ State 8: The atom MUST NOT hold an event.
 State 9: The atom MUST NOT hold a delivery.
 ```
 
-Terms › `status`: `active` | `cancelled` — in force, or withdrawn and terminal.
+Term status: `active` | `cancelled` — in force, or withdrawn and terminal.
 
-Terms › `subscribed_at`: the instant the subscription was recorded — a [Subscribed At].
+Term subscribed_at: the instant the subscription was recorded — a [Subscribed At].
 
-Terms › `cancelled_at`: the instant the subscription was withdrawn — a [Cancelled At].
+Term cancelled_at: the instant the subscription was withdrawn — a [Cancelled At].
 
 WHY:
 A cancelled subscription stays in the store because the record of who was listening when is the audit surface — the atom answers *who now* from the active set and leaves *who then* reconstructable from both timestamps (State 7, Check 1.1). Nothing about events lives here: what fired, how often, and whether it arrived belong to [Event Log](./event-log.md) and [Notification](./notification.md) (State 8, State 9).
@@ -144,11 +144,11 @@ NOTE: Operation 27 deleted — `execution-contract.md` §Logic confinement owns 
 NOTE: Operation 28 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
-Terms › `pair`: one `subscriber_ref` with one `event_scope` — what at-most-one ranges over.
+Term pair: one `subscriber_ref` with one `event_scope` — what at-most-one ranges over.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 The case space, and the rule that owns each case:
 
@@ -357,21 +357,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an actor; a subscriber; an auditor; the store; a subscription; a status; a crash.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an actor; a subscriber; an auditor; the store; a subscription; a status; a crash.
 
-Terms › `records`: `subscription` — one standing interest, carrying `subscription_id`, `subscriber_ref`, `event_scope`, `subscribed_at`, `status` and, once withdrawn, `cancelled_at`.
+Term records: `subscription` — one standing interest, carrying `subscription_id`, `subscriber_ref`, `event_scope`, `subscribed_at`, `status` and, once withdrawn, `cancelled_at`.
 
-Terms › `record verbs`: make, discharge, recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, leave, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, exceed.
+Term record verbs: make, discharge, recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, leave, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, exceed.
 
-Terms › `value sets`: subscribe answers = subscription_id | rejected(invalid-request | already-subscribed | storage-failure). cancel answers = ok | rejected(not-known | not-active | storage-failure). subscribed answers = subscribed | not-subscribed. subscribers_for answers = a list of subscriber_ref, empty where nothing matches. `status` = active | cancelled.
+Term value sets: subscribe answers = subscription_id | rejected(invalid-request | already-subscribed | storage-failure). cancel answers = ok | rejected(not-known | not-active | storage-failure). subscribed answers = subscribed | not-subscribed. subscribers_for answers = a list of subscriber_ref, empty where nothing matches. `status` = active | cancelled.
 
-Terms › `bounds`: `id entropy` (the random material a subscription_id is drawn from).
+Term bounds: `id entropy` (the random material a subscription_id is drawn from).
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `now`, `subscription`, `subscription_id`, `subscriber_ref`, `event_scope`, `seam`, `transition`, `id entropy`, `status`, `subscribed_at`, `cancelled_at`, `pair`, `business caller`.
+Term terms: `now`, `subscription`, `subscription_id`, `subscriber_ref`, `event_scope`, `seam`, `transition`, `id entropy`, `status`, `subscribed_at`, `cancelled_at`, `pair`, `business caller`.
 
 #### Subscribe
 

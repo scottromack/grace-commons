@@ -52,9 +52,9 @@ Composes 7: The composition MUST call Duplicate Prevention's record EXACTLY ONE 
 Composes 8: The composition MUST configure the Duplicate Prevention instance with the idempotency window.
 ```
 
-Terms › `composition`: this pattern's wiring of provisional commitment(../atoms/provisional-commitment.md) and duplicate prevention(../atoms/duplicate-prevention.md) — the token map, the four token-carrying actions and the eviction leg.
+Term composition: this pattern's wiring of provisional commitment(../atoms/provisional-commitment.md) and duplicate prevention(../atoms/duplicate-prevention.md) — the token map, the four token-carrying actions and the eviction leg.
 
-Terms › `constituents`: provisional commitment(../atoms/provisional-commitment.md), duplicate prevention(../atoms/duplicate-prevention.md).
+Term constituents: provisional commitment(../atoms/provisional-commitment.md), duplicate prevention(../atoms/duplicate-prevention.md).
 
 WHY:
 Composes 5 is one rule where the prose carried two. `Invariant 5` and `Invariant 6` each asserted a constituent's invariants hold over this composition's instance; [`execution-contract.md`](../execution-contract.md) §Conformance settles both by reference, so restating them was a citing spec restating a rule it cites (Authority 6, council read 53). What they carried beyond the blanket is Composes 6 — the relay of an unchanged constituent rejection, which no constituent guarantees about a caller — and Composes 7, the once-per-first-invocation `record` discipline, which is this composition's own call pattern and not a property of Duplicate Prevention.
@@ -80,15 +80,15 @@ Composition state 9: The composition MUST take the parameters digest from the se
 Composition state 10: The transition MUST NOT compute a parameters digest.
 ```
 
-Terms › `token results map`: the composition's own map from an `idempotency_token` to a recorded outcome — a token results map; the element `execution-contract.md` §Composition state classifies extraction-pending.
+Term token results map: the composition's own map from an `idempotency_token` to a recorded outcome — a token results map; the element `execution-contract.md` §Composition state classifies extraction-pending.
 
-Terms › `action type`: `place_hold` | `confirm` | `release` | `expire`.
+Term action type: `place_hold` | `confirm` | `release` | `expire`.
 
-Terms › `parameters digest`: the collision-resistant digest of a call's non-token parameters, computed at the seam by the configured digest function and injected — a [Parameters Digest].
+Term parameters digest: the collision-resistant digest of a call's non-token parameters, computed at the seam by the configured digest function and injected — a [Parameters Digest].
 
-Terms › `pending entry`: a token results entry carrying `pending` as the result — the record that an act may have happened.
+Term pending entry: a token results entry carrying `pending` as the result — the record that an act may have happened.
 
-Terms › `complete entry`: a token results entry carrying a recorded result and a completed instant.
+Term complete entry: a token results entry carrying a recorded result and a completed instant.
 
 WHY:
 The map carries truth no replay reproduces. duplicate prevention(../atoms/duplicate-prevention.md) answers *have I seen this identity* — membership, no payload — and does not act on a result, so *which result was returned for this token* is reconstructible from neither constituent store. Per `execution-contract.md` §Composition state that makes the element a not-yet-extracted atom, declared as recorded debt rather than normalized: **Classification: extraction-pending**, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal. This is the corpus's first migrated composition carrying a non-derivable element, and the flag is what keeps the debt visible — an unflagged truth-bearing composition store is a conformance finding and a flagged one is scheduled debt.
@@ -117,13 +117,13 @@ Capability requirement 16: A deployment MUST resolve Duplicate Prevention's chec
 Capability requirement 17: A deployment MUST declare whether the commitment store acknowledges atomically.
 ```
 
-Terms › `idempotency window`: the duration the Duplicate Prevention instance guards a token — an idempotency window.
+Term idempotency window: the duration the Duplicate Prevention instance guards a token — an idempotency window.
 
-Terms › `durability term`: the idempotency window and the reservation completion bound together, measured from an entry's pending instant — a durability term; the margin that keeps a lawfully recorded token off the seen-with-no-entry arm.
+Term durability term: the idempotency window and the reservation completion bound together, measured from an entry's pending instant — a durability term; the margin that keeps a lawfully recorded token off the seen-with-no-entry arm.
 
-Terms › `reservation completion bound`: the longest an invocation may take between the invocation's first write and Duplicate Prevention's record — a reservation completion bound; also the section's lease length and the eviction leg's lower edge.
+Term reservation completion bound: the longest an invocation may take between the invocation's first write and Duplicate Prevention's record — a reservation completion bound; also the section's lease length and the eviction leg's lower edge.
 
-Terms › `section`: the host-supplied critical section keyed by idempotency_token — a section; taken by every state-changing invocation before the invocation's first write.
+Term section: the host-supplied critical section keyed by idempotency_token — a section; taken by every state-changing invocation before the invocation's first write.
 
 WHY:
 Capability requirement 5 is the one neither constituent grants. duplicate prevention(../atoms/duplicate-prevention.md)'s `check` is read-only and its `record` is total; provisional commitment(../atoms/provisional-commitment.md) serializes [Place Hold] per *resource* under its own host's guarantees, not per token. Without it the exactly-once claim is not made, which is why Invariant 8 names it as a condition rather than assuming it.
@@ -144,7 +144,7 @@ Primitive policy 6: The composition MUST call Duplicate Prevention's check ONLY 
 Primitive policy 7: The composition MUST NOT store an entry for a malformed idempotency_token.
 ```
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 WHY:
 Primitive policy 7 is the first of the three things this composition does not cache, and the reason is the same each time: it did not act and holds no entry to cache against. A malformed token is not a token, so there is nothing to key an entry by.
@@ -172,9 +172,9 @@ release(id, idempotency_token) → ok | rejected(… as confirm …)
 expire(id, idempotency_token) → ok | rejected(… as confirm, with window-not-elapsed …)
 ```
 
-Terms › `place hold position`: `intent` | `outcome(id?)` — the record a [Place Hold] write lands: the intent, or the outcome carrying the id where one was issued.
+Term place hold position: `intent` | `outcome(id?)` — the record a [Place Hold] write lands: the intent, or the outcome carrying the id where one was issued.
 
-Terms › `resolution position`: `intent` | `outcome(result)` — the record a resolving write lands: the intent, or the outcome carrying the result.
+Term resolution position: `intent` | `outcome(result)` — the record a resolving write lands: the intent, or the outcome carrying the result.
 
 ```text
 Action wiring 1: EVERY state-changing action MUST take an idempotency_token.
@@ -203,9 +203,9 @@ Action wiring 23: A read-only query MUST NOT consult the token results map.
 Action wiring 24: The composition MUST take an idempotency_token on EXACTLY ONE OF place_hold, confirm, release, expire.
 ```
 
-Terms › `fresh request`: a call finding no entry AND Duplicate Prevention's check answering not-seen.
+Term fresh request: a call finding no entry AND Duplicate Prevention's check answering not-seen.
 
-Terms › `matching complete entry`: a complete entry whose action type AND parameters digest equal the call's.
+Term matching complete entry: a complete entry whose action type AND parameters digest equal the call's.
 
 WHY:
 Action wiring 2 through Action wiring 6 are what make the look-then-write pre-check exact rather than racy. A second call carrying one token waits on the section and re-reads the map *under* it, so it finds the first call's entry instead of racing it; and a section found lost mid-invocation is the invocation's terminus, because a pre-check read under a lapsed section is a pre-check about a world that has moved.
@@ -245,7 +245,7 @@ Housekeeping 8: The eviction leg MUST NOT call a constituent's write.
 Housekeeping 9: The eviction leg MUST measure an instant against the composition's own seam reading.
 ```
 
-Terms › `eviction leg`: the leg `Housekeeping 1` through `Housekeeping 9` state — this composition's own, over the token entries the leg evicts.
+Term eviction leg: the leg `Housekeeping 1` through `Housekeeping 9` state — this composition's own, over the token entries the leg evicts.
 
 WHY:
 The two edges are what make the leg safe. Housekeeping 3 is the lower edge — below the completion bound an invocation may still be in flight — and Housekeeping 5 is the upper, past which Invariant 7 already treats the token as fresh. Housekeeping 6 holds the ordering Invariant 7 requires: a token still under Duplicate Prevention's guard keeps its entry, or a replay would find the guard and not the answer.
@@ -424,11 +424,11 @@ Indeterminate outcome 11: A caller MUST resolve the candidates.
 Indeterminate outcome 12: A caller receiving a recording-failure naming the outcome MUST NOT run the act under a fresh idempotency_token.
 ```
 
-Terms › `candidates`: the held commitments of the Provisional Commitment instance whose resource and requester equal a call's — a candidates set; the composition's own filter over a constituent read, never a constituent's answer.
+Term candidates: the held commitments of the Provisional Commitment instance whose resource and requester equal a call's — a candidates set; the composition's own filter over a constituent read, never a constituent's answer.
 
-Terms › `resolving action`: [Confirm] | [Release] | [Expire].
+Term resolving action: [Confirm] | [Release] | [Expire].
 
-Terms › `recovered entry`: a token results entry a re-entry wrote rather than the entry's first invocation.
+Term recovered entry: a token results entry a re-entry wrote rather than the entry's first invocation.
 
 WHY:
 Indeterminate outcome 2 is the composition's sharpest restraint. A pending entry found under the section means the invocation that wrote it returned or died between its pending write and its result write, and **whether Provisional Commitment committed for it is not re-derivable** — the constituent's record carries no token. So the composition does not guess by re-delegating; it names what it can see.
@@ -460,15 +460,15 @@ The canonical concepts this spec refers to. Each `term` marker in the prose abov
 
 ### Vocabulary
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `terms`: `composition`, `constituents`, `token results map`, `action type`, `parameters digest`, `pending entry`, `complete entry`, `eviction leg`, `idempotency window`, `reservation completion bound`, `durability term`, `section`, `blank`, `fresh request`, `matching complete entry`, `candidates`, `resolving action`, `recovered entry`, `place hold position`, `resolution position`.
+Term terms: `composition`, `constituents`, `token results map`, `action type`, `parameters digest`, `pending entry`, `complete entry`, `eviction leg`, `idempotency window`, `reservation completion bound`, `durability term`, `section`, `blank`, `fresh request`, `matching complete entry`, `candidates`, `resolving action`, `recovered entry`, `place hold position`, `resolution position`.
 
-Terms › `record verbs`: call, answer, take, read, write, store, key, carry, overwrite, keep, evict, examine, skip, measure, repair, validate, compare, normalize, case-fold, record, retry, release, delegate, compute, proceed, mark, resolve, rest, stand, bind, reach, find, name, own, discharge, inherit, change, replace, serve, compose, configure, declare, set, hold, acknowledge, supply, refuse, mint, interpret, claim, promise, expose, consult, start, elapse, exceed, land, run, make, guarantee, bound.
+Term record verbs: call, answer, take, read, write, store, key, carry, overwrite, keep, evict, examine, skip, measure, repair, validate, compare, normalize, case-fold, record, retry, release, delegate, compute, proceed, mark, resolve, rest, stand, bind, reach, find, name, own, discharge, inherit, change, replace, serve, compose, configure, declare, set, hold, acknowledge, supply, refuse, mint, interpret, claim, promise, expose, consult, start, elapse, exceed, land, run, make, guarantee, bound.
 
-Terms › `actors`: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; an operator; an invocation; the eviction leg; an entry; a token; a commitment.
+Term actors: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; an operator; an invocation; the eviction leg; an entry; a token; a commitment.
 
-Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the extraction-pending classification. `execution-contract.md` §Logic Confinement Principle — the seam, the transition and the mechanism-capability pattern. provisional commitment(../atoms/provisional-commitment.md) `Invariant 2` — single resolution, which makes a resolving re-run effect-free. duplicate prevention(../atoms/duplicate-prevention.md) `Invariant 2` — a record starts a guard rather than extending one.
+Term cited: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the extraction-pending classification. `execution-contract.md` §Logic Confinement Principle — the seam, the transition and the mechanism-capability pattern. provisional commitment(../atoms/provisional-commitment.md) `Invariant 2` — single resolution, which makes a resolving re-run effect-free. duplicate prevention(../atoms/duplicate-prevention.md) `Invariant 2` — a record starts a guard rather than extending one.
 
 #### Place Hold
 

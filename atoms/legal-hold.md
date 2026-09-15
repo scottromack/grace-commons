@@ -40,21 +40,21 @@ Identity 7: The atom MUST NOT identify a hold by the record_ref.
 Identity 8: Two holds over one record MUST carry two hold_ids.
 ```
 
-Terms › `hold`: one recorded preservation obligation over one record — the record this atom writes.
+Term hold: one recorded preservation obligation over one record — the record this atom writes.
 
-Terms › `hold_id`: the opaque value naming one hold — a [Hold Id]; not blank, and sortable so [Read] can order deterministically.
+Term hold_id: the opaque value naming one hold — a [Hold Id]; not blank, and sortable so [Read] can order deterministically.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses.
+Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses.
 
-Terms › `record_ref`: the opaque reference naming what is preserved — a [Record Ref]; the host owns whether the record exists.
+Term record_ref: the opaque reference naming what is preserved — a [Record Ref]; the host owns whether the record exists.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the hold_id here.
+Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the hold_id here.
 
-Terms › `transition`: the atom's evaluation of one call against the hold store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the hold store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, and never supplied by the business caller — `placed_at` and `released_at` are the caller's claims about when an obligation began and ended, judged against `now` and stored as claims (Operation 38–41).
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, and never supplied by the business caller — `placed_at` and `released_at` are the caller's claims about when an obligation began and ended, judged against `now` and stored as claims (Operation 38–41).
 
 WHY:
 Two authorities can demand preservation of one document — a plaintiff's litigation hold and a regulator's investigative demand — and they end on different days. Merging them into one obligation would release the record the moment the first ends, which is the spoliation the atom exists to foreclose (Identity 7, Identity 8, Invariant 4.1). The id sorts because [Read]'s order is part of the contract, not a convenience (Identity 6, Operation 18).
@@ -73,21 +73,21 @@ NOTE: State 6 deleted — Invariant 3.2 owns the absent re-activation.
 NOTE: State 9 deleted — Non-goal 9 owns the case lifecycle.
 ```
 
-Terms › `hold state`: `active` | `released` — the obligation in effect, or documented as ended.
+Term hold state: `active` | `released` — the obligation in effect, or documented as ended.
 
-Terms › `placed_by`: the opaque reference naming who placed the hold — a [Placed By]; the attribution anchor for the preservation decision.
+Term placed_by: the opaque reference naming who placed the hold — a [Placed By]; the attribution anchor for the preservation decision.
 
-Terms › `hold_reason`: the narrative ground the hold was placed on — a [Hold Reason].
+Term hold_reason: the narrative ground the hold was placed on — a [Hold Reason].
 
-Terms › `placed_at`: the instant the obligation was recorded — a [Placed At].
+Term placed_at: the instant the obligation was recorded — a [Placed At].
 
-Terms › `case_ref`: the opaque reference naming the matter the hold sits under — a [Case Ref]; absent where no formal matter exists yet.
+Term case_ref: the opaque reference naming the matter the hold sits under — a [Case Ref]; absent where no formal matter exists yet.
 
-Terms › `released_by`: the opaque reference naming who ended the obligation — a [Released By].
+Term released_by: the opaque reference naming who ended the obligation — a [Released By].
 
-Terms › `release_reason`: the ground the obligation ended on — a [Release Reason].
+Term release_reason: the ground the obligation ended on — a [Release Reason].
 
-Terms › `released_at`: the instant the obligation was documented as ended — a [Released At].
+Term released_at: the instant the obligation was documented as ended — a [Released At].
 
 WHY:
 There is no aggregate *is this record held* field, because an aggregate is a second copy of the truth that drifts the moment a hold is placed or released; the question is answered by reading the active holds over the record (State 9, Operation 20). A released hold stays in the store because it is the proof the obligation was honoured and lawfully lifted — the evidence a court asks for, deleted by nobody (State 7, Invariant 8.1).
@@ -160,13 +160,13 @@ Operation 40: The atom MUST judge a supplied placed_at against the injected now.
 Operation 41: The atom MUST judge a supplied released_at against the injected now.
 ```
 
-Terms › `query`: what a read asks for — a [Query]; any combination of the admitted axes, and a query carrying none matches every hold.
+Term query: what a read asks for — a [Query]; any combination of the admitted axes, and a query carrying none matches every hold.
 
-Terms › `admitted axis`: `hold_id` | `record_ref` | `placed_by` | `case_ref` | `hold state` | a `placed_at` range | a `released_at` range — the filter axes [Read] accepts, and no others.
+Term admitted axis: `hold_id` | `record_ref` | `placed_by` | `case_ref` | `hold state` | a `placed_at` range | a `released_at` range — the filter axes [Read] accepts, and no others.
 
-Terms › `resolved released_at`: the released_at the release records — the caller's value where one is supplied, the injected now otherwise.
+Term resolved released_at: the released_at the release records — the caller's value where one is supplied, the injected now otherwise.
 
-Terms › `held at an instant`: `placed_at` at or before the instant, and the hold either standing active or carrying a `released_at` after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
+Term held at an instant: `placed_at` at or before the instant, and the hold either standing active or carrying a `released_at` after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
 
 The case space, and the rule that owns each case:
 
@@ -248,7 +248,7 @@ Instance 6: A composing pattern MUST match the answered store_name against the r
 Instance 7: IF the answered store_name != the record's store instance THEN a composing pattern MUST NOT read an empty answer as unheld.
 ```
 
-Terms › `store instance`: one named hold store — a [Store Name] identifies it; a deployment runs one per organization, jurisdiction or business unit.
+Term store instance: one named hold store — a [Store Name] identifies it; a deployment runs one per organization, jurisdiction or business unit.
 
 ## Examples
 
@@ -415,21 +415,21 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Terms › `actors`: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an auditor; the store; a hold; a release; a placement; a query.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an auditor; the store; a hold; a release; a placement; a query.
 
-Terms › `records`: `hold` — one preservation obligation, carrying `hold_id`, `record_ref`, `placed_by`, `hold_reason`, `placed_at`, a hold state and, where they exist, `case_ref`, `released_by`, `release_reason` and `released_at`.
+Term records: `hold` — one preservation obligation, carrying `hold_id`, `record_ref`, `placed_by`, `hold_reason`, `placed_at`, a hold state and, where they exist, `case_ref`, `released_by`, `release_reason` and `released_at`.
 
-Terms › `record verbs`: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, leave, read, order, write, change, rest, shrink, find, serialize, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, exceed, fall.
+Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, leave, read, order, write, change, rest, shrink, find, serialize, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, exceed, fall.
 
-Terms › `value sets`: place answers = hold_id | rejected(invalid-request | storage-failure). release answers = released | rejected(invalid-request | not-known | already-released | storage-failure). read answers = the matching holds, ordered | rejected(invalid-query). `hold state` = active | released.
+Term value sets: place answers = hold_id | rejected(invalid-request | storage-failure). release answers = released | rejected(invalid-request | not-known | already-released | storage-failure). read answers = the matching holds, ordered | rejected(invalid-query). `hold state` = active | released.
 
-Terms › `bounds`: empty.
+Term bounds: empty.
 
-Terms › `cadences`: empty.
+Term cadences: empty.
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `store instance`, `hold`, `hold_id`, `record_ref`, `seam`, `transition`, `business caller`, `now`, `hold state`, `placed_by`, `hold_reason`, `placed_at`, `case_ref`, `released_by`, `release_reason`, `released_at`, `query`, `resolved released_at`.
+Term terms: `store instance`, `hold`, `hold_id`, `record_ref`, `seam`, `transition`, `business caller`, `now`, `hold state`, `placed_by`, `hold_reason`, `placed_at`, `case_ref`, `released_by`, `release_reason`, `released_at`, `query`, `resolved released_at`.
 
 #### Place
 

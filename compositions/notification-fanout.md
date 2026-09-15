@@ -49,9 +49,9 @@ Composes 7: The composition MUST inherit a constituent's invariants PER `executi
 NOTE: Composes 4 deleted — Invariant 5.1 owns it.
 ```
 
-Terms › `composition`: this pattern's wiring of [Subscription](../atoms/subscription.md) and [Notification](../atoms/notification.md) — the one action below, its fan-out and its two result lists.
+Term composition: this pattern's wiring of [Subscription](../atoms/subscription.md) and [Notification](../atoms/notification.md) — the one action below, its fan-out and its two result lists.
 
-Terms › `constituents`: [Subscription](../atoms/subscription.md), [Notification](../atoms/notification.md).
+Term constituents: [Subscription](../atoms/subscription.md), [Notification](../atoms/notification.md).
 
 WHY:
 Composes 7 is one rule where the prose carried two. The prose named the two deleted invariants *preservation claims* and distinguished them from the six that emerge — which is the right distinction and the reason the migration could act on it cleanly. [`execution-contract.md`](../execution-contract.md) §Conformance settles both: conformance extends recursively and no composing layer is obligated to re-verify what a constituent's own conformance establishes, so asserting it twice more was a citing spec restating a rule it cites (Authority 6, council read 53, council read 55).
@@ -86,14 +86,14 @@ Capability requirement 6: A deployment MUST disclose the deployment's read laten
 Capability requirement 7: The deployment MUST declare the clock offset allowance.
 ```
 
-Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one fanout id here.
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one fanout id here.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-Terms › `transition`: the composition's evaluation of one [Fanout] call against the two stores, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the composition's evaluation of one [Fanout] call against the two stores, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `entropy floor`: 128 bits of entropy per id, or a generator whose coordination gives the same uniqueness — an [Entropy Floor]; this composition's own bound on the host.
+Term entropy floor: 128 bits of entropy per id, or a generator whose coordination gives the same uniqueness — an [Entropy Floor]; this composition's own bound on the host.
 
-Terms › `read latency bound`: the deployment's disclosed bound on the interval between the composition dispatching subscribers_for and the subscription store executing it — a [Read Latency Bound].
+Term read latency bound: the deployment's disclosed bound on the interval between the composition dispatching subscribers_for and the subscription store executing it — a [Read Latency Bound].
 
 WHY:
 Capability requirement 3 is a floor neither constituent supplies. [Subscription](../atoms/subscription.md) declares the same floor for its own record ids and [Notification](../atoms/notification.md) declares none, so the requirement is this composition's dependency on its host and is attributed to neither atom — which is what makes it a `Capability requirement` rather than an inherited guarantee.
@@ -112,7 +112,7 @@ Primitive policy 6: [Fanout] MUST NOT normalize an event_scope.
 Primitive policy 7: [Fanout] MUST NOT bound a payload's length.
 ```
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
+Term blank: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 WHY:
 `invalid-request` here is the composition's own and nothing is inherited. The check is *consistent* with both constituents' postures — [Notification](../atoms/notification.md)'s `create` refuses a payload that does not exist, and [Subscription](../atoms/subscription.md)'s write surface refuses a blank `event_scope` — but this composition never calls `subscribe`, so no constituent contract governs the check and no constituent is consulted when it fires (Ledger 2026-08-27-k: the provenance is stated once, here).
@@ -148,13 +148,13 @@ Action wiring 17: An admitted fanout MUST NOT order the failed list.
 Action wiring 18: An admitted fanout MUST NOT answer a create's reason.
 ```
 
-Terms › `admitted fanout`: a [Fanout] call whose arguments cleared the boundary predicate.
+Term admitted fanout: a [Fanout] call whose arguments cleared the boundary predicate.
 
-Terms › `created list`: the notification_id of EVERY create the composition saw answer — a [Created] list.
+Term created list: the notification_id of EVERY create the composition saw answer — a [Created] list.
 
-Terms › `failed list`: the subscriber_ref of EVERY create the composition saw answer otherwise — a [Failed] list.
+Term failed list: the subscriber_ref of EVERY create the composition saw answer otherwise — a [Failed] list.
 
-Terms › `unrecordable create`: a create answering no notification_id and no declared rejection — the outcome the composition names at the boundary, because [Notification](../atoms/notification.md) declares no infrastructure arm.
+Term unrecordable create: a create answering no notification_id and no declared rejection — the outcome the composition names at the boundary, because [Notification](../atoms/notification.md) declares no infrastructure arm.
 
 WHY:
 Action wiring 11 and Action wiring 12 are the load-bearing decision stated as rules: the fan-out continues and names its failures rather than aborting. Action wiring 15 is what makes that honest — parallel composition carries no rollback guarantee, so each create commits independently and there is no transaction to abort into.
@@ -308,9 +308,9 @@ Check 5.1: An auditor MUST find no subscription record written by the compositio
 
 NOTE: EVERY check names the rule the check tests.
 
-Terms › `clock offset allowance`: `clock_offset_allowance` — the declared envelope within which the composition's fired_at may be compared with a stamp Subscription wrote at its own seam.
+Term clock offset allowance: `clock_offset_allowance` — the declared envelope within which the composition's fired_at may be compared with a stamp Subscription wrote at its own seam.
 
-Terms › `boundary window`: the interval the read latency bound and the clock offset allowance together span around a fired_at — a [Boundary Window].
+Term boundary window: the interval the read latency bound and the clock offset allowance together span around a fired_at — a [Boundary Window].
 
 ### External checks
 
@@ -414,17 +414,17 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 ### Vocabulary
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `terms`: `composition`, `constituents`, `seam`, `transition`, `read latency bound`, `blank`, `admitted fanout`, `created list`, `failed list`, `unrecordable create`, `clock offset allowance`, `boundary window`.
+Term terms: `composition`, `constituents`, `seam`, `transition`, `read latency bound`, `blank`, `admitted fanout`, `created list`, `failed list`, `unrecordable create`, `clock offset allowance`, `boundary window`.
 
-Terms › `record verbs`: call, answer, take, read, write, record, validate, compare, normalize, bound, stand, carry, claim, find, name, own, discharge, inherit, change, serve, compose, declare, disclose, supply, draw, mint, commit, order, continue, abort, account, skip, expand, match, deliver, authorize, reconstruct, sum, persist, guarantee, accept, retry, follow, reference, share, store, meet.
+Term record verbs: call, answer, take, read, write, record, validate, compare, normalize, bound, stand, carry, claim, find, name, own, discharge, inherit, change, serve, compose, declare, disclose, supply, draw, mint, commit, order, continue, abort, account, skip, expand, match, deliver, authorize, reconstruct, sum, persist, guarantee, accept, retry, follow, reference, share, store, meet.
 
-Terms › `actors`: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; a subscriber; a notification record; a subscription record.
+Term actors: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; a subscriber; a notification record; a subscription record.
 
-Terms › `value sets`: fanout answers = {fanout_id, created, failed, fired_at} | rejected(invalid-request | subscribers-unavailable).
+Term value sets: fanout answers = {fanout_id, created, failed, fired_at} | rejected(invalid-request | subscribers-unavailable).
 
-Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the no-stored-state classification and the record-coordination rule. `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the no-stored-state classification and the record-coordination rule. `execution-contract.md` §Logic confinement — the seam and the transition.
 
 #### Fanout
 
