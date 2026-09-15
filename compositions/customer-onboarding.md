@@ -780,7 +780,7 @@ Reconciliation 32: The reconciliation MUST answer nothing to a caller.
 Reconciliation 33: A caller MUST NOT invoke the reconciliation.
 ```
 
-Terms › `reconciliation`: the leg the composition runs outside any invocation — `Reconciliation 1` through `Reconciliation 33` state it — closing or escalating an open marker within a promised window.
+Terms › `reconciliation`: the leg `Reconciliation 1` through `Reconciliation 33` state — this composition's own, over its open markers.
 
 Terms › `young marker`: an open marker whose `intended_at` stands within the onboarding completion bound of the injected now.
 
@@ -793,7 +793,7 @@ Reconciliation 11 through Reconciliation 18 fix what the leg may commit. It writ
 
 Reconciliation 27 through Reconciliation 31 are the indeterminacy the prose left unaddressed: a constituent call whose response was lost after the write committed. Party Identity and Retention Window carry no invocation identity of this composition's, so the question *did my call commit?* is answered by a re-query keyed on the values the intent already fixed, the invocation's own injected instant among them — one invocation has exactly one `now`, which is what makes the key exact rather than a resemblance. `enroll` is the one call that has no such key, because it mints the identity the key would need: a re-query cannot tell this invocation's party from another's, and a blind retry mints a second party for one customer. So it is never resolved and never retried; the unresolved enrolment intent is escalated, and its residue — an `Unverified` party with no case — is dispositioned administratively rather than joined by guesswork.
 
-Reconciliation 32 and Reconciliation 33 place the leg: nothing awaits its answer inside an invocation, and a caller cannot drive it. What *does* await it is the compensation window Reconciliation 19 spends, which is why this leg is a `Reconciliation` rather than a `Housekeeping` — the boundary GRACE-lang §18 declares once, applied here by the one question it asks.
+Reconciliation 32 and Reconciliation 33 place the leg: nothing awaits its answer inside an invocation, and a caller cannot drive it. What *does* await it is the compensation window Reconciliation 19 spends, which is why this leg is a `Reconciliation` rather than a `Housekeeping` — the question the grammar's own declaration of the family turns on, applied here by the one answer it takes.
 
 ---
 

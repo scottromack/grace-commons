@@ -656,7 +656,7 @@ Reconciliation 31: The sweep MUST answer nothing to a caller.
 Reconciliation 32: A caller MUST NOT invoke the sweep.
 ```
 
-Terms › `sweep`: the completion leg the composition runs outside any invocation — `Reconciliation 1` through `Reconciliation 32` state it — closing or escalating an open cascade within a promised window.
+Terms › `sweep`: the completion leg `Reconciliation 1` through `Reconciliation 32` state — this composition's own, over its open cascades.
 
 Terms › `pre-check`: the read of the trail for an outcome already carrying a cascade's `invocation_id`, taken under the actor's section before any outcome is appended.
 
@@ -673,7 +673,7 @@ Reconciliation 10 through Reconciliation 18 are the one-writer rule. The pre-che
 
 Reconciliation 20 through Reconciliation 24 fix what the sweep may write and where it gets it. It attests under the service identity and names that identity as the revoker, because the operator's credential is not in hand and attesting as them would be a false attribution — while the *operator* is still named on the outcome, so the act keeps its author. Reconciliation 23 and Reconciliation 24 are the anti-memory rule: the revoked set is derived from the plan and the constituents' own records, never carried forward from the process that died, because that process's memory is precisely the thing the failure destroyed.
 
-Reconciliation 31 and Reconciliation 32 place the leg: no caller awaits its answer inside an invocation and none can drive it. What *does* await it is the completion window Reconciliation 28 spends, which is what puts this leg on the awaited pole rather than beside `Housekeeping` — the boundary GRACE-lang §18 declares once, applied here by the one question it asks.
+Reconciliation 31 and Reconciliation 32 place the leg: no caller awaits its answer inside an invocation and none can drive it. What *does* await it is the completion window Reconciliation 28 spends, which is what puts this leg on the awaited pole rather than beside `Housekeeping` — the question the grammar's own declaration of the family turns on, applied here by the one answer it takes.
 
 ---
 
