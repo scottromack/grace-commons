@@ -139,8 +139,8 @@ Operation 21: [Pending For] MUST NOT order the answer.
 Operation 22: [Status Of] MUST NOT write.
 Operation 23: [Pending For] MUST NOT write.
 NOTE: Operation 24 deleted — Capability requirement 1 owns it.
-Operation 25: The transition MUST NOT read a clock.
-Operation 26: The business caller MUST NOT supply now.
+NOTE: Operation 25 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 26 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `terminal transition`: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.

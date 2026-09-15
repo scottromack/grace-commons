@@ -84,8 +84,8 @@ Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen.
 Operation 6: [Check] MUST answer seen for an identity under guard.
 Operation 7: [Check] MUST answer not-seen for an identity that is not under guard.
 NOTE: Operation 8 deleted — Capability requirement 1 owns it.
-Operation 9: The transition MUST NOT read a clock.
-Operation 10: The business caller MUST NOT supply now.
+NOTE: Operation 9 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 10 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 11: The containing pattern MUST supply window duration.
 Operation 12: The containing pattern MUST own the response to an answer.
 ```
@@ -110,7 +110,7 @@ Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic con
 Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
 WHY:
-Both calls are total. The containing pattern has already acted when it records — the item is already removed, the charge already made — so a refusal would have nothing to roll back, and a failed write is a liveness miss rather than a safety violation (Operation 4, Record failure 1–3). [Check] reads and nothing else, which is what makes asking twice safe (Invariant 3.1). The clock is read once, at the seam, and handed in: a transition reading a clock of the transition's own would answer two ways for one input (Operation 8, Operation 9). What a `seen` answer means — reject, absorb, replay a cached result — is the containing pattern's to decide, and the atom is useful across four domains because the atom never decides it (Operation 12).
+Both calls are total. The containing pattern has already acted when it records — the item is already removed, the charge already made — so a refusal would have nothing to roll back, and a failed write is a liveness miss rather than a safety violation (Operation 4, Record failure 1–3). [Check] reads and nothing else, which is what makes asking twice safe (Invariant 3.1). The clock is read once, at the seam, and handed in: a transition reading a clock of the transition's own would answer two ways for one input (`execution-contract.md` §Logic confinement). What a `seen` answer means — reject, absorb, replay a cached result — is the containing pattern's to decide, and the atom is useful across four domains because the atom never decides it (Operation 12).
 
 ### Invariants
 

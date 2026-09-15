@@ -134,8 +134,8 @@ Operation 30: [History For] MUST NOT write.
 Operation 30a: [Reassign] MUST read one now per call.
 Operation 30b: [Reassign] MUST stamp transferred_at and assigned_at against that one now.
 NOTE: Operation 31 deleted — Capability requirement 1 owns it.
-Operation 32: The transition MUST NOT read a clock.
-Operation 33: The business caller MUST NOT supply now.
+NOTE: Operation 32 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 33 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `new_assignee_ref`: the opaque reference naming the successor a reassignment hands the task to — a [New Assignee Ref].

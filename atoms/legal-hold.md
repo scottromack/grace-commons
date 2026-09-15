@@ -68,7 +68,7 @@ Terms › `transition`: the atom's evaluation of one call against the hold store
 
 Terms › `business caller`: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, and never supplied by the business caller — `placed_at` and `released_at` are the caller's claims about when an obligation began and ended, judged against `now` and stored as claims (Operation 37–41).
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, and never supplied by the business caller — `placed_at` and `released_at` are the caller's claims about when an obligation began and ended, judged against `now` and stored as claims (Operation 38–41).
 
 WHY:
 Two authorities can demand preservation of one document — a plaintiff's litigation hold and a regulator's investigative demand — and they end on different days. Merging them into one obligation would release the record the moment the first ends, which is the spoliation the atom exists to foreclose (Identity 7, Identity 8, Invariant 4.1). The id sorts because [Read]'s order is part of the contract, not a convenience (Identity 6, Operation 18).
@@ -152,8 +152,8 @@ Operation 32: [Read] MUST NOT answer an active hold under a released_at filter.
 Operation 33: [Read] MUST NOT answer a hold carrying no case_ref under a case_ref filter.
 Operation 34: [Read] MUST NOT write.
 NOTE: Operation 35 deleted — Capability requirement 1 owns it.
-Operation 36: The transition MUST NOT read a clock.
-Operation 37: The business caller MUST NOT supply now.
+NOTE: Operation 36 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 37 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 38: The business caller MAY supply placed_at.
 Operation 39: The business caller MAY supply released_at.
 Operation 40: The atom MUST judge a supplied placed_at against the injected now.

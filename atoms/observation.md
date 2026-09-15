@@ -162,8 +162,8 @@ Operation 49: IF a state filter's value NOT EXISTS in the states THEN [Read] MUS
 Operation 50: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 51: [Read] MUST NOT write.
 NOTE: Operation 52 deleted — Capability requirement 1 owns it.
-Operation 53: The transition MUST NOT read a clock.
-Operation 54: The business caller MUST NOT supply now.
+NOTE: Operation 53 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 54 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 55: An ordering rule MUST NOT rest on a causal claim.
 ```
 

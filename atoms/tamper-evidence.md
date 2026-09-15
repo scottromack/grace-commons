@@ -117,7 +117,7 @@ NOTE: Operation 21 deleted — Capability requirement 1 owns it.
 Operation 22: The host MUST supply the cryptographic material at the atom's seam.
 Operation 22a: The host MUST supply record set match at the atom's seam.
 Operation 22b: The atom MUST NOT judge record set match.
-Operation 23: The transition MUST NOT read a clock.
+NOTE: Operation 23 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 24: The transition MUST NOT mint entropy.
 Operation 25: The business caller MUST NOT supply sealed_at.
 Operation 26: The implementation MUST own the mechanism.

@@ -74,7 +74,7 @@ Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic con
 
 Terms › `transition`: the atom's evaluation of one call against the credential store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `now`: the clock reading the seam supplies for one call.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 6 is the one that earns the opaque id. Keying a credential by its pair would fold the whole rotation history into one mutable record, and the chain a PCI auditor walks — *was this rotated inside ninety days* — would become a field that was overwritten rather than a sequence of records that each stand. Separate records with separate ids are what make Invariant 7.1 reconstructable.
@@ -157,8 +157,8 @@ Operation 52: An admitted read MUST answer the effective status PER matching cre
 Operation 53: [Read] MUST NOT answer a verifier.
 Operation 54: [Read] MUST NOT record a field.
 Operation 55: [Read] MUST NOT refuse a filter.
-Operation 56: The atom MUST NOT read now inside a transition.
-Operation 57: The atom MUST NOT generate now.
+NOTE: Operation 56 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 57 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `transitioning write`: [Rotate] | [Revoke] — every call that would take an effective-active credential to a stored terminal, including a refused one.
@@ -218,7 +218,7 @@ Operation 20 is a check-ordering rule and it carries the whole of Invariant 11.1
 
 Operation 24 names an obligation no record can evidence. A short-circuiting comparison leaks the stored verifier one byte at a time to a caller who can measure the answer, and nothing in the store shows whether the implementation did it; External check 2 is where an auditor goes instead.
 
-Operation 56 and Operation 57 are logic confinement (`execution-contract.md` §Logic confinement). The clock is consumed twice per call — by the window reading and by the write's stamps — and both read the one `now` the seam supplied.
+Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the `now` declaration cites it rather than restating it. The clock is consumed twice per call — by the window reading and by the write's stamps — and both read the one `now` the seam supplied.
 
 ### State
 
@@ -489,10 +489,10 @@ Byte-exactness bites hardest on `credential_type`, because that string is half t
 ### Clock semantics
 
 ```text
-Clock semantics 1: The atom MUST NOT sample a clock.
-Clock semantics 2: The atom MUST consume one now per call.
-Clock semantics 3: The atom MUST read a window reading from the now the call's stamps carry.
 Clock semantics 4: The deployment MUST own the clock's skew.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 5: The deployment MUST own the clock's monotonicity.
 Clock semantics 6: The atom MUST NOT bound two readers' effective status agreement.
 Clock semantics 7: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
@@ -742,7 +742,7 @@ Projects:     reason
 
 #### Now
 
-The clock reading the seam supplies for one call — never sampled inside a transition and never a signature parameter. Consumed by the window reading, by a write's stamps, and by [Read]'s [Effective Status] projection.
+The wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it — never read inside the transition and never supplied by the business caller. Consumed by the window reading, by a write's stamps, and by [Read]'s [Effective Status] projection.
 
 Kind:         Parameter
 Parameter of: Register

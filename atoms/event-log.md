@@ -117,7 +117,7 @@ Operation 16: [Read] MUST answer an empty sequence for a well-formed query match
 Operation 17: [Read] MUST NOT write.
 Operation 18: The implementation MUST own the query's shape.
 NOTE: Operation 19 deleted — Capability requirement 1 owns it.
-Operation 20: The transition MUST NOT read a clock.
+NOTE: Operation 20 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 21: The business caller MUST NOT supply recorded_at.
 ```
 

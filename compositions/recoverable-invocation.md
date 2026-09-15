@@ -458,7 +458,7 @@ Terms › `act_key`: opaque, adopter-typed; equality is byte-identity.
 
 Terms › `invocation_id`: injected at the adopter's seam alongside `now`, fresh per invocation, unique across every node of the instance for the journal's lifetime; opaque, byte-identity.
 
-Terms › `now`: the seam-injected reading — at the adopter's seam per invocation, at the sweep's seam once per run, at the operator's seam once per [Resolve] call alongside `operator_run_id`, at the reader's seam once per [Read Invocation] call.
+Terms › `now`: the seam-injected reading — at the adopter's seam per invocation, at the sweep's seam once per run, at the operator's seam once per [Resolve] call alongside `operator_run_id`, at the reader's seam once per [Read Invocation] call; each as `execution-contract.md` §Logic confinement declares it, never read inside the transition.
 
 Terms › `operator_run_id`: injected at the operator's seam once per [Resolve] call; the section holder for [Resolve].
 
@@ -1315,12 +1315,12 @@ The adopter's declaration; [Open]'s `act-landed` refusal fires only for `repeata
 ### Clock semantics
 
 ```text
-Clock semantics 1: The composition MUST NOT sample a clock.
 Clock semantics 2: A record MUST carry only stamps of the substrate (recorded_at) or of the constituent (through probe).
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 3: The composition MUST NOT time the lease.
 ```
 
-WHY: a clock read inside [Resolve] breaks Clock semantics 1; `-buggy-opclock` shows the cost (Invariant 5: an act abandoned whose commit then lands).
+WHY: a clock read inside [Resolve] breaks the Contract's logic confinement (`execution-contract.md` §Logic confinement); `-buggy-opclock` shows the cost (Invariant 5: an act abandoned whose commit then lands).
 
 ---
 

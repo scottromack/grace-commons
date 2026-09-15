@@ -141,9 +141,9 @@ Operation 43: IF a state filter's value NOT EXISTS in the states THEN [Read] MUS
 Operation 44: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 45: [Read] MUST NOT write.
 NOTE: Operation 46 deleted — Capability requirement 1 owns it.
-Operation 47: The transition MUST NOT read a clock.
-Operation 48: The business caller MUST NOT supply now.
-Operation 49: A guard MUST NOT read a clock.
+NOTE: Operation 47 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 48 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 49 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.

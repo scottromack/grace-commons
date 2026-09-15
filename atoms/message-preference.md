@@ -158,8 +158,8 @@ Operation 36: [Read] MUST NOT refuse a blank argument.
 Operation 37: [Current For] MUST NOT write.
 Operation 38: [Read] MUST NOT write.
 NOTE: Operation 39 deleted — Capability requirement 1 owns it.
-Operation 40: The transition MUST NOT read a clock.
-Operation 41: The business caller MUST NOT supply now.
+NOTE: Operation 40 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 41 deleted — `execution-contract.md` §Logic confinement owns it.
 NOTE: Operation 42 deleted — Clock dependence 1 owns it.
 NOTE: Operation 43 deleted — Clock dependence 2 owns it.
 ```

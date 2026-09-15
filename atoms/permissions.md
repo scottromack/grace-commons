@@ -133,8 +133,8 @@ Operation 20: [Check] MUST NOT write.
 Operation 21: [Check] MUST match a subject_ref exactly.
 Operation 22: [Check] MUST match an action_scope exactly.
 NOTE: Operation 23 deleted — Capability requirement 1 owns it.
-Operation 24: The transition MUST NOT read a clock.
-Operation 25: The business caller MUST NOT supply now.
+NOTE: Operation 24 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 25 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `pair`: one `subject_ref` with one `action_scope` — what [Check] matches over.

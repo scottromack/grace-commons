@@ -156,8 +156,8 @@ Operation 58: A refused action MUST leave the pool as the call found the pool.
 Operation 59: A refused action MUST NOT append an audit event.
 Operation 60: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 NOTE: Operation 61 deleted — Capability requirement 1 owns it.
-Operation 62: The transition MUST NOT read a clock.
-Operation 63: The business caller MUST NOT supply now.
+NOTE: Operation 62 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 63 deleted — `execution-contract.md` §Logic confinement owns it.
 NOTE: Operation 64 deleted — Clock dependence 1 owns it.
 ```
 

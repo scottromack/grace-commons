@@ -78,7 +78,7 @@ Terms › `seam`: the atom's I/O boundary as `execution-contract.md` Logic confi
 
 Terms › `transition`: the atom's evaluation of one call against the order store, as `execution-contract.md` Logic confinement declares it.
 
-Terms › `now`: the clock reading the seam supplies for one call.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 11 and Identity 13 are the atom's sharpest refusal, and the one a clinical reader expects to find broken. This spec never reads what a `medication_ref` *means* — not its schedule, not its interactions, not its formulary status — which is why it can be one atom rather than a pharmacopoeia. What it guarantees is that the reference recorded at placement is the reference on every record downstream, and Invariant 2.1 makes changing it structurally impossible rather than merely refused: [Amend] does not take a `medication_ref` at all.
@@ -199,8 +199,8 @@ Operation 74: An admitted read MUST answer the matching orders by ordered_at asc
 Operation 75: An admitted read MUST answer EVERY field group the order carries.
 Operation 76: An admitted read MUST answer an empty sequence where no order matches.
 Operation 77: [Read] MUST NOT record a field.
-Operation 78: The atom MUST NOT read now inside a transition.
-Operation 79: The atom MUST NOT generate now.
+NOTE: Operation 78 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 79 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `order action`: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by `order_id`, including a refused one.
@@ -270,7 +270,7 @@ Operation 50 is the same move on [Reinstate]. The action takes no target state, 
 
 Operation 69 and Operation 70 are the two absences a clinical reader arrives expecting. A second dose against one order and a refill against one prescription are both real, both common, and both outside this record — the first is a dose-event pattern composing on top, the second is a new order or a layer above. Modelling either here would put a regimen's bookkeeping inside the prescription primitive.
 
-Operation 78 and Operation 79 are logic confinement (`execution-contract.md` Logic confinement).
+Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the `now` declaration cites it rather than restating it.
 
 ### State
 
@@ -542,9 +542,9 @@ Blankness carries more weight here than in most atoms because two whole invarian
 ### Clock semantics
 
 ```text
-Clock semantics 1: The atom MUST NOT sample a clock.
-Clock semantics 2: The atom MUST consume one now per call.
 Clock semantics 3: IF a timestamp input NOT EXISTS THEN an action MUST record now as the timestamp.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 4: The atom MUST bound a supplied ordered_at from above by the future bound.
 Clock semantics 5: The atom MUST NOT bound a supplied event instant.
 Clock semantics 6: The deployment MUST own the clock's skew.
@@ -989,7 +989,7 @@ Projects: discontinued_at
 
 #### Now
 
-The clock reading the seam supplies for one call — never sampled inside a transition and never a signature parameter. It stamps every instant the caller did not supply, and raises the future bound the supplied [Ordered At] is checked against.
+The wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it — never read inside the transition and never supplied by the business caller. It stamps every instant the caller did not supply, and raises the future bound the supplied [Ordered At] is checked against.
 
 Kind:         Parameter
 Parameter of: Order

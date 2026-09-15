@@ -219,9 +219,9 @@ WHY:
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
-Capability requirement 3: The transition MUST NOT read a clock.
+NOTE: Capability requirement 3 deleted — `execution-contract.md` §Logic confinement owns it.
 Capability requirement 4: The transition MUST NOT mint an invocation_id.
-Capability requirement 5: The composition MUST NOT accept a clock reading as an argument.
+NOTE: Capability requirement 5 deleted — `execution-contract.md` §Logic confinement owns it.
 Capability requirement 6: The composition MUST NOT accept an invocation_id as an argument.
 Capability requirement 7: The composition MUST NOT mint a grant_id.
 Capability requirement 8: The composition MUST NOT mint a session_token.
@@ -958,9 +958,9 @@ Concurrency 9 exempts the read, and the exemption is safe by construction: the r
 ```text
 Clock semantics 2: An invocation MUST stamp EVERY timestamp from the invocation's clock reading.
 NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
-Clock semantics 3: An invocation MUST NOT read a second clock reading.
-Clock semantics 4: A signature MUST NOT carry a clock reading.
-Clock semantics 5: The transition MUST NOT sample a clock.
+NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 4 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 5 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 6: A reader MUST read the substrate's insertion order as the authoritative order.
 Clock semantics 7: A reader MUST read a stamp this composition wrote as advisory.
 Clock semantics 8: The composition MUST NOT supply the substrate's own recording stamp.

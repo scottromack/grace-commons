@@ -155,9 +155,9 @@ Composition state 27 through Composition state 32 declare the two relations the 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
-Capability requirement 3: The transition MUST NOT read a clock.
+NOTE: Capability requirement 3 deleted — `execution-contract.md` §Logic confinement owns it.
 Capability requirement 4: The transition MUST NOT mint an invocation_id.
-Capability requirement 5: The composition MUST NOT accept a clock reading as an argument.
+NOTE: Capability requirement 5 deleted — `execution-contract.md` §Logic confinement owns it.
 Capability requirement 6: The composition MUST NOT accept an invocation_id as an argument.
 Capability requirement 7: The composition MUST NOT mint a retention_id.
 Capability requirement 8: The composition MUST NOT mint a hold_id.
@@ -827,8 +827,8 @@ Concurrency 4 is the sweep's own version of the same hazard, and it is closed he
 ## Clock semantics
 
 ```text
-Clock semantics 1: The composition MUST read one injected now PER invocation.
 Clock semantics 2: The composition MUST stamp an intent's intended_at from the injected now.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 3: The composition MUST stamp a record purged outcome's purged_at from the injected now.
 Clock semantics 4: The composition MUST judge elapsed retention against the injected now.
 Clock semantics 5: The composition MUST judge a sibling set member's eligibility against the injected now.

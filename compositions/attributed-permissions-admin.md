@@ -156,9 +156,9 @@ Composition state 27 and Composition state 28 are the retention scope this compo
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one nonce at the seam PER issuance.
-Capability requirement 3: The transition MUST NOT read a clock.
+NOTE: Capability requirement 3 deleted — `execution-contract.md` §Logic confinement owns it.
 Capability requirement 4: The transition MUST NOT mint a nonce.
-Capability requirement 5: The composition MUST NOT accept a clock reading as an argument.
+NOTE: Capability requirement 5 deleted — `execution-contract.md` §Logic confinement owns it.
 Capability requirement 6: The composition MUST NOT mint a grant handle.
 Capability requirement 7: The composition MUST NOT mint an attestation handle.
 Capability requirement 8: The composition MUST NOT generate cryptographic material.
@@ -190,7 +190,7 @@ Capability requirement 33: A deployment MUST NOT gate a grantor's authority at t
 ```
 
 Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one nonce here.
-Terms › `now`: the wall-time reading the host injects at the seam, one per invocation (`Clock semantics 1`); never read inside the transition (`Clock semantics 3`).
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 Terms › `transition`: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 
@@ -772,8 +772,8 @@ Concurrency 6 through Concurrency 9 are the declared degradation, stated in the 
 ```text
 Clock semantics 2: An invocation MUST stamp the invocation's proposals from the invocation's clock reading.
 NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
-Clock semantics 3: The transition MUST NOT sample a clock.
-Clock semantics 4: A signature MUST NOT carry a clock reading.
+NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 4 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 5: The request instant MUST stand informational within a proposal.
 Clock semantics 6: The nonce MUST carry a proposal's uniqueness.
 Clock semantics 7: The request instant MUST NOT carry a proposal's uniqueness.

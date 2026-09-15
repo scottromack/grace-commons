@@ -85,7 +85,7 @@ Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic con
 
 Terms › `transition`: the atom's evaluation of one call against the party store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `now`: the clock reading the seam supplies for one call.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 10 is what an external party's life requires. A [Name] changes by law, a [Document Ref] is superseded when the document is renewed, a [Document Type] differs between two enrollments of one person, and none of that makes the party a different party — so identifying by a content field would collapse attribute change with distinct-party disambiguation. The opaque id is what lets a composition link a lifetime of activity to one durable reference.
@@ -170,8 +170,8 @@ Operation 53: An admitted read MUST answer the matching parties in insertion ord
 Operation 54: An admitted read MUST answer an empty sequence where no party matches.
 Operation 55: [Read] MUST NOT record a field.
 Operation 56: [Read] MUST NOT answer storage-failure.
-Operation 57: The atom MUST NOT read now inside a transition.
-Operation 58: The atom MUST NOT generate now.
+NOTE: Operation 57 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 58 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 59: The atom MUST NOT accept a caller-supplied instant.
 ```
 
@@ -465,9 +465,9 @@ The blank rule earns its keep on `reason` more than anywhere else. A suspension,
 ### Clock semantics
 
 ```text
-Clock semantics 1: The atom MUST NOT sample a clock.
-Clock semantics 2: The atom MUST consume one now per call.
 Clock semantics 3: The deployment MUST own the clock's skew.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 4: The deployment MUST own the clock's monotonicity.
 Clock semantics 5: A recorded instant MUST NOT carry an ordering.
 ```
@@ -773,7 +773,7 @@ Projects: fresh_verification
 
 #### Now
 
-The clock reading the seam supplies for one call — never sampled inside a transition, never a signature parameter, and never accepted from the caller.
+The wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it — never read inside the transition and never supplied by the business caller.
 
 Kind:         Parameter
 Parameter of: Enroll

@@ -150,8 +150,8 @@ Operation 51: [Read] MUST NOT answer storage-failure.
 Operation 52: IF the store refuses a read THEN [Read] MUST NOT answer a partial entry sequence.
 Operation 53: [Read] MUST NOT answer archived.
 NOTE: Operation 54 deleted — Capability requirement 1 owns it.
-Operation 55: The transition MUST NOT read a clock.
-Operation 56: The business caller MUST NOT supply now.
+NOTE: Operation 55 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 56 deleted — `execution-contract.md` §Logic confinement owns it.
 NOTE: Operation 57 deleted — Clock dependence 2 owns it.
 Operation 58: An ordering rule MUST NOT rest on recorded_at.
 ```

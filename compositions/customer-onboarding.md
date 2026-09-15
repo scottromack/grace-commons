@@ -209,9 +209,9 @@ Composition state 36 through Composition state 43 are the cardinality and modali
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply a case_id at the seam PER admitted initiation.
 Capability requirement 3: The host MUST supply a trigger_id at the seam PER admitted trigger.
-Capability requirement 4: The transition MUST NOT read a clock.
+NOTE: Capability requirement 4 deleted — `execution-contract.md` §Logic confinement owns it.
 Capability requirement 5: The transition MUST NOT mint an id.
-Capability requirement 6: The composition MUST NOT accept a clock reading as an argument.
+NOTE: Capability requirement 6 deleted — `execution-contract.md` §Logic confinement owns it.
 Capability requirement 7: The composition MUST NOT mint a party_id.
 Capability requirement 8: The composition MUST NOT mint a verification_id.
 Capability requirement 9: The composition MUST NOT mint a state_change_id.
@@ -1109,8 +1109,8 @@ Clock semantics 2: An invocation MUST stamp EVERY timestamp from the invocation'
 NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
 Clock semantics 3: An invocation MUST derive the next review due from the invocation's clock reading.
 Clock semantics 4: The next review due MUST NOT EXCEED the placement's cover.
-Clock semantics 5: An invocation MUST NOT read a second clock reading.
-Clock semantics 6: A signature MUST NOT carry a clock reading.
+NOTE: Clock semantics 5 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 6 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 7: A reader MUST read insertion order as authoritative.
 Clock semantics 8: A reader MUST read a timestamp as advisory.
 Clock semantics 9: A reader MUST read a divergence between a trigger's triggered_at and the trigger's suspended_at as a conformance failure.
@@ -1121,7 +1121,7 @@ Clock semantics 11: The composition MUST NOT detect a dishonest clock reading.
 Terms › `placement's cover`: `the current placement's retention_until − scheduler_tolerance` — the instant past which a review would fire too late to renew the placement before the placement lapses.
 
 WHY:
-Clock semantics 2 and Clock semantics 5 are one injected reading shared across an invocation, and the sharing is what several claims rest on. At [Initiate Onboarding] the opening instant and the first deadline derive from one reading, so the interval between them is exactly the monitoring interval rather than the interval plus an inter-read drift. At [Trigger Monitoring Review] the trigger's instant and the adverse path's suspension instant are the same value, which is why Clock semantics 9 reads a *divergence* between them as a conformance failure — an implementation that read a clock twice — rather than as clock granularity, and why Invariant 3 reads ordering from the log instead.
+Clock semantics 2 stamps from the one reading an invocation shares (`execution-contract.md` §Logic confinement), and the sharing is what several claims rest on. At [Initiate Onboarding] the opening instant and the first deadline derive from one reading, so the interval between them is exactly the monitoring interval rather than the interval plus an inter-read drift. At [Trigger Monitoring Review] the trigger's instant and the adverse path's suspension instant are the same value, which is why Clock semantics 9 reads a *divergence* between them as a conformance failure — an implementation that read a clock twice — rather than as clock granularity, and why Invariant 3 reads ordering from the log instead.
 
 Clock semantics 4 is the cap that makes Capability requirement 20's duration obligation sufficient. Every schedule advance is capped below the current placement's cover, because an advance that ignored the placement — a verification pass months after intake, a clearance after a long suspension — would push the first renewal past the placement's end no matter how the interval and the duration compared. The composition stores the deadline and never a derived *review due* or *overdue* flag (Composition state 48, Composition state 49): whether a review is due is a read-time projection against an injected reading at the moment the question is asked, so nothing lags the clock.
 

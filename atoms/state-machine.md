@@ -197,9 +197,9 @@ Operation 48: [Read Declaration] MUST NOT normalize the declaration.
 Operation 49: [Read Declaration] MUST NOT reorder the declaration.
 Operation 50: A reading action MUST NOT write.
 NOTE: Operation 51 deleted — Capability requirement 1 owns it.
-Operation 52: The transition MUST NOT read a clock.
-Operation 53: The business caller MUST NOT supply now.
-Operation 54: A guard MUST NOT read a clock.
+NOTE: Operation 52 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 53 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 54 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 55: An ordering rule MUST NOT rest on fired_at.
 ```
 

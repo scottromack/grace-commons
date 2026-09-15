@@ -126,9 +126,9 @@ Operation 28: An admitted read MUST NOT answer a disclosure record failing a sup
 Operation 29: [Read] MUST NOT write.
 Operation 30: [Read] MUST NOT answer storage-failure.
 NOTE: Operation 31 deleted — Capability requirement 1 owns it.
-Operation 32: The transition MUST NOT read a clock.
-Operation 33: The business caller MUST NOT supply now.
-Operation 34: A guard MUST NOT read a clock.
+NOTE: Operation 32 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 33 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 34 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.

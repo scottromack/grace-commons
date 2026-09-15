@@ -136,8 +136,8 @@ Operation 22: IF the store refuses the write THEN [Complete] MUST answer storage
 Operation 23: IF the store refuses the write THEN [Delete] MUST answer storage-failure.
 Operation 24: A refused call MUST leave the unit as the call found the unit.
 NOTE: Operation 25 deleted — Capability requirement 1 owns it.
-Operation 26: The transition MUST NOT read a clock.
-Operation 27: The business caller MUST NOT supply now.
+NOTE: Operation 26 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 27 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `new_description`: the text an edit offers for a unit — a [New Description]; normalized under the description policy.

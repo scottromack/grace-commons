@@ -125,8 +125,8 @@ Operation 23: [Subscribers For] MUST NOT order the answer.
 Operation 24: [Subscribed] MUST NOT write.
 Operation 25: [Subscribers For] MUST NOT write.
 NOTE: Operation 26 deleted — Capability requirement 1 owns it.
-Operation 27: The transition MUST NOT read a clock.
-Operation 28: The business caller MUST NOT supply now.
+NOTE: Operation 27 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 28 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `pair`: one `subscriber_ref` with one `event_scope` — what at-most-one ranges over.

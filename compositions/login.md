@@ -118,8 +118,8 @@ With failed-login auditing enabled — the default and the regulated posture —
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The transition MUST NOT read a clock.
-Capability requirement 3: The composition MUST NOT take a clock reading as an argument.
+NOTE: Capability requirement 2 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Capability requirement 3 deleted — `execution-contract.md` §Logic confinement owns it.
 Capability requirement 4: The composition MUST NOT mint an id.
 Capability requirement 5: The composition MUST NOT generate cryptographic material.
 Capability requirement 6: A deployment MUST set the default session duration.

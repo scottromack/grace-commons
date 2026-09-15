@@ -161,8 +161,8 @@ Operation 58: IF a state filter's value NOT EXISTS in state THEN [Read] MUST ans
 Operation 59: IF a time range's end precedes the time range's start THEN [Read] MUST answer invalid-query.
 Operation 60: [Read] MUST exclude a consent record carrying no value for a time range's field.
 NOTE: Operation 61 deleted — Capability requirement 1 owns it.
-Operation 62: The transition MUST NOT read a clock.
-Operation 63: The business caller MUST NOT supply now.
+NOTE: Operation 62 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 63 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.

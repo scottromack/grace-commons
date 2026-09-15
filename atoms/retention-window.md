@@ -130,9 +130,9 @@ Operation 21: [Purge] MUST read one now per call.
 Operation 22: [Purge] MUST judge eligibility and stamp purged_at against that one now.
 NOTE: Operation 23 deleted — Capability requirement 1 owns it.
 Operation 24: The host MUST resolve the policy at the atom's seam.
-Operation 25: The transition MUST NOT read a clock.
+NOTE: Operation 25 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 26: The transition MUST NOT read the policy registry.
-Operation 27: The business caller MUST NOT supply now.
+NOTE: Operation 27 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 28: A reader MUST derive purge eligible from retention_until and the injected now.
 ```
 

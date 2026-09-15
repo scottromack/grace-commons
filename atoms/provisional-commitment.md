@@ -75,7 +75,7 @@ Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic con
 
 Terms › `transition`: the atom's evaluation of one call against the commitment store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `now`: the clock reading the seam supplies for one call.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 5 ranges over a store instance's whole lifetime, which is what makes id reuse a case of sharing rather than a rule of its own — the reason the shipped Invariant 9 is a tombstone below.
@@ -133,8 +133,8 @@ Operation 32: A refused resolving action MUST leave the commitment in held.
 Operation 33: A resolving action MUST NOT accept a resource.
 Operation 34: A resolving action MUST NOT accept a requester.
 Operation 35: A resolving action MUST NOT accept a duration.
-Operation 36: The atom MUST NOT read now inside a transition.
-Operation 37: The atom MUST NOT generate now.
+NOTE: Operation 36 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 37 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `resolving action`: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.
@@ -178,7 +178,7 @@ Operation 17 through Operation 19 are the honored window, and the boundary is th
 
 [Release] and [Expire] are two actions rather than one because they differ in which side of the window they are legal on and in what the record then says happened. An auditor asking *did this requester give the resource back, or did the requester simply not answer* reads the terminal state and gets a different answer for each. The return of the resource itself is not here — it is Capability requirement 10, because this atom cannot see availability (Non-goal 11) and a MUST whose subject cannot evaluate it is decoration.
 
-Operation 36 and Operation 37 are logic confinement (`execution-contract.md` §Logic confinement). The clock is consumed twice per call — by the window reading and by the stamp — and both consumptions read the one `now` the seam supplied, so a transition is a pure function of the commitment, the inputs, `now` and the id material.
+Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the `now` declaration cites it rather than restating it. The clock is consumed twice per call — by the window reading and by the stamp — and both consumptions read the one `now` the seam supplied, so a transition is a pure function of the commitment, the inputs, `now` and the id material.
 
 ### State
 
@@ -437,16 +437,16 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 ### Clock semantics
 
 ```text
-Clock semantics 1: The atom MUST NOT sample a clock.
-Clock semantics 2: The atom MUST consume one now per call.
-Clock semantics 3: The atom MUST read a window reading from the now the call's stamp carries.
 Clock semantics 4: The deployment MUST own the clock's skew.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 5: The deployment MUST own the clock's monotonicity.
 Clock semantics 6: A deployment needing two racing transitions ordered MUST read the composing [Event Log](./event-log.md) sequence_number.
 ```
 
 WHY:
-Clock semantics 3 is the one that matters for the honored window. A call that read the window against one instant and stamped against a later one could record a resolution the guard would have refused; consuming a single `now` closes that gap inside the transition and leaves clock quality — skew, monotonicity, timezone — where it belongs, at the deployment layer.
+The single reading is what matters for the honored window. A call that read the window against one instant and stamped against a later one could record a resolution the guard would have refused; the Contract's one `now` per call closes that gap inside the transition and leaves clock quality — skew, monotonicity, timezone — where it belongs, at the deployment layer.
 
 ### Concurrency
 
@@ -624,7 +624,7 @@ Projects:     duration
 
 #### Now
 
-The clock reading the seam supplies for one call — never sampled inside a transition and never a signature parameter. Consumed twice per call: by the window reading and by the transition's stamp.
+The wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it — never read inside the transition and never supplied by the business caller. Consumed twice per call: by the window reading and by the transition's stamp.
 
 Kind:         Parameter
 Parameter of: Place Hold

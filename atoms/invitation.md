@@ -74,7 +74,7 @@ Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic con
 
 Terms › `transition`: the atom's evaluation of one call against the invitation store, as `execution-contract.md` §Logic confinement declares it.
 
-Terms › `now`: the clock reading the seam supplies for one call.
+Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 5 and Identity 6 are a pair, and the pair is the point. An absolute uniqueness claim over a value drawn from a random source is not made true by the source being wide: 128 bits makes a collision fantastically unlikely and leaves the invariant logically false. Identity 6 is the cure [Capability](./capability.md) carries — the *store* refuses the colliding write, so a collision surfaces as an outcome the signature already names and uniqueness is enforced rather than hoped for. This atom is the second to carry it, and the docket row counting the atoms that do not is where the corpus-wide ruling sits.
@@ -144,8 +144,8 @@ Operation 41: An admitted read MUST answer EVERY matching invitation.
 Operation 42: An admitted read MUST answer the effective status PER matching invitation.
 Operation 43: [Read] MUST NOT record a field.
 Operation 44: [Read] MUST NOT refuse a filter.
-Operation 45: The atom MUST NOT read now inside a transition.
-Operation 46: The atom MUST NOT generate now.
+NOTE: Operation 45 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 46 deleted — `execution-contract.md` §Logic confinement owns it.
 ```
 
 Terms › `resolving write`: [Accept] | [Decline] | [Revoke] — every write taking a pending invitation to a stored terminal.
@@ -193,7 +193,7 @@ Operation 40 is the whole of the derived-expiry posture stated as an absence, wh
 
 Operation 44 makes [Read] a total read: a filter that matches nothing has a correct answer — no invitations — rather than an error. That shape now recurs in seven specs and no rule anywhere owns the reason, which is a watch entry rather than a claim.
 
-Operation 45 and Operation 46 are logic confinement (`execution-contract.md` §Logic confinement). The clock is consumed twice per call — by the window reading and by the write's stamps — and both read the one `now` the seam supplied.
+Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the `now` declaration cites it rather than restating it. The clock is consumed twice per call — by the window reading and by the write's stamps — and both read the one `now` the seam supplied.
 
 ### State
 
@@ -444,10 +444,10 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 ### Clock semantics
 
 ```text
-Clock semantics 1: The atom MUST NOT sample a clock.
-Clock semantics 2: The atom MUST consume one now per call.
-Clock semantics 3: The atom MUST read a window reading from the now the call's stamps carry.
 Clock semantics 4: The deployment MUST own the clock's skew.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 5: The deployment MUST own the clock's monotonicity.
 Clock semantics 6: The atom MUST NOT bound two readers' effective status agreement.
 Clock semantics 7: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
@@ -694,7 +694,7 @@ Projects:     reason
 
 #### Now
 
-The clock reading the seam supplies for one call — never sampled inside a transition and never a signature parameter. Consumed twice per call: by the window reading and by the write's stamps, and by [Read]'s [Effective Status] projection.
+The wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it — never read inside the transition and never supplied by the business caller. Consumed twice per call: by the window reading and by the write's stamps, and by [Read]'s [Effective Status] projection.
 
 Kind:         Parameter
 Parameter of: Initiate

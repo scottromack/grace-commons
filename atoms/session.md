@@ -148,8 +148,8 @@ Operation 39: [Read] MUST NOT write.
 Operation 40: A liveness query MUST rest on the effective_status.
 Operation 41: A liveness query MUST NOT rest on the stored status alone.
 NOTE: Operation 42 deleted — Capability requirement 1 owns it.
-Operation 43: The transition MUST NOT read a clock.
-Operation 44: The business caller MUST NOT supply now.
+NOTE: Operation 43 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 44 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 45: The atom MUST NOT offer an expire action.
 Operation 46: The atom MUST NOT offer an extend action.
 Operation 47: The atom MUST NOT offer an un-revoke action.

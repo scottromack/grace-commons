@@ -137,8 +137,8 @@ Operation 52: [Read] MUST NOT write.
 Operation 53: A liveness query MUST rest on the effective_status.
 Operation 54: A liveness query MUST NOT rest on the stored status alone.
 NOTE: Operation 55 deleted — Capability requirement 1 owns it.
-Operation 56: The transition MUST NOT read a clock.
-Operation 57: The business caller MUST NOT supply now.
+NOTE: Operation 56 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Operation 57 deleted — `execution-contract.md` §Logic confinement owns it.
 Operation 58: The atom MUST NOT offer an expire action.
 Operation 59: The atom MUST NOT offer a re-scope action.
 Operation 60: The atom MUST NOT offer an extend action.
