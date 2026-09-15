@@ -974,19 +974,30 @@ Terms › `re-sealing`: a deployment's requirement to write a second seal over a
 WHY:
 A seal is a proof, not a copy, and its indefinite retention (retention_policy 5) keeps Invariant 3 and Tamper Evidence's Invariant 9 unconditionally true: a seal that survives its records is the evidence that they existed. Tamper Evidence's *retention coupling* edge case suggests purging a seal over a destroyed record set; this composition takes the reading Tamper Evidence's Invariant 9 supports, and a jurisdiction that treats a commitment over erased data as residual data composes Erasure Tombstone, which then owns which events lose their cover. The cost of no replacement seal is named on the same terms: survivors answer `unverifiable(partially-purged-coverage)` for their retained lifetimes, and a seal cannot be rotated ahead of a deprecation — the remedy Tamper Evidence's Invariant 2 prescribes. Both need a *which seal is current* fact, new truth no constituent carries and no rebuild replays (Tamper Evidence's *Concurrent seals on the same record set* takes no view on supersession), so absorbing it would hold unclassifiable truth for a concept not yet specified.
 
+### Reconciliation
+
+The scan is this composition's reconciliation leg: each finding closes within the compensation window (Reconciliation 4) and the scan writes the compensating records, so something awaits its output. It sat inside the wiring decision, under a label family of its own, until the heading standard gave the leg its address (council read 83).
+
 #### The reconciliation scan — three halves
 
 The composition's three liveness arms fail in three structurally different ways — a cascade that stopped partway, an attestation nothing points at, and an event nothing bounds — and each needs its own detector, predicate and compensating write. A scan that ran only the first two would carry the third state forever, because no other surface looks for it.
 
 ```text
-Reconciliation scan 1: The reconciliation scan MUST run a first half over Purged retentions, a second half over the attestation store, and a third half over the audit log.
-Reconciliation scan 2: The scan MUST surface EVERY unreconciled finding as a compliance alert.
-Reconciliation scan 3: The scan MUST NOT carry an unreconciled finding silently.
-Reconciliation scan 4: The scan MUST close EVERY finding WITHIN compensation_window of the finding's creation.
-NOTE: watch satisfaction — what a run that misses WITHIN is (Reconciliation scan 4, Invariant 1.4, Invariant 2.2) is decided by Composition-level invariant 1 for an outage and by Check 2 otherwise; the language says nothing.
-Reconciliation scan 5: The scan MUST read now once per run at the scan's own seam.
-Reconciliation scan 6: The scan MUST NOT write BEFORE taking the per-act section for the act.
-Reconciliation scan 7: EVERY half MUST decide a write by the half's own predicate, read under the section.
+Reconciliation 1: The reconciliation scan MUST run a first half over Purged retentions, a second half over the attestation store, and a third half over the audit log.
+NOTE: Reconciliation scan 1 deleted — Reconciliation 1 owns it.
+NOTE: Reconciliation scan 2 deleted — Reconciliation 2 owns it.
+NOTE: Reconciliation scan 3 deleted — Reconciliation 3 owns it.
+NOTE: Reconciliation scan 4 deleted — Reconciliation 4 owns it.
+NOTE: Reconciliation scan 5 deleted — Reconciliation 5 owns it.
+NOTE: Reconciliation scan 6 deleted — Reconciliation 6 owns it.
+NOTE: Reconciliation scan 7 deleted — Reconciliation 7 owns it.
+Reconciliation 2: The scan MUST surface EVERY unreconciled finding as a compliance alert.
+Reconciliation 3: The scan MUST NOT carry an unreconciled finding silently.
+Reconciliation 4: The scan MUST close EVERY finding WITHIN compensation_window of the finding's creation.
+NOTE: watch satisfaction — what a run that misses WITHIN is (Reconciliation 4, Invariant 1.4, Invariant 2.2) is decided by Composition-level invariant 1 for an outage and by Check 2 otherwise; the language says nothing.
+Reconciliation 5: The scan MUST read now once per run at the scan's own seam.
+Reconciliation 6: The scan MUST NOT write BEFORE taking the per-act section for the act.
+Reconciliation 7: EVERY half MUST decide a write by the half's own predicate, read under the section.
 ```
 
 Terms › `record_edge`: `record_action_completion_bound + clock_offset_allowance`.
@@ -1002,7 +1013,7 @@ Terms › `attestation age`: `now − attested_at`.
 Terms › `event age`: `now − recorded_at`.
 
 WHY:
-The halves share a trigger (reconciliation_cadence 1, reconciliation_cadence 2), a surfacing discipline (Reconciliation scan 2, Reconciliation scan 3), a deadline measured from the finding's creation (compensation_window 2, Reconciliation scan 4), and two edges. Below, each half examines nothing younger than its completion bound widened by the allowance, because each stamp was written at a constituent's seam and the scan's `now` is read once at its own (Reconciliation scan 5, clock_offset_allowance 2); the comparison only excludes a record from the pass (clock_offset_allowance 4). Above, the horizon is the point past which the compensation event a half would look for has been lawfully purged, and there the half reports rather than repairs.
+The halves share a trigger (reconciliation_cadence 1, reconciliation_cadence 2), a surfacing discipline (Reconciliation 2, Reconciliation 3), a deadline measured from the finding's creation (compensation_window 2, Reconciliation 4), and two edges. Below, each half examines nothing younger than its completion bound widened by the allowance, because each stamp was written at a constituent's seam and the scan's `now` is read once at its own (Reconciliation 5, clock_offset_allowance 2); the comparison only excludes a record from the pass (clock_offset_allowance 4). Above, the horizon is the point past which the compensation event a half would look for has been lawfully purged, and there the half reports rather than repairs.
 
 *First half — the half-completed cascade.*
 
@@ -1083,6 +1094,7 @@ Compensation 8: The composition MUST place a reconciliation-path event under ret
 
 WHY:
 The findings and the compensating writes are audit events — attested, sequenced, retention-governed and sealed like the events they are about — so *what did this system do about the gap it found?* has a first-class answer from the same traversal. One record per finding keeps any findings set inside `payload_cap`. The reserved namespace (Primitive policy 8, Primitive policy 9) is the difference between a marker that is evidence of a compensation and one that is anybody's claim. The scan is an ordinary caller of [Record Action] (Compensation 5); `execution-contract.md` has a composition record a multi-step sequence by composing Event Log, never by growing a second store, and this composition *is* an Event Log composition (Compensation 6, Compensation 7).
+
 
 ### Instance start
 
