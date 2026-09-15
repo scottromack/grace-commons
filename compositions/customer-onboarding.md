@@ -247,6 +247,7 @@ Capability requirement 40: A deployment MUST run a review scheduler outside the 
 Capability requirement 41: The composition MUST NOT fire a review.
 Capability requirement 42: A deployment under BSA/AML MUST alert on an owed record.
 Capability requirement 43: A deployment MUST NOT set the monitoring interval PER party at this composition.
+Capability requirement 44: The deployment MUST own the clock's honesty.
 ```
 
 Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading, one `case_id` and one `trigger_id` here.
@@ -1064,6 +1065,7 @@ Non-goal 17: The composition MUST NOT own a recurring-review deadline as an atom
 Non-goal 18: The composition MUST NOT anchor a timestamp to wall time.
 Non-goal 19: The composition MUST NOT index the audit log by a payload field.
 Non-goal 20: The composition MUST NOT admit a second Party Identity writer.
+Non-goal 21: The composition MUST NOT detect a dishonest clock reading.
 ```
 
 WHY:
@@ -1131,8 +1133,8 @@ NOTE: Clock semantics 6 deleted — `execution-contract.md` §Logic confinement 
 Clock semantics 7: A reader MUST read insertion order as authoritative.
 Clock semantics 8: A reader MUST read a timestamp as advisory.
 Clock semantics 9: A reader MUST read a divergence between a trigger's triggered_at and the trigger's suspended_at as a conformance failure.
-Clock semantics 10: A deployment MUST inject a trustworthy clock reading.
-Clock semantics 11: The composition MUST NOT detect a dishonest clock reading.
+NOTE: Clock semantics 10 deleted — Capability requirement 1 and Capability requirement 44 own it: the seam supplies now, and the reading's honesty is the deployment's.
+NOTE: Clock semantics 11 deleted — Non-goal 21 owns it.
 ```
 
 Terms › `placement's cover`: `the current placement's retention_until − scheduler_tolerance` — the instant past which a review would fire too late to renew the placement before the placement lapses.
@@ -1142,7 +1144,7 @@ Action wiring 146 through Action wiring 153 stamp from the one reading an invoca
 
 Clock semantics 4 is the cap that makes Capability requirement 20's duration obligation sufficient. Every schedule advance is capped below the current placement's cover, because an advance that ignored the placement — a verification pass months after intake, a clearance after a long suspension — would push the first renewal past the placement's end no matter how the interval and the duration compared. The composition stores the deadline and never a derived *review due* or *overdue* flag (Composition state 48, Composition state 49): whether a review is due is a read-time projection against an injected reading at the moment the question is asked, so nothing lags the clock.
 
-Clock semantics 10 and Clock semantics 11 name the residual honestly. Where review deadlines or onboarding timestamps have legal force — FATF and BSA/AML require recording when Customer Due Diligence was performed — the deployment injects a reading from a trustworthy clock, and a composed Trusted Timestamping pattern supplies the verifiable anchor that binds insertion order to wall time. Under injection the residual risk is a deployment that injects a dishonest reading, not an internal race, and this composition detects neither.
+Capability requirement 44 and Non-goal 21 name the residual honestly. Where review deadlines or onboarding timestamps have legal force — FATF and BSA/AML require recording when Customer Due Diligence was performed — the deployment injects a reading from a trustworthy clock, and a composed Trusted Timestamping pattern supplies the verifiable anchor that binds insertion order to wall time. Under injection the residual risk is a deployment that injects a dishonest reading, not an internal race, and this composition detects neither.
 
 ### Concurrency
 

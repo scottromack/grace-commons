@@ -189,6 +189,7 @@ Capability requirement 32: The composition MUST NOT reconcile two policies.
 Capability requirement 33: The composition MUST NOT store an override authorization.
 Capability requirement 34: A deployment MUST serialize a hold check and a purge over one record_ref.
 Capability requirement 35: A deployment MUST serialize a hold placement and a purge over one record_ref.
+Capability requirement 36: The deployment MUST declare the clock offset allowance.
 ```
 
 Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one `invocation_id` here.
@@ -846,14 +847,14 @@ NOTE: Clock semantics 9 deleted — Legal Hold Operation 18a owns it.
 NOTE: Clock semantics 10 deleted — Event Log Operation 2 owns it, reached through Audit Trail.
 Clock semantics 11: A reader MUST read a record purged outcome's purged_at as the authoritative destruction instant.
 Clock semantics 12: A reader MUST NOT read a retention's purged_at as the authoritative destruction instant.
-Clock semantics 13: A reader MUST read a divergence exceeding the skew allowance as a clock finding.
+Clock semantics 13: A reader MUST read a divergence exceeding the clock offset allowance as a clock finding.
 Clock semantics 14: The composition MUST NOT read a supplied placed_at as the entry instant.
 Clock semantics 15: A reader MUST read a hold placed outcome's recorded_at as the entry instant.
 Clock semantics 16: The gate MUST NOT read a clock.
-Clock semantics 17: A deployment MUST declare the skew allowance.
+NOTE: Clock semantics 17 deleted — Capability requirement 36 owns it.
 ```
 
-Terms › `skew allowance`: the deployment's declared envelope between two seams' readings of one request — what a reader allows before reading a divergence as a clock finding.
+Terms › `clock offset allowance`: `clock_offset_allowance` — the deployment's declared envelope between two seams' readings of one request — what a reader allows before reading a divergence as a clock finding.
 
 Terms › `constituent commit`: the instant a committing call's write lands in the constituent's own store.
 
@@ -873,6 +874,8 @@ Action wiring 8, Action wiring 60, Clock semantics 4 and Clock semantics 5 enume
 Composes 18, Clock semantics 11 and Clock semantics 12 are the *two readings* discipline, over the constituents' own stamping rules (Retention Window Operation 13, Legal Hold Operation 9 and Operation 18a, Event Log Operation 2). `RetentionWindow.purge` takes no timestamp, so the atom stamps from the reading injected at its own seam while this composition stamps the outcome from the reading injected here. Under the pipeline the two are ordinarily microseconds apart and ordered, and nothing in the declared contracts makes them equal — a spec claiming otherwise would be promising what no constituent signature can deliver. So one of them is designated authoritative and the other is an internal consistency artifact, and `Check 1.3`'s hold-versus-destruction cross-reference reads the designated one.
 
 Clock semantics 14 and Clock semantics 15 keep the two meanings of a hold's time apart. A caller-supplied `placed_at` asserts when the obligation arose and may legitimately predate the system entry — oral counsel advice documented afterwards is the ordinary case — while the entry instant is the audit event's own stamp. The gap between them is observable in the records, which is the point; whether a backdated assertion needs elevated authorization is the deployment's question and not this layer's (`Non-goal 8`).
+
+Clock semantics 4, Clock semantics 5 and Clock semantics 16 stay under this heading rather than under Clock dependence: the first two are this layer's uses of the reading and the third says the gate makes none — instances of that family's question, not statements of it (council read 75).
 
 ### Concurrency
 
@@ -923,7 +926,7 @@ Terms › `record verbs`: serve, change, inherit, read, hold, reach, call, gate,
 
 Terms › `records`: empty.
 
-Terms › `bounds`: `retention completion bound` (`retention_completion_bound`), `compensation window` (`compensation_window`), `audit horizon` (`audit_trail_retention_policy`), `evidence floor`, `closure floor`, `skew allowance` (`clock_skew_allowance`), `field cap`, `hold ids cap` (`hold_ids_cap`), `audit write latency`.
+Terms › `bounds`: `retention completion bound` (`retention_completion_bound`), `compensation window` (`compensation_window`), `audit horizon` (`audit_trail_retention_policy`), `evidence floor`, `closure floor`, `clock offset allowance` (`clock_offset_allowance`), `field cap`, `hold ids cap` (`hold_ids_cap`), `audit write latency`.
 
 Terms › `cadences`: `reconciliation cadence` (`reconciliation_cadence`), `seal cadence`.
 
@@ -931,7 +934,7 @@ Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14
 
 Terms › `value sets`: place_record_under_retention answers = retention_id | rejected(invalid-request | invalid-credential | storage-failure | recording-failure(intent | outcome)). place_hold answers = hold_id | rejected(invalid-request | invalid-credential | storage-failure | recording-failure(intent | outcome)). release_hold answers = released | rejected(invalid-request | invalid-credential | not-known | already-released | storage-failure | recording-failure(intent | outcome)). purge_eligible answers = the eligibility tuples. purge_record answers = ok | rejected(invalid-request | invalid-credential | not-known | not-eligible | under-active-retention | under-legal-hold(hold_ids, count) | hold-check-unavailable | storage-failure | recording-failure(intent | outcome)). `hold check mode` = strict | advisory. `hold check result` = empty | the blocking hold ids with the blocking count. `intent` = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. `outcome` = retention_placed | hold_placed | hold_released | record_purged. sibling disposition = purged | pending.
 
-Terms › `terms`: `composition`, `constituents`, `business retention instance`, `service identity`, `record`, `record-to-retentions index`, `retention-to-record index`, `audit horizon`, `surviving placement event`, `purged placement event`, `rebuild`, `sibling set`, `pending sibling`, `seam`, `transition`, `evidence floor`, `closure floor`, `retention completion bound`, `hold check mode`, `blank`, `boundary predicate`, `opaque argument`, `landed record`, `owed record`, `intent`, `outcome`, `gate record`, `committing call`, `admitted placement`, `admitted hold placement`, `admitted hold release`, `admitted purge`, `elapsed retention`, `hold check result`, `hold override`, `unavailable sentinel`, `purged retention ids`, `sweep`, `open marker`, `young marker`, `aged-out event`, `recovery intent`, `recovery marker`, `recovery outcome`, `skew allowance`, `constituent commit`, `gate read`, `seal coverage`, `yielded invocation`, `post-destruction hold`, `late hold`.
+Terms › `terms`: `composition`, `constituents`, `business retention instance`, `service identity`, `record`, `record-to-retentions index`, `retention-to-record index`, `audit horizon`, `surviving placement event`, `purged placement event`, `rebuild`, `sibling set`, `pending sibling`, `seam`, `transition`, `evidence floor`, `closure floor`, `retention completion bound`, `hold check mode`, `blank`, `boundary predicate`, `opaque argument`, `landed record`, `owed record`, `intent`, `outcome`, `gate record`, `committing call`, `admitted placement`, `admitted hold placement`, `admitted hold release`, `admitted purge`, `elapsed retention`, `hold check result`, `hold override`, `unavailable sentinel`, `purged retention ids`, `sweep`, `open marker`, `young marker`, `aged-out event`, `recovery intent`, `recovery marker`, `recovery outcome`, `clock offset allowance`, `constituent commit`, `gate read`, `seal coverage`, `yielded invocation`, `post-destruction hold`, `late hold`.
 
 Terms › `cited`: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam.
 

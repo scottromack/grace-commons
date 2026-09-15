@@ -100,6 +100,8 @@ Two states and no third: a storage tier is an orthogonal axis a Storage Tier pat
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's honesty.
+Capability requirement 3: The deployment MUST own the clock's monotonicity.
 ```
 
 WHY:
@@ -325,6 +327,7 @@ Non-goal 9: The atom MUST NOT retain the atom's own records.
 Non-goal 10: The atom MUST NOT record who authorized a purge.
 Non-goal 11: A deployment needing an attributable purge MUST compose [Actor Identity](./actor-identity.md).
 Non-goal 12: The atom MUST NOT purge two retentions as one write.
+Non-goal 13: A deployment whose deadlines carry legal force MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -337,10 +340,10 @@ Where the atom breaks down: when the obligation is a function of the record's co
 ### Clock semantics
 
 ```text
-Clock semantics 1: The deployment MUST own the clock's honesty.
-Clock semantics 2: The deployment MUST own the clock's monotonicity.
 Clock semantics 3: Two readers judging purge eligible under skewed clocks MAY disagree near retention_until.
-Clock semantics 4: A deployment whose deadlines carry legal force MUST compose a trusted-timestamping pattern.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 4 deleted — Non-goal 13 owns it.
 ```
 
 WHY:

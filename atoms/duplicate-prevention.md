@@ -197,7 +197,7 @@ External check 2: An auditor needing the matching rule confirmed MUST read the c
 External check 3: An auditor needing a guard miss confirmed MUST read the deployment's own store (Record failure 2).
 External check 4: An auditor needing the recorded set's durability confirmed MUST read the deployment's own store (Non-goal 3).
 External check 5: An auditor needing the unavailability policy confirmed MUST read the deployment's own declaration (Check unavailability 1).
-External check 6: An auditor needing the clock's honesty confirmed MUST read the deployment's own clock discipline (Clock semantics 2).
+External check 6: An auditor needing the clock's honesty confirmed MUST read the deployment's own clock discipline (Non-goal 12).
 ```
 
 WHY:
@@ -221,6 +221,8 @@ Non-goal 8: The atom MUST NOT supply the matching rule.
 Non-goal 9: A pattern needing a guard that resets on every sighting MUST compose a sliding-window pattern.
 Non-goal 10: The atom MUST NOT read a calendar.
 Non-goal 11: A pattern needing day-boundary semantics MUST compose a calendar-day pattern.
+Non-goal 12: The atom MUST NOT correct clock skew.
+Non-goal 13: A pattern needing a strictly monotonic guard MUST compose a logical-clock pattern.
 ```
 
 WHY:
@@ -234,12 +236,14 @@ Where the pattern breaks down: when *recent* is measured by something other than
 
 ```text
 Clock semantics 1: The atom MUST anchor a guard to the injected now of the opening record.
-Clock semantics 2: The atom MUST NOT correct clock skew.
-Clock semantics 3: A pattern needing a strictly monotonic guard MUST compose a logical-clock pattern.
+NOTE: Clock semantics 2 deleted — Non-goal 12 owns it.
+NOTE: Clock semantics 3 deleted — Non-goal 13 owns it.
 ```
 
 WHY:
 The guard is wall-time. A backward jump can make an identity read as expired before the term truly elapsed; a forward jump can delay expiry. The atom commits to reading the clock at the seam and to nothing else about the clock (Operation 8).
+
+Clock semantics 1 stays under this heading rather than under Clock dependence: it is this atom's one use of the reading, an instance of that family's question rather than a statement of it (council read 75).
 
 ### Check store unavailability
 

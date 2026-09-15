@@ -122,10 +122,21 @@ Nothing about delivery lives here: what was sent, to whom, and whether the princ
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's timezone handling.
+Capability requirement 4: The deployment MUST own the clock's honesty.
+Capability requirement 5: The deployment MUST disclose the supersession gap bound.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
+NOTE: Clock semantics 4 deleted — Capability requirement 5 owns it.
 ```
 
 WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
+WHY:
+Because no precondition consults the reading, a non-monotonic clock degrades only the annotation and never an admission decision (Operation 42, Operation 43). The declared supersession gap bound is what bounds how a supersession gap should be read, which is why Capability requirement 5 makes its disclosure an obligation rather than a deployment note, and Check 4.1 and Check 4.2 read against it.
 
 ### Operations
 
@@ -222,7 +233,7 @@ The two queries refuse nothing, and the asymmetry with the three writes is delib
 
 [Not Active] covers both [Suspended] and [Deleted] on a suspend, because a [Suspended] record never returns to [Active] and the caller's next move is the same either way; a caller that must tell them apart calls [Read] (Operation 18, Operation 19, Invariant 2.3). On a delete the split does matter — a [Suspended] record deletes cleanly and a [Deleted] one is [Already Deleted] — so delete carries the second code and suspend does not.
 
-The clock enters once, at the seam, and is spent on exactly one thing: stamping `set_at`, `suspended_at` and `deleted_at` inside a committed transition. No guard consults it, so no rejection in the taxonomy depends on it, and a skewed clock can only make a stored timestamp advisory — never admit or refuse a call (Operation 39–43, Clock semantics 1–4).
+The clock enters once, at the seam, and is spent on exactly one thing: stamping `set_at`, `suspended_at` and `deleted_at` inside a committed transition. No guard consults it, so no rejection in the taxonomy depends on it, and a skewed clock can only make a stored timestamp advisory — never admit or refuse a call (Operation 39–43, Capability requirement 2–4).
 
 ### Invariants
 
@@ -298,14 +309,14 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   Temporal property 1: IF suspended_at EXISTS THEN set_at MUST NOT EXCEED suspended_at.
   Temporal property 2: IF deleted_at EXISTS THEN set_at MUST NOT EXCEED deleted_at.
   Temporal property 3: IF suspended_at EXISTS AND deleted_at EXISTS THEN suspended_at MUST NOT EXCEED deleted_at.
-  Temporal property 4: A supersession gap MUST NOT EXCEED the clock tolerance.
+  Temporal property 4: A supersession gap MUST NOT EXCEED the supersession gap bound.
   Temporal property 5: The implementation MUST own the clock monotonicity Temporal property 1 rests on.
   ```
   WHY: best-effort, and deliberately outside the invariant numbering — Invariants 1 to 10 are the hard set, and giving this a slot among them would read it as their peer. The hard set holds over every state the atom's own accepted actions can reach, given the named host obligations; these four inequalities hold only where the clock does not move backward. They are labelled apart because audit reconstruction depends on the directional guarantee (Check 2.1, Check 4.1), and a violation here is observable and diagnosable rather than silently corrupting.
 
 Terms › `supersession gap`: the interval from a superseded preference record's `deleted_at` to the successor's `set_at`.
 
-Terms › `clock tolerance`: the largest supersession gap the deployment expects between two writes inside one operation; declared by the deployment.
+Terms › `supersession gap bound`: the largest supersession gap the deployment expects between two writes inside one operation; declared by the deployment.
 
 Immutability and durability together give *auditability* — the full history of every principal's preferences is recoverable from the store alone, with no gaps. At-most-one-in-effect and supersession atomicity together give *unambiguous currency* — at any moment a principal has at most one record governing delivery, and the moment of transition is recorded. Suspension being value-preserving gives *cheap resumption* — a principal who pauses and later returns loses nothing.
 
@@ -405,9 +416,9 @@ Check 1.2: An auditor MUST find EVERY supplied preference field on the preferenc
 Check 2.1: An auditor MUST reconstruct the preference record currently in effect for a principal_ref at a past instant from set_at, status and deleted_at (Invariant 3.1, Invariant 4.1).
 Check 2.2: An auditor MUST read a currency interval as half-open from set_at to deleted_at (Invariant 4.1).
 Check 3.1: An auditor MUST find no two preference records currently in effect sharing a principal_ref (Invariant 3.1, Invariant 4.2).
-Check 4.1: An auditor MUST read a supersession gap within the clock tolerance as a supersession (Invariant 4.1, Temporal property 4).
-Check 4.2: An auditor MUST mark a supersession gap exceeding the clock tolerance ambiguous (Invariant 4.1).
-Check 4.3: The deployment MUST disclose the clock tolerance (Temporal property 4).
+Check 4.1: An auditor MUST read a supersession gap within the supersession gap bound as a supersession (Invariant 4.1, Temporal property 4).
+Check 4.2: An auditor MUST mark a supersession gap exceeding the supersession gap bound ambiguous (Invariant 4.1).
+NOTE: Check 4.3 deleted — Capability requirement 5 owns it; a deployment obligation is not an auditor's check.
 Check 5.1: An auditor MUST find EVERY channel_preferences key in the preference record's own declared_channels (Invariant 5.1, Invariant 10.1).
 Check 5.2: An auditor MUST mark an absent declared_channels a conformance failure (Invariant 10.1, Invariant 10.2).
 Check 6.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
@@ -476,18 +487,6 @@ Clock dependence 2: A rejection MUST NOT rest on now.
 
 WHY:
 Whether a guard's decision may depend on the clock reading, and under what condition. Both rules stood under `Operation` until council read 75 swept the corpus by rule text rather than by family name; neither word changed.
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: The deployment MUST supply an honest now.
-Clock semantics 4: The deployment MUST disclose the clock tolerance.
-```
-
-WHY:
-Because no precondition consults the reading, a non-monotonic clock degrades only the annotation and never an admission decision (Operation 42, Operation 43). The declared tolerance is what bounds how a supersession gap should be read, which is why Check 4.3 makes the disclosure part of acceptance rather than a deployment note.
 
 ### Concurrency
 
@@ -597,13 +596,13 @@ Terms › `record verbs`: route, share, read, name, accept, carry, hold, offer, 
 
 Terms › `value sets`: set answers = preference_id | rejected(invalid-request | undeclared-channel | storage-failure). suspend answers = ok | rejected(not-known | not-active | storage-failure). delete answers = ok | rejected(not-known | already-deleted | storage-failure). current_for answers = the preference record currently in effect | none. read answers = the whole preference record | not-known. `status` = active | suspended | deleted. `preference field` = channel_preferences | frequency_limit | quiet_hours | format.
 
-Terms › `bounds`: `clock tolerance` (the largest supersession gap one operation is expected to span); `opaque input size bound` (the deployment's cap on a stored opaque value).
+Terms › `bounds`: `supersession gap bound` (the largest supersession gap one operation is expected to span); `opaque input size bound` (the deployment's cap on a stored opaque value).
 
 Terms › `cadences`: empty.
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Terms › `terms`: `preference record`, `store instance`, `store_name`, `declared channel set`, `degenerate`, `seam`, `transition`, `preference_id`, `principal_ref`, `blank`, `preference field`, `currently in effect`, `supersession`, `now`, `business caller`, `guard`, `status`, `channel_preferences`, `frequency_limit`, `quiet_hours`, `format`, `metadata`, `declared_channels`, `set_at`, `suspended_at`, `deleted_at`, `supersession gap`, `clock tolerance`.
+Terms › `terms`: `preference record`, `store instance`, `store_name`, `declared channel set`, `degenerate`, `seam`, `transition`, `preference_id`, `principal_ref`, `blank`, `preference field`, `currently in effect`, `supersession`, `now`, `business caller`, `guard`, `status`, `channel_preferences`, `frequency_limit`, `quiet_hours`, `format`, `metadata`, `declared_channels`, `set_at`, `suspended_at`, `deleted_at`, `supersession gap`, `supersession gap bound`.
 
 #### Set
 

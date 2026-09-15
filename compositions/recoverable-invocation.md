@@ -125,7 +125,7 @@ Five elements, each carrying the Contract classification of [`execution-contract
   sequence_high_water 5: IF now EXCEEDS an intent's retention_end THEN EVERY read of open_invocations MUST drop the intent.
   sequence_high_water 6: A lost mark MUST rebuild both maps from the log's beginning.
   ```
-  Terms › `settle_bound`: `journal_write_bound + clock_skew_allowance`.
+  Terms › `settle_bound`: `journal_write_bound + clock_offset_allowance`.
 
   Terms › `retention_end`: `recorded_at + retention_period`.
   WHY: the delta rule needs a prefix-closed read, which Event Log does not grant. Contiguity cannot be the test: `next_sequence_number` counts allocations, so a gap is normal. A purge writes no log record, so the horizon is applied on read.
@@ -232,7 +232,7 @@ The section is released on the holder's return, well inside `journal_write_bound
   ```
   WHY: sequentially, `run_bound` is the backlog times `closure_latency` plus one holder's remaining lease per act; condition 1 carries it three times.
 - **`compensation_window`** — the duration within which the sweep closes an act whose invocation died, from the intent's `recorded_at`. Conditions 1 and 2; rearranged, the at-risk threshold of [Reconcile] step 5. *Default:* none.
-- **`clock_skew_allowance`** — the allowance for comparing a reading from one clock with a stamp or instant from another; §*Where the allowance goes* owns where it is spent. *Default:* none.
+- **`clock_offset_allowance`** — the allowance for comparing a reading from one clock with a stamp or instant from another; §*Where the allowance goes* owns where it is spent. *Default:* none.
 - **`intent_candidates_cap`** — the most `store_candidates` an `<kind>.escalated` record names, each under `reference_length_cap`; past it, the count and the range. Sizes the compensation envelope (Invariant 6). *Default:* none.
 - **`retention_period`** — a per-kind binding (*Bindings*, `journal`); [Reconcile] step 1 and condition 2 read it. *Default:* none.
 - **`read_cap`** — the most invocations [Read Invocation] returns for one act, and the most records per invocation. *Default:* none.
@@ -255,7 +255,7 @@ Primitive policy 11: The composition MUST write invocation_id, intent_event_id, 
 Primitive policy 12: [Open] MUST size intent_data and the kind's largest record against outcome_envelope and the substrate's payload_cap as the substrate measures a payload.
 Primitive policy 13: [Open] MUST refuse invalid-request for an act whose largest record would not fit.
 Primitive policy 14: An action signature MUST NOT take now.
-Primitive policy 15: [Open] MUST use now for exactly one comparison: step 3's age of an open intent against recorded_at under clock_skew_allowance.
+Primitive policy 15: [Open] MUST use now for exactly one comparison: step 3's age of an open intent against recorded_at under clock_offset_allowance.
 NOTE: Primitive policy 16 deleted — Composes 1 owns it: a stamp the composition takes from now is neither the substrate's nor the constituent's.
 Primitive policy 17: The adopter's action MUST carry invocation_id from [Open] into [Close] and [Refuse] as a parameter of each.
 Primitive policy 18: The sweep MUST read now once per run at the sweep's own seam.
@@ -271,13 +271,13 @@ Terms › `operator_run_id`: injected at the operator's seam once per [Resolve] 
 
 Terms › `caller_kind`: EXACTLY ONE OF human, service — service where `actor_ref` names the kind's `service_identity`.
 
-Terms › `examine_edge`: `recorded_at + completion_bound + clock_skew_allowance`.
+Terms › `examine_edge`: `recorded_at + completion_bound + clock_offset_allowance`.
 
 Terms › `in-flight`: an open intent for which `examine_edge` EXCEEDS `now`.
 
 Terms › `aged`: an open intent for which `now` EXCEEDS `examine_edge` OR `now` = `examine_edge`.
 
-Terms › `horizon_edge`: `recorded_at + retention_period − clock_skew_allowance`.
+Terms › `horizon_edge`: `recorded_at + retention_period − clock_offset_allowance`.
 
 Terms › `as the substrate measures a payload`: the serialized envelope `{action_ref, actor_ref, attestation_id, data}` with the longer of the caller's and the service identity's `actor_ref`, the substrate's `attestation_id_width`, and the framing. The sweep's two closings — the recovered outcome (`outcome_data` plus `recovery`, `acting_actor_ref`) and the escalation (`store_candidates` plus the same) — are sized separately; the bound is the larger.
 
@@ -687,7 +687,7 @@ Without reconcile 1 a journal outage returns zero counts and step 5 surfaces not
    reconcile step 1.1: The run MUST rebuild open_invocations and act_closings from the substrate's range read.
    reconcile step 1.2: The run MUST keep EVERY aged intent for which horizon_edge EXCEEDS now, and no other intent.
    NOTE: watch applicability — the pass's domain is carried by a relative clause (reconcile step 1.2); the corpus has no WHERE.
-   reconcile step 1.3: The run MUST make reconcile step 1.2's comparison from the sweep's seam reading against the substrate's stamp, under clock_skew_allowance.
+   reconcile step 1.3: The run MUST make reconcile step 1.2's comparison from the sweep's seam reading against the substrate's stamp, under clock_offset_allowance.
    reconcile step 1.4: The run MUST keep every closing record in the delta for step 5.
    reconcile step 1.5: The run MUST discard the kept closing records with the run.
    reconcile step 1.6: Step 1 MUST surface EVERY unbound-kind intent per Binding 4–6.
@@ -760,7 +760,7 @@ Without reconcile 1 a journal outage returns zero counts and step 5 surfaces not
    reconcile step 5.8: The run MUST return the counts.
    ```
 
-Terms › `at_risk_threshold`: `compensation_window − 2 × run_bound − reconciliation_cadence − clock_skew_allowance`.
+Terms › `at_risk_threshold`: `compensation_window − 2 × run_bound − reconciliation_cadence − clock_offset_allowance`.
 
 Terms › `intent_age`: `now − recorded_at`.
 
@@ -882,7 +882,7 @@ An unbound kind has no `probe`, no `completion_bound` and no `retention_period`,
   pairing_datum 6: WHEN pairing_datum = none:
       pairing_datum 6a: probe MUST NOT answer committed.
   ```
-  WHY: two nodes' seams may read one instant within `clock_skew_allowance`, and the section separates invocations without separating stamps; the failure is safe (`undecidable`, escalated) but a nonce avoids it.
+  WHY: two nodes' seams may read one instant within `clock_offset_allowance`, and the section separates invocations without separating stamps; the failure is safe (`undecidable`, escalated) but a nonce avoids it.
 - **`repeatable`** — `yes` or `no`: whether two invocations against one `act_key` are two acts or one act attempted twice.
   ```text
   repeatable 1: [Open]'s act-landed refusal MAY fire ONLY IF repeatable = no.
@@ -940,11 +940,11 @@ Instance start 2: The instance MUST check EVERY condition at start for EVERY bou
 Instance start 3: IF any condition fails for any bound kind THEN the instance MUST NOT start.
 ```
 
-Terms › `worst_closure`: `completion_bound + 2 × clock_skew_allowance + 2 × reconciliation_cadence + 3 × run_bound` — `completion_bound` the kind's, the rest the instance's, the allowance counted twice for every kind, fenced or not.
+Terms › `worst_closure`: `completion_bound + 2 × clock_offset_allowance + 2 × reconciliation_cadence + 3 × run_bound` — `completion_bound` the kind's, the rest the instance's, the allowance counted twice for every kind, fenced or not.
 
-Terms › `window_end`: `completion_bound + clock_skew_allowance + compensation_window`.
+Terms › `window_end`: `completion_bound + clock_offset_allowance + compensation_window`.
 
-Terms › `lease_spend`: `2 × read_bound + 2 × journal_write_bound + commit_round_trip`, plus `clock_skew_allowance` ONLY IF the act kind declares `commit_fence` OR the substrate declares `journal_fence` (Allowance 11).
+Terms › `lease_spend`: `2 × read_bound + 2 × journal_write_bound + commit_round_trip`, plus `clock_offset_allowance` ONLY IF the act kind declares `commit_fence` OR the substrate declares `journal_fence` (Allowance 11).
 
 Terms › `run_floor`: `max(completion_bound, closure_latency + journal_write_bound) + closure_latency`.
 
@@ -976,7 +976,7 @@ WHY:
 ### Where the allowance goes
 
 ```text
-Allowance 1: clock_skew_allowance IS AUTHORITATIVE FOR every comparison in Recoverable Invocation between a reading taken at one seam and a stamp or instant minted at another.
+Allowance 1: clock_offset_allowance IS AUTHORITATIVE FOR every comparison in Recoverable Invocation between a reading taken at one seam and a stamp or instant minted at another.
 Allowance 2: This section IS AUTHORITATIVE FOR where the allowance is spent.
 NOTE: watch addressable sections (journal_fence 2).
 Allowance 3: A writer MUST classify EVERY cross-seam comparison in Recoverable Invocation as EXACTLY ONE OF applied, minted.
@@ -993,25 +993,25 @@ Seven clocks meet on this page: the adopter's seam ([Open] step 3), the sweep's 
 
 **Minted — three instants.**
 
-Terms › `commit_fence deadline`: minted by the section host as the act's `expires_at`, judged by the adopter's constituent store, value `expires_at − clock_skew_allowance`; bound at *Bindings*, §`commit`.
+Terms › `commit_fence deadline`: minted by the section host as the act's `expires_at`, judged by the adopter's constituent store, value `expires_at − clock_offset_allowance`; bound at *Bindings*, §`commit`.
 
-Terms › `journal_fence lease terminus`: minted by the section host as the writer's `expires_at`, judged by the substrate, value `expires_at − clock_skew_allowance`; bound at *Composes*, §`journal_fence`.
+Terms › `journal_fence lease terminus`: minted by the section host as the writer's `expires_at`, judged by the substrate, value `expires_at − clock_offset_allowance`; bound at *Composes*, §`journal_fence`.
 
-Terms › `journal_fence per-write terminus`: minted by the writer's own seam at the write's issue, judged by the substrate, value `issue + journal_write_bound − clock_skew_allowance`; bound at *Composes*, §`journal_fence`.
+Terms › `journal_fence per-write terminus`: minted by the writer's own seam at the write's issue, judged by the substrate, value `issue + journal_write_bound − clock_offset_allowance`; bound at *Composes*, §`journal_fence`.
 
 **Applied — every other cross-seam comparison on this page:** [Open] step 3's age of an open intent; the retention drop on every read of `open_invocations`; [Resolve]'s too-young guard; the `sequence_high_water` advance; the sweep's edges and window; [Read Invocation]'s rebuild.
 
 **Payments.** A minted instant is paid for, and this page owns the payments because the atom refuses to.
 
 ```text
-Allowance 11: IF commit_fence = declared OR journal_fence = declared THEN condition 3 of instance start MUST charge one clock_skew_allowance.
+Allowance 11: IF commit_fence = declared OR journal_fence = declared THEN condition 3 of instance start MUST charge one clock_offset_allowance.
 Allowance 12: The sweep MUST NOT write abandoned BEFORE abandon_edge.
-Allowance 13: IF journal_fence = declared THEN the deployment MUST disclose journal_write_bound with clock_skew_allowance of headroom over the substrate's own worst case.
+Allowance 13: IF journal_fence = declared THEN the deployment MUST disclose journal_write_bound with clock_offset_allowance of headroom over the substrate's own worst case.
 ```
 
-Terms › `abandon_edge`: the examine edge plus one further `clock_skew_allowance` — `recorded_at + completion_bound + 2 × clock_skew_allowance`.
+Terms › `abandon_edge`: the examine edge plus one further `clock_offset_allowance` — `recorded_at + completion_bound + 2 × clock_offset_allowance`.
 
-Terms › `usable_term`: `completion_bound − clock_skew_allowance` — the term a fenced lease's operations have to finish in.
+Terms › `usable_term`: `completion_bound − clock_offset_allowance` — the term a fenced lease's operations have to finish in.
 
 WHY:
 A judge whose clock lags the minter admits, for the lag, a write the minter would call late (`-buggy-skew`, rejected; with clocks in step the bare instant holds, so the skew decides). The margin is required on every instant (`-buggy-perwrite`). One allowance in Allowance 11: both fences pull the same terminus in. Allowance 12 is sweep-to-store, a different pair from the minting's host-to-store. Without Allowance 13 a write taking the full bound is fenced out and retried — safe, an undisclosed liveness cost; the model carries the fence, not the disclosure (Ledger, NOT MODELED).
@@ -1103,7 +1103,7 @@ An `escalated` entry becomes `resolved` when an operator's abandonment names it,
   Invariant 4.9: IF commit_fence = none THEN the sweep MUST NOT abandon the act.
   Invariant 4.10: PROVISIONAL: the abandoned arm DEGRADES TO escalated.
   ```
-  *Rests on:* [Reconcile]'s edges and steps 3–5; the kind's `completion_bound` and `retention_period`; the instance's `clock_skew_allowance`, `reconciliation_cadence`, `run_bound`, `closure_latency`, `read_bound`, `journal_write_bound` and `compensation_window`; the substrate's range read.
+  *Rests on:* [Reconcile]'s edges and steps 3–5; the kind's `completion_bound` and `retention_period`; the instance's `clock_offset_allowance`, `reconciliation_cadence`, `run_bound`, `closure_latency`, `read_bound`, `journal_write_bound` and `compensation_window`; the substrate's range read.
 
   WHY: during a journal outage no intent is enumerable, so per-intent evidence cannot exist; `act-in-flight` cannot be the outage's code because reading its payload is what failed.
 
@@ -1166,7 +1166,7 @@ The adopter is Immutable Transaction Ledger's `disclose_subset`, bound as:
 - `pairing_datum` = `disclosed_at`, the seam-injected `now`, carried in `intent_data` and passed into `commit`. Selective Disclosure admits no nonce, so the binding declares pairing_datum 4's obligation and discharges it by minting `disclosed_at` from a per-node monotonic source whose low bits carry the node, the tag below the resolution at which the constituent's not-in-future guard discriminates, both seams sharing one clock authority (a declared deployment obligation). A deployment whose authority ticks at or below the tag's resolution tags elsewhere.
 - `probe` = read Selective Disclosure's store by `subject_ref` and `recipient` and select, in the adopter's code, the record whose `scope`, authority and `disclosed_at` equal the intent's: `committed(ledger.disclosed, {disclosure_id, disclosed_at})` on exactly one match, `not-committed` on none, `undecidable(candidates)` on several, `unavailable` on any read outage — the constituent's `invalid-query` is `unavailable` to the sweep and surfaced on `compliance_surface`.
 - `commit_fence = none`; `repeatable = yes`; `completion_bound = 30 s`; `commit_round_trip = 1 s`; `probe_round_trip = 1 s`; `service_identity = ledger-reconciler`.
-- Instance: `reconciliation_cadence = 60 s`; `clock_skew_allowance = 2 s`; `closure_latency = 12 s`; `run_bound = 135 s` (a backlog of three orphans, sequentially, each at worst one holder's remaining lease and one closure: `3 × (30 + 12) = 126 s`, the balance headroom); `journal_write_bound = 3 s`; `read_bound = 2 s`; `compensation_window = 10 min`.
+- Instance: `reconciliation_cadence = 60 s`; `clock_offset_allowance = 2 s`; `closure_latency = 12 s`; `run_bound = 135 s` (a backlog of three orphans, sequentially, each at worst one holder's remaining lease and one closure: `3 × (30 + 12) = 126 s`, the balance headroom); `journal_write_bound = 3 s`; `read_bound = 2 s`; `compensation_window = 10 min`.
 
 **The five conditions of instance start, against these numbers:**
 
@@ -1221,12 +1221,12 @@ Check 2.3: Two intents MUST NOT stand open on one (kind, act_key) at any reading
 Check 2.4: An auditor MUST read supersession transitively per §Which closing stands and count the reachable set as one closing.
 Check 2.5: An auditor MUST read EVERY outcome as EXACTLY ONE OF the three outcome shapes.
 Check 2.6: An auditor MUST report an outcome matching no outcome shape as a conformance failure.
-Check 3.1: For EVERY aged intent inside the horizon, a closing record MUST land WITHIN compensation_window of the intent's recorded_at, the auditor's reading tolerating clock_skew_allowance across seams.
+Check 3.1: For EVERY aged intent inside the horizon, a closing record MUST land WITHIN compensation_window of the intent's recorded_at, the auditor's reading tolerating clock_offset_allowance across seams.
 Check 3.2: An auditor MUST exempt an intent of a kind the bindings table no longer serves.
 Check 3.3: An auditor MUST exempt an intent whose window overlaps any span of journal-unavailable, or of store-unavailable for the intent's kind.
 Check 3.4: An auditor MUST NOT exempt an intent for the healthy gap between two spans.
 Check 3.5: IF service_identity = none THEN the register MUST carry EVERY aged intent as a closure-at-risk act finding WITHIN compensation_window.
-Check 4.1: An auditor MUST confirm all five conditions of instance start, as §Instance start states the conditions, for EVERY bound act kind from the kind's completion_bound, commit_round_trip, probe_round_trip, retention_period and commit_fence declaration, the substrate's journal_fence declaration, and the instance's clock_skew_allowance, reconciliation_cadence, run_bound, closure_latency, read_bound, journal_write_bound and compensation_window.
+Check 4.1: An auditor MUST confirm all five conditions of instance start, as §Instance start states the conditions, for EVERY bound act kind from the kind's completion_bound, commit_round_trip, probe_round_trip, retention_period and commit_fence declaration, the substrate's journal_fence declaration, and the instance's clock_offset_allowance, reconciliation_cadence, run_bound, closure_latency, read_bound, journal_write_bound and compensation_window.
 Check 5.1: EVERY record the service identity attests whose named intent is inside the horizon MUST name an invocation_id whose intent record exists and is attested by a different actor.
 Check 5.2: An auditor MUST report a service-identity record naming no readable intent inside the horizon as a write outside this composition.
 Check 5.3: An auditor MUST answer purged for a service-identity record whose intent is Purged.
@@ -1357,7 +1357,7 @@ Terms › `external evidence`: evidence outside the records — documentation, c
 
 Terms › `recording-failure(step-4)`: the substrate's code for an append that committed and a retention placement that did not; the record is appended.
 
-Terms › `bounds`: `completion_bound`, `commit_round_trip`, `probe_round_trip`, `journal_write_bound`, `read_bound`, `closure_latency`, `run_bound`, `compensation_window`, `clock_skew_allowance`, `retention_period`, `intent_candidates_cap`, `read_cap`.
+Terms › `bounds`: `completion_bound`, `commit_round_trip`, `probe_round_trip`, `journal_write_bound`, `read_bound`, `closure_latency`, `run_bound`, `compensation_window`, `clock_offset_allowance`, `retention_period`, `intent_candidates_cap`, `read_cap`.
 
 Terms › `cadences`: `reconciliation_cadence`.
 
@@ -1538,7 +1538,7 @@ last gate: 2026-09-10 — twelfth gate, fresh reader, on the draft — 6 foundat
 
 open:
 - 2026-09-10-a · refining · Composition state, `findings` · the register carries truth no constituent store replays, and it is classified extraction-pending with no atom yet owning it, so this page owns a durability contract that belongs to one → land the **Condition Register** atom, a durable register of named conditions each opening at a first sighting, advancing at every later one and ceasing when a pass no longer sees it; until it lands the contract in Composition state is the declaration and the debt is flagged rather than normalized
-- 2026-09-10-b · refining · §Where the allowance goes · a deployment declaring `journal_fence` whose `journal_write_bound` carries no headroom fences out writes that take the full disclosed bound, and the model does not distinguish that state because it carries the fence and not the disclosure → disclose `journal_write_bound` with `clock_skew_allowance` of headroom over the substrate's own worst case, and carry the liveness cost as NOT MODELED until a model of the disclosures exists
+- 2026-09-10-b · refining · §Where the allowance goes · a deployment declaring `journal_fence` whose `journal_write_bound` carries no headroom fences out writes that take the full disclosed bound, and the model does not distinguish that state because it carries the fence and not the disclosure → disclose `journal_write_bound` with `clock_offset_allowance` of headroom over the substrate's own worst case, and carry the liveness cost as NOT MODELED until a model of the disclosures exists
 ```
 
 ## Decisions
@@ -1559,7 +1559,7 @@ Directional changes only. Everything smaller lives in the commit that made it: `
 - **2026-09-08 — [Resolve] is modelled as the third writer.** *Chose:* model v4, the operator taking the same section on its own seam reading, `SupersedesNamed`, `OperatorSkew` and `service_identity` as modelled dimensions. *Over:* repairing from the gate's prescription. *Because:* the NOT MODELED list had named [Resolve] for three gates and the ninth returned five of seven foundational findings on it.
 - **2026-09-08 — Supersession is by name; the operator's seam is the sixth clock.** *Chose:* every closing over an existing record carries `supersedes`; `now` injected at the operator's seam. *Over:* the name for the abandoned case only, and an unbounded reading. *Because:* `resolved_by` names the operator, not a record; a destructive write cannot be decided by a reading nothing bounds. Both are rejected twins.
 - **2026-09-08 — `kind` is an argument; the act's closings are a declared index.** *Chose:* `kind` first in every action but [Reconcile], `(kind, act_key)` keys, `act_closings`. *Over:* the kind implicit in the caller. *Because:* a signature that omits the kind names the wrong section, and `act-landed(outcome_event_id)` had nothing to supply its payload.
-- **2026-08-30 — The closure window is bounded by three sweep runs.** *Chose:* `completion_bound + 2 × clock_skew_allowance + 2 × reconciliation_cadence + 3 × run_bound < compensation_window`. *Over:* one `run_bound`, and the two-term correction the gate prescribed. *Because:* a budgeted death involves three runs; the enumeration breaches the old form on 420 of 432 tuples and the correction on 396.
+- **2026-08-30 — The closure window is bounded by three sweep runs.** *Chose:* `completion_bound + 2 × clock_offset_allowance + 2 × reconciliation_cadence + 3 × run_bound < compensation_window`. *Over:* one `run_bound`, and the two-term correction the gate prescribed. *Because:* a budgeted death involves three runs; the enumeration breaches the old form on 420 of 432 tuples and the correction on 396.
 - **2026-08-30 — A duplicate is decided by supersession first and position second.** *Chose:* a declared field on [Read Invocation], a scan over the delta, a check over all four closing kinds. *Over:* three detectors that did not exist. *Because:* a degraded guarantee whose detection is asserted is worth less than an honest statement that there is none.
 - **2026-08-30 — Fenceless is a declared degraded mode.** *Chose:* `journal_fence` optional, the weaker guarantee stated over records. *Over:* requiring a fence no substrate here can supply. *Because:* the guarantee changes and stays checkable.
 - **2026-08-30 — The composition's own writes are fenced, not merely gated.** *Chose:* `journal_fence` as an instance capability requirement. *Over:* the gate alone. *Because:* the gate is check-then-act; the fence carries Invariant 2 with or without it.

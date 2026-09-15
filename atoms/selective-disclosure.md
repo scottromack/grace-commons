@@ -108,10 +108,21 @@ State 10 states the gap that makes backdating undetectable here rather than leav
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's honesty.
+Capability requirement 4: The deployment MUST own the clock's synchronization.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
+NOTE: Clock semantics 4 deleted — State 10 owns it.
+NOTE: Clock semantics 5 deleted — Non-goal 23 owns it.
 ```
 
 WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
+WHY:
+Clock skew between a caller and the seam can push a `disclosed_at` the caller believes is current past the injected reading, and Operation 7 rejects it. That is the correct rejection: the temporal invariant is enforced against the injected `now`, not against the caller's belief about the time.
 
 ### Operations
 
@@ -343,6 +354,7 @@ Non-goal 19: A deployment needing a retention bound MUST compose [Retention Wind
 Non-goal 20: The atom MUST NOT decide whether a disclosure to the subject stands as a disclosure.
 Non-goal 21: The atom MUST NOT bound disclosed_at from below.
 Non-goal 22: The atom MUST NOT offer a filter axis over an authority_reference.
+Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -357,19 +369,6 @@ Non-goal 21 is deliberate asymmetry. `disclosed_at` is bounded above because a f
 ---
 
 ## Edge cases
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's honesty.
-Clock semantics 3: The deployment MUST own the clock's synchronization.
-NOTE: Clock semantics 4 deleted — State 10 owns it.
-Clock semantics 5: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
-```
-
-WHY:
-Clock skew between a caller and the seam can push a `disclosed_at` the caller believes is current past the injected reading, and Operation 7 rejects it. That is the correct rejection: the temporal invariant is enforced against the injected `now`, not against the caller's belief about the time.
 
 ### Concurrency
 

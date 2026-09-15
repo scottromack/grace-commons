@@ -88,6 +88,11 @@ Four states and exactly one terminal stamp each, because the audit question is *
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's timezone handling.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Non-goal 16 owns it.
 ```
 
 WHY:
@@ -208,7 +213,7 @@ The three terminal transitions share one precondition pair — known, and pendin
   Invariant 8.2: IF failed_at EXISTS THEN created_at MUST NOT EXCEED failed_at.
   Invariant 8.3: IF expired_at EXISTS THEN created_at MUST NOT EXCEED expired_at.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Clock semantics 1–2).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2–2).
 - **Invariant 9 — Notification durability.**
   ```text
   Invariant 9.1: The atom MUST NOT delete a notification record.
@@ -264,7 +269,7 @@ This atom's acceptance is what an external auditor can clear from the notificati
 Check 1.1: An auditor MUST read EVERY notification's notification_id, recipient_ref, payload, created_at and status from the store (State 2).
 Check 2.1: An auditor MUST reconstruct a notification's status at a past instant from created_at and the terminal stamp (Invariant 2.4).
 Check 2.2: An auditor MUST read the reconstruction as deterministic on stored fields (Invariant 1.2).
-Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1, Clock semantics 1).
+Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1, Capability requirement 2).
 Check 3.1: An auditor MUST find no notification carrying two terminal stamps (Invariant 3.1).
 Check 3.2: An auditor MUST find no pending notification carrying a terminal stamp (Invariant 3.2).
 Check 4.1: An auditor MUST find EVERY terminal stamp matching the notification's status (Invariant 4.2, Invariant 4.4, Invariant 4.6).
@@ -301,6 +306,7 @@ Non-goal 12: The atom MUST NOT deduplicate two notifications.
 Non-goal 13: The atom MUST NOT purge a payload.
 Non-goal 14: The atom MUST NOT gate [Create].
 Non-goal 15: The atom MUST NOT expire notifications in bulk.
+Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -309,14 +315,6 @@ Who should hear about an event is [Subscription](./subscription.md)'s and the fa
 Where the atom breaks down: when *delivered* is not a single observable event — a multi-hop transport with partial acknowledgement; when the same notification must be retried in place, which this atom refuses on purpose; when the payload cannot be stored at all, which needs a reference rather than content.
 
 ## Edge cases
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
-```
 
 ### String policy
 

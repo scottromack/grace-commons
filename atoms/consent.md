@@ -124,6 +124,9 @@ Stored state 4: The implementation MUST serialize a lazy stored state write for 
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's timezone handling.
+Capability requirement 4: The deployment MUST own the clock's honesty.
 ```
 
 WHY:
@@ -474,13 +477,13 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 ### Clock semantics
 
 ```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: The deployment MUST supply an honest now.
-NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
 Clock semantics 5: [Grant] MUST guard a supplied expires_at against now.
-Clock semantics 6: [Revoke] MUST guard a supplied revoked_at against now.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
+NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
 NOTE: Clock semantics 7 deleted — Operation 10 owns it: `now` is never supplied by the business caller, so a granted_at stamped from the injected now is never a caller-supplied instant.
+Clock semantics 6: [Revoke] MUST guard a supplied revoked_at against now.
 Clock semantics 8: [Revoke] MAY record a revoked_at earlier than now.
 ```
 
@@ -488,6 +491,8 @@ WHY:
 This atom accepts three caller-supplied instants — `expires_at`, `revoked_at` and `at_time` — and that is exactly why its guards read the clock where Message Preference's are forbidden to. A guard consults `now` to refuse a dishonest instant and for nothing else: a bound already in the past, a withdrawal dated in the future (Clock dependence 1, Clock semantics 5, Clock semantics 6). A backdated `revoked_at` is accepted on purpose — documenting a withdrawal recognized or communicated earlier is valid, and the floor is [Granted At] rather than [Now] (Clock semantics 8, Invariant 5.1).
 
 Nothing else consults it. [Granted At] is always the seam's reading and never the caller's, because the moment of agreement is the system's observation rather than the caller's claim (Operation 10).
+
+Clock semantics 5, Clock semantics 6 and Clock semantics 8 stay under this heading rather than under Clock dependence: each is one action's use of a reading Clock dependence 1 already permits, and a family rule does not enlarge because an action instantiates it (council read 75).
 
 ### Concurrency
 

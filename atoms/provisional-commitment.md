@@ -121,6 +121,14 @@ Capability requirement 9: The deployment MUST canonicalize an opaque reference.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
+Capability requirement 13: The deployment MUST own the clock's skew.
+Capability requirement 14: The deployment MUST own the clock's monotonicity.
+NOTE: Clock semantics 4 deleted — Capability requirement 13 owns it.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 5 deleted — Capability requirement 14 owns it.
+NOTE: Clock semantics 6 deleted — Non-goal 26 owns it.
 ```
 
 WHY:
@@ -129,6 +137,9 @@ Capability requirement 3 through Capability requirement 5 are a declared obligat
 Capability requirement 10 and Capability requirement 11 are where the resource return lives, and the placement is the correction of a real defect: a draft of this migration carried the return as an `Operation`, obliging the atom to do something Non-goal 11 says it cannot see and External check 1's own WHY says it cannot check. The registry owns availability, so the registry carries the obligation, and External check 1 is the auditor's reading of it. The negative half is stated separately because a registry that frees the resource on a confirm has broken the atom's point as thoroughly as one that never frees it on an expire (council read 38).
 
 Capability requirement 12 is the liveness half of resolution, and it is a deployment's to make true rather than this atom's. The atom decides nothing about when [Expire] fires (Non-goal 13) and licenses lazy expiry, under which a lapsed commitment stays held until something touches it; a deployment that wants every lapse resolved declares a cadence and a window, and this is the rule that binds them together.
+
+WHY:
+The single reading is what matters for the honored window. A call that read the window against one instant and stamped against a later one could record a resolution the guard would have refused; the Contract's one `now` per call closes that gap inside the transition and leaves clock quality — skew, monotonicity, timezone — where it belongs, at the deployment layer.
 
 ### Operations
 
@@ -398,6 +409,7 @@ Non-goal 22: The atom MUST NOT offer a multi-commitment transaction.
 Non-goal 23: The atom MUST NOT surface a rejection to an audit trail.
 Non-goal 24: The atom MUST NOT hold a resource fungible below the commitment's grain.
 Non-goal 25: The atom MUST NOT guarantee that a lapsed commitment resolves.
+Non-goal 26: A deployment needing two racing transitions ordered MUST read the composing [Event Log](./event-log.md) sequence_number.
 ```
 
 WHY:
@@ -422,20 +434,6 @@ Atomic writes 4: The implementation MUST NOT repair a dangling transition.
 
 WHY:
 Atomic writes 4 is the honest limit. A crash between the state change and the instant's write leaves a commitment this atom has no rule for, and no rule here recovers it: the transactional boundary is the implementation's (Atomic writes 3), and a repair written here would be this atom guessing at a host's storage semantics.
-
-### Clock semantics
-
-```text
-Clock semantics 4: The deployment MUST own the clock's skew.
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
-Clock semantics 5: The deployment MUST own the clock's monotonicity.
-Clock semantics 6: A deployment needing two racing transitions ordered MUST read the composing [Event Log](./event-log.md) sequence_number.
-```
-
-WHY:
-The single reading is what matters for the honored window. A call that read the window against one instant and stamped against a later one could record a resolution the guard would have refused; the Contract's one `now` per call closes that gap inside the transition and leaves clock quality — skew, monotonicity, timezone — where it belongs, at the deployment layer.
 
 ### Concurrency
 

@@ -83,6 +83,11 @@ Deletion is the only way out and it is terminal: the atom keeps no memory of wha
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's timezone handling.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Non-goal 16 owns it.
 ```
 
 WHY:
@@ -183,7 +188,7 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
   Invariant 7.2: IF completed_at EXISTS THEN added_at MUST NOT EXCEED completed_at.
   Invariant 7.3: IF last_edited_at EXISTS AND completed_at EXISTS THEN last_edited_at MUST NOT EXCEED completed_at.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Clock semantics 1–3).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Capability requirement 2–3).
 - **Invariant 8 — Id stability.**
   ```text
   Invariant 8.1: [Add] MUST set the id.
@@ -273,7 +278,7 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```text
-External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Clock semantics 1).
+External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Capability requirement 2).
 External check 2: An auditor needing a transition's atomicity confirmed MUST read the implementation's own transactional boundary (Concurrency 2).
 External check 3: An auditor needing a second client's calls accounted for MUST read the deployment's own concurrency-resolution pattern (Concurrency 3).
 ```
@@ -303,6 +308,7 @@ Non-goal 12: The atom MUST NOT hold a dependency between units.
 Non-goal 13: The atom MUST NOT keep a description's history.
 Non-goal 14: The atom MUST NOT resolve two concurrent calls on one unit.
 Non-goal 15: The atom MUST NOT match descriptions case-insensitively.
+Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -311,14 +317,6 @@ Each of these is a field somebody will want to add here and each is a pattern: p
 Where the atom breaks down: any system with more than one actor; a system where *finished* is not binary; a system where the description is not a property worth constraining; a host that cannot make a transition atomic.
 
 ## Edge cases
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
-```
 
 ### Concurrency on one unit
 

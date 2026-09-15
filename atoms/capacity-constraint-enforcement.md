@@ -134,10 +134,22 @@ An audit event has two surfaces with different lifetimes, and the split is struc
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's timezone handling.
+Capability requirement 4: The deployment MUST own the clock's honesty.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
+NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
+NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
+NOTE: Clock semantics 6 deleted — Non-goal 29 owns it.
 ```
 
 WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
+WHY:
+The clock has exactly one job here — stamping `declared_at` and each event's `recorded_at` — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock dependence 1, Clock semantics 5).
 
 ### Operations
 
@@ -484,6 +496,7 @@ Non-goal 25: The atom MUST NOT distinguish a purged pool_id from an undeclared p
 Non-goal 26: The atom MUST NOT record a refused call.
 Non-goal 27: A deployment needing refusal visibility MUST compose [Event Log](./event-log.md).
 Non-goal 28: The atom MUST NOT hold a multi-dimensional capacity.
+Non-goal 29: A deployment needing verifiable wall-time order MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -504,20 +517,6 @@ Clock dependence 2: A rejection MUST NOT rest on now.
 
 WHY:
 Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: The deployment MUST supply an honest now.
-NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
-NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
-Clock semantics 6: A deployment needing verifiable wall-time order MUST compose a trusted-timestamping pattern.
-```
-
-WHY:
-The clock has exactly one job here — stamping `declared_at` and each event's `recorded_at` — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock dependence 1, Clock semantics 5).
 
 ### Concurrency
 

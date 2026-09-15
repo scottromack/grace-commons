@@ -126,12 +126,24 @@ Capability requirement 11: The store MUST acknowledge a write ONLY IF the write 
 Capability requirement 12: The store MUST commit an admitted rotate's two writes together.
 Capability requirement 13: The deployment MUST canonicalize an opaque reference.
 Capability requirement 14: The deployment MUST declare the length bound.
+Capability requirement 15: The deployment MUST own the clock's skew.
+Capability requirement 16: The deployment MUST own the clock's monotonicity.
+NOTE: Clock semantics 4 deleted — Capability requirement 15 owns it.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 5 deleted — Capability requirement 16 owns it.
+NOTE: Clock semantics 6 deleted — Non-goal 27 owns it.
+NOTE: Clock semantics 7 deleted — Non-goal 28 owns it.
 ```
 
 WHY:
 Capability requirement 8 is a correction, and the correction is worth stating because the prose it replaces named a mechanism that cannot work. A draft of this atom asked the store to enforce effective-active uniqueness with *a unique partial index on the pair where status is active and the credential is not past its deadline* — and no index predicate can reference `now`. The clock-free half of that index, `where status = active`, forbids exactly the case Operation 8 permits: a lapsed record standing in active beside its successor. So the index is either unimplementable or wrong, and the obligation it was reaching for is a section over the pair — the same shape [Provisional Commitment](./provisional-commitment.md)'s registry carries. The obligation is unchanged; only the mechanism illustration is gone, and it is recorded in the Ledger rather than quietly dropped.
 
 Capability requirement 14 is the delegated cap. This atom declares no maximum length for a string input and obliges the deployment to declare one, which is one of the postures the *input-handling regime* docket row counts; the material is exempt only insofar as a derivation function states its own bounds.
+
+WHY:
+Non-goal 27 is the price of the derivation and it is cheaper here than it looks. Two readers with skewed clocks can disagree near a deadline about whether a credential reads expired — and no `verified` is answered for a lapsed credential under *either* reader's clock, no record diverges, and nothing is written. The disagreement is about a projection, not about state.
 
 ### Operations
 
@@ -451,6 +463,8 @@ Non-goal 23: The atom MUST NOT decide whether a verifier is special-category dat
 Non-goal 24: The atom MUST NOT record a transition history.
 Non-goal 25: The atom MUST NOT record an answer the atom gave.
 Non-goal 26: The atom MUST NOT guarantee that a credential reaches a stored terminal.
+Non-goal 27: The atom MUST NOT bound two readers' effective status agreement.
+Non-goal 28: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -476,21 +490,6 @@ Atomic writes 5: A refused rotate MUST leave the prior credential in active.
 
 WHY:
 Atomic writes 5 is the half of rotation a partial write breaks. Two records change and a crash between them leaves either a successor nobody points at or a predecessor pointing at nothing; the second is the one that breaks Invariant 7.1, and Operation 40 is what forbids it.
-
-### Clock semantics
-
-```text
-Clock semantics 4: The deployment MUST own the clock's skew.
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
-Clock semantics 5: The deployment MUST own the clock's monotonicity.
-Clock semantics 6: The atom MUST NOT bound two readers' effective status agreement.
-Clock semantics 7: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
-```
-
-WHY:
-Clock semantics 6 is the price of the derivation and it is cheaper here than it looks. Two readers with skewed clocks can disagree near a deadline about whether a credential reads expired — and no `verified` is answered for a lapsed credential under *either* reader's clock, no record diverges, and nothing is written. The disagreement is about a projection, not about state.
 
 ### Concurrency
 

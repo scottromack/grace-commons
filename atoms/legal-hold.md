@@ -96,6 +96,11 @@ There is no aggregate *is this record held* field, because an aggregate is a sec
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's timezone handling.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Non-goal 17 owns it.
 ```
 
 WHY:
@@ -338,6 +343,7 @@ Non-goal 13: The atom MUST NOT place one hold over two records.
 Non-goal 14: The atom MUST NOT import a retention policy.
 Non-goal 15: The atom MUST NOT purge a hold record.
 Non-goal 16: A deployment sweeping the hold store MUST leave EVERY stored field as written.
+Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -346,14 +352,6 @@ The atom documents an obligation and enforces nothing, which is the seam that ma
 Where the atom breaks down: when the preservation duty is defined by a query rather than a record — *everything touching Project Alpha* — which needs a composing pattern to enumerate and place; when the hold must survive the store that holds it, which needs an external anchor; when who may lift a hold is part of the obligation, which is Permissions' and not a field here.
 
 ## Edge cases
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
-```
 
 ### Concurrency
 

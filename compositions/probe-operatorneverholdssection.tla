@@ -127,7 +127,7 @@
 \* - Skew IS modeled, between the two clocks the fence spans: the section host
 \*   mints the instant, the substrate judges the refusal, and JournalSkew is the
 \*   second clock's offset from the first. Every other comparison still reads one
-\*   clock; the spec's clock_skew_allowance widens those edges by a constant and
+\*   clock; the spec's clock_offset_allowance widens those edges by a constant and
 \*   the model checks their shape, not their width.
 \* - A pause is free EXCEPT where it would let a run outrun `run_bound`: a
 \*   sweep run that pauses past its own lease is charged a death, because a run

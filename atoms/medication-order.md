@@ -73,7 +73,7 @@ Terms › `attribution reference`: `prescriber_ref`, `amended_by`, `verifier_ref
 
 Terms › `reference`: `order_id`, `patient_ref`, `medication_ref`, `clinical_evidence_ref`, an attribution reference, `predecessor_id` OR `successor_id` — every opaque reference this atom records.
 
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` Logic confinement declares it; the host injects the clock reading, the id material and the clock_skew_allowance here.
+Terms › `seam`: the atom's I/O boundary as `execution-contract.md` Logic confinement declares it; the host injects the clock reading, the id material and the clock_offset_allowance here.
 
 Terms › `transition`: the atom's evaluation of one call against the order store, as `execution-contract.md` Logic confinement declares it.
 
@@ -114,8 +114,8 @@ State 14 says the absence plainly. There is no purge here and no delete surface 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
-Capability requirement 3: The deployment MUST declare the clock_skew_allowance.
-Capability requirement 4: The deployment MUST supply the clock_skew_allowance at the seam.
+Capability requirement 3: The deployment MUST declare the clock_offset_allowance.
+Capability requirement 4: The deployment MUST supply the clock_offset_allowance at the seam.
 Capability requirement 5: The store instance MUST serialize two order actions naming one order_id.
 Capability requirement 6: The store instance MUST NOT evaluate the state check BEFORE taking the section.
 Capability requirement 7: The store instance MUST release the section on the caller's return.
@@ -124,6 +124,8 @@ Capability requirement 9: The store MUST acknowledge a write ONLY IF the write c
 Capability requirement 10: The store MUST commit an admitted amend's two writes together.
 Capability requirement 11: The deployment MUST canonicalize an opaque reference.
 Capability requirement 12: The deployment MUST declare the length bound.
+Capability requirement 13: The deployment MUST own the clock's skew.
+Capability requirement 14: The deployment MUST own the clock's monotonicity.
 ```
 
 WHY:
@@ -277,7 +279,7 @@ Terms › `field fault`: a blank required string input beside `order_id`, a non-
 
 Terms › `required string input`: `patient_ref`, `prescriber_ref`, `medication_ref`, `dose_unit`, `route`, `frequency`, a supplied `clinical_evidence_ref`, a supplied `lot_number`, `reason`, an attribution reference OR `order_id` — every string an action refuses when blank.
 
-Terms › `future bound`: `now` raised by the `clock_skew_allowance`.
+Terms › `future bound`: `now` raised by the `clock_offset_allowance`.
 
 Terms › `query axes`: `order_id`, `patient_ref`, `medication_ref`, `prescriber_ref`, `state` and a range over `ordered_at` — every filter axis [Read] admits.
 
@@ -504,6 +506,7 @@ Non-goal 21: The atom MUST NOT model a refill.
 Non-goal 22: The atom MUST NOT bound an order's retention.
 Non-goal 23: The atom MUST NOT record an answer the atom gave.
 Non-goal 24: The atom MUST NOT guarantee that an order reaches a terminal state.
+Non-goal 25: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -538,9 +541,9 @@ NOTE: Clock semantics 3 deleted — Operation 4 owns it for ordered_at, and the 
 NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
 NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
 Clock semantics 5: The atom MUST NOT bound a supplied event instant.
-Clock semantics 6: The deployment MUST own the clock's skew.
-Clock semantics 7: The deployment MUST own the clock's monotonicity.
-Clock semantics 8: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+NOTE: Clock semantics 6 deleted — Capability requirement 13 owns it.
+NOTE: Clock semantics 7 deleted — Capability requirement 14 owns it.
+NOTE: Clock semantics 8 deleted — Non-goal 25 owns it.
 ```
 
 WHY:
@@ -630,13 +633,13 @@ Terms › `record verbs`: identify, assign, generate, change, share, reuse, carr
 
 Terms › `value sets`: order answers = order_id | rejected(invalid-order | storage-failure). amend answers = new_order_id | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-dispensed | invalid-request | storage-failure). verify answers = verified | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-in-ordered-state | invalid-request | storage-failure). hold answers = held | rejected(not-known | already-on-hold | already-amended | already-cancelled | already-discontinued | already-completed | invalid-request | storage-failure). reinstate answers = reinstated | rejected(not-known | not-on-hold | invalid-request | storage-failure). dispense answers = dispensed | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-verified | already-dispensed | invalid-request | storage-failure). administer answers = administered | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | already-administered | invalid-request | storage-failure). complete answers = completed | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-administered | invalid-request | storage-failure). cancel answers = cancelled | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | already-dispensed | invalid-request | storage-failure). discontinue answers = discontinued | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | invalid-request | storage-failure). read answers = the matching orders | rejected(invalid-query). `state` = ordered | verified | amended | on-hold | dispensed | administered | completed | cancelled | discontinued. `terminal state` = completed | cancelled | discontinued. `inactive state` = amended | completed | cancelled | discontinued. `pre-dispensing state` = ordered | verified. `post-dispensing state` = dispensed | administered. `core field` = patient_ref | prescriber_ref | medication_ref | dose | dose_unit | route | frequency | duration | clinical_evidence_ref | ordered_at. `dosing parameter` = dose | dose_unit | route | frequency | duration. `blank-input rejection` = invalid-order | invalid-request.
 
-Terms › `bounds`: `future bound`, `length bound`, `clock_skew_allowance`.
+Terms › `bounds`: `future bound`, `length bound`, `clock_offset_allowance`.
 
 Terms › `cadences`: empty.
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `order`, `order_id`, `store instance`, `core field`, `dosing parameter`, `attribution reference`, `reference`, `seam`, `transition`, `now`, `order action`, `state-changing action`, `held-refusing action`, `state`, `terminal state`, `inactive state`, `pre-dispensing state`, `post-dispensing state`, `actionable state`, `inactive state's rejection`, `state check`, `blank-input rejection`, `field fault`, `required string input`, `future bound`, `clock_skew_allowance`, `event instant`, `query axes`, `field group`, `reason field`, `admitted order`, `admitted amend`, `admitted verify`, `admitted hold`, `admitted reinstate`, `admitted dispense`, `admitted administer`, `admitted complete`, `admitted cancel`, `admitted discontinue`, `admitted read`, `string input`, `blank`, `length bound`, `resolved dispensed_at`, `resolved administered_at`, `resolved completed_at`.
+Terms › `terms`: `order`, `order_id`, `store instance`, `core field`, `dosing parameter`, `attribution reference`, `reference`, `seam`, `transition`, `now`, `order action`, `state-changing action`, `held-refusing action`, `state`, `terminal state`, `inactive state`, `pre-dispensing state`, `post-dispensing state`, `actionable state`, `inactive state's rejection`, `state check`, `blank-input rejection`, `field fault`, `required string input`, `future bound`, `clock_offset_allowance`, `event instant`, `query axes`, `field group`, `reason field`, `admitted order`, `admitted amend`, `admitted verify`, `admitted hold`, `admitted reinstate`, `admitted dispense`, `admitted administer`, `admitted complete`, `admitted cancel`, `admitted discontinue`, `admitted read`, `string input`, `blank`, `length bound`, `resolved dispensed_at`, `resolved administered_at`, `resolved completed_at`.
 
 Terms › `cited`: `execution-contract.md` Logic confinement — the seam and the transition.
 
@@ -650,7 +653,7 @@ Terms › `resolved administered_at`: the `administered_at` the order carries �
 
 Terms › `resolved completed_at`: the `completed_at` the order carries — the supplied value where one exists, and `now` otherwise.
 
-Terms › `clock_skew_allowance`: the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
+Terms › `clock_offset_allowance`: the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
 
 Terms › `reason field`: `amendment_reason` | `hold_reason` | `cancellation_reason` | `discontinuation_reason` — every field recording why an action was taken.
 
@@ -1287,6 +1290,6 @@ Directional changes only — the turns a future reader must know the pattern too
   What does not strip is the *graph*. Nine states in this topology, with the amendment boundary and the cancel/discontinue split landing on exactly the dispensing edge, is not derivable from neutral primitives — a generic state machine plus a supplied graph is just this atom with the domain moved into a parameter, and the parameter would carry every clinical judgment the graph encodes. The domain hides in the shape, not in the words and not in the rules. The formal layer corroborates: this is the only atom in the migrated set carrying both an Alloy model and a TLA model, and the Alloy model exists because the *structure* needed checking rather than the timing.
 
   Three specimens now, three hiding places: [Observation](./observation.md) hid nothing and was renamed; [Party Identity](./party-identity.md) hid it in the field schema and kept both name and no tag; this one hides it in the graph and keeps the tag. The test's site-census grows by one per specimen, which is the argument for running it on every atom rather than on the ones that look domain-shaped.
-- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity of the atom's own store as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section — taken before the state check, released on return or death — with a stalled or re-issued invocation re-reading under the section and landing an existing rejection; a re-entry arm for a caller whose [Amend] lost its response, retrying only where the original is still amendable; and a deployment-declared `clock_skew_allowance` under which the future-dated check on a supplied [Ordered At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction; a caller left to retry [Amend] blind, which on an original still [Ordered] creates a second successor; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 14.2 says never exists, could relink one dangling shape but not the other — the successor's dosing parameters, [Amended By] and its amendment reason are nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an amendment the caller's retry could already have landed, branching a chain Invariant 4.1 keeps linear; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page.
+- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity of the atom's own store as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section — taken before the state check, released on return or death — with a stalled or re-issued invocation re-reading under the section and landing an existing rejection; a re-entry arm for a caller whose [Amend] lost its response, retrying only where the original is still amendable; and a deployment-declared `clock_offset_allowance` under which the future-dated check on a supplied [Ordered At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction; a caller left to retry [Amend] blind, which on an original still [Ordered] creates a second successor; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 14.2 says never exists, could relink one dangling shape but not the other — the successor's dosing parameters, [Amended By] and its amendment reason are nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an amendment the caller's retry could already have landed, branching a chain Invariant 4.1 keeps linear; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page.
 
 NOTE: End of Medication Order.

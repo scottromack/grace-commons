@@ -105,10 +105,21 @@ State 11 is what makes a purge auditable. The lifecycle record outlives the cont
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's honesty.
+Capability requirement 4: The deployment MUST own the clock's synchronization.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
+NOTE: Clock semantics 4 deleted — State 13 owns it.
+NOTE: Clock semantics 5 deleted — Non-goal 20 owns it.
 ```
 
 WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
+WHY:
+The lower bounds (Operation 17, Operation 18) hold against the *resolved* value, so a skewed node cannot default its way past them: a wall-clock default that lands before the record's `deleted_at` is refused exactly as a caller-supplied one would be. A backdated instant is otherwise accepted — documenting a deletion or purge recognized later is valid, and the future bound refuses the one direction that is always fabrication.
 
 ### Operations
 
@@ -382,6 +393,7 @@ Non-goal 16: The atom MUST NOT detect a rewrite under the store.
 Non-goal 17: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
 Non-goal 18: The atom MUST NOT define which read surface a deleted record leaves.
 Non-goal 19: The atom MUST NOT bound a transition instant from below by anything beside the lifecycle record's own deleted_at.
+Non-goal 20: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -410,19 +422,6 @@ Terms › `dangling transition`: a transitioning action's mutations standing par
 
 WHY:
 Every transitioning action writes the state and its fields together (Operation 29), and a crash between them produces a purged record with no purge reason — Invariant 5 violated in exactly the way an auditor cannot tell from an implementation that never wrote one. The obligation is all-or-none observability.
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's honesty.
-Clock semantics 3: The deployment MUST own the clock's synchronization.
-NOTE: Clock semantics 4 deleted — State 13 owns it.
-Clock semantics 5: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
-```
-
-WHY:
-The lower bounds (Operation 17, Operation 18) hold against the *resolved* value, so a skewed node cannot default its way past them: a wall-clock default that lands before the record's `deleted_at` is refused exactly as a caller-supplied one would be. A backdated instant is otherwise accepted — documenting a deletion or purge recognized later is valid, and the future bound refuses the one direction that is always fabrication.
 
 ### Concurrency
 

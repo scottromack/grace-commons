@@ -117,6 +117,9 @@ State 14 is stated as a rule rather than left to the implementation because the 
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's honesty.
+Capability requirement 4: The deployment MUST own the clock's synchronization.
 ```
 
 WHY:
@@ -464,6 +467,7 @@ Non-goal 18: A deployment needing an authorization decision MUST compose [Permis
 Non-goal 19: The atom MUST NOT decide which state an instance ought to stand in.
 Non-goal 20: The atom MUST NOT read two [Fire] calls carrying one instance_id and one action as one fire.
 Non-goal 21: A deployment needing at-most-once firing MUST supply the deployment's own idempotency key.
+Non-goal 22: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -497,11 +501,11 @@ Every admitted fire couples three durable mutations — the entry, the counter r
 ### Clock semantics
 
 ```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's honesty.
-Clock semantics 3: The deployment MUST own the clock's synchronization.
 Clock semantics 4: A fired_at MUST NOT bound a later history entry's fired_at.
-Clock semantics 5: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
+NOTE: Clock semantics 5 deleted — Non-goal 22 owns it.
 ```
 
 WHY:

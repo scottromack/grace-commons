@@ -83,7 +83,7 @@ Capability requirement 3: The host MUST draw a fanout id meeting the entropy flo
 NOTE: Capability requirement 4 deleted — `execution-contract.md` §Logic confinement owns it.
 Capability requirement 5: The transition MUST NOT mint an id.
 Capability requirement 6: A deployment MUST disclose the deployment's read latency bound.
-Capability requirement 7: A deployment MUST disclose Subscription's clock tolerance.
+Capability requirement 7: The deployment MUST declare the clock offset allowance.
 ```
 
 Terms › `seam`: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one fanout id here.
@@ -308,7 +308,9 @@ Check 5.1: An auditor MUST find no subscription record written by the compositio
 
 NOTE: EVERY check names the rule the check tests.
 
-Terms › `boundary window`: the interval the read latency bound and Subscription's clock tolerance together span around a fired_at — a [Boundary Window].
+Terms › `clock offset allowance`: `clock_offset_allowance` — the declared envelope within which the composition's fired_at may be compared with a stamp Subscription wrote at its own seam.
+
+Terms › `boundary window`: the interval the read latency bound and the clock offset allowance together span around a fired_at — a [Boundary Window].
 
 ### External checks
 
@@ -414,7 +416,7 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `terms`: `composition`, `constituents`, `seam`, `transition`, `read latency bound`, `blank`, `admitted fanout`, `created list`, `failed list`, `unrecordable create`, `boundary window`.
+Terms › `terms`: `composition`, `constituents`, `seam`, `transition`, `read latency bound`, `blank`, `admitted fanout`, `created list`, `failed list`, `unrecordable create`, `clock offset allowance`, `boundary window`.
 
 Terms › `record verbs`: call, answer, take, read, write, record, validate, compare, normalize, bound, stand, carry, claim, find, name, own, discharge, inherit, change, serve, compose, declare, disclose, supply, draw, mint, commit, order, continue, abort, account, skip, expand, match, deliver, authorize, reconstruct, sum, persist, guarantee, accept, retry, follow, reference, share, store, meet.
 
@@ -493,7 +495,7 @@ Projects:  read_latency_bound
 
 #### Boundary Window
 
-The interval the [Read Latency Bound] and Subscription's clock tolerance together span around a [Fired At]. A subscribe or a cancel stamped inside it can move a reconstructed subscriber count by one, so a coverage mismatch inside the window is boundary-adjacent and one outside it is a violation (Check 1.5, Check 1.6).
+The interval the [Read Latency Bound] and the clock offset allowance together span around a [Fired At]. A subscribe or a cancel stamped inside it can move a reconstructed subscriber count by one, so a coverage mismatch inside the window is boundary-adjacent and one outside it is a violation (Check 1.5, Check 1.6).
 
 Kind: Type
 Projects: boundary_window

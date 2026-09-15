@@ -121,6 +121,9 @@ Capability requirement 3: The deployment MUST supply the session_token's random 
 Capability requirement 4: The session_token's random material MUST NOT fall below the token entropy.
 Capability requirement 5: The deployment MUST own the session_token's format.
 Capability requirement 6: The deployment MUST own whether the store holds a session_token raw.
+Capability requirement 7: The deployment MUST own the clock's monotonicity.
+Capability requirement 8: The deployment MUST own the clock's honesty.
+Capability requirement 9: The deployment MUST own the clock's synchronization.
 NOTE: Configuration 1 deleted — Capability requirement 2 owns it.
 NOTE: Configuration 2 deleted — Operation 48 owns it.
 NOTE: Configuration 3 deleted — Capability requirement 3 owns it.
@@ -128,6 +131,13 @@ NOTE: Configuration 4 deleted — Operation 49 owns it.
 NOTE: Configuration 5 deleted — Capability requirement 4 owns it.
 NOTE: Configuration 6 deleted — Capability requirement 5 owns it.
 NOTE: Configuration 7 deleted — Capability requirement 6 owns it.
+NOTE: Clock semantics 1 deleted — Capability requirement 7 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 8 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 9 owns it.
+NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
+NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
+NOTE: Clock semantics 6 deleted — Non-goal 25 owns it.
+NOTE: Clock semantics 7 deleted — Non-goal 26 owns it.
 ```
 
 WHY:
@@ -141,6 +151,11 @@ WHY:
 A session store with no duration policy is a misconfigured deployment, not a store that issues unbounded sessions — so the absence is a refusal at [Issue] rather than a silent default of forever (Capability requirement 2, Operation 48, Invariant 10).
 
 Raw-versus-hashed token storage is left open because both are conformant: storing raw is simpler, storing a hash means a database breach yields no usable token, and the choice belongs in the composing pattern's configuration where it can be documented (Capability requirement 6).
+
+WHY:
+This atom accepts no caller-supplied instant — the window arrives as a duration, and every timestamp is the seam's reading — so no guard needs the clock to refuse anything, and no rejection in the taxonomy depends on it (Clock dependence 1, Clock semantics 5). The clock's only jobs are stamping two immutable fields and feeding one pure derivation.
+
+That derivation has a bounded consequence worth naming rather than hiding: two readers with slightly skewed clocks evaluating a session near its deadline may briefly disagree on whether it has lapsed. That is the standard read-time-derivation cost, it is bounded by the deployment's skew envelope, and it is harmless here because no write is at stake and revocation — the only stored terminal — is untouched by it (Non-goal 25).
 
 ### Operations
 
@@ -324,7 +339,7 @@ Revocation takes the token as the whole authorization, and the atom exposes no w
   Invariant 11.1: [Validate] MUST NOT answer valid for a lapsed session.
   Invariant 11.2: A lapsed session MUST stand lapsed at EVERY later now.
   ```
-  WHY: the expiry analogue of Invariant 4, and the asymmetry is the point — revocation is an absorbing *stored* state, a lapse is an absorbing *derived* condition. Invariant 11.2 rests on the deadline's immutability (Invariant 2.1) and on the deployment's clock discipline (Clock semantics 1); both paths that foreclose a valid answer are stated so the verification surface is symmetric.
+  WHY: the expiry analogue of Invariant 4, and the asymmetry is the point — revocation is an absorbing *stored* state, a lapse is an absorbing *derived* condition. Invariant 11.2 rests on the deadline's immutability (Invariant 2.1) and on the deployment's clock discipline (Capability requirement 7); both paths that foreclose a valid answer are stated so the verification surface is symmetric.
 - **Invariant 12 — Expiry is derived, never written.**
   ```text
   Invariant 12.1: A session MUST NOT carry a stored expired status.
@@ -424,6 +439,8 @@ Non-goal 21: A deployment needing a retention bound MUST compose [Retention Wind
 Non-goal 22: A deployment needing court-admissible records MUST compose [Tamper Evidence](./tamper-evidence.md).
 Non-goal 23: The atom MUST NOT record who called [Issue].
 Non-goal 24: A deployment needing attribution on issuance MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 25: The atom MUST NOT reconcile two readers disagreeing across the deadline.
+Non-goal 26: A deployment needing an externally verifiable timestamp MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -444,23 +461,6 @@ Clock dependence 2: A rejection MUST NOT rest on now.
 
 WHY:
 Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's honesty.
-Clock semantics 3: The deployment MUST own the clock's synchronization.
-NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
-NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
-Clock semantics 6: The atom MUST NOT reconcile two readers disagreeing across the deadline.
-Clock semantics 7: A deployment needing an externally verifiable timestamp MUST compose a trusted-timestamping pattern.
-```
-
-WHY:
-This atom accepts no caller-supplied instant — the window arrives as a duration, and every timestamp is the seam's reading — so no guard needs the clock to refuse anything, and no rejection in the taxonomy depends on it (Clock dependence 1, Clock semantics 5). The clock's only jobs are stamping two immutable fields and feeding one pure derivation.
-
-That derivation has a bounded consequence worth naming rather than hiding: two readers with slightly skewed clocks evaluating a session near its deadline may briefly disagree on whether it has lapsed. That is the standard read-time-derivation cost, it is bounded by the deployment's skew envelope, and it is harmless here because no write is at stake and revocation — the only stored terminal — is untouched by it (Clock semantics 6).
 
 ### Concurrency
 

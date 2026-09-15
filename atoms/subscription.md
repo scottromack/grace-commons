@@ -93,6 +93,12 @@ A cancelled subscription stays in the store because the record of who was listen
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's timezone handling.
+Capability requirement 4: The deployment MUST own the clock's honesty.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
 ```
 
 WHY:
@@ -207,7 +213,7 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
   ```text
   Invariant 9.1: IF cancelled_at EXISTS THEN subscribed_at MUST NOT EXCEED cancelled_at.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Clock semantics 1–2).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2–2).
 
 ## Examples
 
@@ -284,14 +290,6 @@ The atom records interest and answers audiences; everything downstream of *who* 
 Where the atom breaks down: when the audience cannot be named in advance — a rule evaluated per event rather than a standing interest; when one actor genuinely needs two live subscriptions to one scope through two channels, which is a channel concept the composing pattern carries; and when the composing pattern loses the ids it captured — the subscriptions stay active, every audit sees them, and nothing in this atom can cancel them, because the id is the whole authorization and the atom enumerates none (Lost ledger 1–4).
 
 ## Edge cases
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: The deployment MUST supply an honest now.
-```
 
 ### Atomicity of a cancel
 

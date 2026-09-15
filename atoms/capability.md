@@ -117,10 +117,22 @@ The boundary instant is on the dead side: `now` reaching `expires_at` reads [Exp
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's honesty.
+Capability requirement 4: The deployment MUST own the clock's timezone handling.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
+NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
+NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
+NOTE: Clock semantics 6 deleted — Non-goal 28 owns it.
 ```
 
 WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
+WHY:
+This atom accepts no caller-supplied instant — the window arrives as a duration and every timestamp is the seam's reading — so the clock has exactly two jobs: stamping three immutable fields, and feeding the lapse derivation that three guards read (Clock dependence 1, Clock dependence 2). Two readers with skewed clocks near the deadline may briefly disagree on whether a record reads [Expired]; that is the read-time-derivation cost, bounded by the deployment's skew envelope, and harmless because no write is at stake (Non-goal 28).
 
 ### Operations
 
@@ -472,6 +484,7 @@ Non-goal 24: The atom MUST NOT guarantee a replay bound beyond max_redemptions a
 Non-goal 25: The atom MUST NOT attest an allocator_ref.
 Non-goal 26: The atom MUST NOT attest a revoked_by_ref.
 Non-goal 27: A deployment needing an attested actor MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 28: The atom MUST NOT reconcile two readers disagreeing across the deadline.
 ```
 
 WHY:
@@ -492,20 +505,6 @@ Clock dependence 2: A guard MUST NOT read now to admit a caller-supplied instant
 
 WHY:
 Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's honesty.
-Clock semantics 3: The deployment MUST own the clock's timezone handling.
-NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
-NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
-Clock semantics 6: The atom MUST NOT reconcile two readers disagreeing across the deadline.
-```
-
-WHY:
-This atom accepts no caller-supplied instant — the window arrives as a duration and every timestamp is the seam's reading — so the clock has exactly two jobs: stamping three immutable fields, and feeding the lapse derivation that three guards read (Clock dependence 1, Clock dependence 2). Two readers with skewed clocks near the deadline may briefly disagree on whether a record reads [Expired]; that is the read-time-derivation cost, bounded by the deployment's skew envelope, and harmless because no write is at stake (Clock semantics 6).
 
 ### Concurrency
 

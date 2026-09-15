@@ -117,6 +117,9 @@ The current custodian is a projection, not a fact of its own: replay the entries
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's honesty.
+Capability requirement 4: The deployment MUST own the clock's synchronization.
 ```
 
 WHY:
@@ -417,6 +420,7 @@ Non-goal 19: The atom MUST NOT dispose of a chain.
 Non-goal 20: A deployment needing a lawful disposal MUST compose [Defensible Retention](../compositions/defensible-retention.md).
 Non-goal 21: The atom MUST NOT offer a read keyed by artifact_ref.
 Non-goal 22: The atom MUST NOT offer a compare-and-swap arm on [Transfer].
+Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -464,16 +468,16 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 ### Clock semantics
 
 ```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's honesty.
-Clock semantics 3: The deployment MUST own the clock's synchronization.
 Clock semantics 4: A guard MUST NOT rest on recorded_at.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
 NOTE: Clock semantics 5 deleted — Clock dependence 1 owns it.
-Clock semantics 6: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+NOTE: Clock semantics 6 deleted — Non-goal 23 owns it.
 ```
 
 WHY:
-No invariant here is at risk from a bad clock, because ordering rests on `sequence_number` and never on `recorded_at` (Invariant 5.3, Operation 58). Where a custodial timestamp carries legal force — a chain-of-custody stamp in court proceedings, a pharmaceutical distribution record — the deployment sources time from a trustworthy clock, and RFC (Request for Comments) 3161 trusted timestamping supplies the verifiable anchor (Clock semantics 6).
+No invariant here is at risk from a bad clock, because ordering rests on `sequence_number` and never on `recorded_at` (Invariant 5.3, Operation 58). Where a custodial timestamp carries legal force — a chain-of-custody stamp in court proceedings, a pharmaceutical distribution record — the deployment sources time from a trustworthy clock, and RFC (Request for Comments) 3161 trusted timestamping supplies the verifiable anchor (Non-goal 23).
 
 ### Concurrency
 

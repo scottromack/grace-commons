@@ -117,12 +117,24 @@ Capability requirement 6: The store MUST refuse a write carrying an invitation_t
 Capability requirement 7: The store MUST acknowledge a write ONLY IF the write commits.
 Capability requirement 8: The deployment MUST canonicalize an opaque reference.
 Capability requirement 9: The deployment MUST deliver the invitation_token to the invitee.
+Capability requirement 10: The deployment MUST own the clock's skew.
+Capability requirement 11: The deployment MUST own the clock's monotonicity.
+NOTE: Clock semantics 4 deleted — Capability requirement 10 owns it.
+NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 5 deleted — Capability requirement 11 owns it.
+NOTE: Clock semantics 6 deleted — Non-goal 25 owns it.
+NOTE: Clock semantics 7 deleted — Non-goal 26 owns it.
 ```
 
 WHY:
 Capability requirement 3 is where the token's security actually lives. Nothing in this atom's rules can tell a random token from a sequential one — both are opaque values it stores and compares — and a guessable token makes every other guarantee here worthless, because an attacker who can produce a valid token accepts an invitation that was never sent to them. Capability requirement 6 is its partner and does the work Identity 6 states: the store, not the atom, is what makes uniqueness true.
 
 Capability requirement 7 and Identity 6 are worth reading together, because the second borrows the first's answer. A token collision is refused by the store and surfaces as `storage-failure`, which is true about the outcome — nothing committed — and loose about the cause: a collision is a correct refusal of a well-formed call, not a store that failed, and the remedy differs (fresh token material, not the same write retried). Operation 5 does the same thing one row down, answering `invalid-request` when the deployment declared no default ttl — a configuration gap charged to the caller. Both are defensible and neither is precise, and the reason is the same in both places: the answer set is closed (Closed vocabulary 22), so a rare condition is routed to the nearest existing arm rather than earning one. The docket row counts that shape across the corpus rather than each spec deciding alone (council read 39).
+
+WHY:
+Non-goal 25 is the price of deriving the status, and it is worth naming rather than hiding. Two readers with slightly different clocks, reading the same invitation near its `expires_at`, can disagree about whether it is expired — and that is harmless *here* precisely because nothing is written: no record diverges, no resolution is recorded twice, and the next read from either reader settles it. The same disagreement around a stored flag would be two stores that no longer match.
 
 ### Operations
 
@@ -409,6 +421,8 @@ Non-goal 21: The atom MUST NOT bound an invitation's retention.
 Non-goal 22: The atom MUST NOT record an answer the atom gave.
 Non-goal 23: The atom MUST NOT decide whether a token holder may pass the token on.
 Non-goal 24: The atom MUST NOT guarantee that an invitation resolves.
+Non-goal 25: The atom MUST NOT bound two readers' effective status agreement.
+Non-goal 26: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -428,21 +442,6 @@ Atomic writes 2: The implementation MUST discard an uncommitted transition whole
 Atomic writes 3: The implementation MUST own the transactional boundary.
 Atomic writes 4: The implementation MUST NOT repair a dangling transition.
 ```
-
-### Clock semantics
-
-```text
-Clock semantics 4: The deployment MUST own the clock's skew.
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
-Clock semantics 5: The deployment MUST own the clock's monotonicity.
-Clock semantics 6: The atom MUST NOT bound two readers' effective status agreement.
-Clock semantics 7: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
-```
-
-WHY:
-Clock semantics 6 is the price of deriving the status, and it is worth naming rather than hiding. Two readers with slightly different clocks, reading the same invitation near its `expires_at`, can disagree about whether it is expired — and that is harmless *here* precisely because nothing is written: no record diverges, no resolution is recorded twice, and the next read from either reader settles it. The same disagreement around a stored flag would be two stores that no longer match.
 
 ### Concurrency
 

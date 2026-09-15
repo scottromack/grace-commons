@@ -70,7 +70,7 @@ And the ones the frozen rules of 2026-08-30 add:
 - **Every verdict class in a verdict table resolves to a producing step.** A `failed-verification(purged)` the table promises has a step that reaches it before any composition-side membership check — §*Lawful destruction is answered before absence*.
 - **Every set-valued outcome field resolves to a cardinality cap.** *Non-empty* is not a cap — §*An outcome is sized before the intent*.
 - **Every liveness window resolves to its inequality.** Bound, cadence, and latency are three Configuration entries and the strict inequality is on the page — §*Liveness is arithmetic*.
-- **Every cross-seam comparison names its skew allowance.** A composition stamp compared to a constituent stamp resolves to a `clock_skew_allowance` entry or to a pass-through — §*A stamp from another seam never decides a write alone*.
+- **Every cross-seam comparison names its offset allowance.** A composition stamp compared to a constituent stamp resolves to a `clock_offset_allowance` entry or to a pass-through — §*A stamp from another seam never decides a write alone*.
 - **Every exported rejection code carries the payload the prose distinguishes.** A token landed on both sides of the commit carries the position in the signature — §*A composition's own rejection arm carries the retry bit* (linter check `U-retry-bit`).
 - **Every exercised constituent capability resolves to a declared source.** The six tells for uses under §*Capability provenance* — a read keyed by an un-indexed field, an enumeration the store does not offer, durability the constituent disclaims, a multi-call critical section, a clock the constituent has none of, a uniqueness scope wider than the constituent's — are each an orphaned reference.
 
@@ -889,7 +889,7 @@ One inequality per liveness arm, written out in Configuration with its three ter
 
 > **FROZEN — 2026-08-30.** Stated from two third-gate foundational findings and two refining lines, in patterns that had each stated the Logic Confinement Principle correctly for their own seam and then compared their own reading against a constituent's.
 
-**The rule.** *A timestamp the composition wrote from its seam and a timestamp a constituent wrote from its own are two readings of two clocks. They may be compared only under a **declared skew allowance** — a Configuration entry — and the comparison may **narrow** a decision, never make one: no pairing, bypass verdict, enrollment, compensation, or refusal rests on it alone. Where the composition needs equality, it passes its own reading **through** to the constituent (`disclosed_at = now`, `revoked_at = now`), so that the stamp on the constituent's record is the composition's and equality is by construction.* A constituent that calls its own range read *best-effort under skew* has told the composition the read is advisory; a composition that gates a write on it has overruled the constituent's own contract.
+**The rule.** *A timestamp the composition wrote from its seam and a timestamp a constituent wrote from its own are two readings of two clocks. They may be compared only under a **declared offset allowance** — a Configuration entry — and the comparison may **narrow** a decision, never make one: no pairing, bypass verdict, enrollment, compensation, or refusal rests on it alone. Where the composition needs equality, it passes its own reading **through** to the constituent (`disclosed_at = now`, `revoked_at = now`), so that the stamp on the constituent's record is the composition's and equality is by construction.* A constituent that calls its own range read *best-effort under skew* has told the composition the read is advisory; a composition that gates a write on it has overruled the constituent's own contract.
 
 ### The tells
 
@@ -901,7 +901,7 @@ One inequality per liveness arm, written out in Configuration with its three ter
 
 ### What it costs
 
-One Configuration entry (`clock_skew_allowance`), symmetric windows widened by it wherever two seams meet, the pass-through wherever the constituent's contract accepts the stamp, and — where it does not — the decision downgraded from a verdict to candidates or an escalation. The Generation acceptance standing rule most patterns already carry for *checks* is the same allowance; this rule carries it to the writes.
+One Configuration entry (`clock_offset_allowance`), symmetric windows widened by it wherever two seams meet, the pass-through wherever the constituent's contract accepts the stamp, and — where it does not — the decision downgraded from a verdict to candidates or an escalation. The Generation acceptance standing rule most patterns already carry for *checks* is the same allowance; this rule carries it to the writes.
 
 ### Which pass owns it
 

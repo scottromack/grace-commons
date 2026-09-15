@@ -123,10 +123,24 @@ The consequence is stated rather than hidden: a caller whose clock runs ahead of
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's honesty.
+Capability requirement 4: The deployment MUST own the clock's synchronization.
+Capability requirement 5: The deployment MUST declare the clock_offset_allowance.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
+NOTE: Clock semantics 4 deleted — Capability requirement 5 owns it.
+NOTE: Clock semantics 5 deleted — State 13 owns it.
+NOTE: Clock semantics 6 deleted — State 14 owns it.
+NOTE: Clock semantics 7 deleted — Non-goal 23 owns it.
 ```
 
 WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
+WHY:
+`recorded_at` may not increase monotonically across a subject's observations under a skewed clock, and there is no sequence number here to fall back on. Ordering within a history is best-effort wall time, not causal order — which is what Operation 55 forbids a rule from resting on.
 
 ### Operations
 
@@ -218,9 +232,9 @@ Terms › `state rejection`: `already-amended` OR `already-retracted` — the re
 
 Terms › `value constraint`: the bound a deployment declares for one `observation_type` — what a valid value for that measurement is; declared by the deployment, applied by the atom, and defined by neither the atom nor this grammar.
 
-Terms › `clock_skew_allowance`: the non-negative duration a deployment declares as the margin between a caller's clock and the seam's; `0` means no tolerance.
+Terms › `clock_offset_allowance`: the non-negative duration a deployment declares as the margin between a caller's clock and the seam's; `0` means no tolerance.
 
-Terms › `future bound`: `now` raised by the `clock_skew_allowance` — the ceiling a resolved recorded_at is checked against (Operation 7).
+Terms › `future bound`: `now` raised by the `clock_offset_allowance` — the ceiling a resolved recorded_at is checked against (Operation 7).
 
 Terms › `resolved recorded_at`: the `recorded_at` the observation carries — the supplied value where one exists, and `now` otherwise.
 
@@ -340,7 +354,7 @@ An amended observation can still be retracted — retraction reaches any link in
 
 `retract("obs-0441", retracted_by: "dr.mensah", reason: "   ")` → `rejected(invalid-request)`. A withdrawal with no stated reason is not an audit record (Operation 17).
 
-`record(..., recorded_at: <an instant past the future bound>)` → `rejected(invalid-observation)`. A measurement recorded as taken later than it could have been is a logical impossibility, and the allowance exists only because two clocks are being compared (Operation 7, Clock semantics 4).
+`record(..., recorded_at: <an instant past the future bound>)` → `rejected(invalid-observation)`. A measurement recorded as taken later than it could have been is a logical impossibility, and the allowance exists only because two clocks are being compared (Operation 7, Capability requirement 5).
 
 `read({subject_ref: "p42", recorded_by: "rn.okafor"})` → `rejected(invalid-query)`. The clinician axis is not among the five, and the key is refused rather than ignored (Operation 47).
 
@@ -417,6 +431,7 @@ Non-goal 19: The atom MUST NOT read two [Record] calls carrying one field set as
 Non-goal 20: A deployment needing at-most-once recording MUST compose [Duplicate Prevention](./duplicate-prevention.md).
 Non-goal 21: The atom MUST NOT derive a trend across two observations.
 Non-goal 22: The atom MUST NOT route a call across two store instances.
+Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -451,21 +466,6 @@ This atom forbids outright the repair-later posture the corpus's other append-on
 A crash-recovery scan is not an acceptable substitute for two reasons. The partial record is *visible* between the crash and the repair, which is the state Invariant 7.3 says never exists. And one of the two dangling shapes cannot be repaired at all: an orphan successor could be relinked from its `predecessor_id`, but an original marked amended with a `successor_id` naming no record cannot — the successor's value, unit, amending observer and reason exist nowhere in the store, and un-marking the original would rewrite a write-once field (Invariant 9.1).
 
 A caller whose [Amend] timed out recovers by reading the original: standing in amended with a `successor_id` means the transaction committed, and standing in recorded means it did not and a retry is safe under Concurrency 1.
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's honesty.
-Clock semantics 3: The deployment MUST own the clock's synchronization.
-Clock semantics 4: The deployment MUST declare the clock_skew_allowance.
-NOTE: Clock semantics 5 deleted — State 13 owns it.
-NOTE: Clock semantics 6 deleted — State 14 owns it.
-Clock semantics 7: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
-```
-
-WHY:
-`recorded_at` may not increase monotonically across a subject's observations under a skewed clock, and there is no sequence number here to fall back on. Ordering within a history is best-effort wall time, not causal order — which is what Operation 55 forbids a rule from resting on.
 
 ### Concurrency
 
@@ -552,13 +552,13 @@ Terms › `record verbs`: identify, allocate, change, carry, stand, answer, reco
 
 Terms › `value sets`: record answers = observation_id | rejected(invalid-observation | storage-failure). amend answers = the successor's observation_id | rejected(not-known | already-amended | already-retracted | invalid-request | invalid-observation | storage-failure). retract answers = retracted | rejected(not-known | already-retracted | invalid-request | storage-failure). read answers = the matching observations | rejected(invalid-query). `state` = recorded | amended | retracted.
 
-Terms › `bounds`: `clock_skew_allowance` (the margin a deployment declares between a caller's clock and the seam's); `value constraint` (the bound a deployment declares per observation_type).
+Terms › `bounds`: `clock_offset_allowance` (the margin a deployment declares between a caller's clock and the seam's); `value constraint` (the bound a deployment declares per observation_type).
 
 Terms › `cadences`: empty.
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `observation`, `observation_id`, `subject_ref`, `recorded_by`, `observation_type`, `unit`, `reference`, `store instance`, `seam`, `transition`, `now`, `business caller`, `states`, `content field`, `chain action`, `content-checking action`, `writing action`, `state rejection`, `value constraint`, `clock_skew_allowance`, `future bound`, `resolved recorded_at`, `transition metadata`, `amendment chain`, `filter axes`, `admitted record`, `admitted amend`, `admitted retract`, `admitted read`, `per-observation section`, `string input`, `blank`, `uncommitted crash`, `dangling amend`.
+Terms › `terms`: `observation`, `observation_id`, `subject_ref`, `recorded_by`, `observation_type`, `unit`, `reference`, `store instance`, `seam`, `transition`, `now`, `business caller`, `states`, `content field`, `chain action`, `content-checking action`, `writing action`, `state rejection`, `value constraint`, `clock_offset_allowance`, `future bound`, `resolved recorded_at`, `transition metadata`, `amendment chain`, `filter axes`, `admitted record`, `admitted amend`, `admitted retract`, `admitted read`, `per-observation section`, `string input`, `blank`, `uncommitted crash`, `dangling amend`.
 
 #### Record
 
@@ -875,9 +875,9 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/clinical-observation.md`.
 
-- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section with its semantics — taken before the state check, released on return or death, a lease's expiry the invocation's terminus, a stalled invocation re-reading the state under the section and landing [Already Amended]; a deployment-declared `clock_skew_allowance` under which the future-dated check on a caller-supplied [Recorded At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction, beside a caller told to read the original and retry; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 7 says never exists, could relink one dangling shape but not the other — the successor's content is nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an act the caller's retry could already have landed; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone* — with *Recovery commits under a declared service identity … and what cannot be re-derived is re-run*, frozen 2026-08-29).
+- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section with its semantics — taken before the state check, released on return or death, a lease's expiry the invocation's terminus, a stalled invocation re-reading the state under the section and landing [Already Amended]; a deployment-declared `clock_offset_allowance` under which the future-dated check on a caller-supplied [Recorded At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction, beside a caller told to read the original and retry; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 7 says never exists, could relink one dangling shape but not the other — the successor's content is nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an act the caller's retry could already have landed; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone* — with *Recovery commits under a declared service identity … and what cannot be re-derived is re-run*, frozen 2026-08-29).
 
-- **2026-09-13 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the four actions as a signature block, Invariants 1–9 keeping their numbers, every success effect conditioned on a declared `admitted record`, `admitted amend`, `admitted retract` or `admitted read` (Hard invariant 16), [Amend] and [Retract] unified under a declared `chain action` so their shared guards are stated once, the per-action *rejection priority* paragraph collapsed to one seven-row case space, the arithmetic in `recorded_at ≤ now + clock_skew_allowance` routed through a declared `future bound` so no rule carries a sum (Closed vocabulary 9), the five acceptance areas opened into `Check 1.1–6.1` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1–22` family and four edge-case families. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into clinical-observation` found nothing citing this atom by label. 61.2 KB → 60.7 KB, the smallest reduction of the migration — this atom's prose carried almost no restatement, and what came out was one repeated precedence paragraph.
+- **2026-09-13 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the four actions as a signature block, Invariants 1–9 keeping their numbers, every success effect conditioned on a declared `admitted record`, `admitted amend`, `admitted retract` or `admitted read` (Hard invariant 16), [Amend] and [Retract] unified under a declared `chain action` so their shared guards are stated once, the per-action *rejection priority* paragraph collapsed to one seven-row case space, the arithmetic in `recorded_at ≤ now + clock_offset_allowance` routed through a declared `future bound` so no rule carries a sum (Closed vocabulary 9), the five acceptance areas opened into `Check 1.1–6.1` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1–22` family and four edge-case families. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into clinical-observation` found nothing citing this atom by label. 61.2 KB → 60.7 KB, the smallest reduction of the migration — this atom's prose carried almost no restatement, and what came out was one repeated precedence paragraph.
 
 - **2026-09-13 — The value constraint is the deployment's, and the refusal is the atom's.** *Chose:* `Operation 5` — an `observation_type` carrying no declared value constraint is refused — with `Non-goal 1` and `Non-goal 2` stating the division from both ends. *Over:* accepting an unknown type unchecked, which is what most record stores do. *Because:* what counts as a valid systolic pressure or pain score is clinical and local, so an atom that defined one would be specified against a single care setting, and an atom that accepted a type it could not check would have a per-type integrity guarantee in name only. A deployment adds a measurement by declaring what a valid value for it looks like first. This is the corpus's first `bounds` entry whose *value* is entirely the deployment's while its *existence* is normative.
 

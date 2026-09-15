@@ -118,10 +118,21 @@ State 15 names what makes back-insertion undetectable here. The atom stores the 
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's honesty.
+Capability requirement 4: The deployment MUST own the clock's synchronization.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
+NOTE: Clock semantics 4 deleted — State 15 owns it.
+NOTE: Clock semantics 5 deleted — Non-goal 21 owns it.
 ```
 
 WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
+WHY:
+Clock skew between a caller and the seam can push a `decided_at` the caller believes is current past the injected reading, and Operation 18 rejects it. That is the correct rejection: the bound is enforced against the injected `now`, not against the caller's belief about the time.
 
 ### Operations
 
@@ -422,6 +433,7 @@ Non-goal 17: A deployment needing a rewrite detected MUST compose [Tamper Eviden
 Non-goal 18: The atom MUST NOT declare which gates a subject requires.
 Non-goal 19: The atom MUST NOT detect a subject carrying no step.
 Non-goal 20: The atom MUST NOT bound submitted_at from below.
+Non-goal 21: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
 WHY:
@@ -450,19 +462,6 @@ Terms › `dangling transition`: an admitted resolve's mutations standing partly
 
 WHY:
 Every resolving action writes the state and its attribution fields together (Operation 31), and a crash between them produces a terminal step with a missing decider or a missing instant — which is Invariant 6 violated in exactly the way an auditor cannot distinguish from an implementation that never wrote them. The obligation is all-or-none observability: a partly applied resolve must never be servable.
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's honesty.
-Clock semantics 3: The deployment MUST own the clock's synchronization.
-NOTE: Clock semantics 4 deleted — State 15 owns it.
-Clock semantics 5: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
-```
-
-WHY:
-Clock skew between a caller and the seam can push a `decided_at` the caller believes is current past the injected reading, and Operation 18 rejects it. That is the correct rejection: the bound is enforced against the injected `now`, not against the caller's belief about the time.
 
 ### Concurrency
 

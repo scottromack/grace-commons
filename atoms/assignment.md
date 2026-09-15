@@ -94,6 +94,11 @@ Recalled and transferred are two terminal values of the [Status] rather than one
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST own the clock's monotonicity.
+Capability requirement 3: The deployment MUST own the clock's timezone handling.
+NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
+NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
+NOTE: Clock semantics 3 deleted — State 13 owns it.
 ```
 
 WHY:
@@ -212,7 +217,7 @@ Reassign is one commit and not a recall followed by an assign, which is the whol
   Invariant 8.2: IF transferred_at EXISTS THEN assigned_at MUST NOT EXCEED transferred_at.
   Invariant 8.3: The atom MUST stamp EVERY timestamp once.
   ```
-  WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (Clock semantics 1–3).
+  WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (Capability requirement 2–3).
 - **Invariant 9 — Complete responsibility history.**
   ```text
   Invariant 9.1: The assignments carrying one task_ref MUST record EVERY actor who held the task.
@@ -313,14 +318,6 @@ The atom binds and records; every judgment around the binding is somebody else's
 Where the atom breaks down: when responsibility is genuinely shared at the same time; when an assignment must end on its own without anyone withdrawing it; when the assigner must be authorized before assigning; when the assignee must consent before holding.
 
 ## Edge cases
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-NOTE: Clock semantics 3 deleted — State 13 owns it.
-```
 
 ### Reassign atomicity
 

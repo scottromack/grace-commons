@@ -171,7 +171,7 @@ Capability requirement 16: A deployment MUST set the issuance completion bound.
 Capability requirement 17: A deployment MUST set the revocation completion bound.
 Capability requirement 18: A deployment MUST set the pair-scoped completion bound.
 Capability requirement 19: The revocation completion bound MUST NOT EXCEED the pair-scoped completion bound.
-Capability requirement 20: A deployment MUST set the clock skew allowance.
+Capability requirement 20: The deployment MUST declare the clock offset allowance.
 Capability requirement 21: A deployment MUST supply the pairing write atomicity.
 Capability requirement 22: The attribution maps MUST stand in the Permissions instance's store.
 Capability requirement 23: One transaction MUST enclose a constituent write AND the write's pairing entry.
@@ -212,7 +212,7 @@ Terms › `retention scope`: the deployment's declaration of what a purge covers
 
 Terms › `purge record`: the retention layer's own record that a named attestation was lawfully destroyed.
 
-Terms › `clock skew allowance`: `clock_skew_allowance` — the declared envelope within which the two constituents' stamps, each written at its own seam, may be compared.
+Terms › `clock offset allowance`: `clock_offset_allowance` — the declared envelope within which the two constituents' stamps, each written at its own seam, may be compared.
 
 Terms › `length cap`: the composition's declared maximum length of an opaque argument.
 
@@ -492,7 +492,7 @@ Housekeeping 10: The failed-grant leg MUST NOT promise a closure window.
 Housekeeping 11: The failed-grant leg MUST NOT examine an issuance-side attestation younger than the issuance completion bound.
 Housekeeping 12: The failed-grant leg MUST NOT examine a revocation-side attestation younger than the pair-scoped completion bound.
 Housekeeping 13: The failed-grant leg MUST age an attestation by the request instant the attestation's proposal carries.
-Housekeeping 14: The failed-grant leg MUST widen the bound by the clock skew allowance ONLY IF the leg ages an attestation by a constituent's stamp.
+Housekeeping 14: The failed-grant leg MUST widen the bound by the clock offset allowance ONLY IF the leg ages an attestation by a constituent's stamp.
 Housekeeping 15: The failed-grant leg MUST NOT examine an aged-out attestation.
 Housekeeping 16: The failed-grant leg MUST report an aged-out unpaired attestation carrying an orphan log entry as a purge-pending orphan.
 Housekeeping 17: The failed-grant leg MUST report an aged-out unpaired attestation carrying no orphan log entry as a non-conformant purge.
@@ -538,8 +538,8 @@ Invariant 3.1: The composition MUST answer a grant's record, the grant's issuanc
 Invariant 3.2: The composition MUST answer a revoked grant's revocation attestation AND revocation verification.
 Invariant 3.3: The composition MUST answer a grant's attribution without a log.
 Invariant 3.4: The composition MUST answer a grant's attribution without a narration.
-Invariant 4.1: An attestation's stamp MUST NOT EXCEED the attestation's grant stamp taken with the clock skew allowance.
-Invariant 4.2: A revocation attestation's stamp MUST NOT EXCEED the grant's revocation stamp taken with the clock skew allowance.
+Invariant 4.1: An attestation's stamp MUST NOT EXCEED the attestation's grant stamp taken with the clock offset allowance.
+Invariant 4.2: A revocation attestation's stamp MUST NOT EXCEED the grant's revocation stamp taken with the clock offset allowance.
 Invariant 4.3: Invariant 4.1 MUST stand best-effort under a non-monotonic clock.
 Invariant 4.4: No write MUST rest on Invariant 4.1.
 Invariant 5.1: EVERY Permissions invariant MUST hold over the Permissions instance.
@@ -650,8 +650,8 @@ Check 2.1: An auditor MUST find a revocation attribution entry PER administered 
 Check 2.2: An auditor MUST call Actor Identity's verify for the named revocation attestation (Invariant 3.2).
 Check 2.3: An auditor MUST read an unpaired revoked grant older than the revocation completion bound as an attribution inconsistency (Invariant 2.3).
 Check 3.1: An auditor MUST compare an attestation's stamp against the attestation's grant stamp PER administered grant (Invariant 4.1).
-Check 3.2: An auditor MUST run the comparison under the clock skew allowance (Invariant 4.1).
-Check 3.3: An auditor MUST NOT read an inversion inside the clock skew allowance as a finding (Invariant 4.3).
+Check 3.2: An auditor MUST run the comparison under the clock offset allowance (Invariant 4.1).
+Check 3.3: An auditor MUST NOT read an inversion inside the clock offset allowance as a finding (Invariant 4.3).
 Check 4.1: An auditor MUST clear Permissions' conformance checks over the Permissions instance (Invariant 5.1).
 Check 4.2: An auditor MUST clear Actor Identity's conformance checks over the Actor Identity instance (Invariant 5.2).
 Check 4.3: An auditor MUST NOT count a constituent's conformance checks (Invariant 5.4).
@@ -783,7 +783,7 @@ Clock semantics 7: The request instant MUST NOT carry a proposal's uniqueness.
 NOTE: Clock semantics 8 deleted — Clock dependence 1 owns it.
 Clock semantics 9: A reader MUST read a constituent's stamp as that constituent's own seam reading.
 Clock semantics 10: A reader MUST NOT read two constituents' stamps as one clock.
-Clock semantics 11: A check comparing two seams' stamps MUST run under the clock skew allowance.
+Clock semantics 11: A check comparing two seams' stamps MUST run under the clock offset allowance.
 ```
 
 WHY:
@@ -834,13 +834,13 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 ### Vocabulary
 
-Terms › `actors`: the composition; a deployment; the host; the seam; the transition; a caller; an auditor; an operator; an administrative surface; a reader; an implementation; an invocation; an action; an administrative act; an issuance; a revocation; a pair-scoped revocation; an admitted issuance; an admitted revocation; an evaluation; an attestation; a landed attestation; an orphan attestation; a proposal; a grant; an administered grant; a known grant; an unpaired administered grant; a revoked grant; a grantor; a revoker; a subject; a scope; a credential; a grant's handle; a nonce; a request instant; an attribution entry; a grant attribution entry; a revocation attribution entry; the grant attribution map; the revocation attribution map; an index; the orphan log; an orphan log entry; the failed-grant leg; an enumerated set; the remaining grants; a transaction; a section; a purge; a purge record; a lawful destruction; the tamper reading; a forensic finding; a verify result; a retention scope; the retention horizon; a purge-pending orphan; a non-conformant purge; the namespace prefix; the grant proposal format; the revocation proposal format; the issuance completion bound; the revocation completion bound; the pair-scoped completion bound; the clock skew allowance; the length cap; the pairing write atomicity; the constituent store durability; the binding registry; Permissions; Actor Identity; a constituent; a constituent's stamp; a clock reading; two issuances; two seams.
+Terms › `actors`: the composition; a deployment; the host; the seam; the transition; a caller; an auditor; an operator; an administrative surface; a reader; an implementation; an invocation; an action; an administrative act; an issuance; a revocation; a pair-scoped revocation; an admitted issuance; an admitted revocation; an evaluation; an attestation; a landed attestation; an orphan attestation; a proposal; a grant; an administered grant; a known grant; an unpaired administered grant; a revoked grant; a grantor; a revoker; a subject; a scope; a credential; a grant's handle; a nonce; a request instant; an attribution entry; a grant attribution entry; a revocation attribution entry; the grant attribution map; the revocation attribution map; an index; the orphan log; an orphan log entry; the failed-grant leg; an enumerated set; the remaining grants; a transaction; a section; a purge; a purge record; a lawful destruction; the tamper reading; a forensic finding; a verify result; a retention scope; the retention horizon; a purge-pending orphan; a non-conformant purge; the namespace prefix; the grant proposal format; the revocation proposal format; the issuance completion bound; the revocation completion bound; the pair-scoped completion bound; the clock offset allowance; the length cap; the pairing write atomicity; the constituent store durability; the binding registry; Permissions; Actor Identity; a constituent; a constituent's stamp; a clock reading; two issuances; two seams.
 
 Terms › `record verbs`: serve, change, inherit, read, hold, reach, call, select, query, attest, own, place, admit, drive, know, push, store, classify, carry, stand, claim, populate, name, alert, drop, take, rebuild, recognize, supply, mint, generate, accept, configure, set, provision, rotate, disclose, start, run, fire, serialize, resolve, reconcile, refuse, normalize, fold, trim, compare, judge, propagate, cap, truncate, allocate, reuse, pair, make, retry, leave, record, answer, substitute, add, complete, clear, empty, write, advance, repoint, renew, cross, find, confirm, reproduce, establish, match, escalate, close, emit, examine, expose, validate, commit, detect, inject, stamp, derive, deduplicate, model, schedule, adjudicate, purge, unwind, gate, index, anchor, surface, treat, sweep, spend, enroll, verify, suspend, reinstate, belong, elapse, invoke, duplicate, block, govern, identify, decide, reverse, destroy, revoke, enlist, snapshot, size, skip, adopt, yield, release, count, abort, log, prove, weaken, lapse, deactivate, restore, issue, terminate, enumerate, declare, diverge, persist, inspect, digest, proceed, open, continue, append, compute, transition, produce, sample, repair, resume, restart, retake, assemble, filter, grant, project, aggregate, withdraw, dispose, survive, manage, evaluate, bound, seal, age, assert, attribute, check, compose, cover, delete, enclose, forbid, group, interpose, join, key, land, modify, pass, perform, promise, report, require, rest, share, state, widen, wrap.
 
 Terms › `records`: empty.
 
-Terms › `bounds`: `issuance completion bound` (`issue_grant_completion_bound`), `revocation completion bound` (`revoke_grant_completion_bound`), `pair-scoped completion bound` (`revoke_permission_completion_bound`), `clock skew allowance` (`clock_skew_allowance`), `length cap`, `retention horizon`.
+Terms › `bounds`: `issuance completion bound` (`issue_grant_completion_bound`), `revocation completion bound` (`revoke_grant_completion_bound`), `pair-scoped completion bound` (`revoke_permission_completion_bound`), `clock offset allowance` (`clock_offset_allowance`), `length cap`, `retention horizon`.
 
 Terms › `cadences`: empty.
 
@@ -848,7 +848,7 @@ Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.42 (2026-09-15
 
 Terms › `value sets`: issue_grant answers = the grant's handle with the attestation | rejected(invalid-request | invalid-credential | attribution-storage-failure | orphan-attestation(pre-grant | post-grant(grant_id))). revoke_grant answers = ok with the attestation | rejected(invalid-request | invalid-credential | not-known | not-active | attribution-storage-failure | orphan-attestation(pre-revoke | post-revoke)). revoke_permission answers = ok with the revoked grants and the attestations | rejected(invalid-request | invalid-credential | not-permitted | partially-revoked(revoked_grant_ids, remaining)). verify_grant_attribution answers = the attribution tuple | not-known | attribution-inconsistency. permitted answers = permitted | denied. `verify result` = verified | failed-verification(reason) | not-known | not-applicable(purged). `underlying reason` = grant-storage-failure | revocation-storage-failure | invalid-request | not-known | not-active | pairing-write-failure. `retention scope` = pair-scoped | per-store.
 
-Terms › `terms`: `composition`, `constituents`, `administered grant`, `administrative act`, `grant attribution map`, `revocation attribution map`, `attribution entry`, `orphan log`, `underlying reason`, `orphan attestation`, `binding registry`, `seam`, `transition`, `grant proposal format`, `revocation proposal format`, `namespace prefix`, `issuance completion bound`, `revocation completion bound`, `pair-scoped completion bound`, `pairing write atomicity`, `constituent store durability`, `retention scope`, `purge record`, `clock skew allowance`, `length cap`, `blank`, `boundary predicate`, `opaque argument`, `administered opaque argument`, `admitted issuance`, `admitted revocation`, `pair-scoped revocation`, `enumerated set`, `remaining grants`, `verify result`, `tamper reading`, `lawful destruction`, `forensic finding`, `failed-grant leg`, `post-enumeration grant`, `aged-out attestation`, `landed attestation`, `retention horizon`, `purge-pending orphan`, `non-conformant purge`, `known grant`, `unpaired administered grant`.
+Terms › `terms`: `composition`, `constituents`, `administered grant`, `administrative act`, `grant attribution map`, `revocation attribution map`, `attribution entry`, `orphan log`, `underlying reason`, `orphan attestation`, `binding registry`, `seam`, `transition`, `grant proposal format`, `revocation proposal format`, `namespace prefix`, `issuance completion bound`, `revocation completion bound`, `pair-scoped completion bound`, `pairing write atomicity`, `constituent store durability`, `retention scope`, `purge record`, `clock offset allowance`, `length cap`, `blank`, `boundary predicate`, `opaque argument`, `administered opaque argument`, `admitted issuance`, `admitted revocation`, `pair-scoped revocation`, `enumerated set`, `remaining grants`, `verify result`, `tamper reading`, `lawful destruction`, `forensic finding`, `failed-grant leg`, `post-enumeration grant`, `aged-out attestation`, `landed attestation`, `retention horizon`, `purge-pending orphan`, `non-conformant purge`, `known grant`, `unpaired administered grant`.
 
 Terms › `cited`: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Composition state — the derived-index and extraction-pending classifications. `execution-contract.md` §Logic confinement — the seam.
 
