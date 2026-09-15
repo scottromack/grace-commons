@@ -437,10 +437,10 @@ suspend_actor(actor_ref, suspended_by_ref, credential, reason) →
     {suspended, revoked_grants, revoked_sessions, revoked_credentials, unresolved_members, event_id, resumed_by?}
   | rejected(
       invalid-request
-    | invalid-credential(intent | outcome)
+    | invalid-credential(position)
     | already-suspended
     | revocation-failure(surface, open_members)
-    | recording-failure(intent | outcome)
+    | recording-failure(position)
     )
 
 suspension_report(actor_ref) →
@@ -454,10 +454,14 @@ reinstate_actor(actor_ref, reinstated_by_ref, credential, reason) →
   | rejected(
       invalid-request
     | invalid-credential
-    | already-active(active | suspending)
+    | already-active(not-suspended state)
     | recording-failure
     )
 ```
+
+Terms › `position`: `intent` | `outcome` — the record a write lands: the intent or the outcome.
+
+Terms › `not-suspended state`: `active` | `suspending` — the actor states a reinstatement refuses.
 
 ```text
 Action wiring 1: The composition MUST take the actor's section at [Suspend Actor] ONLY AFTER the boundary predicate.
@@ -1030,9 +1034,9 @@ Terms › `cadences`: `reconciliation cadence` (`reconciliation_cadence`), `seal
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.41 (2026-09-15).
 
-Terms › `value sets`: suspend_actor answers = the suspension result | rejected(invalid-request | invalid-credential(intent | outcome) | already-suspended | revocation-failure(surface, open_members) | recording-failure(intent | outcome)). suspension_report answers = the suspension record | rejected(invalid-request). reinstate_actor answers = the reinstatement result | rejected(invalid-request | invalid-credential | already-active(active | suspending) | recording-failure). `lifecycle state` = active | suspending | suspended. `intent` = actor.suspension_intended | actor.resume_intended | actor.recovery_intended. `outcome` = actor.suspended | actor.reinstated. `surface` = permissions | session | credential. `enumeration availability` = available | unavailable-past-horizon. `already-active` reason = active | suspending. `benign terminal answer` = not-active | already-terminal.
+Terms › `value sets`: suspend_actor answers = the suspension result | rejected(invalid-request | invalid-credential(position) | already-suspended | revocation-failure(surface, open_members) | recording-failure(position)). suspension_report answers = the suspension record | rejected(invalid-request). reinstate_actor answers = the reinstatement result | rejected(invalid-request | invalid-credential | already-active(not-suspended state) | recording-failure). `lifecycle state` = active | suspending | suspended. `intent` = actor.suspension_intended | actor.resume_intended | actor.recovery_intended. `outcome` = actor.suspended | actor.reinstated. `surface` = permissions | session | credential. `enumeration availability` = available | unavailable-past-horizon. `already-active` reason = active | suspending. `benign terminal answer` = not-active | already-terminal.
 
-Terms › `terms`: `composition`, `constituents`, `credential arm`, `service identity`, `operator`, `resumer`, `suspension-state index`, `high-water mark`, `suspension log`, `mirrored log entry`, `refusal log entry`, `tail read`, `audit horizon`, `aged-out event`, `rebuild`, `miss`, `aged-out entry`, `aged-out log entry`, `aged-out actor`, `aged-out outcome`, `aged-out open cascade`, `post-snapshot member`, `admitted suspension`, `admitted reinstatement`, `plan`, `revoked set`, `open cascade`, `seam`, `transition`, `unified actor namespace`, `section`, `suspension completion bound`, `completion window`, `closure floor`, `access retention floor`, `planned set cap`, `maximal outcome`, `clock offset allowance`, `blank`, `boundary predicate`, `opaque argument`, `operator reference`, `resume prefix`, `completion prefix`, `intent`, `outcome`, `committing call`, `landed intent`, `append step`, `retention step`, `read-back`, `owed outcome`, `stored active`, `effective active`, `snapshot`, `fresh cascade`, `resume`, `cascade`, `benign terminal answer`, `non-benign refusal`, `open members`, `unresolved members`, `closed plan`, `recovery marker`, `enumeration availability`, `sweep`, `pre-check`, `young intent`, `plan-unavailable marker`, `accounted cascade`, `accounted member`, `escalated finding`, `orphan`, `indeterminate committing call`.
+Terms › `terms`: `composition`, `constituents`, `credential arm`, `service identity`, `operator`, `resumer`, `suspension-state index`, `high-water mark`, `suspension log`, `mirrored log entry`, `refusal log entry`, `tail read`, `audit horizon`, `aged-out event`, `rebuild`, `miss`, `aged-out entry`, `aged-out log entry`, `aged-out actor`, `aged-out outcome`, `aged-out open cascade`, `post-snapshot member`, `admitted suspension`, `admitted reinstatement`, `plan`, `revoked set`, `open cascade`, `seam`, `transition`, `unified actor namespace`, `section`, `suspension completion bound`, `completion window`, `closure floor`, `access retention floor`, `planned set cap`, `maximal outcome`, `clock offset allowance`, `blank`, `boundary predicate`, `opaque argument`, `operator reference`, `resume prefix`, `completion prefix`, `intent`, `outcome`, `committing call`, `landed intent`, `append step`, `retention step`, `read-back`, `owed outcome`, `stored active`, `effective active`, `snapshot`, `fresh cascade`, `resume`, `cascade`, `benign terminal answer`, `non-benign refusal`, `open members`, `unresolved members`, `closed plan`, `recovery marker`, `enumeration availability`, `sweep`, `pre-check`, `young intent`, `plan-unavailable marker`, `accounted cascade`, `accounted member`, `escalated finding`, `orphan`, `indeterminate committing call`, `position`, `not-suspended state`.
 
 Terms › `cited`: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. credential(../atoms/credential.md) — the effective-active reading and the per-pair bound.
 

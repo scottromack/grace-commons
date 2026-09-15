@@ -310,7 +310,7 @@ place_record_under_retention(record_ref, policy_ref, actor_ref, credential) →
       invalid-request
     | invalid-credential
     | storage-failure
-    | recording-failure(intent | outcome)
+    | recording-failure(position)
     )
 
 place_hold(record_ref, placed_by, credential, reason, case_ref?, placed_at?) →
@@ -319,7 +319,7 @@ place_hold(record_ref, placed_by, credential, reason, case_ref?, placed_at?) →
       invalid-request
     | invalid-credential
     | storage-failure
-    | recording-failure(intent | outcome)
+    | recording-failure(position)
     )
 
 release_hold(hold_id, released_by, credential, reason, released_at?) →
@@ -330,7 +330,7 @@ release_hold(hold_id, released_by, credential, reason, released_at?) →
     | not-known
     | already-released
     | storage-failure
-    | recording-failure(intent | outcome)
+    | recording-failure(position)
     )
 
 purge_eligible() →
@@ -347,9 +347,11 @@ purge_record(retention_id, actor_ref, credential) →
     | under-legal-hold(hold_ids, count)
     | hold-check-unavailable
     | storage-failure
-    | recording-failure(intent | outcome)
+    | recording-failure(position)
     )
 ```
+
+Terms › `position`: `intent` | `outcome` — the record a write lands: the intent or the outcome.
 
 ```text
 Action wiring 1: The composition MUST NOT record an intent BEFORE the boundary predicate passes.
@@ -932,9 +934,9 @@ Terms › `cadences`: `reconciliation cadence` (`reconciliation_cadence`), `seal
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `value sets`: place_record_under_retention answers = retention_id | rejected(invalid-request | invalid-credential | storage-failure | recording-failure(intent | outcome)). place_hold answers = hold_id | rejected(invalid-request | invalid-credential | storage-failure | recording-failure(intent | outcome)). release_hold answers = released | rejected(invalid-request | invalid-credential | not-known | already-released | storage-failure | recording-failure(intent | outcome)). purge_eligible answers = the eligibility tuples. purge_record answers = ok | rejected(invalid-request | invalid-credential | not-known | not-eligible | under-active-retention | under-legal-hold(hold_ids, count) | hold-check-unavailable | storage-failure | recording-failure(intent | outcome)). `hold check mode` = strict | advisory. `hold check result` = empty | the blocking hold ids with the blocking count. `intent` = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. `outcome` = retention_placed | hold_placed | hold_released | record_purged. sibling disposition = purged | pending.
+Terms › `value sets`: place_record_under_retention answers = retention_id | rejected(invalid-request | invalid-credential | storage-failure | recording-failure(position)). place_hold answers = hold_id | rejected(invalid-request | invalid-credential | storage-failure | recording-failure(position)). release_hold answers = released | rejected(invalid-request | invalid-credential | not-known | already-released | storage-failure | recording-failure(position)). purge_eligible answers = the eligibility tuples. purge_record answers = ok | rejected(invalid-request | invalid-credential | not-known | not-eligible | under-active-retention | under-legal-hold(hold_ids, count) | hold-check-unavailable | storage-failure | recording-failure(position)). `hold check mode` = strict | advisory. `hold check result` = empty | the blocking hold ids with the blocking count. `intent` = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. `outcome` = retention_placed | hold_placed | hold_released | record_purged. sibling disposition = purged | pending.
 
-Terms › `terms`: `composition`, `constituents`, `business retention instance`, `service identity`, `record`, `record-to-retentions index`, `retention-to-record index`, `audit horizon`, `surviving placement event`, `purged placement event`, `rebuild`, `sibling set`, `pending sibling`, `seam`, `transition`, `evidence floor`, `closure floor`, `retention completion bound`, `hold check mode`, `blank`, `boundary predicate`, `opaque argument`, `landed record`, `owed record`, `intent`, `outcome`, `gate record`, `committing call`, `admitted placement`, `admitted hold placement`, `admitted hold release`, `admitted purge`, `elapsed retention`, `hold check result`, `hold override`, `unavailable sentinel`, `purged retention ids`, `sweep`, `open marker`, `young marker`, `aged-out event`, `recovery intent`, `recovery marker`, `recovery outcome`, `clock offset allowance`, `constituent commit`, `gate read`, `seal coverage`, `yielded invocation`, `post-destruction hold`, `late hold`.
+Terms › `terms`: `composition`, `constituents`, `business retention instance`, `service identity`, `record`, `record-to-retentions index`, `retention-to-record index`, `audit horizon`, `surviving placement event`, `purged placement event`, `rebuild`, `sibling set`, `pending sibling`, `seam`, `transition`, `evidence floor`, `closure floor`, `retention completion bound`, `hold check mode`, `blank`, `boundary predicate`, `opaque argument`, `landed record`, `owed record`, `intent`, `outcome`, `gate record`, `committing call`, `admitted placement`, `admitted hold placement`, `admitted hold release`, `admitted purge`, `elapsed retention`, `hold check result`, `hold override`, `unavailable sentinel`, `purged retention ids`, `sweep`, `open marker`, `young marker`, `aged-out event`, `recovery intent`, `recovery marker`, `recovery outcome`, `clock offset allowance`, `constituent commit`, `gate read`, `seal coverage`, `yielded invocation`, `post-destruction hold`, `late hold`, `position`.
 
 Terms › `cited`: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam.
 

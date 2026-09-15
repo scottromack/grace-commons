@@ -365,6 +365,8 @@ open(kind, act_key, actor_ref, credential, intent_data) →
     )
 ```
 
+Terms › `resolve refusal`: `purged` | `malformed` | `too-young` | `already-abandoned` | `candidates-over-cap` — the reasons [Resolve] gives for an invalid request.
+
 Opens one invocation of the act: takes the section, sizes the records, writes the intent record — where the caller's credential is verified — and returns the pair the adopter carries through the commit to [Close].
 
 Steps:
@@ -589,8 +591,7 @@ resolve(kind, act_key, invocation_id, intent_event_id, actor_ref, credential,
     | not-known
     | section-unavailable
     | invalid-credential
-    | invalid-request(purged | malformed | too-young | already-abandoned
-                    | candidates-over-cap)
+    | invalid-request(resolve refusal)
     | recording-failure(resolution)
     )
 ```
@@ -1363,7 +1364,7 @@ Terms › `cadences`: `reconciliation_cadence`.
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Terms › `terms`: (named expressions, each declared where it is used) `worst_closure`, `window_end`, `lease_spend`, `run_floor`, `closure_spend`, `examine_edge`, `abandon_edge`, `horizon_edge`, `at_risk_threshold`, `intent_age`, `settle_bound`, `retention_end`, `usable_term`, `sweep_lease`, `in-flight`, `aged`, `partition`, `examined`, `skipped`, `reported`, `surfaced`, `unreached`, `closed_already`, `standing closing`, `closings key`, `intents key`, `terminus`, `caller_kind`, `payload_match`, `quiescence`, `read path`, `read-your-writes`, `position's existing arm`, `journal_fence instant`, `commit_fence`, `section key`, `section holder`, `section duration`, `act finding`, `instance finding`, `act_key`, `invocation_id`, `now`, `operator_run_id`.
+Terms › `terms`: (named expressions, each declared where it is used) `worst_closure`, `window_end`, `lease_spend`, `run_floor`, `closure_spend`, `examine_edge`, `abandon_edge`, `horizon_edge`, `at_risk_threshold`, `intent_age`, `settle_bound`, `retention_end`, `usable_term`, `sweep_lease`, `in-flight`, `aged`, `partition`, `examined`, `skipped`, `reported`, `surfaced`, `unreached`, `closed_already`, `standing closing`, `closings key`, `intents key`, `terminus`, `caller_kind`, `payload_match`, `quiescence`, `read path`, `read-your-writes`, `position's existing arm`, `journal_fence instant`, `commit_fence`, `section key`, `section holder`, `section duration`, `act finding`, `instance finding`, `act_key`, `invocation_id`, `now`, `operator_run_id`, `resolve refusal`.
 
 #### Open
 

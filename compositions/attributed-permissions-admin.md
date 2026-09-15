@@ -300,7 +300,7 @@ issue_grant(subject_ref, action_scope, grantor_ref, grantor_credential) →
       invalid-request
     | invalid-credential
     | attribution-storage-failure
-    | orphan-attestation(pre-grant | post-grant(grant_id))
+    | orphan-attestation(issuance orphan position)
     )
 
 revoke_grant(grant_id, revoker_ref, revoker_credential) →
@@ -311,7 +311,7 @@ revoke_grant(grant_id, revoker_ref, revoker_credential) →
     | not-known
     | not-active
     | attribution-storage-failure
-    | orphan-attestation(pre-revoke | post-revoke)
+    | orphan-attestation(revocation orphan position)
     )
 
 revoke_permission(subject_ref, action_scope, revoker_ref, revoker_credential) →
@@ -333,6 +333,10 @@ permitted(subject_ref, action_scope) →
     permitted
   | denied
 ```
+
+Terms › `issuance orphan position`: `pre-grant` | `post-grant(grant_id)` — where an issuance attestation was left without its grant: before the grant, or after it carrying the grant_id.
+
+Terms › `revocation orphan position`: `pre-revoke` | `post-revoke` — where a revocation attestation was left without its revocation: before it or after it.
 
 ```text
 Action wiring 1: An issuance MUST assemble the proposal PER the grant proposal format.
@@ -846,9 +850,9 @@ Terms › `cadences`: empty.
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.42 (2026-09-15).
 
-Terms › `value sets`: issue_grant answers = the grant's handle with the attestation | rejected(invalid-request | invalid-credential | attribution-storage-failure | orphan-attestation(pre-grant | post-grant(grant_id))). revoke_grant answers = ok with the attestation | rejected(invalid-request | invalid-credential | not-known | not-active | attribution-storage-failure | orphan-attestation(pre-revoke | post-revoke)). revoke_permission answers = ok with the revoked grants and the attestations | rejected(invalid-request | invalid-credential | not-permitted | partially-revoked(revoked_grant_ids, remaining)). verify_grant_attribution answers = the attribution tuple | not-known | attribution-inconsistency. permitted answers = permitted | denied. `verify result` = verified | failed-verification(reason) | not-known | not-applicable(purged). `underlying reason` = grant-storage-failure | revocation-storage-failure | invalid-request | not-known | not-active | pairing-write-failure. `retention scope` = pair-scoped | per-store.
+Terms › `value sets`: issue_grant answers = the grant's handle with the attestation | rejected(invalid-request | invalid-credential | attribution-storage-failure | orphan-attestation(issuance orphan position)). revoke_grant answers = ok with the attestation | rejected(invalid-request | invalid-credential | not-known | not-active | attribution-storage-failure | orphan-attestation(revocation orphan position)). revoke_permission answers = ok with the revoked grants and the attestations | rejected(invalid-request | invalid-credential | not-permitted | partially-revoked(revoked_grant_ids, remaining)). verify_grant_attribution answers = the attribution tuple | not-known | attribution-inconsistency. permitted answers = permitted | denied. `verify result` = verified | failed-verification(reason) | not-known | not-applicable(purged). `underlying reason` = grant-storage-failure | revocation-storage-failure | invalid-request | not-known | not-active | pairing-write-failure. `retention scope` = pair-scoped | per-store.
 
-Terms › `terms`: `composition`, `constituents`, `administered grant`, `administrative act`, `grant attribution map`, `revocation attribution map`, `attribution entry`, `orphan log`, `underlying reason`, `orphan attestation`, `binding registry`, `seam`, `transition`, `grant proposal format`, `revocation proposal format`, `namespace prefix`, `issuance completion bound`, `revocation completion bound`, `pair-scoped completion bound`, `pairing write atomicity`, `constituent store durability`, `retention scope`, `purge record`, `clock offset allowance`, `length cap`, `blank`, `boundary predicate`, `opaque argument`, `administered opaque argument`, `admitted issuance`, `admitted revocation`, `pair-scoped revocation`, `enumerated set`, `remaining grants`, `verify result`, `tamper reading`, `lawful destruction`, `forensic finding`, `failed-grant leg`, `post-enumeration grant`, `aged-out attestation`, `landed attestation`, `retention horizon`, `purge-pending orphan`, `non-conformant purge`, `known grant`, `unpaired administered grant`.
+Terms › `terms`: `composition`, `constituents`, `administered grant`, `administrative act`, `grant attribution map`, `revocation attribution map`, `attribution entry`, `orphan log`, `underlying reason`, `orphan attestation`, `binding registry`, `seam`, `transition`, `grant proposal format`, `revocation proposal format`, `namespace prefix`, `issuance completion bound`, `revocation completion bound`, `pair-scoped completion bound`, `pairing write atomicity`, `constituent store durability`, `retention scope`, `purge record`, `clock offset allowance`, `length cap`, `blank`, `boundary predicate`, `opaque argument`, `administered opaque argument`, `admitted issuance`, `admitted revocation`, `pair-scoped revocation`, `enumerated set`, `remaining grants`, `verify result`, `tamper reading`, `lawful destruction`, `forensic finding`, `failed-grant leg`, `post-enumeration grant`, `aged-out attestation`, `landed attestation`, `retention horizon`, `purge-pending orphan`, `non-conformant purge`, `known grant`, `unpaired administered grant`, `issuance orphan position`, `revocation orphan position`.
 
 Terms › `cited`: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Composition state — the derived-index and extraction-pending classifications. `execution-contract.md` §Logic confinement — the seam.
 

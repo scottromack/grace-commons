@@ -96,9 +96,13 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-seal(record_set_ref, mechanism_credential) → evidence_id | rejected(invalid-request | mechanism-failure(unreadable-records | keying-precondition | anchor-unreachable) | storage-failure)
-verify(evidence_id, original_record_set) → verified | failed-verification(proof-invalid | record-set-mismatch | mechanism-verification-unavailable) | not-known
+seal(record_set_ref, mechanism_credential) → evidence_id | rejected(invalid-request | mechanism-failure(mechanism failure reason) | storage-failure)
+verify(evidence_id, original_record_set) → verified | failed-verification(verification failure) | not-known
 ```
+
+Terms › `mechanism failure reason`: `unreadable-records` | `keying-precondition` | `anchor-unreachable` — the reasons [Seal] gives for a mechanism failure.
+
+Terms › `verification failure`: `proof-invalid` | `record-set-mismatch` | `mechanism-verification-unavailable` — the reasons [Verify] gives for a failed verification.
 
 ```text
 Operation 1: [Seal] MUST compute the proof over the record set from the mechanism_credential.
@@ -392,7 +396,7 @@ Terms › `records`: `evidence` — one commitment, carrying `evidence_id`, `rec
 
 Terms › `record verbs`: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, make, cache, declare, renumber, add.
 
-Terms › `value sets`: seal answers = evidence_id | rejected(invalid-request | mechanism-failure(unreadable-records | keying-precondition | anchor-unreachable) | storage-failure). verify answers = verified | failed-verification(proof-invalid | record-set-mismatch | mechanism-verification-unavailable) | not-known. `record set match` = yes | no. `seal check` = held | failed | unavailable. `evidence field` = evidence_id | record_set_ref | proof | sealed_at | anchored_at. evidence state = sealed.
+Terms › `value sets`: seal answers = evidence_id | rejected(invalid-request | mechanism-failure(mechanism failure reason) | storage-failure). verify answers = verified | failed-verification(verification failure) | not-known. `record set match` = yes | no. `seal check` = held | failed | unavailable. `evidence field` = evidence_id | record_set_ref | proof | sealed_at | anchored_at. evidence state = sealed.
 
 Terms › `bounds`: empty.
 
@@ -400,7 +404,7 @@ Terms › `cadences`: empty — a seal cadence is the composing pattern's (Compo
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `sound` — a mechanism with no known practical collision or forgery attack.
 
-Terms › `terms`: `now`, `evidence`, `evidence_id`, `record_set_ref`, `seam`, `transition`, `business caller`, `sealed`, `proof`, `sealed_at`, `anchored_at`, `mechanism_credential`, `evidence field`, `record set match`, `seal check`, `original_record_set`.
+Terms › `terms`: `now`, `evidence`, `evidence_id`, `record_set_ref`, `seam`, `transition`, `business caller`, `sealed`, `proof`, `sealed_at`, `anchored_at`, `mechanism_credential`, `evidence field`, `record set match`, `seal check`, `original_record_set`, `mechanism failure reason`, `verification failure`.
 
 #### Evidence
 

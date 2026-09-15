@@ -102,8 +102,10 @@ What the deployment supplies, which is what the family means. The rule stood und
 
 ```
 attest(action_ref, actor_ref, credential) → attestation_id | rejected(invalid-request | invalid-credential | storage-failure)
-verify(attestation_id) → verified | failed-verification(proof-invalid | actor-unknown-in-registry | registry-unavailable) | not-known
+verify(attestation_id) → verified | failed-verification(verification failure) | not-known
 ```
+
+Terms › `verification failure`: `proof-invalid` | `actor-unknown-in-registry` | `registry-unavailable` — the reasons [Verify] gives for a failed verification.
 
 ```text
 Operation 1: [Attest] MUST compute the proof over the action_ref and the actor_ref from the credential.
@@ -365,7 +367,7 @@ Terms › `records`: `attestation` — one binding, carrying `attestation_id`, `
 
 Terms › `record verbs`: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, agree, fail.
 
-Terms › `value sets`: attest answers = attestation_id | rejected(invalid-request | invalid-credential | storage-failure). verify answers = verified | failed-verification(proof-invalid | actor-unknown-in-registry | registry-unavailable) | not-known. `registry answer` = material | unknown-actor | unreachable. `proof check` = held | failed. `attestation field` = attestation_id | action_ref | actor_ref | proof | attested_at.
+Terms › `value sets`: attest answers = attestation_id | rejected(invalid-request | invalid-credential | storage-failure). verify answers = verified | failed-verification(verification failure) | not-known. `registry answer` = material | unknown-actor | unreachable. `proof check` = held | failed. `attestation field` = attestation_id | action_ref | actor_ref | proof | attested_at.
 
 Terms › `bounds`: empty.
 
@@ -373,7 +375,7 @@ Terms › `cadences`: empty.
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12); `uncompromised` — a credential no disclosure names as compromised at or before the instant in question.
 
-Terms › `terms`: `now`, `verification set`, `durability mechanism`, `attestation`, `attestation_id`, `action_ref`, `actor_ref`, `seam`, `transition`, `business caller`, `attested`, `proof`, `attested_at`, `credential`, `public material`, `attestation field`, `registry answer`, `proof check`.
+Terms › `terms`: `now`, `verification set`, `durability mechanism`, `attestation`, `attestation_id`, `action_ref`, `actor_ref`, `seam`, `transition`, `business caller`, `attested`, `proof`, `attested_at`, `credential`, `public material`, `attestation field`, `registry answer`, `proof check`, `verification failure`.
 
 #### Attestation
 

@@ -152,7 +152,7 @@ register(principal_ref, credential_material, credential_type, expires_at?)
   → credential_id | rejected(invalid-request | duplicate-active-credential | storage-failure)
 
 verify(principal_ref, credential_type, presented_material)
-  → verified | failed-verification(material-mismatch | no-active-credential)
+  → verified | failed-verification(verification failure)
 
 rotate(credential_id, new_credential_material)
   → new_credential_id | rejected(not-known | not-active | invalid-request | storage-failure)
@@ -162,6 +162,8 @@ revoke(credential_id, revoked_by_ref, reason)
 
 read(filter) → the matching credentials
 ```
+
+Terms › `verification failure`: `material-mismatch` | `no-active-credential` — the reasons [Verify] gives for a failed verification.
 
 ```text
 Operation 1: IF principal_ref NOT EXISTS THEN [Register] MUST answer invalid-request.
@@ -559,7 +561,7 @@ Terms › `records`: `credential` — one principal's binding to one verifier fo
 
 Terms › `record verbs`: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, acknowledge, canonicalize, declare, compose, remove, bind, decide, define, bound, reach, accept, retain, trim, case-fold, compute, reproduce, reconstruct, verify, issue, detect, guarantee, take, derive, expose, store, own, persist, enumerate, distinguish, select, walk, mutate, serialize, rotate, revoke, block, invalidate, migrate, recover, reinterpret, constrain, count, sequence, release, run.
 
-Terms › `value sets`: register answers = credential_id | rejected(invalid-request | duplicate-active-credential | storage-failure). verify answers = verified | failed-verification(material-mismatch | no-active-credential). rotate answers = new_credential_id | rejected(not-known | not-active | invalid-request | storage-failure). revoke answers = revoked | rejected(not-known | already-terminal | invalid-request | storage-failure). read answers = the matching credentials. `status` = active | rotated | revoked. `stored terminal` = rotated | revoked. `standing rejection` = not-active | already-terminal. `window reading` = live | lapsed. `property` = principal_ref | credential_type | verifier | registered_at | expires_at. `terminal field` = rotated_at | successor_credential_id | revoked_at | revoked_by_ref | revocation_reason.
+Terms › `value sets`: register answers = credential_id | rejected(invalid-request | duplicate-active-credential | storage-failure). verify answers = verified | failed-verification(verification failure). rotate answers = new_credential_id | rejected(not-known | not-active | invalid-request | storage-failure). revoke answers = revoked | rejected(not-known | already-terminal | invalid-request | storage-failure). read answers = the matching credentials. `status` = active | rotated | revoked. `stored terminal` = rotated | revoked. `standing rejection` = not-active | already-terminal. `window reading` = live | lapsed. `property` = principal_ref | credential_type | verifier | registered_at | expires_at. `terminal field` = rotated_at | successor_credential_id | revoked_at | revoked_by_ref | revocation_reason.
 
 Terms › `bounds`: `default expires_at`, `length bound`.
 
@@ -567,7 +569,7 @@ Terms › `cadences`: empty.
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Terms › `terms`: `credential`, `credential_id`, `pair`, `property`, `reference`, `store instance`, `seam`, `transition`, `now`, `transitioning write`, `stored terminal`, `status`, `standing check`, `standing rejection`, `well-formedness check`, `window reading`, `live`, `lapsed`, `effective-active credential`, `lapsed credential`, `proceeding verify`, `effective status`, `verifier`, `derivation function`, `derivation registry`, `foldable difference`, `length bound`, `default expires_at`, `terminal field`, `resolution instant`, `admitted register`, `admitted rotate`, `admitted revoke`, `admitted read`, `string input`, `blank`.
+Terms › `terms`: `credential`, `credential_id`, `pair`, `property`, `reference`, `store instance`, `seam`, `transition`, `now`, `transitioning write`, `stored terminal`, `status`, `standing check`, `standing rejection`, `well-formedness check`, `window reading`, `live`, `lapsed`, `effective-active credential`, `lapsed credential`, `proceeding verify`, `effective status`, `verifier`, `derivation function`, `derivation registry`, `foldable difference`, `length bound`, `default expires_at`, `terminal field`, `resolution instant`, `admitted register`, `admitted rotate`, `admitted revoke`, `admitted read`, `string input`, `blank`, `verification failure`.
 
 Terms › `cited`: `execution-contract.md` §Logic confinement — the seam and the transition.
 

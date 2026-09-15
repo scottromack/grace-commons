@@ -169,8 +169,8 @@ register_authenticated_actor(principal_ref, actor_ref, credential_material, cred
     {credential_id, actor_ref, bound_at}
   | rejected(
       invalid-request | invalid-credential(existing)
-    | namespace-conflict(guard | binding)
-    | storage-failure(credential | binding)
+    | namespace-conflict(conflict position)
+    | storage-failure(storage position)
     | orphan-credential(credential_id)
     )
 
@@ -179,11 +179,17 @@ attest_as_actor(principal_ref, action_ref, attest_credential) →
   | rejected(
       invalid-request | not-bound | credential-not-active
     | invalid-attest-credential
-    | attest-failed(attestation | log(attestation_id))
+    | attest-failed(attest position)
     )
 
 verify_actor_attestation(attestation_id) → {result, actor_ref?, principal_ref?}
 ```
+
+Terms › `conflict position`: `guard` | `binding` — where a namespace conflict is found: at the guard or at the binding write.
+
+Terms › `storage position`: `credential` | `binding` — the write that failed: the credential or the binding.
+
+Terms › `attest position`: `attestation` | `log(attestation_id)` — where an attest failed: at the attestation, or at the log write carrying the attestation_id.
 
 ```text
 Action wiring 1: An admitted registration MUST run the guard ONLY AFTER taking the principal's section.
@@ -443,7 +449,7 @@ The canonical concepts this spec refers to. Each `term` marker in the prose abov
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `terms`: `composition`, `constituents`, `principal binding`, `attest log`, `bijection`, `attest surface separation`, `section`, `clock offset allowance`, `blank`, `opaque argument`, `admitted registration`, `admitted attestation`, `effective-active`.
+Terms › `terms`: `composition`, `constituents`, `principal binding`, `attest log`, `bijection`, `attest surface separation`, `section`, `clock offset allowance`, `blank`, `opaque argument`, `admitted registration`, `admitted attestation`, `effective-active`, `conflict position`, `storage position`, `attest position`.
 
 Terms › `record verbs`: call, answer, read, write, append, store, key, hold, take, release, serialize, resolve, bind, register, revoke, rotate, gate, precede, close, produce, provision, pass, agree, carry, stand, change, report, examine, promise, run, refuse, set, declare, own, act, compose, inherit, confirm, interpret, normalize, case-fold, compare, authorize, invalidate, rebind, wrap, find, serve, supply, ask, route, record.
 

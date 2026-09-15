@@ -99,7 +99,7 @@ check_permitted(session_token, action_scope) →
   | denied
   | rejected(
       invalid-request
-    | session-invalid(expired | revoked | not-known)
+    | session-invalid(validation failure)
     )
 ```
 
@@ -380,9 +380,9 @@ Terms › `record verbs`: validate, call, answer, accept, read, write, store, de
 
 Terms › `actors`: the composition; the constituents; a deployment; an auditor; a caller; a principal; a session; a grant; an argument; an answer.
 
-Terms › `value sets`: check_permitted answers = permitted | denied | rejected(invalid-request | session-invalid(expired | revoked | not-known)). `invalid answer` reasons = expired | revoked | not-known.
+Terms › `value sets`: check_permitted answers = permitted | denied | rejected(invalid-request | session-invalid(validation failure)). `invalid answer` reasons = expired | revoked | not-known.
 
-Terms › `cited`: `execution-contract.md` §Composition state — the no-stored-state classification. [Session](../atoms/session.md) `Composition note 4` — the gate obligation. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding.
+Terms › `cited`: `execution-contract.md` §Composition state — the no-stored-state classification. [Session](../atoms/session.md) `Composition note 4` — the gate obligation. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding; `validation failure`: Session.
 
 #### Check Permitted
 

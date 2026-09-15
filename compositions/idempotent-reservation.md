@@ -158,19 +158,23 @@ place_hold(resource, requester, duration, idempotency_token) →
     id
   | rejected(
       invalid-request | token-collision | resource-unavailable | storage-failure
-    | outcome-unknown(candidates) | recording-failure(intent | outcome(id?))
+    | outcome-unknown(candidates) | recording-failure(place hold position)
     )
 
 confirm(id, idempotency_token) →
     ok
   | rejected(
       invalid-request | token-collision | not-known | not-held | window-elapsed
-    | storage-failure | outcome-unknown(candidates) | recording-failure(intent | outcome(result))
+    | storage-failure | outcome-unknown(candidates) | recording-failure(resolution position)
     )
 
 release(id, idempotency_token) → ok | rejected(… as confirm …)
 expire(id, idempotency_token) → ok | rejected(… as confirm, with window-not-elapsed …)
 ```
+
+Terms › `place hold position`: `intent` | `outcome(id?)` — the record a [Place Hold] write lands: the intent, or the outcome carrying the id where one was issued.
+
+Terms › `resolution position`: `intent` | `outcome(result)` — the record a resolving write lands: the intent, or the outcome carrying the result.
 
 ```text
 Action wiring 1: EVERY state-changing action MUST take an idempotency_token.
@@ -458,7 +462,7 @@ The canonical concepts this spec refers to. Each `term` marker in the prose abov
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Terms › `terms`: `composition`, `constituents`, `token results map`, `action type`, `parameters digest`, `pending entry`, `complete entry`, `eviction leg`, `idempotency window`, `reservation completion bound`, `durability term`, `section`, `blank`, `fresh request`, `matching complete entry`, `candidates`, `resolving action`, `recovered entry`.
+Terms › `terms`: `composition`, `constituents`, `token results map`, `action type`, `parameters digest`, `pending entry`, `complete entry`, `eviction leg`, `idempotency window`, `reservation completion bound`, `durability term`, `section`, `blank`, `fresh request`, `matching complete entry`, `candidates`, `resolving action`, `recovered entry`, `place hold position`, `resolution position`.
 
 Terms › `record verbs`: call, answer, take, read, write, store, key, carry, overwrite, keep, evict, examine, skip, measure, repair, validate, compare, normalize, case-fold, record, retry, release, delegate, compute, proceed, mark, resolve, rest, stand, bind, reach, find, name, own, discharge, inherit, change, replace, serve, compose, configure, declare, set, hold, acknowledge, supply, refuse, mint, interpret, claim, promise, expose, consult, start, elapse, exceed, land, run, make, guarantee, bound.
 
