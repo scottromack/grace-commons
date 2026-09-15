@@ -116,7 +116,7 @@ A deleted record stays in the store because *what this principal stated, and whe
 
 An absent preference field says *the principal stated nothing on this dimension*, and the composing fanout applies a deployment default for it. That is structurally distinct from a channel carrying an explicit opt-out value, which is a stated choice. The atom keeps the distinction because a fanout that cannot see it cannot honour either (State 4, Composition note 12).
 
-Nothing about delivery lives here: what was sent, to whom, and whether the principal follows the topic belong to [Notification](./notification.md) and [Subscription](./subscription.md), and whether the system may contact the principal at all belongs to [Consent](./consent.md) (State 18–20).
+Nothing about delivery lives here: what was sent, to whom, and whether the principal follows the topic belong to [Notification](./notification.md) and [Subscription](./subscription.md), and whether the system may contact the principal at all belongs to [Consent](./consent.md) (State 18 through 20).
 
 ### Capability requirement
 
@@ -212,9 +212,9 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Set] | principal present, a preference field present, every key declared, store accepts, no prior | the new `preference_id` | one record lands in [Active] (Operation 1, Operation 2) |
 | [Set] | as above, with a prior currently in effect | the new `preference_id` | the new record lands in [Active], the prior moves to [Deleted], one operation (Operation 14, Operation 15) |
-| [Set] | blank `principal_ref`, or no preference field, or an empty map as the only one | [Invalid Request] | none (Operation 4–6) |
+| [Set] | blank `principal_ref`, or no preference field, or an empty map as the only one | [Invalid Request] | none (Operation 4 through 6) |
 | [Set] | a `channel_preferences` key outside the injected set | [Undeclared Channel] | none (Operation 8, Operation 9) |
-| [Set] | the injected declared channel set is degenerate | no conforming outcome — fail-stop | none (Instance 13–16) |
+| [Set] | the injected declared channel set is degenerate | no conforming outcome — fail-stop | none (Instance 13 through 16) |
 | [Suspend] | id names a record in [Active] | `ok` | [Active] → [Suspended], `suspended_at` stamped (Operation 20, State 9) |
 | [Suspend] | id names a record in [Suspended] or [Deleted] | [Not Active] | none (Operation 18, Operation 19) |
 | [Delete] | id names a record in [Active] or [Suspended] | `ok` | → [Deleted], `deleted_at` stamped (Operation 26, State 10) |
@@ -233,7 +233,7 @@ The two queries refuse nothing, and the asymmetry with the three writes is delib
 
 [Not Active] covers both [Suspended] and [Deleted] on a suspend, because a [Suspended] record never returns to [Active] and the caller's next move is the same either way; a caller that must tell them apart calls [Read] (Operation 18, Operation 19, Invariant 2.3). On a delete the split does matter — a [Suspended] record deletes cleanly and a [Deleted] one is [Already Deleted] — so delete carries the second code and suspend does not.
 
-The clock enters once, at the seam, and is spent on exactly one thing: stamping `set_at`, `suspended_at` and `deleted_at` inside a committed transition. No guard consults it, so no rejection in the taxonomy depends on it, and a skewed clock can only make a stored timestamp advisory — never admit or refuse a call (Operation 39–43, Capability requirement 2–4).
+The clock enters once, at the seam, and is spent on exactly one thing: stamping `set_at`, `suspended_at` and `deleted_at` inside a committed transition. No guard consults it, so no rejection in the taxonomy depends on it, and a skewed clock can only make a stored timestamp advisory — never admit or refuse a call (Operation 39 through 43, Capability requirement 2 through 4).
 
 ### Invariants
 
@@ -279,7 +279,7 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   Invariant 6.2: [Suspend] MUST NOT change a preference field.
   Invariant 6.3: [Suspend] MUST NOT change principal_ref.
   ```
-  WHY: this is the structural mechanism behind cheap resumption — a composing pattern reads the suspended record's values and replays them in a fresh [Set], with no vocabulary loss and nothing for the principal to re-enter. The one caveat is that the replay is re-validated against the set injected for the later call, so a channel name dropped from the declaration in the meantime must be dropped from the replay (Resumption 1–4).
+  WHY: this is the structural mechanism behind cheap resumption — a composing pattern reads the suspended record's values and replays them in a fresh [Set], with no vocabulary loss and nothing for the principal to re-enter. The one caveat is that the replay is re-validated against the set injected for the later call, so a channel name dropped from the declaration in the meantime must be dropped from the replay (Resumption 1 through 4).
 - **Invariant 7 — Current For determinism.**
   ```text
   Invariant 7.1: [Current For] MUST answer the preference record currently in effect for the principal_ref.
@@ -312,7 +312,7 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   Temporal property 4: A supersession gap MUST NOT EXCEED the supersession gap bound.
   Temporal property 5: The implementation MUST own the clock monotonicity Temporal property 1 rests on.
   ```
-  WHY: best-effort, and deliberately outside the invariant numbering — Invariants 1 to 10 are the hard set, and giving this a slot among them would read it as their peer. The hard set holds over every state the atom's own accepted actions can reach, given the named host obligations; these four inequalities hold only where the clock does not move backward. They are labelled apart because audit reconstruction depends on the directional guarantee (Check 2.1, Check 4.1), and a violation here is observable and diagnosable rather than silently corrupting.
+  WHY: best-effort, and deliberately outside the invariant numbering — Invariant 1 through 10 are the hard set, and giving this a slot among them would read it as their peer. The hard set holds over every state the atom's own accepted actions can reach, given the named host obligations; these four inequalities hold only where the clock does not move backward. They are labelled apart because audit reconstruction depends on the directional guarantee (Check 2.1, Check 4.1), and a violation here is observable and diagnosable rather than silently corrupting.
 
 Term supersession gap: the interval from a superseded preference record's `deleted_at` to the successor's `set_at`.
 
@@ -358,7 +358,7 @@ Term transition: the atom's evaluation of one call against the preference store,
 WHY:
 The channel vocabulary is the deployment's, and the atom's job is to consume the resolution and prove the consumption — not to absorb a registry. So the set arrives at the seam like the clock and the id, the transition validates against it, and the transition stamps what it validated against onto the record (Instance 10, Instance 12). Two things follow, and both are the point. The audit surface is self-contained per record: one record, one stamped set, no cross-record join and no configuration artifact (Invariant 5.1, Invariant 10.1, Check 5.1). And a channel-set change is visible only forward — records made after the change carry the new set, historical records keep the set in force at their own creation, which is what keeps them verifiable forever.
 
-A degenerate injection is a deployment fault, not a caller error, and the split matters: with an empty set every supplied key is undeclared by construction, so validating would report a host fault as a caller's vocabulary mistake. Fail-stop instead — nothing validated, nothing written, no conforming outcome, and the fault surfaced where deployment faults are read (Instance 13–16).
+A degenerate injection is a deployment fault, not a caller error, and the split matters: with an empty set every supplied key is undeclared by construction, so validating would report a host fault as a caller's vocabulary mistake. Fail-stop instead — nothing validated, nothing written, no conforming outcome, and the fault surfaced where deployment faults are read (Instance 13 through 16).
 
 Who may change the declared set, when it changed, and the who and when of those changes all live with the deployment's configuration surface. A deployment whose regulator audits channel-set governance wraps *that* surface with [Audit Trail](../compositions/audit-trail.md) or [Actor Identity](./actor-identity.md); this store proves only, and exactly, what each record was validated against (Invariant 10.4, Non-goal 13).
 
@@ -468,13 +468,13 @@ Non-goal 32: The atom MUST NOT change a caller's captured copy of a preference r
 ```
 
 WHY:
-Everything downstream of *how should this look* belongs to the composing pattern — routing, fanout, transport, delivery guarantees (Non-goal 1–5). The two gating questions are sequenced peers, not alternatives: [Consent](./consent.md) decides whether the system may contact the principal at all, [Subscription](./subscription.md) decides whether the principal follows the topic, and this atom's commitment is conditional on both having resolved in favour of delivery (Non-goal 6–9, Composition note 6, Composition note 7). A composing pattern that reads preferences without first re-checking permission has made a sequencing error, not an atom-conformance error; the atom neither detects nor reacts to a revocation, and the records stay as they were.
+Everything downstream of *how should this look* belongs to the composing pattern — routing, fanout, transport, delivery guarantees (Non-goal 1 through 5). The two gating questions are sequenced peers, not alternatives: [Consent](./consent.md) decides whether the system may contact the principal at all, [Subscription](./subscription.md) decides whether the principal follows the topic, and this atom's commitment is conditional on both having resolved in favour of delivery (Non-goal 6 through 9, Composition note 6, Composition note 7). A composing pattern that reads preferences without first re-checking permission has made a sequencing error, not an atom-conformance error; the atom neither detects nor reacts to a revocation, and the records stay as they were.
 
 Frequency limits and quiet hours are preference fields and not atoms of their own. Rate-limiting recurs in the abstract, but what is stored here is an opaque payload with no state machine, no lifecycle independent of the record carrying it, and no meaning until the fanout interprets it at delivery time. A separate rate-limit atom would have identity, state and actions; this is a parameter (Non-goal 11, Composition note 8).
 
-Authorization is capability-based across writes and reads alike: a caller holding a `principal_ref` may set for that principal or ask what is in effect, a caller holding a `preference_id` may suspend, delete or read. No role check, no per-action authorization. The bare atom enforces something specific and useful, and richer models — the principal must consent to a third party setting their preferences, a deletion must be co-signed, only the principal or a privacy admin may read the history — wrap it rather than replace it (Non-goal 22–24).
+Authorization is capability-based across writes and reads alike: a caller holding a `principal_ref` may set for that principal or ask what is in effect, a caller holding a `preference_id` may suspend, delete or read. No role check, no per-action authorization. The bare atom enforces something specific and useful, and richer models — the principal must consent to a third party setting their preferences, a deletion must be co-signed, only the principal or a privacy admin may read the history — wrap it rather than replace it (Non-goal 22 through 24).
 
-No resume action, because returning a [Suspended] record to [Active] would break monotonicity, and a principal cycling suspend and resume repeatedly would pile the whole history onto one record instead of producing one record per lifecycle event. Reading the suspended values and offering them as defaults is cheap, so lifecycle clarity wins over surface convenience (Non-goal 16, Invariant 2.3, Resumption 1–4).
+No resume action, because returning a [Suspended] record to [Active] would break monotonicity, and a principal cycling suspend and resume repeatedly would pile the whole history onto one record instead of producing one record per lifecycle event. Reading the suspended values and offering them as defaults is cheap, so lifecycle clarity wins over surface convenience (Non-goal 16, Invariant 2.3, Resumption 1 through 4).
 
 ## Edge cases
 

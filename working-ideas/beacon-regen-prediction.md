@@ -84,7 +84,7 @@ Stated so each is checkable, and so a miss is attributable.
 4. **`listForActor` filters Active in the query, and its callers stop re-filtering.** Five hand-written `revoked_at === null` checks collapse to none. Testable without a UI.
 5. **Revoking a permission the actor does not hold** answers `not-permitted` — a first-class *nothing to do*, distinguishable from an error.
 6. **`activeCodesFor` returns distinct codes (render 2).** Testable directly; no UI needed.
-7. **Checks 1–4 and 6 are unchanged**, and check 5's revocation-side lower edge names `revoke_permission_completion_bound`.
+7. **Check 1 through 4 and 6 are unchanged**, and check 5's revocation-side lower edge names `revoke_permission_completion_bound`.
 8. **The Go render's chain still verifies byte-for-byte** under render 2's canonical contract. This fix touches no record shape, so the cross-language result must survive it. If it doesn't, something changed that shouldn't have.
 
 ---

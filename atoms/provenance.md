@@ -241,25 +241,25 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the chain |
 |---|---|---|---|
-| [Originate] | refs present, genesis type admitted | the new `chain_id` | a chain opens, genesis entry at sequence one (Operation 5–9) |
+| [Originate] | refs present, genesis type admitted | the new `chain_id` | a chain opens, genesis entry at sequence one (Operation 5 through 9) |
 | [Originate] | a blank reference | [Invalid Ref] | none (Operation 1, Operation 2) |
 | [Originate] | genesis type outside the two | [Invalid Genesis Type] | none (Operation 3, Operation 4) |
-| [Transfer] | open chain, `to_custodian_ref` present | the `entry_id` | `transferred` entry; the from-side read from state; custody moves (Operation 19–21) |
+| [Transfer] | open chain, `to_custodian_ref` present | the `entry_id` | `transferred` entry; the from-side read from state; custody moves (Operation 19 through 21) |
 | [Transform] | open chain, refs present, custodian current | the `entry_id` | `transformed` entry; custody unchanged (Operation 28, Operation 33) |
 | [Disclose] | open chain, refs present, custodian current | the `entry_id` | `disclosed` entry; custody unchanged (Operation 29, Operation 34) |
-| [Archive] | open chain, custodian current | the `entry_id` | `archived` entry; chain closes; custody unchanged (Operation 30–32) |
-| any writer | chain is archived | [Archived] | none (Operation 12–14) |
+| [Archive] | open chain, custodian current | the `entry_id` | `archived` entry; chain closes; custody unchanged (Operation 30 through 32) |
+| any writer | chain is archived | [Archived] | none (Operation 12 through 14) |
 | [Archive] | chain is archived | [Already Archived] | none (Operation 15) |
 | custodian-guarded | `custodian_ref` is not the current custodian | [Not Current Custodian] | none (Operation 26) |
 | any addressed action | id names nothing | [Not Known] | none (Operation 10) |
-| any appending action | store refuses | [Storage Failure] | none (Operation 41–44) |
+| any appending action | store refuses | [Storage Failure] | none (Operation 41 through 44) |
 | [Read] | a well-formed query, any chain state | the matching entries, oldest first | none (Operation 46, Operation 53) |
 | [Read] | an inverted range, or an unknown event type | [Invalid Query] | none (Operation 48, Operation 49) |
 
 WHY:
 Rejection precedence lives in the guards rather than in a note. Existence comes first because every later check needs a chain to inspect (Operation 10, Operation 11). Chain state comes next, conditioned on the chain existing (Operation 16). Field format comes before the custodian comparison, and that order is load-bearing rather than conventional: the current custodian is never blank (Invariant 7.1), so a blank caller-supplied reference can never equal it — a comparison-first order would make [Invalid Ref] unreachable and report every malformed input as an attribution failure (Operation 27).
 
-`archived` and `already-archived` are two answers to one state because they tell a retrying caller opposite things. A writer meeting `archived` learns the chain is closed to that intent; [Archive] meeting `already-archived` learns the state it wanted already holds. The first is final, the second is a done-signal — and the action still writes no second entry (Operation 12–15).
+`archived` and `already-archived` are two answers to one state because they tell a retrying caller opposite things. A writer meeting `archived` learns the chain is closed to that intent; [Archive] meeting `already-archived` learns the state it wanted already holds. The first is final, the second is a done-signal — and the action still writes no second entry (Operation 12 through 15).
 
 [Transfer] carries no custodian guard, and the asymmetry is designed. The other three guards are *attribution* constraints — they stop an entry claiming a custodian who is not current. On a transfer the same constraint holds more strongly and by construction, because the from-side is never claimed at all: it is read from the chain (Operation 18, Operation 19, Operation 22). Adding a caller-supplied check would buy nothing structural — an opaque reference is a label, not a credential, exactly as forgeable as on the other three — and would block the receive-side and system-mediated recording of a hand-off that real deployments need.
 
@@ -324,7 +324,7 @@ Rejection precedence lives in the guards rather than in a note. Existence comes 
 
 ### Pharmaceutical — a batch from manufacture to dispensing
 
-A manufacturer opens the chain: `originate(artifact_ref: "batch-x91", custodian_ref: "manuf-lab-7", genesis_type: originated)` → `chain-0041`. The genesis entry takes `sequence_number: 1` and the chain stands open with `manuf-lab-7` current (Operation 5–9).
+A manufacturer opens the chain: `originate(artifact_ref: "batch-x91", custodian_ref: "manuf-lab-7", genesis_type: originated)` → `chain-0041`. The genesis entry takes `sequence_number: 1` and the chain stands open with `manuf-lab-7` current (Operation 5 through 9).
 
 `transfer("chain-0041", to_custodian_ref: "dist-region-3")` → `e2`. The entry records `from_custodian_ref: "manuf-lab-7"` — read from the current custodian, never from the caller (Operation 18, Operation 19). `transfer("chain-0041", "pharm-hosp-9")` → `e3`. The pharmacist records the dispense: `transform("chain-0041", "pharm-hosp-9", "dispensed 10mg dose into unit D44")` → `e4`, then closes it: `archive("chain-0041", "pharm-hosp-9")` → `e5`. The chain stands archived.
 
@@ -354,11 +354,11 @@ The same call against the chain while it stood open, after custody had moved to 
 
 `read("chain-0041", {sequence_range: [5, 2]})` → `rejected(invalid-query)`. The caller corrects the query rather than reading an empty answer as *no entries matched* (Operation 47, Operation 48).
 
-`transfer("chain-0107", "forensic-lab-12")` while the store's write path is down → `rejected(storage-failure)`. Every precondition passed and the write did not; no entry is appended, no `sequence_number` is taken, and the current custodian holds its prior value (Operation 41–45).
+`transfer("chain-0107", "forensic-lab-12")` while the store's write path is down → `rejected(storage-failure)`. Every precondition passed and the write did not; no entry is appended, no `sequence_number` is taken, and the current custodian holds its prior value (Operation 41 through 45).
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** An FDA (US Food and Drug Administration) inspector asks for the complete chain of custody for `batch-x91` under 21 CFR (Code of Federal Regulations) Part 211. `read("chain-0041")` answers the ordered sequence; the inspector clears Check 1.1 through Check 7.2 from those records alone, without the facility's assertion that custody was maintained.
+- **Regulator audit.** An FDA (US Food and Drug Administration) inspector asks for the complete chain of custody for `batch-x91` under 21 CFR (Code of Federal Regulations) Part 211. `read("chain-0041")` answers the ordered sequence; the inspector clears Check 1.1 through 7.2 from those records alone, without the facility's assertion that custody was maintained.
 - **Disputed transaction.** The defense rebuttal above rests on two invariants together: custody continuity, because `from_custodian_ref` is read from chain state and cannot be supplied (Invariant 4, Operation 18), and custodian presence, because no entry may name an empty custodian (Invariant 7).
 - **Breach investigation.** An investigator brackets an anomaly window generously: `read("chain-0041", {recorded_at_range: ["2026-02-27", "2026-03-17"]})`. A wall-time filter is a convenience over a best-effort annotation and never an ordering claim (Operation 58), so the window's completeness is confirmed from an unfiltered read — the filtered window's first and last entries are located in the full sequence and their sequence-adjacent neighbours checked to fall outside the bracket. The sequence is dense (Invariant 5), so no entry lies between an entry and its sequence-adjacent neighbour and a clock-skewed entry cannot have been silently excluded. The custodian in force at any point is then exactly determined by replaying the preceding entries.
 
@@ -453,7 +453,7 @@ Term uncommitted crash: a crash BEFORE an appending action's commit lands.
 Term dangling transition: an appending action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
 
 WHY:
-Every append couples at least two durable mutations — the entry and the counter raise — and [Transfer] and [Archive] carry a third (Operation 36–38). The obligation is an observability guarantee, all-or-none: a partly applied append is not a transient condition an implementation may expose and repair later; it must never be servable. A [Storage Failure] answer carries the same guarantee from the caller's side (Operation 41, Invariant 9.2).
+Every append couples at least two durable mutations — the entry and the counter raise — and [Transfer] and [Archive] carry a third (Operation 36 through 38). The obligation is an observability guarantee, all-or-none: a partly applied append is not a transient condition an implementation may expose and repair later; it must never be servable. A [Storage Failure] answer carries the same guarantee from the caller's side (Operation 41, Invariant 9.2).
 
 ### Clock dependence
 
@@ -528,7 +528,7 @@ Correction 4: A correcting entry MUST name the corrected entry's sequence_number
 ```
 
 WHY:
-The chain is append-only and entries are immutable (Invariant 1.1, Invariant 2.1), so a mis-keyed descriptor or a disclosure recorded against the wrong recipient is never edited away. Correction-by-append is what regulated record-keeping asks for: the record shows both the error and its correction, in order, and the correcting entry is appended under the then-current custodian like any other. Formal amendment semantics stay out (Non-goal 9–11).
+The chain is append-only and entries are immutable (Invariant 1.1, Invariant 2.1), so a mis-keyed descriptor or a disclosure recorded against the wrong recipient is never edited away. Correction-by-append is what regulated record-keeping asks for: the record shows both the error and its correction, in order, and the correcting entry is appended under the then-current custodian like any other. Formal amendment semantics stay out (Non-goal 9 through 11).
 
 ---
 
@@ -546,11 +546,11 @@ Composition note 8: A composing pattern reading the chain store MUST NOT write t
 ```
 
 WHY:
-[Chain of Custody](../compositions/chain-of-custody.md) is the composition this atom exists inside: it wires Provenance with [Actor Identity](./actor-identity.md), [Tamper Evidence](./tamper-evidence.md) and [Retention Window](./retention-window.md) to produce the full chain-of-custody surface — structural continuity from this atom, per-entry attestation, the chain seal, and the retention clock (Composition note 3–5). It is the canonical implementation for pharmaceutical custody under 21 CFR Part 211 and DEA 21 CFR Part 1304, regulated evidence custody under Federal Rules of Evidence 901(b)(9), and financial instrument custody records under SEC Rule 17a-4.
+[Chain of Custody](../compositions/chain-of-custody.md) is the composition this atom exists inside: it wires Provenance with [Actor Identity](./actor-identity.md), [Tamper Evidence](./tamper-evidence.md) and [Retention Window](./retention-window.md) to produce the full chain-of-custody surface — structural continuity from this atom, per-entry attestation, the chain seal, and the retention clock (Composition note 3 through 5). It is the canonical implementation for pharmaceutical custody under 21 CFR Part 211 and DEA 21 CFR Part 1304, regulated evidence custody under Federal Rules of Evidence 901(b)(9), and financial instrument custody records under SEC Rule 17a-4.
 
 [Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md) enriches ledger entries that reference a tracked artifact, naming this enrichment in its single-artifact financial-instrument custody edge case. [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) reads the custody record as evidence of lawful handling under GDPR (EU General Data Protection Regulation) Articles 5 and 30, and [Customer Onboarding](../compositions/customer-onboarding.md) optionally chains the custody of identity-verification documents.
 
-[Selective Disclosure](./selective-disclosure.md) is the partner that makes [Disclose] complete: this atom marks where on the custody timeline a disclosure occurred and to whom, and Selective Disclosure records what scope was shared under what authority. Neither duplicates the other (Composition note 6, Non-goal 5–7).
+[Selective Disclosure](./selective-disclosure.md) is the partner that makes [Disclose] complete: this atom marks where on the custody timeline a disclosure occurred and to whom, and Selective Disclosure records what scope was shared under what authority. Neither duplicates the other (Composition note 6, Non-goal 5 through 7).
 
 ---
 
@@ -913,7 +913,7 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/provenance.md`.
 
-- **2026-09-12 — Rewritten in GRACE lang v0.39; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the six actions as a signature block, Invariants 1–8 keeping their numbers and their sub-rule numbering, every success effect conditioned on a declared `admitted originate` / `admitted transfer` / `admitted transform` / `admitted disclose` / `admitted archive` so no effect binds a refused call (Hard invariant 16), rejection precedence carried by `Operation 11`, `Operation 16` and `Operation 27` rather than by a WHY note, the seven acceptance areas raised to `Check 1.1–7.4`, the Non-goals-and-edge-cases prose split into a `Non-goal 1–22` family and five edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`, `Correction`), the Composition notes prose raised to `Composition note 1–8` with the named compositions moved into the WHY. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into provenance` found nothing in the corpus citing this atom by label, so the rewrite carried no frozen-number risk.
+- **2026-09-12 — Rewritten in GRACE lang v0.39; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the six actions as a signature block, Invariant 1 through 8 keeping their numbers and their sub-rule numbering, every success effect conditioned on a declared `admitted originate` / `admitted transfer` / `admitted transform` / `admitted disclose` / `admitted archive` so no effect binds a refused call (Hard invariant 16), rejection precedence carried by `Operation 11`, `Operation 16` and `Operation 27` rather than by a WHY note, the seven acceptance areas raised to `Check 1.1 through 7.4`, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and five edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`, `Correction`), the Composition notes prose raised to `Composition note 1 through 8` with the named compositions moved into the WHY. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into provenance` found nothing in the corpus citing this atom by label, so the rewrite carried no frozen-number risk.
 
 - **2026-09-12 — Id uniqueness and the archived read are stated once.** *Chose:* the former Invariant 9 (no id reuse) is carried by `Identity 15` and `Identity 16` in the Identity model, and the former archived-chain-admits-a-read invariant by `Operation 53` on the action surface; the durability invariant took the freed number 9. *Over:* keeping both copies for emphasis. *Because:* Authority 3 — two rules must not claim authority for one proposition, and the identity model is where identity rules sit. Both duplicates were found by the checker, not by a reader.
 

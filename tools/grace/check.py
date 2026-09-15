@@ -7,7 +7,7 @@ declarations — and reports what a form-reader can decide without semantics:
 fence classification (Surface 18, Surface 19) and signature blocks (Surface 20), unlabelled lines (Hard invariant 1, Sugar 3), label uniqueness
 and tombstone reuse (Hard invariant 25, Hard invariant 27), the rule form and the statement shapes (Rule shape 1, Rule shape 2,
 Rule shape 6, Hard invariant 2, Hard invariant 3), WHEN blocks (WHEN block 3, Hard invariant 6), mixed AND/OR and OR outside a condition (Hard invariant 7,
-Hard invariant 8), BEFORE and AFTER outside their admitted places (Hard invariant 9–11), the banned
+Hard invariant 8), BEFORE and AFTER outside their admitted places (Hard invariant 9 through 11), the banned
 words (Timing 10, Timing 11), arithmetic in a rule (Hard invariant 24), pronouns (Hard invariant 4), the copula after
 a modal (Closed vocabulary 8, Closed vocabulary 14), the record verb after the modal against the declared
 vocabulary (Closed vocabulary 8), a declared term nothing uses, and a cross-rule reference to a
@@ -190,6 +190,8 @@ _LABEL_TEXT = r"((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:
 TOMBSTONE = re.compile(r"^Deleted: " + _LABEL_TEXT + r"\. \S.*\.$")
 # the retired shape, a NOTE whose text began with a label and the word deleted
 LEGACY_TOMBSTONE = re.compile(r"^NOTE:\s*" + _LABEL_TEXT + r"\s+deleted\b")
+# the last number of a range citation, `Operation 3 through 7` (Hard invariant 29)
+RANGE_END = re.compile(r" through ([\d½]+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
 PRONOUN = re.compile(r"\b(it|its|itself|they|their|them|he|she|his|her)\b")
 # The grammar's `pronoun` declaration also names this, that, these and those
 # standing alone, and names this file as what enforces them — it did not.
@@ -610,14 +612,20 @@ def scan(path: Path) -> list[Finding]:
             if TERM_DECL.match(raw):
                 continue
             for fm in name_re.finditer(raw):
-                ref = fm.group(1) + fm.group(2)
+                refs = [fm.group(1) + fm.group(2)]
+                # a range citation names its last label too (Hard invariant 29)
+                end = RANGE_END.match(raw, fm.end())
+                if end:
+                    step = " step " if fm.group(2).startswith(" step ") else " "
+                    refs.append(fm.group(1) + step + end.group(1))
                 before = raw[:fm.start()]
                 if re.search(r"[A-Z][\w'’]*\s$", before) and fm.group(1) in ("Invariant", "Check"):
                     continue  # another spec's invariant or check, cited by the corpus form
-                if ref in labels or ref in tombstones or ref in exemplars or ref in groups or ref in seen:
-                    continue
-                seen.add(ref)
-                add(k, "X-ref", f"reference to {ref}, which no rule in this spec carries (Hard invariant 12)")
+                for ref in refs:
+                    if ref in labels or ref in tombstones or ref in exemplars or ref in groups or ref in seen:
+                        continue
+                    seen.add(ref)
+                    add(k, "X-ref", f"reference to {ref}, which no rule in this spec carries (Hard invariant 12)")
 
     # what a declaration carries: an obligation, or a name that resolves nowhere
     decls = declared_terms(text)

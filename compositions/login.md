@@ -68,9 +68,9 @@ Term service identity: the composition's own registered actor and credential —
 WHY:
 Composes 6 and Composes 7 are the corpus's first migrated use of a **composition as a constituent**. audit trail(./audit-trail.md) is a substrate, not an atom, so Event Log, Actor Identity, Retention Window and Tamper Evidence are reached *through* it and this composition holds no instance of any of them — which `execution-contract.md` §Substrate composition invocation is what makes legitimate rather than a topology accident.
 
-Composes 12 through Composes 14 are the attestation decision and it is forced rather than chosen. Login's callers are end principals whose presented material is the very thing under test — a failed login's principal has no attestable credential at all — so the only honest attestation surface for every event this composition writes is its own registered identity, with the human parties carried as data.
+Composes 12 through 14 are the attestation decision and it is forced rather than chosen. Login's callers are end principals whose presented material is the very thing under test — a failed login's principal has no attestable credential at all — so the only honest attestation surface for every event this composition writes is its own registered identity, with the human parties carried as data.
 
-Composes 15 through Composes 17 declare the read capability exactly. The substrate passes a sequence-range read through to its Event Log unchanged; every selection is enumerate-and-filter in composition code, which is the move the substrate itself uses for its own rebuilds. A payload-predicate *query* is the forthcoming Reverse Index pattern's shape, and a deployment may compose one over the trail as an instance optimization without changing this contract.
+Composes 15 through 17 declare the read capability exactly. The substrate passes a sequence-range read through to its Event Log unchanged; every selection is enumerate-and-filter in composition code, which is the move the substrate itself uses for its own rebuilds. A payload-predicate *query* is the forthcoming Reverse Index pattern's shape, and a deployment may compose one over the trail as an instance optimization without changing this contract.
 
 ---
 
@@ -244,7 +244,7 @@ Term admitted cascade: a [Revoke Sessions For Credential] call whose arguments c
 Term cascade set: the union of the credential-to-sessions map's entry for a credential_id and the event-derived set the substrate's login-family events carry for it.
 
 WHY:
-Action wiring 5 through Action wiring 7 are the sandwich, and it exists because two reads of one credential store can straddle a rotation. The first read names the credential the verify gated on; the second confirms it is still the effective-active one after the session committed. A disagreement means the credential rotated mid-login, and the honest answer is a storage failure at the named stage rather than a session pinned to a credential that no longer gates it.
+Action wiring 5 through 7 are the sandwich, and it exists because two reads of one credential store can straddle a rotation. The first read names the credential the verify gated on; the second confirms it is still the effective-active one after the session committed. A disagreement means the credential rotated mid-login, and the honest answer is a storage failure at the named stage rather than a session pinned to a credential that no longer gates it.
 
 Action wiring 10 and Action wiring 11 are the map's subordination stated as rules. The session is real and is returned; the map write is an index write, so its failure costs a lookup and not a login. What keeps the cascade complete anyway is Action wiring 11's event: the pair lands in the trail, so the cascade's union read finds it even when the live map does not.
 

@@ -91,7 +91,7 @@ A charge succeeds; the processor records `record_result(key, {charge_id})` atomi
 **Pre-done by harvest + recovery (Spark→Shape collapsed):**
 - *Existence / Gate 1 (recurrence):* three independent witnesses — IR `token_results`, `asgi-idempotency-header`, Stripe's design. Largely made.
 - *Gate 2/3 (distinct emergent surface, new state):* membership-vs-result split, evidenced by both witnesses keeping separate stores.
-- *State machine, action surface, invariant set:* lifted from IR Invariant 7 + durability/partial-failure edge cases + recovery; Invariants 1–5 above.
+- *State machine, action surface, invariant set:* lifted from IR Invariant 7 + durability/partial-failure edge cases + recovery; Invariant 1 through 5 above.
 - *A Pass-3 adversarial finding, pre-computed:* the asgi *seen-with-no-result* bug is a reproduced Linus-class hazard, and it doubles as the **buggy-twin hazard** for the formal model (evict result while membership remains → the checker must reject).
 
 **Still owed by the pipeline (the irreducible work):**

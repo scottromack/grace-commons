@@ -58,7 +58,7 @@ Term business caller: the party whose action the call carries, as `execution-con
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
-Identity by record and policy together would collapse the policy-transition case the regime actually produces — an old retention completing while a new one runs over the same record — and identity by time would lose two concurrent placements (Identity 6–9). One retention, one id, is what lets an auditor read a record's policy history as a sequence.
+Identity by record and policy together would collapse the policy-transition case the regime actually produces — an old retention completing while a new one runs over the same record — and identity by time would lose two concurrent placements (Identity 6 through 9). One retention, one id, is what lets an auditor read a record's policy history as a sequence.
 
 ### State
 
@@ -150,7 +150,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the retention store |
 |---|---|---|---|
-| [Place Under Retention] | refs well-formed, policy resolves and is valid, store accepts | `retention_id` | one retention lands in [Retained] with its two deadlines (Operation 1, State 4–6) |
+| [Place Under Retention] | refs well-formed, policy resolves and is valid, store accepts | `retention_id` | one retention lands in [Retained] with its two deadlines (Operation 1, State 4 through 6) |
 | [Place Under Retention] | blank `record_ref` or `policy_ref` | [Invalid Request] | none (Operation 4, Operation 5) |
 | [Place Under Retention] | policy_ref resolves to nothing | [Policy Not Found] | none (Operation 6) |
 | [Place Under Retention] | duration not positive, or delay negative | [Invalid Policy] | none (Operation 7, Operation 8) |
@@ -201,7 +201,7 @@ The refusal order is carried by each rule's own condition rather than by the ord
   ```text
   Invariant 7.1: IF purge eligible = no THEN a retention MUST NOT stand in purged.
   ```
-  WHY: this is the regulator's structural guarantee that an obligation cannot be silently shortened, and it is gated per retention_id — a retention's own retention_until and nothing else (Simultaneous retention 1–4).
+  WHY: this is the regulator's structural guarantee that an obligation cannot be silently shortened, and it is gated per retention_id — a retention's own retention_until and nothing else (Simultaneous retention 1 through 4).
 - **Invariant 8 — Purge timestamp consistency.**
   ```text
   Invariant 8.1: retention_until MUST NOT EXCEED purged_at.

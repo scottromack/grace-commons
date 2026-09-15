@@ -148,12 +148,12 @@ The case space, and the rule that owns each case:
 | [Revoke] | id names a live grant | `ok` | [Active] → [Revoked], `revoked_at` stamped (Operation 11, State 5) |
 | [Revoke] | id names a revoked grant | [Not Active] | none — and the answer a retry of a landed revoke gets (Operation 10) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 9) |
-| [Revoke] | store refuses the write | [Storage Failure] | none — **the subject keeps the access** (Operation 13–15) |
+| [Revoke] | store refuses the write | [Storage Failure] | none — **the subject keeps the access** (Operation 13 through 15) |
 | [Check] | a live grant matches the pair | [Permitted] | none — the call reads (Operation 17, Operation 20) |
 | [Check] | nothing matches, over-length argument included | [Denied] | none (Operation 18, String 7) |
 
 WHY:
-The two storage failures are not the same failure. A failed [Grant] leaves a record missing, which the caller discovers the next time the subject is denied; a failed [Revoke] leaves a subject holding access the organization has decided to remove, and a caller that reads it as *probably fine* has left the door open (Operation 15, Revoke persistence 1–4). [Check] refuses nothing: a malformed argument matches no grant, and the correct answer to *may this actor do this thing* is then `denied` rather than an error the call site has to interpret (Operation 19, String 7).
+The two storage failures are not the same failure. A failed [Grant] leaves a record missing, which the caller discovers the next time the subject is denied; a failed [Revoke] leaves a subject holding access the organization has decided to remove, and a caller that reads it as *probably fine* has left the door open (Operation 15, Revoke persistence 1 through 4). [Check] refuses nothing: a malformed argument matches no grant, and the correct answer to *may this actor do this thing* is then `denied` rather than an error the call site has to interpret (Operation 19, String 7).
 
 ### Invariants
 
@@ -199,7 +199,7 @@ The two storage failures are not the same failure. A failed [Grant] leaves a rec
   Invariant 9.1: IF revoked_at EXISTS THEN granted_at MUST NOT EXCEED revoked_at.
   Invariant 9.2: A grant MUST stand in force at an instant ONLY IF the grant is live at the instant.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2–3).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2 through 3).
 - **Invariant 10 — Grant store durability.**
   ```text
   Invariant 10.1: The atom MUST NOT delete a grant record.
@@ -296,7 +296,7 @@ Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted t
 ```
 
 WHY:
-Roles and attributes are the two shapes people reach for first, and both compose: a role is a name the composing system resolves into grants before it calls, and an attribute policy is a pattern that decides and then grants (Non-goal 1–3). Explicit deny is refused on purpose — a deny that overrides an allow needs a precedence rule, and precedence is the part of an authorization system that is wrong in production (Non-goal 6, Invariant 7.1). The binding between the authenticated caller and the `subject_ref` passed to [Check] is the composing system's, and getting it wrong is how a correct authorization atom authorizes the wrong person (Non-goal 13, Non-goal 14).
+Roles and attributes are the two shapes people reach for first, and both compose: a role is a name the composing system resolves into grants before it calls, and an attribute policy is a pattern that decides and then grants (Non-goal 1 through 3). Explicit deny is refused on purpose — a deny that overrides an allow needs a precedence rule, and precedence is the part of an authorization system that is wrong in production (Non-goal 6, Invariant 7.1). The binding between the authenticated caller and the `subject_ref` passed to [Check] is the composing system's, and getting it wrong is how a correct authorization atom authorizes the wrong person (Non-goal 13, Non-goal 14).
 
 Where the atom breaks down: when the scope vocabulary needs hierarchy or wildcards; when evaluation must reason about the resource's attributes at call time; when a grant must end on its own without anyone revoking it; when the grantor's identity is part of the evaluation rather than beside it.
 
@@ -317,7 +317,7 @@ String 7: [Check] MUST read an over-length string input as matching nothing.
 Term string cap: the deployment's bound on a string input's length; a cap of zero refuses every [Grant], which is the degenerate configuration a deployment owns rather than a state the atom admits.
 
 WHY:
-Byte-exact and nothing else. A scope vocabulary that needs case-insensitivity or normalization has a vocabulary the composing system owns, and an atom that quietly folded case would make `Documents:Read` and `documents:read` the same authorization in a system that meant them differently (String 1–4).
+Byte-exact and nothing else. A scope vocabulary that needs case-insensitivity or normalization has a vocabulary the composing system owns, and an atom that quietly folded case would make `Documents:Read` and `documents:read` the same authorization in a system that meant them differently (String 1 through 4).
 
 ### Deprovisioning a subject
 

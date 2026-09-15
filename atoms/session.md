@@ -97,7 +97,7 @@ State 14: The atom MUST NOT hold a concurrency bound per principal_ref.
 Term status: `active` | `revoked` — the stored status; in force, or cancelled and terminal. `expired` is not a value of it.
 
 WHY:
-The stored state space is two values because lapsing needs no third. [Expired] is a *read projection*, so the store holds what was decided and derives what the clock decides (State 1, State 8, Expiry 1–5). That is what removes the stored-flag-that-lags-the-clock failure mode `pressure-testing.md` §Formal-model authoring pitfalls names.
+The stored state space is two values because lapsing needs no third. [Expired] is a *read projection*, so the store holds what was decided and derives what the clock decides (State 1, State 8, Expiry 1 through 5). That is what removes the stored-flag-that-lags-the-clock failure mode `pressure-testing.md` §Formal-model authoring pitfalls names.
 
 #### Expiry
 
@@ -260,13 +260,13 @@ The case space, and the rule that owns each case:
 | [Validate] | stored status is [Revoked] | [Invalid Revoked] | none — returned even where the window is still open (Operation 15) |
 | [Validate] | stored [Active], `now` has reached `expires_at` | [Invalid Expired] | none — derived, nothing written (Operation 16, Operation 17) |
 | [Validate] | stored [Active], `now` short of `expires_at` | [Valid], carrying [Principal Ref] and [Expires At] | none (Operation 18, Operation 19) |
-| [Revoke] | token names a session in [Active], attribution present | `revoked` | [Active] → [Revoked], three fields stamped (Operation 28–32) |
+| [Revoke] | token names a session in [Active], attribution present | `revoked` | [Active] → [Revoked], three fields stamped (Operation 28 through 32) |
 | [Revoke] | token names a session in [Active] past its deadline | `revoked` | as above — a lapse is not a stored terminal (Operation 27) |
 | [Revoke] | token names nothing | [Not Known] | none (Operation 22) |
 | [Revoke] | stored status is already [Revoked] | [Already Terminal] | none (Operation 23, Operation 24) |
 | [Revoke] | session in [Active], blank attribution | [Invalid Request] | none (Operation 25, Operation 26) |
 | either write | store refuses | [Storage Failure] | none (Operation 12, Operation 34, Operation 35) |
-| *a window lapses* | `now` reaches `expires_at` | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 1–5) |
+| *a window lapses* | `now` reaches `expires_at` | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 1 through 5) |
 | [Read] | a filter | the matching sessions, each carrying its `effective_status` | none (Operation 37, Operation 38) |
 
 WHY:
@@ -370,7 +370,7 @@ If the browser re-presents the old cookie at `10:50:00Z`: `validate(tok_abc123)`
 
 ### A window lapses — derived
 
-The user closes the browser without logging out. The window passes at `11:00:00Z`. **No call is made and no write occurs** — there is no action to call. At `11:30:00Z` a new tab presents the same cookie: `validate(tok_abc123)` → `invalid(expired)`. The record is still stored `active`, never transitioned; the answer comes from `expires_at` against the injected `now`. Nothing is written, there is no expiry timestamp to write, and the record count is unchanged. A [Read] of the record now reports `effective_status: expired` (Expiry 1–8).
+The user closes the browser without logging out. The window passes at `11:00:00Z`. **No call is made and no write occurs** — there is no action to call. At `11:30:00Z` a new tab presents the same cookie: `validate(tok_abc123)` → `invalid(expired)`. The record is still stored `active`, never transitioned; the answer comes from `expires_at` against the injected `now`. Nothing is written, there is no expiry timestamp to write, and the record count is unchanged. A [Read] of the record now reports `effective_status: expired` (Expiry 1 through 8).
 
 ### Rejection paths
 
@@ -384,7 +384,7 @@ The user closes the browser without logging out. The window passes at `11:00:00Z
 
 - **Regulator audit.** A HIPAA (Health Insurance Portability and Accountability Act) auditor asks whether access to a patient record at `14:32Z` on `2026-10-15` was under a valid, unrevoked session. The store yields `tok_abc123`: stored `active`, `issued_at: 14:00:00Z`, `expires_at: 15:00:00Z`, no `revoked_at`. Invariant 3.1 is the structural answer — at `14:32Z` the session was stored active and the deadline had not passed, so [Validate] would have answered [Valid]. The auditor confirms it from the record alone; there is no stored expiry flag to corroborate, only the immutable deadline (Check 3.1).
 - **Disputed access.** A user denies access at `03:15` on `2026-11-20`. The investigator queries sessions for the principal live at that instant and finds `tok_abc123`: `issued_at: 2026-11-19T22:00:00Z`, `expires_at: 2026-11-20T06:00:00Z`, `issued_by_ref: login_svc_l01`. The session was in force. Whether the token was stolen is a separate investigation; what the records bound is the forensic window — issued through the Login service at 22:00, valid at 03:15, never revoked before the access. Who authenticated at 22:00 and against what credential is [Actor Identity](./actor-identity.md)'s record, wired by Login (Non-goal 1, Composition note 3).
-- **Breach investigation.** Session tokens are found in an exposed log file. The investigator queries every session with `issued_by_ref: api_gateway_g01` inside the exposure window — 47 sessions across 31 principals — and reads each `effective_status` against the investigation clock: which are live, which lapsed, which were already revoked. The team then calls [Revoke] on every session not already revoked, *including the lapsed ones*, so that every closure is attributed (Operation 27). Invariant 8.1–8.3 is what lets an auditor six months later reconstruct which sessions were closed, by whom, when and why, with no recourse to the incident runbook.
+- **Breach investigation.** Session tokens are found in an exposed log file. The investigator queries every session with `issued_by_ref: api_gateway_g01` inside the exposure window — 47 sessions across 31 principals — and reads each `effective_status` against the investigation clock: which are live, which lapsed, which were already revoked. The team then calls [Revoke] on every session not already revoked, *including the lapsed ones*, so that every closure is attributed (Operation 27). Invariant 8.1 through 8.3 is what lets an auditor six months later reconstruct which sessions were closed, by whom, when and why, with no recourse to the incident runbook.
 
 ---
 
@@ -448,7 +448,7 @@ Non-goal 26: A deployment needing an externally verifiable timestamp MUST compos
 WHY:
 [Issue] makes no authentication judgement at all. It records a session for whatever `principal_ref` arrives, and it does not and cannot check that a credential was verified first — an implementation calling [Issue] without that check has a process error this atom cannot detect (Non-goal 1, Non-goal 2). The guard is [Login](../compositions/login.md)'s wiring, not a rule here.
 
-Renewal is two calls and not one: a new [Issue] for the new window, and a [Revoke] of the prior token so the old one does not outlive the handover on its own deadline. Both actions are in scope; the renewal *policy* — what triggers it, how often — is the composing pattern's (Non-goal 7–9, Invariant 2.2).
+Renewal is two calls and not one: a new [Issue] for the new window, and a [Revoke] of the prior token so the old one does not outlive the handover on its own deadline. Both actions are in scope; the renewal *policy* — what triggers it, how often — is the composing pattern's (Non-goal 7 through 9, Invariant 2.2).
 
 The token is opaque and its format is deployment configuration — with one constraint that survives the choice, stated as rules rather than left here (Token format 1, Token format 2).
 
@@ -852,7 +852,7 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/session.md`.
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the four actions as a signature block, the twelve invariant numbers and the six acceptance checks unchanged, the derived lapse routed through a declared `lapsed` and `effective_status` so no rule carries the comparison, the arithmetic in `issued_at + session_duration` moved into a declared `expiry deadline` (Hard invariant 24), [Validate]'s four-row precedence table kept beside the rules as the case space, Generation acceptance moved ahead of Non-goals to match the migrated corpus, the string-input paragraph raised to a `String 1–8` family matching Permissions and Notification, Non-goals and Edge cases split into two sections. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this atom by label, so the rewrite is free of frozen-number risk. Expiry earned its own family — eight rules that say a lapse writes nothing, fires nothing, stamps nothing and is scheduled by nobody — because the whole commitment was carried by prose emphasis in four places and is now a surface a checker can read.
+- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the four actions as a signature block, the twelve invariant numbers and the six acceptance checks unchanged, the derived lapse routed through a declared `lapsed` and `effective_status` so no rule carries the comparison, the arithmetic in `issued_at + session_duration` moved into a declared `expiry deadline` (Hard invariant 24), [Validate]'s four-row precedence table kept beside the rules as the case space, Generation acceptance moved ahead of Non-goals to match the migrated corpus, the string-input paragraph raised to a `String 1 through 8` family matching Permissions and Notification, Non-goals and Edge cases split into two sections. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this atom by label, so the rewrite is free of frozen-number risk. Expiry earned its own family — eight rules that say a lapse writes nothing, fires nothing, stamps nothing and is scheduled by nobody — because the whole commitment was carried by prose emphasis in four places and is now a surface a checker can read.
 
 - **2026-06-21 — Expiry is derived at read time, never stored.** *Chose:* the stored state space is `{Active, Revoked}`; `Expired` is the projection `status = Active ∧ now ≥ expires_at` computed from the immutable `expires_at` and the injected clock (Invariant 12). *Over:* a stored `Expired` terminal written by a lazy or scheduled transition. *Because:* a stored flag lags the clock it idealizes, and a session's lapse has no side effect that would need a write to carry it.
 

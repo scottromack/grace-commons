@@ -58,7 +58,7 @@ Term business caller: the party whose action the call carries, as `execution-con
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
-Identity by action and actor together would collapse the re-attestation the regime produces — a retry after a partial failure, a second proof after a key rotation, a step in a multi-action sequence — and identity by time would lose two concurrent attestations (Identity 6–9). One attestation, one id, is what makes per-event audit reconstruction tractable.
+Identity by action and actor together would collapse the re-attestation the regime produces — a retry after a partial failure, a second proof after a key rotation, a step in a multi-action sequence — and identity by time would lose two concurrent attestations (Identity 6 through 9). One attestation, one id, is what makes per-event audit reconstruction tractable.
 
 ### State
 
@@ -147,7 +147,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the attestation store |
 |---|---|---|---|
 | [Attest] | refs and credential present, credential validates, store accepts | `attestation_id` | one attestation lands in [Attested] (Operation 1, Operation 2) |
-| [Attest] | blank `action_ref`, `actor_ref` or credential | [Invalid Request] | none (Operation 6–8) |
+| [Attest] | blank `action_ref`, `actor_ref` or credential | [Invalid Request] | none (Operation 6 through 8) |
 | [Attest] | credential fails against the actor's public material | [Invalid Credential] | none (Operation 9) |
 | [Attest] | store refuses the write | [Storage Failure] | none — no partial record (Operation 10, Operation 11) |
 | [Verify] | no attestation under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
@@ -157,7 +157,7 @@ The case space, and the rule that owns each case:
 | [Verify] | material in hand, proof holds | [Verified] | none (Operation 19) |
 
 WHY:
-The four verify outcomes are kept apart by their conditions, not by the order the rules sit in (`GRACE-lang.md` Hard invariant 15): `not-known` is an id miss; `actor-unknown-in-registry` is missing actor material and may be permanent; `registry-unavailable` is transient and worth retrying; `proof-invalid` is a proof that exists and fails — after a key rotation, or under forgery. A deployment that collapses these into a boolean has thrown away the difference between *we cannot check right now* and *this does not check out* (Operation 15–19). Verification reads the registry's view, which is why a rotation can turn a verified attestation into a failing one unless the registry keeps historical material — the registry's property, not the atom's (Non-goal 3, Registry view 1–3).
+The four verify outcomes are kept apart by their conditions, not by the order the rules sit in (`GRACE-lang.md` Hard invariant 15): `not-known` is an id miss; `actor-unknown-in-registry` is missing actor material and may be permanent; `registry-unavailable` is transient and worth retrying; `proof-invalid` is a proof that exists and fails — after a key rotation, or under forgery. A deployment that collapses these into a boolean has thrown away the difference between *we cannot check right now* and *this does not check out* (Operation 15 through 19). Verification reads the registry's view, which is why a rotation can turn a verified attestation into a failing one unless the registry keeps historical material — the registry's property, not the atom's (Non-goal 3, Registry view 1 through 3).
 
 ### Invariants
 
@@ -190,7 +190,7 @@ The four verify outcomes are kept apart by their conditions, not by the order th
   Invariant 6.2: [Verify] MUST NOT consult the host's state.
   Invariant 6.3: [Verify] MUST NOT consult a source outside the verification set.
   ```
-  WHY: a mechanism that embeds revocation status in the proof keeps verification self-contained; one that sends the verifier to a live revocation service weakens the invariant, which is a mechanism choice the deployment makes (Revocation status 1–4).
+  WHY: a mechanism that embeds revocation status in the proof keeps verification self-contained; one that sends the verifier to a live revocation service weakens the invariant, which is a mechanism choice the deployment makes (Revocation status 1 through 4).
 - **Invariant 7 — Verification consistency under fixed registry state.**
   ```text
   Invariant 7.1: Two verifications of one attestation under one registry view MUST answer alike.
@@ -294,7 +294,7 @@ Non-goal 15: The atom MUST NOT carry an actor_ref across trust domains.
 ```
 
 WHY:
-Authentication produces the credential this atom consumes, and authorization asks a different question entirely — *could* they, rather than *did* they; the atom answers the second and composes for the first (Non-goal 4–6). One attestation is one actor's binding: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)*, which is a pattern over attestations rather than a bigger attestation (Non-goal 8). The store is assumed unrewritten, which is exactly what [Tamper Evidence](./tamper-evidence.md) supplies; many credential mechanisms give it as a side effect and the atom requires none of them (Non-goal 10, Non-goal 11). Binding a mutable action is the quiet failure: the proof stays valid while the content it was supposed to attest to changes underneath, which is why the host binds a content hash or composes a Content Lock pattern *(forthcoming)* (Non-goal 13, Non-goal 14).
+Authentication produces the credential this atom consumes, and authorization asks a different question entirely — *could* they, rather than *did* they; the atom answers the second and composes for the first (Non-goal 4 through 6). One attestation is one actor's binding: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)*, which is a pattern over attestations rather than a bigger attestation (Non-goal 8). The store is assumed unrewritten, which is exactly what [Tamper Evidence](./tamper-evidence.md) supplies; many credential mechanisms give it as a side effect and the atom requires none of them (Non-goal 10, Non-goal 11). Binding a mutable action is the quiet failure: the proof stays valid while the content it was supposed to attest to changes underneath, which is why the host binds a content hash or composes a Content Lock pattern *(forthcoming)* (Non-goal 13, Non-goal 14).
 
 Where the atom breaks down: when authorization cannot be reduced to one actor — truly anonymous attestation in a regulated context is a contradiction; when the credential mechanism cannot produce a verifiable proof — a shared secret anyone holding it could forge with; when the deployment has no actor registry a verifier can consult.
 

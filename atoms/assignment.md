@@ -163,7 +163,7 @@ The case space, and the rule that owns each case:
 | [Assign] | task already has a live assignment | [Already Assigned] | none (Operation 6) |
 | [Recall] | assignment is live | `ok` | [Active] → [Recalled]; the task is nobody's (Operation 11, Operation 12) |
 | [Recall] | assignment is recalled or transferred | [Not Active] | none (Operation 9, Operation 10) |
-| [Reassign] | assignment live, successor present, store accepts | the new `assignment_id` | old → [Transferred] and a new [Active] one, in one commit (Operation 18–21) |
+| [Reassign] | assignment live, successor present, store accepts | the new `assignment_id` | old → [Transferred] and a new [Active] one, in one commit (Operation 18 through 21) |
 | [Reassign] | blank `new_assignee_ref` | [Invalid Request] | none (Operation 17) |
 | [Reassign] | assignment is recalled or transferred | [Not Active] | none (Operation 15, Operation 16) |
 | [Reassign] | either write refused | [Storage Failure] | none — both withdrawn, the old stays [Active] (Operation 22, Operation 23) |
@@ -173,7 +173,7 @@ The case space, and the rule that owns each case:
 | [History For] | any task | every assignment for it, by `assigned_at` | none (Operation 27, Operation 28, Operation 30) |
 
 WHY:
-Reassign is one commit and not a recall followed by an assign, which is the whole reason the operation exists: the two-call version leaves a window where the task is nobody's, and a system that reports coverage during that window reports a gap that never should have opened (Operation 20, Invariant 7.1). Its failure arm is the expensive one — two writes, and a partial landing leaves the task unassigned after a call the caller believes succeeded — so the withdrawal is stated rather than assumed (Operation 23, Reassign atomicity 1–4). Both stamps come from one clock reading, the discipline [Retention Window](./retention-window.md) states for its purge: two readings would drift the successor's `assigned_at` from the predecessor's `transferred_at`, and Check 2.3 reads a handoff by that equality (Operation 30a, Operation 30b).
+Reassign is one commit and not a recall followed by an assign, which is the whole reason the operation exists: the two-call version leaves a window where the task is nobody's, and a system that reports coverage during that window reports a gap that never should have opened (Operation 20, Invariant 7.1). Its failure arm is the expensive one — two writes, and a partial landing leaves the task unassigned after a call the caller believes succeeded — so the withdrawal is stated rather than assumed (Operation 23, Reassign atomicity 1 through 4). Both stamps come from one clock reading, the discipline [Retention Window](./retention-window.md) states for its purge: two readings would drift the successor's `assigned_at` from the predecessor's `transferred_at`, and Check 2.3 reads a handoff by that equality (Operation 30a, Operation 30b).
 
 ### Invariants
 
@@ -217,7 +217,7 @@ Reassign is one commit and not a recall followed by an assign, which is the whol
   Invariant 8.2: IF transferred_at EXISTS THEN assigned_at MUST NOT EXCEED transferred_at.
   Invariant 8.3: The atom MUST stamp EVERY timestamp once.
   ```
-  WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (Capability requirement 2–3).
+  WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (Capability requirement 2 through 3).
 - **Invariant 9 — Complete responsibility history.**
   ```text
   Invariant 9.1: The assignments carrying one task_ref MUST record EVERY actor who held the task.
@@ -313,7 +313,7 @@ Non-goal 12: The atom MUST NOT recall an assignment on the task's completion.
 ```
 
 WHY:
-The atom binds and records; every judgment around the binding is somebody else's. Acceptance, deadlines, authority and attribution each compose (Non-goal 1–8). A workload cap is a Capacity Constraint pattern reading the assignee's live count before the assign, which this atom deliberately does not count (Non-goal 9). Team assignment — where any member may act — is a different concept and not a wider `assignee_ref` (Non-goal 10). Completion is the task system's event: the composing pattern decides whether a finished task leaves its assignment standing as an attribution record or is recalled to close the lifecycle, and both are ordinary (Non-goal 12, Composition note 4).
+The atom binds and records; every judgment around the binding is somebody else's. Acceptance, deadlines, authority and attribution each compose (Non-goal 1 through 8). A workload cap is a Capacity Constraint pattern reading the assignee's live count before the assign, which this atom deliberately does not count (Non-goal 9). Team assignment — where any member may act — is a different concept and not a wider `assignee_ref` (Non-goal 10). Completion is the task system's event: the composing pattern decides whether a finished task leaves its assignment standing as an attribution record or is recalled to close the lifecycle, and both are ordinary (Non-goal 12, Composition note 4).
 
 Where the atom breaks down: when responsibility is genuinely shared at the same time; when an assignment must end on its own without anyone withdrawing it; when the assigner must be authorized before assigning; when the assignee must consent before holding.
 

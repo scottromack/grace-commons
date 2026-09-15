@@ -54,7 +54,7 @@ Term transition: the atom's evaluation of one call against the hold store, as `e
 
 Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, and never supplied by the business caller — `placed_at` and `released_at` are the caller's claims about when an obligation began and ended, judged against `now` and stored as claims (Operation 38–41).
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, and never supplied by the business caller — `placed_at` and `released_at` are the caller's claims about when an obligation began and ended, judged against `now` and stored as claims (Operation 38 through 41).
 
 WHY:
 Two authorities can demand preservation of one document — a plaintiff's litigation hold and a regulator's investigative demand — and they end on different days. Merging them into one obligation would release the record the moment the first ends, which is the spoliation the atom exists to foreclose (Identity 7, Identity 8, Invariant 4.1). The id sorts because [Read]'s order is part of the contract, not a convenience (Identity 6, Operation 18).
@@ -173,7 +173,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the hold store |
 |---|---|---|---|
 | [Place] | refs and reason present, `placed_at` not future, store accepts | `hold_id` | one hold lands in [Active] (Operation 1, Operation 2) |
-| [Place] | blank `record_ref`, `placed_by`, reason, or supplied `case_ref` | [Invalid Request] | none (Operation 4–7) |
+| [Place] | blank `record_ref`, `placed_by`, reason, or supplied `case_ref` | [Invalid Request] | none (Operation 4 through 7) |
 | [Place] | supplied `placed_at` in the future | [Invalid Request] | none (Operation 8) |
 | [Place] | supplied `placed_at` in the past | `hold_id` | one hold lands, back-dated as supplied (Operation 10) |
 | [Release] | hold active, attribution present, time in range | `released` | [Active] → [Released], release fields stamped (Operation 19, State 4) |
@@ -183,11 +183,11 @@ The case space, and the rule that owns each case:
 | [Release] | resolved `released_at` before `placed_at`, or supplied one in the future | [Invalid Request] | none (Operation 17, Operation 18) |
 | either write | store refuses | [Storage Failure] | none — a release leaves the hold [Active] (Operation 11, Operation 21, Operation 22) |
 | [Read] | well-formed query | the matching holds, ordered | none — the call reads (Operation 23, Operation 34) |
-| [Read] | unknown axis, blank value, bad state, inverted range | [Invalid Query] | none — rejected rather than silently ignored (Operation 27–30) |
+| [Read] | unknown axis, blank value, bad state, inverted range | [Invalid Query] | none — rejected rather than silently ignored (Operation 27 through 30) |
 | [Read] | well-formed query matching nothing | empty sequence | none (Operation 31) |
 
 WHY:
-A blank `hold_id` is refused before the store is consulted, because *you passed garbage* and *no such hold* are different facts and a caller acts on them differently (Operation 12, Operation 13). An unrecognized filter axis is refused rather than ignored: a silently dropped filter returns a result set wider than the caller asked for, and in this atom a wider set means *this record is not held* answered from an incomplete read (Operation 27). Back-dating a placement is accepted on purpose — an obligation recognized late is still an obligation, and the record should say when it was recognized rather than pretend (Operation 10, Backdating 1–3).
+A blank `hold_id` is refused before the store is consulted, because *you passed garbage* and *no such hold* are different facts and a caller acts on them differently (Operation 12, Operation 13). An unrecognized filter axis is refused rather than ignored: a silently dropped filter returns a result set wider than the caller asked for, and in this atom a wider set means *this record is not held* answered from an incomplete read (Operation 27). Back-dating a placement is accepted on purpose — an obligation recognized late is still an obligation, and the record should say when it was recognized rather than pretend (Operation 10, Backdating 1 through 3).
 
 ### Invariants
 
@@ -373,7 +373,7 @@ WHY:
 An obligation recognized on Tuesday and recorded on Friday is honestly recorded as Tuesday's; a hold placed in the future is not a fact about anything. Courts scrutinize back-dated placements in spoliation disputes, which is the deployment's problem to defend and the atom's to record faithfully rather than to prevent (Backdating 3).
 
 WHY:
-An empty answer and a misrouted answer read alike, and this atom's empty answer licenses a purge — so the deepest failure available here is a routing mistake wearing the shape of *no holds* (Instance 5–7, Aggregate 3; Council read 17). The atom cannot detect the misrouting, so it names the store it answered from and obliges the reader to check.
+An empty answer and a misrouted answer read alike, and this atom's empty answer licenses a purge — so the deepest failure available here is a routing mistake wearing the shape of *no holds* (Instance 5 through 7, Aggregate 3; Council read 17). The atom cannot detect the misrouting, so it names the store it answered from and obliges the reader to check.
 
 ### Place persistence failure
 

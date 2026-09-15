@@ -350,7 +350,7 @@ A healthcare SaaS (Software as a Service) platform uses this composition to gove
    - `attempts = []`.
    - `events`: `[{sequence_position=1, provenance=both, event_id="ev_5001", action_ref=record.soft_deleted, actor_ref="dsar_service", acting_actor_ref="dsar_service", recovery=false, recorded_at=T1, reason="GDPR Art. 17 erasure request…", attestation_verification=verified, retention_state=Retained}, {sequence_position=2, provenance=both, event_id="ev_5003", action_ref=record.purged, actor_ref="dsar_service", acting_actor_ref="dsar_service", recovery=false, recorded_at=T2, reason="GDPR Art. 17 erasure confirmed…", attestation_verification=verified, retention_state=Retained}]`.
    - `overall_verdict = history-complete`.
-   The DPA auditor sees: (a) who deleted the record and why; (b) who purged it, when, and under what stated reason; (c) both events are tamper-evidently sealed; (d) both are under active retention. Invariants 1–3 are the structural guarantees behind each field. No developer narration required.
+   The DPA auditor sees: (a) who deleted the record and why; (b) who purged it, when, and under what stated reason; (c) both events are tamper-evidently sealed; (d) both are under active retention. Invariant 1 through 3 are the structural guarantees behind each field. No developer narration required.
 
 ### Multi-epoch lifecycle — delete, restore, re-delete, purge
 
@@ -382,7 +382,7 @@ A GDPR supervisory authority or HIPAA Office for Civil Rights (OCR) investigator
 - For each event in the reconciled sequence for `profile-4491`: `attestation_verification = verified` by Invariant 1 (lifecycle attribution coverage) — each transition has an Audit Trail event whose Actor Identity attestation binds `actor_ref` to a credential. The Tamper Evidence seal (via Audit Trail Invariant 3) confirms no event was rewritten after the fact.
 - Every event's `retention_state = Retained` — the audit events are under active retention per the configured policy (Audit Trail Invariant 2 — retention coverage).
 - `overall_verdict = history-complete`.
-The regulator's question — *who deleted the record, who purged it, was the record tampered with, and is the audit trail being kept?* — is answered from the records alone. Invariants 1–3 are the structural basis for each answer. No developer narration is required.
+The regulator's question — *who deleted the record, who purged it, was the record tampered with, and is the audit trail being kept?* — is answered from the records alone. Invariant 1 through 3 are the structural basis for each answer. No developer narration is required.
 
 **Disputed erasure — data subject claims their record was not erased, or was erased without their request.**
 
@@ -401,7 +401,7 @@ An incident responder suspects records were purged by an unauthorized actor duri
 - `AuditTrail.verify_record(event_id, <the covering range's payloads, as read_record names the range>) → verified` confirms the event has not been tampered with since it was sealed. A `failed-verification(seal-proof-invalid)` result is a finding that the record was altered after sealing.
 - `record_to_events[record_id]` can be read for each affected `record_id` to reconstruct the full lifecycle context around the anomaly purge: was the record deleted just before the purge (consistent with a rapid delete + purge sequence), or was it in a long-standing Deleted state (consistent with a scheduled purge)?
 
-An unexpected `actor_ref` on a `record.purged` event, or a `failed-verification` on any event in the window, is a forensic finding. The seal cadence governs the window's resolution: a tighter cadence narrows the range of events that could have been tampered with between seal checkpoints. Invariants 1–4 are the structural basis for the investigation; the composition's records answer the investigation's questions from the records alone.
+An unexpected `actor_ref` on a `record.purged` event, or a `failed-verification` on any event in the window, is a forensic finding. The seal cadence governs the window's resolution: a tighter cadence narrows the range of events that could have been tampered with between seal checkpoints. Invariant 1 through 4 are the structural basis for the investigation; the composition's records answer the investigation's questions from the records alone.
 
 ---
 

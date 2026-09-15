@@ -25,6 +25,13 @@ the three-pass review otherwise has to catch by eye —
                               §Capability provenance); the broader "is this capability
                               actually declared by that constituent" check stays
                               fresh-reader Pass-2 work (paraphrased names defeat a regex).
+                              A range, `Event Log Invariant 1 through 7`, is read to its
+                              last number.
+  F. Range form             — every run of labels, in every Markdown file, is
+                              written `Family N through M`: no dash, no repeated or
+                              plural family, no *to*, and the last number follows the
+                              first in the first number's shape (GRACE-lang Hard
+                              invariant 29 through 31). F-range-form.
   G. Status grammar         — every pattern has a `## Status` section whose first
                               line starts with exactly one backticked status token
                               conforming to the pinned grammar (pressure-testing.md
@@ -529,7 +536,7 @@ def check_rests_on_refs(patterns: dict[Path, Pattern], md_files: list[Path]) -> 
     # the alternation prefers `Party Identity` over any shorter name inside it.
     names = sorted(by_name, key=len, reverse=True)
     rx = re.compile(r"(?<![A-Za-z])(" + "|".join(re.escape(n) for n in names)
-                    + r")\s+Invariants?\s+([0-9][0-9,\s]*(?:and\s+[0-9]+)?)")
+                    + r")\s+Invariants?\s+([0-9][0-9,\s]*(?:(?:and|through)\s+[0-9]+)?)")
     for md in md_files:
         text = md.read_text(encoding="utf-8")
         for m in rx.finditer(text):
@@ -2672,6 +2679,100 @@ def check_section_classification(root: Path) -> list[Finding]:
 
 
 # --------------------------------------------------------------------------- #
+# F-range-form — a run of labels is written `Family N through M`
+# --------------------------------------------------------------------------- #
+# GRACE-lang Hard invariant 29 through 31 (v0.47). The corpus wrote one range
+# four ways — `Operation 3–7`, `Operation 3 through Operation 7`,
+# `Operations 3–7`, `Operation 3 to 7` — and no reader resolved any of them
+# past the first label. The families are read from the labelled rules of the
+# grammar and every spec, inside text fences, so an external standard's
+# `Articles 5–6` is not a label and is not flagged. A repeated family after
+# `to` is left alone: *renumbered Operation 3 to Operation 7* is a move, not a
+# range. Code spans are scrubbed, so the grammar can quote a retired form.
+RANGE_EXCLUDED_DIRS = {".git", ".github", "node_modules", "Alloy.app", "_site",
+                       "vendor", "__pycache__"}
+_RANGE_FENCE = re.compile(r"^\s*```(\w*)")
+_RANGE_LABEL = re.compile(
+    r"^\s*(?:Deleted:\s*)?([A-Za-z_][\w'’-]*(?: [A-Za-z_][\w'’-]*){0,4}) "
+    r"(?:step )?[\d½]+(?:\.\d+)?[a-z]?:")
+_RANGE_NOT_FAMILY = {"NOTE", "WHY", "UX", "PROVISIONAL"}
+
+
+def label_families(root: Path) -> set[str]:
+    fams: set[str] = set()
+    sources = [root / "GRACE-lang.md"]
+    for d in ("atoms", "compositions"):
+        sources += sorted((root / d).glob("*.md"))
+    for src in sources:
+        if not src.exists():
+            continue
+        in_text = False
+        for line in src.read_text(encoding="utf-8").splitlines():
+            fm = _RANGE_FENCE.match(line)
+            if fm:
+                in_text = not in_text and fm.group(1) == "text"
+                continue
+            m = _RANGE_LABEL.match(line) if in_text else None
+            if m and m.group(1) not in _RANGE_NOT_FAMILY:
+                fams.add(m.group(1))
+    return fams
+
+
+def _range_key(num: str) -> tuple[int, ...]:
+    return tuple(int(x) for x in re.findall(r"\d+", num))
+
+
+def check_range_form(root: Path) -> list[Finding]:
+    """F. Every range of labels, in every Markdown file, in the one form."""
+    fams = label_families(root)
+    if not fams:
+        return []
+    alt = "|".join(re.escape(f) for f in sorted(fams, key=len, reverse=True))
+    first = r"((?:step )?[\d½]+(?:\.\d+)?[a-z]?)"
+    last = r"([\d½]+(?:\.\d+)?[a-z]?)(?![\w.]\d)"
+    lead = r"(?<![\w-])(" + alt + r")"
+    retired = [
+        (re.compile(lead + r"s? " + first + r"\s*[–—]\s*(?:(?:" + alt + r")s? )?(?:step )?" + last),
+         "a dash between two numbers"),
+        (re.compile(lead + r" " + first + r" through \1 (?:step )?" + last),
+         "the family written twice"),
+        (re.compile(lead + r"s " + first + r" (?:through|to) " + last),
+         "the family written plural"),
+        (re.compile(lead + r" " + first + r" to " + last),
+         "*to*, which does not say whether the last is in"),
+    ]
+    written = re.compile(lead + r" " + first + r" through " + last)
+    md_files: list[Path] = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in RANGE_EXCLUDED_DIRS]
+        md_files += [Path(dirpath) / f for f in filenames if f.endswith(".md")]
+    out: list[Finding] = []
+    for md in sorted(md_files):
+        try:
+            text = md.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for i, raw in enumerate(text.splitlines(), start=1):
+            line = CODE_SPAN.sub("", raw)
+            for rx, why in retired:
+                for m in rx.finditer(line):
+                    out.append(Finding(md, i, "F-range-form",
+                        f"'{m.group(0)}' — {why}; write `{m.group(1)} "
+                        f"{m.group(2)} through {m.groups()[-1]}` (GRACE-lang Hard invariant 31)"))
+            for m in written.finditer(line):
+                lo, hi = _range_key(m.group(2)), _range_key(m.group(3))
+                if len(lo) != len(hi):
+                    out.append(Finding(md, i, "F-range-form",
+                        f"'{m.group(0)}' — the last number does not carry the first "
+                        f"number's shape (GRACE-lang Term range citation)"))
+                elif hi <= lo:
+                    out.append(Finding(md, i, "F-range-form",
+                        f"'{m.group(0)}' — the last number does not follow the first "
+                        f"(GRACE-lang Hard invariant 30)"))
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Driver
 # --------------------------------------------------------------------------- #
 
@@ -2730,6 +2831,7 @@ def main(argv: list[str]) -> int:
     findings += check_ledger(patterns)
     findings += check_heading_standard(root, patterns)
     findings += check_section_classification(root)
+    findings += check_range_form(root)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
     for f in findings:

@@ -36,6 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lint import (  # noqa: E402
     check_migration_seam,
     check_heading_standard,
+    check_range_form,
     Pattern,
     check_atomicity_over_audit,
     check_rebuild_bound,
@@ -1023,6 +1024,54 @@ def check_tombstone_form_synthetic(problems: list[str]) -> None:
             problems.append(f"D-tombstone-form: {name} did not fire")
 
 
+def check_range_form_synthetic(problems: list[str]) -> int:
+    """F-range-form, the range resolvers — landed with `Family N through M` at
+    council read 88. The form, a quoted retired form, a label-shaped phrase from
+    no family and a move stay silent; the four retired forms, a backward range,
+    a one-label range and a shape change fire. check.py resolves a range's last
+    label, and cites.py's range covers the minors of its majors and nothing past
+    its end. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    from cites import in_range  # noqa: E402
+    grammar = ("```text\nOperation 1: x.\nInvariant 2.1: x.\nreconcile step 5.2: x.\n```\n")
+    silent = ["Operation 3 through 7", "Invariant 2.1 through 2.4",
+              "reconcile step 5.2 through 5.4", "the retired `Operation 3–7`",
+              "GDPR Articles 5–6", "renumbered Operation 3 to Operation 7"]
+    firing = ["Operation 3–7", "Operation 3 through Operation 7", "Operations 3–7",
+              "Operation 3 to 7", "Operation 7 through 3", "Operation 2 through 2",
+              "Invariant 2.1 through 4"]
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "GRACE-lang.md").write_text(grammar, encoding="utf-8")
+        doc = root / "doc.md"
+        doc.write_text("\n".join(silent + firing) + "\n", encoding="utf-8")
+        lines = {f.line for f in check_range_form(root)}
+    for i, case in enumerate(silent, start=1):
+        if i in lines:
+            problems.append(f"F-range-form: fired on {case!r}")
+    for i, case in enumerate(firing, start=len(silent) + 1):
+        if i not in lines:
+            problems.append(f"F-range-form: did not fire on {case!r}")
+    with tempfile.TemporaryDirectory() as d:
+        f = Path(d) / "atoms" / "synthetic.md"
+        f.parent.mkdir()
+        f.write_text("Term qualifiers: `migrated` — rewritten in GRACE lang v0.47 (2026-09-15).\n\n"
+                     "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n```text\n"
+                     "Operation 1: The atom MUST read the store.\n"
+                     "Operation 2: The atom MUST read the store (Operation 1 through 5).\n```\n",
+                     encoding="utf-8")
+        if not any(x.code == "X-ref" and "Operation 5" in x.message for x in scan(f)):
+            problems.append("check.py X-ref: a range whose last label is missing resolved")
+    covers = [("Invariant 4.2", True), ("Invariant 1", True), ("Invariant 5.1", False),
+              ("Operation 2", False), ("Invariant step 2.1", False)]
+    for label, want in covers:
+        if in_range(label, "Invariant", " 1", "4") != want:
+            problems.append(f"cites.py in_range: `Invariant 1 through 4` on {label} gave {not want}")
+    return len(silent) + len(firing) + 1 + len(covers)
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -1152,6 +1201,15 @@ def main(argv: list[str]) -> int:
         print("D-tombstone-form: 5 synthetic fixtures hold (a tombstone written first keeps "
               "its block live; the retired shape, a missing period, a missing close and "
               "a missing label fire) \u2713")
+
+    range_problems: list[str] = []
+    n_range = check_range_form_synthetic(range_problems)
+    failures.extend(range_problems)
+    if not range_problems:
+        print(f"F-range-form: {n_range} synthetic fixtures hold (the form, a quoted retired "
+              "form, a phrase from no family and a move silent; the dash, the repeated and "
+              "plural family, *to*, a backward, a one-label and a reshaped range fire; "
+              "check.py resolves the last label; cites.py covers minors and stops at the end) \u2713")
 
     decl_problems: list[str] = []
     check_decl_form_synthetic(decl_problems)

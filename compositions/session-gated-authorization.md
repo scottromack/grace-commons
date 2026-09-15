@@ -89,7 +89,7 @@ Primitive policy 9: [Check Permitted] MUST NOT call a constituent for an argumen
 ```
 
 WHY:
-`invalid-request` is composition-introduced: neither wired constituent operation declares it, and Primitive policy 9 is why neither is consulted when it fires. That matters for a reason the outcome set makes plain — [Permissions](../atoms/permissions.md) answers an empty `subject_ref` or `action_scope` with `denied` under its own default-deny posture, so a composition that let a malformed argument through would report *the answer is no* where the truth is *the request was not well-formed enough to ask*. Primitive policy 2 through Primitive policy 4 keep the three outcome classes distinct, which is Invariant 3's discipline applied to inputs rather than to answers.
+`invalid-request` is composition-introduced: neither wired constituent operation declares it, and Primitive policy 9 is why neither is consulted when it fires. That matters for a reason the outcome set makes plain — [Permissions](../atoms/permissions.md) answers an empty `subject_ref` or `action_scope` with `denied` under its own default-deny posture, so a composition that let a malformed argument through would report *the answer is no* where the truth is *the request was not well-formed enough to ask*. Primitive policy 2 through 4 keep the three outcome classes distinct, which is Invariant 3's discipline applied to inputs rather than to answers.
 
 ### Action wiring
 
@@ -303,7 +303,7 @@ External check 5: An auditor needing the constituents' surfaces confirmed unexpo
 ```
 
 WHY:
-The split is not a matter of thoroughness — it is what the absent log costs. Check 1.1 through Check 2.2 clear from the constituents' stored state, because Session records a session's status over time and Permissions records a grant's. External check 1 and External check 2 cannot: the *order* of two calls and the *provenance* of an argument leave no trace in either store, so an auditor without [Audit Trail](./audit-trail.md) is reading an implementation rather than a record. That is the honest bar, and it is why the breach-forensics scenario above answers structurally rather than from records.
+The split is not a matter of thoroughness — it is what the absent log costs. Check 1.1 through 2.2 clear from the constituents' stored state, because Session records a session's status over time and Permissions records a grant's. External check 1 and External check 2 cannot: the *order* of two calls and the *provenance* of an argument leave no trace in either store, so an auditor without [Audit Trail](./audit-trail.md) is reading an implementation rather than a record. That is the honest bar, and it is why the breach-forensics scenario above answers structurally rather than from records.
 
 External check 5 is the one a deployment can fail silently. Every guarantee here is a guarantee about calls that arrive through [Check Permitted]; a deployment that also exposes `Permissions.permitted` has a second door, and nothing in the composition's own records shows that the door exists.
 
@@ -386,7 +386,7 @@ Term cited: `execution-contract.md` §Composition state — the no-stored-state 
 
 #### Check Permitted
 
-The composition's single action: it validates the presented session and, only if valid, evaluates whether the session's own principal holds the requested permission — `Session.validate` before `Permissions.permitted`, always with the session-extracted `principal_ref` (Invariants 1–2). Returns `permitted` or `denied` (Permissions' result, passed through unmodified), or [Session Invalid] when the gate does not clear, or [Invalid Request] for inputs failing the boundary predicate.
+The composition's single action: it validates the presented session and, only if valid, evaluates whether the session's own principal holds the requested permission — `Session.validate` before `Permissions.permitted`, always with the session-extracted `principal_ref` (Invariant 1 through 2). Returns `permitted` or `denied` (Permissions' result, passed through unmodified), or [Session Invalid] when the gate does not clear, or [Invalid Request] for inputs failing the boundary predicate.
 
 Kind: Operation
 

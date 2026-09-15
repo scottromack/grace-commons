@@ -64,7 +64,7 @@ Term transition: the atom's evaluation of one call against the subscription stor
 Term id entropy: the random material a subscription_id is drawn from; 128 bits where a deployment declares none.
 
 WHY:
-The id is the capability: knowing it is what lets a caller cancel, so it is drawn from a secure source and is unguessable from the subscribe time or the subscriber (Identity 6, Identity 7, Cancel capability 1–3). Identity by the pair would make a cancel-and-resubscribe look like an edit of one record, when it is two records with two histories — which is exactly what an auditor reconstructing a scope's audience needs (Identity 5, Invariant 4.1).
+The id is the capability: knowing it is what lets a caller cancel, so it is drawn from a secure source and is unguessable from the subscribe time or the subscriber (Identity 6, Identity 7, Cancel capability 1 through 3). Identity by the pair would make a cancel-and-resubscribe look like an edit of one record, when it is two records with two histories — which is exactly what an auditor reconstructing a scope's audience needs (Identity 5, Invariant 4.1).
 
 ### State
 
@@ -160,7 +160,7 @@ The case space, and the rule that owns each case:
 | [Cancel] | id names a live subscription | `ok` | [Active] → [Cancelled], `cancelled_at` stamped (Operation 11, State 5) |
 | [Cancel] | id names a cancelled subscription | [Not Active] | none (Operation 10) |
 | [Cancel] | id names nothing | [Not Known] | none (Operation 9) |
-| either write | store refuses | [Storage Failure] | none (Operation 13–15) |
+| either write | store refuses | [Storage Failure] | none (Operation 13 through 15) |
 | [Subscribed] | a live subscription matches the pair | `subscribed` | none — the call reads (Operation 17, Operation 24) |
 | [Subscribed] | nothing matches, blank arguments included | `not-subscribed` | none (Operation 18, Invariant 8.1) |
 | [Subscribers For] | live subscriptions match the scope | their `subscriber_ref`s, unordered | none (Operation 19, Operation 23) |
@@ -213,7 +213,7 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
   ```text
   Invariant 9.1: IF cancelled_at EXISTS THEN subscribed_at MUST NOT EXCEED cancelled_at.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2–2).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2).
 
 ## Examples
 
@@ -285,9 +285,9 @@ Non-goal 17: The atom MUST NOT record an event's firing history.
 ```
 
 WHY:
-The atom records interest and answers audiences; everything downstream of *who* is the composing pattern's — routing, fanout, transport, delivery guarantees (Non-goal 1–5, 8). Scope is matched exactly, so `task:assigned` does not cover `task:assigned:dev_d`: hierarchy and wildcards are a scope vocabulary the composing system owns, and building them in here would make every deployment inherit one system's naming (Non-goal 6, Non-goal 7). There is no expiry and no bulk cancel: both are loops over ids that a composing pattern runs, and each cancellation stays its own audited record rather than a sweep with no trail (Non-goal 9, Non-goal 12, Non-goal 16).
+The atom records interest and answers audiences; everything downstream of *who* is the composing pattern's — routing, fanout, transport, delivery guarantees (Non-goal 1 through 5, 8). Scope is matched exactly, so `task:assigned` does not cover `task:assigned:dev_d`: hierarchy and wildcards are a scope vocabulary the composing system owns, and building them in here would make every deployment inherit one system's naming (Non-goal 6, Non-goal 7). There is no expiry and no bulk cancel: both are loops over ids that a composing pattern runs, and each cancellation stays its own audited record rather than a sweep with no trail (Non-goal 9, Non-goal 12, Non-goal 16).
 
-Where the atom breaks down: when the audience cannot be named in advance — a rule evaluated per event rather than a standing interest; when one actor genuinely needs two live subscriptions to one scope through two channels, which is a channel concept the composing pattern carries; and when the composing pattern loses the ids it captured — the subscriptions stay active, every audit sees them, and nothing in this atom can cancel them, because the id is the whole authorization and the atom enumerates none (Lost ledger 1–4).
+Where the atom breaks down: when the audience cannot be named in advance — a rule evaluated per event rather than a standing interest; when one actor genuinely needs two live subscriptions to one scope through two channels, which is a channel concept the composing pattern carries; and when the composing pattern loses the ids it captured — the subscriptions stay active, every audit sees them, and nothing in this atom can cancel them, because the id is the whole authorization and the atom enumerates none (Lost ledger 1 through 4).
 
 ## Edge cases
 

@@ -213,7 +213,7 @@ The three terminal transitions share one precondition pair — known, and pendin
   Invariant 8.2: IF failed_at EXISTS THEN created_at MUST NOT EXCEED failed_at.
   Invariant 8.3: IF expired_at EXISTS THEN created_at MUST NOT EXCEED expired_at.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2–2).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2).
 - **Invariant 9 — Notification durability.**
   ```text
   Invariant 9.1: The atom MUST NOT delete a notification record.
@@ -310,7 +310,7 @@ Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted t
 ```
 
 WHY:
-Who should hear about an event is [Subscription](./subscription.md)'s and the fanout that reads it; this atom starts once the recipient is known (Non-goal 1, Non-goal 2). A retry is a new record rather than a second chance at an old one, which is what keeps the count of attempts honest (Non-goal 3, Non-goal 4). Read acknowledgement is two records because *the transport accepted it* and *the person saw it* are two facts, and one record forced to carry both loses whichever is recorded second (Non-goal 8, Non-goal 9). Payload retention is the sharp one: this store keeps every payload for the life of the system, so a deployment whose payloads carry personal or medical content composes [Retention Window](./retention-window.md) rather than trusting an atom that never forgets (Non-goal 13, Payload retention 1–3).
+Who should hear about an event is [Subscription](./subscription.md)'s and the fanout that reads it; this atom starts once the recipient is known (Non-goal 1, Non-goal 2). A retry is a new record rather than a second chance at an old one, which is what keeps the count of attempts honest (Non-goal 3, Non-goal 4). Read acknowledgement is two records because *the transport accepted it* and *the person saw it* are two facts, and one record forced to carry both loses whichever is recorded second (Non-goal 8, Non-goal 9). Payload retention is the sharp one: this store keeps every payload for the life of the system, so a deployment whose payloads carry personal or medical content composes [Retention Window](./retention-window.md) rather than trusting an atom that never forgets (Non-goal 13, Payload retention 1 through 3).
 
 Where the atom breaks down: when *delivered* is not a single observable event — a multi-hop transport with partial acknowledgement; when the same notification must be retried in place, which this atom refuses on purpose; when the payload cannot be stored at all, which needs a reference rather than content.
 

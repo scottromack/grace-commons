@@ -70,7 +70,7 @@ Composes 7 is what makes the first six enforceable. If callers could still reach
 
 ### Composition state
 
-The composition's one state is the derived state the replay builds from the log, and it is a derived index: the log is the sole truth and the replay is the named rebuild procedure (`execution-contract.md` §Composition state; Replay 15 through Replay 17).
+The composition's one state is the derived state the replay builds from the log, and it is a derived index: the log is the sole truth and the replay is the named rebuild procedure (`execution-contract.md` §Composition state; Replay 15 through 17).
 
 #### Replay
 
@@ -94,14 +94,14 @@ Replay 16: The implementation MUST rebuild a materialized derived state on a mis
 Replay 17: An auditor MUST NOT read a materialized derived state in preference to a fresh replay.
 ```
 
-Term replay: the named rebuild procedure Replay 1 through Replay 13 state — the composition's only route from the event log instance to the derived state.
+Term replay: the named rebuild procedure Replay 1 through 13 state — the composition's only route from the event log instance to the derived state.
 
 Term surviving event: a forward event whose `event_id` NOT EXISTS in the undone set.
 
 WHY:
 Replay 5 rests on something worth stating: a surviving event was recorded only because its action succeeded, so Personal Todo's preconditions held when it was written and hold again at every replay step. The replay never has to validate — it is re-running a history that was valid when it happened. Event Log Invariant 5 is what bounds the replay to exactly that set.
 
-Replay 15 through Replay 17 are the contract classification stated as rules (`execution-contract.md` §Composition state). The derived state is a derived index by construction: the log is the sole truth, Replay 1 through Replay 13 *are* the named rebuild, and nothing is stored that the rebuild does not regenerate. So the Contract's three obligations hold trivially — the projection sits outside any atomicity surface, since there is no second truth-bearing write to coordinate with the append; a lost materialization is a rebuild trigger and never data loss; and no consistency claim attaches beyond the replay's own determinism. A cache is permitted and is an ordinary derived index; Replay 17 is what stops an invariant being evaluated against one.
+Replay 15 through 17 are the contract classification stated as rules (`execution-contract.md` §Composition state). The derived state is a derived index by construction: the log is the sole truth, Replay 1 through 13 *are* the named rebuild, and nothing is stored that the rebuild does not regenerate. So the Contract's three obligations hold trivially — the projection sits outside any atomicity surface, since there is no second truth-bearing write to coordinate with the append; a lost materialization is a rebuild trigger and never data loss; and no consistency claim attaches beyond the replay's own determinism. A cache is permitted and is an ordinary derived index; Replay 17 is what stops an invariant being evaluated against one.
 
 ### Action wiring
 
@@ -159,9 +159,9 @@ Term admitted undo: an [Undo] call whose undo target exists and whose append com
 Term admitted action: an admitted add, an admitted edit, an admitted complete, an admitted delete OR an admitted undo.
 
 WHY:
-Action wiring 4 through Action wiring 7 are the order the whole composition rests on: validate, append, then recompute. A state recomputed before the append would expose a change the log does not carry, and a `storage-failure` after a recompute would leave the derived state ahead of its own truth. The action did not happen unless the append landed.
+Action wiring 4 through 7 are the order the whole composition rests on: validate, append, then recompute. A state recomputed before the append would expose a change the log does not carry, and a `storage-failure` after a recompute would leave the derived state ahead of its own truth. The action did not happen unless the append landed.
 
-Action wiring 11 through Action wiring 14 mirror the constituent exactly rather than improving on it. [Personal Todo](../atoms/personal-todo.md) declares a normalized-equal edit an accepted no-op that writes nothing, so this composition appends nothing — which means a no-op edit is never an [Undo] target and [Storage Failure] is not among its answers, because there is no append to fail.
+Action wiring 11 through 14 mirror the constituent exactly rather than improving on it. [Personal Todo](../atoms/personal-todo.md) declares a normalized-equal edit an accepted no-op that writes nothing, so this composition appends nothing — which means a no-op edit is never an [Undo] target and [Storage Failure] is not among its answers, because there is no append to fail.
 
 Action wiring 19 is the boundary against redo. Undo events are not forward events, so no [Undo] reaches one; reversing an undo is redo, and redo is a different pattern reading a different class of compensating event (Non-goal 1).
 
@@ -251,7 +251,7 @@ Each of these emerges from the composition. None belongs to a single constituent
   Invariant 5.2: The composition MUST NOT remove an event.
   Invariant 5.3: The composition MUST NOT rewrite an event.
   ```
-  WHY: [Event Log](../atoms/event-log.md)'s `Composition note 5` obliges a composing pattern to cite its invariants by number, because `Composition note 4` freezes those numbers against the citations. This composition rests on six of the seven, each named in the qualified form because this spec carries an Invariant 1 through Invariant 7 of its own, so the unqualified form is wrong for every one of the six: Event Log Invariant 1 (append-only) and Event Log Invariant 2 (event immutability), which Invariant 5.2 and Invariant 5.3 mirror from this side; Event Log Invariant 3 (total order) and Event Log Invariant 4 (sequence-number monotonicity), without which Replay 1's *in sequence_number order* names nothing; Event Log Invariant 5 (read consistency), which bounds the replay's input to exactly the landed events; and Event Log Invariant 6 (no id reuse), which is what lets an `undone_event_id` name one event for the life of the log (Invariant 3.1, Check 3.3). It does not rest on Event Log Invariant 7: `recorded_at` is an annotation this composition never orders by.
+  WHY: [Event Log](../atoms/event-log.md)'s `Composition note 5` obliges a composing pattern to cite its invariants by number, because `Composition note 4` freezes those numbers against the citations. This composition rests on six of the seven, each named in the qualified form because this spec carries an Invariant 1 through 7 of its own, so the unqualified form is wrong for every one of the six: Event Log Invariant 1 (append-only) and Event Log Invariant 2 (event immutability), which Invariant 5.2 and Invariant 5.3 mirror from this side; Event Log Invariant 3 (total order) and Event Log Invariant 4 (sequence-number monotonicity), without which Replay 1's *in sequence_number order* names nothing; Event Log Invariant 5 (read consistency), which bounds the replay's input to exactly the landed events; and Event Log Invariant 6 (no id reuse), which is what lets an `undone_event_id` name one event for the life of the log (Invariant 3.1, Check 3.3). It does not rest on Event Log Invariant 7: `recorded_at` is an annotation this composition never orders by.
 - **Invariant 6 — Identity is preserved across a delete and its undo.**
   ```text
   Invariant 6.1: An undone delete's unit MUST carry the unit's original id, instants and Personal Todo state.

@@ -90,7 +90,7 @@ State 15: The atom MUST NOT hold a purpose taxonomy.
 Deleted: State 1. Invariant 2.1 owns it.
 ```
 
-Term state: `granted` | `revoked` | `expired` — in effect, withdrawn, or run out; a [State], derived per Expiry 1–4 against the evaluation instant.
+Term state: `granted` | `revoked` | `expired` — in effect, withdrawn, or run out; a [State], derived per Expiry 1 through 4 against the evaluation instant.
 
 Term grant field: `consent_id` | `subject_ref` | `purpose` | `granted_by` | `granted_at` | `expires_at` | `metadata` — what [Grant] writes and Invariant 1.1 freezes.
 
@@ -251,21 +251,21 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Grant] | three references present, no `expires_at`, store accepts | the new `consent_id` | one record lands in [Granted] (Operation 1, Operation 2) |
 | [Grant] | as above with an `expires_at` after [Now] | the new `consent_id` | as above, with [Expires At] recorded (Operation 7) |
-| [Grant] | a blank reference, or an `expires_at` at or before [Now] | [Invalid Request] | none (Operation 4–6, Operation 8, Operation 9) |
-| [Revoke] | id names a record in [Granted], attribution present, times ordered | `revoked` | [Granted] → [Revoked], three fields stamped (Operation 26–29) |
+| [Grant] | a blank reference, or an `expires_at` at or before [Now] | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9) |
+| [Revoke] | id names a record in [Granted], attribution present, times ordered | `revoked` | [Granted] → [Revoked], three fields stamped (Operation 26 through 29) |
 | [Revoke] | blank `consent_id` | [Invalid Request] | none — checked before the store is consulted (Operation 15, Operation 17) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 16) |
 | [Revoke] | id names a record in [Revoked] | [Already Revoked] | none (Operation 18) |
 | [Revoke] | id names a record in [Expired] | [Already Expired] | none (Operation 19) |
-| [Revoke] | record in [Granted], blank attribution or a time out of order | [Invalid Request] | none (Operation 22–25) |
-| either write | store refuses | [Storage Failure] | none (Operation 13, Operation 31–33) |
+| [Revoke] | record in [Granted], blank attribution or a time out of order | [Invalid Request] | none (Operation 22 through 25) |
+| either write | store refuses | [Storage Failure] | none (Operation 13, Operation 31 through 33) |
 | [Check] | the candidate record is withdrawn by [At Time] | `revoked` | none — the call reads (Operation 41, Operation 36) |
 | [Check] | the candidate record is elapsed by [At Time], never withdrawn | `expired` | none (Operation 42, Operation 43) |
 | [Check] | the candidate record is neither | `granted` | none (Operation 44) |
 | [Check] | no record for the pair was granted by [At Time] | `not-known` | none (Operation 40) |
 | [Read] | a well-formed query | the matching records, oldest first | none (Operation 47, Operation 48) |
 | [Read] | a well-formed query matching nothing | an empty sequence | none (Operation 51) |
-| [Read] | a blank filter value, a bad state, an inverted range, an unknown key | [Invalid Query] | none (Operation 55–59) |
+| [Read] | a blank filter value, a bad state, an inverted range, an unknown key | [Invalid Query] | none (Operation 55 through 59) |
 
 WHY:
 [Check] answers the question the caller asked — *what was the state at this instant* — and not *what is the stored state of the newest record*. That is the whole reason [At Time] exists, and why the evaluation runs against it rather than against [Now]: a regulator auditing whether processing on a past date was lawful and a system pre-flighting a campaign four weeks out depend on the same semantics (Operation 46, Invariant 10.1). A consent revoked or expired *later* than the instant asked about does not move the answer, which is what makes the store a faithful history rather than a current-state cache.
@@ -274,7 +274,7 @@ The two tiebreaks run in opposite directions on purpose. [Check] must select the
 
 [Check] refuses nothing, and [Read] refuses only a malformed query — the asymmetry the corpus keeps meeting. A query with an unrecognized key is the one case where refusing beats ignoring: silently dropping a filter returns a result set the caller did not ask for and cannot tell apart from the one it did (Operation 55, Operation 56). A time-range filter on a field a state's records do not carry is not malformed — it is well-formed and matches nothing, because [Revoked At] lives only on revoked records and [Expires At] only on records granted with a bound (Operation 60).
 
-Rejection order on [Revoke] is carried by the guards rather than by a numbered priority: a blank `consent_id` is refused before the store is consulted, because a caller that passed garbage did not reference a missing record (Operation 15, Operation 17); the terminal-state answers are mutually exclusive by Invariant 2.1; and the attribution and temporal checks are conditioned on the record standing in [Granted], so a retry against an already-revoked record with a blank reason still answers [Already Revoked] (Operation 22–25).
+Rejection order on [Revoke] is carried by the guards rather than by a numbered priority: a blank `consent_id` is refused before the store is consulted, because a caller that passed garbage did not reference a missing record (Operation 15, Operation 17); the terminal-state answers are mutually exclusive by Invariant 2.1; and the attribution and temporal checks are conditioned on the record standing in [Granted], so a retry against an already-revoked record with a blank reason still answers [Already Revoked] (Operation 22 through 25).
 
 ### Invariants
 
@@ -312,7 +312,7 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
   Invariant 6.2: IF the candidate record is withdrawn AND the candidate record is elapsed THEN [Check] MUST answer revoked.
   Invariant 6.3: The implementation MUST write the elapsed consent record's stored state within the operation that answers the caller.
   ```
-  WHY: the bound on [Expires At] at grant time — strictly later than [Now] — is a [Grant] precondition and not part of this invariant (Operation 7–9). What this one holds is the reading: a record past its bound reads as [Expired], a record withdrawn first reads as [Revoked] because the earlier terminal event is the one that happened, and an implementation that answers a [Granted] result for a record whose state at the queried instant is [Expired] is non-conformant however it manages its cache.
+  WHY: the bound on [Expires At] at grant time — strictly later than [Now] — is a [Grant] precondition and not part of this invariant (Operation 7 through 9). What this one holds is the reading: a record past its bound reads as [Expired], a record withdrawn first reads as [Revoked] because the earlier terminal event is the one that happened, and an implementation that answers a [Granted] result for a record whose state at the queried instant is [Expired] is non-conformant however it manages its cache.
 - **Invariant 7 — Grant attribution is complete.**
   ```text
   Invariant 7.1: EVERY consent record's consent_id, subject_ref, purpose and granted_by MUST carry a non-whitespace character.

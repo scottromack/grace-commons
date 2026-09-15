@@ -125,7 +125,7 @@ Term admitted reassign: a [Reassign Task] call whose tasks:assign check answered
 Term admitted recall: a [Recall Assignment] call whose tasks:recall check answered permitted.
 
 WHY:
-Action wiring 1 through Action wiring 3 are the whole gate, stated once for seven actions rather than seven times. Every action's shape is identical — check, then call — and the rules below name only what each action does *after* the gate clears.
+Action wiring 1 through 3 are the whole gate, stated once for seven actions rather than seven times. Every action's shape is identical — check, then call — and the rules below name only what each action does *after* the gate clears.
 
 Action wiring 13 and Action wiring 14 pick up the referential-integrity delegation [Assignment](../atoms/assignment.md)'s `Composition note 2` hands to a composing pattern. Personal Todo retires an id permanently, so a deleted task_id can never return to legitimize a dangling assignment, which is what makes Invariant 3's *no active assignment on a deleted task* standing rather than delete-time only.
 
@@ -197,7 +197,7 @@ Each of these needs two or all three constituents working together. None is avai
   Deleted: Invariant 7. Composes 6 owns it.
   Deleted: Invariant 8. Composes 6 owns it.
   ```
-  WHY: the three deleted invariants each asserted that a constituent's invariants hold over this composition's instance. [`execution-contract.md`](../execution-contract.md) §Conformance already establishes it — conformance extends recursively, and no composing layer is obligated to re-verify what a constituent's own conformance establishes — so restating it three times was a citing spec restating a rule it cites (Authority 6, council read 53). What the prose carried beyond the blanket survives: the relay of an unchanged constituent rejection is Composes 9, and the single-instance decisions that make Assignment's and Permissions' guarantees *reachable* here are Composes 1 through Composes 3.
+  WHY: the three deleted invariants each asserted that a constituent's invariants hold over this composition's instance. [`execution-contract.md`](../execution-contract.md) §Conformance already establishes it — conformance extends recursively, and no composing layer is obligated to re-verify what a constituent's own conformance establishes — so restating it three times was a citing spec restating a rule it cites (Authority 6, council read 53). What the prose carried beyond the blanket survives: the relay of an unchanged constituent rejection is Composes 9, and the single-instance decisions that make Assignment's and Permissions' guarantees *reachable* here are Composes 1 through 3.
 
 Permission enforcement and the cascade together give the coherent multi-actor surface: no actor acts beyond the actor's grants, and no assignment is left dangling against a deleted task. Responsibility queryability and authorization-history completeness together give recoverable accountability — for any task and any actor, what the actor was allowed to do and who held the task is readable from the records alone.
 
@@ -275,7 +275,7 @@ External check 4: An auditor needing the actor_ref bound to a caller MUST read t
 ```
 
 WHY:
-The split is the honest one and it is the same shape [Session-Gated Authorization](./session-gated-authorization.md) found. The three stores record *what stands*: an assignment's terminal state, a grant's history, a task's existence — so Check 1.1 through Check 5.2 clear from records. They do not record *what was attempted*: a denied call writes nothing anywhere, so the count of refusals and the order of the two steps inside an admitted call leave no trace in any constituent store. That is External check 1 through External check 3, and it is why a regulated deployment composes [Audit Trail](./audit-trail.md) rather than reading harder.
+The split is the honest one and it is the same shape [Session-Gated Authorization](./session-gated-authorization.md) found. The three stores record *what stands*: an assignment's terminal state, a grant's history, a task's existence — so Check 1.1 through 5.2 clear from records. They do not record *what was attempted*: a denied call writes nothing anywhere, so the count of refusals and the order of the two steps inside an admitted call leave no trace in any constituent store. That is External check 1 through 3, and it is why a regulated deployment composes [Audit Trail](./audit-trail.md) rather than reading harder.
 
 External check 4 is the one a deployment can fail silently, and §Non-goals names it as a seam rather than a gap: every guarantee here is stated over the `actor_ref` values presented to the composition, and nothing here authenticates them.
 

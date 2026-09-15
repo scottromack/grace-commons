@@ -78,7 +78,7 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 WHY:
 Identity 5 and Identity 6 are a pair, and the pair is the point. An absolute uniqueness claim over a value drawn from a random source is not made true by the source being wide: 128 bits makes a collision fantastically unlikely and leaves the invariant logically false. Identity 6 is the cure [Capability](./capability.md) carries — the *store* refuses the colliding write, so a collision surfaces as an outcome the signature already names and uniqueness is enforced rather than hoped for. This atom is the second to carry it, and the docket row counting the atoms that do not is where the corpus-wide ruling sits.
 
-Identity 10 through Identity 13 are one posture stated four times because each is separately temptable. The atom holds references it was handed; it confirms none of them, and above all it does not check the accepting identity against the intended invitee. That last one is not an oversight — an invitation is very often addressed to an email that names no system identity at all, and the identity is created at acceptance. A deployment that does require the two to match enforces it above this atom (Non-goal 10).
+Identity 10 through 13 are one posture stated four times because each is separately temptable. The atom holds references it was handed; it confirms none of them, and above all it does not check the accepting identity against the intended invitee. That last one is not an oversight — an invitation is very often addressed to an email that names no system identity at all, and the identity is created at acceptance. A deployment that does require the two to match enforces it above this atom (Non-goal 10).
 
 ### State
 

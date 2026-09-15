@@ -143,16 +143,16 @@ The case space, and the rule that owns each case:
 | [Add] | description empty or over the cap | [Invalid Description] | none (Description 4, Description 5) |
 | [Add] | description matches a live unit | [Duplicate Active] | none (Operation 4) |
 | [Edit] | valid, different, no active match, store accepts | `ok` | description and `last_edited_at` change (Operation 13, State 6) |
-| [Edit] | same normalized text | `ok` | none — no write, no stamp (Operation 10–12) |
+| [Edit] | same normalized text | `ok` | none — no write, no stamp (Operation 10 through 12) |
 | [Edit] | unit is done | [Not Editable] | none (Operation 8) |
 | [Complete] | unit is pending | `ok` | [Pending] → [Done], `completed_at` stamped (Operation 17, State 7) |
 | [Complete] | unit is done | [Not Pending] | none (Operation 16) |
 | [Delete] | unit is pending or done | `ok` | the unit leaves; the id is retired (Operation 19, Operation 20, Identity 5) |
 | any | id names nothing | [Not Known] | none (Operation 7, Operation 15, Operation 18) |
-| any writing call | store refuses | [Storage Failure] | none (Operation 5, Operation 21–24) |
+| any writing call | store refuses | [Storage Failure] | none (Operation 5, Operation 21 through 24) |
 
 WHY:
-The no-op edit is a real accepted case that writes nothing, which is why it cannot answer `storage-failure` — a person retyping the same words has changed nothing and should not see a failure from a store that was never asked (Operation 10–12). Uniqueness ranges over pending and done together: a finished *buy milk* still blocks a second one, because a list showing the same text twice is confusing whichever column it sits in (Operation 4, Invariant 6.1).
+The no-op edit is a real accepted case that writes nothing, which is why it cannot answer `storage-failure` — a person retyping the same words has changed nothing and should not see a failure from a store that was never asked (Operation 10 through 12). Uniqueness ranges over pending and done together: a finished *buy milk* still blocks a second one, because a list showing the same text twice is confusing whichever column it sits in (Operation 4, Invariant 6.1).
 
 ### Invariants
 
@@ -188,7 +188,7 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
   Invariant 7.2: IF completed_at EXISTS THEN added_at MUST NOT EXCEED completed_at.
   Invariant 7.3: IF last_edited_at EXISTS AND completed_at EXISTS THEN last_edited_at MUST NOT EXCEED completed_at.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Capability requirement 2–3).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Capability requirement 2 through 3).
 - **Invariant 8 — Id stability.**
   ```text
   Invariant 8.1: [Add] MUST set the id.
@@ -312,7 +312,7 @@ Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted t
 ```
 
 WHY:
-Each of these is a field somebody will want to add here and each is a pattern: priority and ordering, due dates, dependencies and recurrence compose *(all forthcoming)*, and the moment one of them lands inside this atom the atom stops being the thing every larger system contains (Non-goal 9–12). Deletion keeps no memory by design, which is what makes the recency behaviour a composition rather than a mode (Non-goal 4, Non-goal 5). Only `last_edited_at` survives an edit — prior text is gone, and a system that needs the trail composes a history pattern (Non-goal 13).
+Each of these is a field somebody will want to add here and each is a pattern: priority and ordering, due dates, dependencies and recurrence compose *(all forthcoming)*, and the moment one of them lands inside this atom the atom stops being the thing every larger system contains (Non-goal 9 through 12). Deletion keeps no memory by design, which is what makes the recency behaviour a composition rather than a mode (Non-goal 4, Non-goal 5). Only `last_edited_at` survives an edit — prior text is gone, and a system that needs the trail composes a history pattern (Non-goal 13).
 
 Where the atom breaks down: any system with more than one actor; a system where *finished* is not binary; a system where the description is not a property worth constraining; a host that cannot make a transition atomic.
 

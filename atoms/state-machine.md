@@ -351,7 +351,7 @@ Term initial state: the state an instance stands in at [Instantiate] — an [Ini
 
 Term terminal states: the absorbing members of `states` — a [Terminal States]; possibly none.
 
-Term well-formed declaration: a declaration Declaration 5 through Declaration 15 all admit.
+Term well-formed declaration: a declaration Declaration 5 through 15 all admit.
 
 WHY:
 Declaration 13 is the determinism constraint and the load-bearing one: at most one declared transition per `from_state` and `action` pair means a [Fire] either matches exactly one edge or none, and the atom never chooses between two. Without it *fire the approve action* would be ambiguous in a declaration that named two approve edges, and an implementation would have to invent a tiebreak the spec does not have.
@@ -364,9 +364,9 @@ Declaration 9 and Declaration 12 are the same claim from two directions, and nei
 
 ### Pharmaceutical batch qualification
 
-A quality system instantiates a batch-release workflow. The declaration names `states: [sampled, tested, qualified, released, rejected]`, `initial state: sampled`, `terminal states: [released, rejected]`, and five declared transitions — `sampled --test--> tested`, `tested --qualify[qa_signoff]--> qualified`, `tested --reject--> rejected`, `qualified --release[qa_signoff]--> released`, `qualified --reject--> rejected`. `instantiate(declaration, actor_ref: "qa-system", subject_ref: "batch-x91")` → `wf_01HQ…`, standing in `sampled` with `next_sequence_number: 1` (Operation 4–8).
+A quality system instantiates a batch-release workflow. The declaration names `states: [sampled, tested, qualified, released, rejected]`, `initial state: sampled`, `terminal states: [released, rejected]`, and five declared transitions — `sampled --test--> tested`, `tested --qualify[qa_signoff]--> qualified`, `tested --reject--> rejected`, `qualified --release[qa_signoff]--> released`, `qualified --reject--> rejected`. `instantiate(declaration, actor_ref: "qa-system", subject_ref: "batch-x91")` → `wf_01HQ…`, standing in `sampled` with `next_sequence_number: 1` (Operation 4 through 8).
 
-`fire("wf_01HQ…", "test", actor_ref: "lab-tech-r.chen")` → `tested`. One history entry lands at `sequence_number: 1` carrying `from_state: sampled`, `to_state: tested` (Operation 21–28).
+`fire("wf_01HQ…", "test", actor_ref: "lab-tech-r.chen")` → `tested`. One history entry lands at `sequence_number: 1` carrying `from_state: sampled`, `to_state: tested` (Operation 21 through 28).
 
 `fire("wf_01HQ…", "qualify", actor_ref: "qa-lead-m.ross")` → `rejected(guard-not-satisfied)`. The declared transition carries the `qa_signoff` guard and the call asserted nothing (Operation 17). The same call with `guard_satisfied: true` → `qualified`, and the entry records the assertion (Operation 29).
 
@@ -471,7 +471,7 @@ Non-goal 22: A deployment needing a verifiable time anchor MUST compose a truste
 ```
 
 WHY:
-Non-goal 3 through Non-goal 5 bound the atom to a single active state, and the bound is what makes every other guarantee statable. Parallel workflows — an instance live in several states, a join firing when all branches complete — have no single current state to be exactly one of, so Invariant 2, Invariant 7 and the whole replay story would need rewriting rather than extending. This atom is the single-active-state primitive and a fork-join pattern is a sibling, not a setting.
+Non-goal 3 through 5 bound the atom to a single active state, and the bound is what makes every other guarantee statable. Parallel workflows — an instance live in several states, a join firing when all branches complete — have no single current state to be exactly one of, so Invariant 2, Invariant 7 and the whole replay story would need rewriting rather than extending. This atom is the single-active-state primitive and a fork-join pattern is a sibling, not a setting.
 
 Non-goal 8 and Non-goal 9 together answer the question every deployer asks second: *can I change the flowchart?* Not for a live instance, ever. The declaration is a value the instance holds, so two instances created from one template are two independent copies and editing the template moves neither. Where a deployer needs a canonical template that new instances pick up, that is a definition registry holding the template and a calling system supplying it at [Instantiate] — this atom receives a declaration and never asks where it came from.
 
@@ -934,7 +934,7 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/state-machine.md`.
 
-- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariants 1–10 keeping their numbers, the declaration's ten well-formedness checks raised to a `Declaration 1–17` family of their own, every success effect conditioned on a declared `admitted instantiate`, `admitted fire` or `admitted history` (Hard invariant 16), [Fire]'s seven-step rejection precedence kept beside the rules as an eight-row case space with the ordering carried by `ONLY IF` guards rather than by a prose *rejection priority* line repeated in two sections, the six acceptance areas opened into `Check 1.1–8.2` with three `External check`s for what the store cannot answer, the Non-goals-and-edge-cases prose split into a `Non-goal 1–21` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`), the Composition notes prose raised to `Composition note 1–10`. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into state-machine` found nothing in the corpus citing this atom by label. 78.8 KB → 67.0 KB.
+- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariant 1 through 10 keeping their numbers, the declaration's ten well-formedness checks raised to a `Declaration 1 through 17` family of their own, every success effect conditioned on a declared `admitted instantiate`, `admitted fire` or `admitted history` (Hard invariant 16), [Fire]'s seven-step rejection precedence kept beside the rules as an eight-row case space with the ordering carried by `ONLY IF` guards rather than by a prose *rejection priority* line repeated in two sections, the six acceptance areas opened into `Check 1.1 through 8.2` with three `External check`s for what the store cannot answer, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 21` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`), the Composition notes prose raised to `Composition note 1 through 10`. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into state-machine` found nothing in the corpus citing this atom by label. 78.8 KB → 67.0 KB.
 
 - **2026-09-12 — The within-instance temporal bound is a precedence, not a `≥`.** *Chose:* `Operation 20` — *IF the resolved fired_at precedes the instance's instantiated_at THEN [Fire] MUST answer invalid-request*. *Over:* `IF fired_at EXCEEDS instantiated_at OR fired_at = instantiated_at`, the two-arm spelling the condition operator set forces on a `≥`. *Because:* that spelling is a watched class at five sites across two specs (council read 29), and this atom would have been the third. A bound that admits its own boundary is a *precedes* prohibition in one arm — the boundary case (a transition firing at the instant of instantiation) is legal, and one arm says so. The class may still earn an operator; it does not need this atom's vote.
 

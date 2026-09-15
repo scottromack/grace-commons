@@ -79,7 +79,7 @@ A pool's *name* is a deployment concept — a flight, a ward, a primary connecti
 
 Units are fungible at this grain, and that is the whole reason the atom stays small. An allocate of five increments the total by five and writes one event; it does not mint five sub-records. A caller that needs *this seat* rather than *a seat* wants the per-allocation lifecycle [Provisional Commitment](./provisional-commitment.md) owns, and that pattern cross-references this atom's [Allocation Event Id] rather than duplicating the arithmetic (Identity 18, Non-goal 1, Non-goal 2).
 
-Identity 13 and Identity 14 are the create-only discipline: an injected id that collides with a live pool surfaces as [Storage Failure] with nothing written, because the overwrite reading would destroy a pool's whole arithmetic history. Event-id uniqueness has no such guard and rests wholly on the generator the deployment declares (Identity 15–17, Invariant 13.2).
+Identity 13 and Identity 14 are the create-only discipline: an injected id that collides with a live pool surfaces as [Storage Failure] with nothing written, because the overwrite reading would destroy a pool's whole arithmetic history. Event-id uniqueness has no such guard and rests wholly on the generator the deployment declares (Identity 15 through 17, Invariant 13.2).
 
 ### State
 
@@ -124,11 +124,11 @@ Term attribution surface: an audit event's actor reference and reason — what m
 WHY:
 Drained is not a state, and that is the sharpest boundary in the atom. `allocated` reaching `capacity` is a number reaching another number: observable through [Query], enforced by the allocate guard, and derivable at any moment. A state, by contrast, is something an actor decided — suspend, resume, close. Promoting an arithmetic condition to a state would put a policy name on a computation and invite a transition nobody performs (State 6).
 
-Order is insertion order, not timestamp order. `recorded_at` comes from the seam's clock and under skew it is not monotonic, so every *after*, *between* and *most recent* in this spec means by insertion (State 11–13). A deployment that needs order bound to verifiable wall time composes a trusted-timestamping pattern; without it, timestamps are metadata and insertion is the truth.
+Order is insertion order, not timestamp order. `recorded_at` comes from the seam's clock and under skew it is not monotonic, so every *after*, *between* and *most recent* in this spec means by insertion (State 11 through 13). A deployment that needs order bound to verifiable wall time composes a trusted-timestamping pattern; without it, timestamps are metadata and insertion is the truth.
 
 An adjustment event names [Prior Capacity] against [New Capacity]; a state-change event names [Prior State] against [New State]; an allocation or release event names [Allocated Before] against [Allocated After] with the [Count] between them. Each is a before and an after on one row, which is what lets an auditor clear the bound at a single event.
 
-An audit event has two surfaces with different lifetimes, and the split is structural. The audit-identifier surface is what makes the arithmetic chain verifiable from records alone, and no action of this atom rewrites it. The attribution surface — [Allocating Actor Ref] and [Releasing Actor Ref] on the arithmetic events, [Adjusting Actor Ref] and [Acting Actor Ref] with a [Reason] on the others — is what makes the record identify a person, and a deployment that encodes personal data there may have to erase it under GDPR (EU General Data Protection Regulation) Article 17 — through its own declared shredding-class mechanism, gated by a composed [Retention Window](./retention-window.md), which declares *when* a lifetime ends and carries no field-level scrub surface of its own. After such an erasure the records still verify the arithmetic and no longer name the actor, which is exactly the property the split exists to give (State 20, Invariant 8.1–8.4).
+An audit event has two surfaces with different lifetimes, and the split is structural. The audit-identifier surface is what makes the arithmetic chain verifiable from records alone, and no action of this atom rewrites it. The attribution surface — [Allocating Actor Ref] and [Releasing Actor Ref] on the arithmetic events, [Adjusting Actor Ref] and [Acting Actor Ref] with a [Reason] on the others — is what makes the record identify a person, and a deployment that encodes personal data there may have to erase it under GDPR (EU General Data Protection Regulation) Article 17 — through its own declared shredding-class mechanism, gated by a composed [Retention Window](./retention-window.md), which declares *when* a lifetime ends and carries no field-level scrub surface of its own. After such an erasure the records still verify the arithmetic and no longer name the actor, which is exactly the property the split exists to give (State 20, Invariant 8.1 through 8.4).
 
 ### Capability requirement
 
@@ -269,8 +269,8 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the pool |
 |---|---|---|---|
-| [Declare Pool] | capacity a whole count, fields valid, store accepts | the new `pool_id` | pool lands in [Open], `allocated` zero (Operation 1–5) |
-| [Allocate] | [Open], count positive, requested total within capacity | the `allocation_event_id` | `allocated` rises, one event appended (Operation 15–17) |
+| [Declare Pool] | capacity a whole count, fields valid, store accepts | the new `pool_id` | pool lands in [Open], `allocated` zero (Operation 1 through 5) |
+| [Allocate] | [Open], count positive, requested total within capacity | the `allocation_event_id` | `allocated` rises, one event appended (Operation 15 through 17) |
 | [Allocate] | [Open], requested total past capacity | [Over Capacity] | none (Operation 13) |
 | [Allocate] | [Suspended] | [Suspended] | none (Operation 10) |
 | [Allocate] | [Closed] | [Closed] | none (Operation 11) |
@@ -283,9 +283,9 @@ The case space, and the rule that owns each case:
 | [Suspend Pool] | [Open] | the `state_change_id` | → [Suspended] (Operation 41) |
 | [Resume Pool] | [Suspended] | the `state_change_id` | → [Open] (Operation 44) |
 | [Close Pool] | [Open] or [Suspended] | the `state_change_id` | → [Closed] (Operation 46) |
-| any state change | already in the target state, or [Closed] | [Not Open], [Not Suspended], [Already Closed] | none (Operation 39–45) |
+| any state change | already in the target state, or [Closed] | [Not Open], [Not Suspended], [Already Closed] | none (Operation 39 through 45) |
 | any addressed action | id names nothing | [Not Known] | none (Operation 8) |
-| any writing action | store refuses | [Storage Failure] | none (Operation 57–59) |
+| any writing action | store refuses | [Storage Failure] | none (Operation 57 through 59) |
 | [Query] | id names a pool, any state | the pool snapshot | none (Operation 51, Operation 54) |
 
 WHY:
@@ -388,7 +388,7 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
   ```
   WHY: the rejection path and the crash path need separating. A [Storage Failure] answer is the host surfacing a failure as a return value, and nothing committed. A crash between the log append and the total update returns nothing at all, and only the crash-atomicity obligation extends all-or-none to that path.
 
-Invariants 4 and 5 together give the *bounded-arithmetic* property — at every reachable state the running total sits between zero and the bound, under the host obligations Invariant 4.4 names. That is what a composing pattern may treat as a precondition; without it every caller defends the bound at its own call site. Invariants 8 to 11 give the *successful-change-audit* property — every successful change to a pool's capacity, total or state is an attributed event in insertion order whose identifier surface nothing rewrites. *Rejected* calls produce no event here, deliberately (Non-goal 26, Non-goal 27). Invariant 3 gives *terminal closure* — a closed pool cannot be quietly reopened, and post-close unwinding through [Release] is the only mutation that survives it.
+Invariants 4 and 5 together give the *bounded-arithmetic* property — at every reachable state the running total sits between zero and the bound, under the host obligations Invariant 4.4 names. That is what a composing pattern may treat as a precondition; without it every caller defends the bound at its own call site. Invariant 8 through 11 give the *successful-change-audit* property — every successful change to a pool's capacity, total or state is an attributed event in insertion order whose identifier surface nothing rewrites. *Rejected* calls produce no event here, deliberately (Non-goal 26, Non-goal 27). Invariant 3 gives *terminal closure* — a closed pool cannot be quietly reopened, and post-close unwinding through [Release] is the only mutation that survives it.
 
 ---
 
@@ -559,7 +559,7 @@ Term zero-width character: a codepoint in `U+200B` to `U+200D`, or `U+FEFF`.
 Term bidi-override character: a codepoint in `U+202A` to `U+202E`, or `U+2066` to `U+2069`.
 
 WHY:
-String 6 to String 8 are audit-surface rules wearing validation clothes. A reason made of control bytes, of zero-width characters, or spoofed with bidi overrides passes every syntactic check and is invisibly empty or deceptively rendered to the human auditor the field exists to serve — so admitting it would satisfy the format and defeat the purpose.
+String 6 through 8 are audit-surface rules wearing validation clothes. A reason made of control bytes, of zero-width characters, or spoofed with bidi overrides passes every syntactic check and is invisibly empty or deceptively rendered to the human auditor the field exists to serve — so admitting it would satisfy the format and defeat the purpose.
 
 The cap's *value* is the deployment's; its *existence* is the contract. An uncapped opaque field on an append-only log is an unbounded payload sink (String 3, String 4).
 
@@ -1080,6 +1080,6 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/capacity-constraint-enforcement.md`.
 
-- **2026-09-12 — Rewritten in GRACE lang v0.36; nothing but language changed.** *Chose:* the eight actions as a signature block, the fourteen invariant numbers unchanged, the six acceptance areas opened into `Check 1.1–6.1` with three External checks for what the store cannot answer, the arithmetic routed through declared `requested total` and `released total` so no rule carries a sum, the three host obligations Invariant 4 rests on given their own families (`Concurrency`, `Crash atomicity`, `Arithmetic`). *Over:* the prose spec. *Because:* the migration plan; nothing cites this atom by label. The open question this atom was picked to answer — whether a domain whose logic *is* arithmetic survives Hard invariant 24 — answers yes: `MUST NOT EXCEED` and `EXCEEDS` carry every comparison directly, and only the two sums needed names.
+- **2026-09-12 — Rewritten in GRACE lang v0.36; nothing but language changed.** *Chose:* the eight actions as a signature block, the fourteen invariant numbers unchanged, the six acceptance areas opened into `Check 1.1 through 6.1` with three External checks for what the store cannot answer, the arithmetic routed through declared `requested total` and `released total` so no rule carries a sum, the three host obligations Invariant 4 rests on given their own families (`Concurrency`, `Crash atomicity`, `Arithmetic`). *Over:* the prose spec. *Because:* the migration plan; nothing cites this atom by label. The open question this atom was picked to answer — whether a domain whose logic *is* arithmetic survives Hard invariant 24 — answers yes: `MUST NOT EXCEED` and `EXCEEDS` carry every comparison directly, and only the two sums needed names.
 
 NOTE: End of Capacity Constraint Enforcement.

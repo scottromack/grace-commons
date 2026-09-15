@@ -104,7 +104,7 @@ State 6 is a small thing worth stating. `duration` sizes the window and is then 
 
 State 7 is the boundary a reader keeps looking for. There is no *unheld* state in this atom's record — unheld describes the resource, not the commitment, and it belongs to the registry. The lifecycle this atom holds begins at [Place Hold].
 
-State 8 through State 10 are the three surfaces a reader keeps expecting to find. A confirmed commitment is not unconfirmed, an expired one is not reactivated, and a window is not extended — a longer hold is a new commitment with a new id, placed after the original is released. Mutating `expires_at` would retroactively change when [Expire] became legal, which breaks the honored window for a hold that has already settled.
+State 8 through 10 are the three surfaces a reader keeps expecting to find. A confirmed commitment is not unconfirmed, an expired one is not reactivated, and a window is not extended — a longer hold is a new commitment with a new id, placed after the original is released. Mutating `expires_at` would retroactively change when [Expire] became legal, which breaks the honored window for a hold that has already settled.
 
 ### Capability requirement
 
@@ -132,7 +132,7 @@ Deleted: Clock semantics 6. Non-goal 26 owns it.
 ```
 
 WHY:
-Capability requirement 3 through Capability requirement 5 are a declared obligation rather than an ambient host guarantee, and naming them is the point: a registry that cannot serialize the availability read against the hold write will hand two callers the same resource, and both commitments will satisfy every invariant above. Capability requirement 6 is what makes `storage-failure` definitive — a store that can acknowledge a write it did not commit turns every refusal into an in-doubt write, and a deployment with such a store routes retries through [Duplicate Prevention](./duplicate-prevention.md) rather than trusting the answer.
+Capability requirement 3 through 5 are a declared obligation rather than an ambient host guarantee, and naming them is the point: a registry that cannot serialize the availability read against the hold write will hand two callers the same resource, and both commitments will satisfy every invariant above. Capability requirement 6 is what makes `storage-failure` definitive — a store that can acknowledge a write it did not commit turns every refusal into an in-doubt write, and a deployment with such a store routes retries through [Duplicate Prevention](./duplicate-prevention.md) rather than trusting the answer.
 
 Capability requirement 10 and Capability requirement 11 are where the resource return lives, and the placement is the correction of a real defect: a draft of this migration carried the return as an `Operation`, obliging the atom to do something Non-goal 11 says it cannot see and External check 1's own WHY says it cannot check. The registry owns availability, so the registry carries the obligation, and External check 1 is the auditor's reading of it. The negative half is stated separately because a registry that frees the resource on a confirm has broken the atom's point as thoroughly as one that never frees it on an expire (council read 38).
 
@@ -231,7 +231,7 @@ Term reclamation lag: the span between a commitment's `expires_at` and the admit
 WHY:
 Operation 6, Operation 16, Operation 20 and Operation 29 are the rejection priority, written as guards rather than as an order — nothing may be inferred from rule order (GRACE-lang Timing 13). For a resolving action the effect is `not-known` before `not-held` before the window rejection before `storage-failure`; for [Place Hold] it is `invalid-request` before `resource-unavailable` before `storage-failure`. A caller who reads `not-held` therefore knows the id resolved, and one who reads `window-elapsed` knows the commitment is still held.
 
-Operation 17 through Operation 19 are the honored window, and the boundary is the whole of the disagreement they settle. The `lapsed` declaration puts the boundary instant on the closed side, so at `expires_at` equal to `now` a confirm is refused and an expire is admitted. One instant, one legal transition, no overlap.
+Operation 17 through 19 are the honored window, and the boundary is the whole of the disagreement they settle. The `lapsed` declaration puts the boundary instant on the closed side, so at `expires_at` equal to `now` a confirm is refused and an expire is admitted. One instant, one legal transition, no overlap.
 
 [Release] and [Expire] are two actions rather than one because they differ in which side of the window they are legal on and in what the record then says happened. An auditor asking *did this requester give the resource back, or did the requester simply not answer* reads the terminal state and gets a different answer for each. The return of the resource itself is not here — it is Capability requirement 10, because this atom cannot see availability (Non-goal 11) and a MUST whose subject cannot evaluate it is decoration.
 
@@ -259,7 +259,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   Invariant 5.1: An admitted resolving action MUST NOT change a property.
   Invariant 5.2: A re-hold MUST produce a commitment carrying a fresh id.
   ```
-  WHY: Operation 33 through Operation 35 keep a resolving action from *accepting* a property, and Invariant 5.1 keeps one from changing a property by any other route. The two are separate claims: an implementation can change a stored field it was never handed.
+  WHY: Operation 33 through 35 keep a resolving action from *accepting* a property, and Invariant 5.1 keeps one from changing a property by any other route. The two are separate claims: an implementation can change a stored field it was never handed.
 - **Invariant 6 — Hold window monotonicity.**
   ```text
   Invariant 6.1: The store MUST NOT carry a degenerate window.
@@ -413,7 +413,7 @@ Non-goal 26: A deployment needing two racing transitions ordered MUST read the c
 ```
 
 WHY:
-Non-goal 11 through Non-goal 13 are the factoring decision that most looks like a hole. This atom refuses a [Place Hold] when the registry says the resource is not hold-able and never asks what hold-able means; it fires [Expire] when called and never decides when to call. Building either in would make the hold primitive depend on the two things most often wired around it, and would put the policy inside the mechanism.
+Non-goal 11 through 13 are the factoring decision that most looks like a hole. This atom refuses a [Place Hold] when the registry says the resource is not hold-able and never asks what hold-able means; it fires [Expire] when called and never decides when to call. Building either in would make the hold primitive depend on the two things most often wired around it, and would put the policy inside the mechanism.
 
 Non-goal 1 is worth stating because the alternative is tempting. Two [Place Hold] calls for one logical intent produce two commitments, because the atom cannot tell a retry from a second genuine hold — that is exactly what an idempotency token is for, and [Idempotent Reservation](../compositions/idempotent-reservation.md) is the composition that wires it.
 

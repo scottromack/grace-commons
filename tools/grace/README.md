@@ -26,7 +26,7 @@ Standard library only. One finding per line, `path:line: [CODE] message`. Non-ga
 | **R-caps** | A word in capitals that is not a reserved token (Casing 2, Casing 6) — a watched or provisional form, an inflection of a reserved token (`WHILE`, `DEGRADES TO`, `EXIST`), or a proper noun or acronym (`SOX`, `KB`), which a rule spells out (ruled at council read 85, no exceptions). Both sets derive from `GRACE-lang.md`. Landed at council read 79, when three such words were found in rules both checkers passed. |
 | **C-copula / C-verb** | A copula after the modal; a verb after the modal the spec's record-verb declaration does not carry (Closed vocabulary 8). |
 | **F-bracket** | A bracketed range in a rule — read as a term marker by the corpus linter, and arithmetic besides. |
-| **X-ref** | A reference to a label, by one of the spec's own label names, that no rule carries (Hard invariant 12). A heading-numbered group — `Invariant 2`, `Check 5` — counts as carried when a rule under it exists; another spec's `Invariant N` is left to the corpus linter. |
+| **X-ref** | A reference to a label, by one of the spec's own label names, that no rule carries (Hard invariant 12). A heading-numbered group — `Invariant 2`, `Check 5` — counts as carried when a rule under it exists; another spec's `Invariant N` is left to the corpus linter. A range citation, `Operation 3 through 7`, names its last label too, and both ends must resolve (Hard invariant 29). |
 | **D-decl-modal / D-decl-selfref / D-decl-unresolved** *(advisory)* | What a declaration carries. A definition is not a rule, so a modal in one is an obligation in a definition's clothes (Closed vocabulary 12, Closed vocabulary 14); a definition that computes over itself, or over a datum the spec declares nowhere (Closed vocabulary 4). A declaration may carry the arithmetic a rule may not (Closed vocabulary 9, Closed vocabulary 11), which is where complexity goes when a rule cannot hold it — and, until these landed, the one place nothing read. |
 | **K-check-bare** *(advisory)* | A `Check` or `External check` rule naming no rule. The auditor is the last reader nobody audits: a check whose failure nobody can state passes forever, and Lease's Check 6.1 was vacuous against the very rule it rested on for a day (council read 8). Landed 2026-09-11 against a baseline of 83, most of them checks citing an invariant in prose rather than by label. |
 | **D-tombstone-form** | A tombstone not in the one form, `Deleted: Label. The owner, and why.`, or still in the retired `NOTE: … deleted` shape, which reserves nothing. A tombstone is no surface prefix, so `Surface 18` counts it with a labelled rule and a tombstone written first no longer demotes the block beneath it — the trap the retired `F-prefix-first` caught twice (council read 15, council read 76; GRACE-lang v0.46). |
@@ -53,7 +53,9 @@ python3 tools/grace/cites.py --unchecked <spec>   # rules no check names
 ```
 
 `--into` is the pre-flight for rewriting a spec: a label the corpus cites is a
-label that keeps its number. `--terms` answers the drift question — one name,
+label that keeps its number. A range citation cites every label between its
+ends, so `Event Log Invariant 1 through 4` counts four labels, and a change to
+`Operation 5` re-opens a rule that cites `Operation 3 through 7`. `--terms` answers the drift question — one name,
 several declarations, and a reader of two specs reads both (council read 9 found `seam`
 declared seven ways). `--queue` orders the migration by who is cited most,
 which is how the corpus schedules its own work. `--drift` sweeps across Terms

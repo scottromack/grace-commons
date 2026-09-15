@@ -233,7 +233,7 @@ Term submission field: `step_id`, `subject_ref`, `approver_ref`, `submitter_ref`
 
 Term attribution field: `decided_by`, `decision_reason`, `decided_at`, `withdrawn_by`, `withdrawal_reason` OR `withdrawn_at` — every field a resolving action sets.
 
-Term attribution check: Operation 15 through Operation 19 — every check a resolving action makes before the actor guard.
+Term attribution check: Operation 15 through 19 — every check a resolving action makes before the actor guard.
 
 Term filter axes: `step_id` | `subject_ref` | `approver_ref` | `submitter_ref` | `scope` | `state` | `submitted_at` | `decided_at` | `withdrawn_at` — the nine axes [Read] accepts, and no others.
 
@@ -330,7 +330,7 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
 
 ### SOX journal entry approval
 
-A controller determines that posting JE-2026-0441 needs senior finance approval under SOX §404 controls. `submit(subject_ref: "je-2026-0441", approver_ref: "finance_director_chen", submitter_ref: "controller_morgan", scope: "financial:journal-entry:post")` → `step-001`, standing in pending (Operation 7–9).
+A controller determines that posting JE-2026-0441 needs senior finance approval under SOX §404 controls. `submit(subject_ref: "je-2026-0441", approver_ref: "finance_director_chen", submitter_ref: "controller_morgan", scope: "financial:journal-entry:post")` → `step-001`, standing in pending (Operation 7 through 9).
 
 The finance director approves: `approve("step-001", decided_by: "finance_director_chen", reason: "Reviewed and approved — posting authorized")` → `approved`. The step stands in approved, carrying `decided_by`, `decision_reason` and `decided_at` (Operation 24, Operation 27, Operation 30).
 
@@ -362,7 +362,7 @@ A cross-border entry needs both finance and tax sign-off. Two [Submit] calls pro
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** A SOX §404 examiner asks for evidence that the materiality control operated on a sample of entries. `read({scope: "financial:journal-entry:post", submitted_at: {after: …, before: …}})` answers the gates with full attribution, and Check 2.1 through Check 3.4 are what make each one usable. What the atom cannot answer is which entries *should* have had a gate and did not — that comparison needs the transaction set, which lives outside (Non-goal 18, External check 2).
+- **Regulator audit.** A SOX §404 examiner asks for evidence that the materiality control operated on a sample of entries. `read({scope: "financial:journal-entry:post", submitted_at: {after: …, before: …}})` answers the gates with full attribution, and Check 2.1 through 3.4 are what make each one usable. What the atom cannot answer is which entries *should* have had a gate and did not — that comparison needs the transaction set, which lives outside (Non-goal 18, External check 2).
 - **Disputed approval.** A director denies approving an entry under an FDA Part 11 signature challenge. The record shows `decided_by` equal to `approver_ref`, byte for byte, with the instant and the reason. That proves the call carried their reference and proves nothing about who made the call — the cryptographic binding is [Actor Identity](./actor-identity.md)'s, and the atom says so rather than letting the record be read as a signature (Non-goal 14, External check 3).
 - **Breach forensics.** An investigator examining unauthorized approval attempts finds that the store holds no record of them: a refused call writes nothing (Operation 36, Operation 37), so `unauthorized` attempts leave no trace here at all. The attempt log is the composing [Audit Trail](../compositions/audit-trail.md)'s, and this store's contribution is the negative evidence — every decision that *did* land, fully attributed (External check 4).
 
@@ -868,7 +868,7 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/approval-step.md`.
 
-- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariants 1–10 keeping their numbers, every success effect conditioned on a declared `admitted submit`, `admitted resolve` or `admitted read` (Hard invariant 16), the six-step rejection precedence — repeated verbatim in four places in the prose, once per resolving action and once in the state table — collapsed to one seven-row case space with the ordering carried by `ONLY IF` guards, the three resolving actions unified under declared `resolving action`, `deciding reference` and `decision instant` terms so [Approve], [Reject] and [Withdraw] state their shared guards once instead of three times, the six acceptance areas opened into `Check 1.1–6.3` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1–20` family and five edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`, `Indeterminate outcome`). *Over:* the prose spec. *Because:* the migration plan; `cites.py --into approval-step` found nothing citing this atom by label. 81.1 KB → 62.7 KB.
+- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariant 1 through 10 keeping their numbers, every success effect conditioned on a declared `admitted submit`, `admitted resolve` or `admitted read` (Hard invariant 16), the six-step rejection precedence — repeated verbatim in four places in the prose, once per resolving action and once in the state table — collapsed to one seven-row case space with the ordering carried by `ONLY IF` guards, the three resolving actions unified under declared `resolving action`, `deciding reference` and `decision instant` terms so [Approve], [Reject] and [Withdraw] state their shared guards once instead of three times, the six acceptance areas opened into `Check 1.1 through 6.3` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 20` family and five edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`, `Indeterminate outcome`). *Over:* the prose spec. *Because:* the migration plan; `cites.py --into approval-step` found nothing citing this atom by label. 81.1 KB → 62.7 KB.
 
 - **2026-09-12 — Three propositions had two owners each.** *Chose:* `Invariant 2.1` owns membership exclusivity and the `State` family no longer restates it; `Operation 8` owns *an admitted submit stands the step in pending*; `Identity 12` owns *the atom does not confirm a subject_ref*. *Over:* keeping each pair. *Because:* Authority 3, and all three were found by `W-duplicate-proposition` rather than by reading — the same pattern as State Machine, where the duplicates a 169-rule surface hides are exactly the ones no reader finds.
 

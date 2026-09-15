@@ -129,7 +129,7 @@ Capability requirement 14: The deployment MUST own the clock's monotonicity.
 ```
 
 WHY:
-Capability requirement 5 through Capability requirement 8 are the concurrency contract stated as the section it needs, not as an ambient hope. Two systems verifying one order, or a dispense racing a concurrent verification, resolve by serialization rather than by this atom detecting the race — and the section must be *taken before the state check*, because a check evaluated outside it reads a state another caller is already leaving.
+Capability requirement 5 through 8 are the concurrency contract stated as the section it needs, not as an ambient hope. Two systems verifying one order, or a dispense racing a concurrent verification, resolve by serialization rather than by this atom detecting the race — and the section must be *taken before the state check*, because a check evaluated outside it reads a state another caller is already leaving.
 
 Capability requirement 3 and Capability requirement 4 are one value declared and then injected. The future-dated refusal on a supplied `ordered_at` compares a caller's stamp against this node's reading, and those are two clocks; without a declared margin the refusal rests on their agreement, which is not something either side can promise (Decisions, 2026-08-30).
 
@@ -271,7 +271,7 @@ Term actionable state: a pre-dispensing state OR a post-dispensing state — eve
 
 Term inactive state's rejection: `already-amended` for amended, `already-completed` for completed, `already-cancelled` for cancelled, `already-discontinued` for discontinued.
 
-Term state check: Operation 11, Operation 13, Operation 14 and Operations 15 through 26 — every check an order action makes on the order's own standing before reading the call's remaining arguments.
+Term state check: Operation 11, Operation 13, Operation 14 and Operation 15 through 26 — every check an order action makes on the order's own standing before reading the call's remaining arguments.
 
 Term blank-input rejection: `invalid-order` for [Order], `invalid-request` for an order action.
 
@@ -312,7 +312,7 @@ Operation 12, Operation 15, Operation 28 and Operation 63 are the rejection prio
 
 Operation 17 and Operation 18 are the atom's clinical boundary, and they are one proposition wearing two rejections. Both refuse across the dispensing edge and both answer `already-dispensed`, because the fact that ends the conversation is the same: the medication has left the pharmacy. What differs is the remedy — [Amend] gives way to a fresh order, [Cancel] gives way to [Discontinue] — and the mirror rule answers [Not Dispensed] when [Discontinue] is called on the near side.
 
-Operation 30 through Operation 32 make a class of error unrepresentable rather than refused. An amendment cannot change the drug, the patient or the prescriber, and the mechanism is that [Amend] has no parameter for any of them; a caller who needs a different medication cancels and re-orders. That is Invariant 2.1 by construction, which is a stronger guarantee than a runtime check and is why no rule refuses it.
+Operation 30 through 32 make a class of error unrepresentable rather than refused. An amendment cannot change the drug, the patient or the prescriber, and the mechanism is that [Amend] has no parameter for any of them; a caller who needs a different medication cancels and re-orders. That is Invariant 2.1 by construction, which is a stronger guarantee than a runtime check and is why no rule refuses it.
 
 Operation 50 is the same move on [Reinstate]. The action takes no target state, so a hold can only resume where it paused, and deviation from `prior_state` is structurally impossible rather than guarded.
 
@@ -330,7 +330,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   ```text
   Invariant 2.1: EVERY successor order MUST carry the original's patient_ref, prescriber_ref and medication_ref.
   ```
-  WHY: by construction rather than by guard — [Amend] takes none of the three (Operation 30 through Operation 32), so divergence is unrepresentable. `amended_by` records who made the correction; prescribing authorship stays with the original prescriber, which is why `prescriber_ref` is inherited rather than replaced.
+  WHY: by construction rather than by guard — [Amend] takes none of the three (Operation 30 through 32), so divergence is unrepresentable. `amended_by` records who made the correction; prescribing authorship stays with the original prescriber, which is why `prescriber_ref` is inherited rather than replaced.
 - **Invariant 3 — Amendment is pre-dispensing only.**
   ```text
   Invariant 3.1: [Amend] MUST answer a rejection ONLY IF the order NOT EXISTS in a pre-dispensing state.
@@ -510,7 +510,7 @@ Non-goal 25: A deployment needing a verifiable time anchor MUST compose a truste
 ```
 
 WHY:
-Non-goal 4 through Non-goal 7 are the refusal a clinical reader least expects and the one that keeps this atom small. Nothing here knows whether 10 mg is a reasonable dose, whether the drug interacts with another on the patient's list, or whether the patient is allergic to it. Every one of those is a judgment about a medication this atom holds only as an opaque reference, and building any of them in would require the atom to know what the drug *is*.
+Non-goal 4 through 7 are the refusal a clinical reader least expects and the one that keeps this atom small. Nothing here knows whether 10 mg is a reasonable dose, whether the drug interacts with another on the patient's list, or whether the patient is allergic to it. Every one of those is a judgment about a medication this atom holds only as an opaque reference, and building any of them in would require the atom to know what the drug *is*.
 
 Non-goal 10 is worth stating because a clinical system usually has that state. An order placed by mistake — wrong patient, duplicate submission, system glitch — is cancelled with a reason that says so, and the `cancellation_reason` carries the difference between a clinical decision and a clerical one. A separate state would split the pre-dispensing terminal in two and make every downstream count ask which of the two it meant.
 
@@ -1258,7 +1258,7 @@ Projects:  invalid-query
 - **DEA controlled-substance requirements (21 CFR Part 1300 et seq.)** — the attribution chain and the cancel/discontinue boundary are what a reconciliation reads. What attaches to a *scheduled* substance — registration, EPCS two-factor prescribing, refill limits, quantity caps — is outside this atom, because `medication_ref` is opaque to it (Identity 13, Non-goal 17).
 - **DEA EPCS non-alteration requirements** — met at the layer [Tamper Evidence](./tamper-evidence.md) provides. This atom's immutability is a property of its specified surface, not a cryptographic guarantee against a store administrator (External check 4).
 - **HIPAA (45 CFR 164.312)** — the audit-controls requirement applies to the composing [Event Log](./event-log.md) and [Audit Trail](../compositions/audit-trail.md) instances rather than to the order record; retention under HIPAA and state law is [Retention Window](./retention-window.md)'s (Non-goal 22).
-- **ISMP and Joint Commission medication-management standards** — the verification-gates-dispensing sequence and the requirement that every step be attributed are the structural correlates. What a pharmacist should look *for* at verification is clinical practice, not this atom's (Non-goal 4 through Non-goal 7).
+- **ISMP and Joint Commission medication-management standards** — the verification-gates-dispensing sequence and the requirement that every step be attributed are the structural correlates. What a pharmacist should look *for* at verification is clinical practice, not this atom's (Non-goal 4 through 7).
 
 It inherits from:
 

@@ -84,7 +84,7 @@ Term asking party: the party naming itself as holder in a [Remaining] or [Releas
 Term the holder: the party the host holds the key for.
 
 WHY:
-A key frees by release or by the current holder's instant passing. The bound is fixed at arrival and never extended: a second waiter admitted while a first still holds fails on its own bound rather than waiting out the first's whole term, so a pattern that reasons about how long a take can block is entitled to that number and no other (Operation 3–5). [Try Take] exists for a caller with other work to do. [Remaining] is a host query and never a clock read by the caller: a caller that subtracts its own reading from a remembered `expires_at` has introduced a second clock and lost the property the atom exists to provide, since the two are minted at different seams (Operation 10). `not-held` covers a party whose term has passed and whose key another holder now holds; callers normally discard the answer, and it is declared because an implementer who treats it as a failure will retry it (Operation 14).
+A key frees by release or by the current holder's instant passing. The bound is fixed at arrival and never extended: a second waiter admitted while a first still holds fails on its own bound rather than waiting out the first's whole term, so a pattern that reasons about how long a take can block is entitled to that number and no other (Operation 3 through 5). [Try Take] exists for a caller with other work to do. [Remaining] is a host query and never a clock read by the caller: a caller that subtracts its own reading from a remembered `expires_at` has introduced a second clock and lost the property the atom exists to provide, since the two are minted at different seams (Operation 10). `not-held` covers a party whose term has passed and whose key another holder now holds; callers normally discard the answer, and it is declared because an implementer who treats it as a failure will retry it (Operation 14).
 
 ### Invariants
 
@@ -199,17 +199,17 @@ Non-goal 11: A pattern that needs the term to cover the pattern's work MUST stat
 ```
 
 WHY:
-The atom does not detect death and no implementation may pretend to (Invariant 3.1, Invariant 3.2). Reentrancy is a caller error, not a supported nesting (Non-goal 1, Non-goal 2). A lease serializes access to a key and nothing more (Non-goal 5–7). `expires_at` is on the granting host's clock (Fence 1); comparing it against any other clock is the cross-seam case Invariant 6 governs.
+The atom does not detect death and no implementation may pretend to (Invariant 3.1, Invariant 3.2). Reentrancy is a caller error, not a supported nesting (Non-goal 1, Non-goal 2). A lease serializes access to a key and nothing more (Non-goal 5 through 7). `expires_at` is on the granting host's clock (Fence 1); comparing it against any other clock is the cross-seam case Invariant 6 governs.
 
 ## Composition notes
 
 ```text
 Composition note 1: A composing pattern MUST name this atom as an instance capability requirement.
-Composition note 2: The deployment MUST supply a host offering the signature block's operations under Operation 1–14.
+Composition note 2: The deployment MUST supply a host offering the signature block's operations under Operation 1 through 14.
 Composition note 3: The deployment MUST share the host across every node of the instance.
 Composition note 4: A composing pattern MUST own which key protects which work.
 Composition note 5: A composing pattern MUST own how long the grant lasts.
-Composition note 6: A pattern fencing a downstream system MUST carry expires_at per Fence 1–9.
+Composition note 6: A pattern fencing a downstream system MUST carry expires_at per Fence 1 through 9.
 Composition note 7: A pattern MUST NOT invent a second deadline concept for a fence.
 ```
 

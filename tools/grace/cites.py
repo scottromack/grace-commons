@@ -46,6 +46,26 @@ FENCE = re.compile(r"^\s*```(\w*)")
 REGISTER = re.compile(r"\*\*Council read (?P<n>\d+) — \w+ on (?P<spec>[^,]+),")
 MIGRATED = re.compile(r"^Term qualifiers:[^\n]*`migrated`", re.M)
 NAME_NUM = re.compile(r"( step [\d½]+(?:\.\d+[a-z]?)?| \d+(?:\.\d+)?[a-z]?)$")
+# the last number of a range citation, `Operation 3 through 7` (Hard invariant 29)
+RANGE_END = re.compile(r" through ([\d½]+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
+
+
+def _num_key(num: str) -> tuple[int, ...]:
+    return tuple(int(x) for x in re.findall(r"\d+", num))
+
+
+def in_range(label: str, family: str, first: str, last: str) -> bool:
+    """Whether a range citation covers `label` — `family` and `first` as the
+    citation writes them (`Invariant`, ` 2.1`; `reconcile`, ` step 5.2`), `last`
+    the bare number after *through*. Both ends are included, and a range of
+    majors covers their minors: `Invariant 1 through 4` covers `Invariant 4.2`."""
+    m = NAME_NUM.search(label)
+    if not m or label[:m.start()] != family:
+        return False
+    if m.group(1).startswith(" step ") != first.startswith(" step "):
+        return False
+    lo, hi, k = _num_key(first), _num_key(last), _num_key(m.group(1))
+    return lo <= k[:len(lo)] and k[:len(hi)] <= hi
 
 
 @dataclass
@@ -94,6 +114,10 @@ def uses(text: str, spec: Spec, lab_re, holder: str) -> tuple[set[str], set[str]
             ref = m.group(1) + m.group(2)
             if ref in spec.rules and ref != holder:
                 labels.add(ref)
+            end = RANGE_END.match(text, m.end())
+            if end:
+                labels |= {lab for lab in spec.rules if lab != holder
+                           and in_range(lab, m.group(1), m.group(2), end.group(1))}
     for name in spec.terms:
         if name != holder and re.search(r"(?<![\w-])" + re.escape(name) + r"(?![\w-])", text):
             terms.add(name)
@@ -153,30 +177,44 @@ def across(specs: list[Spec], seeds: dict[Path, set[str]]) -> dict[str, list[str
     `Tamper Evidence Invariant 1` (GRACE-lang Hard invariant 28). A citation
     the corpus can make is a citation something has to walk."""
     wanted: list[tuple[str, str]] = []
+    ranged: list[tuple[str, str, str]] = []   # spec name, label, origin
     for path, labels in seeds.items():
         name = spec_name(path)
         for label in labels:
             if label.startswith("`"):
                 continue
             wanted.append((f"{name} {label}", path.name))
+            ranged.append((name, label, path.name))
             group = re.match(r"^(.*?) (\d+)\.\d+[a-z]?$", label)
             if group:
                 wanted.append((f"{name} {group.group(1)} {group.group(2)}", path.name))
+    def hits(text: str, origin_name: str) -> set[str]:
+        found = {ref for ref, origin in wanted if ref in text and origin != origin_name}
+        # a range citation cites every label between its ends (Hard invariant 29)
+        for m in CROSS_REF.finditer(text):
+            end = RANGE_END.match(text, m.end())
+            if not end:
+                continue
+            fam = NAME_NUM.search(m.group(2))
+            for name, label, origin in ranged:
+                if (m.group(1) == name and origin != origin_name and fam and
+                        in_range(label, m.group(2)[:fam.start()], fam.group(1), end.group(1))):
+                    found.add(f"{name} {label}")
+        return found
+
     out: dict[str, list[str]] = {}
     for spec in specs:
         rule_lines = set(spec.rules.values())
         for label, text in spec.text_of.items():
-            for ref, origin in wanted:
-                if ref in text and spec.path.name != origin:
-                    out.setdefault(ref, []).append(
-                        f"{spec.path.name}:{spec.rules[label]}: {label}")
+            for ref in hits(text, spec.path.name):
+                out.setdefault(ref, []).append(
+                    f"{spec.path.name}:{spec.rules[label]}: {label}")
         # a citation in prose carries no obligation and still sends a reader
         for i, raw in enumerate(spec.path.read_text(encoding="utf-8").split("\n"), start=1):
             if i in rule_lines:
                 continue
-            for ref, origin in wanted:
-                if ref in raw and spec.path.name != origin:
-                    out.setdefault(ref, []).append(f"{spec.path.name}:{i}: (prose)")
+            for ref in hits(raw, spec.path.name):
+                out.setdefault(ref, []).append(f"{spec.path.name}:{i}: (prose)")
     return out
 
 
@@ -304,6 +342,22 @@ def into(specs: list[Spec], target: str) -> dict[str, list[str]]:
     """Every rule in the corpus citing the named spec, by cited label. Run it
     before rewriting a spec: a label the corpus cites is a label that keeps its
     number, or a citation that breaks silently (Hard invariant 28)."""
+    theirs = next((set(s.rules) for s in specs if spec_name(s.path) == target), set())
+
+    def cited(text: str, own: set[str]) -> list[str]:
+        found: list[str] = []
+        for m in CROSS_REF.finditer(text):
+            if m.group(1) != target or f"{m.group(1)} {m.group(2)}" in own:
+                continue
+            found.append(m.group(2))
+            # a range citation cites every label between its ends (Hard invariant 29)
+            end = RANGE_END.match(text, m.end())
+            fam = NAME_NUM.search(m.group(2))
+            if end and fam:
+                found += sorted(lab for lab in theirs if lab != m.group(2) and
+                                in_range(lab, m.group(2)[:fam.start()], fam.group(1), end.group(1)))
+        return found
+
     out: dict[str, list[str]] = {}
     for spec in specs:
         if spec_name(spec.path) == target:
@@ -311,18 +365,15 @@ def into(specs: list[Spec], target: str) -> dict[str, list[str]]:
         rule_lines = set(spec.rules.values())
         own = set(spec.rules)
         for label, text in spec.text_of.items():
-            for m in CROSS_REF.finditer(text):
-                if m.group(1) == target and f"{m.group(1)} {m.group(2)}" not in own:
-                    out.setdefault(m.group(2), []).append(
-                        f"{spec.path.name}:{spec.rules[label]}: {label}")
+            for ref in cited(text, own):
+                out.setdefault(ref, []).append(
+                    f"{spec.path.name}:{spec.rules[label]}: {label}")
         # a citation in prose carries no obligation and still sends a reader
         for i, raw in enumerate(spec.path.read_text(encoding="utf-8").split("\n"), start=1):
             if i in rule_lines:
                 continue
-            for m in CROSS_REF.finditer(raw):
-                if m.group(1) == target and f"{m.group(1)} {m.group(2)}" not in own:
-                    out.setdefault(m.group(2), []).append(
-                        f"{spec.path.name}:{i}: (prose)")
+            for ref in cited(raw, own):
+                out.setdefault(ref, []).append(f"{spec.path.name}:{i}: (prose)")
     return out
 
 

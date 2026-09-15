@@ -44,7 +44,7 @@ Term identity: the opaque value a containing pattern asks the atom to remember a
 Term matching rule: the containing pattern's rule for judging two identities the same — string equality, case-insensitive, trimmed, normalized, hashed.
 
 WHY:
-The atom stores a value and compares a value; what counts as *the same thing seen again* is the containing pattern's question. That is why one mechanic serves a to-do title, a payment key and a normalized comment body without a line of difference (Identity 3–5).
+The atom stores a value and compares a value; what counts as *the same thing seen again* is the containing pattern's question. That is why one mechanic serves a to-do title, a payment key and a normalized comment body without a line of difference (Identity 3 through 5).
 
 ### State
 
@@ -107,7 +107,7 @@ The case space, and the rule that owns each case:
 | [Check] | yes | [Seen] | none — the call reads (Operation 6, Invariant 3.1) |
 | [Check] | no | [Not Seen] | none — the call reads (Operation 7, Invariant 3.1) |
 
-A failed store write sits outside the table: [Record] still answers `ok`, and the guard is missed rather than refused (Record failure 1–3).
+A failed store write sits outside the table: [Record] still answers `ok`, and the guard is missed rather than refused (Record failure 1 through 3).
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
@@ -118,7 +118,7 @@ Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinemen
 Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
 WHY:
-Both calls are total. The containing pattern has already acted when it records — the item is already removed, the charge already made — so a refusal would have nothing to roll back, and a failed write is a liveness miss rather than a safety violation (Operation 4, Record failure 1–3). [Check] reads and nothing else, which is what makes asking twice safe (Invariant 3.1). The clock is read once, at the seam, and handed in: a transition reading a clock of the transition's own would answer two ways for one input (`execution-contract.md` §Logic confinement). What a `seen` answer means — reject, absorb, replay a cached result — is the containing pattern's to decide, and the atom is useful across four domains because the atom never decides it (Operation 12).
+Both calls are total. The containing pattern has already acted when it records — the item is already removed, the charge already made — so a refusal would have nothing to roll back, and a failed write is a liveness miss rather than a safety violation (Operation 4, Record failure 1 through 3). [Check] reads and nothing else, which is what makes asking twice safe (Invariant 3.1). The clock is read once, at the seam, and handed in: a transition reading a clock of the transition's own would answer two ways for one input (`execution-contract.md` §Logic confinement). What a `seen` answer means — reject, absorb, replay a cached result — is the containing pattern's to decide, and the atom is useful across four domains because the atom never decides it (Operation 12).
 
 ### Invariants
 
@@ -226,7 +226,7 @@ Non-goal 13: A pattern needing a strictly monotonic guard MUST compose a logical
 ```
 
 WHY:
-The atom reports and the containing pattern decides, which is how one mechanic covers rejection, silent absorption and cached replay (Non-goal 1). Durability and clustering are deployment questions: a volatile in-memory set is a valid implementation, and keeping two of them consistent is a Coordination pattern *(forthcoming)*, not this atom (Non-goal 2–5). The set is short-term memory, not history; an Audit pattern owns the long view (Non-goal 6, Non-goal 7). A guard that resets on every sighting is the opposite of Invariant 2 and therefore a different concept, Sliding Window *(forthcoming)* (Non-goal 9). *Same day* is not *within twenty-four hours* — it is timezone-sensitive and daylight-saving-sensitive, and a Calendar Day pattern *(forthcoming)* owns it (Non-goal 10, Non-goal 11).
+The atom reports and the containing pattern decides, which is how one mechanic covers rejection, silent absorption and cached replay (Non-goal 1). Durability and clustering are deployment questions: a volatile in-memory set is a valid implementation, and keeping two of them consistent is a Coordination pattern *(forthcoming)*, not this atom (Non-goal 2 through 5). The set is short-term memory, not history; an Audit pattern owns the long view (Non-goal 6, Non-goal 7). A guard that resets on every sighting is the opposite of Invariant 2 and therefore a different concept, Sliding Window *(forthcoming)* (Non-goal 9). *Same day* is not *within twenty-four hours* — it is timezone-sensitive and daylight-saving-sensitive, and a Calendar Day pattern *(forthcoming)* owns it (Non-goal 10, Non-goal 11).
 
 Where the pattern breaks down: when *recent* is measured by something other than wall-time elapsed. Number of intervening events, calendar-day boundaries and business-day boundaries each take a separate concept.
 

@@ -52,7 +52,7 @@ Term transition: the atom's evaluation of one call against the log, as `executio
 Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
 WHY:
-Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2–4). Ordering is `sequence_number`'s alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
+Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is `sequence_number`'s alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
 
 ### State
 
@@ -167,7 +167,7 @@ An append refuses for one reason before the write and one reason at it, and for 
   ```text
   Invariant 4.1: A landed event MUST carry a sequence_number above EVERY sequence_number landed earlier.
   ```
-  WHY: the invariant is over landed events, which is what leaves room for the gap a storage failure consumes (Sequence gap 1–4).
+  WHY: the invariant is over landed events, which is what leaves room for the gap a storage failure consumes (Sequence gap 1 through 4).
 - **Invariant 5 — Read consistency.**
   ```text
   Invariant 5.1: A read MUST answer EVERY landed event the read's query matches.

@@ -65,7 +65,7 @@ Composes 5 is the decision that makes the gate affordable. Calling `Credential.v
 
 Composes 9 and Composes 10 are why a rotation keeps the surface open and a revocation closes it. Keying on the pair means a rotation's successor credential answers the gate (Credential Invariant 6); keying on a fixed `credential_id` would have closed the surface on every rotation, which is the identity-management surface's business and not this composition's.
 
-Composes 4 is council read 53's ruling at its fourth seam, and the cheapest of the four: the deleted `Invariant 5 — Constituent invariants preserved` covered **both** constituents in one rule where the other three compositions spent one per atom, so one tombstone closes it. What survives the collapse is Composes 5 through Composes 10 — the refusals and the gate's key — none of which either atom guarantees about a caller.
+Composes 4 is council read 53's ruling at its fourth seam, and the cheapest of the four: the deleted `Invariant 5 — Constituent invariants preserved` covered **both** constituents in one rule where the other three compositions spent one per atom, so one tombstone closes it. What survives the collapse is Composes 5 through 10 — the refusals and the gate's key — none of which either atom guarantees about a caller.
 
 The document had also half-found the shape on its own. Every emergent invariant carries a `Rests on:` clause naming the constituent guarantees it leans on, which is provenance done properly at the invariant level; the blanket was the one place that discipline lapsed into a restatement.
 
@@ -103,7 +103,7 @@ Term bijection: the principal binding and the inverse together, unique on both k
 WHY:
 Naming a proposal is what the rule asks for and is not the extraction: *the flag is what keeps the debt visible — an unflagged truth-bearing composition store is a conformance finding; a flagged one is recorded debt riding the extraction's schedule.* Both are opened as roadmap proposals.
 
-Composition state 3 through Composition state 5 are why the bijection holds under concurrency. The guard at registration is a look; the *write* is what makes it true against a registration of the same `actor_ref` under a different principal, which one principal's section does not exclude. credential(../atoms/credential.md)'s own constraint is per `(principal_ref, credential_type)` and says nothing about `actor_ref` — the bijection's uniqueness is this composition's, declared here.
+Composition state 3 through 5 are why the bijection holds under concurrency. The guard at registration is a look; the *write* is what makes it true against a registration of the same `actor_ref` under a different principal, which one principal's section does not exclude. credential(../atoms/credential.md)'s own constraint is per `(principal_ref, credential_type)` and says nothing about `actor_ref` — the bijection's uniqueness is this composition's, declared here.
 
 Composition state 10 is what keeps the admitted gap honest. No leg writes the attest log, so an entry has exactly one writer and a missing entry is a finding rather than a race.
 
@@ -160,7 +160,7 @@ Term opaque argument: `principal_ref` | `actor_ref` | `credential_type` | `actio
 WHY:
 Primitive policy 12 is a refusal to duplicate a constituent's judgment. actor identity(../atoms/actor-identity.md)'s `attest` and `verify` surface a registry-unknown `actor_ref` through their own outcomes, so a composition-layer existence check would be a second opinion with no store behind it.
 
-Primitive policy 8 through Primitive policy 10 inherit credential(../atoms/credential.md)'s opaque-`principal_ref` discipline rather than inventing one. A deployment wanting normalization wires it at the calling layer, before the composition is invoked.
+Primitive policy 8 through 10 inherit credential(../atoms/credential.md)'s opaque-`principal_ref` discipline rather than inventing one. A deployment wanting normalization wires it at the calling layer, before the composition is invoked.
 
 ### Action wiring
 
@@ -230,9 +230,9 @@ Term admitted attestation: an [Attest As Actor] call whose arguments cleared the
 Term effective-active: Credential's derived status projection reading active — stored active AND the credential's expiry instant not reached, evaluated by Credential against the clock reading at Credential's own seam.
 
 WHY:
-Action wiring 5 through Action wiring 8 are the re-entry arm, and possession is what makes it safe. A binding is an authority-bearing transition — it makes the presenter the principal every signature under `actor_ref` resolves to — so it may not rest on the caller's word that the existing credential is theirs. The arm calls `Credential.verify` against the existing record, and only a verified presenter reaches the binding step. That is also why the bare `duplicate-active-credential` is never exported: every landing of it is this arm, which is what lets a re-invocation after a binding-position failure reach the step that failed instead of dying at the one before it.
+Action wiring 5 through 8 are the re-entry arm, and possession is what makes it safe. A binding is an authority-bearing transition — it makes the presenter the principal every signature under `actor_ref` resolves to — so it may not rest on the caller's word that the existing credential is theirs. The arm calls `Credential.verify` against the existing record, and only a verified presenter reaches the binding step. That is also why the bare `duplicate-active-credential` is never exported: every landing of it is this arm, which is what lets a re-invocation after a binding-position failure reach the step that failed instead of dying at the one before it.
 
-Action wiring 10 through Action wiring 13 carry the retry bit in the rejection's own position. `guard` and `credential` mean nothing committed and the whole action may be retried; `binding` means the credential **exists** and a retry re-enters through the arm rather than registering a second one; `orphan-credential` means another invocation bound this principal while the section lapsed, so the caller does not re-run at all and the named credential is the reconciliation leg's to surface.
+Action wiring 10 through 13 carry the retry bit in the rejection's own position. `guard` and `credential` mean nothing committed and the whole action may be retried; `binding` means the credential **exists** and a retry re-enters through the arm rather than registering a second one; `orphan-credential` means another invocation bound this principal while the section lapsed, so the caller does not re-run at all and the named credential is the reconciliation leg's to surface.
 
 Action wiring 25 is the same discipline one action over. `attestation` means nothing committed; `log` means the attestation committed and carries its id, so the caller holds a valid attestation and must not re-run — a re-run would produce a second, equally valid one, because actor identity(../atoms/actor-identity.md) records a fresh attestation per call and nothing keys one to the invocation that produced it.
 
@@ -300,7 +300,7 @@ Each emerges from the composition; none belongs to one constituent. Each carries
   Invariant 4.3: EVERY success entry MUST carry the attestation_id AND the gate's credential_id.
   Deleted: Invariant 5. Composes 4 owns it.
   ```
-  WHY: Invariant 4.2 is the one admitted gap and it is admitted rather than hidden — the attestation committed and the entry did not, so the call answers with the attestation's id and Check 4 surfaces the unlogged attestation once it is older than the attest completion bound. The deleted invariant asserted both constituents' invariants hold over this composition's instances, which `execution-contract.md` §Conformance settles by reference (Authority 6, council read 53). It is the fourth such collapse and the cheapest: one rule covering two atoms, where the other three compositions spent one rule per atom. What it carried beyond the blanket is Composes 5 through Composes 10.
+  WHY: Invariant 4.2 is the one admitted gap and it is admitted rather than hidden — the attestation committed and the entry did not, so the call answers with the attestation's id and Check 4 surfaces the unlogged attestation once it is older than the attest completion bound. The deleted invariant asserted both constituents' invariants hold over this composition's instances, which `execution-contract.md` §Conformance settles by reference (Authority 6, council read 53). It is the fourth such collapse and the cheapest: one rule covering two atoms, where the other three compositions spent one rule per atom. What it carried beyond the blanket is Composes 5 through 10.
 
 ---
 

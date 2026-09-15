@@ -55,7 +55,7 @@ Term business caller: the party whose action the call carries, as `execution-con
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
-Identity by record set would collapse a legitimate re-seal — a stronger mechanism after a deprecation, a second anchor over the same records — into an overwrite, and identity by time would lose two concurrent seals (Identity 6–8). Each evidence is its own audit record, so an auditor reconstructs a record set's integrity history as a sequence of them.
+Identity by record set would collapse a legitimate re-seal — a stronger mechanism after a deprecation, a second anchor over the same records — into an overwrite, and identity by time would lose two concurrent seals (Identity 6 through 8). Each evidence is its own audit record, so an auditor reconstructs a record set's integrity history as a sequence of them.
 
 ### State
 
@@ -158,7 +158,7 @@ The case space, and the rule that owns each case:
 | [Verify] | right records, proof holds | [Verified] | none (Operation 19) |
 
 WHY:
-The four verify outcomes are kept apart by their conditions rather than by the order the rules are written in (`GRACE-lang.md` Hard invariant 15): `not-known` is an id miss and nothing else; `record-set-mismatch` is a caller holding the wrong records; `mechanism-verification-unavailable` is transient and worth retrying; `proof-invalid` is the structural signal of tampering, and a deployment that collapses it into any of the other three has lost the only alarm this atom raises (Operation 15–19). [Verify] needs the records because the proof commits to content — the asymmetry from [Actor Identity](./actor-identity.md), whose verification needs only the attestation and the registry (Operation 13, Invariant 4.1).
+The four verify outcomes are kept apart by their conditions rather than by the order the rules are written in (`GRACE-lang.md` Hard invariant 15): `not-known` is an id miss and nothing else; `record-set-mismatch` is a caller holding the wrong records; `mechanism-verification-unavailable` is transient and worth retrying; `proof-invalid` is the structural signal of tampering, and a deployment that collapses it into any of the other three has lost the only alarm this atom raises (Operation 15 through 19). [Verify] needs the records because the proof commits to content — the asymmetry from [Actor Identity](./actor-identity.md), whose verification needs only the attestation and the registry (Operation 13, Invariant 4.1).
 
 ### Invariants
 

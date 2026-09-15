@@ -79,7 +79,7 @@ journal_fence none 5: A surface MUST report a duplicate as EXACTLY ONE OF the cl
 journal_fence none 6: A surface MAY report the intents key ONLY IF the act kind declares a service_identity.
 ```
 
-Three surfaces make journal_fence none 2 checkable and read §*Which closing stands* for both keys: [Read Invocation]'s two `binding_duplicate` fields (read_invocation 7, read_invocation 8), [Reconcile] step 5's scan over the delta (reconcile step 5.2–5.4), and Generation acceptance check 2.
+Three surfaces make journal_fence none 2 checkable and read §*Which closing stands* for both keys: [Read Invocation]'s two `binding_duplicate` fields (read_invocation 7, read_invocation 8), [Reconcile] step 5's scan over the delta (reconcile step 5.2 through 5.4), and Generation acceptance check 2.
 
 Term quiescence: no invocation in flight and no sweep run mid-pass.
 
@@ -286,7 +286,7 @@ The four seam-against-stamp comparisons — step 3's age, the retention drop, th
 
 ```text
 Primitive policy 19: IF position = intent THEN invalid-credential MUST land rejected(invalid-credential) with nothing written.
-NOTE: watch position scoping — every rule of this family scopes by IF position = … (Primitive policy 19–40); the corpus's answer is the condition, not a new form.
+NOTE: watch position scoping — every rule of this family scopes by IF position = … (Primitive policy 19 through 40); the corpus's answer is the condition, not a new form.
 Primitive policy 20: IF position = intent THEN [Open] MUST NOT report invalid-request BEFORE reading back by invocation_id.
 Primitive policy 21: WHEN the intent-position read-back finds the record:
     Primitive policy 21a: The action MUST proceed with a hard alert.
@@ -691,7 +691,7 @@ Without reconcile 1 a journal outage returns zero counts and step 5 surfaces not
    reconcile step 1.3: The run MUST make reconcile step 1.2's comparison from the sweep's seam reading against the substrate's stamp, under clock_offset_allowance.
    reconcile step 1.4: The run MUST keep every closing record in the delta for step 5.
    reconcile step 1.5: The run MUST discard the kept closing records with the run.
-   reconcile step 1.6: Step 1 MUST surface EVERY unbound-kind intent per Binding 4–6.
+   reconcile step 1.6: Step 1 MUST surface EVERY unbound-kind intent per Binding 4 through 6.
    ```
 2. **Take the act's section and re-read.**
    ```text
