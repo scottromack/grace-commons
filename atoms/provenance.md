@@ -190,10 +190,10 @@ Operation 50: [Read] MUST NOT write.
 Operation 51: [Read] MUST NOT answer storage-failure.
 Operation 52: IF the store refuses a read THEN [Read] MUST NOT answer a partial entry sequence.
 Operation 53: [Read] MUST NOT answer archived.
-NOTE: Operation 54 deleted — Capability requirement 1 owns it.
-NOTE: Operation 55 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 56 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 57 deleted — Clock dependence 2 owns it.
+Deleted: Operation 54. Capability requirement 1 owns it.
+Deleted: Operation 55. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 56. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 57. Clock dependence 2 owns it.
 Operation 58: An ordering rule MUST NOT rest on recorded_at.
 ```
 
@@ -469,11 +469,11 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ```text
 Clock semantics 4: A guard MUST NOT rest on recorded_at.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
-NOTE: Clock semantics 5 deleted — Clock dependence 1 owns it.
-NOTE: Clock semantics 6 deleted — Non-goal 23 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Capability requirement 4 owns it.
+Deleted: Clock semantics 5. Clock dependence 1 owns it.
+Deleted: Clock semantics 6. Non-goal 23 owns it.
 ```
 
 WHY:

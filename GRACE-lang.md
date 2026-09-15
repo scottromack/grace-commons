@@ -1,4 +1,4 @@
-# GRACE lang v0.45 — Minimal Earned Grammar
+# GRACE lang v0.46 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -8,7 +8,7 @@ Status: the current version and its history are §23; this line states nothing e
 Date: 2026-09-15
 
 NOTE:
-This document obeys itself. A fenced block is classified by its first line (Surface 18): a labelled rule opens a normative block, a surface prefix opens that surface, anything else is a parse error. Everything outside the fences and the `Term` lines carries nothing (Surface 3); `WHY:` and `NOTE:` label it for readers. The vocabulary the document's own rules use is declared in §13.
+This document obeys itself. A fenced block is classified by its first line (Surface 18): a labelled rule or a tombstone opens a normative block, a surface prefix opens that surface, anything else is a parse error. Everything outside the fences and the `Term` lines carries nothing (Surface 3); `WHY:` and `NOTE:` label it for readers. The vocabulary the document's own rules use is declared in §13.
 
 ---
 
@@ -61,7 +61,7 @@ Surface 14: A provisional form MUST NOT carry normative force.
 Surface 15: The parser MUST ignore WHY:, UX:, NOTE: and PROVISIONAL: lines.
 Surface 16: A system MUST obey EVERY normative line.
 Surface 17: A system MUST NOT obey WHY:, UX: or NOTE:.
-Surface 18: The parser MUST classify a text fence by the block's first line: a labelled rule opens a normative block; a surface prefix opens that surface.
+Surface 18: The parser MUST classify a text fence by the block's first line: a labelled rule opens a normative block; a tombstone opens a normative block; a surface prefix opens that surface.
 Surface 19: The parser MUST reject a text fence whose first line is neither a labelled rule nor a surface prefix.
 Surface 20: The parser MUST read a signature block as a declaration.
 Surface 21: The parser MUST read a fenced block that is neither a text fence nor a signature block as the surface nothing.
@@ -83,7 +83,7 @@ Term bracket marker: `[Name]` in prose, and the link line that lands it on the n
 
 Term signature block: a fenced block with no info string whose lines are signature lines — `name(args) →` followed by the action's arms — one line per action, one or more lines per block; each line is the declaration of that action's outcomes, read as the value set the action's rules land on.
 
-Term normative: unprefixed Strict Caveman (§20) inside a normative block.
+Term normative: unprefixed Strict Caveman (§20) inside a normative block, other than a tombstone.
 
 Term run: one execution of a system.
 
@@ -370,7 +370,7 @@ Hard invariant 28: A cross-spec reference in a normative block MUST name the spe
 
 Term pronoun: `it` | `its` | `itself` | `they` | `their` | `them` | `he` | `she` | `his` | `her`, and `this`, `that`, `these`, `those` standing alone — the set Hard invariant 4 rejects and `tools/grace/check.py` enforces; a relative `whose`, `that` or `which` opening a clause is not a pronoun.
 
-Term tombstone: a `NOTE:` line inside a normative block whose text begins with a label followed by the word `deleted`; recognized by that form alone (Hard invariant 25, Hard invariant 27).
+Term tombstone: a line inside a normative block in the form `Deleted: Label. The owner, and why.` — the label, a period, one space, and a sentence ending with a period; it reserves the label (Hard invariant 25, Hard invariant 27), carries no obligation, and is recognized by that form alone.
 
 WHY:
 §11 is the parser's contract; the writer-facing rules that mirror it (Rule shape 3, WHEN block 3, Earned vocabulary 1, Sugar 2, Timing 4, Timing 6) oblige a different actor, and the two are kept as two norms on purpose. A cross-reference survives a version because labels never move (Hard invariant 26, Hard invariant 27) and never collide across specs (Hard invariant 28): Recoverable Invocation's `Allowance 2` and this document's `Rule shape 2` are cited as `Recoverable Invocation Allowance 2` and `GRACE-lang Rule shape 2`.
@@ -616,6 +616,9 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.46 (2026-09-15): a tombstone is its own line, `Deleted: Label. The owner, and why.`, and no longer a `NOTE:` whose text happens to begin with a label and the word *deleted*. `NOTE:` now means one thing — this line binds nothing — where it had meant that and, in one shape, *reserve this label forever*; and because a tombstone is no surface prefix, `Surface 18` counts it with a labelled rule when it classifies a fence, so a tombstone written first no longer demotes the rules beneath it, the trap `F-prefix-first` caught twice. 297 tombstones converted, words kept. Council read 87.
 
 NOTE:
 v0.45 (2026-09-15): the declaration form is `Term name: definition.` — the name runs to the first colon, bare, and the definition ends with a period — replacing `Terms › `name`: definition.`, whose separator no keyboard carries and whose backticks gave a declared name a second job beside quoting literal text. Admitted with the syntax table, formatted strictly: a line that opens with `Term` or with the old separator and does not match the form is a gating finding (`check.py`'s `D-decl-form`). 1,649 declarations converted across the grammar and forty-one specifications; no definition changed. Council read 86.

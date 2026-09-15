@@ -120,12 +120,12 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's honesty.
 Capability requirement 4: The deployment MUST own the clock's timezone handling.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
-NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
-NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
-NOTE: Clock semantics 6 deleted — Non-goal 28 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Capability requirement 4 owns it.
+Deleted: Clock semantics 4. Clock dependence 1 owns it.
+Deleted: Clock semantics 5. Clock dependence 2 owns it.
+Deleted: Clock semantics 6. Non-goal 28 owns it.
 ```
 
 WHY:
@@ -200,9 +200,9 @@ Operation 51: [Read] MUST carry the effective_status on EVERY answered capabilit
 Operation 52: [Read] MUST NOT write.
 Operation 53: A liveness query MUST rest on the effective_status.
 Operation 54: A liveness query MUST NOT rest on the stored status alone.
-NOTE: Operation 55 deleted — Capability requirement 1 owns it.
-NOTE: Operation 56 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 57 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 55. Capability requirement 1 owns it.
+Deleted: Operation 56. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 57. `execution-contract.md` §Logic confinement owns it.
 Operation 58: The atom MUST NOT offer an expire action.
 Operation 59: The atom MUST NOT offer a re-scope action.
 Operation 60: The atom MUST NOT offer an extend action.

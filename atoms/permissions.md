@@ -68,10 +68,10 @@ State 3: A revoked grant MUST carry revoked_at.
 State 4: [Grant] MUST stamp granted_at from the injected now.
 State 5: [Revoke] MUST stamp revoked_at from the injected now.
 State 6: The atom MUST NOT offer a revoked-to-active transition.
-NOTE: State 7 deleted — Invariant 10.1 owns durability.
-NOTE: State 8 deleted — Non-goal 1 owns it.
-NOTE: State 9 deleted — Non-goal 3 owns it.
-NOTE: State 10 deleted — Non-goal 6 owns it.
+Deleted: State 7. Invariant 10.1 owns durability.
+Deleted: State 8. Non-goal 1 owns it.
+Deleted: State 9. Non-goal 3 owns it.
+Deleted: State 10. Non-goal 6 owns it.
 ```
 
 Term status: `active` | `revoked` — in force, or withdrawn and terminal.
@@ -89,9 +89,9 @@ There is no stored denial, because absence is denial (Invariant 7.1) — an expl
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Non-goal 17 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Non-goal 17 owns it.
 ```
 
 WHY:
@@ -128,9 +128,9 @@ Operation 19: [Check] MUST NOT refuse a call.
 Operation 20: [Check] MUST NOT write.
 Operation 21: [Check] MUST match a subject_ref exactly.
 Operation 22: [Check] MUST match an action_scope exactly.
-NOTE: Operation 23 deleted — Capability requirement 1 owns it.
-NOTE: Operation 24 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 25 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 23. Capability requirement 1 owns it.
+Deleted: Operation 24. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 25. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term pair: one `subject_ref` with one `action_scope` — what [Check] matches over.
@@ -325,7 +325,7 @@ Byte-exact and nothing else. A scope vocabulary that needs case-insensitivity or
 Deprovisioning 2: A composing pattern MUST enumerate a departing subject's active grants.
 Deprovisioning 3: A composing pattern MUST call [Revoke] for EVERY grant the enumeration returns.
 Deprovisioning 4: A composing pattern MUST NOT read one revoke as a subject's deprovisioning.
-NOTE: Deprovisioning 1 deleted — Identity 8 owns one revoke reaching one grant.
+Deleted: Deprovisioning 1. Identity 8 owns one revoke reaching one grant.
 ```
 
 WHY:

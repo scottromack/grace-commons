@@ -193,9 +193,9 @@ Each of these needs two or all three constituents working together. None is avai
   ```text
   Invariant 5.1: The Permissions instance MUST answer an actor_ref's grant history.
   Invariant 5.2: A grant record MUST outlive the task the grant governed.
-  NOTE: Invariant 6 deleted — Composes 6 owns it.
-  NOTE: Invariant 7 deleted — Composes 6 owns it.
-  NOTE: Invariant 8 deleted — Composes 6 owns it.
+  Deleted: Invariant 6. Composes 6 owns it.
+  Deleted: Invariant 7. Composes 6 owns it.
+  Deleted: Invariant 8. Composes 6 owns it.
   ```
   WHY: the three deleted invariants each asserted that a constituent's invariants hold over this composition's instance. [`execution-contract.md`](../execution-contract.md) §Conformance already establishes it — conformance extends recursively, and no composing layer is obligated to re-verify what a constituent's own conformance establishes — so restating it three times was a citing spec restating a rule it cites (Authority 6, council read 53). What the prose carried beyond the blanket survives: the relay of an unchanged constituent rejection is Composes 9, and the single-instance decisions that make Assignment's and Permissions' guarantees *reachable* here are Composes 1 through Composes 3.
 

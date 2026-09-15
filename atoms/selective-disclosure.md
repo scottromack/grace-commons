@@ -111,11 +111,11 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's honesty.
 Capability requirement 4: The deployment MUST own the clock's synchronization.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
-NOTE: Clock semantics 4 deleted — State 10 owns it.
-NOTE: Clock semantics 5 deleted — Non-goal 23 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Capability requirement 4 owns it.
+Deleted: Clock semantics 4. State 10 owns it.
+Deleted: Clock semantics 5. Non-goal 23 owns it.
 ```
 
 WHY:
@@ -167,10 +167,10 @@ Operation 27: An admitted read MUST answer EVERY disclosure record matching the 
 Operation 28: An admitted read MUST NOT answer a disclosure record failing a supplied filter.
 Operation 29: [Read] MUST NOT write.
 Operation 30: [Read] MUST NOT answer storage-failure.
-NOTE: Operation 31 deleted — Capability requirement 1 owns it.
-NOTE: Operation 32 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 33 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 34 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 31. Capability requirement 1 owns it.
+Deleted: Operation 32. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 33. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 34. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.

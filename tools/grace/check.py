@@ -185,7 +185,11 @@ TERM_DECL = re.compile(r"^\s*Term ([^:`]+?): (.*)$")
 TERM_DECL_STRICT = re.compile(r"^\s*Term ([^:`\s](?:[^:`]*[^:`\s])?): \S.*\.$")
 DECL_OPENER = re.compile(r"^\s*(Terms ›|Term\b)")
 MODAL = re.compile(r"\b(MUST NOT|MUST|MAY)\b")
-TOMBSTONE = re.compile(r"^NOTE:\s*((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?)\s+deleted\b")
+_LABEL_TEXT = r"((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?)"
+# A tombstone is its own line (GRACE-lang v0.46): `Deleted: Label. The owner, and why.`
+TOMBSTONE = re.compile(r"^Deleted: " + _LABEL_TEXT + r"\. \S.*\.$")
+# the retired shape, a NOTE whose text began with a label and the word deleted
+LEGACY_TOMBSTONE = re.compile(r"^NOTE:\s*" + _LABEL_TEXT + r"\s+deleted\b")
 PRONOUN = re.compile(r"\b(it|its|itself|they|their|them|he|she|his|her)\b")
 # The grammar's `pronoun` declaration also names this, that, these and those
 # standing alone, and names this file as what enforces them — it did not.
@@ -219,7 +223,7 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-ge-disjunction",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
-# F-prefix-first gates: a demoted rule is a deleted rule
+# D-tombstone-form gates: a tombstone in any other shape reserves nothing
 # A declaration may carry arithmetic and comparison where a rule may not
 # (Closed vocabulary 9, Closed vocabulary 11) — which is where complexity
 # goes when a rule cannot hold it, and the one place nothing read it.
@@ -388,43 +392,36 @@ def scan(path: Path) -> list[Finding]:
                 if lm:
                     exemplars.add(lm.group(1))
                     labelled += 1
-            # a tombstone or note written as a block's FIRST line silently demotes
-            # every rule under it — the edit that looks like an annotation and
-            # reads like a deletion (council read 15)
-            if labelled and TOMBSTONE.match(first):
-                add(start, "F-prefix-first",
-                    f"a tombstone opens this block, so its {labelled} labelled line(s) "
-                    f"carry no obligation — move the tombstone below the first rule "
-                    f"(Surface 18, Surface 22)")
-            # the same rule from the other end: a fence carrying tombstones and no
-            # live rule is not a tombstone block at all. Surface 22 makes the whole
-            # block non-normative, so the deletion it records reserves nothing and
-            # the labels it names read as references to rules that do not exist —
-            # which is how this arrives, as X-ref on the spec's own tombstones.
-            # Three migrations running placed tombstones this way (Shared Todo,
-            # Notification Fanout, and Consent from the other end), so the placement
-            # is the defect rather than the writer (council read 15, council read 57).
-            elif not labelled and TOMBSTONE.match(first):
-                n_tomb = sum(1 for b in block if TOMBSTONE.match(b.strip()))
-                add(start, "F-tombstone-orphan",
-                    f"this block carries {n_tomb} tombstone(s) and no live rule, so "
-                    f"Surface 22 makes the whole block non-normative and the deletion "
-                    f"reserves nothing — move the tombstone into a fence whose first "
-                    f"line is a rule (Surface 18, Surface 22)")
-        elif LABEL.match(first):
+            # a tombstone in the retired NOTE shape reserves nothing: the grammar no
+            # longer reads a NOTE as a deletion (v0.46)
+            for off, raw in enumerate(block, start=start + 1):
+                if LEGACY_TOMBSTONE.match(raw.strip()):
+                    add(off, "D-tombstone-form",
+                        "a tombstone in the retired `NOTE: … deleted` shape; write "
+                        "`Deleted: Label. The owner, and why.` (GRACE-lang v0.46)")
+        elif LABEL.match(first) or first.startswith("Deleted:"):
             stack: list[Rule] = []
             for k, raw in enumerate(block, start=start + 1):
                 s = raw.strip()
                 if not s:
                     continue
                 indent = len(raw) - len(raw.lstrip()) - fence_indent
-                if PREFIX.match(s):
+                if s.startswith("Deleted:"):
                     t = TOMBSTONE.match(s)
-                    if t:
-                        lab = t.group(1)
-                        if lab in tombstones:
-                            add(k, "L-dup-tombstone", f"{lab} tombstoned twice")
-                        tombstones[lab] = k
+                    if not t:
+                        add(k, "D-tombstone-form",
+                            f"not the tombstone form `Deleted: Label. The owner, and why.`: {s[:70]}")
+                        continue
+                    lab = t.group(1)
+                    if lab in tombstones:
+                        add(k, "L-dup-tombstone", f"{lab} tombstoned twice")
+                    tombstones[lab] = k
+                    continue
+                if PREFIX.match(s):
+                    if LEGACY_TOMBSTONE.match(s):
+                        add(k, "D-tombstone-form",
+                            "a tombstone in the retired `NOTE: … deleted` shape; write "
+                            "`Deleted: Label. The owner, and why.` (GRACE-lang v0.46)")
                     continue  # Surface 23: a later-line prefix covers that line alone
                 lm = LABEL.match(s)
                 if not lm:

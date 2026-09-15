@@ -192,10 +192,10 @@ Operation 47: [Read Declaration] MUST answer the instance's declaration.
 Operation 48: [Read Declaration] MUST NOT normalize the declaration.
 Operation 49: [Read Declaration] MUST NOT reorder the declaration.
 Operation 50: A reading action MUST NOT write.
-NOTE: Operation 51 deleted — Capability requirement 1 owns it.
-NOTE: Operation 52 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 53 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 54 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 51. Capability requirement 1 owns it.
+Deleted: Operation 52. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 53. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 54. `execution-contract.md` §Logic confinement owns it.
 Operation 55: An ordering rule MUST NOT rest on fired_at.
 ```
 
@@ -502,10 +502,10 @@ Every admitted fire couples three durable mutations — the entry, the counter r
 
 ```text
 Clock semantics 4: A fired_at MUST NOT bound a later history entry's fired_at.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
-NOTE: Clock semantics 5 deleted — Non-goal 22 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Capability requirement 4 owns it.
+Deleted: Clock semantics 5. Non-goal 22 owns it.
 ```
 
 WHY:

@@ -207,9 +207,9 @@ Composition state 36 through Composition state 43 are the cardinality and modali
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply a case_id at the seam PER admitted initiation.
 Capability requirement 3: The host MUST supply a trigger_id at the seam PER admitted trigger.
-NOTE: Capability requirement 4 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 4. `execution-contract.md` §Logic confinement owns it.
 Capability requirement 5: The transition MUST NOT mint an id.
-NOTE: Capability requirement 6 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 6. `execution-contract.md` §Logic confinement owns it.
 Capability requirement 7: The composition MUST NOT mint a party_id.
 Capability requirement 8: The composition MUST NOT mint a verification_id.
 Capability requirement 9: The composition MUST NOT mint a state_change_id.
@@ -1129,16 +1129,16 @@ The ordering disciplines are what shrink the windows rather than close them: the
 
 ```text
 Clock semantics 4: The next review due MUST NOT EXCEED the placement's cover.
-NOTE: Clock semantics 2 deleted — Action wiring 146 through Action wiring 152 own it, one outcome at a time.
-NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
-NOTE: Clock semantics 3 deleted — Action wiring 153 owns it.
-NOTE: Clock semantics 5 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 6 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 2. Action wiring 146 through Action wiring 152 own it, one outcome at a time.
+Deleted: Clock semantics 1. Capability requirement 1 owns it.
+Deleted: Clock semantics 3. Action wiring 153 owns it.
+Deleted: Clock semantics 5. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 6. `execution-contract.md` §Logic confinement owns it.
 Clock semantics 7: A reader MUST read insertion order as authoritative.
 Clock semantics 8: A reader MUST read a timestamp as advisory.
 Clock semantics 9: A reader MUST read a divergence between a trigger's triggered_at and the trigger's suspended_at as a conformance failure.
-NOTE: Clock semantics 10 deleted — Capability requirement 1 and Capability requirement 44 own it: the seam supplies now, and the reading's honesty is the deployment's.
-NOTE: Clock semantics 11 deleted — Non-goal 21 owns it.
+Deleted: Clock semantics 10. Capability requirement 1 and Capability requirement 44 own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Clock semantics 11. Non-goal 21 owns it.
 ```
 
 Term placement's cover: `the current placement's retention_until − scheduler_tolerance` — the instant past which a review would fire too late to renew the placement before the placement lapses.

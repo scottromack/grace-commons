@@ -128,13 +128,13 @@ Capability requirement 13: The deployment MUST canonicalize an opaque reference.
 Capability requirement 14: The deployment MUST declare the length bound.
 Capability requirement 15: The deployment MUST own the clock's skew.
 Capability requirement 16: The deployment MUST own the clock's monotonicity.
-NOTE: Clock semantics 4 deleted — Capability requirement 15 owns it.
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 5 deleted — Capability requirement 16 owns it.
-NOTE: Clock semantics 6 deleted — Non-goal 27 owns it.
-NOTE: Clock semantics 7 deleted — Non-goal 28 owns it.
+Deleted: Clock semantics 4. Capability requirement 15 owns it.
+Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 2. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 3. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 5. Capability requirement 16 owns it.
+Deleted: Clock semantics 6. Non-goal 27 owns it.
+Deleted: Clock semantics 7. Non-goal 28 owns it.
 ```
 
 WHY:
@@ -221,8 +221,8 @@ Operation 52: An admitted read MUST answer the effective status PER matching cre
 Operation 53: [Read] MUST NOT answer a verifier.
 Operation 54: [Read] MUST NOT record a field.
 Operation 55: [Read] MUST NOT refuse a filter.
-NOTE: Operation 56 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 57 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 56. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 57. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term transitioning write: [Rotate] | [Revoke] — every call that would take an effective-active credential to a stored terminal, including a refused one.
@@ -323,7 +323,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
 - **Invariant 8 — Credential material is never persisted.**
   ```text
   Invariant 8.1: The atom MUST NOT answer credential material.
-  NOTE: Invariant 8.2 deleted — Capability requirement 5 owns the one-way derivation function.
+  Deleted: Invariant 8.2. Capability requirement 5 owns the one-way derivation function.
   ```
   WHY: the one-way property is the deployment's to supply and not a property of any reachable state, so it sat in the wrong family — an `Invariant` is a property of every reachable state (GRACE-lang Standard label 1) and a deployment's obligation is a `Capability requirement`. Same fact, moved to the family that owns its kind (council read 41).
 - **Invariant 9 — Revocation attribution is complete.**

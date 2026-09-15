@@ -138,11 +138,11 @@ Operation 19: IF the retention store refuses the write THEN [Purge] MUST answer 
 Operation 20: [Purge] MUST leave the retention in retained on storage-failure.
 Operation 21: [Purge] MUST read one now per call.
 Operation 22: [Purge] MUST judge eligibility and stamp purged_at against that one now.
-NOTE: Operation 23 deleted — Capability requirement 1 owns it.
+Deleted: Operation 23. Capability requirement 1 owns it.
 Operation 24: The host MUST resolve the policy at the atom's seam.
-NOTE: Operation 25 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 25. `execution-contract.md` §Logic confinement owns it.
 Operation 26: The transition MUST NOT read the policy registry.
-NOTE: Operation 27 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 27. `execution-contract.md` §Logic confinement owns it.
 Operation 28: A reader MUST derive purge eligible from retention_until and the injected now.
 ```
 
@@ -195,7 +195,7 @@ The refusal order is carried by each rule's own condition rather than by the ord
   ```text
   Invariant 6.1: retained_at MUST NOT EXCEED retention_until.
   Invariant 6.2: retention_until MUST NOT EXCEED purge_deadline.
-  NOTE: Invariant 6.3 deleted — Operation 7 and Operation 7a own a duration that does not advance the deadline, and an invariant restating a precondition is a second owner.
+  Deleted: Invariant 6.3. Operation 7 and Operation 7a own a duration that does not advance the deadline, and an invariant restating a precondition is a second owner.
   ```
 - **Invariant 7 — No early purge.**
   ```text
@@ -341,9 +341,9 @@ Where the atom breaks down: when the obligation is a function of the record's co
 
 ```text
 Clock semantics 3: Two readers judging purge eligible under skewed clocks MAY disagree near retention_until.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 4 deleted — Non-goal 13 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 4. Non-goal 13 owns it.
 ```
 
 WHY:

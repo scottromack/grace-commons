@@ -508,7 +508,7 @@ def check_rests_on_refs(patterns: dict[Path, Pattern], md_files: list[Path]) -> 
     # headers alone reported Party Identity's own Decisions entry as a dangling
     # citation the moment two duplicated invariants became tombstones (council
     # read 42).
-    TOMBSTONED_INV = re.compile(r"^\s*NOTE:\s*Invariant\s+(\d+)\s+deleted\b", re.M)
+    TOMBSTONED_INV = re.compile(r"^\s*Deleted:\s*Invariant\s+(\d+)\b", re.M)
     by_name: dict[str, int] = {}
     for p in patterns.values():
         m = H1_TITLE.search(p.text)

@@ -117,8 +117,8 @@ With failed-login auditing enabled — the default and the regulated posture —
 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
-NOTE: Capability requirement 2 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Capability requirement 3 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 2. `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 3. `execution-contract.md` §Logic confinement owns it.
 Capability requirement 4: The composition MUST NOT mint an id.
 Capability requirement 5: The composition MUST NOT generate cryptographic material.
 Capability requirement 6: A deployment MUST set the default session duration.
@@ -322,7 +322,7 @@ Each emerges from the composition; none belongs to one constituent.
 - **Invariant 4 — Login event log completeness.**
   ```text
   Invariant 4.2: A login committing Session's issue AND carrying no login event log entry MUST stand as the sweep's to close.
-  NOTE: Invariant 4.1 deleted — Composition state 10 owns it.
+  Deleted: Invariant 4.1. Composition state 10 owns it.
   ```
   WHY: the deleted invariant's one exception is Invariant 4.2, and it is named rather than hidden. The session exists and the entry does not, which is exactly the *sessions versus records* comparison's input — so the gap is a sweep obligation rather than a broken invariant.
 - **Invariant 5 — Audit trail completeness.**
@@ -425,7 +425,7 @@ External check 6 is the corpus's first check that sends an auditor to a **compos
 ```text
 Non-goal 1: The composition MUST NOT register a credential.
 Non-goal 2: The composition MUST NOT rotate a credential.
-NOTE: Non-goal 3 deleted — Wiring decision 3 owns it.
+Deleted: Non-goal 3. Wiring decision 3 owns it.
 Non-goal 4: The composition MUST NOT offer Session's validate.
 Non-goal 5: The composition MUST NOT authorize an action.
 Non-goal 6: A deployment needing an authorized action MUST compose permissions(../atoms/permissions.md).
@@ -436,7 +436,7 @@ Non-goal 10: The composition MUST NOT limit a login's rate.
 Non-goal 11: The composition MUST NOT hold a second factor.
 Non-goal 12: The composition MUST NOT adopt a session issued outside the issuer refs.
 Non-goal 13: The composition MUST NOT revoke a session issued outside the issuer refs.
-NOTE: Non-goal 14 deleted — Invariant 2.2 owns it.
+Deleted: Non-goal 14. Invariant 2.2 owns it.
 ```
 
 WHY:

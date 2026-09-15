@@ -96,9 +96,9 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
 Capability requirement 4: The deployment MUST own the clock's honesty.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
 ```
 
 WHY:
@@ -139,9 +139,9 @@ Operation 22: [Subscribers For] MUST answer an empty list for an event_scope no 
 Operation 23: [Subscribers For] MUST NOT order the answer.
 Operation 24: [Subscribed] MUST NOT write.
 Operation 25: [Subscribers For] MUST NOT write.
-NOTE: Operation 26 deleted — Capability requirement 1 owns it.
-NOTE: Operation 27 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 28 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 26. Capability requirement 1 owns it.
+Deleted: Operation 27. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 28. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term pair: one `subscriber_ref` with one `event_scope` — what at-most-one ranges over.

@@ -69,8 +69,8 @@ State 4: A released hold MUST carry released_by, release_reason and released_at.
 State 5: An active hold MUST NOT carry released_at.
 State 7: The atom MUST NOT delete a hold.
 State 8: The atom MUST NOT hold an aggregate for a record.
-NOTE: State 6 deleted — Invariant 3.2 owns the absent re-activation.
-NOTE: State 9 deleted — Non-goal 9 owns the case lifecycle.
+Deleted: State 6. Invariant 3.2 owns the absent re-activation.
+Deleted: State 9. Non-goal 9 owns the case lifecycle.
 ```
 
 Term hold state: `active` | `released` — the obligation in effect, or documented as ended.
@@ -98,9 +98,9 @@ There is no aggregate *is this record held* field, because an aggregate is a sec
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Non-goal 17 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Non-goal 17 owns it.
 ```
 
 WHY:
@@ -151,9 +151,9 @@ Operation 31: [Read] MUST answer an empty sequence for a well-formed query match
 Operation 32: [Read] MUST NOT answer an active hold under a released_at filter.
 Operation 33: [Read] MUST NOT answer a hold carrying no case_ref under a case_ref filter.
 Operation 34: [Read] MUST NOT write.
-NOTE: Operation 35 deleted — Capability requirement 1 owns it.
-NOTE: Operation 36 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 37 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 35. Capability requirement 1 owns it.
+Deleted: Operation 36. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 37. `execution-contract.md` §Logic confinement owns it.
 Operation 38: The business caller MAY supply placed_at.
 Operation 39: The business caller MAY supply released_at.
 Operation 40: The atom MUST judge a supplied placed_at against the injected now.

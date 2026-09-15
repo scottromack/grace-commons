@@ -228,7 +228,7 @@ Each of these emerges from the composition. None belongs to a single constituent
   ```text
   Invariant 1.1: EVERY state-changing admitted action MUST append EXACTLY ONE event.
   Invariant 1.2: EVERY event of the event log instance MUST follow an admitted action.
-  NOTE: Invariant 1.3 deleted — Action wiring 11 owns it.
+  Deleted: Invariant 1.3. Action wiring 11 owns it.
   ```
   WHY: Action wiring 11 is the one exception and it is the constituent's, not this composition's. Personal Todo declares a normalized-equal edit an accepted action that writes nothing; mirroring that exactly is what keeps Invariant 1.1 true of *state-changing* actions rather than of all of them.
 - **Invariant 2 — State equivalence.**

@@ -203,8 +203,8 @@ Operation 53: An admitted read MUST answer the matching parties in insertion ord
 Operation 54: An admitted read MUST answer an empty sequence where no party matches.
 Operation 55: [Read] MUST NOT record a field.
 Operation 56: [Read] MUST NOT answer storage-failure.
-NOTE: Operation 57 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 58 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 57. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 58. `execution-contract.md` §Logic confinement owns it.
 Operation 59: The atom MUST NOT accept a caller-supplied instant.
 ```
 
@@ -297,8 +297,8 @@ Operation 59 is this atom's one departure from its siblings on instants. [Approv
   ```text
   Invariant 8.1: EVERY transitioning action MUST append a state change event.
   Invariant 8.2: A party's state change log length MUST NOT fall.
-  NOTE: Invariant 9 deleted — Identity 6 owns identifier stability.
-  NOTE: Invariant 10 deleted — Identity 7, Identity 8 and Identity 9 own identifier uniqueness.
+  Deleted: Invariant 9. Identity 6 owns identifier stability.
+  Deleted: Invariant 10. Identity 7, Identity 8 and Identity 9 own identifier uniqueness.
   ```
 - **Invariant 11 — Action atomicity.**
   ```text
@@ -455,10 +455,10 @@ Atomic writes 4: The implementation MUST NOT repair a dangling transition.
 
 ```text
 Clock semantics 5: A recorded instant MUST NOT carry an ordering.
-NOTE: Clock semantics 3 deleted — Capability requirement 8 owns it.
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 4 deleted — Capability requirement 9 owns it.
+Deleted: Clock semantics 3. Capability requirement 8 owns it.
+Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 2. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 4. Capability requirement 9 owns it.
 ```
 
 WHY:

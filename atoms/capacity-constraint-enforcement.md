@@ -137,12 +137,12 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
 Capability requirement 4: The deployment MUST own the clock's honesty.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
-NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
-NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
-NOTE: Clock semantics 6 deleted — Non-goal 29 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Clock semantics 4. Clock dependence 1 owns it.
+Deleted: Clock semantics 5. Clock dependence 2 owns it.
+Deleted: Clock semantics 6. Non-goal 29 owns it.
 ```
 
 WHY:
@@ -225,10 +225,10 @@ Operation 57: IF the store refuses a write THEN a writing action MUST answer sto
 Operation 58: A refused action MUST leave the pool as the call found the pool.
 Operation 59: A refused action MUST NOT append an audit event.
 Operation 60: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
-NOTE: Operation 61 deleted — Capability requirement 1 owns it.
-NOTE: Operation 62 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 63 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 64 deleted — Clock dependence 1 owns it.
+Deleted: Operation 61. Capability requirement 1 owns it.
+Deleted: Operation 62. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 63. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 64. Clock dependence 1 owns it.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.

@@ -993,6 +993,36 @@ def check_decl_form_synthetic(problems: list[str]) -> None:
                 problems.append(f"D-decl-form: {name} {'did not fire' if fires else 'fired'}")
 
 
+def check_tombstone_form_synthetic(problems: list[str]) -> None:
+    """D-tombstone-form (tools/grace/check.py) — landed with `Deleted:` at council
+    read 87. Five fixtures: a tombstone written first keeps the rules beneath it
+    live, the retired NOTE shape and two malformed lines fire, and the form is silent."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: `migrated` — rewritten in GRACE lang v0.46 (2026-09-15).\n\n"
+            "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n")
+    def run(block: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir(exist_ok=True)
+            f.write_text(head + "```text\n" + block + "```\n", encoding="utf-8")
+            return scan(f)
+    # the rule beneath uses an undeclared verb, so C-verb firing proves the rule was read
+    got = run("Deleted: Operation 1. Operation 3 owns it.\nOperation 2: The atom MUST write the store.\n")
+    codes = {x.code for x in got}
+    if codes & {"D-tombstone-form", "F-unlabelled", "F-fence-first"} or "C-verb" not in codes:
+        problems.append(f"D-tombstone-form: a tombstone written first fired or demoted the block ({sorted(codes)})")
+    for name, block in (
+        ("the retired NOTE shape", "Operation 2: The atom MUST read the store.\nNOTE: Operation 1 deleted — Operation 3 owns it.\n"),
+        ("no period after the label", "Operation 2: The atom MUST read the store.\nDeleted: Operation 1 Operation 3 owns it.\n"),
+        ("no closing period", "Operation 2: The atom MUST read the store.\nDeleted: Operation 1. Operation 3 owns it\n"),
+        ("no label", "Operation 2: The atom MUST read the store.\nDeleted: the old rule. Operation 3 owns it.\n"),
+    ):
+        if not any(x.code == "D-tombstone-form" for x in run(block)):
+            problems.append(f"D-tombstone-form: {name} did not fire")
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -1114,6 +1144,14 @@ def main(argv: list[str]) -> int:
         print("H-heading: 8 synthetic fixtures hold (a conforming atom silent; a loose "
               "family, a wrong parent, a wrong order, an unplaced heading first, a "
               "missing required heading, a retired name and a plural variant fire) \u2713")
+
+    tomb_problems: list[str] = []
+    check_tombstone_form_synthetic(tomb_problems)
+    failures.extend(tomb_problems)
+    if not tomb_problems:
+        print("D-tombstone-form: 5 synthetic fixtures hold (a tombstone written first keeps "
+              "its block live; the retired shape, a missing period, a missing close and "
+              "a missing label fire) \u2713")
 
     decl_problems: list[str] = []
     check_decl_form_synthetic(decl_problems)

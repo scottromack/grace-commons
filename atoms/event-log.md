@@ -124,8 +124,8 @@ Operation 15: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 16: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
 Operation 17: [Read] MUST NOT write.
 Operation 18: The implementation MUST own the query's shape.
-NOTE: Operation 19 deleted — Capability requirement 1 owns it.
-NOTE: Operation 20 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 19. Capability requirement 1 owns it.
+Deleted: Operation 20. `execution-contract.md` §Logic confinement owns it.
 Operation 21: The business caller MUST NOT supply recorded_at.
 ```
 

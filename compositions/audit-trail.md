@@ -984,13 +984,13 @@ The composition's three liveness arms fail in three structurally different ways 
 
 ```text
 Reconciliation 1: The reconciliation scan MUST run a first half over Purged retentions, a second half over the attestation store, and a third half over the audit log.
-NOTE: Reconciliation scan 1 deleted — Reconciliation 1 owns it.
-NOTE: Reconciliation scan 2 deleted — Reconciliation 2 owns it.
-NOTE: Reconciliation scan 3 deleted — Reconciliation 3 owns it.
-NOTE: Reconciliation scan 4 deleted — Reconciliation 4 owns it.
-NOTE: Reconciliation scan 5 deleted — Reconciliation 5 owns it.
-NOTE: Reconciliation scan 6 deleted — Reconciliation 6 owns it.
-NOTE: Reconciliation scan 7 deleted — Reconciliation 7 owns it.
+Deleted: Reconciliation scan 1. Reconciliation 1 owns it.
+Deleted: Reconciliation scan 2. Reconciliation 2 owns it.
+Deleted: Reconciliation scan 3. Reconciliation 3 owns it.
+Deleted: Reconciliation scan 4. Reconciliation 4 owns it.
+Deleted: Reconciliation scan 5. Reconciliation 5 owns it.
+Deleted: Reconciliation scan 6. Reconciliation 6 owns it.
+Deleted: Reconciliation scan 7. Reconciliation 7 owns it.
 Reconciliation 2: The scan MUST surface EVERY unreconciled finding as a compliance alert.
 Reconciliation 3: The scan MUST NOT carry an unreconciled finding silently.
 Reconciliation 4: The scan MUST close EVERY finding WITHIN compensation_window of the finding's creation.
@@ -1463,8 +1463,8 @@ WHY: two sealings reading the same `sealed_through` would produce two `evidence_
 
 ```text
 Clock source 1: The composition MUST NOT read now other than for the seal_cadence timer and the scan's once-per-run reading.
-NOTE: Clock source 2 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock source 3 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock source 2. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock source 3. `execution-contract.md` §Logic confinement owns it.
 Clock source 4: The deployment MUST supply a monotonically non-decreasing clock.
 ```
 

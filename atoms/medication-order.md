@@ -247,8 +247,8 @@ Operation 74: An admitted read MUST answer the matching orders by ordered_at asc
 Operation 75: An admitted read MUST answer EVERY field group the order carries.
 Operation 76: An admitted read MUST answer an empty sequence where no order matches.
 Operation 77: [Read] MUST NOT record a field.
-NOTE: Operation 78 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 79 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 78. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 79. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by `order_id`, including a refused one.
@@ -537,13 +537,13 @@ Atomic writes 4 names the store the transaction spans, and the words are load-be
 
 ```text
 Clock semantics 4: The atom MUST bound a supplied ordered_at from above by the future bound.
-NOTE: Clock semantics 3 deleted — Operation 4 owns it for ordered_at, and the `resolved dispensed_at`, `resolved administered_at` and `resolved completed_at` declarations own it for the event instants.
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 3. Operation 4 owns it for ordered_at, and the `resolved dispensed_at`, `resolved administered_at` and `resolved completed_at` declarations own it for the event instants.
+Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 2. `execution-contract.md` §Logic confinement owns it.
 Clock semantics 5: The atom MUST NOT bound a supplied event instant.
-NOTE: Clock semantics 6 deleted — Capability requirement 13 owns it.
-NOTE: Clock semantics 7 deleted — Capability requirement 14 owns it.
-NOTE: Clock semantics 8 deleted — Non-goal 25 owns it.
+Deleted: Clock semantics 6. Capability requirement 13 owns it.
+Deleted: Clock semantics 7. Capability requirement 14 owns it.
+Deleted: Clock semantics 8. Non-goal 25 owns it.
 ```
 
 WHY:

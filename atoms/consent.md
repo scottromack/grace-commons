@@ -87,7 +87,7 @@ State 12: The atom MUST NOT offer a transition out of expired.
 State 13: The atom MUST NOT suppress a processing act.
 State 14: The atom MUST NOT hold a lawful basis outside consent.
 State 15: The atom MUST NOT hold a purpose taxonomy.
-NOTE: State 1 deleted — Invariant 2.1 owns it.
+Deleted: State 1. Invariant 2.1 owns it.
 ```
 
 Term state: `granted` | `revoked` | `expired` — in effect, withdrawn, or run out; a [State], derived per Expiry 1–4 against the evaluation instant.
@@ -202,9 +202,9 @@ Operation 57: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer i
 Operation 58: IF a state filter's value NOT EXISTS in state THEN [Read] MUST answer invalid-query.
 Operation 59: IF a time range's end precedes the time range's start THEN [Read] MUST answer invalid-query.
 Operation 60: [Read] MUST exclude a consent record carrying no value for a time range's field.
-NOTE: Operation 61 deleted — Capability requirement 1 owns it.
-NOTE: Operation 62 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 63 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 61. Capability requirement 1 owns it.
+Deleted: Operation 62. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 63. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
@@ -478,11 +478,11 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ```text
 Clock semantics 5: [Grant] MUST guard a supplied expires_at against now.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
-NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
-NOTE: Clock semantics 7 deleted — Operation 10 owns it: `now` is never supplied by the business caller, so a granted_at stamped from the injected now is never a caller-supplied instant.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Clock semantics 4. Clock dependence 1 owns it.
+Deleted: Clock semantics 7. Operation 10 owns it: `now` is never supplied by the business caller, so a granted_at stamped from the injected now is never a caller-supplied instant.
 Clock semantics 6: [Revoke] MUST guard a supplied revoked_at against now.
 Clock semantics 8: [Revoke] MAY record a revoked_at earlier than now.
 ```

@@ -121,11 +121,11 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's honesty.
 Capability requirement 4: The deployment MUST own the clock's synchronization.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Capability requirement 4 owns it.
-NOTE: Clock semantics 4 deleted — State 15 owns it.
-NOTE: Clock semantics 5 deleted — Non-goal 21 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Capability requirement 4 owns it.
+Deleted: Clock semantics 4. State 15 owns it.
+Deleted: Clock semantics 5. Non-goal 21 owns it.
 ```
 
 WHY:
@@ -201,10 +201,10 @@ Operation 45: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer i
 Operation 46: IF a state filter's value NOT EXISTS in the states THEN [Read] MUST answer invalid-query.
 Operation 47: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 48: [Read] MUST NOT write.
-NOTE: Operation 49 deleted — Capability requirement 1 owns it.
-NOTE: Operation 50 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 51 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 52 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 49. Capability requirement 1 owns it.
+Deleted: Operation 50. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 51. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 52. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.

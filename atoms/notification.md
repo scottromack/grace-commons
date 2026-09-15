@@ -90,9 +90,9 @@ Four states and exactly one terminal stamp each, because the audit question is *
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Non-goal 16 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Non-goal 16 owns it.
 ```
 
 WHY:
@@ -135,9 +135,9 @@ Operation 20: [Pending For] MUST NOT answer a terminal notification's notificati
 Operation 21: [Pending For] MUST NOT order the answer.
 Operation 22: [Status Of] MUST NOT write.
 Operation 23: [Pending For] MUST NOT write.
-NOTE: Operation 24 deleted — Capability requirement 1 owns it.
-NOTE: Operation 25 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 26 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 24. Capability requirement 1 owns it.
+Deleted: Operation 25. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 26. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.

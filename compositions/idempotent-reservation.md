@@ -191,8 +191,8 @@ Action wiring 11: IF Duplicate Prevention's check answers not-seen for a matchin
 Action wiring 12: The composition MUST evict a complete entry the idempotency window elapsed for AND Duplicate Prevention's check answers not-seen for.
 Action wiring 13: The composition MUST write a pending entry for a fresh request.
 Action wiring 14: IF the pending write fails THEN the composition MUST answer recording-failure naming the intent.
-NOTE: Action wiring 15 deleted — Composition state 4 owns it.
-NOTE: Action wiring 16 deleted — Composition state 5 owns it.
+Deleted: Action wiring 15. Composition state 4 owns it.
+Deleted: Action wiring 16. Composition state 5 owns it.
 Action wiring 17: The composition MUST retry the result write ONLY IF the result write NOT EXISTS AND the reservation completion bound NOT EXISTS as elapsed.
 Action wiring 18: IF the reservation completion bound elapses THEN the composition MUST answer recording-failure naming the outcome.
 Action wiring 19: A recording-failure naming the outcome MUST carry the constituent's answer.
@@ -281,8 +281,8 @@ These emerge from the composition; none belongs to one constituent.
   ```text
   Invariant 7.1: The eviction leg MUST evict an entry ONLY AFTER Duplicate Prevention's guard elapsed AND the idempotency window elapsed since the entry's pending instant.
   Invariant 7.2: A call carrying an evicted idempotency_token MUST stand as a fresh request.
-  NOTE: Invariant 5 deleted — Composes 5 owns it.
-  NOTE: Invariant 6 deleted — Composes 5 and Composes 7 own it.
+  Deleted: Invariant 5. Composes 5 owns it.
+  Deleted: Invariant 6. Composes 5 and Composes 7 own it.
   ```
   WHY: the two deleted invariants asserted each constituent's invariants hold over this composition's instance, which `execution-contract.md` §Conformance settles by reference (Authority 6). What they carried beyond the blanket is Composes 6 and Composes 7 — the unchanged relay of a constituent rejection, and the once-per-first-invocation `record` discipline, which is this composition's call pattern rather than a property of the atom.
 - **Invariant 8 — Exactly-once effect within the window.**

@@ -298,7 +298,7 @@ Each emerges from the composition; none belongs to one constituent. Each carries
   Invariant 4.1: EVERY [Attest As Actor] call MUST append EXACTLY ONE attest log entry.
   Invariant 4.2: An admitted attestation answering attest-failed naming the log MUST NOT append an attest log entry.
   Invariant 4.3: EVERY success entry MUST carry the attestation_id AND the gate's credential_id.
-  NOTE: Invariant 5 deleted — Composes 4 owns it.
+  Deleted: Invariant 5. Composes 4 owns it.
   ```
   WHY: Invariant 4.2 is the one admitted gap and it is admitted rather than hidden — the attestation committed and the entry did not, so the call answers with the attestation's id and Check 4 surfaces the unlogged attestation once it is older than the attest completion bound. The deleted invariant asserted both constituents' invariants hold over this composition's instances, which `execution-contract.md` §Conformance settles by reference (Authority 6, council read 53). It is the fourth such collapse and the cheapest: one rule covering two atoms, where the other three compositions spent one rule per atom. What it carried beyond the blanket is Composes 5 through Composes 10.
 
@@ -429,7 +429,7 @@ Concurrency 6 is the deployment's way out and is named as an option rather than 
 
 ```text
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-NOTE: Composition note 2 deleted — Invariant 2.3 owns it.
+Deleted: Composition note 2. Invariant 2.3 owns it.
 Composition note 3: A deployment MUST own an actor_ref's provisioning in the actor registry.
 Composition note 4: A deployment MUST own a credential's revocation AND rotation.
 Composition note 5: A deployment needing the cascade residue closed MUST revoke a gating credential ONLY AFTER taking the principal's section.

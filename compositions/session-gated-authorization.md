@@ -107,7 +107,7 @@ check_permitted(session_token, action_scope) →
 Action wiring 1: The composition MUST validate the arguments against the boundary predicate.
 Action wiring 2: The composition MUST call Session's validate ONLY AFTER the arguments clear the boundary predicate.
 Action wiring 3: The composition MUST call Session's validate with the session_token.
-NOTE: Action wiring 4 deleted — Wiring decision 1 owns it.
+Deleted: Action wiring 4. Wiring decision 1 owns it.
 Action wiring 5: An admitted gate MUST call Permissions' permitted with the valid answer's principal_ref.
 Action wiring 6: An admitted gate MUST call Permissions' permitted with the action_scope.
 Action wiring 7: [Check Permitted] MUST NOT accept a principal_ref.
@@ -158,9 +158,9 @@ The decision the composition exists to make: the session gates the permission ch
 - **Invariant 1 — Session gates authorization.**
   ```text
   Invariant 1.1: The composition MUST NOT call Permissions' permitted for a session_token Session's validate gave no valid answer for.
-  NOTE: Invariant 1.2 deleted — Session Composition note 4 owns it.
-  NOTE: Invariant 1.3 deleted — Session Composition note 4 owns it.
-  NOTE: Invariant 1.4 deleted — Session Composition note 4 owns it.
+  Deleted: Invariant 1.2. Session Composition note 4 owns it.
+  Deleted: Invariant 1.3. Session Composition note 4 owns it.
+  Deleted: Invariant 1.4. Session Composition note 4 owns it.
   ```
   WHY: [Session](../atoms/session.md)'s `Composition note 4` already forbids a composing pattern to call Permissions on an invalid answer, and `Composes 7` cites it — so the three deleted rules, which enumerated that prohibition over `expired`, `revoked` and `not-known`, restated a rule this spec cites rather than owns (Authority 6). Invariant 1.1 is not that rule. `Composition note 4` fires on an invalid answer *given*; Invariant 1.1 fires on no valid answer *given*, which also covers the call that never asked. The two do not normalize identically (Authority 4), and the gap between them is exactly what this composition adds: Session forbids acting on a bad answer, and the closure forbids acting on no answer at all. A deployment that skipped `validate` entirely would satisfy `Composition note 4` and breach Invariant 1.1.
 - **Invariant 2 — Principal binding.**
@@ -354,7 +354,7 @@ The gate is point-in-time at the instant `Session.validate` runs. A revocation l
 
 ```text
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-NOTE: Composition note 2 deleted — Composition state 4 owns it.
+Deleted: Composition note 2. Composition state 4 owns it.
 Composition note 3: A deployment MUST own the action_scope vocabulary.
 Composition note 4: A deployment MUST NOT read this composition as a session lifecycle surface.
 ```

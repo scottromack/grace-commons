@@ -91,9 +91,9 @@ Operation 4: [Record] MUST NOT refuse.
 Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen.
 Operation 6: [Check] MUST answer seen for an identity under guard.
 Operation 7: [Check] MUST answer not-seen for an identity that is not under guard.
-NOTE: Operation 8 deleted — Capability requirement 1 owns it.
-NOTE: Operation 9 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 10 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 8. Capability requirement 1 owns it.
+Deleted: Operation 9. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 10. `execution-contract.md` §Logic confinement owns it.
 Operation 11: The containing pattern MUST supply window duration.
 Operation 12: The containing pattern MUST own the response to an answer.
 ```
@@ -127,7 +127,7 @@ Both calls are total. The containing pattern has already acted when it records �
   Invariant 2.1: [Record] MUST NOT extend the guard of an identity under guard.
   Invariant 2.2: [Record] MUST preserve the recorded_at of an identity under guard.
   Invariant 2.3: [Record] MUST open a fresh guard for an identity that is not under guard.
-  NOTE: Invariant 1 deleted — Operation 6 and Operation 7 own it.
+  Deleted: Invariant 1. Operation 6 and Operation 7 own it.
   ```
   WHY: the deleted invariant claimed EVERY identity in the recorded set stands under guard, unconditionally, and a WHY beside it narrowed the claim to an eager host — a rule whose scope lived on a surface Surface 15 tells the parser to ignore and Surface 9 lets a writer delete. The atom sells behaviour rather than storage, which the rules already say in both directions: Operation 6 answers `seen` for an identity under guard and Operation 7 answers `not-seen` for one that is not, so nothing remained for the invariant to own. Restating it as the answer claim — *EVERY identity the check answers seen for MUST stand under guard* — was considered and refused: that is Operation 7's contrapositive, one proposition under a second label, which is the defect rather than the cure (Authority 3, council read 52).
   WHY: the clock starts at the first sighting and runs out at a fixed instant, so a flurry of repeats cannot hold an identity blocked past the term the containing pattern asked for. An expired entry a host has not yet dropped is not under guard, and a record against it opens a new guard rather than reviving the old one (Invariant 2.3).
@@ -139,7 +139,7 @@ Both calls are total. The containing pattern has already acted when it records �
 - **Invariant 4 — Eventual expiry.** NOTE: watch the modal's temporal scope — Invariant 4.1 reads as safety (*always dropped*) and is meant as liveness (*eventually dropped*), the reading Lazy expiry 1 and Lazy expiry 2 license, and the only word carrying the distinction is *Eventual* in this heading. GRACE's MUST has no temporal scope; the docket carries the class (council read 52).
   ```text
   Invariant 4.1: The host MUST drop an identity that is not under guard from the recorded set.
-  NOTE: Invariant 4.2 deleted — Operation 7 owns it.
+  Deleted: Invariant 4.2. Operation 7 owns it.
   ```
   WHY: both rules stated the comparison in raw operators — `EXCEEDS window duration` — where the spec already declares `under guard` as *elapsed term less than window duration* and Operation 6 and Operation 7 route through it. The two spellings disagree at exactly one instant: at `elapsed term = window duration` an identity is not under guard, so the then-standing window-monotonicity invariant required it out of the recorded set while the old Invariant 4.1 obliged no host to drop it. Routing through the declared term closes the boundary with no new operator, which is the cure the `≥` docket row asks whether the grammar needs — and one site fewer that it does (council read 51).
 
@@ -236,8 +236,8 @@ Where the pattern breaks down: when *recent* is measured by something other than
 
 ```text
 Clock semantics 1: The atom MUST anchor a guard to the injected now of the opening record.
-NOTE: Clock semantics 2 deleted — Non-goal 12 owns it.
-NOTE: Clock semantics 3 deleted — Non-goal 13 owns it.
+Deleted: Clock semantics 2. Non-goal 12 owns it.
+Deleted: Clock semantics 3. Non-goal 13 owns it.
 ```
 
 WHY:

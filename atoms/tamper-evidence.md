@@ -125,11 +125,11 @@ Operation 17: IF record set match = yes AND seal check = unavailable THEN [Verif
 Operation 18: IF record set match = yes AND seal check = failed THEN [Verify] MUST answer proof-invalid.
 Operation 19: [Verify] MUST answer verified ONLY IF seal check = held.
 Operation 20: [Verify] MUST NOT write.
-NOTE: Operation 21 deleted — Capability requirement 1 owns it.
+Deleted: Operation 21. Capability requirement 1 owns it.
 Operation 22: The host MUST supply the cryptographic material at the atom's seam.
 Operation 22a: The host MUST supply record set match at the atom's seam.
 Operation 22b: The atom MUST NOT judge record set match.
-NOTE: Operation 23 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 23. `execution-contract.md` §Logic confinement owns it.
 Operation 24: The transition MUST NOT mint entropy.
 Operation 25: The business caller MUST NOT supply sealed_at.
 Operation 26: The implementation MUST own the mechanism.

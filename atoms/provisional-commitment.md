@@ -123,12 +123,12 @@ Capability requirement 11: The registry MUST NOT return the resource to availabi
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
 Capability requirement 13: The deployment MUST own the clock's skew.
 Capability requirement 14: The deployment MUST own the clock's monotonicity.
-NOTE: Clock semantics 4 deleted — Capability requirement 13 owns it.
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 5 deleted — Capability requirement 14 owns it.
-NOTE: Clock semantics 6 deleted — Non-goal 26 owns it.
+Deleted: Clock semantics 4. Capability requirement 13 owns it.
+Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 2. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 3. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 5. Capability requirement 14 owns it.
+Deleted: Clock semantics 6. Non-goal 26 owns it.
 ```
 
 WHY:
@@ -190,8 +190,8 @@ Operation 32: A refused resolving action MUST leave the commitment in held.
 Operation 33: A resolving action MUST NOT accept a resource.
 Operation 34: A resolving action MUST NOT accept a requester.
 Operation 35: A resolving action MUST NOT accept a duration.
-NOTE: Operation 36 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 37 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 36. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 37. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term resolving action: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.
@@ -252,7 +252,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
 - **Invariant 3 — Terminal absorption.**
   ```text
   Invariant 3.1: A commitment standing in a terminal state MUST NOT leave the terminal state.
-  NOTE: Invariant 4 deleted — Identity 4 owns id stability.
+  Deleted: Invariant 4. Identity 4 owns id stability.
   ```
 - **Invariant 5 — Property immutability.**
   ```text
@@ -275,7 +275,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   ```text
   Invariant 8.1: A commitment's confirmed_at MUST NOT precede the commitment's placed_at.
   Invariant 8.2: A commitment's released_at MUST NOT precede the commitment's placed_at.
-  NOTE: Invariant 9 deleted — Identity 5 owns id reuse for every id, resolved or not.
+  Deleted: Invariant 9. Identity 5 owns id reuse for every id, resolved or not.
   ```
   WHY: the family floors the two *resolution* instants and not `expired_at`, whose floor is the stronger one Invariant 7.2 already carries — an expiry may not precede `expires_at`, which by Invariant 6.1 exceeds `placed_at`. The family was titled *Transition instants* in a draft, which promised a floor on all three and delivered two (council read 38).
 - **Invariant 10 — Commitment store durability.**

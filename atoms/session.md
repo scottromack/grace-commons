@@ -124,20 +124,20 @@ Capability requirement 6: The deployment MUST own whether the store holds a sess
 Capability requirement 7: The deployment MUST own the clock's monotonicity.
 Capability requirement 8: The deployment MUST own the clock's honesty.
 Capability requirement 9: The deployment MUST own the clock's synchronization.
-NOTE: Configuration 1 deleted — Capability requirement 2 owns it.
-NOTE: Configuration 2 deleted — Operation 48 owns it.
-NOTE: Configuration 3 deleted — Capability requirement 3 owns it.
-NOTE: Configuration 4 deleted — Operation 49 owns it.
-NOTE: Configuration 5 deleted — Capability requirement 4 owns it.
-NOTE: Configuration 6 deleted — Capability requirement 5 owns it.
-NOTE: Configuration 7 deleted — Capability requirement 6 owns it.
-NOTE: Clock semantics 1 deleted — Capability requirement 7 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 8 owns it.
-NOTE: Clock semantics 3 deleted — Capability requirement 9 owns it.
-NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
-NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
-NOTE: Clock semantics 6 deleted — Non-goal 25 owns it.
-NOTE: Clock semantics 7 deleted — Non-goal 26 owns it.
+Deleted: Configuration 1. Capability requirement 2 owns it.
+Deleted: Configuration 2. Operation 48 owns it.
+Deleted: Configuration 3. Capability requirement 3 owns it.
+Deleted: Configuration 4. Operation 49 owns it.
+Deleted: Configuration 5. Capability requirement 4 owns it.
+Deleted: Configuration 6. Capability requirement 5 owns it.
+Deleted: Configuration 7. Capability requirement 6 owns it.
+Deleted: Clock semantics 1. Capability requirement 7 owns it.
+Deleted: Clock semantics 2. Capability requirement 8 owns it.
+Deleted: Clock semantics 3. Capability requirement 9 owns it.
+Deleted: Clock semantics 4. Clock dependence 1 owns it.
+Deleted: Clock semantics 5. Clock dependence 2 owns it.
+Deleted: Clock semantics 6. Non-goal 25 owns it.
+Deleted: Clock semantics 7. Non-goal 26 owns it.
 ```
 
 WHY:
@@ -210,9 +210,9 @@ Operation 38: [Read] MUST carry the effective_status on EVERY answered session.
 Operation 39: [Read] MUST NOT write.
 Operation 40: A liveness query MUST rest on the effective_status.
 Operation 41: A liveness query MUST NOT rest on the stored status alone.
-NOTE: Operation 42 deleted — Capability requirement 1 owns it.
-NOTE: Operation 43 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 44 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 42. Capability requirement 1 owns it.
+Deleted: Operation 43. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 44. `execution-contract.md` §Logic confinement owns it.
 Operation 45: The atom MUST NOT offer an expire action.
 Operation 46: The atom MUST NOT offer an extend action.
 Operation 47: The atom MUST NOT offer an un-revoke action.

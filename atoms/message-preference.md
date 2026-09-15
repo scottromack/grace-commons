@@ -126,10 +126,10 @@ Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
 Capability requirement 4: The deployment MUST own the clock's honesty.
 Capability requirement 5: The deployment MUST disclose the supersession gap bound.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
-NOTE: Clock semantics 4 deleted — Capability requirement 5 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Clock semantics 4. Capability requirement 5 owns it.
 ```
 
 WHY:
@@ -187,11 +187,11 @@ Operation 35: [Read] MUST answer a deleted preference record in full.
 Operation 36: [Read] MUST NOT refuse a blank argument.
 Operation 37: [Current For] MUST NOT write.
 Operation 38: [Read] MUST NOT write.
-NOTE: Operation 39 deleted — Capability requirement 1 owns it.
-NOTE: Operation 40 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 41 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 42 deleted — Clock dependence 1 owns it.
-NOTE: Operation 43 deleted — Clock dependence 2 owns it.
+Deleted: Operation 39. Capability requirement 1 owns it.
+Deleted: Operation 40. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 41. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 42. Clock dependence 1 owns it.
+Deleted: Operation 43. Clock dependence 2 owns it.
 ```
 
 Term preference field: `channel_preferences` | `frequency_limit` | `quiet_hours` | `format` — the four values a [Set] call must carry one of; `metadata` is not one.
@@ -418,7 +418,7 @@ Check 2.2: An auditor MUST read a currency interval as half-open from set_at to 
 Check 3.1: An auditor MUST find no two preference records currently in effect sharing a principal_ref (Invariant 3.1, Invariant 4.2).
 Check 4.1: An auditor MUST read a supersession gap within the supersession gap bound as a supersession (Invariant 4.1, Temporal property 4).
 Check 4.2: An auditor MUST mark a supersession gap exceeding the supersession gap bound ambiguous (Invariant 4.1).
-NOTE: Check 4.3 deleted — Capability requirement 5 owns it; a deployment obligation is not an auditor's check.
+Deleted: Check 4.3. Capability requirement 5 owns it; a deployment obligation is not an auditor's check.
 Check 5.1: An auditor MUST find EVERY channel_preferences key in the preference record's own declared_channels (Invariant 5.1, Invariant 10.1).
 Check 5.2: An auditor MUST mark an absent declared_channels a conformance failure (Invariant 10.1, Invariant 10.2).
 Check 6.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).

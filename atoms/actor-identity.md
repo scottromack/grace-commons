@@ -129,9 +129,9 @@ Operation 18: IF registry answer = material AND proof check = failed THEN [Verif
 Operation 19: [Verify] MUST answer verified ONLY IF proof check = held.
 Operation 20: [Verify] MUST NOT write.
 Operation 21: [Verify] MUST read the actor registry's public material for the actor_ref.
-NOTE: Operation 22 deleted — Capability requirement 1 owns it.
+Deleted: Operation 22. Capability requirement 1 owns it.
 Operation 23: The host MUST supply the cryptographic material at the atom's seam.
-NOTE: Operation 24 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 24. `execution-contract.md` §Logic confinement owns it.
 Operation 25: The transition MUST NOT mint entropy.
 Operation 26: The business caller MUST NOT supply attested_at.
 ```

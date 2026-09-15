@@ -119,13 +119,13 @@ Capability requirement 8: The deployment MUST canonicalize an opaque reference.
 Capability requirement 9: The deployment MUST deliver the invitation_token to the invitee.
 Capability requirement 10: The deployment MUST own the clock's skew.
 Capability requirement 11: The deployment MUST own the clock's monotonicity.
-NOTE: Clock semantics 4 deleted — Capability requirement 10 owns it.
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 2 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 5 deleted — Capability requirement 11 owns it.
-NOTE: Clock semantics 6 deleted — Non-goal 25 owns it.
-NOTE: Clock semantics 7 deleted — Non-goal 26 owns it.
+Deleted: Clock semantics 4. Capability requirement 10 owns it.
+Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 2. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 3. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 5. Capability requirement 11 owns it.
+Deleted: Clock semantics 6. Non-goal 25 owns it.
+Deleted: Clock semantics 7. Non-goal 26 owns it.
 ```
 
 WHY:
@@ -199,8 +199,8 @@ Operation 41: An admitted read MUST answer EVERY matching invitation.
 Operation 42: An admitted read MUST answer the effective status PER matching invitation.
 Operation 43: [Read] MUST NOT record a field.
 Operation 44: [Read] MUST NOT refuse a filter.
-NOTE: Operation 45 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 46 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 45. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 46. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term resolving write: [Accept] | [Decline] | [Revoke] — every write taking a pending invitation to a stored terminal.
@@ -255,7 +255,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
 - **Invariant 1 — Initiation immutability.**
   ```text
   Invariant 1.1: An admitted resolving write MUST NOT change a property.
-  NOTE: Invariant 1.2 deleted — State 6 and Operation 16 leave a resolving write no resolution field to find.
+  Deleted: Invariant 1.2. State 6 and Operation 16 leave a resolving write no resolution field to find.
   ```
   WHY: a draft carried a second rule — *an admitted resolving write MUST NOT change a resolution field the write found* — and it could not bind. An admitted resolving write runs only on a pending invitation (Operation 16 refuses every other case), and a pending invitation carries no resolution field (State 6), so the set the rule quantified over is empty at every reachable state. Same class as the resource return [Provisional Commitment](./provisional-commitment.md) re-homed one atom earlier: a MUST that cannot be violated is decoration, and the cure is to find the rule that already makes it true rather than to keep a second copy that cannot fail (council read 39).
 - **Invariant 2 — Single-resolution by write.**
@@ -268,7 +268,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   ```text
   Invariant 3.1: EVERY accepted invitation MUST carry a non-blank accepting_identity_ref.
   Invariant 3.2: An admitted accept MUST commit accepting_identity_ref and accepted_at with the status change.
-  NOTE: Invariant 4 deleted — Identity 13, State 2 and Operation 6 own the opaque invitee.
+  Deleted: Invariant 4. Identity 13, State 2 and Operation 6 own the opaque invitee.
   ```
   WHY: the load-bearing one, and the reason this atom exists rather than folding into [Capability](./capability.md). An accepted invitation with no bound identity is an account that entered the system through a documented channel with nobody's name on it, which is exactly the record a regulator comes here to read.
 - **Invariant 5 — The stored terminals are structurally distinct.**

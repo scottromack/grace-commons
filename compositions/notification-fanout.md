@@ -46,7 +46,7 @@ Composes 3: The composition MUST NOT change a constituent's spec.
 Composes 5: The composition MUST read the subscription store through Subscription's subscribers_for.
 Composes 6: The composition MUST NOT write to the notification store beside Notification's create.
 Composes 7: The composition MUST inherit a constituent's invariants PER `execution-contract.md` §Conformance.
-NOTE: Composes 4 deleted — Invariant 5.1 owns it.
+Deleted: Composes 4. Invariant 5.1 owns it.
 ```
 
 Term composition: this pattern's wiring of [Subscription](../atoms/subscription.md) and [Notification](../atoms/notification.md) — the one action below, its fan-out and its two result lists.
@@ -80,7 +80,7 @@ The contract classification is *conforming, no stored composition state* (`execu
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one fanout id at the seam.
 Capability requirement 3: The host MUST draw a fanout id meeting the entropy floor.
-NOTE: Capability requirement 4 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 4. `execution-contract.md` §Logic confinement owns it.
 Capability requirement 5: The transition MUST NOT mint an id.
 Capability requirement 6: A deployment MUST disclose the deployment's read latency bound.
 Capability requirement 7: The deployment MUST declare the clock offset allowance.
@@ -208,8 +208,8 @@ Invariants 1 through 5 and Invariant 8 emerge from the composition; neither cons
 - **Invariant 5 — The subscription store is read-only.**
   ```text
   Invariant 5.1: The composition MUST NOT write to the subscription store.
-  NOTE: Invariant 6 deleted — Composes 7 owns it.
-  NOTE: Invariant 7 deleted — Composes 7 owns it.
+  Deleted: Invariant 6. Composes 7 owns it.
+  Deleted: Invariant 7. Composes 7 owns it.
   ```
   WHY: the two deleted invariants asserted that [Notification](../atoms/notification.md)'s and [Subscription](../atoms/subscription.md)'s own invariants hold over this composition's instances. The prose named them *preservation claims* and set them apart from the six that emerge, which is the right distinction and the reason they could be collapsed cleanly: `execution-contract.md` §Conformance already establishes recursive conformance, so restating it twice was a citing spec restating a rule it cites (Authority 6). What they carried beyond the blanket is Composes 5 and Composes 6.
 - **Invariant 8 — Fanout invocation uniqueness.**
@@ -333,7 +333,7 @@ Check 1.5 and Check 1.6 are the boundary window doing real work. A subscribe or 
 
 ```text
 Non-goal 1: The composition MUST NOT guarantee idempotency across two fanouts.
-NOTE: Non-goal 2 deleted — Composition state 4 owns it.
+Deleted: Non-goal 2. Composition state 4 owns it.
 Non-goal 3: The composition MUST NOT answer a result for a fanout that crashed.
 Non-goal 4: The composition MUST NOT read the subscriber set twice in one fanout.
 Non-goal 5: The composition MUST NOT skip a subscriber_ref the subscribers_for answer carried.

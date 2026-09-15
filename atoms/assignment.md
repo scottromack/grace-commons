@@ -96,9 +96,9 @@ Recalled and transferred are two terminal values of the [Status] rather than one
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — State 13 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. State 13 owns it.
 ```
 
 WHY:
@@ -147,9 +147,9 @@ Operation 29: [Active For] MUST NOT write.
 Operation 30: [History For] MUST NOT write.
 Operation 30a: [Reassign] MUST read one now per call.
 Operation 30b: [Reassign] MUST stamp transferred_at and assigned_at against that one now.
-NOTE: Operation 31 deleted — Capability requirement 1 owns it.
-NOTE: Operation 32 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 33 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 31. Capability requirement 1 owns it.
+Deleted: Operation 32. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 33. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term new_assignee_ref: the opaque reference naming the successor a reassignment hands the task to — a [New Assignee Ref].

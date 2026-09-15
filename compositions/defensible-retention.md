@@ -156,9 +156,9 @@ Composition state 27 through Composition state 32 declare the two relations the 
 ```text
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
-NOTE: Capability requirement 3 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 3. `execution-contract.md` §Logic confinement owns it.
 Capability requirement 4: The transition MUST NOT mint an invocation_id.
-NOTE: Capability requirement 5 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 5. `execution-contract.md` §Logic confinement owns it.
 Capability requirement 6: The composition MUST NOT accept an invocation_id as an argument.
 Capability requirement 7: The composition MUST NOT mint a retention_id.
 Capability requirement 8: The composition MUST NOT mint a hold_id.
@@ -427,8 +427,8 @@ Action wiring 72: The sweep MUST own a yielded invocation's owed record.
 Action wiring 73: A caller MUST read a not-known on a re-invoked purge as a committed destruction.
 Action wiring 74: The composition MUST read an invalid-query answer from Legal Hold's read as the composition's own defect.
 Action wiring 75: The composition MUST answer hold-check-unavailable for a hold store fault outside Legal Hold's read contract.
-NOTE: Action wiring 46 deleted — Composition state 19 owns it.
-NOTE: Action wiring 51 deleted — Invariant 1.3 owns it.
+Deleted: Action wiring 46. Composition state 19 owns it.
+Deleted: Action wiring 51. Invariant 1.3 owns it.
 ```
 
 Term intent: the `record_action` call naming what an invocation is about to do, written before any committing call — `retention_placement_intended` | `hold_placement_intended` | `hold_release_intended` | `purge_intended`.
@@ -633,7 +633,7 @@ Each emerges from the composition; none belongs to one constituent.
   Invariant 9.3: The composition MUST NOT leave a sibling retained over a destroyed record.
   Invariant 9.4: A pending sibling MUST stand named in the record purged outcome.
   Invariant 9.5: The gate MUST NOT rest on the audit horizon.
-  NOTE: Invariant 9.2 deleted — Composition state 19 owns it.
+  Deleted: Invariant 9.2. Composition state 19 owns it.
   ```
   WHY: this discharges the obligation Retention Window's `Composition note 3` assigns to a composing layer, and it discharges it in both directions — no destruction while a sibling lives, and no sibling left retained once the record is gone. `Composition state 19` and Invariant 9.5 are the pair that keeps it sound where the evidence has lapsed: a sibling set rebuilt from the trail would omit exactly the long retention whose placement event died first, so the gate reads the store in every state and the audit traversal supplies `Invariant 2`'s scope claim and nothing the gate depends on.
 - **Invariant 10 — Authentication precedes destruction and commitment.**
@@ -838,22 +838,22 @@ The ordering is the load-bearing half. Every outcome follows its committing call
 
 ```text
 Clock semantics 4: The composition MUST judge elapsed retention against the injected now.
-NOTE: Clock semantics 2 deleted — Action wiring 8 owns it.
-NOTE: Clock semantics 1 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 3 deleted — Action wiring 60 owns it.
+Deleted: Clock semantics 2. Action wiring 8 owns it.
+Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 3. Action wiring 60 owns it.
 Clock semantics 5: The composition MUST judge a sibling set member's eligibility against the injected now.
-NOTE: Clock semantics 6 deleted — Composes 18 owns it.
-NOTE: Clock semantics 7 deleted — Retention Window Operation 13 owns it.
-NOTE: Clock semantics 8 deleted — Legal Hold Operation 9 owns it.
-NOTE: Clock semantics 9 deleted — Legal Hold Operation 18a owns it.
-NOTE: Clock semantics 10 deleted — Event Log Operation 2 owns it, reached through Audit Trail.
+Deleted: Clock semantics 6. Composes 18 owns it.
+Deleted: Clock semantics 7. Retention Window Operation 13 owns it.
+Deleted: Clock semantics 8. Legal Hold Operation 9 owns it.
+Deleted: Clock semantics 9. Legal Hold Operation 18a owns it.
+Deleted: Clock semantics 10. Event Log Operation 2 owns it, reached through Audit Trail.
 Clock semantics 11: A reader MUST read a record purged outcome's purged_at as the authoritative destruction instant.
 Clock semantics 12: A reader MUST NOT read a retention's purged_at as the authoritative destruction instant.
 Clock semantics 13: A reader MUST read a divergence exceeding the clock offset allowance as a clock finding.
 Clock semantics 14: The composition MUST NOT read a supplied placed_at as the entry instant.
 Clock semantics 15: A reader MUST read a hold placed outcome's recorded_at as the entry instant.
 Clock semantics 16: The gate MUST NOT read a clock.
-NOTE: Clock semantics 17 deleted — Capability requirement 36 owns it.
+Deleted: Clock semantics 17. Capability requirement 36 owns it.
 ```
 
 Term clock offset allowance: `clock_offset_allowance` — the deployment's declared envelope between two seams' readings of one request — what a reader allows before reading a divergence as a clock finding.

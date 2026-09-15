@@ -85,9 +85,9 @@ Deletion is the only way out and it is terminal: the atom keeps no memory of wha
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
-NOTE: Clock semantics 1 deleted — Capability requirement 2 owns it.
-NOTE: Clock semantics 2 deleted — Capability requirement 3 owns it.
-NOTE: Clock semantics 3 deleted — Non-goal 16 owns it.
+Deleted: Clock semantics 1. Capability requirement 2 owns it.
+Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 3. Non-goal 16 owns it.
 ```
 
 WHY:
@@ -128,9 +128,9 @@ Operation 21: IF the store refuses the write THEN [Edit] MUST answer storage-fai
 Operation 22: IF the store refuses the write THEN [Complete] MUST answer storage-failure.
 Operation 23: IF the store refuses the write THEN [Delete] MUST answer storage-failure.
 Operation 24: A refused call MUST leave the unit as the call found the unit.
-NOTE: Operation 25 deleted — Capability requirement 1 owns it.
-NOTE: Operation 26 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Operation 27 deleted — `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 25. Capability requirement 1 owns it.
+Deleted: Operation 26. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 27. `execution-contract.md` §Logic confinement owns it.
 ```
 
 Term new_description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
@@ -171,7 +171,7 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
 - **Invariant 4 — Delete is terminal.**
   ```text
   Invariant 4.1: A deleted unit's id MUST NOT stand in the list.
-  NOTE: Invariant 4.2 deleted — Identity 5 owns id reuse for every id, deleted or not.
+  Deleted: Invariant 4.2. Identity 5 owns id reuse for every id, deleted or not.
   ```
 - **Invariant 5 — Edit preserves state.**
   ```text
