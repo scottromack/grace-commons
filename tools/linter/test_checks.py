@@ -45,6 +45,7 @@ from lint import (  # noqa: E402
     check_ledger,
     check_stale_census,
     check_acceptance_surface,
+    check_orphan_forthcoming,
     load_patterns,
 )
 
@@ -751,6 +752,65 @@ def check_census_synthetic(problems: list[str]) -> None:
                         "not fire — the count reading is dead")
 
 
+# ── M-orphan-forthcoming, pinned synthetically ─────────────────── #
+# A migrated spec that delegates to a `*(forthcoming)*` pattern the roadmap does
+# not carry is pointing at a home nobody has written down. Council read 68 found
+# sixteen such names at once, so the shapes are pinned without a victim -- a
+# corpus pin would go stale the moment one of them lands.
+
+ORPHAN_SPEC = """# Ghost Pattern
+
+{body}
+
+## Terms
+
+Terms › `qualifiers`: {qualifier}
+"""
+
+
+def check_orphan_synthetic(problems: list[str]) -> None:
+    import tempfile
+
+    def run(body: str, roadmap: str, qualifier: str = "`migrated` — rewritten in GRACE lang v0.41 (2026-09-15).") -> set[str]:
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "roadmap.md").write_text(roadmap, encoding="utf-8")
+            path = root / "ghost.md"
+            text = ORPHAN_SPEC.format(body=body, qualifier=qualifier)
+            pats = {path: Pattern(path=path, text=text,
+                                  invariant_count=1, grounded=False)}
+            return {f.message for f in check_orphan_forthcoming(root, pats)}
+
+    # (1) a named forthcoming the roadmap does not carry must fire
+    got = run("A **Spectre Ledger** *(forthcoming)* owns the rest.", "# Roadmap\n")
+    if not any("Spectre Ledger" in m for m in got):
+        problems.append("M-orphan-forthcoming: a named forthcoming with no roadmap "
+                        "row did not fire — the roadmap reading is dead")
+    # (2) the same name, carried by the roadmap, must stay silent
+    got = run("A **Spectre Ledger** *(forthcoming)* owns the rest.",
+              "# Roadmap\n\n- **Spectre Ledger** — a row.\n")
+    if got:
+        problems.append("M-orphan-forthcoming: fired on a name the roadmap carries "
+                        "— a listed home is not an orphan")
+    # (3) a *linked* forthcoming is D-stale-forthcoming's, never this check's
+    got = run("See [Spectre Ledger](./atoms/spectre-ledger.md) *(forthcoming)*.",
+              "# Roadmap\n")
+    if got:
+        problems.append("M-orphan-forthcoming: fired on a linked forthcoming — "
+                        "those are check_stale_forthcoming's and would double-report")
+    # (4) an unmigrated spec is exempt: the whitelist rule is the corpus's
+    got = run("A **Spectre Ledger** *(forthcoming)* owns the rest.", "# Roadmap\n",
+              qualifier="none declared.")
+    if got:
+        problems.append("M-orphan-forthcoming: fired on an unmigrated spec — "
+                        "only a migrated spec is held to the language's rules")
+    # (5) a bare single word before the marker is a fragment, not a pattern name
+    got = run("An audit **Log** *(forthcoming)* owns the rest.", "# Roadmap\n")
+    if got:
+        problems.append("M-orphan-forthcoming: fired on a single-word fragment — "
+                        "a pattern name carries a space or a hyphen")
+
+
 # ── Y-acceptance-surface, pinned synthetically ────────────────────────────── #
 # Presence became mandatory at council read 65, after three atoms took the
 # then-optional Generation acceptance section by saying nothing and eleven
@@ -902,6 +962,14 @@ def main(argv: list[str]) -> int:
         print("Y-acceptance-surface: 6 synthetic fixtures hold (a section with a "
               "check and a decline naming an owner silent; silence, an empty "
               "section and an ownerless decline fire; an unmigrated spec exempt) \u2713")
+
+    orphan_problems: list[str] = []
+    check_orphan_synthetic(orphan_problems)
+    failures.extend(orphan_problems)
+    if not orphan_problems:
+        print("M-orphan-forthcoming: 5 synthetic fixtures hold (an unlisted "
+              "forthcoming fires; a listed one, a linked one, an unmigrated "
+              "spec and a single-word fragment stay silent) \u2713")
 
     census_problems: list[str] = []
     check_census_synthetic(census_problems)

@@ -400,6 +400,64 @@ def check_stale_forthcoming(root: Path, patterns: dict[Path, Pattern], md_files:
     return findings
 
 
+ORPHAN_FORTHCOMING = re.compile(
+    r"(?:\[(?P<linked>[^\]\n]{2,60})\]\([^)\n]+\)"
+    r"|\*\*(?P<bold>[A-Z][^*\n]{2,60}?)\*\*"
+    r"|(?P<plain>[A-Z][A-Za-z\u2019'-]*(?:[ /](?:[a-z]{1,3} )?[A-Z][A-Za-z\u2019'-]*){0,4}))"
+    r"(?:\u2019s|'s)?\s*\*\(forthcoming\)\*"
+)
+
+
+def check_orphan_forthcoming(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
+    """M. A migrated spec names a `*(forthcoming)*` pattern roadmap.md does not carry.
+
+    The sibling of D-stale-forthcoming, which reads *linked* markers that have
+    since landed. This one reads the *named* markers — the ones an extraction
+    flag, a declined delegation or a Non-goal points at — and asks whether the
+    home exists on the planning surface at all. `roadmap.md` is the single
+    source of truth for library state (AGENTS.md), so a name it does not carry
+    is a pointer into nothing: the spec says *someone else owns this* and no
+    one is listed. Linked markers are skipped; they are D's.
+    """
+    findings: list[Finding] = []
+    roadmap = root / "roadmap.md"
+    if not roadmap.exists():
+        return findings
+    # A *row* on the planning surface, not a passing mention: a name that
+    # appears only inside a prose paragraph is discussed, not listed, and the
+    # roadmap's rows are what a drafter reads. Table rows and list entries
+    # count; everything else does not.
+    road = "\n".join(
+        ln.lower() for ln in roadmap.read_text(encoding="utf-8").splitlines()
+        if ln.lstrip().startswith(("|", "- ", "* ", "#"))
+    )
+    for p in patterns.values():
+        if not re.search(r"^Terms \u203a `qualifiers`:.*\bmigrated\b", p.text, re.M):
+            continue  # the unmigrated corpus is not held to this
+        seen: set[str] = set()
+        for m in ORPHAN_FORTHCOMING.finditer(p.text):
+            if m.group("linked"):
+                continue  # a linked forthcoming is check_stale_forthcoming's
+            name = (m.group("bold") or m.group("plain") or "").strip()
+            name = re.sub(r"[\u2019']s$", "", name).strip()
+            if len(name) < 6 or (" " not in name and "-" not in name):
+                continue  # a bare single word is a fragment, not a pattern name
+            key = name.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            head = key.split(" / ")[0].strip()
+            if key in road or head in road:
+                continue
+            findings.append(Finding(
+                p.path, line_of(p.text, m.start()), "M-orphan-forthcoming",
+                f"names `{name}` *(forthcoming)* and roadmap.md carries no row "
+                f"for it \u2014 a delegation pointing at a home the planning "
+                f"surface does not list",
+            ))
+    return findings
+
+
 def check_counts(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
     """E. 'NN grounded patterns / NN compositions' claims match reality."""
     findings: list[Finding] = []
@@ -2403,6 +2461,7 @@ def main(argv: list[str]) -> int:
     findings += check_invariant_counts(patterns, scan)
     findings += check_models_present(patterns)
     findings += check_stale_forthcoming(root, patterns, scan)
+    findings += check_orphan_forthcoming(root, patterns)
     findings += check_counts(root, patterns)
     findings += check_rests_on_refs(patterns, scan)
     findings += check_constituent_calls(patterns)
