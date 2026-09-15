@@ -20,6 +20,16 @@ reading, the human does it (GRACE-lang Principle 8).
     python3 tools/grace/cites.py --changed HEAD~1   # what today's edits re-open
     python3 tools/grace/cites.py --changed HEAD~1 --paths atoms/lease.md
     python3 tools/grace/cites.py --unread            # migrated, but no council read
+    python3 tools/grace/cites.py --standard          # which families ARE standard, and what each means
+    python3 tools/grace/cites.py --promote Housekeeping
+    python3 tools/grace/cites.py --promote 'Action wiring' --means 'what the promotion would declare'
+
+`--standard` exists because the standard set's membership went wrong three
+times in two days, in two readers, after two corrections: a promoted family is
+recorded in a register entry and a changelog and printed by nothing, so the
+answer was recalled rather than read. `--promote` stages the hearing and, for a
+family already standard, audits it — the maintainer supplies the meaning, the
+tool supplies the reading order (Principle 8, Standard label 6).
 """
 from __future__ import annotations
 
@@ -207,6 +217,89 @@ CROSS_REF = re.compile(
     r"((?:[A-Z][a-z]+|[a-z_]+)(?: [a-z]+){0,2} \d+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
 
 
+_GLOSS_WORD = re.compile(r"[a-z]+")
+_GLOSS_STOP = frozenset(
+    "the a an of to in on at by for and or with is are as it its this that what one every "
+    "any no not nothing something whose which than then from".split())
+
+
+def standard_glosses(grammar_path=None) -> dict[str, str]:
+    """Each standard family with the meaning the grammar declares for it —
+    the parenthetical on the same `Terms › standard label family` line
+    `standard_families` reads the names from. Derived, never copied, for the
+    reason that function's docstring gives."""
+    g = Path(grammar_path) if grammar_path else Path(__file__).resolve().parents[2] / "GRACE-lang.md"
+    m = _FAMILY_LINE.search(g.read_text(encoding="utf-8"))
+    if not m:
+        raise SystemExit("cites.py: GRACE-lang.md carries no Terms › `standard label family` line")
+    return {f: gl for f, gl in re.findall(r"`([^`]+)` \(([^)]*)\)", m.group(1))}
+
+
+def _content(s: str) -> set[str]:
+    return {w for w in _GLOSS_WORD.findall(s.lower())
+            if w not in _GLOSS_STOP and len(w) > 2}
+
+
+def promote(specs: list["Spec"], family: str, means: str | None) -> int:
+    """Stage a promotion hearing, or audit a family already standard.
+
+    `Standard label 2` forbids a specification redeclaring a standard label
+    family, so a promotion silently converts every local restatement of the
+    candidate's meaning into a defect. Four sites were converted that way
+    across three promotions — Customer Onboarding's `reconciliation`, Actor
+    Suspension's `sweep`, Attributed Permissions Admin's `failed-grant leg`,
+    Idempotent Reservation's `eviction leg` — and nothing reported any of
+    them; each was caught by a human reading the specs the promotion named
+    (council reads 69, 71, the docket row opened at 72).
+
+    This is not a classifier and does not decide. The maintainer supplies the
+    meaning the promotion would declare (Principle 8, Standard label 6); the
+    tool supplies the reading order, ranking each member spec's `Terms ›`
+    declarations by how much of that meaning they already carry. A verdict
+    from word overlap would be a second owner for a judgment the grammar
+    reserves to a person — and `Audit arm`'s meaning is written in the
+    corpus's commonest nouns, so such a verdict fires on innocent entries."""
+    glosses = standard_glosses()
+    standard = family in glosses
+    if standard:
+        means = means or glosses[family]
+        print(f"{family} — already standard. The grammar declares it: {means}")
+        print("  (this run is a standing audit, not a hearing)")
+    else:
+        print(f"{family} — not in the standard set.")
+        if not means:
+            print("  no meaning supplied. A hearing needs the meaning the promotion "
+                  "would declare; pass --means \"…\". The maintainer decides every "
+                  "promotion (Principle 8, Standard label 6).")
+            return 2
+    members = [(s, sum(1 for lab in s.rules if NAME_NUM.sub("", lab) == family))
+               for s in specs]
+    members = sorted([(s, n) for s, n in members if n], key=lambda r: -r[1])
+    print(f"\n  {len(members)} specification(s) name it, {sum(n for _, n in members)} rules:")
+    for s, n in members:
+        print(f"    {spec_name(s.path):<34}{n:>4}")
+    if not standard:
+        print(f"  Standard label 4: three specifications make it a candidate — "
+              f"{'met' if len(members) >= 3 else 'NOT met'}.")
+    want = _content(means)
+    rows = []
+    for s, _ in members:
+        for term, (line, text) in s.terms.items():
+            shared = want & _content(text)
+            if len(shared) >= 2:
+                rows.append((len(shared), spec_name(s.path), term, line, sorted(shared)))
+    print(f"\n  `Terms ›` declarations in the member specs, most of the meaning first —"
+          f"\n  every one of these is a Standard label 2 defect if it states the meaning "
+          f"rather than pointing at the spec's own rules:")
+    if not rows:
+        print("    none carrying two words of it.")
+    for n, name, term, line, shared in sorted(rows, key=lambda r: (-r[0], r[1], r[2])):
+        print(f"    {n}  {name}:{line}  `{term}` — {', '.join(shared)}")
+    print(f"\n— {len(rows)} declaration(s) to read. Standard label 7's drift pass is not "
+          f"mechanical: read the rules, not this list (Principle 8).")
+    return 0
+
+
 def into(specs: list[Spec], target: str) -> dict[str, list[str]]:
     """Every rule in the corpus citing the named spec, by cited label. Run it
     before rewriting a spec: a label the corpus cites is a label that keeps its
@@ -305,6 +398,27 @@ def main(argv: list[str]) -> int:
 
     specs = specs_with_rules(root, paths)
     total = 0
+
+    if "--standard" in argv:
+        glosses = standard_glosses()
+        print(f"the standard label families — {len(glosses)}, as GRACE-lang declares them:")
+        for i, (fam, gl) in enumerate(glosses.items(), start=1):
+            print(f"  {i:>2}. {fam} — {gl}")
+        print("— a family here is standard; a specification MUST NOT redeclare one "
+              "(Standard label 2).")
+        return 0
+
+    if "--promote" in argv:
+        i = argv.index("--promote")
+        fam = argv[i + 1] if i + 1 < len(argv) and not argv[i + 1].startswith("--") else None
+        means = None
+        if "--means" in argv:
+            j = argv.index("--means")
+            means = argv[j + 1] if j + 1 < len(argv) else None
+        if not fam:
+            print("cites.py --promote <Family> [--means \"the meaning the promotion declares\"]")
+            return 2
+        return promote(specs, fam, means)
     if "--unchecked" in argv:
         # the inverse of K-check-bare: a rule no check names. A rule with no
         # check is a claim nobody audits — the silence is the finding (council read 11).
