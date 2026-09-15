@@ -960,6 +960,8 @@ def check_heading_synthetic(problems: list[str]) -> None:
         ("out_of_order", ["Intent", "Summary"] + good[2:], "comes after"),
         ("unplaced_first", good[:3] + ["### Store instance model"] + [n for n in good[3:] if n != "### Store instance model"], "placed headings come first"),
         ("missing", [n for n in good if n != "### Vocabulary"], "requires"),
+        ("retired_name", good[:7] + ["### Configuration"] + good[7:], "second name"),
+        ("plural", [n if n != "### Operations" else "### Operation" for n in good], "second name"),
     )
     for name, names, needle in cases:
         if not any(needle in m for m in run(name, names)):
@@ -1084,9 +1086,9 @@ def main(argv: list[str]) -> int:
     check_heading_synthetic(heading_problems)
     failures.extend(heading_problems)
     if not heading_problems:
-        print("H-heading: 6 synthetic fixtures hold (a conforming atom silent; a loose "
-              "family, a wrong parent, a wrong order, an unplaced heading first and a "
-              "missing required heading fire) \u2713")
+        print("H-heading: 8 synthetic fixtures hold (a conforming atom silent; a loose "
+              "family, a wrong parent, a wrong order, an unplaced heading first, a "
+              "missing required heading, a retired name and a plural variant fire) \u2713")
 
     caps_problems: list[str] = []
     check_caps_synthetic(caps_problems)

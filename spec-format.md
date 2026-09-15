@@ -273,7 +273,24 @@ A spec's headings are its structure. Each heading is an element and its level is
 | Ledger | 2 | | yes | no |
 | Decisions | 2 | | yes | no |
 
-The rule families the corpus files as edge cases — `Atomic writes`, `Clock dependence`, `Clock semantics`, `Concurrency`, `Indeterminate outcome`, `String policy` — are rows under `Edge cases` in both shapes, so one family has one address whichever shape carries it; a prose edge case is an unplaced heading after them. A heading that names the same thing as a row takes the row's name: *Record checks* is `Conformance checks`, *Configuration* knobs the deployment must set are `Capability requirement`, *Wiring decision* is `Wiring decision`.
+The rule families the corpus files as edge cases — `Atomic writes`, `Clock dependence`, `Clock semantics`, `Concurrency`, `Indeterminate outcome`, `String policy` — are rows under `Edge cases` in both shapes, so one family has one address whichever shape carries it; a prose edge case is an unplaced heading after them. A heading that names the same thing as a row takes the row's name.
+
+### Retired heading names
+
+A name below is the row's name under an older spelling or an older shape. A migrated spec that carries one carries a second name for one thing, and `H-heading` reports it; so does a heading that differs from a row's name only by a plural. The list grows when a ruling renames a heading, and a synonym nobody has ruled on is a reader's finding, not the instrument's.
+
+| Retired name | Row |
+|---|---|
+| Capability requirements | Capability requirement |
+| Configuration | Capability requirement |
+| Instance capability requirement | Capability requirement |
+| Instance capability requirements | Capability requirement |
+| Primitive policies | Primitive policy |
+| Record checks | Conformance checks |
+| The load-bearing wiring decision | Wiring decision |
+| String input policy | String policy |
+| Indeterminate outcomes | Indeterminate outcome |
+| Standards | Standards references |
 
 ---
 

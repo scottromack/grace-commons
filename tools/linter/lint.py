@@ -2486,6 +2486,29 @@ def heading_standard(spec_format_text: str) -> dict[str, list[dict]]:
     return out
 
 
+def retired_heading_names(spec_format_text: str) -> dict[str, str]:
+    """spec-format.md §Retired heading names: retired name -> the row it became."""
+    start = spec_format_text.find("### Retired heading names\n")
+    if start < 0:
+        raise SystemExit("lint.py: spec-format.md carries no `### Retired heading names` "
+                         "table (H-heading)")
+    out: dict[str, str] = {}
+    for line in spec_format_text[start:].split("\n")[1:]:
+        if line.startswith("#") or line.strip() == "---":
+            break
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) == 2 and cells[0] not in ("Retired name", "") and set(cells[0]) - set("-"):
+            out[cells[0]] = cells[1]
+    return out
+
+
+def _singular(name: str) -> str:
+    words = name.split()
+    if words and len(words[-1]) > 3 and words[-1].endswith("s") and not words[-1].endswith("ss"):
+        words[-1] = words[-1][:-1]
+    return " ".join(words).casefold()
+
+
 def _collation_key(name: str) -> str:
     """Case-insensitive, punctuation ignored, a space before any letter."""
     return "".join(ch for ch in name.casefold() if ch.isalnum() or ch == " ")
@@ -2518,7 +2541,9 @@ def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
     promoted families to it, and nothing read either — which is how Idempotent
     Reservation's `Housekeeping` sat second for a day and how `Clock semantics`
     came to live at two depths (council read 80)."""
-    tables = heading_standard((root / "spec-format.md").read_text(encoding="utf-8"))
+    sf_text = (root / "spec-format.md").read_text(encoding="utf-8")
+    tables = heading_standard(sf_text)
+    retired = retired_heading_names(sf_text)
     findings: list[Finding] = []
     for p in patterns.values():
         if not re.search(r"^Terms › `qualifiers`:.*\bmigrated\b", p.text, re.M):
@@ -2537,7 +2562,15 @@ def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
         last_top = -1
         last_child: tuple[int, str] = (-1, "")
         present: set[tuple[str, str]] = set()
+        row_by_singular = {_singular(r["name"]): r["name"] for r in rows}
         for level, name, line in _heading_tree(p.text):
+            bare = name.split(" — ")[0].strip()
+            synonym = retired.get(bare)
+            if synonym is None and bare not in by_name:
+                synonym = row_by_singular.get(_singular(bare))
+            if synonym is not None:
+                add(line, f"`{'#' * level} {name}` is a second name for `{synonym}`; the "
+                          f"heading takes the row's name (spec-format.md §Retired heading names)")
             if level == 2:
                 row = by_name.get(name)
                 if row is None or row["level"] != 2:
