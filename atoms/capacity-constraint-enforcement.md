@@ -81,6 +81,64 @@ Units are fungible at this grain, and that is the whole reason the atom stays sm
 
 Identity 13 and Identity 14 are the create-only discipline: an injected id that collides with a live pool surfaces as [Storage Failure] with nothing written, because the overwrite reading would destroy a pool's whole arithmetic history. Event-id uniqueness has no such guard and rests wholly on the generator the deployment declares (Identity 15–17, Invariant 13.2).
 
+### State
+
+```text
+State 1: EVERY pool MUST stand in EXACTLY ONE OF open, suspended, closed.
+State 2: EVERY pool MUST carry pool_id, capacity, allocated, a pool state, declared_at, declaring_actor_ref and declaration_reason.
+State 3: EVERY pool MUST carry an audit log.
+State 4: A pool MUST NOT carry available.
+State 5: The atom MUST NOT offer a transition out of closed.
+State 6: The atom MUST NOT offer a drained state.
+State 7: The atom MUST NOT remove a pool from the store.
+State 8: The atom MUST NOT remove an audit event from a pool's audit log.
+State 9: The atom MUST NOT re-order a pool's audit log.
+State 10: The atom MUST NOT insert an audit event BEFORE a prior audit event.
+State 11: The atom MUST order a pool's audit log by insertion.
+State 12: A reader MUST read a pool's audit log by insertion order.
+State 13: A reader MUST NOT read a pool's audit log by recorded_at order.
+State 14: EVERY audit event MUST carry an event id, the pool_id, an event class and a recorded_at.
+State 15: EVERY allocation event MUST carry count, allocated_before, allocated_after and allocating_actor_ref.
+State 16: EVERY release event MUST carry count, allocated_before, allocated_after and releasing_actor_ref.
+State 17: EVERY adjustment event MUST carry prior_capacity, new_capacity, adjusting_actor_ref and a reason.
+State 18: EVERY state-change event MUST carry prior_state, new_state, acting_actor_ref and a reason.
+State 19: The atom MUST NOT change a declaration field.
+State 20: The atom MUST NOT change an audit event's audit-identifier surface.
+State 21: The atom MUST NOT hold a per-allocation lifecycle.
+State 22: The atom MUST NOT hold a cross-pool bound.
+State 23: The atom MUST NOT interpret a unit.
+```
+
+Terms › `declaration field`: `pool_id` | `declared_at` | `declaring_actor_ref` | `declaration_reason` — set at [Declare Pool] and never changed.
+
+Terms › `allocated_before`: the running total an audit event found — an [Allocated Before].
+
+Terms › `allocated_after`: the running total an audit event left — an [Allocated After]; the requested total on an allocation event, the released total on a release event.
+
+Terms › `recorded_at`: the instant an audit event was written — a [Recorded At]; stamped from the injected now, and advisory rather than authoritative for order.
+
+Terms › `audit-identifier surface`: an audit event's event id, `pool_id`, event class, arithmetic fields, state fields and `recorded_at` — everything the atom never rewrites and the arithmetic chain rests on.
+
+Terms › `attribution surface`: an audit event's actor reference and reason — what makes a record personally identifying, and what a composed erasure mechanism may scrub.
+
+WHY:
+Drained is not a state, and that is the sharpest boundary in the atom. `allocated` reaching `capacity` is a number reaching another number: observable through [Query], enforced by the allocate guard, and derivable at any moment. A state, by contrast, is something an actor decided — suspend, resume, close. Promoting an arithmetic condition to a state would put a policy name on a computation and invite a transition nobody performs (State 6).
+
+Order is insertion order, not timestamp order. `recorded_at` comes from the seam's clock and under skew it is not monotonic, so every *after*, *between* and *most recent* in this spec means by insertion (State 11–13). A deployment that needs order bound to verifiable wall time composes a trusted-timestamping pattern; without it, timestamps are metadata and insertion is the truth.
+
+An adjustment event names [Prior Capacity] against [New Capacity]; a state-change event names [Prior State] against [New State]; an allocation or release event names [Allocated Before] against [Allocated After] with the [Count] between them. Each is a before and an after on one row, which is what lets an auditor clear the bound at a single event.
+
+An audit event has two surfaces with different lifetimes, and the split is structural. The audit-identifier surface is what makes the arithmetic chain verifiable from records alone, and no action of this atom rewrites it. The attribution surface — [Allocating Actor Ref] and [Releasing Actor Ref] on the arithmetic events, [Adjusting Actor Ref] and [Acting Actor Ref] with a [Reason] on the others — is what makes the record identify a person, and a deployment that encodes personal data there may have to erase it under GDPR (EU General Data Protection Regulation) Article 17 — through its own declared shredding-class mechanism, gated by a composed [Retention Window](./retention-window.md), which declares *when* a lifetime ends and carries no field-level scrub surface of its own. After such an erasure the records still verify the arithmetic and no longer name the actor, which is exactly the property the split exists to give (State 20, Invariant 8.1–8.4).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
 ### Operations
 
 ```
@@ -226,55 +284,6 @@ The three arithmetic guards are the atom, and all three are comparisons the gram
 Nothing clamps. A downward adjustment below the running total is refused rather than fitted, and a release beyond the total is refused rather than floored — because clamping would keep the invariant true while destroying the caller's ability to learn it was about to be broken. Freeing units to fit a smaller bound is a policy decision the caller makes explicitly, with [Release] calls, before adjusting again (Operation 37, Operation 38).
 
 [Query] is fail-stop and declares no storage-failure arm: its one rejection is semantic, and a store that cannot be read yields no conforming outcome rather than a stale snapshot, so any answer a caller holds is a complete one (Operation 55, Operation 56).
-
-### State
-
-```text
-State 1: EVERY pool MUST stand in EXACTLY ONE OF open, suspended, closed.
-State 2: EVERY pool MUST carry pool_id, capacity, allocated, a pool state, declared_at, declaring_actor_ref and declaration_reason.
-State 3: EVERY pool MUST carry an audit log.
-State 4: A pool MUST NOT carry available.
-State 5: The atom MUST NOT offer a transition out of closed.
-State 6: The atom MUST NOT offer a drained state.
-State 7: The atom MUST NOT remove a pool from the store.
-State 8: The atom MUST NOT remove an audit event from a pool's audit log.
-State 9: The atom MUST NOT re-order a pool's audit log.
-State 10: The atom MUST NOT insert an audit event BEFORE a prior audit event.
-State 11: The atom MUST order a pool's audit log by insertion.
-State 12: A reader MUST read a pool's audit log by insertion order.
-State 13: A reader MUST NOT read a pool's audit log by recorded_at order.
-State 14: EVERY audit event MUST carry an event id, the pool_id, an event class and a recorded_at.
-State 15: EVERY allocation event MUST carry count, allocated_before, allocated_after and allocating_actor_ref.
-State 16: EVERY release event MUST carry count, allocated_before, allocated_after and releasing_actor_ref.
-State 17: EVERY adjustment event MUST carry prior_capacity, new_capacity, adjusting_actor_ref and a reason.
-State 18: EVERY state-change event MUST carry prior_state, new_state, acting_actor_ref and a reason.
-State 19: The atom MUST NOT change a declaration field.
-State 20: The atom MUST NOT change an audit event's audit-identifier surface.
-State 21: The atom MUST NOT hold a per-allocation lifecycle.
-State 22: The atom MUST NOT hold a cross-pool bound.
-State 23: The atom MUST NOT interpret a unit.
-```
-
-Terms › `declaration field`: `pool_id` | `declared_at` | `declaring_actor_ref` | `declaration_reason` — set at [Declare Pool] and never changed.
-
-Terms › `allocated_before`: the running total an audit event found — an [Allocated Before].
-
-Terms › `allocated_after`: the running total an audit event left — an [Allocated After]; the requested total on an allocation event, the released total on a release event.
-
-Terms › `recorded_at`: the instant an audit event was written — a [Recorded At]; stamped from the injected now, and advisory rather than authoritative for order.
-
-Terms › `audit-identifier surface`: an audit event's event id, `pool_id`, event class, arithmetic fields, state fields and `recorded_at` — everything the atom never rewrites and the arithmetic chain rests on.
-
-Terms › `attribution surface`: an audit event's actor reference and reason — what makes a record personally identifying, and what a composed erasure mechanism may scrub.
-
-WHY:
-Drained is not a state, and that is the sharpest boundary in the atom. `allocated` reaching `capacity` is a number reaching another number: observable through [Query], enforced by the allocate guard, and derivable at any moment. A state, by contrast, is something an actor decided — suspend, resume, close. Promoting an arithmetic condition to a state would put a policy name on a computation and invite a transition nobody performs (State 6).
-
-Order is insertion order, not timestamp order. `recorded_at` comes from the seam's clock and under skew it is not monotonic, so every *after*, *between* and *most recent* in this spec means by insertion (State 11–13). A deployment that needs order bound to verifiable wall time composes a trusted-timestamping pattern; without it, timestamps are metadata and insertion is the truth.
-
-An adjustment event names [Prior Capacity] against [New Capacity]; a state-change event names [Prior State] against [New State]; an allocation or release event names [Allocated Before] against [Allocated After] with the [Count] between them. Each is a before and an after on one row, which is what lets an auditor clear the bound at a single event.
-
-An audit event has two surfaces with different lifetimes, and the split is structural. The audit-identifier surface is what makes the arithmetic chain verifiable from records alone, and no action of this atom rewrites it. The attribution surface — [Allocating Actor Ref] and [Releasing Actor Ref] on the arithmetic events, [Adjusting Actor Ref] and [Acting Actor Ref] with a [Reason] on the others — is what makes the record identify a person, and a deployment that encodes personal data there may have to erase it under GDPR (EU General Data Protection Regulation) Article 17 — through its own declared shredding-class mechanism, gated by a composed [Retention Window](./retention-window.md), which declares *when* a lifetime ends and carries no field-level scrub surface of its own. After such an erasure the records still verify the arithmetic and no longer name the actor, which is exactly the property the split exists to give (State 20, Invariant 8.1–8.4).
 
 ### Invariants
 
@@ -444,15 +453,6 @@ Check 3.1 and Check 3.2 are per-event and that is the point of carrying before-a
 
 The three External checks name what this store cannot answer. Refused calls leave no trace here at all; per-unit history is a different grain; an actor reference is the caller's claim until something attests it.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -495,6 +495,43 @@ Where the atom breaks down is worth naming. When the resource is not fungible at
 
 ## Edge cases
 
+### Clock dependence
+
+```text
+Clock dependence 1: A guard MUST NOT read now.
+Clock dependence 2: A rejection MUST NOT rest on now.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
+
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's timezone handling.
+Clock semantics 3: The deployment MUST supply an honest now.
+NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
+NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
+Clock semantics 6: A deployment needing verifiable wall-time order MUST compose a trusted-timestamping pattern.
+```
+
+WHY:
+The clock has exactly one job here — stamping `declared_at` and each event's `recorded_at` — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock dependence 1, Clock semantics 5).
+
+### Concurrency
+
+```text
+Concurrency 1: The host MUST serialize concurrent calls on one pool_id.
+Concurrency 2: The implementation MUST make the arithmetic guard and the write one transition.
+Concurrency 3: A store enforcing a compare-and-set on allocated MAY discharge Concurrency 2.
+Concurrency 4: The atom MUST NOT order two contending calls fairly.
+Concurrency 5: The atom MUST NOT offer a multi-action transaction.
+```
+
+WHY:
+The guard reads `allocated` and the write changes it; two concurrent allocates against one unit of headroom both read *room* and both write, and Invariant 4.1 — the reason this atom exists — breaks by the very sequence it forbids. Check-then-act, and the fix is the implementation's: one transition, or a compare-and-set that does the same work (Concurrency 2, Concurrency 3).
+
 ### String policy
 
 ```text
@@ -527,29 +564,6 @@ String 6 to String 8 are audit-surface rules wearing validation clothes. A reaso
 
 The cap's *value* is the deployment's; its *existence* is the contract. An uncapped opaque field on an append-only log is an unbounded payload sink (String 3, String 4).
 
-### Concurrency
-
-```text
-Concurrency 1: The host MUST serialize concurrent calls on one pool_id.
-Concurrency 2: The implementation MUST make the arithmetic guard and the write one transition.
-Concurrency 3: A store enforcing a compare-and-set on allocated MAY discharge Concurrency 2.
-Concurrency 4: The atom MUST NOT order two contending calls fairly.
-Concurrency 5: The atom MUST NOT offer a multi-action transaction.
-```
-
-WHY:
-The guard reads `allocated` and the write changes it; two concurrent allocates against one unit of headroom both read *room* and both write, and Invariant 4.1 — the reason this atom exists — breaks by the very sequence it forbids. Check-then-act, and the fix is the implementation's: one transition, or a compare-and-set that does the same work (Concurrency 2, Concurrency 3).
-
-### Crash atomicity
-
-```text
-Crash atomicity 1: The host MUST commit an action's pool change and the action's audit event in one operation.
-Crash atomicity 2: A crash inside a writing action MUST NOT leave an audit event without the matching pool change.
-Crash atomicity 3: A crash inside a writing action MUST NOT leave a pool change without the matching audit event.
-Crash atomicity 5: A crash inside [Declare Pool] MUST NOT leave a pool the declaration did not finish.
-Crash atomicity 4: A recovered store MUST NOT stand in a violation of Invariant 4.1.
-```
-
 ### Arithmetic
 
 ```text
@@ -561,19 +575,15 @@ Arithmetic 3: IF the requested total EXCEEDS the integer width THEN the deployme
 WHY:
 Invariant 4.1 rests on the sum being computable. A deployment on fixed-width signed integers that admits a requested total past the width produces a wrapped value that satisfies the guard and breaks the bound — the one way this atom's central invariant fails while every precondition reads as holding.
 
-### Clock semantics
+### Crash atomicity
 
 ```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: The deployment MUST supply an honest now.
-NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
-NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
-Clock semantics 6: A deployment needing verifiable wall-time order MUST compose a trusted-timestamping pattern.
+Crash atomicity 1: The host MUST commit an action's pool change and the action's audit event in one operation.
+Crash atomicity 2: A crash inside a writing action MUST NOT leave an audit event without the matching pool change.
+Crash atomicity 3: A crash inside a writing action MUST NOT leave a pool change without the matching audit event.
+Crash atomicity 5: A crash inside [Declare Pool] MUST NOT leave a pool the declaration did not finish.
+Crash atomicity 4: A recovered store MUST NOT stand in a violation of Invariant 4.1.
 ```
-
-WHY:
-The clock has exactly one job here — stamping `declared_at` and each event's `recorded_at` — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock dependence 1, Clock semantics 5).
 
 ## Composition notes
 
@@ -596,16 +606,6 @@ WHY:
 ## Terms
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
-
-### Clock dependence
-
-```text
-Clock dependence 1: A guard MUST NOT read now.
-Clock dependence 2: A rejection MUST NOT rest on now.
-```
-
-WHY:
-Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
 
 ### Vocabulary
 

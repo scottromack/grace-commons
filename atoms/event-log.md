@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Event Log is an append-only record. Anything written to it stays, in the order it arrived, unchanged, for as long as the log exists. It is the foundation that audit trails, undo histories, activity feeds, transaction journals, and replay systems are all built on. It offers just two operations. One adds an event to the end and returns an identifier for it; the other reads events back in order. There is no way to edit or delete, by design. Every event gets a strictly increasing sequence number that fixes its place in line. That number is kept separate from the human-readable timestamp on purpose: clocks can drift or jump, but the sequence number never does, so the log can always be replayed faithfully even on a machine with a bad clock. The log itself takes no position on how long to keep events, how to prove they have not been tampered with, who wrote them, or how to search them. All of these are handled by separate patterns layered on top, which is why the same simple log can sit under a personal task history, a medical chart, a bank ledger, and a regulated audit trail.
@@ -89,6 +88,15 @@ Terms › `event field`: `event_id` | `sequence_number` | `recorded_at` | `data`
 
 WHY:
 A volatile instance that restarts `next_sequence_number` at one has broken Invariant 4 for the life of the instance while every individual append looks correct — which is why durability of that one datum is stated here and not left to a deployment note (State 7). There is no delete and no edit, and their absence is a rule rather than an omission, because *the log only grows* is the property every composing pattern rests on (State 8, State 9).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -258,15 +266,6 @@ WHY:
 
 The external set is where the real limit sits, and it is larger than a reader expects from a log. **Append-only is not tamper-evidence.** Every check above passes over a log an adversary with store access rewrote, because the atom compares the log against itself; detecting that the store was rewritten is [Tamper Evidence](./tamper-evidence.md)'s and is named here rather than implied. The same holds for who wrote an event and for whether the instance survived a restart at all — `External check 1` is the one a deployment loses silently, since a volatile instance satisfies every conformance check above and loses the journal the composing patterns replay.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -307,6 +306,17 @@ Durability 4: A composing pattern MUST declare the log instance's durability as 
 WHY:
 Append-only and event immutability are best-effort across a crash unless the implementation supplies durability, and a composition whose rebuilds and scans assume the log survived a restart is resting on something no constituent promised — the obligation is declared, in the composition, or it is assumed (Durability 4; Audit Trail's open line of 2026-08-30).
 
+### Erasure where law requires it
+
+```text
+Erasure 1: The atom MUST NOT erase an event.
+Erasure 2: A deployment under an erasure obligation MUST compose an erasure pattern.
+Erasure 3: A deployment under an erasure obligation MUST NOT read this atom as satisfying the obligation.
+```
+
+WHY:
+*Append corrections, never edit history* is the architecture, and it is the one place law overrides architecture: GDPR (EU General Data Protection Regulation) Article 17 and some healthcare regimes require true deletion of recorded content. The answer is a composing pattern designed with counsel — Erasure Tombstone or cryptographic shredding *(forthcoming)* — never a quiet edit to the log.
+
 ### Sequence-number gaps on storage failure
 
 ```text
@@ -318,17 +328,6 @@ Sequence gap 4: An implementation avoiding a gap MUST take EXACTLY ONE OF alloca
 
 WHY:
 Invariant 4 holds over landed events, so a gap violates nothing — but a consumer counting rows against sequence numbers reads the gap as a missing event and files a finding against a log that is correct (Sequence gap 3).
-
-### Erasure where law requires it
-
-```text
-Erasure 1: The atom MUST NOT erase an event.
-Erasure 2: A deployment under an erasure obligation MUST compose an erasure pattern.
-Erasure 3: A deployment under an erasure obligation MUST NOT read this atom as satisfying the obligation.
-```
-
-WHY:
-*Append corrections, never edit history* is the architecture, and it is the one place law overrides architecture: GDPR (EU General Data Protection Regulation) Article 17 and some healthcare regimes require true deletion of recorded content. The answer is a composing pattern designed with counsel — Erasure Tombstone or cryptographic shredding *(forthcoming)* — never a quiet edit to the log.
 
 ## Composition notes
 

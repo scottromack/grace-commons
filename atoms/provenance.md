@@ -84,6 +84,44 @@ Identity by artifact would be the natural-looking choice and it destroys the thi
 
 Custodian equality is byte-exact: `Lab-7` and `lab-7` are two custodians here. Continuity rests on that comparison being mechanical, so canonicalization belongs to the deployment before the call (Identity 11, Identity 12, Invariant 4.2).
 
+### State
+
+```text
+State 1: EVERY chain MUST stand in EXACTLY ONE OF open, archived.
+State 2: EVERY chain MUST carry chain_id, artifact_ref, a chain state, a current custodian and next_sequence_number.
+State 3: EVERY entry MUST carry entry_id, sequence_number, event_type and recorded_at.
+State 4: EVERY non-transferred entry MUST carry a custodian_ref.
+State 5: A transferred entry MUST NOT carry a custodian_ref.
+State 6: EVERY transferred entry MUST carry from_custodian_ref and to_custodian_ref.
+State 7: EVERY transformed entry MUST carry a transformation_descriptor.
+State 8: EVERY disclosed entry MUST carry a recipient_ref.
+State 9: A genesis entry MAY carry metadata.
+State 10: An entry MUST NOT carry a stored genesis_type.
+State 11: The atom MUST NOT offer a transition out of archived.
+State 12: The atom MUST NOT offer an action that empties the current custodian.
+State 13: The atom MUST NOT offer an action that stands two custodians current.
+State 14: The atom MUST NOT offer an action beside [Transfer] that moves the current custodian.
+State 15: The atom MUST NOT offer a removal surface.
+State 16: The atom MUST NOT offer a reorder surface.
+State 17: The atom MUST NOT offer an edit surface.
+State 18: The entry chain MUST govern where the cached current custodian disagrees with a replay.
+State 19: next_sequence_number MUST survive a restart.
+```
+
+WHY:
+The current custodian is a projection, not a fact of its own: replay the entries in sequence order and the value falls out. It is cached as chain state so a guard need not walk the chain, and the cache is never the authority — a disagreement between cache and replay is resolved by the replay and is itself a conformance failure (State 17, Check 3.2). No invariant here rests on the cache being right; every one is stated over the entries.
+
+`next_sequence_number` is persistent state and the one piece of this atom that a volatile implementation silently breaks. A counter that resets on restart reuses numbers, and the dense sequence — the thing that distinguishes this chain from a gap-permitting stream — is gone without any single action having misbehaved (State 18, Invariant 5.2).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
 ### Operations
 
 ```
@@ -222,35 +260,6 @@ Rejection precedence lives in the guards rather than in a note. Existence comes 
 
 [Transfer] carries no custodian guard, and the asymmetry is designed. The other three guards are *attribution* constraints — they stop an entry claiming a custodian who is not current. On a transfer the same constraint holds more strongly and by construction, because the from-side is never claimed at all: it is read from the chain (Operation 18, Operation 19, Operation 22). Adding a caller-supplied check would buy nothing structural — an opaque reference is a label, not a credential, exactly as forgeable as on the other three — and would block the receive-side and system-mediated recording of a hand-off that real deployments need.
 
-### State
-
-```text
-State 1: EVERY chain MUST stand in EXACTLY ONE OF open, archived.
-State 2: EVERY chain MUST carry chain_id, artifact_ref, a chain state, a current custodian and next_sequence_number.
-State 3: EVERY entry MUST carry entry_id, sequence_number, event_type and recorded_at.
-State 4: EVERY non-transferred entry MUST carry a custodian_ref.
-State 5: A transferred entry MUST NOT carry a custodian_ref.
-State 6: EVERY transferred entry MUST carry from_custodian_ref and to_custodian_ref.
-State 7: EVERY transformed entry MUST carry a transformation_descriptor.
-State 8: EVERY disclosed entry MUST carry a recipient_ref.
-State 9: A genesis entry MAY carry metadata.
-State 10: An entry MUST NOT carry a stored genesis_type.
-State 11: The atom MUST NOT offer a transition out of archived.
-State 12: The atom MUST NOT offer an action that empties the current custodian.
-State 13: The atom MUST NOT offer an action that stands two custodians current.
-State 14: The atom MUST NOT offer an action beside [Transfer] that moves the current custodian.
-State 15: The atom MUST NOT offer a removal surface.
-State 16: The atom MUST NOT offer a reorder surface.
-State 17: The atom MUST NOT offer an edit surface.
-State 18: The entry chain MUST govern where the cached current custodian disagrees with a replay.
-State 19: next_sequence_number MUST survive a restart.
-```
-
-WHY:
-The current custodian is a projection, not a fact of its own: replay the entries in sequence order and the value falls out. It is cached as chain state so a guard need not walk the chain, and the cache is never the authority — a disagreement between cache and replay is resolved by the replay and is itself a conformance failure (State 17, Check 3.2). No invariant here rests on the cache being right; every one is stated over the entries.
-
-`next_sequence_number` is persistent state and the one piece of this atom that a volatile implementation silently breaks. A counter that resets on restart reuses numbers, and the dense sequence — the thing that distinguishes this chain from a gap-permitting stream — is gone without any single action having misbehaved (State 18, Invariant 5.2).
-
 ### Invariants
 
 - **Invariant 1 — Entry immutability.**
@@ -305,6 +314,7 @@ The current custodian is a projection, not a fact of its own: replay the entries
   Invariant 9.2: A storage-failure rejection MUST leave no partial record in the store.
   ```
   WHY: scoped to the atom's own surface. Lawful disposal under a composed [Retention Window](./retention-window.md) or [Defensible Retention](../compositions/defensible-retention.md) is that pattern's declared and recorded act (Non-goal 19, Non-goal 20).
+
 ---
 
 ## Examples
@@ -382,17 +392,6 @@ Check 3.1 is the replay the atom's own guards apply, run offline. It needs the e
 
 Check 5.1 rests on `sequence_number` rather than `recorded_at` deliberately: a best-effort wall-time annotation later than the archive stamp is a clock artifact, not a broken chain (Operation 58).
 
----
-
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -433,6 +432,61 @@ Non-goal 21 follows from the identity model: `artifact_ref` is opaque and non-un
 
 ## Edge cases
 
+### Atomic writes
+
+```text
+Atomic writes 1: A reader MUST NOT observe an entry without the entry's next_sequence_number raise.
+Atomic writes 2: A reader MUST NOT observe a transferred entry without the entry's current custodian change.
+Atomic writes 3: A reader MUST NOT observe an archived entry without the chain's move to archived.
+Atomic writes 4: An uncommitted crash MUST leave the chain as the call found the chain.
+Atomic writes 5: The implementation MUST resolve a dangling transition.
+Atomic writes 6: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
+Atomic writes 7: The store MUST NOT accept an action BEFORE the implementation resolves the dangling transition.
+```
+
+Terms › `uncommitted crash`: a crash BEFORE an appending action's commit lands.
+
+Terms › `dangling transition`: an appending action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
+
+WHY:
+Every append couples at least two durable mutations — the entry and the counter raise — and [Transfer] and [Archive] carry a third (Operation 36–38). The obligation is an observability guarantee, all-or-none: a partly applied append is not a transient condition an implementation may expose and repair later; it must never be servable. A [Storage Failure] answer carries the same guarantee from the caller's side (Operation 41, Invariant 9.2).
+
+### Clock dependence
+
+```text
+Clock dependence 1: A rejection MUST NOT rest on now.
+Clock dependence 2: A guard MUST NOT read now.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
+
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's honesty.
+Clock semantics 3: The deployment MUST own the clock's synchronization.
+Clock semantics 4: A guard MUST NOT rest on recorded_at.
+NOTE: Clock semantics 5 deleted — Clock dependence 1 owns it.
+Clock semantics 6: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+```
+
+WHY:
+No invariant here is at risk from a bad clock, because ordering rests on `sequence_number` and never on `recorded_at` (Invariant 5.3, Operation 58). Where a custodial timestamp carries legal force — a chain-of-custody stamp in court proceedings, a pharmaceutical distribution record — the deployment sources time from a trustworthy clock, and RFC (Request for Comments) 3161 trusted timestamping supplies the verifiable anchor (Clock semantics 6).
+
+### Concurrency
+
+```text
+Concurrency 1: The implementation MUST serialize two calls against one chain.
+Concurrency 2: EVERY serialized transfer against one open chain MUST append.
+Concurrency 3: The second serialized transfer MUST read from_custodian_ref from the current custodian the first transfer set.
+Concurrency 4: A host needing a transfer conditional on the current custodian MUST serialize the host's own calls.
+```
+
+WHY:
+[Transfer] carries no custodian guard by design (Operation 22), so a second concurrent transfer is not rejected — it records a hand-off from the first transfer's recipient onward, and the chain stays hand-to-hand consistent either way (Invariant 4.3). What the atom cannot know is whether the resulting double hop reflects what physically happened; that check belongs to the host. A host that needs *record this hand-off only if the holder is still X* reads first and serializes, or composes an optimistic-concurrency surface (Non-goal 22).
+
 ### String policy
 
 ```text
@@ -459,61 +513,6 @@ WHY:
 The cap's value is a deployment choice; the cap's existence is part of the contract. An uncapped opaque field turns an append-only chain that is never deleted (Invariant 9.1) into an unbounded-payload sink, and a regulated store must be able to state its maximum record size.
 
 A whitespace-only descriptor answers `invalid-descriptor` rather than `invalid-ref` because a descriptor is content, not a reference (Operation 24). An opaque transformation that cannot be described at all is a gap in the chain's story, not a transformation entry.
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's honesty.
-Clock semantics 3: The deployment MUST own the clock's synchronization.
-Clock semantics 4: A guard MUST NOT rest on recorded_at.
-NOTE: Clock semantics 5 deleted — Clock dependence 1 owns it.
-Clock semantics 6: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
-```
-
-WHY:
-No invariant here is at risk from a bad clock, because ordering rests on `sequence_number` and never on `recorded_at` (Invariant 5.3, Operation 58). Where a custodial timestamp carries legal force — a chain-of-custody stamp in court proceedings, a pharmaceutical distribution record — the deployment sources time from a trustworthy clock, and RFC (Request for Comments) 3161 trusted timestamping supplies the verifiable anchor (Clock semantics 6).
-
-### Clock dependence
-
-```text
-Clock dependence 1: A rejection MUST NOT rest on now.
-Clock dependence 2: A guard MUST NOT read now.
-```
-
-WHY:
-Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
-
-### Concurrency
-
-```text
-Concurrency 1: The implementation MUST serialize two calls against one chain.
-Concurrency 2: EVERY serialized transfer against one open chain MUST append.
-Concurrency 3: The second serialized transfer MUST read from_custodian_ref from the current custodian the first transfer set.
-Concurrency 4: A host needing a transfer conditional on the current custodian MUST serialize the host's own calls.
-```
-
-WHY:
-[Transfer] carries no custodian guard by design (Operation 22), so a second concurrent transfer is not rejected — it records a hand-off from the first transfer's recipient onward, and the chain stays hand-to-hand consistent either way (Invariant 4.3). What the atom cannot know is whether the resulting double hop reflects what physically happened; that check belongs to the host. A host that needs *record this hand-off only if the holder is still X* reads first and serializes, or composes an optimistic-concurrency surface (Non-goal 22).
-
-### Atomic writes
-
-```text
-Atomic writes 1: A reader MUST NOT observe an entry without the entry's next_sequence_number raise.
-Atomic writes 2: A reader MUST NOT observe a transferred entry without the entry's current custodian change.
-Atomic writes 3: A reader MUST NOT observe an archived entry without the chain's move to archived.
-Atomic writes 4: An uncommitted crash MUST leave the chain as the call found the chain.
-Atomic writes 5: The implementation MUST resolve a dangling transition.
-Atomic writes 6: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
-Atomic writes 7: The store MUST NOT accept an action BEFORE the implementation resolves the dangling transition.
-```
-
-Terms › `uncommitted crash`: a crash BEFORE an appending action's commit lands.
-
-Terms › `dangling transition`: an appending action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
-
-WHY:
-Every append couples at least two durable mutations — the entry and the counter raise — and [Transfer] and [Archive] carry a third (Operation 36–38). The obligation is an observability guarantee, all-or-none: a partly applied append is not a transient condition an implementation may expose and repair later; it must never be servable. A [Storage Failure] answer carries the same guarantee from the caller's side (Operation 41, Invariant 9.2).
 
 ### Correction by append
 
@@ -550,6 +549,7 @@ WHY:
 [Selective Disclosure](./selective-disclosure.md) is the partner that makes [Disclose] complete: this atom marks where on the custody timeline a disclosure occurred and to whom, and Selective Disclosure records what scope was shared under what authority. Neither duplicates the other (Composition note 6, Non-goal 5–7).
 
 ---
+
 ## Terms
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.

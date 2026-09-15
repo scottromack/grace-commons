@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Notification records whether a single piece of information was accepted by the transport for a single recipient. Where Subscription records who wants to know about a class of events, Notification records the outcome of one delivery. It creates a permanent, unchangeable record of a delivery attempt and tracks it to one of three end states: [Delivered] (the transport layer confirmed receipt), [Failed] (the transport returned a definite error), or [Expired] (the delivery window ran out with no recorded outcome). These are kept as three distinct states because each answers a different question and is handled by a different part of the system — the delivery layer, the failure handler, the expiry scheduler. The pattern does not decide who should be notified or how to reach them; by the time it is asked to create a record, the recipient and the content are already settled. Nothing is ever deleted, so the full delivery history of any notification is always recoverable. This is what underlies delivery audit trails in regulated settings, and it is the substrate for retry logic, which records each retry as a new notification rather than altering the failed one.
@@ -59,22 +58,6 @@ Terms › `now`: the wall-time reading the host takes at the seam and hands to t
 WHY:
 One attempt, one record. A retry is a new notification with a new id rather than a second outcome on the old one, which is what keeps *how many times did we try* answerable and stops a terminal record being rewritten (Identity 7, Non-goal 3).
 
-### String input policy
-
-```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only recipient_ref as empty.
-String 6: IF a string input EXCEEDS the string cap THEN [Create] MUST answer invalid-request.
-String 7: The business caller MUST own a recipient_ref's canonical form.
-String 8: [Pending For] MUST read an over-length recipient_ref as matching nothing.
-String 9: [Pending For] MUST read a whitespace-only recipient_ref as matching nothing.
-```
-
-Terms › `string cap`: the deployment's bound on a string input's length.
-
 ### State
 
 ```text
@@ -100,6 +83,15 @@ Terms › `created_at`: the instant the notification was recorded — a [Created
 
 WHY:
 Four states and exactly one terminal stamp each, because the audit question is *what happened to this one*, and a record carrying two terminal stamps answers it twice (State 6, Invariant 3.1). Nothing about transport lives here: a webhook, a push and an email produce the same three outcomes, and an atom that knew the difference would have to be re-specified every time a deployment changed channel (State 11).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -291,15 +283,6 @@ External check 4: An auditor MUST read the transport's own outcome from the depl
 
 NOTE: EVERY check names the rule the check tests. External check 1 is the one that makes cross-deployment audit possible: without the declared policy, one shop's `failed_at` and another's `expired_at` record the same operational event and no reader can tell.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -327,6 +310,30 @@ Where the atom breaks down: when *delivered* is not a single observable event �
 
 ## Edge cases
 
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's timezone handling.
+Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
+```
+
+### String policy
+
+```text
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only recipient_ref as empty.
+String 6: IF a string input EXCEEDS the string cap THEN [Create] MUST answer invalid-request.
+String 7: The business caller MUST own a recipient_ref's canonical form.
+String 8: [Pending For] MUST read an over-length recipient_ref as matching nothing.
+String 9: [Pending For] MUST read a whitespace-only recipient_ref as matching nothing.
+```
+
+Terms › `string cap`: the deployment's bound on a string input's length.
+
 ### Atomicity of a terminal transition
 
 ```text
@@ -338,6 +345,14 @@ Terminal atomicity 4: The implementation MUST serialize two terminal transitions
 
 WHY:
 Half a transition breaks Invariant 4 while every field reads plausibly on its own — and Invariant 4's two directions are exactly what an auditor uses to detect it, which is why the repair is the implementation's transactional boundary rather than a reader's inference (Terminal atomicity 1, Invariant 4.2).
+
+### Bulk expiry
+
+```text
+Bulk expiry 1: A composing pattern MUST enumerate a recipient's pending notifications.
+Bulk expiry 2: A composing pattern MUST call [Expire] for EVERY notification the enumeration returns.
+Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
+```
 
 ### Deliver persistence failure
 
@@ -363,22 +378,6 @@ Payload retention 5: A composing pattern MUST NOT delete a notification record.
 
 WHY:
 Invariant 1.1 forbids a payload changing and Invariant 9.2 forbids the set shrinking, so a composed purge cannot edit the payload or drop the record. What it can do is the shredding-class destruction [Audit Trail](../compositions/audit-trail.md) already wires over its own cascade: the content becomes unrecoverable while every stored field stands as written, which is why the invariants and the retention obligation do not collide (Payload retention 4, Payload retention 5).
-
-### Bulk expiry
-
-```text
-Bulk expiry 1: A composing pattern MUST enumerate a recipient's pending notifications.
-Bulk expiry 2: A composing pattern MUST call [Expire] for EVERY notification the enumeration returns.
-Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
-```
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
-```
 
 ## Composition notes
 
@@ -626,7 +625,6 @@ Projects:  not-pending
 
 ---
 
-
 ## Status
 
 `grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
@@ -640,7 +638,6 @@ last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open: none
 ```
-
 
 ## Decisions
 

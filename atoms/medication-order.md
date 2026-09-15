@@ -15,7 +15,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Medication Order records the whole life of a prescription, from the moment a prescriber places it to its end. The order names the drug, the patient, the [Dose], the [Route], the [Frequency] and the [Duration], then moves through a regulated chain of custody: a pharmacist verifies it before anything is dispensed, a dispenser releases the medication, a nurse or the patient administers it, and the course completes or is stopped — with the actor at every step permanently recorded.
@@ -84,6 +83,53 @@ WHY:
 Identity 11 and Identity 13 are the atom's sharpest refusal, and the one a clinical reader expects to find broken. This spec never reads what a `medication_ref` *means* — not its schedule, not its interactions, not its formulary status — which is why it can be one atom rather than a pharmacopoeia. What it guarantees is that the reference recorded at placement is the reference on every record downstream, and Invariant 2.1 makes changing it structurally impossible rather than merely refused: [Amend] does not take a `medication_ref` at all.
 
 Identity 15 is the store-instance boundary stated as a refusal. Instances exist per health system, facility, department or care team, and an `order_id` means nothing outside the one it was assigned in; a `patient_ref` is the thing that spans them, which is why it is not this atom's identity (Identity 7).
+
+### State
+
+```text
+State 1: EVERY order MUST carry order_id, EVERY core field the call supplied and a state.
+State 2: EVERY verified order MUST carry verifier_ref and verified_at.
+State 3: EVERY dispensed order MUST carry dispenser_ref, quantity and dispensed_at.
+State 4: A dispensed order MAY carry a lot_number.
+State 5: EVERY administered order MUST carry administerer_ref and administered_at.
+State 6: EVERY completed order MUST carry completed_by and completed_at.
+State 7: EVERY cancelled order MUST carry cancelled_by, cancellation_reason and cancelled_at.
+State 8: EVERY discontinued order MUST carry discontinued_by, discontinuation_reason and discontinued_at.
+State 9: EVERY amended order MUST carry a successor_id.
+State 10: EVERY successor order MUST carry predecessor_id, amended_by and amendment_reason.
+State 11: EVERY on-hold order MUST carry prior_state, held_by, hold_reason and held_at.
+State 12: EVERY reinstated order MUST carry reinstated_by and reinstated_at.
+State 13: An order MUST carry EVERY field group a prior transition wrote.
+State 14: The atom MUST NOT offer a purged state.
+State 15: The store instance's order count MUST NOT fall.
+```
+
+WHY:
+State 13 is what makes a completed order legible. Field groups accumulate and never fall away, so a completed order carries its verification, its dispense and its administration alongside its completion, and an on-hold order carries everything the state under the hold had written. A [State] is the only field that moves; every group beneath it accumulates. An auditor reading one record reads the whole chain of custody without joining anything.
+
+State 14 says the absence plainly. There is no purge here and no delete surface at all; retention and eventual destruction are [Retention Window](./retention-window.md)'s and [Legal Hold](./legal-hold.md)'s, and this atom's contract is that it never removes what it wrote (Invariant 14.1).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST supply the id material at the seam.
+Capability requirement 3: The deployment MUST declare the clock_skew_allowance.
+Capability requirement 4: The deployment MUST supply the clock_skew_allowance at the seam.
+Capability requirement 5: The store instance MUST serialize two order actions naming one order_id.
+Capability requirement 6: The store instance MUST NOT evaluate the state check BEFORE taking the section.
+Capability requirement 7: The store instance MUST release the section on the caller's return.
+Capability requirement 8: The store instance MUST release the section on the caller's death.
+Capability requirement 9: The store MUST acknowledge a write ONLY IF the write commits.
+Capability requirement 10: The store MUST commit an admitted amend's two writes together.
+Capability requirement 11: The deployment MUST canonicalize an opaque reference.
+Capability requirement 12: The deployment MUST declare the length bound.
+```
+
+WHY:
+Capability requirement 5 through Capability requirement 8 are the concurrency contract stated as the section it needs, not as an ambient hope. Two systems verifying one order, or a dispense racing a concurrent verification, resolve by serialization rather than by this atom detecting the race — and the section must be *taken before the state check*, because a check evaluated outside it reads a state another caller is already leaving.
+
+Capability requirement 3 and Capability requirement 4 are one value declared and then injected. The future-dated refusal on a supplied `ordered_at` compares a caller's stamp against this node's reading, and those are two clocks; without a declared margin the refusal rests on their agreement, which is not something either side can promise (Decisions, 2026-08-30).
 
 ### Operations
 
@@ -272,31 +318,6 @@ Operation 69 and Operation 70 are the two absences a clinical reader arrives exp
 
 Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the `now` declaration cites it rather than restating it.
 
-### State
-
-```text
-State 1: EVERY order MUST carry order_id, EVERY core field the call supplied and a state.
-State 2: EVERY verified order MUST carry verifier_ref and verified_at.
-State 3: EVERY dispensed order MUST carry dispenser_ref, quantity and dispensed_at.
-State 4: A dispensed order MAY carry a lot_number.
-State 5: EVERY administered order MUST carry administerer_ref and administered_at.
-State 6: EVERY completed order MUST carry completed_by and completed_at.
-State 7: EVERY cancelled order MUST carry cancelled_by, cancellation_reason and cancelled_at.
-State 8: EVERY discontinued order MUST carry discontinued_by, discontinuation_reason and discontinued_at.
-State 9: EVERY amended order MUST carry a successor_id.
-State 10: EVERY successor order MUST carry predecessor_id, amended_by and amendment_reason.
-State 11: EVERY on-hold order MUST carry prior_state, held_by, hold_reason and held_at.
-State 12: EVERY reinstated order MUST carry reinstated_by and reinstated_at.
-State 13: An order MUST carry EVERY field group a prior transition wrote.
-State 14: The atom MUST NOT offer a purged state.
-State 15: The store instance's order count MUST NOT fall.
-```
-
-WHY:
-State 13 is what makes a completed order legible. Field groups accumulate and never fall away, so a completed order carries its verification, its dispense and its administration alongside its completion, and an on-hold order carries everything the state under the hold had written. A [State] is the only field that moves; every group beneath it accumulates. An auditor reading one record reads the whole chain of custody without joining anything.
-
-State 14 says the absence plainly. There is no purge here and no delete surface at all; retention and eventual destruction are [Retention Window](./retention-window.md)'s and [Legal Hold](./legal-hold.md)'s, and this atom's contract is that it never removes what it wrote (Invariant 14.1).
-
 ### Invariants
 
 - **Invariant 1 — Order immutability.**
@@ -454,28 +475,6 @@ External check 4 is the boundary that most looks like this atom's central claim 
 
 External check 5 follows from Identity 13. This atom never reads what a `medication_ref` means, so it cannot know that an order is for a scheduled substance, and every obligation that attaches to one — registration, two-factor prescribing, refill limits, quantity caps — is outside it. An atom that knew would need a pharmacopoeia inside it and would stop being one atom.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the id material at the seam.
-Capability requirement 3: The deployment MUST declare the clock_skew_allowance.
-Capability requirement 4: The deployment MUST supply the clock_skew_allowance at the seam.
-Capability requirement 5: The store instance MUST serialize two order actions naming one order_id.
-Capability requirement 6: The store instance MUST NOT evaluate the state check BEFORE taking the section.
-Capability requirement 7: The store instance MUST release the section on the caller's return.
-Capability requirement 8: The store instance MUST release the section on the caller's death.
-Capability requirement 9: The store MUST acknowledge a write ONLY IF the write commits.
-Capability requirement 10: The store MUST commit an admitted amend's two writes together.
-Capability requirement 11: The deployment MUST canonicalize an opaque reference.
-Capability requirement 12: The deployment MUST declare the length bound.
-```
-
-WHY:
-Capability requirement 5 through Capability requirement 8 are the concurrency contract stated as the section it needs, not as an ambient hope. Two systems verifying one order, or a dispense racing a concurrent verification, resolve by serialization rather than by this atom detecting the race — and the section must be *taken before the state check*, because a check evaluated outside it reads a state another caller is already leaving.
-
-Capability requirement 3 and Capability requirement 4 are one value declared and then injected. The future-dated refusal on a supplied `ordered_at` compares a caller's stamp against this node's reading, and those are two clocks; without a declared margin the refusal rests on their agreement, which is not something either side can promise (Decisions, 2026-08-30).
-
 ---
 
 ## Non-goals
@@ -518,26 +517,18 @@ Non-goal 24 is the honest limit. An open-ended order — one placed with no `dur
 
 ## Edge cases
 
-### String policy
+### Atomic writes
 
 ```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
-String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer a blank-input rejection.
+Atomic writes 1: The implementation MUST commit a transition whole.
+Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
+Atomic writes 3: The implementation MUST own the transactional boundary.
+Atomic writes 4: The implementation MUST commit an admitted amend's two writes in one transaction of the atom's own store.
+Atomic writes 5: A refused amend MUST leave the original in the original's pre-call state.
 ```
 
-Terms › `string input`: a required string input OR a filter value — every caller-supplied string this atom accepts.
-
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
-
-Terms › `length bound`: the maximum length the deployment declares for a `string input`.
-
 WHY:
-Blankness carries more weight here than in most atoms because two whole invariant families rest on it. A whitespace-only `dispenser_ref` would satisfy a naive presence check and leave a dispensing event with nobody's name on it; a whitespace-only `discontinuation_reason` would leave a stopped controlled substance with no stated basis. Invariant 10.1 and Invariant 11.1 are stated over what the *order carries* for that reason — the guarantee has to hold of the record an investigator reads.
+Atomic writes 4 names the store the transaction spans, and the words are load-bearing. [Amend] writes two records — a successor, and the original's transition to amended — and a crash between them leaves one of two shapes. A successor with no back-link can be relinked; an original marked amended whose successor never landed cannot be, because the successor's dosing parameters, `amended_by` and `amendment_reason` exist nowhere in the store to recover, and un-marking the original would rewrite a write-once field. That is why Invariant 14.3 forbids the repair rather than offering it as an alternative.
 
 ### Clock semantics
 
@@ -567,20 +558,7 @@ Concurrency 4: The implementation MUST NOT detect a race outside the section.
 WHY:
 Concurrency 4 states what the atom does *not* do, because the alternative is tempting and wrong. This spec has no race detection, no compare-and-set token, no optimistic retry — it has a section, and a caller who loses one simply reads a state that has moved and receives the rejection that state earns. A stalled or re-issued invocation re-reads under the section and lands an existing rejection rather than a new kind of answer (Decisions, 2026-08-30).
 
-### Atomic writes
-
-```text
-Atomic writes 1: The implementation MUST commit a transition whole.
-Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
-Atomic writes 3: The implementation MUST own the transactional boundary.
-Atomic writes 4: The implementation MUST commit an admitted amend's two writes in one transaction of the atom's own store.
-Atomic writes 5: A refused amend MUST leave the original in the original's pre-call state.
-```
-
-WHY:
-Atomic writes 4 names the store the transaction spans, and the words are load-bearing. [Amend] writes two records — a successor, and the original's transition to amended — and a crash between them leaves one of two shapes. A successor with no back-link can be relinked; an original marked amended whose successor never landed cannot be, because the successor's dosing parameters, `amended_by` and `amendment_reason` exist nowhere in the store to recover, and un-marking the original would rewrite a write-once field. That is why Invariant 14.3 forbids the repair rather than offering it as an alternative.
-
-### Indeterminate outcomes
+### Indeterminate outcome
 
 ```text
 Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the order.
@@ -590,6 +568,27 @@ Indeterminate outcome 3: A caller MUST retry a lost [Amend] ONLY IF the original
 
 WHY:
 Every order action but [Amend] is self-detecting under a lost answer: a second verify against an order that verified answers `not-in-ordered-state`, a second dispense answers `already-dispensed`. [Amend] is the exception and the dangerous one, because on an original still standing in ordered a blind retry succeeds and creates a *second successor* — which Invariant 4.1 forbids the store to hold and which a caller has just caused. Indeterminate outcome 3 is the re-entry arm: read the original first, and retry only where it is still amendable.
+
+### String policy
+
+```text
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer a blank-input rejection.
+```
+
+Terms › `string input`: a required string input OR a filter value — every caller-supplied string this atom accepts.
+
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+
+Terms › `length bound`: the maximum length the deployment declares for a `string input`.
+
+WHY:
+Blankness carries more weight here than in most atoms because two whole invariant families rest on it. A whitespace-only `dispenser_ref` would satisfy a naive presence check and leave a dispensing event with nobody's name on it; a whitespace-only `discontinuation_reason` would leave a stopped controlled substance with no stated basis. Invariant 10.1 and Invariant 11.1 are stated over what the *order carries* for that reason — the guarantee has to hold of the record an investigator reads.
 
 ---
 

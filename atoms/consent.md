@@ -39,26 +39,6 @@ Revocation is a first-class action rather than a state flag, with its own timest
 
 ## Structure
 
-### Store instance model
-
-```text
-Instance 1: The deployment MUST route EVERY call to one store instance.
-Instance 2: Two consent records in one store instance MUST NOT share a consent_id.
-Instance 3: A store_name MUST name one store instance.
-Instance 4: The atom MUST NOT accept a store_name as an argument.
-Instance 5: A consent record MUST NOT carry a store_name.
-```
-
-Terms › `consent record`: one data subject's agreement to one named processing purpose — the record this atom holds.
-
-Terms › `store instance`: one named consent store a call is routed to; `consent_id` uniqueness ranges over one instance.
-
-Terms › `store_name`: the identifier naming one store instance — a [Store Name]; deployment routing, never an argument and never a stored field.
-
-Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the consent_id here.
-
-Terms › `transition`: the atom's evaluation of one call against the consent store, as `execution-contract.md` §Logic confinement declares it.
-
 ### Identity model
 
 ```text
@@ -89,6 +69,65 @@ WHY:
 Identity by subject and purpose would be the natural-looking choice and it is wrong here: the atom deliberately admits several records over one pair, because re-consent after expiry is a new agreement and not an edit of the old one, and a regulator asking *what did this person agree to, and when* needs both rows (Identity 6, Non-goal 12). The id is the only identity anchor.
 
 The id carries a second job the other atoms' ids do not: it is the tiebreak key. Two records granted at the same instant are ordered by id, ascending in [Read] and descending in [Check], so the id must sort as bytes — a ULID (Universally Unique Lexicographically Sortable Identifier), a UUID v7 (version 7 of the Universally Unique Identifier, which is time-ordered), or a zero-padded integer string (Identity 8, Operation 50, Invariant 10.2).
+
+### State
+
+```text
+State 2: A consent record's state MUST rest on granted_at, revoked_at and expires_at against the evaluation instant.
+State 3: EVERY consent record MUST carry consent_id, subject_ref, purpose, granted_by, granted_at and state.
+State 4: A consent record MUST carry an expires_at the [Grant] call supplied.
+State 5: A consent record MUST carry metadata the [Grant] call supplied.
+State 6: A consent record MUST NOT carry an expires_at the [Grant] call omitted.
+State 7: A revoked consent record MUST carry revoked_by, revocation_reason and revoked_at.
+State 8: A granted consent record MUST NOT carry revoked_at.
+State 9: An expired consent record MUST NOT carry revoked_at.
+State 10: A revoked consent record MUST carry EVERY grant field.
+State 11: The atom MUST NOT offer a transition out of revoked.
+State 12: The atom MUST NOT offer a transition out of expired.
+State 13: The atom MUST NOT suppress a processing act.
+State 14: The atom MUST NOT hold a lawful basis outside consent.
+State 15: The atom MUST NOT hold a purpose taxonomy.
+NOTE: State 1 deleted — Invariant 2.1 owns it.
+```
+
+Terms › `state`: `granted` | `revoked` | `expired` — in effect, withdrawn, or run out; a [State], derived per Expiry 1–4 against the evaluation instant.
+
+Terms › `grant field`: `consent_id` | `subject_ref` | `purpose` | `granted_by` | `granted_at` | `expires_at` | `metadata` — what [Grant] writes and Invariant 1.1 freezes.
+
+#### Expiry
+
+```text
+Expiry 1: IF a consent record is withdrawn THEN the consent record MUST stand in revoked.
+Expiry 2: IF a consent record is elapsed THEN the consent record MUST stand in expired.
+Expiry 3: A consent record MUST stand in expired ONLY IF the consent record is not withdrawn.
+Expiry 4: A consent record MUST stand in granted ONLY IF the consent record is not withdrawn AND the consent record is not elapsed.
+Expiry 5: The atom MUST NOT offer an action that stands a consent record in expired.
+Expiry 6: The atom MUST NOT poll for an elapsed consent record.
+Expiry 7: The composing pattern MUST NOT poll for an elapsed consent record.
+```
+
+WHY:
+Expiry is a condition, not an act. Nothing triggers it, nothing polls for it, and there is no `expire` action to call — [Check] derives it from [Expires At] against the instant asked about (Expiry 5, Expiry 6). That is also why revocation wins a tie: a record revoked before its bound elapses is [Revoked], because the earlier terminal event is the one that happened (Expiry 3, Invariant 6.2).
+
+#### Stored state
+
+```text
+Stored state 1: The implementation MAY write the stored state at the instant expires_at elapses.
+Stored state 2: The implementation MAY write the stored state at the first evaluation past expires_at.
+Stored state 3: The implementation MUST NOT answer a granted result for an elapsed consent record.
+Stored state 4: The implementation MUST serialize a lazy stored state write for one consent record.
+```
+
+> **Clearly-marked residual (execution/render-time refactor — 2026-06-21).** The *authoritative* expiry determination is **derived** at read time: [Check] and [Read] both compute the state from [Expires At] and [Revoked At] against the evaluation instant, and [Check] is a pure query that never writes (Operation 36; there is no `expire` action — Expiry 5). The stored [State] field's [Expired] value is therefore a **materialized cache of the derived state, not the authority** — written for query convenience, and required by Invariant 2.2 to equal the derived state at the moment any result is returned. This stored write is the **residual** of this atom against the render-time target, which would carry no stored [Expired] write at all and derive the projection on every read, as Invitation does. It is *clearly marked here* rather than removed: dropping the stored [State] field is a structural change beyond this refactor, the eager/lazy design was introduced deliberately (Final Critique 4, to resolve the semantic-versus-stored contradiction), and because the cache must equal the derived value at read time it cannot serve as a flag that lags the clock in any conforming implementation. A future re-pass may collapse the stored [State] field to a pure read-time projection; that is an open design point, not done here.
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -234,56 +273,6 @@ The two tiebreaks run in opposite directions on purpose. [Check] must select the
 
 Rejection order on [Revoke] is carried by the guards rather than by a numbered priority: a blank `consent_id` is refused before the store is consulted, because a caller that passed garbage did not reference a missing record (Operation 15, Operation 17); the terminal-state answers are mutually exclusive by Invariant 2.1; and the attribution and temporal checks are conditioned on the record standing in [Granted], so a retry against an already-revoked record with a blank reason still answers [Already Revoked] (Operation 22–25).
 
-### State
-
-```text
-State 2: A consent record's state MUST rest on granted_at, revoked_at and expires_at against the evaluation instant.
-State 3: EVERY consent record MUST carry consent_id, subject_ref, purpose, granted_by, granted_at and state.
-State 4: A consent record MUST carry an expires_at the [Grant] call supplied.
-State 5: A consent record MUST carry metadata the [Grant] call supplied.
-State 6: A consent record MUST NOT carry an expires_at the [Grant] call omitted.
-State 7: A revoked consent record MUST carry revoked_by, revocation_reason and revoked_at.
-State 8: A granted consent record MUST NOT carry revoked_at.
-State 9: An expired consent record MUST NOT carry revoked_at.
-State 10: A revoked consent record MUST carry EVERY grant field.
-State 11: The atom MUST NOT offer a transition out of revoked.
-State 12: The atom MUST NOT offer a transition out of expired.
-State 13: The atom MUST NOT suppress a processing act.
-State 14: The atom MUST NOT hold a lawful basis outside consent.
-State 15: The atom MUST NOT hold a purpose taxonomy.
-NOTE: State 1 deleted — Invariant 2.1 owns it.
-```
-
-Terms › `state`: `granted` | `revoked` | `expired` — in effect, withdrawn, or run out; a [State], derived per Expiry 1–4 against the evaluation instant.
-
-Terms › `grant field`: `consent_id` | `subject_ref` | `purpose` | `granted_by` | `granted_at` | `expires_at` | `metadata` — what [Grant] writes and Invariant 1.1 freezes.
-
-#### Expiry
-
-```text
-Expiry 1: IF a consent record is withdrawn THEN the consent record MUST stand in revoked.
-Expiry 2: IF a consent record is elapsed THEN the consent record MUST stand in expired.
-Expiry 3: A consent record MUST stand in expired ONLY IF the consent record is not withdrawn.
-Expiry 4: A consent record MUST stand in granted ONLY IF the consent record is not withdrawn AND the consent record is not elapsed.
-Expiry 5: The atom MUST NOT offer an action that stands a consent record in expired.
-Expiry 6: The atom MUST NOT poll for an elapsed consent record.
-Expiry 7: The composing pattern MUST NOT poll for an elapsed consent record.
-```
-
-WHY:
-Expiry is a condition, not an act. Nothing triggers it, nothing polls for it, and there is no `expire` action to call — [Check] derives it from [Expires At] against the instant asked about (Expiry 5, Expiry 6). That is also why revocation wins a tie: a record revoked before its bound elapses is [Revoked], because the earlier terminal event is the one that happened (Expiry 3, Invariant 6.2).
-
-#### Stored state
-
-```text
-Stored state 1: The implementation MAY write the stored state at the instant expires_at elapses.
-Stored state 2: The implementation MAY write the stored state at the first evaluation past expires_at.
-Stored state 3: The implementation MUST NOT answer a granted result for an elapsed consent record.
-Stored state 4: The implementation MUST serialize a lazy stored state write for one consent record.
-```
-
-> **Clearly-marked residual (execution/render-time refactor — 2026-06-21).** The *authoritative* expiry determination is **derived** at read time: [Check] and [Read] both compute the state from [Expires At] and [Revoked At] against the evaluation instant, and [Check] is a pure query that never writes (Operation 36; there is no `expire` action — Expiry 5). The stored [State] field's [Expired] value is therefore a **materialized cache of the derived state, not the authority** — written for query convenience, and required by Invariant 2.2 to equal the derived state at the moment any result is returned. This stored write is the **residual** of this atom against the render-time target, which would carry no stored [Expired] write at all and derive the projection on every read, as Invitation does. It is *clearly marked here* rather than removed: dropping the stored [State] field is a structural change beyond this refactor, the eager/lazy design was introduced deliberately (Final Critique 4, to resolve the semantic-versus-stored contradiction), and because the cache must equal the derived value at read time it cannot serve as a flag that lags the clock in any conforming implementation. A future re-pass may collapse the stored [State] field to a pure read-time projection; that is an open design point, not done here.
-
 ### Invariants
 
 - **Invariant 1 — Grant immutability.**
@@ -347,6 +336,26 @@ Stored state 4: The implementation MUST serialize a lazy stored state write for 
   Invariant 10.4: A repeated [Check] carrying one at_time MUST answer alike.
   ```
   WHY: this is the records-checkable form of the point-in-time claim — re-run the same [Check] after any strictly-later write and the answer is identical (Check 5.1). It is what lets a regulator ask about a past date and a scheduler ask about a future one through the same surface.
+
+### Store instance model
+
+```text
+Instance 1: The deployment MUST route EVERY call to one store instance.
+Instance 2: Two consent records in one store instance MUST NOT share a consent_id.
+Instance 3: A store_name MUST name one store instance.
+Instance 4: The atom MUST NOT accept a store_name as an argument.
+Instance 5: A consent record MUST NOT carry a store_name.
+```
+
+Terms › `consent record`: one data subject's agreement to one named processing purpose — the record this atom holds.
+
+Terms › `store instance`: one named consent store a call is routed to; `consent_id` uniqueness ranges over one instance.
+
+Terms › `store_name`: the identifier naming one store instance — a [Store Name]; deployment routing, never an argument and never a stored field.
+
+Terms › `seam`: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the consent_id here.
+
+Terms › `transition`: the atom's evaluation of one call against the consent store, as `execution-contract.md` §Logic confinement declares it.
 
 ---
 
@@ -415,15 +424,6 @@ NOTE: EVERY check names the rule the check tests.
 WHY:
 Check 5.1 asserts on [Check]'s answer and not on a stored [Expired] field, because the stored field is a cache that Stored state 1 constrains rather than the authority that decides — an auditor who tested the cache would be testing the implementation's write strategy instead of the atom's commitment (Check 5.2).
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -462,6 +462,15 @@ Who may grant on a subject's behalf, who may withdraw, and who may read the reco
 
 ## Edge cases
 
+### Clock dependence
+
+```text
+Clock dependence 1: A guard MAY read now ONLY IF the call carries an instant.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
+
 ### Clock semantics
 
 ```text
@@ -479,15 +488,6 @@ WHY:
 This atom accepts three caller-supplied instants — `expires_at`, `revoked_at` and `at_time` — and that is exactly why its guards read the clock where Message Preference's are forbidden to. A guard consults `now` to refuse a dishonest instant and for nothing else: a bound already in the past, a withdrawal dated in the future (Clock dependence 1, Clock semantics 5, Clock semantics 6). A backdated `revoked_at` is accepted on purpose — documenting a withdrawal recognized or communicated earlier is valid, and the floor is [Granted At] rather than [Now] (Clock semantics 8, Invariant 5.1).
 
 Nothing else consults it. [Granted At] is always the seam's reading and never the caller's, because the moment of agreement is the system's observation rather than the caller's claim (Operation 10).
-
-### Clock dependence
-
-```text
-Clock dependence 1: A guard MAY read now ONLY IF the call carries an instant.
-```
-
-WHY:
-Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
 
 ### Concurrency
 

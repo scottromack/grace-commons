@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Credential answers one question: *does this presented material belong to this principal, for this kind of credential?* A principal is whatever entity is being authenticated — a user, a service account, a system actor.
@@ -82,6 +81,57 @@ Identity 6 is the one that earns the opaque id. Keying a credential by its pair 
 Identity 11 is this atom's one departure from the corpus's usual *confirm nothing* posture, and the departure is deliberate. `principal_ref` and `revoked_by_ref` stay opaque, but `credential_type` is not a name the atom merely records — it selects the derivation function that produces the verifier, so a type naming no function has no way to produce one.
 
 Identity 11 also narrows the near-duplicate a byte-exact key otherwise admits — `password` and `Password ` are two types here, and a principal holding one effective-active credential under each breaches nothing Invariant 2.1 can see. It does not *close* it, and an earlier draft of this WHY claimed it did: a deployment free to register both variants against one derivation function re-opens the hole through the registry, which Identity 11 then waves through. Capability requirement 6 is the half that closes it, and it is the deployment's because the registry is (council read 41).
+
+### State
+
+```text
+State 1: EVERY credential MUST carry credential_id, principal_ref, credential_type, verifier, registered_at and a status.
+State 2: A credential MAY carry an expires_at.
+State 3: EVERY rotated credential MUST carry rotated_at and successor_credential_id.
+State 4: EVERY revoked credential MUST carry revoked_at, revoked_by_ref and revocation_reason.
+State 5: An active credential MUST NOT carry a terminal field.
+State 6: The atom MUST NOT store expired as a status.
+State 7: A credential MUST NOT carry an expiry instant.
+State 8: The atom MUST NOT expose a verifier.
+State 9: A credential MUST NOT carry credential material.
+State 10: A credential MUST NOT carry presented material.
+State 11: The atom MUST NOT offer a reactivate surface.
+State 12: The atom MUST NOT offer a window extension surface.
+State 13: The atom MUST NOT offer a credential removal surface.
+State 14: The atom MUST NOT offer a verifier migration surface.
+State 15: The store instance's credential count MUST NOT fall.
+```
+
+WHY:
+State 9 and State 10 bound the record; Operation 17 and Operation 25 bound the action, and the two are different claims. A store that holds no plaintext password still fails this atom's purpose if the material was written to a log on its way in, which is what *retain* forbids and *carry* does not reach. Neither leaves evidence in the store, which is why External check 1 exists at all — this is the atom's foundational security commitment and the one no conformance check can clear.
+
+State 6 and State 7 are the derived-expiry posture on the record surface, two rules because an implementation can breach each without the other: a stored `expired` status, and an `expired_at` column beside a status that stays active.
+
+State 14 names an absence a deployment eventually wants. When a deployment upgrades its derivation function, existing verifiers stay valid under the function they were made with; migrating them is a deployment operation, not an action here, because a migration would have to read material this atom has already discarded (Non-goal 18).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST supply the id material at the seam.
+Capability requirement 3: The deployment MUST supply the derivation registry at the seam.
+Capability requirement 4: The deployment MUST declare a derivation function PER credential_type the deployment serves.
+Capability requirement 5: The deployment MUST declare a one-way derivation function.
+Capability requirement 6: The deployment MUST NOT declare two credential_types differing only by a foldable difference.
+Capability requirement 7: The deployment MUST declare the default expires_at.
+Capability requirement 8: The store MUST run the effective-active check and the register write for one pair as one section.
+Capability requirement 9: The store MUST release the section on the caller's return.
+Capability requirement 10: The store MUST release the section on the caller's death.
+Capability requirement 11: The store MUST acknowledge a write ONLY IF the write commits.
+Capability requirement 12: The store MUST commit an admitted rotate's two writes together.
+Capability requirement 13: The deployment MUST canonicalize an opaque reference.
+Capability requirement 14: The deployment MUST declare the length bound.
+```
+
+WHY:
+Capability requirement 8 is a correction, and the correction is worth stating because the prose it replaces named a mechanism that cannot work. A draft of this atom asked the store to enforce effective-active uniqueness with *a unique partial index on the pair where status is active and the credential is not past its deadline* — and no index predicate can reference `now`. The clock-free half of that index, `where status = active`, forbids exactly the case Operation 8 permits: a lapsed record standing in active beside its successor. So the index is either unimplementable or wrong, and the obligation it was reaching for is a section over the pair — the same shape [Provisional Commitment](./provisional-commitment.md)'s registry carries. The obligation is unchanged; only the mechanism illustration is gone, and it is recorded in the Ledger rather than quietly dropped.
+
+Capability requirement 14 is the delegated cap. This atom declares no maximum length for a string input and obliges the deployment to declare one, which is one of the postures the *input-handling regime* docket row counts; the material is exempt only insofar as a derivation function states its own bounds.
 
 ### Operations
 
@@ -219,33 +269,6 @@ Operation 20 is a check-ordering rule and it carries the whole of Invariant 11.1
 Operation 24 names an obligation no record can evidence. A short-circuiting comparison leaks the stored verifier one byte at a time to a caller who can measure the answer, and nothing in the store shows whether the implementation did it; External check 2 is where an auditor goes instead.
 
 Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the `now` declaration cites it rather than restating it. The clock is consumed twice per call — by the window reading and by the write's stamps — and both read the one `now` the seam supplied.
-
-### State
-
-```text
-State 1: EVERY credential MUST carry credential_id, principal_ref, credential_type, verifier, registered_at and a status.
-State 2: A credential MAY carry an expires_at.
-State 3: EVERY rotated credential MUST carry rotated_at and successor_credential_id.
-State 4: EVERY revoked credential MUST carry revoked_at, revoked_by_ref and revocation_reason.
-State 5: An active credential MUST NOT carry a terminal field.
-State 6: The atom MUST NOT store expired as a status.
-State 7: A credential MUST NOT carry an expiry instant.
-State 8: The atom MUST NOT expose a verifier.
-State 9: A credential MUST NOT carry credential material.
-State 10: A credential MUST NOT carry presented material.
-State 11: The atom MUST NOT offer a reactivate surface.
-State 12: The atom MUST NOT offer a window extension surface.
-State 13: The atom MUST NOT offer a credential removal surface.
-State 14: The atom MUST NOT offer a verifier migration surface.
-State 15: The store instance's credential count MUST NOT fall.
-```
-
-WHY:
-State 9 and State 10 bound the record; Operation 17 and Operation 25 bound the action, and the two are different claims. A store that holds no plaintext password still fails this atom's purpose if the material was written to a log on its way in, which is what *retain* forbids and *carry* does not reach. Neither leaves evidence in the store, which is why External check 1 exists at all — this is the atom's foundational security commitment and the one no conformance check can clear.
-
-State 6 and State 7 are the derived-expiry posture on the record surface, two rules because an implementation can breach each without the other: a stored `expired` status, and an `expired_at` column beside a status that stays active.
-
-State 14 names an absence a deployment eventually wants. When a deployment upgrades its derivation function, existing verifiers stay valid under the function they were made with; migrating them is a deployment operation, not an action here, because a migration would have to read material this atom has already discarded (Non-goal 18).
 
 ### Invariants
 
@@ -397,30 +420,6 @@ External check 1 and External check 2 are this atom's two blindest spots and the
 
 External check 4 is the lost-answer family. `verified` and `failed-verification` are answers and nothing else — [Verify] writes no field (Operation 26) — so the store cannot say how often a principal authenticated or failed to. That is deliberate (Non-goal 8) and it means the authentication history lives in whatever composes this atom, never here.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the id material at the seam.
-Capability requirement 3: The deployment MUST supply the derivation registry at the seam.
-Capability requirement 4: The deployment MUST declare a derivation function PER credential_type the deployment serves.
-Capability requirement 5: The deployment MUST declare a one-way derivation function.
-Capability requirement 6: The deployment MUST NOT declare two credential_types differing only by a foldable difference.
-Capability requirement 7: The deployment MUST declare the default expires_at.
-Capability requirement 8: The store MUST run the effective-active check and the register write for one pair as one section.
-Capability requirement 9: The store MUST release the section on the caller's return.
-Capability requirement 10: The store MUST release the section on the caller's death.
-Capability requirement 11: The store MUST acknowledge a write ONLY IF the write commits.
-Capability requirement 12: The store MUST commit an admitted rotate's two writes together.
-Capability requirement 13: The deployment MUST canonicalize an opaque reference.
-Capability requirement 14: The deployment MUST declare the length bound.
-```
-
-WHY:
-Capability requirement 8 is a correction, and the correction is worth stating because the prose it replaces named a mechanism that cannot work. A draft of this atom asked the store to enforce effective-active uniqueness with *a unique partial index on the pair where status is active and the credential is not past its deadline* — and no index predicate can reference `now`. The clock-free half of that index, `where status = active`, forbids exactly the case Operation 8 permits: a lapsed record standing in active beside its successor. So the index is either unimplementable or wrong, and the obligation it was reaching for is a section over the pair — the same shape [Provisional Commitment](./provisional-commitment.md)'s registry carries. The obligation is unchanged; only the mechanism illustration is gone, and it is recorded in the Ledger rather than quietly dropped.
-
-Capability requirement 14 is the delegated cap. This atom declares no maximum length for a string input and obliges the deployment to declare one, which is one of the postures the *input-handling regime* docket row counts; the material is exempt only insofar as a derivation function states its own bounds.
-
 ---
 
 ## Non-goals
@@ -465,26 +464,18 @@ Non-goal 26 is the honest limit on the stored terminals. A credential nobody rot
 
 ## Edge cases
 
-### String policy
+### Atomic writes
 
 ```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
-String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
+Atomic writes 1: The implementation MUST commit a transition whole.
+Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
+Atomic writes 3: The implementation MUST own the transactional boundary.
+Atomic writes 4: The implementation MUST NOT repair a dangling transition.
+Atomic writes 5: A refused rotate MUST leave the prior credential in active.
 ```
 
-Terms › `string input`: a reference, `credential_type` OR `reason` — every caller-supplied string this atom accepts beside material.
-
-Terms › `length bound`: the maximum length the deployment declares for a `string input`.
-
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
-
 WHY:
-Byte-exactness bites hardest on `credential_type`, because that string is half the key Invariant 2.1 ranges over: under a folding comparison `password` and `Password ` would be one type, and under a byte-exact one they are two, so a principal could hold two effective-active credentials that no invariant catches. Identity 11 is what closes it — a type naming no derivation function is refused, so the near-duplicate never reaches the store. Material is exempt from the length bound only insofar as a derivation function declares its own (Capability requirement 14).
+Atomic writes 5 is the half of rotation a partial write breaks. Two records change and a crash between them leaves either a successor nobody points at or a predecessor pointing at nothing; the second is the one that breaks Invariant 7.1, and Operation 40 is what forbids it.
 
 ### Clock semantics
 
@@ -509,18 +500,26 @@ Concurrency 2: A losing transitioning write MUST answer a standing rejection.
 Concurrency 3: A losing [Register] racing on one pair MUST answer duplicate-active-credential.
 ```
 
-### Atomic writes
+### String policy
 
 ```text
-Atomic writes 1: The implementation MUST commit a transition whole.
-Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
-Atomic writes 3: The implementation MUST own the transactional boundary.
-Atomic writes 4: The implementation MUST NOT repair a dangling transition.
-Atomic writes 5: A refused rotate MUST leave the prior credential in active.
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
 ```
 
+Terms › `string input`: a reference, `credential_type` OR `reason` — every caller-supplied string this atom accepts beside material.
+
+Terms › `length bound`: the maximum length the deployment declares for a `string input`.
+
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+
 WHY:
-Atomic writes 5 is the half of rotation a partial write breaks. Two records change and a crash between them leaves either a successor nobody points at or a predecessor pointing at nothing; the second is the one that breaks Invariant 7.1, and Operation 40 is what forbids it.
+Byte-exactness bites hardest on `credential_type`, because that string is half the key Invariant 2.1 ranges over: under a folding comparison `password` and `Password ` would be one type, and under a byte-exact one they are two, so a principal could hold two effective-active credentials that no invariant catches. Identity 11 is what closes it — a type naming no derivation function is refused, so the near-duplicate never reaches the store. Material is exempt from the length bound only insofar as a derivation function declares its own (Capability requirement 14).
 
 ---
 

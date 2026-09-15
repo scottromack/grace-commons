@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Soft Delete splits apart the two things an ordinary "delete" lumps together: hiding a record from normal use, and destroying it for good.
@@ -78,6 +77,38 @@ WHY:
 Identity 2 and Identity 3 are the atom's one departure from the corpus's usual identity shape, and the departure is the point: this atom does not own records, it overlays a lifecycle onto records the host already owns. There is nothing for it to allocate an id *for*. Identity 11 states the other half — the content stays in the host system, and what a purge destroys is the host's content, not anything held here (Non-goal 3).
 
 Identity 10 follows from both. A `record_id` that names nothing in the host system still produces a valid lifecycle record: the atom is tracking a lifecycle it was told about, and confirming the subject exists would require reaching into a store it has no knowledge of.
+
+### State
+
+```text
+State 1: A host record carrying no lifecycle record MUST NOT stand in a state.
+State 2: A lifecycle record MUST NOT leave purged.
+State 3: The atom MUST NOT offer a restore-from-purged surface.
+State 4: The atom MUST NOT offer a direct active-to-purged transition.
+State 5: The atom MUST NOT offer a lifecycle record removal surface.
+State 6: The atom MUST NOT offer an untrack surface.
+State 7: EVERY lifecycle record MUST carry record_id, a state, deleted_by and deleted_at.
+State 8: A lifecycle record MAY carry deletion_reason.
+State 9: A lifecycle record MAY carry a restore field.
+State 10: EVERY purged lifecycle record MUST carry purged_by, purge_reason and purged_at.
+State 11: A purged lifecycle record MUST carry the deletion fields the purge found.
+State 12: The store instance's lifecycle record count MUST NOT fall.
+State 13: The atom MUST NOT record a receipt instant.
+```
+
+WHY:
+State 7 says something easy to misread: *every* lifecycle record carries deletion attribution, including one standing in active. An active lifecycle record is a record that was deleted and then restored — the atom has no record of anything that was never deleted (State 1) — so the deletion fields are always populated, and they describe the most recent deletion rather than a current one.
+
+State 11 is what makes a purge auditable. The lifecycle record outlives the content it describes: the host destroys the content on receiving the `purged` answer, and what remains here is the evidence that the destruction happened, who authorized it, and which deletion preceded it. Removing the lifecycle record would destroy the proof of destruction, which is the one thing a regulator comes to this store for.
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -200,29 +231,6 @@ Operation 17 and Operation 18 state the within-record temporal bounds as precede
 
 Operation 38 is the scope rule an auditor must read before trusting an empty answer. This store holds lifecycle records, not host records, so a host record that has never been soft-deleted is not *absent from the results* — it is outside the atom entirely, in no state, with nothing here to return. An empty answer to a `record_id` query means *never deleted*, not *not found*.
 
-### State
-
-```text
-State 1: A host record carrying no lifecycle record MUST NOT stand in a state.
-State 2: A lifecycle record MUST NOT leave purged.
-State 3: The atom MUST NOT offer a restore-from-purged surface.
-State 4: The atom MUST NOT offer a direct active-to-purged transition.
-State 5: The atom MUST NOT offer a lifecycle record removal surface.
-State 6: The atom MUST NOT offer an untrack surface.
-State 7: EVERY lifecycle record MUST carry record_id, a state, deleted_by and deleted_at.
-State 8: A lifecycle record MAY carry deletion_reason.
-State 9: A lifecycle record MAY carry a restore field.
-State 10: EVERY purged lifecycle record MUST carry purged_by, purge_reason and purged_at.
-State 11: A purged lifecycle record MUST carry the deletion fields the purge found.
-State 12: The store instance's lifecycle record count MUST NOT fall.
-State 13: The atom MUST NOT record a receipt instant.
-```
-
-WHY:
-State 7 says something easy to misread: *every* lifecycle record carries deletion attribution, including one standing in active. An active lifecycle record is a record that was deleted and then restored — the atom has no record of anything that was never deleted (State 1) — so the deletion fields are always populated, and they describe the most recent deletion rather than a current one.
-
-State 11 is what makes a purge auditable. The lifecycle record outlives the content it describes: the host destroys the content on receiving the `purged` answer, and what remains here is the evidence that the destruction happened, who authorized it, and which deletion preceded it. Removing the lifecycle record would destroy the proof of destruction, which is the one thing a regulator comes to this store for.
-
 ### Invariants
 
 - **Invariant 1 — Deletion attribution is immutable within a deletion epoch.**
@@ -272,6 +280,7 @@ State 11 is what makes a purge auditable. The lifecycle record outlives the cont
   ```
 
 ---
+
 ## Examples
 
 ### Delete, restore, delete, purge
@@ -351,17 +360,6 @@ External check 1 is the atom's sharpest boundary and the one a deployment can qu
 
 External check 2 follows from Invariant 6.3. The stored fields carry one deletion epoch and one restore epoch, so an auditor reconstructing *what happened in what order across cycles* needs the transition history, not this summary.
 
----
-
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -397,26 +395,21 @@ Non-goal 1 is worth stating because the alternative is tempting. A second [Soft 
 
 ## Edge cases
 
-### String policy
+### Atomic writes
 
 ```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference.
+Atomic writes 1: A reader MUST NOT observe a state change without the transition's recorded fields.
+Atomic writes 2: An uncommitted crash MUST leave the lifecycle record as the call found the lifecycle record.
+Atomic writes 3: The implementation MUST resolve a dangling transition.
+Atomic writes 4: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
 ```
 
-Terms › `string input`: a reference, `reason` OR a filter's value — every caller-supplied string this atom accepts.
+Terms › `uncommitted crash`: a crash BEFORE a transitioning action's commit lands.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Terms › `dangling transition`: a transitioning action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
 
 WHY:
-Byte-exactness costs more here than in most atoms, because `record_id` is the *caller's* identifier rather than one this atom issued (Identity 2). A host that supplies `Post-8821` on delete and `post-8821` on purge has two lifecycle records, and the purge answers `not-known` on a record that visibly exists. Canonicalization is the deployment's (String 7, Identity 9).
-
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Every transitioning action writes the state and its fields together (Operation 29), and a crash between them produces a purged record with no purge reason — Invariant 5 violated in exactly the way an auditor cannot tell from an implementation that never wrote one. The obligation is all-or-none observability.
 
 ### Clock semantics
 
@@ -444,21 +437,26 @@ Concurrency 5: The second serialized [Purge] against one lifecycle record MUST a
 WHY:
 Concurrency 5 reads oddly and is right: a second purge answers `not-deleted` rather than `already-purged`, because the guard tests *standing in deleted* (Operation 13) and a purged record does not. The answer names what the guard checked rather than what the caller probably wanted to hear, and a caller who needs to distinguish *already destroyed* from *never deleted* reads the record's state.
 
-### Atomic writes
+### String policy
 
 ```text
-Atomic writes 1: A reader MUST NOT observe a state change without the transition's recorded fields.
-Atomic writes 2: An uncommitted crash MUST leave the lifecycle record as the call found the lifecycle record.
-Atomic writes 3: The implementation MUST resolve a dangling transition.
-Atomic writes 4: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Terms › `uncommitted crash`: a crash BEFORE a transitioning action's commit lands.
+Terms › `string input`: a reference, `reason` OR a filter's value — every caller-supplied string this atom accepts.
 
-Terms › `dangling transition`: a transitioning action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
-Every transitioning action writes the state and its fields together (Operation 29), and a crash between them produces a purged record with no purge reason — Invariant 5 violated in exactly the way an auditor cannot tell from an implementation that never wrote one. The obligation is all-or-none observability.
+Byte-exactness costs more here than in most atoms, because `record_id` is the *caller's* identifier rather than one this atom issued (Identity 2). A host that supplies `Post-8821` on delete and `post-8821` on purge has two lifecycle records, and the purge answers `not-known` on a record that visibly exists. Canonicalization is the deployment's (String 7, Identity 9).
+
+NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 ---
 
@@ -482,6 +480,7 @@ WHY:
 [Event Log](./event-log.md) is the history behind the summary: this atom keeps the latest deletion and the latest restore, and the event log keeps every transition in order, which is the only place cross-epoch questions can be answered. [Actor Identity](./actor-identity.md) makes a purge non-repudiable, which regulated destruction needs and an opaque reference cannot supply. [Legal Hold](./legal-hold.md) and [Retention Window](./retention-window.md) are composing peers rather than constituents — one records the preservation obligation and the other the eligibility deadline, and neither is read here. [Permissions](./permissions.md) governs who may call what, and purge in particular is the action a deployment should restrict, because unrestricted destruction defeats the audit guarantee this atom exists to provide. [Duplicate Prevention](./duplicate-prevention.md) supplies idempotent delete semantics under retry (Non-goal 1, Non-goal 2).
 
 ---
+
 ## Terms
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.

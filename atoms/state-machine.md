@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 State Machine records a single named process instance — think of it as a token moving through a flowchart — where the flowchart (the set of valid states and the transitions between them) is declared by the system deploying it rather than fixed by this atom.
@@ -92,42 +91,36 @@ The corpus's word *transition* carries two senses here and the atom cannot avoid
 
 Lexicographic sortability (Identity 11) is the same deployment obligation [Selective Disclosure](./selective-disclosure.md) carries and for the same reason — it is the tiebreaker a deterministic read rests on.
 
-### The declaration
+### State
 
 ```text
-Declaration 1: [Instantiate] MUST NOT take a partial declaration.
-Declaration 2: The atom MUST NOT change a recorded declaration.
-Declaration 3: The atom MUST NOT offer a declaration edit surface.
-Declaration 4: EVERY enforcement decision MUST rest on the instance's declaration.
-Declaration 5: IF states carries no member THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 6: IF a state name NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 7: IF two state names in states match THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 8: IF the initial state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 9: IF the initial state EXISTS in the terminal states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 10: IF a declared transition's from_state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 11: IF a declared transition's to_state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 12: IF a declared transition's from_state EXISTS in the terminal states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 13: IF two declared transitions share one from_state and one action THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 14: IF a declared transition's action NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 15: IF a supplied guard NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 16: The terminal states MAY carry no member.
-Declaration 17: A declared transition MAY carry no guard.
+State 1: EVERY instance MUST carry instance_id, a declaration, a current state, a transition history and next_sequence_number.
+State 2: An instance MAY carry subject_ref.
+State 3: An instance MAY carry instance_metadata.
+State 4: EVERY history entry MUST carry transition_id, sequence_number, from_state, to_state, action and fired_at.
+State 5: A history entry MAY carry actor_ref.
+State 6: The atom MUST NOT offer an instance removal surface.
+State 7: The atom MUST NOT offer a history entry removal surface.
+State 8: The atom MUST NOT offer a history entry edit surface.
+State 9: The atom MUST NOT offer a reorder surface.
+State 10: The atom MUST NOT offer a transition out of a terminal state.
+State 11: The atom MUST NOT offer an action that stands an instance in two states.
+State 12: The store instance's instance count MUST NOT fall.
+State 13: An instance's transition history MUST NOT shrink.
+State 14: next_sequence_number MUST survive a restart.
 ```
 
-Terms › `declaration`: the immutable map governing one instance — a [Declaration]; carries `states`, the declared transitions, the initial state and the terminal states.
+WHY:
+State 14 is stated as a rule rather than left to the implementation because the failure it prevents is silent and total. A counter that resets to one on restart produces two history entries carrying `sequence_number: 1`, which breaks Invariant 6's total order and Invariant 7's replay in the same stroke — and it breaks them *retroactively*, for a history that looked correct before the restart and is unrecoverable after.
 
-Terms › `states`: the named states one declaration admits — a [States]; every state name the instance may stand in.
+### Capability requirement
 
-Terms › `initial state`: the state an instance stands in at [Instantiate] — an [Initial State]; a member of `states` and never a terminal state.
-
-Terms › `terminal states`: the absorbing members of `states` — a [Terminal States]; possibly none.
-
-Terms › `well-formed declaration`: a declaration Declaration 5 through Declaration 15 all admit.
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
 
 WHY:
-Declaration 13 is the determinism constraint and the load-bearing one: at most one declared transition per `from_state` and `action` pair means a [Fire] either matches exactly one edge or none, and the atom never chooses between two. Without it *fire the approve action* would be ambiguous in a declaration that named two approve edges, and an implementation would have to invent a tiebreak the spec does not have.
-
-Declaration 9 and Declaration 12 are the same claim from two directions, and neither is redundant. Declaration 9 refuses an instance born absorbed — an instance whose initial state is terminal accepts nothing and exists only to be stuck. Declaration 12 refuses an edge *out of* a terminal state, which is what makes Invariant 4's absorption structural rather than merely enforced at [Fire]: a conforming declaration cannot even describe the move.
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -265,28 +258,6 @@ Operation 20 states the within-instance temporal bound as a precedence rather th
 
 Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inherits: `fired_at` is best-effort and `sequence_number` is the order. Under a skewing clock a later history entry may legitimately carry an earlier `fired_at`, and no invariant here is at risk from it.
 
-### State
-
-```text
-State 1: EVERY instance MUST carry instance_id, a declaration, a current state, a transition history and next_sequence_number.
-State 2: An instance MAY carry subject_ref.
-State 3: An instance MAY carry instance_metadata.
-State 4: EVERY history entry MUST carry transition_id, sequence_number, from_state, to_state, action and fired_at.
-State 5: A history entry MAY carry actor_ref.
-State 6: The atom MUST NOT offer an instance removal surface.
-State 7: The atom MUST NOT offer a history entry removal surface.
-State 8: The atom MUST NOT offer a history entry edit surface.
-State 9: The atom MUST NOT offer a reorder surface.
-State 10: The atom MUST NOT offer a transition out of a terminal state.
-State 11: The atom MUST NOT offer an action that stands an instance in two states.
-State 12: The store instance's instance count MUST NOT fall.
-State 13: An instance's transition history MUST NOT shrink.
-State 14: next_sequence_number MUST survive a restart.
-```
-
-WHY:
-State 14 is stated as a rule rather than left to the implementation because the failure it prevents is silent and total. A counter that resets to one on restart produces two history entries carrying `sequence_number: 1`, which breaks Invariant 6's total order and Invariant 7's replay in the same stroke — and it breaks them *retroactively*, for a history that looked correct before the restart and is unrecoverable after.
-
 ### Invariants
 
 - **Invariant 1 — Declaration immutability.**
@@ -347,7 +318,45 @@ State 14 is stated as a rule rather than left to the implementation because the 
   Invariant 10.3: A storage-failure rejection MUST leave no partial record in the store.
   ```
 
+### The declaration
+
+```text
+Declaration 1: [Instantiate] MUST NOT take a partial declaration.
+Declaration 2: The atom MUST NOT change a recorded declaration.
+Declaration 3: The atom MUST NOT offer a declaration edit surface.
+Declaration 4: EVERY enforcement decision MUST rest on the instance's declaration.
+Declaration 5: IF states carries no member THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 6: IF a state name NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 7: IF two state names in states match THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 8: IF the initial state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 9: IF the initial state EXISTS in the terminal states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 10: IF a declared transition's from_state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 11: IF a declared transition's to_state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 12: IF a declared transition's from_state EXISTS in the terminal states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 13: IF two declared transitions share one from_state and one action THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 14: IF a declared transition's action NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 15: IF a supplied guard NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 16: The terminal states MAY carry no member.
+Declaration 17: A declared transition MAY carry no guard.
+```
+
+Terms › `declaration`: the immutable map governing one instance — a [Declaration]; carries `states`, the declared transitions, the initial state and the terminal states.
+
+Terms › `states`: the named states one declaration admits — a [States]; every state name the instance may stand in.
+
+Terms › `initial state`: the state an instance stands in at [Instantiate] — an [Initial State]; a member of `states` and never a terminal state.
+
+Terms › `terminal states`: the absorbing members of `states` — a [Terminal States]; possibly none.
+
+Terms › `well-formed declaration`: a declaration Declaration 5 through Declaration 15 all admit.
+
+WHY:
+Declaration 13 is the determinism constraint and the load-bearing one: at most one declared transition per `from_state` and `action` pair means a [Fire] either matches exactly one edge or none, and the atom never chooses between two. Without it *fire the approve action* would be ambiguous in a declaration that named two approve edges, and an implementation would have to invent a tiebreak the spec does not have.
+
+Declaration 9 and Declaration 12 are the same claim from two directions, and neither is redundant. Declaration 9 refuses an instance born absorbed — an instance whose initial state is terminal accepts nothing and exists only to be stuck. Declaration 12 refuses an edge *out of* a terminal state, which is what makes Invariant 4's absorption structural rather than merely enforced at [Fire]: a conforming declaration cannot even describe the move.
+
 ---
+
 ## Examples
 
 ### Pharmaceutical batch qualification
@@ -431,17 +440,6 @@ External check 2 is the check that could not stay in the conformance list. Count
 
 External check 1 is the atom's central restraint stated as an audit boundary. `guard_satisfied: true` is evidence that a caller asserted a guard, and evidence of nothing else. An auditor reading it as proof the condition held has misread the record, and the atom says so here rather than letting the misreading happen.
 
----
-
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -479,26 +477,22 @@ Non-goal 19 is the limit an auditor most often pushes against. *Show me every ba
 
 ## Edge cases
 
-### String policy
+### Atomic writes
 
 ```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference.
+Atomic writes 1: A reader MUST NOT observe a history entry without the entry's next_sequence_number raise.
+Atomic writes 2: A reader MUST NOT observe a history entry without the entry's current state change.
+Atomic writes 3: An uncommitted crash MUST leave the instance as the call found the instance.
+Atomic writes 4: The implementation MUST resolve a dangling transition.
+Atomic writes 5: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
 ```
 
-Terms › `string input`: `instance_id`, `action`, `actor_ref`, `subject_ref`, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
+Terms › `uncommitted crash`: a crash BEFORE an admitted fire's commit lands.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Terms › `dangling transition`: an admitted fire's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
 
 WHY:
-Byte-exactness reaches further here than in most atoms, because state names and action names are caller-supplied strings that the declaration and every later [Fire] must agree on. A declaration naming `Tested` and a fire naming `tested` are two different tokens, the match fails, and the answer is `invalid-transition` — correct, and mystifying to a caller who believes they are the same state. Canonicalization is the deployment's (String 7).
-
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Every admitted fire couples three durable mutations — the entry, the counter raise and the state change (Operation 27) — and a crash between any two breaks Invariant 6 or Invariant 7 in a way a later read cannot distinguish from a correct history. The obligation is all-or-none observability: a partly applied fire is not a transient condition to be repaired later, it must never be servable.
 
 ### Clock semantics
 
@@ -523,22 +517,26 @@ Concurrency 2: A serialized [Fire] MUST read the current state the prior [Fire] 
 WHY:
 Unlike [Selective Disclosure](./selective-disclosure.md), whose concurrent records contend over nothing, two fires against one instance contend over the current state itself — the second call's matched transition depends on where the first left the instance. So the second may succeed, may answer `invalid-transition`, or may answer `terminal`, and which of the three is a fact about the declaration rather than a race. Serialization is what makes the outcome a fact at all.
 
-### Atomic writes
+### String policy
 
 ```text
-Atomic writes 1: A reader MUST NOT observe a history entry without the entry's next_sequence_number raise.
-Atomic writes 2: A reader MUST NOT observe a history entry without the entry's current state change.
-Atomic writes 3: An uncommitted crash MUST leave the instance as the call found the instance.
-Atomic writes 4: The implementation MUST resolve a dangling transition.
-Atomic writes 5: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Terms › `uncommitted crash`: a crash BEFORE an admitted fire's commit lands.
+Terms › `string input`: `instance_id`, `action`, `actor_ref`, `subject_ref`, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
-Terms › `dangling transition`: an admitted fire's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
-Every admitted fire couples three durable mutations — the entry, the counter raise and the state change (Operation 27) — and a crash between any two breaks Invariant 6 or Invariant 7 in a way a later read cannot distinguish from a correct history. The obligation is all-or-none observability: a partly applied fire is not a transient condition to be repaired later, it must never be servable.
+Byte-exactness reaches further here than in most atoms, because state names and action names are caller-supplied strings that the declaration and every later [Fire] must agree on. A declaration naming `Tested` and a fire naming `tested` are two different tokens, the match fails, and the answer is `invalid-transition` — correct, and mystifying to a caller who believes they are the same state. Canonicalization is the deployment's (String 7).
+
+NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 ---
 
@@ -565,6 +563,7 @@ WHY:
 [Event Log](./event-log.md) is the structural cousin this atom deliberately does not name as a constituent: the transition history is append-only and totally ordered by a sequence number with best-effort wall time, which is an event log's shape, and the load-bearing concept here is the validity gate an event log has no notion of. Where a deployment wants both, that layering belongs to Execute Gated Workflow.
 
 ---
+
 ## Terms
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.

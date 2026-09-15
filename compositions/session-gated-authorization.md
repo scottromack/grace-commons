@@ -15,7 +15,6 @@ toc: true
 {:toc}
 </details>
 
-
 **Composes:** [Session](../atoms/session.md) · [Permissions](../atoms/permissions.md)
 
 ## Summary
@@ -63,57 +62,6 @@ Composes 6 and Composes 7 name the two constituent obligations this composition 
 
 ## Composition logic
 
-### Action wiring
-
-```
-check_permitted(session_token, action_scope) →
-    permitted
-  | denied
-  | rejected(
-      invalid-request
-    | session-invalid(expired | revoked | not-known)
-    )
-```
-
-```text
-Action wiring 1: The composition MUST validate the arguments against the boundary predicate.
-Action wiring 2: The composition MUST call Session's validate ONLY AFTER the arguments clear the boundary predicate.
-Action wiring 3: The composition MUST call Session's validate with the session_token.
-Action wiring 4: The composition MUST call Permissions' permitted ONLY AFTER Session's validate gives a valid answer.
-Action wiring 5: An admitted gate MUST call Permissions' permitted with the valid answer's principal_ref.
-Action wiring 6: An admitted gate MUST call Permissions' permitted with the action_scope.
-Action wiring 7: [Check Permitted] MUST NOT accept a principal_ref.
-Action wiring 8: [Check Permitted] MUST NOT call Permissions' permitted with a caller-supplied subject_ref.
-Action wiring 9: IF Session's validate gives an invalid answer THEN [Check Permitted] MUST answer session-invalid naming the invalid answer's reason.
-Action wiring 10: An admitted gate MUST answer Permissions' permitted answer.
-Action wiring 11: [Check Permitted] MUST NOT change Permissions' permitted answer.
-Action wiring 12: [Check Permitted] MUST NOT answer the valid answer's expires_at.
-Action wiring 13: The composition MUST call Session's validate for EVERY call.
-Action wiring 14: [Check Permitted] MUST NOT read a validate answer a prior call received.
-Action wiring 15: [Check Permitted] MUST NOT write.
-```
-
-Terms › `boundary predicate`: the composition's own argument check — an argument NOT EXISTS, is blank OR EXCEEDS the length bound.
-
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
-
-Terms › `length bound`: the cap a deployment pins for an opaque argument — a [Length Bound]; the value is the deployment's, the existence is this composition's contract.
-
-Terms › `valid answer`: Session's validate answer carrying a principal_ref and an expires_at.
-
-Terms › `invalid answer`: Session's validate answer carrying expired, revoked OR not-known.
-
-Terms › `admitted gate`: a [Check Permitted] call whose arguments cleared the boundary predicate AND whose Session validate gave a valid answer.
-
-WHY:
-Action wiring 2 and Action wiring 4 are the whole composition stated as order. The boundary check runs before either constituent, the gate runs before Permissions, and both are `ONLY AFTER` rather than `BEFORE` because the grammar admits the positive form only in that direction (Timing 6, Hard invariant 11).
-
-Action wiring 13 and Action wiring 14 are one rule split by polarity, and they are what the OWASP ASVS V3.3 claim in Standards rests on. A deployment caching a validate answer across calls satisfies neither: a session revoked between two calls reaches Permissions with validate never consulted, which is the gap this composition exists to close. Non-goal 8 says what such a deployment is building instead.
-
-Action wiring 7 and Action wiring 8 are the principal binding stated twice on purpose — once as an argument the action does not take, once as a value it does not forward. A composition that took the argument and ignored it would satisfy the second and break the first, and an implementation that forwarded a caller value under a different name would satisfy the first and break the second.
-
-Action wiring 12 keeps the gate binary. The `expires_at` reaches the composition and stops there: a caller that learns the deadline learns how long a stolen token remains useful, and no rule here needs the value.
-
 ### Composition state
 
 ```text
@@ -143,16 +91,65 @@ Primitive policy 9: [Check Permitted] MUST NOT call a constituent for an argumen
 WHY:
 `invalid-request` is composition-introduced: neither wired constituent operation declares it, and Primitive policy 9 is why neither is consulted when it fires. That matters for a reason the outcome set makes plain — [Permissions](../atoms/permissions.md) answers an empty `subject_ref` or `action_scope` with `denied` under its own default-deny posture, so a composition that let a malformed argument through would report *the answer is no* where the truth is *the request was not well-formed enough to ask*. Primitive policy 2 through Primitive policy 4 keep the three outcome classes distinct, which is Invariant 3's discipline applied to inputs rather than to answers.
 
-### Concurrency
+### Action wiring
+
+```
+check_permitted(session_token, action_scope) →
+    permitted
+  | denied
+  | rejected(
+      invalid-request
+    | session-invalid(expired | revoked | not-known)
+    )
+```
 
 ```text
-Concurrency 1: The composition MUST answer from the validate answer the call received.
-Concurrency 2: The composition MUST NOT detect a revocation that follows the validate answer.
-Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound Session's session_duration.
+Action wiring 1: The composition MUST validate the arguments against the boundary predicate.
+Action wiring 2: The composition MUST call Session's validate ONLY AFTER the arguments clear the boundary predicate.
+Action wiring 3: The composition MUST call Session's validate with the session_token.
+NOTE: Action wiring 4 deleted — Wiring decision 1 owns it.
+Action wiring 5: An admitted gate MUST call Permissions' permitted with the valid answer's principal_ref.
+Action wiring 6: An admitted gate MUST call Permissions' permitted with the action_scope.
+Action wiring 7: [Check Permitted] MUST NOT accept a principal_ref.
+Action wiring 8: [Check Permitted] MUST NOT call Permissions' permitted with a caller-supplied subject_ref.
+Action wiring 9: IF Session's validate gives an invalid answer THEN [Check Permitted] MUST answer session-invalid naming the invalid answer's reason.
+Action wiring 10: An admitted gate MUST answer Permissions' permitted answer.
+Action wiring 11: [Check Permitted] MUST NOT change Permissions' permitted answer.
+Action wiring 12: [Check Permitted] MUST NOT answer the valid answer's expires_at.
+Action wiring 13: The composition MUST call Session's validate for EVERY call.
+Action wiring 14: [Check Permitted] MUST NOT read a validate answer a prior call received.
+Action wiring 15: [Check Permitted] MUST NOT write.
+```
+
+Terms › `boundary predicate`: the composition's own argument check — an argument NOT EXISTS, is blank OR EXCEEDS the length bound.
+
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
+
+Terms › `length bound`: the cap a deployment pins for an opaque argument — a [Length Bound]; the value is the deployment's, the existence is this composition's contract.
+
+Terms › `valid answer`: Session's validate answer carrying a principal_ref and an expires_at.
+
+Terms › `invalid answer`: Session's validate answer carrying expired, revoked OR not-known.
+
+Terms › `admitted gate`: a [Check Permitted] call whose arguments cleared the boundary predicate AND whose Session validate gave a valid answer.
+
+WHY:
+Action wiring 2 and Wiring decision 1 are the whole composition stated as order. The boundary check runs before either constituent, the gate runs before Permissions, and both are `ONLY AFTER` rather than `BEFORE` because the grammar admits the positive form only in that direction (Timing 6, Hard invariant 11).
+
+Action wiring 13 and Action wiring 14 are one rule split by polarity, and they are what the OWASP ASVS V3.3 claim in Standards rests on. A deployment caching a validate answer across calls satisfies neither: a session revoked between two calls reaches Permissions with validate never consulted, which is the gap this composition exists to close. Non-goal 8 says what such a deployment is building instead.
+
+Action wiring 7 and Action wiring 8 are the principal binding stated twice on purpose — once as an argument the action does not take, once as a value it does not forward. A composition that took the argument and ignored it would satisfy the second and break the first, and an implementation that forwarded a caller value under a different name would satisfy the first and break the second.
+
+Action wiring 12 keeps the gate binary. The `expires_at` reaches the composition and stops there: a caller that learns the deadline learns how long a stolen token remains useful, and no rule here needs the value.
+
+### Wiring decision
+
+```text
+Wiring decision 1: The composition MUST call Permissions' permitted ONLY AFTER Session's validate gives a valid answer.
 ```
 
 WHY:
-The gate is point-in-time at the instant `Session.validate` runs. A revocation landing after that instant and before Permissions answers leaves a call that clears the gate and returns `permitted` or `denied` on a session that is revoked by the time the caller reads the answer. This is stated rather than cured: curing it would need a lock across two atoms that declare no such surface, and the honest bound is the session's own duration (Concurrency 3).
+The decision the composition exists to make: the session gates the permission check, at the composition boundary, so neither atom learns the other's rules (§Intent). The rule is Action wiring 4's words, moved to the heading that names what it is.
 
 ---
 
@@ -185,18 +182,6 @@ The gate is point-in-time at the instant `Session.validate` runs. A revocation l
   Invariant 4.2: A valid session MUST NOT stand as sufficient for access.
   ```
   WHY: session validity is necessary and never sufficient. The default-deny posture is [Permissions](../atoms/permissions.md)'s and passes through unmodified (Action wiring 10, Action wiring 11); what this composition adds is that it passes through at all rather than being softened by a valid session.
-
----
-
-## Standards
-
-*Anchors: NIST (National Institute of Standards and Technology — US federal standards body) SP 800-53 AC-3 (Access Enforcement), NIST SP 800-53 AC-12 (Session Termination), NIST SP 800-63B §7 (re-authentication at resource access), OWASP (Open Worldwide Application Security Project) ASVS V3.3 (Application Security Verification Standard — session expiry enforced at the resource level), PCI DSS (Payment Card Industry Data Security Standard) Requirement 7 (restrict access to system components) + Requirement 8 (authenticate access to system components), HIPAA (US Health Insurance Portability and Accountability Act) §164.312(a)(1) (access control), HIPAA §164.312(d) (person or entity authentication), ISO/IEC 27001 §A.9.4.1 (International Organization for Standardization / International Electrotechnical Commission information-security standard — information access restriction).*
-
-**NIST SP 800-53 AC-3** requires that the information system enforces approved authorizations for logical access. The gate ensures no authorization is evaluated under a session the system no longer considers valid.
-
-**AC-12** requires that the information system terminates sessions after defined conditions. The termination itself is Session's and [Login](./login.md)'s act; what this composition contributes is the access-time complement — a session the system has terminated, whether by expiry, logout, or cascade from Login's `revoke_sessions_for_credential`, is refused at the composition boundary on every subsequent [Check Permitted] call, so a terminated session buys no further authorization.
-
-**OWASP ASVS V3.3** specifically requires that session expiry is enforced at the *resource* level, not only by the session management layer. The composition satisfies this by re-validating the session token on every [Check Permitted] call rather than relying on an earlier validation result cached in the request context.
 
 ---
 
@@ -280,8 +265,6 @@ check_permitted(
 
 Internally: `Session.validate("tok_abc123") → valid(principal_ref: "usr_42", ...)`. Then: `Permissions.permitted("usr_42", "invoice:delete") → denied`. The principal holds no active grant for `"invoice:delete"`.
 
----
-
 ### Regulated adversarial scenarios
 
 **Regulator audit.** An auditor queries whether the system enforces access control at session-expiry boundaries — specifically, whether an expired session is permitted to evaluate any authorization query. By Invariant 1, any [Check Permitted] call with an expired session token returns `rejected(session-invalid(expired))` before Permissions is consulted. The session expiry state is verifiable from Session's own records; the composition's invariant is derivable from the action wiring alone, without inspecting runtime logs. If Audit Trail is composed in as a substrate, the individual [Check Permitted] records confirm the rejected outcome directly.
@@ -352,6 +335,21 @@ Non-goal 7 is worth stating because the opposite reads as helpful. A principal m
 
 ---
 
+## Edge cases
+
+### Concurrency
+
+```text
+Concurrency 1: The composition MUST answer from the validate answer the call received.
+Concurrency 2: The composition MUST NOT detect a revocation that follows the validate answer.
+Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound Session's session_duration.
+```
+
+WHY:
+The gate is point-in-time at the instant `Session.validate` runs. A revocation landing after that instant and before Permissions answers leaves a call that clears the gate and returns `permitted` or `denied` on a session that is revoked by the time the caller reads the answer. This is stated rather than cured: curing it would need a lock across two atoms that declare no such surface, and the honest bound is the session's own duration (Concurrency 3).
+
+---
+
 ## Composition notes
 
 ```text
@@ -371,6 +369,8 @@ WHY:
 ## Terms
 
 The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a minimal, stateless composition — a gate — so its own concepts are just the single action it exposes ([Check Permitted]) and its two own rejections ([Session Invalid], the gate refusal; [Invalid Request], the boundary refusal — composition-introduced, since neither wired constituent operation can produce it). It introduces **no cross-atom state** and no new data, so there is nothing else to carry a term entry: the emergent guarantees it owns — the session-gates-authorization ordering (Invariant 1) and the principal binding (Invariant 2) — are structural properties, not data. References to the constituent atoms and their operations — Session's `validate` / `revoke`, Permissions' `permitted` — and the relayed outcomes (`permitted`, `denied`) and the `invalid(...)` reasons (`expired` / `revoked` / `not-known`) Session returns, remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+
+### Vocabulary
 
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
@@ -434,6 +434,18 @@ Projects:  length_bound
 [Session Invalid]: #session-invalid
 [Invalid Request]: #invalid-request
 [Length Bound]: #length-bound
+
+---
+
+## Standards references
+
+*Anchors: NIST (National Institute of Standards and Technology — US federal standards body) SP 800-53 AC-3 (Access Enforcement), NIST SP 800-53 AC-12 (Session Termination), NIST SP 800-63B §7 (re-authentication at resource access), OWASP (Open Worldwide Application Security Project) ASVS V3.3 (Application Security Verification Standard — session expiry enforced at the resource level), PCI DSS (Payment Card Industry Data Security Standard) Requirement 7 (restrict access to system components) + Requirement 8 (authenticate access to system components), HIPAA (US Health Insurance Portability and Accountability Act) §164.312(a)(1) (access control), HIPAA §164.312(d) (person or entity authentication), ISO/IEC 27001 §A.9.4.1 (International Organization for Standardization / International Electrotechnical Commission information-security standard — information access restriction).*
+
+**NIST SP 800-53 AC-3** requires that the information system enforces approved authorizations for logical access. The gate ensures no authorization is evaluated under a session the system no longer considers valid.
+
+**AC-12** requires that the information system terminates sessions after defined conditions. The termination itself is Session's and [Login](./login.md)'s act; what this composition contributes is the access-time complement — a session the system has terminated, whether by expiry, logout, or cascade from Login's `revoke_sessions_for_credential`, is refused at the composition boundary on every subsequent [Check Permitted] call, so a terminated session buys no further authorization.
+
+**OWASP ASVS V3.3** specifically requires that session expiry is enforced at the *resource* level, not only by the session management layer. The composition satisfies this by re-validating the session token on every [Check Permitted] call rather than relying on an earlier validation result cached in the request context.
 
 ---
 

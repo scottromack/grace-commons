@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Party Identity is a lasting, verifiable identity record for an external party — a customer, a patient, a counterparty, a beneficial owner. It answers the question every regulated system settles before doing business: *who is this party, and has their identity been checked?*
@@ -91,6 +90,38 @@ WHY:
 Identity 10 is what an external party's life requires. A [Name] changes by law, a [Document Ref] is superseded when the document is renewed, a [Document Type] differs between two enrollments of one person, and none of that makes the party a different party — so identifying by a content field would collapse attribute change with distinct-party disambiguation. The opaque id is what lets a composition link a lifetime of activity to one durable reference.
 
 Identity 16 is the atom's sharpest refusal and the one a reader most often mistakes for a gap. Two enrollments of the same natural person produce two parties with two ids, and this atom will never say they are one. Deciding that is identity resolution — a biometric match, a document comparison, an external resolver — and building it in would make the record primitive depend on the hardest judgment in the domain. Merging is then an explicit, auditable act in a composing pattern rather than a silent collision here (Non-goal 1, Non-goal 2).
+
+### State
+
+```text
+State 1: EVERY party MUST carry party_id, EVERY enrollment field and a state.
+State 2: EVERY party MUST carry a state change log.
+State 3: EVERY party MUST carry a verification event list.
+State 4: EVERY verification event MUST carry verification_id, verifying_actor_ref, verification_method, verification_result, evidence_ref and verified_at.
+State 5: EVERY state change event MUST carry state_change_id, the prior state, the new state, an acting reference and an instant.
+State 6: A state change event MAY carry a reason.
+State 7: EVERY state change event a reasoned action appended MUST carry a reason.
+```
+
+WHY:
+State 2 and State 3 say something a reader can miss: the histories live *on* the party rather than in stores of their own, which is why one [Read] answers a whole biography and why every acceptance check below is runnable against one surface. Each event is still individually addressable by its own identifier, so a composing attestation binds to one suspension rather than to a position in a list.
+
+State 6 and State 7 are the reason a reason is optional in the record and mandatory in three of four writers. A verify-driven transition carries no reason because [Verify] has no reason to carry — the evidence *is* the justification, and it is on the verification event. A suspension, a reinstatement and a closure are judgments, and a judgment with no stated basis is the thing an auditor came to read.
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST supply the id material at the seam.
+Capability requirement 3: The store instance MUST serialize two party actions naming one party_id.
+Capability requirement 4: The store MUST acknowledge a write ONLY IF the write commits.
+Capability requirement 5: The store MUST commit an admitted verify's two records together.
+Capability requirement 6: The deployment MUST canonicalize an opaque reference.
+Capability requirement 7: The deployment MUST declare the length bound.
+```
+
+WHY:
+Every enrollment names an [Enrolling Actor Ref], and Capability requirement 3 is what makes the state checks mean anything under concurrency. Two calls naming one party — a suspend and a close arriving together — must resolve in some order, and the loser must see the winner's state and be refused accordingly. Without it both read *verified*, both pass their checks, and the party ends in whichever state committed last with a state change log that claims two prior states.
 
 ### Operations
 
@@ -224,37 +255,6 @@ Operation 50 is a deliberate departure from the corpus's total-read shape. Silen
 
 Operation 59 is this atom's one departure from its siblings on instants. [Approval Step](./approval-step.md) accepts a caller-supplied decision time because the decision happened elsewhere and the record documents it; here a timestamp's only justification would be the call itself, so accepting one would let a caller write a history that did not happen.
 
-### Ordering
-
-```text
-Ordering 1: The store instance MUST append a verification event in insertion order.
-Ordering 2: The store instance MUST append a state change event in insertion order.
-Ordering 3: The atom MUST read the most recent event from insertion order.
-Ordering 4: The atom MUST NOT read an ordering from a recorded instant.
-Ordering 5: A recorded instant MUST NOT bound a reconstruction.
-Ordering 6: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
-```
-
-WHY:
-This family exists because two orders are available and only one of them is sound. A recorded instant comes from the injected clock, and under skew or adjustment a later event can carry an earlier instant — so *the most recent suspend*, which Operation 18 turns on, would be decidable differently by two readers. Insertion order is the store's own sequence and admits one reading. Ordering 4 and Ordering 5 are what stop a reconstruction from quietly depending on the weaker of the two, and Ordering 6 names what a deployment composes when it needs wall-time bounds it can defend.
-
-### State
-
-```text
-State 1: EVERY party MUST carry party_id, EVERY enrollment field and a state.
-State 2: EVERY party MUST carry a state change log.
-State 3: EVERY party MUST carry a verification event list.
-State 4: EVERY verification event MUST carry verification_id, verifying_actor_ref, verification_method, verification_result, evidence_ref and verified_at.
-State 5: EVERY state change event MUST carry state_change_id, the prior state, the new state, an acting reference and an instant.
-State 6: A state change event MAY carry a reason.
-State 7: EVERY state change event a reasoned action appended MUST carry a reason.
-```
-
-WHY:
-State 2 and State 3 say something a reader can miss: the histories live *on* the party rather than in stores of their own, which is why one [Read] answers a whole biography and why every acceptance check below is runnable against one surface. Each event is still individually addressable by its own identifier, so a composing attestation binds to one suspension rather than to a position in a list.
-
-State 6 and State 7 are the reason a reason is optional in the record and mandatory in three of four writers. A verify-driven transition carries no reason because [Verify] has no reason to carry — the evidence *is* the justification, and it is on the verification event. A suspension, a reinstatement and a closure are judgments, and a judgment with no stated basis is the thing an auditor came to read.
-
 ### Invariants
 
 - **Invariant 1 — Party record permanence.**
@@ -304,6 +304,20 @@ State 6 and State 7 are the reason a reason is optional in the record and mandat
   Invariant 11.2: A storage-failure rejection MUST leave no record of the action in the store.
   ```
   WHY: the verify-driven transition is where this bites. One call writes a verification event and a state change event, and a store that landed the first without the second would leave a party carrying the evidence for a standing it does not hold — which is Invariant 4.1 satisfied in the store and violated in fact. Invariant 11.2 is the other direction: a refusal leaves nothing, so a caller reading `storage-failure` knows the store is as the call found it.
+
+### Ordering
+
+```text
+Ordering 1: The store instance MUST append a verification event in insertion order.
+Ordering 2: The store instance MUST append a state change event in insertion order.
+Ordering 3: The atom MUST read the most recent event from insertion order.
+Ordering 4: The atom MUST NOT read an ordering from a recorded instant.
+Ordering 5: A recorded instant MUST NOT bound a reconstruction.
+Ordering 6: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
+```
+
+WHY:
+This family exists because two orders are available and only one of them is sound. A recorded instant comes from the injected clock, and under skew or adjustment a later event can carry an earlier instant — so *the most recent suspend*, which Operation 18 turns on, would be decidable differently by two readers. Insertion order is the store's own sequence and admits one reading. Ordering 4 and Ordering 5 are what stop a reconstruction from quietly depending on the weaker of the two, and Ordering 6 names what a deployment composes when it needs wall-time bounds it can defend.
 
 ---
 
@@ -387,21 +401,6 @@ External check 1 is the boundary a regulator's question runs straight into. This
 
 External check 3 follows from Invariant 7.1 and is the one an erasure obligation collides with. Nothing here scrubs a name, and a deployment under GDPR Article 17 needs something that does; the composing pattern removes the identifiable fields and records the removal as an attributed event, leaving `party_id`, `enrolled_at` and `enrolling_actor_ref` so the chain of custody survives the data.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the id material at the seam.
-Capability requirement 3: The store instance MUST serialize two party actions naming one party_id.
-Capability requirement 4: The store MUST acknowledge a write ONLY IF the write commits.
-Capability requirement 5: The store MUST commit an admitted verify's two records together.
-Capability requirement 6: The deployment MUST canonicalize an opaque reference.
-Capability requirement 7: The deployment MUST declare the length bound.
-```
-
-WHY:
-Every enrollment names an [Enrolling Actor Ref], and Capability requirement 3 is what makes the state checks mean anything under concurrency. Two calls naming one party — a suspend and a close arriving together — must resolve in some order, and the loser must see the winner's state and be refused accordingly. Without it both read *verified*, both pass their checks, and the party ends in whichever state committed last with a state change log that claims two prior states.
-
 ---
 
 ## Non-goals
@@ -441,26 +440,14 @@ Non-goal 21 is what *closed* does not mean. Closing a party stops new regulated 
 
 ## Edge cases
 
-### String policy
+### Atomic writes
 
 ```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
-String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
+Atomic writes 1: The implementation MUST commit a transition whole.
+Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
+Atomic writes 3: The implementation MUST own the transactional boundary.
+Atomic writes 4: The implementation MUST NOT repair a dangling transition.
 ```
-
-Terms › `string input`: a required string input, `date_of_birth` OR a filter value — every caller-supplied string this atom accepts.
-
-Terms › `length bound`: the maximum length the deployment declares for a `string input`.
-
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
-
-WHY:
-The blank rule earns its keep on `reason` more than anywhere else. A suspension, a reinstatement and a closure each require a stated basis, and a whitespace placeholder would satisfy a naive presence check while leaving the audit surface exactly as empty as no reason at all. Storing a name as supplied — no normalization, no transliteration — is the other half: the enrollment record says what was presented, and how a deployment matches or displays it is the deployment's (Capability requirement 6).
 
 ### Clock semantics
 
@@ -483,16 +470,7 @@ Concurrency 2: A losing party action MUST read the winner's state.
 Concurrency 3: A losing party action MUST answer the state rejection the winner's state earns.
 ```
 
-### Atomic writes
-
-```text
-Atomic writes 1: The implementation MUST commit a transition whole.
-Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
-Atomic writes 3: The implementation MUST own the transactional boundary.
-Atomic writes 4: The implementation MUST NOT repair a dangling transition.
-```
-
-### Indeterminate outcomes
+### Indeterminate outcome
 
 ```text
 Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the party.
@@ -502,6 +480,27 @@ Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading 
 
 WHY:
 Invariant 11.1 is store-side and the caller's knowledge is weaker. A transport failure after the store committed leaves the caller unable to tell *refused, nothing written* from *succeeded, answer lost* — and the two have opposite remedies. Every party action is safe to re-read first because the state checks make a repeat self-detecting: a second suspend answers `already-suspended`. [Enroll] is the one that is not, because it creates rather than transitions, so a blind retry produces a second party that this atom will never resolve against the first (Identity 16).
+
+### String policy
+
+```text
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
+```
+
+Terms › `string input`: a required string input, `date_of_birth` OR a filter value — every caller-supplied string this atom accepts.
+
+Terms › `length bound`: the maximum length the deployment declares for a `string input`.
+
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+
+WHY:
+The blank rule earns its keep on `reason` more than anywhere else. A suspension, a reinstatement and a closure each require a stated basis, and a whitespace placeholder would satisfy a naive presence check while leaving the audit surface exactly as empty as no reason at all. Storing a name as supplied — no normalization, no transliteration — is the other half: the enrollment record says what was presented, and how a deployment matches or displays it is the deployment's (Capability requirement 6).
 
 ---
 

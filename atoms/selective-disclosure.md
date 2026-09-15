@@ -82,6 +82,37 @@ The id is the injected `id_t`, fresh by construction at the seam, which is what 
 
 `subject_ref` is deliberately not an identity (Identity 7, Identity 8). One subject has many disclosures; each is its own accountability record, and collapsing them under a subject key would make the store answer *what is true of this subject* rather than *what happened to this subject's data*, which is the question the regulation asks.
 
+### State
+
+```text
+State 1: EVERY disclosure record MUST carry disclosure_id, subject_ref, recipient, scope, authority_type, authority_reference and disclosed_at.
+State 2: The atom MUST NOT offer a state machine over a disclosure record.
+State 3: The atom MUST NOT offer an optional field on a disclosure record.
+State 4: The atom MUST NOT offer an edit surface.
+State 5: The atom MUST NOT offer a removal surface.
+State 6: The atom MUST NOT offer a retraction surface.
+State 7: The atom MUST NOT offer a batch record surface.
+State 8: The store instance's record count MUST NOT fall.
+State 9: A later unfiltered [Read] MUST answer EVERY disclosure record an earlier unfiltered [Read] answered.
+State 10: The atom MUST NOT record a receipt instant.
+```
+
+WHY:
+A disclosure record has no lifecycle (State 2). It is categorically unlike the state-machine atoms — [Legal Hold](./legal-hold.md)'s active and released, [Approval Step](./approval-step.md)'s pending, approved, rejected and withdrawn — because a disclosure simply *is*, from the moment it is recorded. There is no transition to model and therefore no transition to get wrong, and the store's only state is the growing set.
+
+State 3 is what makes the accounting answerable in one pass. Every field is on every record, so an auditor never has to ask whether an absent value means *not applicable* or *not captured* — a distinction no store can make after the fact.
+
+State 10 states the gap that makes backdating undetectable here rather than leaving it implicit. The atom stores the declared instant and nothing else, so a call made today with `disclosed_at: "2024-01-01"` produces a record that reads as a 2024 disclosure. The receipt instant lives in the composing [Event Log](./event-log.md) entry, and External check 3 is where the comparison is made.
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
 ### Operations
 
 ```
@@ -169,28 +200,6 @@ Operation 7 is the atom's one genuine execution-time validation — the residual
 
 Operation 22 refuses an unrecognized filter key rather than ignoring it, which is the difference between an answer and a coincidence: a silently ignored key returns a result set that does not match what the caller asked, and a compliance answer no one can trust the shape of is worse than a rejection. Operation 20 draws the opposite line on the same surface — a well-formed query matching nothing is a meaningful answer (*no disclosures of this kind were recorded*), not a failure.
 
-### State
-
-```text
-State 1: EVERY disclosure record MUST carry disclosure_id, subject_ref, recipient, scope, authority_type, authority_reference and disclosed_at.
-State 2: The atom MUST NOT offer a state machine over a disclosure record.
-State 3: The atom MUST NOT offer an optional field on a disclosure record.
-State 4: The atom MUST NOT offer an edit surface.
-State 5: The atom MUST NOT offer a removal surface.
-State 6: The atom MUST NOT offer a retraction surface.
-State 7: The atom MUST NOT offer a batch record surface.
-State 8: The store instance's record count MUST NOT fall.
-State 9: A later unfiltered [Read] MUST answer EVERY disclosure record an earlier unfiltered [Read] answered.
-State 10: The atom MUST NOT record a receipt instant.
-```
-
-WHY:
-A disclosure record has no lifecycle (State 2). It is categorically unlike the state-machine atoms — [Legal Hold](./legal-hold.md)'s active and released, [Approval Step](./approval-step.md)'s pending, approved, rejected and withdrawn — because a disclosure simply *is*, from the moment it is recorded. There is no transition to model and therefore no transition to get wrong, and the store's only state is the growing set.
-
-State 3 is what makes the accounting answerable in one pass. Every field is on every record, so an auditor never has to ask whether an absent value means *not applicable* or *not captured* — a distinction no store can make after the fact.
-
-State 10 states the gap that makes backdating undetectable here rather than leaving it implicit. The atom stores the declared instant and nothing else, so a call made today with `disclosed_at: "2024-01-01"` produces a record that reads as a 2024 disclosure. The receipt instant lives in the composing [Event Log](./event-log.md) entry, and External check 3 is where the comparison is made.
-
 ### Invariants
 
 - **Invariant 1 — Record immutability.**
@@ -229,6 +238,7 @@ State 10 states the gap that makes backdating undetectable here rather than leav
   WHY: append-only is the structural guarantee that a subject's disclosure history is complete from the records alone. A deletion or an edit would break that guarantee in a way no auditor could detect from the store — which is exactly the gap [Tamper Evidence](./tamper-evidence.md) closes cryptographically and this atom closes only by specification.
 
 ---
+
 ## Examples
 
 ### Consent-authorized disclosure to a research partner
@@ -308,17 +318,6 @@ External check 4 is a check that left the conformance list. Finding every issued
 
 The three external checks are the audit boundary stated rather than left to be discovered, and each names where the question goes. Authority *legitimacy* is unclearable here by construction: a record carrying `{type: consent, reference: "consent-3301"}` proves the calling system claimed that consent, and whether the consent was granted, in scope and unrevoked at `disclosed_at` lives in [Consent](./consent.md)'s store — as does semantic agreement between the type and the reference, which this atom cannot judge on an opaque string. Invariant 5.1 is unclearable from inside because a gap is invisible to a query that sees only what was recorded; the store is the positive evidence and the negative evidence lives at the egress boundary. Backdating is unclearable because the atom stores the declared instant and no separate creation instant; the composing [Event Log](./event-log.md) entry carries the receipt instant, and a `disclosed_at` materially earlier than it is the audit signal. [Audit Trail](../compositions/audit-trail.md) is where that comparison is surfaced.
 
----
-
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -359,27 +358,6 @@ Non-goal 21 is deliberate asymmetry. `disclosed_at` is bounded above because a f
 
 ## Edge cases
 
-### String policy
-
-```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference.
-```
-
-Terms › `string input`: `subject_ref`, `recipient`, `scope`, `authority_reference` OR a filter's value — every caller-supplied string this atom accepts.
-
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
-
-WHY:
-Byte-exactness means callers own canonicalization (String 1, String 7): two subject references differing only in case are two subjects to this atom, and a [Read] filtered on one will not answer the other's records. In a store whose purpose is completeness, that is the failure mode worth naming — an Article 15 answer that is short by the records filed under a differently-cased reference is wrong in the one direction the regulation punishes.
-
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
-
 ### Clock semantics
 
 ```text
@@ -403,6 +381,27 @@ Concurrency 3: The implementation MUST issue EXACTLY ONE disclosure_id per admit
 
 WHY:
 There is no shared mutable state for two [Record] calls to contend over — each appends its own record under its own injected id — so serialization across calls would buy nothing and cost throughput on exactly the batch disclosures regulated systems make most (a report covering many patients is one call per patient, per Non-goal 14's neighbourhood). The only serialization the atom asks for is within a single call's write.
+
+### String policy
+
+```text
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+String 7: The deployment MUST canonicalize an opaque reference.
+```
+
+Terms › `string input`: `subject_ref`, `recipient`, `scope`, `authority_reference` OR a filter's value — every caller-supplied string this atom accepts.
+
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+
+WHY:
+Byte-exactness means callers own canonicalization (String 1, String 7): two subject references differing only in case are two subjects to this atom, and a [Read] filtered on one will not answer the other's records. In a store whose purpose is completeness, that is the failure mode worth naming — an Article 15 answer that is short by the records filed under a differently-cased reference is wrong in the one direction the regulation punishes.
+
+NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 ### Correction by append
 
@@ -442,6 +441,7 @@ WHY:
 [Audit Trail](../compositions/audit-trail.md) is the regulated-audit stack every [Record] call passes through in a regulated deployment, and it is where External check 3's backdating comparison is surfaced. [Consent](./consent.md) and [Legal Hold](./legal-hold.md) are the authority stores behind two of the three authority types, and they are composing peers rather than constituents — neither imports the other's semantics, and both may be live on one subject's records at once. [Actor Identity](./actor-identity.md) supplies the recording actor's attestation, [Tamper Evidence](./tamper-evidence.md) the cryptographic seal, [Retention Window](./retention-window.md) the lifecycle, [Permissions](./permissions.md) the scoped read access a store holding subject identities and disclosure patterns needs, and [Duplicate Prevention](./duplicate-prevention.md) at-most-once recording under retry.
 
 ---
+
 ## Terms
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.

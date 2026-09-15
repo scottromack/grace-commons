@@ -14,8 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
-
 ## Summary
 
 Observation records a single measurement about a subject — a vital sign, a lab value, a sensor reading, a financial mark — in a permanent, attributed form that cannot be silently edited.
@@ -92,6 +90,43 @@ WHY:
 Identity 9 and Identity 10 state the two scopes that a multi-site deployment gets wrong in opposite directions. `subject_ref` is portable by design — the same subject appears in one store and another — and `observation_id` is not, so a cross-instance query that treats two ids from two stores as comparable is reading coincidence. Identity 16 is what makes the boundary visible in the signature: no action takes a [Store Name], so a caller cannot address two instances in one call and a composition that needs to must do its own routing.
 
 Identity 14 and Identity 15 are why vocabulary standardization sits outside. LOINC (Logical Observation Identifiers Names and Codes), SNOMED CT (Systematized Nomenclature of Medicine — Clinical Terms) and UCUM (Unified Code for Units of Measure) are controlled vocabularies a deployment maps into these two opaque strings, and an atom that knew any of them would be specified against one healthcare stack.
+
+### State
+
+```text
+State 1: EVERY observation MUST stand in EXACTLY ONE OF recorded, amended, retracted.
+State 2: An observation standing in retracted MUST NOT leave retracted.
+State 3: An observation standing in amended MUST NOT return to recorded.
+State 4: The atom MUST NOT offer a purged state.
+State 5: The atom MUST NOT offer a removal surface.
+State 6: The atom MUST NOT offer an edit surface.
+State 7: The atom MUST NOT offer an un-retract surface.
+State 8: EVERY observation MUST carry observation_id, subject_ref, recorded_by, observation_type, value, unit, recorded_at and a state.
+State 9: EVERY amended observation MUST carry a successor_id.
+State 10: EVERY successor observation MUST carry predecessor_id, amended_by and amendment_reason.
+State 11: EVERY retracted observation MUST carry retracted_by and retraction_reason.
+State 12: The store instance's observation count MUST NOT fall.
+State 13: The atom MUST store a resolved recorded_at standing within the future bound as the call supplied the value.
+State 14: The atom MUST NOT normalize a recorded_at's timezone.
+```
+
+WHY:
+State 4 is a deliberate absence. Clinical records are not deleted here, and destruction under a retention obligation or a legal hold belongs to the composing patterns that own those clocks — this atom retains everything and offers no surface that would let it do otherwise (Non-goal 15, Non-goal 16).
+
+Invariant 3 is what makes the chain linear rather than a tree, and the `State` family does not restate it. An observation already carrying a `successor_id` is standing in amended, so a second [Amend] answers `already-amended` (Operation 14) and there is no path by which a branch could be written.
+
+State 13 is the allowance's exact scope and the thing an implementer gets wrong: the margin widens the *refusal's* tolerance and never alters a *value*. A `recorded_at` inside the allowance is stored as supplied, not clamped to `now`.
+
+The consequence is stated rather than hidden: a caller whose clock runs ahead of the seam by more than the allowance is refused as future-dated even though the measurement happened in the past. The width of that margin is the deployment's choice and the refusal is correct at whatever width they pick.
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -224,34 +259,6 @@ Operation 5 is the refusal that surprises implementers. An `observation_type` ca
 
 Operation 43 admits a limit rather than inventing an order. Two observations sharing a `recorded_at` — concurrent entries, a back-dated record colliding with a current one, a coarse clock — have no order this atom can derive, so the requirement is stability across reads of one store state rather than a prescribed tiebreak. A caller depending on a particular tiebreak establishes it as a deployment convention, and `observation_id` order is deterministic but arbitrary across implementations.
 
-### State
-
-```text
-State 1: EVERY observation MUST stand in EXACTLY ONE OF recorded, amended, retracted.
-State 2: An observation standing in retracted MUST NOT leave retracted.
-State 3: An observation standing in amended MUST NOT return to recorded.
-State 4: The atom MUST NOT offer a purged state.
-State 5: The atom MUST NOT offer a removal surface.
-State 6: The atom MUST NOT offer an edit surface.
-State 7: The atom MUST NOT offer an un-retract surface.
-State 8: EVERY observation MUST carry observation_id, subject_ref, recorded_by, observation_type, value, unit, recorded_at and a state.
-State 9: EVERY amended observation MUST carry a successor_id.
-State 10: EVERY successor observation MUST carry predecessor_id, amended_by and amendment_reason.
-State 11: EVERY retracted observation MUST carry retracted_by and retraction_reason.
-State 12: The store instance's observation count MUST NOT fall.
-State 13: The atom MUST store a resolved recorded_at standing within the future bound as the call supplied the value.
-State 14: The atom MUST NOT normalize a recorded_at's timezone.
-```
-
-WHY:
-State 4 is a deliberate absence. Clinical records are not deleted here, and destruction under a retention obligation or a legal hold belongs to the composing patterns that own those clocks — this atom retains everything and offers no surface that would let it do otherwise (Non-goal 15, Non-goal 16).
-
-Invariant 3 is what makes the chain linear rather than a tree, and the `State` family does not restate it. An observation already carrying a `successor_id` is standing in amended, so a second [Amend] answers `already-amended` (Operation 14) and there is no path by which a branch could be written.
-
-State 13 is the allowance's exact scope and the thing an implementer gets wrong: the margin widens the *refusal's* tolerance and never alters a *value*. A `recorded_at` inside the allowance is stored as supplied, not clamped to `now`.
-
-The consequence is stated rather than hidden: a caller whose clock runs ahead of the seam by more than the allowance is refused as future-dated even though the measurement happened in the past. The width of that margin is the deployment's choice and the refusal is correct at whatever width they pick.
-
 ### Invariants
 
 - **Invariant 1 — Observation immutability.**
@@ -302,6 +309,7 @@ The consequence is stated rather than hidden: a caller whose clock runs ahead of
   WHY: the protections come from elsewhere and meet here. A `successor_id` cannot be overwritten because a second [Amend] answers `already-amended` (Operation 14, Invariant 3.1); a `retracted_by` cannot be overwritten because retraction is terminal (Invariant 6.1); a successor's `predecessor_id`, `amended_by` and `amendment_reason` are covered as any observation's fields are (Invariant 1.1). Taken with Invariant 1 and Invariant 8, no field of any observation ever changes after it is first written.
 
 ---
+
 ## Examples
 
 ### A vital sign, recorded and queried
@@ -384,17 +392,6 @@ External check 1 is the answer-capture split, which is a docket row rather than 
 
 External check 4 is the boundary a reader most wants the atom to cross and it cannot. The store says a value was recorded, by whom, when, and what it was corrected to. It does not say the measurement was taken correctly, that the cuff was the right size, or that 148 was the patient's actual pressure. That is clinical truth, and no record structure supplies it.
 
----
-
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -435,28 +432,25 @@ Non-goal 21 draws the analytics line. Trend, delta-from-prior and reference-rang
 
 ## Edge cases
 
-### String policy
+### Atomic writes
 
 ```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference.
+Atomic writes 1: A reader MUST NOT observe a successor observation without the original's successor_id.
+Atomic writes 2: A reader MUST NOT observe an amended original without the successor observation.
+Atomic writes 3: An uncommitted crash MUST leave the store as the call found the store.
+Atomic writes 4: The implementation MUST NOT repair a dangling amend.
 ```
 
-Terms › `string input`: a reference, `observation_type`, `unit`, `reason` OR a filter's value — every caller-supplied string this atom accepts.
+Terms › `uncommitted crash`: a crash BEFORE an admitted amend's commit lands.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Terms › `dangling amend`: an admitted amend's two writes standing partly applied once a crash has landed.
 
 WHY:
-A whitespace-only observer reference, reason or type is blank and refused exactly as an empty one is (String 5). The alternative — accepting a space as an observer identity — produces a record that satisfies a presence check and attributes nothing, which is the failure the attribution invariants exist to prevent.
+This atom forbids outright the repair-later posture the corpus's other append-only stores are permitted, and the argument is worth keeping. [Amend] makes two durable writes — the successor, and the original's move to amended with its `successor_id` — and both are writes to this atom's own store, so one transaction covers them and an abort takes both back (Operation 33).
 
-Byte-exactness also decides which observations share a chain and which subject a query answers about. A deployment writing `P42` on one call and `p42` on the next has two subjects here (Identity 11, Identity 12).
+A crash-recovery scan is not an acceptable substitute for two reasons. The partial record is *visible* between the crash and the repair, which is the state Invariant 7.3 says never exists. And one of the two dangling shapes cannot be repaired at all: an orphan successor could be relinked from its `predecessor_id`, but an original marked amended with a `successor_id` naming no record cannot — the successor's value, unit, amending observer and reason exist nowhere in the store, and un-marking the original would rewrite a write-once field (Invariant 9.1).
 
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+A caller whose [Amend] timed out recovers by reading the original: standing in amended with a `successor_id` means the transaction committed, and standing in recorded means it did not and a retry is safe under Concurrency 1.
 
 ### Clock semantics
 
@@ -495,25 +489,28 @@ Concurrency 6 and Concurrency 7 together say what happens when the section is a 
 
 Concurrency 8 states the other half — [Record] contends over nothing, so two clinicians charting the same patient at once is ordinary and each gets its own observation.
 
-### Atomic writes
+### String policy
 
 ```text
-Atomic writes 1: A reader MUST NOT observe a successor observation without the original's successor_id.
-Atomic writes 2: A reader MUST NOT observe an amended original without the successor observation.
-Atomic writes 3: An uncommitted crash MUST leave the store as the call found the store.
-Atomic writes 4: The implementation MUST NOT repair a dangling amend.
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Terms › `uncommitted crash`: a crash BEFORE an admitted amend's commit lands.
+Terms › `string input`: a reference, `observation_type`, `unit`, `reason` OR a filter's value — every caller-supplied string this atom accepts.
 
-Terms › `dangling amend`: an admitted amend's two writes standing partly applied once a crash has landed.
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
-This atom forbids outright the repair-later posture the corpus's other append-only stores are permitted, and the argument is worth keeping. [Amend] makes two durable writes — the successor, and the original's move to amended with its `successor_id` — and both are writes to this atom's own store, so one transaction covers them and an abort takes both back (Operation 33).
+A whitespace-only observer reference, reason or type is blank and refused exactly as an empty one is (String 5). The alternative — accepting a space as an observer identity — produces a record that satisfies a presence check and attributes nothing, which is the failure the attribution invariants exist to prevent.
 
-A crash-recovery scan is not an acceptable substitute for two reasons. The partial record is *visible* between the crash and the repair, which is the state Invariant 7.3 says never exists. And one of the two dangling shapes cannot be repaired at all: an orphan successor could be relinked from its `predecessor_id`, but an original marked amended with a `successor_id` naming no record cannot — the successor's value, unit, amending observer and reason exist nowhere in the store, and un-marking the original would rewrite a write-once field (Invariant 9.1).
+Byte-exactness also decides which observations share a chain and which subject a query answers about. A deployment writing `P42` on one call and `p42` on the next has two subjects here (Identity 11, Identity 12).
 
-A caller whose [Amend] timed out recovers by reading the original: standing in amended with a `successor_id` means the transaction committed, and standing in recorded means it did not and a retry is safe under Concurrency 1.
+NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 ---
 
@@ -540,6 +537,7 @@ WHY:
 [Tamper Evidence](./tamper-evidence.md) lifts immutability from a specification guarantee to a cryptographic one. [Retention Window](./retention-window.md) and [Legal Hold](./legal-hold.md) own the clocks this atom refuses to hold (State 4, Non-goal 14–16), and [Audit Trail](../compositions/audit-trail.md) is the regulated record-keeping stack this store feeds. [Medication Order](./medication-order.md) carries an opaque reference to the observations that informed a prescribing decision — advisory, unidirectional, and no dependency in this direction: this atom is the upstream evidence and does not know what was done with it.
 
 ---
+
 ## Terms
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.

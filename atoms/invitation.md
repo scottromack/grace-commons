@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Invitation tracks the life of an invitation issued to an outside party — a new employee, a customer, a collaborator, a patient. It answers *what is the state of this invitation, and who accepted it?*
@@ -80,6 +79,50 @@ WHY:
 Identity 5 and Identity 6 are a pair, and the pair is the point. An absolute uniqueness claim over a value drawn from a random source is not made true by the source being wide: 128 bits makes a collision fantastically unlikely and leaves the invariant logically false. Identity 6 is the cure [Capability](./capability.md) carries — the *store* refuses the colliding write, so a collision surfaces as an outcome the signature already names and uniqueness is enforced rather than hoped for. This atom is the second to carry it, and the docket row counting the atoms that do not is where the corpus-wide ruling sits.
 
 Identity 10 through Identity 13 are one posture stated four times because each is separately temptable. The atom holds references it was handed; it confirms none of them, and above all it does not check the accepting identity against the intended invitee. That last one is not an oversight — an invitation is very often addressed to an email that names no system identity at all, and the identity is created at acceptance. A deployment that does require the two to match enforces it above this atom (Non-goal 10).
+
+### State
+
+```text
+State 1: EVERY invitation MUST carry invitation_token, inviter_ref, context, initiated_at, expires_at and a status.
+State 2: An invitation MAY carry an invitee_ref.
+State 3: EVERY accepted invitation MUST carry accepting_identity_ref and accepted_at.
+State 4: EVERY declined invitation MUST carry declined_at.
+State 5: EVERY revoked invitation MUST carry revoked_by_ref, revocation_reason and revoked_at.
+State 6: A pending invitation MUST NOT carry a resolution field.
+State 7: The atom MUST NOT store expired as a status.
+State 8: An invitation MUST NOT carry an expiry instant.
+State 9: The atom MUST NOT record the ttl under the ttl's own name.
+State 10: The atom MUST NOT offer a re-open surface.
+State 11: The atom MUST NOT offer a window extension surface.
+State 12: The atom MUST NOT offer an invitation removal surface.
+State 13: The store instance's invitation count MUST NOT fall.
+```
+
+Terms › `resolution field`: `accepting_identity_ref` | `accepted_at` | `declined_at` | `revoked_at` | `revoked_by_ref` | `revocation_reason` — every field a resolving write records.
+
+WHY:
+State 7 and State 8 are the derived-expiry posture on the record surface, and they are two rules rather than one because an implementation can breach each without the other: a stored `expired` status, and an `expired_at` column beside a status that stays pending. Either one reintroduces the flag that lags the clock.
+
+State 10 and State 11 are the surfaces a reader keeps expecting. A declined or lapsed invitation is not re-opened and a deadline is not moved — trying again is a fresh [Initiate] with a fresh token and its own audit entry, and the original stays in the store as history. Moving `expires_at` would retroactively change what a past read returned, which is the one thing a derived status cannot survive.
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST supply the token material at the seam.
+Capability requirement 3: The deployment MUST supply token material drawn from a cryptographically random source.
+Capability requirement 4: The deployment MUST declare the default ttl.
+Capability requirement 5: The deployment MUST declare the ttl bounds.
+Capability requirement 6: The store MUST refuse a write carrying an invitation_token the store holds.
+Capability requirement 7: The store MUST acknowledge a write ONLY IF the write commits.
+Capability requirement 8: The deployment MUST canonicalize an opaque reference.
+Capability requirement 9: The deployment MUST deliver the invitation_token to the invitee.
+```
+
+WHY:
+Capability requirement 3 is where the token's security actually lives. Nothing in this atom's rules can tell a random token from a sequential one — both are opaque values it stores and compares — and a guessable token makes every other guarantee here worthless, because an attacker who can produce a valid token accepts an invitation that was never sent to them. Capability requirement 6 is its partner and does the work Identity 6 states: the store, not the atom, is what makes uniqueness true.
+
+Capability requirement 7 and Identity 6 are worth reading together, because the second borrows the first's answer. A token collision is refused by the store and surfaces as `storage-failure`, which is true about the outcome — nothing committed — and loose about the cause: a collision is a correct refusal of a well-formed call, not a store that failed, and the remedy differs (fresh token material, not the same write retried). Operation 5 does the same thing one row down, answering `invalid-request` when the deployment declared no default ttl — a configuration gap charged to the caller. Both are defensible and neither is precise, and the reason is the same in both places: the answer set is closed (Closed vocabulary 22), so a rare condition is routed to the nearest existing arm rather than earning one. The docket row counts that shape across the corpus rather than each spec deciding alone (council read 39).
 
 ### Operations
 
@@ -194,31 +237,6 @@ Operation 40 is the whole of the derived-expiry posture stated as an absence, wh
 Operation 44 makes [Read] a total read: a filter that matches nothing has a correct answer — no invitations — rather than an error. That shape now recurs in seven specs and no rule anywhere owns the reason, which is a watch entry rather than a claim.
 
 Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the `now` declaration cites it rather than restating it. The clock is consumed twice per call — by the window reading and by the write's stamps — and both read the one `now` the seam supplied.
-
-### State
-
-```text
-State 1: EVERY invitation MUST carry invitation_token, inviter_ref, context, initiated_at, expires_at and a status.
-State 2: An invitation MAY carry an invitee_ref.
-State 3: EVERY accepted invitation MUST carry accepting_identity_ref and accepted_at.
-State 4: EVERY declined invitation MUST carry declined_at.
-State 5: EVERY revoked invitation MUST carry revoked_by_ref, revocation_reason and revoked_at.
-State 6: A pending invitation MUST NOT carry a resolution field.
-State 7: The atom MUST NOT store expired as a status.
-State 8: An invitation MUST NOT carry an expiry instant.
-State 9: The atom MUST NOT record the ttl under the ttl's own name.
-State 10: The atom MUST NOT offer a re-open surface.
-State 11: The atom MUST NOT offer a window extension surface.
-State 12: The atom MUST NOT offer an invitation removal surface.
-State 13: The store instance's invitation count MUST NOT fall.
-```
-
-Terms › `resolution field`: `accepting_identity_ref` | `accepted_at` | `declined_at` | `revoked_at` | `revoked_by_ref` | `revocation_reason` — every field a resolving write records.
-
-WHY:
-State 7 and State 8 are the derived-expiry posture on the record surface, and they are two rules rather than one because an implementation can breach each without the other: a stored `expired` status, and an `expired_at` column beside a status that stays pending. Either one reintroduces the flag that lags the clock.
-
-State 10 and State 11 are the surfaces a reader keeps expecting. A declined or lapsed invitation is not re-opened and a deadline is not moved — trying again is a fresh [Initiate] with a fresh token and its own audit entry, and the original stays in the store as history. Moving `expires_at` would retroactively change what a past read returned, which is the one thing a derived status cannot survive.
 
 ### Invariants
 
@@ -362,25 +380,6 @@ External check 1 is the one a deployment can quietly lose. The `already-resolved
 
 External check 5 follows from Operation 27. [Decline] takes no acting reference, so the store records that a holder of the token refused and never who. That asymmetry against [Accept] is deliberate — acceptance creates a relationship the system must attribute, refusal closes one and creates nothing — but a deployment that does need the declining party named records it above this atom.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the token material at the seam.
-Capability requirement 3: The deployment MUST supply token material drawn from a cryptographically random source.
-Capability requirement 4: The deployment MUST declare the default ttl.
-Capability requirement 5: The deployment MUST declare the ttl bounds.
-Capability requirement 6: The store MUST refuse a write carrying an invitation_token the store holds.
-Capability requirement 7: The store MUST acknowledge a write ONLY IF the write commits.
-Capability requirement 8: The deployment MUST canonicalize an opaque reference.
-Capability requirement 9: The deployment MUST deliver the invitation_token to the invitee.
-```
-
-WHY:
-Capability requirement 3 is where the token's security actually lives. Nothing in this atom's rules can tell a random token from a sequential one — both are opaque values it stores and compares — and a guessable token makes every other guarantee here worthless, because an attacker who can produce a valid token accepts an invitation that was never sent to them. Capability requirement 6 is its partner and does the work Identity 6 states: the store, not the atom, is what makes uniqueness true.
-
-Capability requirement 7 and Identity 6 are worth reading together, because the second borrows the first's answer. A token collision is refused by the store and surfaces as `storage-failure`, which is true about the outcome — nothing committed — and loose about the cause: a collision is a correct refusal of a well-formed call, not a store that failed, and the remedy differs (fresh token material, not the same write retried). Operation 5 does the same thing one row down, answering `invalid-request` when the deployment declared no default ttl — a configuration gap charged to the caller. Both are defensible and neither is precise, and the reason is the same in both places: the answer set is closed (Closed vocabulary 22), so a rare condition is routed to the nearest existing arm rather than earning one. The docket row counts that shape across the corpus rather than each spec deciding alone (council read 39).
-
 ---
 
 ## Non-goals
@@ -421,25 +420,14 @@ Non-goal 24 is the honest limit on single-resolution. Nothing here makes an invi
 
 ## Edge cases
 
-### String policy
+### Atomic writes
 
 ```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
+Atomic writes 1: The implementation MUST commit a transition whole.
+Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
+Atomic writes 3: The implementation MUST own the transactional boundary.
+Atomic writes 4: The implementation MUST NOT repair a dangling transition.
 ```
-
-Terms › `string input`: a reference, `context` OR `reason` — every caller-supplied string this atom accepts.
-
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
-
-WHY:
-Byte-exactness is sharper here than in most atoms because the `invitation_token` is a bearer credential: a lookup that trimmed or case-folded would make a family of near-miss tokens resolve to a real invitation, which is a guessing surface rather than a convenience. Canonicalization, where a deployment wants it, happens before the call (Capability requirement 8, Identity 9).
-
-NOTE: watch host obligations — this atom sets no maximum length on a string input and does not oblige the deployment to set one, which is the *input-handling regime* docket row's silence posture.
 
 ### Clock semantics
 
@@ -467,14 +455,25 @@ Concurrency 3: A losing resolving write MUST name the stored terminal the winner
 WHY:
 Concurrency 3 is the race the atom is most often asked to survive: two people accepting one invitation at the same instant. One commits, and the other is not merely refused — it is told `already-resolved(accepted)`, which lets a caller distinguish *someone else took this* from *this was withdrawn* without a second read.
 
-### Atomic writes
+### String policy
 
 ```text
-Atomic writes 1: The implementation MUST commit a transition whole.
-Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
-Atomic writes 3: The implementation MUST own the transactional boundary.
-Atomic writes 4: The implementation MUST NOT repair a dangling transition.
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
 ```
+
+Terms › `string input`: a reference, `context` OR `reason` — every caller-supplied string this atom accepts.
+
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+
+WHY:
+Byte-exactness is sharper here than in most atoms because the `invitation_token` is a bearer credential: a lookup that trimmed or case-folded would make a family of near-miss tokens resolve to a real invitation, which is a guessing surface rather than a convenience. Canonicalization, where a deployment wants it, happens before the call (Capability requirement 8, Identity 9).
+
+NOTE: watch host obligations — this atom sets no maximum length on a string input and does not oblige the deployment to set one, which is the *input-handling regime* docket row's silence posture.
 
 ---
 

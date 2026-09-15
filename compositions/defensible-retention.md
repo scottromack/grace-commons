@@ -300,7 +300,6 @@ One arm rule per answer the substrate can give, stated once and cited at every `
 
 `invalid-credential` splits by who is writing, which is the one place this composition's arms differ from login(./login.md)'s over the same substrate. An invocation record is attested under the **caller's** credential, so a refusal is the caller's own pre-state answer and belongs to the caller (Audit arm 7). A sweep record is attested under the service identity, so a refusal there is the deployment's own credential fault — pageable, never a caller outcome and never a loop (Audit arm 8 through Audit arm 10).
 
----
 ### Action wiring
 
 ```
@@ -497,7 +496,6 @@ WHY:
 
 Wiring decision 6 and Wiring decision 7 are the advisory path's honest residue. An override destroys the record and leaves the blocking holds standing, so the hold store afterwards asserts preservation over a record that no longer exists. The composition declines to auto-release, because the authority whose order permitted the override is the same authority that decides whether the underlying obligation has ended, and a release reason this layer composed would be a sentence no one wrote. The discrepancy is observable in any joined read and is a dashboard signal the deployment surfaces.
 
----
 ### Reconciliation
 
 ```text
@@ -646,6 +644,7 @@ Each emerges from the composition; none belongs to one constituent.
   WHY: the intent is the mechanism — it is a `record_action` call, the substrate validates the credential inside it, and it stands before every committing call including the destruction (`Action wiring 1`, `Action wiring 2`). Invariant 10.3 through Invariant 10.5 bound what a successful validation establishes: material matching the actor's registered verifier was presented at that instant, and nothing more. A stolen credential validates. Deployments needing channel binding or replay resistance compose the atoms that provide them; this composition claims exactly what the substrate's attestation grants. `Check 5.1` is what makes the claim verifiable from the records rather than asserted.
 
 ---
+
 ## Examples
 
 ### Walkthrough — regulated bank under SOX §802 and FRCP Rule 37(e)
@@ -775,6 +774,7 @@ Check 2.6, Check 3.7, Check 5.7 and Check 5.8 are the four the prose's own accep
 External check 1 is this composition's most consequential externally-clearable gap, and the reason is not reporting hygiene. `Check 6.1` states the ordering and can be run wherever both durations are readable; where a business duration sits behind a `policy_ref` this composition does not resolve — the ordinary case, since policy reconciliation is out of scope — the comparison needs the host's policy register. A violation is not a defect in a report: it destroys the placement evidence for a long-lived retention *before* that retention elapses, which is the failure `Invariant 9` exists to forbid, arriving through the layer that records it. What is checkable here is the structural defence rather than the ordering — `Check 6.2` confirms the past-horizon rebuild falls back to the constituent's store, which over-includes and can therefore only refuse.
 
 ---
+
 ## Non-goals
 
 ```text
@@ -811,21 +811,27 @@ Non-goal 20 through Non-goal 23 are the honest half of this composition's own fo
 
 The other forthcoming patterns named above are **Policy Reconciliation** *(forthcoming)* for Non-goal 2, a **cryptographic shredding** pattern *(forthcoming)* for Non-goal 16, and a **Failed-Attempt Log** *(forthcoming)* for Non-goal 18; a **Reverse Index** *(forthcoming)* and an **Override Authorization** *(forthcoming)* are named where their absence bites, in `Composes` and in `Capability requirement` respectively.
 
-## Concurrency
+## Edge cases
+
+### Atomic writes
 
 ```text
-Concurrency 1: A late hold MUST leave a destruction standing.
-Concurrency 2: The composition MUST NOT claim a late hold blocks a destruction.
-Concurrency 3: The composition MUST NOT close the residual race at the composition's own layer.
-Concurrency 4: Two sweeps MUST NOT emit two outcomes for one act.
+Atomic writes 1: The composition MUST NOT place an audit append inside a host transaction's atomic set.
+Atomic writes 2: An admitted placement MUST record the outcome ONLY AFTER the constituent commit.
+Atomic writes 3: An admitted hold placement MUST record the outcome ONLY AFTER the constituent commit.
+Atomic writes 4: An admitted hold release MUST record the outcome ONLY AFTER the constituent commit.
+Atomic writes 5: An admitted purge MUST record the outcome ONLY AFTER the constituent commit.
+Atomic writes 6: The composition MUST NOT reverse Retention Window's purge.
+Atomic writes 7: A destroyed record carrying an owed record MUST stand as the composition's own partial.
+Atomic writes 8: The composition MUST NOT read a storage-failure from Retention Window's purge as a destruction.
 ```
 
 WHY:
-The gate reads the hold store and the destruction lands a rule later, so a hold placed between the two leaves a record destroyed under a hold that existed — a structural exposure to `Invariant 1` that no ordering inside this composition can close, because the placement is a second writer on a second path. `Capability requirement 34` and `Capability requirement 35` are where the closure lives, and Concurrency 3 says plainly that it is not here: a deployment under FRCP Rule 37(e) exposure treats the pair as a hard serialization requirement rather than an optimization.
+Atomic writes 1 is the durability boundary named rather than wished away. An audit append cannot be enlisted in a host transaction and cannot be withdrawn, so a set containing one does not commit together or not at all — and this composition does not claim it does. What it states instead is the ordering, the reachable partials and the recovery for each, which is what an all-or-nothing sentence over this substrate would have concealed.
 
-Concurrency 4 is the sweep's own version of the same hazard, and it is closed here rather than delegated: `Reconciliation 20` and `Reconciliation 21` serialize a leg over the act's `invocation_id` and re-read the act's outcome under that serialization, so the look-then-write a compensator performs cannot run twice over one act.
+The ordering is the load-bearing half. Every outcome follows its committing call, so the reachable partial is a **missing** record rather than a false one — a record the sweep can re-emit from durable state. The one case with no reverse is `Atomic writes 6`: the destruction has landed, the outcome has not, and nothing can put the record back. That window is this composition's most consequential atomicity hole, it is bounded by the completion bound and the compensation window rather than left to *eventually*, and `Action wiring 70` makes it a hard alerting condition rather than a tolerated state. Atomic writes 8 closes the mirror error: the constituent leaves a retention retained and the record intact on a failed purge write, so that arm is a genuine retry over intact state and not a partial at all.
 
-## Clock semantics
+### Clock semantics
 
 ```text
 Clock semantics 4: The composition MUST judge elapsed retention against the injected now.
@@ -868,23 +874,21 @@ Composes 18, Clock semantics 11 and Clock semantics 12 are the *two readings* di
 
 Clock semantics 14 and Clock semantics 15 keep the two meanings of a hold's time apart. A caller-supplied `placed_at` asserts when the obligation arose and may legitimately predate the system entry — oral counsel advice documented afterwards is the ordinary case — while the entry instant is the audit event's own stamp. The gap between them is observable in the records, which is the point; whether a backdated assertion needs elevated authorization is the deployment's question and not this layer's (`Non-goal 8`).
 
-## Atomic writes
+### Concurrency
 
 ```text
-Atomic writes 1: The composition MUST NOT place an audit append inside a host transaction's atomic set.
-Atomic writes 2: An admitted placement MUST record the outcome ONLY AFTER the constituent commit.
-Atomic writes 3: An admitted hold placement MUST record the outcome ONLY AFTER the constituent commit.
-Atomic writes 4: An admitted hold release MUST record the outcome ONLY AFTER the constituent commit.
-Atomic writes 5: An admitted purge MUST record the outcome ONLY AFTER the constituent commit.
-Atomic writes 6: The composition MUST NOT reverse Retention Window's purge.
-Atomic writes 7: A destroyed record carrying an owed record MUST stand as the composition's own partial.
-Atomic writes 8: The composition MUST NOT read a storage-failure from Retention Window's purge as a destruction.
+Concurrency 1: A late hold MUST leave a destruction standing.
+Concurrency 2: The composition MUST NOT claim a late hold blocks a destruction.
+Concurrency 3: The composition MUST NOT close the residual race at the composition's own layer.
+Concurrency 4: Two sweeps MUST NOT emit two outcomes for one act.
 ```
 
 WHY:
-Atomic writes 1 is the durability boundary named rather than wished away. An audit append cannot be enlisted in a host transaction and cannot be withdrawn, so a set containing one does not commit together or not at all — and this composition does not claim it does. What it states instead is the ordering, the reachable partials and the recovery for each, which is what an all-or-nothing sentence over this substrate would have concealed.
+The gate reads the hold store and the destruction lands a rule later, so a hold placed between the two leaves a record destroyed under a hold that existed — a structural exposure to `Invariant 1` that no ordering inside this composition can close, because the placement is a second writer on a second path. `Capability requirement 34` and `Capability requirement 35` are where the closure lives, and Concurrency 3 says plainly that it is not here: a deployment under FRCP Rule 37(e) exposure treats the pair as a hard serialization requirement rather than an optimization.
 
-The ordering is the load-bearing half. Every outcome follows its committing call, so the reachable partial is a **missing** record rather than a false one — a record the sweep can re-emit from durable state. The one case with no reverse is `Atomic writes 6`: the destruction has landed, the outcome has not, and nothing can put the record back. That window is this composition's most consequential atomicity hole, it is bounded by the completion bound and the compensation window rather than left to *eventually*, and `Action wiring 70` makes it a hard alerting condition rather than a tolerated state. Atomic writes 8 closes the mirror error: the constituent leaves a retention retained and the record intact on a failed purge write, so that arm is a genuine retry over intact state and not a partial at all.
+Concurrency 4 is the sweep's own version of the same hazard, and it is closed here rather than delegated: `Reconciliation 20` and `Reconciliation 21` serialize a leg over the act's `invocation_id` and re-read the act's outcome under that serialization, so the look-then-write a compensator performs cannot run twice over one act.
+
+---
 
 ## Composition notes
 
@@ -906,6 +910,7 @@ Composition note 3 through Composition note 5 are the three obligations legal ho
 Composition note 8 and Composition note 9 are the advisory path's other end. The composition records the override and declines to release the hold (`Wiring decision 6`), so the deployment's own authority owns both the release and the dashboard signal until it lands.
 
 ---
+
 ## Terms
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**, and carries no obligation of its own.
@@ -1050,6 +1055,7 @@ Projects:  hold-check-unavailable
 The three constituents carry their own standards inheritance — see each constituent's own Standards references.
 
 ---
+
 ## Status
 
 `partially resolved` — see the Ledger.

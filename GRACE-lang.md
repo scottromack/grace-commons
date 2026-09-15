@@ -1,4 +1,4 @@
-# GRACE lang v0.43 — Minimal Earned Grammar
+# GRACE lang v0.44 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -195,10 +195,10 @@ Standard label 5: §21 MUST NOT promote a label family two specifications name.
 Standard label 6: The maintainer MUST decide EVERY promotion.
 Standard label 7: A promotion MUST rest on a drift pass finding the candidate's specifications carrying one concept.
 Standard label 8: A promotion MUST declare the promoted family's meaning EXACTLY ONE time.
-Standard label 9: A promoted family MUST take the family's position PER `spec-format.md` §Required sections.
+Standard label 9: A promoted family MUST take the family's position PER `spec-format.md` §Heading standard.
 Standard label 10: The grammar MUST NOT rank a standard label family beside the family's position.
-Standard label 11: A specification MAY omit a standard label family.
-Standard label 12: A specification carrying two standard label families MUST order the families PER `spec-format.md` §Required sections.
+Standard label 11: A specification MAY omit a standard label family ONLY IF `spec-format.md` §Heading standard does not require the family's heading.
+Standard label 12: A specification carrying two standard label families MUST order the families PER `spec-format.md` §Heading standard.
 ```
 
 NOTE:
@@ -616,6 +616,9 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.44 (2026-09-15): `Standard label 11` narrowed from *a specification MAY omit a standard label family* to omitting one only where `spec-format.md` §Heading standard does not require its heading, and `Standard label 9` and `Standard label 12` now cite that section, which replaced §Required sections as the owner of every heading's name, level, parent, order and requirement. The maintainer's rulings, made the same day: a spec carries every heading its shape requires and may skip the rest, and one order governs. `Standard label 11` and `spec-format.md` had given two answers on whether a standard family may be omitted — a blanket `MAY` here, required-with-an-escape there — and the narrowed rule is the one answer. The outlier v0.43 recorded is gone: Idempotent Reservation's `Housekeeping` now sits after `Wiring decision`, placed by the sweep `H-heading` drove to zero. Council read 80.
 
 NOTE:
 v0.43 (2026-09-15): `Housekeeping` promoted to the standard label families, closing the pair `Reconciliation` opened one version earlier. Three specifications name it and the drift pass Standard label 7 requires found one concept: each leg runs outside every invocation, owes no closure window, refuses to repair what it finds, and refuses a constituent's write. The apparent divergence is the declaration's own two poles — [Idempotent Reservation](./compositions/idempotent-reservation.md)'s leg **removes** where [Authenticated Actor](./compositions/authenticated-actor.md)'s and [Attributed Permissions Admin](./compositions/attributed-permissions-admin.md)'s **report** — which *it may report, it may remove* already admits, and the section each takes or refuses tracks whether the leg writes at all rather than what the family means. **Standard label 9's position is the pair's rather than the majority's:** two of the three place the family after `Wiring decision`, where `Reconciliation` already sits, and Idempotent Reservation places it second — an outlier that predates the pair's cut and is a conformance finding against that spec rather than a second position. Council read 71.

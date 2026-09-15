@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Permissions answers one question: "is this actor allowed to do this thing right now?" It works through grants — explicit records that tie a subject (the actor wanting access) to an action scope (the set of operations the grant covers). A grant stays in force until it is revoked, and revocation is immediate and permanent. Checking permission is a pure read-only lookup. If any active grant matches the subject and scope being asked about, the answer is "permitted"; otherwise it is "denied." There is no implicit access — no grant means no permission, always. The whole decision rests on stored records, so any auditor can re-run the same check and get the same answer. That is exactly what regulated access control needs: issue a grant when access is authorized, revoke it when it ends, check on every attempt, and the records show who could do what, from when to when. The pattern deliberately leaves out roles, attribute-based policies, scope hierarchies, delegation, and time-limited grants. Each is a separate pattern built on top of this minimal grant store.
@@ -60,23 +59,6 @@ Terms › `now`: the wall-time reading the host takes at the seam and hands to t
 WHY:
 Many grants over one pair is the deliberate opposite of [Subscription](./subscription.md)'s at-most-one, and the reason is the audit question each atom answers: a second subscription means a duplicate notification, while a second grant means a second authorization with its own issuer, date and reason (Identity 7). Collapsing them by identifying on the pair would make revoking one revoke all, and would erase which grant authorized which access (Identity 6, Identity 8).
 
-### String input policy
-
-```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string as empty.
-String 6: IF a string input EXCEEDS the string cap THEN [Grant] MUST answer invalid-request.
-String 7: [Check] MUST read an over-length string input as matching nothing.
-```
-
-Terms › `string cap`: the deployment's bound on a string input's length; a cap of zero refuses every [Grant], which is the degenerate configuration a deployment owns rather than a state the atom admits.
-
-WHY:
-Byte-exact and nothing else. A scope vocabulary that needs case-insensitivity or normalization has a vocabulary the composing system owns, and an atom that quietly folded case would make `Documents:Read` and `documents:read` the same authorization in a system that meant them differently (String 1–4).
-
 ### State
 
 ```text
@@ -100,6 +82,15 @@ Terms › `revoked_at`: the instant the grant was withdrawn — a [Revoked At].
 
 WHY:
 There is no stored denial, because absence is denial (Invariant 7.1) — an explicit deny would need a precedence rule against every allow, and precedence is where authorization systems go wrong. A revoked grant stays in the store because *who could do what, when* is the question the store exists to answer, and deleting the grant deletes the answer (State 7, Invariant 10.1).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -277,15 +268,6 @@ External check 4: An auditor MUST read the serialization evidence for concurrent
 
 NOTE: EVERY check names the rule the check tests. The grant store answers *who could do what, and since when*; who authorized it, who tried, and whether a leaver's access was fully removed are the composing patterns' records.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -314,17 +296,30 @@ Where the atom breaks down: when the scope vocabulary needs hierarchy or wildcar
 
 ## Edge cases
 
-### Revoke persistence failure
+### Clock semantics
 
 ```text
-Revoke persistence 1: A caller MUST read storage-failure from [Revoke] as the subject keeping the access.
-Revoke persistence 2: A caller MUST retry a revoke that answered storage-failure.
-Revoke persistence 3: A caller MUST read not-active from a retried revoke as the revocation standing.
-Revoke persistence 4: A high-assurance deployment MUST raise a security alert on storage-failure from [Revoke].
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's timezone handling.
+Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
 ```
 
+### String policy
+
+```text
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string as empty.
+String 6: IF a string input EXCEEDS the string cap THEN [Grant] MUST answer invalid-request.
+String 7: [Check] MUST read an over-length string input as matching nothing.
+```
+
+Terms › `string cap`: the deployment's bound on a string input's length; a cap of zero refuses every [Grant], which is the degenerate configuration a deployment owns rather than a state the atom admits.
+
 WHY:
-The two storage failures have opposite polarity. A failed grant withholds access somebody should have and surfaces as a complaint; a failed revoke leaves access somebody should not have and surfaces as nothing at all. That asymmetry is why the retry is an obligation rather than advice, and why `not-active` on the retry is the good answer rather than an error (Revoke persistence 2, Revoke persistence 3).
+Byte-exact and nothing else. A scope vocabulary that needs case-insensitivity or normalization has a vocabulary the composing system owns, and an atom that quietly folded case would make `Documents:Read` and `documents:read` the same authorization in a system that meant them differently (String 1–4).
 
 ### Deprovisioning a subject
 
@@ -350,13 +345,17 @@ Revoke concurrency 2: The losing concurrent [Revoke] MUST answer not-active.
 WHY:
 The polarity is deliberate on both sides: grants do not race because two grants are a legitimate state, and revokes do race because two revocations of one grant are one revocation (Grant concurrency 1, Revoke concurrency 1, Operation 12).
 
-### Clock semantics
+### Revoke persistence failure
 
 ```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
+Revoke persistence 1: A caller MUST read storage-failure from [Revoke] as the subject keeping the access.
+Revoke persistence 2: A caller MUST retry a revoke that answered storage-failure.
+Revoke persistence 3: A caller MUST read not-active from a retried revoke as the revocation standing.
+Revoke persistence 4: A high-assurance deployment MUST raise a security alert on storage-failure from [Revoke].
 ```
+
+WHY:
+The two storage failures have opposite polarity. A failed grant withholds access somebody should have and surfaces as a complaint; a failed revoke leaves access somebody should not have and surfaces as nothing at all. That asymmetry is why the retry is an obligation rather than advice, and why `not-active` on the retry is the good answer rather than an error (Revoke persistence 2, Revoke persistence 3).
 
 ## Composition notes
 
@@ -587,7 +586,6 @@ It inherits from:
 
 ---
 
-
 ## Status
 
 `grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
@@ -601,7 +599,6 @@ last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open: none
 ```
-
 
 ## Decisions
 

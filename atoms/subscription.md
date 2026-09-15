@@ -89,6 +89,15 @@ Terms › `cancelled_at`: the instant the subscription was withdrawn — a [Canc
 WHY:
 A cancelled subscription stays in the store because the record of who was listening when is the audit surface — the atom answers *who now* from the active set and leaves *who then* reconstructable from both timestamps (State 7, Check 1.1). Nothing about events lives here: what fired, how often, and whether it arrived belong to [Event Log](./event-log.md) and [Notification](./notification.md) (State 8, State 9).
 
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
 ### Operations
 
 ```
@@ -247,15 +256,6 @@ Check 5.1: An auditor MUST identify which composing patterns a deployment wired 
 
 NOTE: EVERY check names the rule the check tests.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -285,6 +285,25 @@ Where the atom breaks down: when the audience cannot be named in advance — a r
 
 ## Edge cases
 
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's timezone handling.
+Clock semantics 3: The deployment MUST supply an honest now.
+```
+
+### Atomicity of a cancel
+
+```text
+Cancel atomicity 1: The implementation MUST change status and cancelled_at together.
+Cancel atomicity 2: A crash inside [Cancel] MUST NOT leave a cancelled status without cancelled_at.
+Cancel atomicity 3: A crash inside [Cancel] MUST NOT leave cancelled_at on an active subscription.
+```
+
+WHY:
+Half a cancel breaks Invariant 2.1 or Invariant 9.1 while every field looks individually plausible — the transactional boundary is the implementor's and is named here because the failure is invisible to a reader of either field alone.
+
 ### Cancel as a capability
 
 ```text
@@ -295,25 +314,6 @@ Cancel capability 3: A deployment needing richer authorization MUST compose [Per
 
 WHY:
 Knowing the id is the whole authorization, which is honest only because the id is unguessable and the atom exposes no way to list ids (Identity 6, Identity 7, Cancel capability 2). Role gating, multi-party consent and audit-on-cancel wrap the bare capability rather than replacing it.
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: The deployment MUST supply an honest now.
-```
-
-### The pair race
-
-```text
-Pair race 1: The implementation MUST make the pair check and the write one transition.
-Pair race 2: The implementation MUST NOT record two active subscriptions for one pair under concurrent calls.
-Pair race 3: A store enforcing the pair's uniqueness MAY discharge Pair race 1.
-```
-
-WHY:
-Operation 6 reads the active set and [Subscribe] then writes; two concurrent calls on one pair both read *absent* and both write, and Invariant 6.1 — the reason this atom exists — is violated by the very sequence it forbids. The guard is check-then-act and the fix is the implementation's: one transition, or a uniqueness constraint in the store that does the same work (Pair race 3).
 
 ### The lost ledger
 
@@ -327,16 +327,16 @@ Lost ledger 4: A deployment needing recovery from a lost subscription_id MUST co
 WHY:
 The capability trade buys unguessability and pays for it here. The id is the whole authorization (Operation 12), the atom enumerates no ids (Cancel capability 2), and nothing gates [Cancel] beyond the id (Non-goal 15) — so a composing pattern that loses its ledger holds subscriptions that every audit can see and nobody can cancel. Non-goal 12's deprovisioning cascade presupposes that ledger too. Retention Window's principle — observe the failure, never forbid the remediation — inverts here unless the ledger is owned: the remediation is not refused, it is absent. An Administrative Recovery pattern *(forthcoming)*, composing [Actor Identity](./actor-identity.md) so a named administrator can cancel without the id, is the remedy this atom deliberately does not carry (council read 12).
 
-### Atomicity of a cancel
+### The pair race
 
 ```text
-Cancel atomicity 1: The implementation MUST change status and cancelled_at together.
-Cancel atomicity 2: A crash inside [Cancel] MUST NOT leave a cancelled status without cancelled_at.
-Cancel atomicity 3: A crash inside [Cancel] MUST NOT leave cancelled_at on an active subscription.
+Pair race 1: The implementation MUST make the pair check and the write one transition.
+Pair race 2: The implementation MUST NOT record two active subscriptions for one pair under concurrent calls.
+Pair race 3: A store enforcing the pair's uniqueness MAY discharge Pair race 1.
 ```
 
 WHY:
-Half a cancel breaks Invariant 2.1 or Invariant 9.1 while every field looks individually plausible — the transactional boundary is the implementor's and is named here because the failure is invisible to a reader of either field alone.
+Operation 6 reads the active set and [Subscribe] then writes; two concurrent calls on one pair both read *absent* and both write, and Invariant 6.1 — the reason this atom exists — is violated by the very sequence it forbids. The guard is check-then-act and the fix is the implementation's: one transition, or a uniqueness constraint in the store that does the same work (Pair race 3).
 
 ## Composition notes
 
@@ -544,7 +544,6 @@ Projects:  not-active
 
 ---
 
-
 ## Status
 
 `grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
@@ -558,7 +557,6 @@ last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open: none
 ```
-
 
 ## Decisions
 

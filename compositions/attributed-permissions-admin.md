@@ -149,8 +149,6 @@ Composition state 20 through Composition state 22 fix the join by key. An orphan
 
 Composition state 27 and Composition state 28 are the retention scope this composition depends on and does not own. A purge that takes a grant and leaves its attestation, or takes an attestation and leaves its grant, breaks the reading [Verify Grant Attribution] rests on; an orphan attestation has no pair to be purged with, so it carries its own retention keyed from the log. Composition state 29 is the other half: this composition destroys nothing, so the obligation lands on the composing retention layer and is cleared externally.
 
----
-
 ### Capability requirement
 
 ```text
@@ -292,8 +290,6 @@ WHY:
 Identity 13 is the attest-before-record order read from the identity side, and it is why the grant map is not derivable: at the instant the issuance attestation is written the grant has no handle to name. Identity 14 and Identity 15 forbid the two repairs a reader reaches for — pair by time, pair by resemblance of the proposal — and both fail on the same case, an administrator who retried: several attestations then carry the same subject, the same scope and adjacent stamps, and only the pairing map records which one the committed grant belongs to.
 
 Identity 9 and Identity 10 turn the pair-scoped action's one seam reading into the auditor's grouping key. Several revocation attestations by one revoker carrying one instant, over several grants of one pair, are one administrative act and read as such from the records — which is what lets the family stay injective without a new field naming the batch.
-
----
 
 ### Action wiring
 
@@ -456,8 +452,6 @@ Action wiring 27 through Action wiring 30 keep a caller-error answer honest abou
 
 **Action wiring 84 through Action wiring 86 name an absence and tell a surface what to build instead.** Neither atom declares a read that lists a subject's permissions, and this composition adds none — so an administrative list is the *evaluation* projected over the deployment's declared scope set: one entry per pair that answers permitted, never one entry per grant. The distinction decides whether the surface is correct. The grant store is a bag — several active grants on one pair are lawful — while every read either page declares is a set. A list built from the store therefore shows one permission several times, and a revoke beside one of those rows removes one grant and leaves the permission held. A list from the store and a revoke keyed by a grant are each defensible and together misreport access; the pair-scoped action is what such a surface calls, and the set-valued projection is what it shows. Where a deployment wants the multiplicity visible — *this permission rests on three grants, attested by three grantors* — that is an attribution view built from [Verify Grant Attribution] per grant, presented as attribution rather than as access.
 
----
-
 ### Wiring decision
 
 ```text
@@ -481,8 +475,6 @@ WHY:
 *Result.* Invariant 1 holds structurally over the administered set, conditionally on the declared atomicity its own statement carries. Wiring decision 4 and Wiring decision 5 are the price and are paid openly: orphans accumulate, the composition never deletes one, and the audit's job is to enumerate them rather than to prevent them.
 
 **Wiring decision 6 through Wiring decision 8 are the second decision, and it was absent for two rounds.** Permissions answers denied *if and only if no* active grant matches a pair, and several active grants on one pair are lawful — two grantors independently authorizing the same access is exactly the case an attributed-permissions composition exists to record. So the repair for *revoking one grant does not remove the permission* is not a precondition forbidding the second grant, which would delete that case to fix a surface problem and would do nothing for the grants already standing. It is a pair-scoped action, and Wiring decision 7 is what the action deliberately does not buy: no section across the pair, because most administrative surfaces re-check rather than pay for one on every revocation, and the re-check closes the race for free.
-
----
 
 ### Housekeeping
 
@@ -744,62 +736,9 @@ Non-goal 15 is the m-of-n case named rather than half-built: a grant needing two
 
 ---
 
-## Concurrency
+## Edge cases
 
-```text
-Concurrency 1: Two issuances over one pair MUST produce two grants.
-Concurrency 2: Two issuances over one pair MUST produce two attestations.
-Concurrency 3: The composition MUST NOT read a second grant on one pair as a defect.
-Concurrency 4: A second revocation over one grant MUST answer not-active.
-Concurrency 5: The enclosing transaction MUST serialize over the constituent record the transaction writes.
-Concurrency 6: A pair-scoped revocation MUST NOT serialize over the pair.
-Concurrency 7: A post-enumeration grant MUST survive the enumeration's invocation.
-Concurrency 8: A caller MUST call a pair-scoped revocation again ONLY IF the evaluation answers permitted.
-Concurrency 9: A deployment supplying a section keyed by the pair MUST close the race.
-```
-
-WHY:
-Concurrency 1 through Concurrency 3 record the multiplicity as lawful rather than tolerated. Permissions permits several active grants on one pair by construction, and two grantors independently authorizing the same access is the case this composition exists to attribute — so a second grant is a second attributed act, not a duplicate to collapse. A deployment that wants single-issuance semantics composes a deduplication layer in front (Non-goal 10).
-
-Concurrency 4 and Concurrency 5 are where the declared atomicity buys serialization for free. The enclosing transaction serializes on the constituent record it writes, so a second revocation for one grant — a caller retrying after a timeout — observes the committed revocation at its own constituent call and receives `not-active`; no second pairing ever runs against one revocation.
-
-Concurrency 6 through Concurrency 9 are the declared degradation, stated in the same breath as its remedy. The composition serializes nothing across the pair, so an issuance that commits between the enumeration and the last revocation leaves an active grant the invocation never saw and the evaluation goes on answering permitted with every enumerated grant lawfully revoked. The caller's re-check closes it, and a deployment that needs the first answer to be terminal supplies the section and is told exactly what it buys.
-
----
-
-## Clock semantics
-
-```text
-Clock semantics 5: The request instant MUST stand informational within a proposal.
-NOTE: Clock semantics 2 deleted — Identity 8 owns it: a proposal carries the request instant (Identity 7), and the request instant is the invocation's seam reading.
-NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
-NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 4 deleted — `execution-contract.md` §Logic confinement owns it.
-Clock semantics 6: The nonce MUST carry a proposal's uniqueness.
-Clock semantics 7: The request instant MUST NOT carry a proposal's uniqueness.
-NOTE: Clock semantics 8 deleted — Clock dependence 1 owns it.
-Clock semantics 9: A reader MUST read a constituent's stamp as that constituent's own seam reading.
-Clock semantics 10: A reader MUST NOT read two constituents' stamps as one clock.
-Clock semantics 11: A check comparing two seams' stamps MUST run under the clock skew allowance.
-```
-
-WHY:
-Clock semantics 6, Clock semantics 7 and Clock dependence 1 are why a skewed reading here is harmless. Proposal uniqueness rests on the **nonce**, never on the instant, so two proposals sharing a request instant are still distinct; and no guard at this layer is time-gated, so a skewed reading can mis-annotate a proposal and can never admit or refuse a call. A backward clock adjustment shows up as a discontinuity in the records and changes no decision.
-
-Clock semantics 9 through Clock semantics 11 keep the two constituents' stamps apart. The attestation's stamp is written at Actor Identity's seam and the grant's at Permissions', and nothing here claims they are one clock — which is why Invariant 4 is read under the allowance and why no write rests on it. A deployment that needs an adversarially-defensible ordering composes Trusted Timestamping, which Non-goal 17 says this composition does not do for it.
-
----
-
-## Clock dependence
-
-```text
-Clock dependence 1: A guard MUST NOT rest on now at this composition.
-```
-
-WHY:
-Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what an invocation stamps from it. The rule keeps the words it carried under `Clock semantics`; only the heading changed.
-
-## Atomic writes
+### Atomic writes
 
 ```text
 Atomic writes 1: An invocation MUST attest ONLY AFTER the boundary predicate.
@@ -821,6 +760,57 @@ WHY:
 Atomic writes 5 through Atomic writes 7 are the one-writer rule at the invocation's own level. The invocation never retries past a failure — it answers on the constituent's first refusal — so the completion bound is not a retry terminus but the **lower edge** the report-only leg and Check 5 age against. Every retry is a fresh administrative act with a fresh attestation, which is what keeps exactly one writer landing any grant, revocation or pairing, and what keeps the revocation map injective under Invariant 7.2.
 
 Atomic writes 9 through Atomic writes 11 name the disposition rather than inventing a repair. The composition exposes no surface that writes a pairing outside its own invocation — Invariant 6.3 — so an unpaired administered grant cannot be fixed by back-filling the map; it is revoked under a fresh attested act and re-issued under another, with the finding standing in the records. That is the honest end of a partial the composition did not cause and cannot undo.
+
+### Clock dependence
+
+```text
+Clock dependence 1: A guard MUST NOT rest on now at this composition.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what an invocation stamps from it. The rule keeps the words it carried under `Clock semantics`; only the heading changed.
+
+### Clock semantics
+
+```text
+Clock semantics 5: The request instant MUST stand informational within a proposal.
+NOTE: Clock semantics 2 deleted — Identity 8 owns it: a proposal carries the request instant (Identity 7), and the request instant is the invocation's seam reading.
+NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
+NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 4 deleted — `execution-contract.md` §Logic confinement owns it.
+Clock semantics 6: The nonce MUST carry a proposal's uniqueness.
+Clock semantics 7: The request instant MUST NOT carry a proposal's uniqueness.
+NOTE: Clock semantics 8 deleted — Clock dependence 1 owns it.
+Clock semantics 9: A reader MUST read a constituent's stamp as that constituent's own seam reading.
+Clock semantics 10: A reader MUST NOT read two constituents' stamps as one clock.
+Clock semantics 11: A check comparing two seams' stamps MUST run under the clock skew allowance.
+```
+
+WHY:
+Clock semantics 6, Clock semantics 7 and Clock dependence 1 are why a skewed reading here is harmless. Proposal uniqueness rests on the **nonce**, never on the instant, so two proposals sharing a request instant are still distinct; and no guard at this layer is time-gated, so a skewed reading can mis-annotate a proposal and can never admit or refuse a call. A backward clock adjustment shows up as a discontinuity in the records and changes no decision.
+
+Clock semantics 9 through Clock semantics 11 keep the two constituents' stamps apart. The attestation's stamp is written at Actor Identity's seam and the grant's at Permissions', and nothing here claims they are one clock — which is why Invariant 4 is read under the allowance and why no write rests on it. A deployment that needs an adversarially-defensible ordering composes Trusted Timestamping, which Non-goal 17 says this composition does not do for it.
+
+### Concurrency
+
+```text
+Concurrency 1: Two issuances over one pair MUST produce two grants.
+Concurrency 2: Two issuances over one pair MUST produce two attestations.
+Concurrency 3: The composition MUST NOT read a second grant on one pair as a defect.
+Concurrency 4: A second revocation over one grant MUST answer not-active.
+Concurrency 5: The enclosing transaction MUST serialize over the constituent record the transaction writes.
+Concurrency 6: A pair-scoped revocation MUST NOT serialize over the pair.
+Concurrency 7: A post-enumeration grant MUST survive the enumeration's invocation.
+Concurrency 8: A caller MUST call a pair-scoped revocation again ONLY IF the evaluation answers permitted.
+Concurrency 9: A deployment supplying a section keyed by the pair MUST close the race.
+```
+
+WHY:
+Concurrency 1 through Concurrency 3 record the multiplicity as lawful rather than tolerated. Permissions permits several active grants on one pair by construction, and two grantors independently authorizing the same access is the case this composition exists to attribute — so a second grant is a second attributed act, not a duplicate to collapse. A deployment that wants single-issuance semantics composes a deduplication layer in front (Non-goal 10).
+
+Concurrency 4 and Concurrency 5 are where the declared atomicity buys serialization for free. The enclosing transaction serializes on the constituent record it writes, so a second revocation for one grant — a caller retrying after a timeout — observes the committed revocation at its own constituent call and receives `not-active`; no second pairing ever runs against one revocation.
+
+Concurrency 6 through Concurrency 9 are the declared degradation, stated in the same breath as its remedy. The composition serializes nothing across the pair, so an issuance that commits between the enumeration and the last revocation leaves an active grant the invocation never saw and the evaluation goes on answering permitted with every enumerated grant lawfully revoked. The caller's re-check closes it, and a deployment that needs the first answer to be terminal supplies the section and is told exactly what it buys.
 
 ---
 

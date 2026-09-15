@@ -15,7 +15,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Idempotent Reservation makes reservation actions safe to retry. It combines two simpler patterns: one that manages a held resource (Provisional Commitment — a resource held, then Confirmed, Released, or Expired) and one that spots repeated submissions within a set time window (Duplicate Prevention).
@@ -95,27 +94,6 @@ WHY:
 The map carries truth no replay reproduces. duplicate prevention(../atoms/duplicate-prevention.md) answers *have I seen this identity* — membership, no payload — and does not act on a result, so *which result was returned for this token* is reconstructible from neither constituent store. Per `execution-contract.md` §Composition state that makes the element a not-yet-extracted atom, declared as recorded debt rather than normalized: **Classification: extraction-pending**, the proposed atom an *Idempotency Result Memo* (token → result, write-once, window-governed eviction), opened as a roadmap proposal. This is the corpus's first migrated composition carrying a non-derivable element, and the flag is what keeps the debt visible — an unflagged truth-bearing composition store is a conformance finding and a flagged one is scheduled debt.
 
 Composition state 9 and Composition state 10 keep the digest out of core logic. A digest computed inside a transition is cryptography improvised where the Logic Confinement Principle forbids it; computed at the seam from parameters already present, it is an ordinary injected input.
-
-### Housekeeping
-
-```text
-Housekeeping 1: The eviction leg MUST examine a token's entry ONLY AFTER taking the token's section.
-Housekeeping 2: The eviction leg MUST skip a token whose section the eviction leg cannot take.
-Housekeeping 3: The eviction leg MUST NOT examine an entry younger than the reservation completion bound.
-Housekeeping 4: The eviction leg MUST evict an entry ONLY IF Duplicate Prevention's check answers not-seen.
-Housekeeping 5: The eviction leg MUST evict an entry ONLY IF the idempotency window elapsed since the entry's pending instant.
-Housekeeping 6: The eviction leg MUST NOT evict a seen token's entry.
-Housekeeping 7: The eviction leg MUST NOT repair an entry.
-Housekeeping 8: The eviction leg MUST NOT call a constituent's write.
-Housekeeping 9: The eviction leg MUST measure an instant against the composition's own seam reading.
-```
-
-Terms › `eviction leg`: the leg `Housekeeping 1` through `Housekeeping 9` state — this composition's own, over the token entries the leg evicts.
-
-WHY:
-The two edges are what make the leg safe. Housekeeping 3 is the lower edge — below the completion bound an invocation may still be in flight — and Housekeeping 5 is the upper, past which Invariant 7 already treats the token as fresh. Housekeeping 6 holds the ordering Invariant 7 requires: a token still under Duplicate Prevention's guard keeps its entry, or a replay would find the guard and not the answer.
-
-Housekeeping 7 and Housekeeping 8 are why the leg owes no liveness bound. It evicts and does nothing else — repairs nothing, re-delegates nothing, promises no closure — so a stale entry is a leak rather than a defect, and the leg runs on whatever schedule the deployment picks.
 
 ### Capability requirement
 
@@ -249,35 +227,26 @@ Caching the failure is the non-obvious half. If a first [Place Hold] answers `re
 
 The three exclusions share one reason: the composition did not act, so it holds nothing to cache. A malformed token is not a token; a `seen` token with no entry means the composition recorded nothing and the next `check` may answer differently; and a `recording-failure` reports a write rather than an outcome — at the outcome position it leaves a pending entry behind, which is what a same-token retry lands.
 
-### Indeterminate outcome
+### Housekeeping
 
 ```text
-Indeterminate outcome 1: A pending entry MUST stand as an act that may have happened.
-Indeterminate outcome 2: The composition MUST NOT delegate again for a pending entry.
-Indeterminate outcome 3: The composition MUST compute the candidates from Provisional Commitment's held commitments.
-Indeterminate outcome 4: The composition MUST keep a held commitment whose resource AND requester equal the call's in the candidates.
-Indeterminate outcome 5: IF the candidates NOT EXISTS THEN the composition MUST proceed as a fresh request's delegation.
-Indeterminate outcome 6: IF the candidates EXISTS THEN the composition MUST overwrite the pending entry with outcome-unknown naming the candidates.
-Indeterminate outcome 7: An outcome-unknown answer MUST carry the candidates.
-Indeterminate outcome 8: The composition MUST mark a recovered entry.
-Indeterminate outcome 9: A resolving action MUST run again for a pending entry.
-Indeterminate outcome 10: The composition MUST answer outcome-unknown for a seen token carrying no entry.
-Indeterminate outcome 11: A caller MUST resolve the candidates.
-Indeterminate outcome 12: A caller receiving a recording-failure naming the outcome MUST NOT run the act under a fresh idempotency_token.
+Housekeeping 1: The eviction leg MUST examine a token's entry ONLY AFTER taking the token's section.
+Housekeeping 2: The eviction leg MUST skip a token whose section the eviction leg cannot take.
+Housekeeping 3: The eviction leg MUST NOT examine an entry younger than the reservation completion bound.
+Housekeeping 4: The eviction leg MUST evict an entry ONLY IF Duplicate Prevention's check answers not-seen.
+Housekeeping 5: The eviction leg MUST evict an entry ONLY IF the idempotency window elapsed since the entry's pending instant.
+Housekeeping 6: The eviction leg MUST NOT evict a seen token's entry.
+Housekeeping 7: The eviction leg MUST NOT repair an entry.
+Housekeeping 8: The eviction leg MUST NOT call a constituent's write.
+Housekeeping 9: The eviction leg MUST measure an instant against the composition's own seam reading.
 ```
 
-Terms › `candidates`: the held commitments of the Provisional Commitment instance whose resource and requester equal a call's — a candidates set; the composition's own filter over a constituent read, never a constituent's answer.
-
-Terms › `resolving action`: [Confirm] | [Release] | [Expire].
-
-Terms › `recovered entry`: a token results entry a re-entry wrote rather than the entry's first invocation.
+Terms › `eviction leg`: the leg `Housekeeping 1` through `Housekeeping 9` state — this composition's own, over the token entries the leg evicts.
 
 WHY:
-Indeterminate outcome 2 is the composition's sharpest restraint. A pending entry found under the section means the invocation that wrote it returned or died between its pending write and its result write, and **whether Provisional Commitment committed for it is not re-derivable** — the constituent's record carries no token. So the composition does not guess by re-delegating; it names what it can see.
+The two edges are what make the leg safe. Housekeeping 3 is the lower edge — below the completion bound an invocation may still be in flight — and Housekeeping 5 is the upper, past which Invariant 7 already treats the token as fresh. Housekeeping 6 holds the ordering Invariant 7 requires: a token still under Duplicate Prevention's guard keeps its entry, or a replay would find the guard and not the answer.
 
-Indeterminate outcome 5 and Indeterminate outcome 9 are the two ways the indeterminacy resolves, and they differ by what the constituent guarantees. For [Place Hold], empty candidates mean the constituent holds nothing for these parameters, so the dead invocation never reached it and the act proceeds — exact wherever the hold's duration exceeds the time to the retry, and a hold already expired by then is the resource's history rather than a live double. For a resolving action there is nothing to compute: provisional commitment(../atoms/provisional-commitment.md)'s single-resolution invariant makes a second call effect-free, so the re-run either commits the transition the caller intended or answers `not-held`, and exactly-once survives on the constituent's own contract.
-
-Indeterminate outcome 10 is fail-closed's bill. Duplicate Prevention remembers a token the composition does not — a durability breach, or an unavailable store answering `seen` — and the composition cannot tell a lost entry from a fresh token. It does not re-delegate, records nothing, and a later call once `check` can answer is decided afresh.
+Housekeeping 7 and Housekeeping 8 are why the leg owes no liveness bound. It evicts and does nothing else — repairs nothing, re-delegates nothing, promises no closure — so a stale entry is a leak rather than a defect, and the leg runs on whatever schedule the deployment picks.
 
 ---
 
@@ -322,7 +291,6 @@ These emerge from the composition; none belongs to one constituent.
 ---
 
 ## Examples
-
 
 ### Walkthrough
 
@@ -433,6 +401,40 @@ Non-goal 13 follows from `Housekeeping 7`. The leg evicts and repairs nothing, s
 
 ---
 
+## Edge cases
+
+### Indeterminate outcome
+
+```text
+Indeterminate outcome 1: A pending entry MUST stand as an act that may have happened.
+Indeterminate outcome 2: The composition MUST NOT delegate again for a pending entry.
+Indeterminate outcome 3: The composition MUST compute the candidates from Provisional Commitment's held commitments.
+Indeterminate outcome 4: The composition MUST keep a held commitment whose resource AND requester equal the call's in the candidates.
+Indeterminate outcome 5: IF the candidates NOT EXISTS THEN the composition MUST proceed as a fresh request's delegation.
+Indeterminate outcome 6: IF the candidates EXISTS THEN the composition MUST overwrite the pending entry with outcome-unknown naming the candidates.
+Indeterminate outcome 7: An outcome-unknown answer MUST carry the candidates.
+Indeterminate outcome 8: The composition MUST mark a recovered entry.
+Indeterminate outcome 9: A resolving action MUST run again for a pending entry.
+Indeterminate outcome 10: The composition MUST answer outcome-unknown for a seen token carrying no entry.
+Indeterminate outcome 11: A caller MUST resolve the candidates.
+Indeterminate outcome 12: A caller receiving a recording-failure naming the outcome MUST NOT run the act under a fresh idempotency_token.
+```
+
+Terms › `candidates`: the held commitments of the Provisional Commitment instance whose resource and requester equal a call's — a candidates set; the composition's own filter over a constituent read, never a constituent's answer.
+
+Terms › `resolving action`: [Confirm] | [Release] | [Expire].
+
+Terms › `recovered entry`: a token results entry a re-entry wrote rather than the entry's first invocation.
+
+WHY:
+Indeterminate outcome 2 is the composition's sharpest restraint. A pending entry found under the section means the invocation that wrote it returned or died between its pending write and its result write, and **whether Provisional Commitment committed for it is not re-derivable** — the constituent's record carries no token. So the composition does not guess by re-delegating; it names what it can see.
+
+Indeterminate outcome 5 and Indeterminate outcome 9 are the two ways the indeterminacy resolves, and they differ by what the constituent guarantees. For [Place Hold], empty candidates mean the constituent holds nothing for these parameters, so the dead invocation never reached it and the act proceeds — exact wherever the hold's duration exceeds the time to the retry, and a hold already expired by then is the resource's history rather than a live double. For a resolving action there is nothing to compute: provisional commitment(../atoms/provisional-commitment.md)'s single-resolution invariant makes a second call effect-free, so the re-run either commits the transition the caller intended or answers `not-held`, and exactly-once survives on the constituent's own contract.
+
+Indeterminate outcome 10 is fail-closed's bill. Duplicate Prevention remembers a token the composition does not — a durability breach, or an unavailable store answering `seen` — and the composition cannot tell a lost entry from a fresh token. It does not re-delegate, records nothing, and a later call once `check` can answer is decided afresh.
+
+---
+
 ## Composition notes
 
 ```text
@@ -451,6 +453,18 @@ Composition note 5 is `Composes 4` restated as the deployment's obligation, and 
 ## Terms
 
 The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the retry-safe action-wirings it exposes ([Place Hold], [Confirm], [Release], [Expire]), the [Idempotency Token] it introduces on every call, and the fields of the recorded outcome it caches ([Action Type], [Parameters Digest], [Result]) plus its own [Token Collision], [Outcome Unknown] and [Recording Failure] rejections. It carries one piece of own state — the `token_results` map (classified extraction-pending, the proposed *Idempotency Result Memo* atom) — left as a backticked store token rather than carded as a Type, so its Fields are carded against the plain-noun recorded outcome. References to the constituent atoms and their operations — Provisional Commitment's `place_hold`/`confirm`/`release`/`expire`, Duplicate Prevention's `check`/`record` — the inherited rejection tokens (`resource-unavailable`, `not-known`, `not-held`, `window-elapsed`, `window-not-elapsed`, `storage-failure`, `invalid-request`), the entry states and stamps (`pending`, `recovery`, `pending_at`, `completed_at`), and the deployment configuration knobs (`idempotency_window`, `token_max_length`, `digest_function`, `per_token_serialization`, `reservation_completion_bound`, `token_results_durability`, `duplicate_prevention_store`, `commitment_store_acknowledged_atomic`) all remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+
+### Vocabulary
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+
+Terms › `terms`: `composition`, `constituents`, `token results map`, `action type`, `parameters digest`, `pending entry`, `complete entry`, `eviction leg`, `idempotency window`, `reservation completion bound`, `durability term`, `section`, `blank`, `fresh request`, `matching complete entry`, `candidates`, `resolving action`, `recovered entry`.
+
+Terms › `record verbs`: call, answer, take, read, write, store, key, carry, overwrite, keep, evict, examine, skip, measure, repair, validate, compare, normalize, case-fold, record, retry, release, delegate, compute, proceed, mark, resolve, rest, stand, bind, reach, find, name, own, discharge, inherit, change, replace, serve, compose, configure, declare, set, hold, acknowledge, supply, refuse, mint, interpret, claim, promise, expose, consult, start, elapse, exceed, land, run, make, guarantee, bound.
+
+Terms › `actors`: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; an operator; an invocation; the eviction leg; an entry; a token; a commitment.
+
+Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the extraction-pending classification. `execution-contract.md` §Logic Confinement Principle — the seam, the transition and the mechanism-capability pattern. provisional commitment(../atoms/provisional-commitment.md) `Invariant 2` — single resolution, which makes a resolving re-run effect-free. duplicate prevention(../atoms/duplicate-prevention.md) `Invariant 2` — a record starts a guard rather than extending one.
 
 #### Place Hold
 
@@ -558,16 +572,6 @@ Projects:  recording-failure
 
 ---
 
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
-
-Terms › `terms`: `composition`, `constituents`, `token results map`, `action type`, `parameters digest`, `pending entry`, `complete entry`, `eviction leg`, `idempotency window`, `reservation completion bound`, `durability term`, `section`, `blank`, `fresh request`, `matching complete entry`, `candidates`, `resolving action`, `recovered entry`.
-
-Terms › `record verbs`: call, answer, take, read, write, store, key, carry, overwrite, keep, evict, examine, skip, measure, repair, validate, compare, normalize, case-fold, record, retry, release, delegate, compute, proceed, mark, resolve, rest, stand, bind, reach, find, name, own, discharge, inherit, change, replace, serve, compose, configure, declare, set, hold, acknowledge, supply, refuse, mint, interpret, claim, promise, expose, consult, start, elapse, exceed, land, run, make, guarantee, bound.
-
-Terms › `actors`: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; an operator; an invocation; the eviction leg; an entry; a token; a commitment.
-
-Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the extraction-pending classification. `execution-contract.md` §Logic Confinement Principle — the seam, the transition and the mechanism-capability pattern. provisional commitment(../atoms/provisional-commitment.md) `Invariant 2` — single resolution, which makes a resolving re-run effect-free. duplicate prevention(../atoms/duplicate-prevention.md) `Invariant 2` — a record starts a guard rather than extending one.
-
 ## Standards references
 
 This composition draws on:
@@ -601,7 +605,6 @@ last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open:
 - 2026-08-30-a · refining · formal · the invocation is one atomic step — no `pending` intent, no per-token section with a lease terminus, no eviction leg as a second process over one token, no `outcome-unknown` arm; the twin's early-eviction hazard is now the leg's (iii) → extend it
-- 2026-09-15-a · refining · Composition logic, `### Housekeeping` · the heading sits second, immediately after `Composition state`, where `spec-format.md` §Required sections puts the pair's slot after `Wiring decision`, which the other two members of the family both take → move the section (council read 71, moved here from the register at council read 72)
 ```
 
 ## Decisions

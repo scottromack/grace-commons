@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Assignment records who is responsible for a piece of work and the full history of everyone who has held that responsibility. Each assignment is a record that links a task to the person responsible for it. It moves through three states: Active (in force), Recalled (withdrawn with no replacement), or Transferred (handed off to a new person). The pattern guarantees that a task can have at most one responsible person at a time. The handoff action (reassign) does the swap in a single step, so the task is never left with no one responsible. And because records are never overwritten or deleted, you can always reconstruct who held a task and when. Each assignment carries an opaque, immutable identifier the host supplies at the atom's one boundary with the outside world — the same place the clock is read, so the pattern's own logic stays free of both; the task it is for and the actor it binds are fixed when the assignment is created and never change. It deliberately leaves out related questions — whether the person accepts the work, who is allowed to assign it, how much work one person may hold — because those are handled by separate patterns that attach to it. This makes it usable as-is for project boards, support-ticket queues, healthcare shift handoffs, legal case routing, and any other place where accountability for work needs to be tracked.
@@ -90,6 +89,15 @@ Terms › `transferred_at`: the instant the assignment was handed on — a [Tran
 
 WHY:
 Recalled and transferred are two terminal values of the [Status] rather than one because they answer different audit questions: recalled means the task is nobody's, transferred means it is somebody else's, and a single *closed* state would make an auditor infer the difference from the presence of a successor (State 8, State 9). Nothing is deleted, so the chain of responsibility is the store rather than a reconstruction (State 10).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -282,15 +290,6 @@ NOTE: Invariant 7.3 and Invariant 7.4 forbid a reader *observing* a state. Recor
 
 NOTE: EVERY check names the rule the check tests. The assignment store answers *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -315,6 +314,14 @@ Where the atom breaks down: when responsibility is genuinely shared at the same 
 
 ## Edge cases
 
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's timezone handling.
+NOTE: Clock semantics 3 deleted — State 13 owns it.
+```
+
 ### Reassign atomicity
 
 ```text
@@ -333,14 +340,6 @@ The dangerous half is the quiet one: old marked transferred, successor never wri
 Assign race 1: The implementation MUST make the active-assignment check and the write one transition.
 Assign race 2: The implementation MUST NOT record two active assignments for one task_ref under concurrent calls.
 Assign race 3: The second concurrent [Assign] for one task_ref MUST answer already-assigned.
-```
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-NOTE: Clock semantics 3 deleted — State 13 owns it.
 ```
 
 ## Composition notes
@@ -603,7 +602,6 @@ It inherits from:
 
 ---
 
-
 ## Status
 
 `grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
@@ -617,7 +615,6 @@ last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
 open: none
 ```
-
 
 ## Decisions
 

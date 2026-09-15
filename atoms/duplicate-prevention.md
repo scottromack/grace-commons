@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Duplicate Prevention gives a system a short-term memory of things it has recently seen, so it can spot repeats. The way it works is simple. When something happens (an item is removed, a request is processed), the system records that identity; before accepting a new one, it checks whether that identity was recorded within a set time window. If it was, the check reports "seen" and the system can decide what to do — reject the repeat, ignore it, or return the earlier result. Once the window has passed, the same identity is fresh again. The pattern itself stays out of that decision and out of how identities are compared — those belong to the system using it — which is why the same mechanism works for a to-do list (a one-day window blocks accidental re-adds), a payment system (a few-minute window stops a retried charge from billing twice), a comment box (a one-minute window stops double-click double-posts), and a signup form. One firm guarantee: recording the same identity again does not push the window forward, so a flurry of repeats cannot extend the block indefinitely — the clock starts at the first sighting and runs out at a fixed time.
@@ -67,6 +66,15 @@ Terms › `under guard`: an identity in the recorded set whose elapsed term is l
 
 WHY:
 One set and one stamp per entry are the whole of the atom's storage, and *under guard* is derived at the moment of the question rather than stored. That is what lets a host implement the atom over a store offering nothing but a key with an expiry (State 2).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -199,15 +207,6 @@ The three checks worth the section are `Check 1.2`, `Check 1.3` and `Check 2.1`,
 
 The external set is short and each member is a value the records cannot carry. The window duration and the matching rule belong to the containing pattern by construction (`Non-goal 8`); a guard missed by a failed write leaves no trace at all, which is `Record failure 2` stated from the auditor's side; and the unavailability policy is a deployment's declared posture rather than an observation.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -231,17 +230,16 @@ Where the pattern breaks down: when *recent* is measured by something other than
 
 ## Edge cases
 
-### Record storage failure
+### Clock semantics
 
 ```text
-Record failure 1: [Record] MUST NOT refuse on a failed write.
-Record failure 2: The atom MUST treat a failed write as a guard miss.
-Record failure 3: The atom MUST NOT treat a failed write as a safety violation.
-Record failure 4: A deployment whose duplicate prevention is safety-critical MUST supply a durable recorded set.
+Clock semantics 1: The atom MUST anchor a guard to the injected now of the opening record.
+Clock semantics 2: The atom MUST NOT correct clock skew.
+Clock semantics 3: A pattern needing a strictly monotonic guard MUST compose a logical-clock pattern.
 ```
 
 WHY:
-A failed write leaves the identity unguarded, and checks during the term that should have been covered answer `not-seen` — duplicates get through, which is the liveness side of the contract. Nothing false is asserted, and there is nothing to roll back, because the containing pattern acted before the call (Operation 4).
+The guard is wall-time. A backward jump can make an identity read as expired before the term truly elapsed; a forward jump can delay expiry. The atom commits to reading the clock at the seam and to nothing else about the clock (Operation 8).
 
 ### Check store unavailability
 
@@ -255,17 +253,6 @@ Check unavailability 4: The atom MUST NOT mandate the policy.
 WHY:
 Fail-open risks accepting a duplicate; fail-closed risks refusing a first attempt. Which cost is the lower one is a property of the deployment, not of the concept — a comment box and a payment processor answer differently (Check unavailability 4).
 
-### Clock semantics
-
-```text
-Clock semantics 1: The atom MUST anchor a guard to the injected now of the opening record.
-Clock semantics 2: The atom MUST NOT correct clock skew.
-Clock semantics 3: A pattern needing a strictly monotonic guard MUST compose a logical-clock pattern.
-```
-
-WHY:
-The guard is wall-time. A backward jump can make an identity read as expired before the term truly elapsed; a forward jump can delay expiry. The atom commits to reading the clock at the seam and to nothing else about the clock (Operation 8).
-
 ### Lazy expiry
 
 ```text
@@ -276,6 +263,22 @@ Lazy expiry 3: A lazy host MUST answer not-seen for an identity the lazy host st
 
 WHY:
 The atom claims behaviour and not storage, which is why the two host modes are indistinguishable to a caller: Operation 7 answers not-seen for an identity that is not under guard whether or not the host has physically dropped it, and Lazy expiry 3 says so for the entry a lazy host still holds. The physical removal is an implementation's business, and when it happens is Invariant 4.1's eventual claim rather than a moment any rule names (Lazy expiry 1, Lazy expiry 2).
+
+### Record storage failure
+
+```text
+Record failure 1: [Record] MUST NOT refuse on a failed write.
+Record failure 2: The atom MUST treat a failed write as a guard miss.
+Record failure 3: The atom MUST NOT treat a failed write as a safety violation.
+Record failure 4: A deployment whose duplicate prevention is safety-critical MUST supply a durable recorded set.
+```
+
+WHY:
+A failed write leaves the identity unguarded, and checks during the term that should have been covered answer `not-seen` — duplicates get through, which is the liveness side of the contract. Nothing false is asserted, and there is nothing to roll back, because the containing pattern acted before the call (Operation 4).
+
+## Composition notes
+
+Three compositions name this atom: [Idempotent Reservation](../compositions/idempotent-reservation.md), [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md) and [Reserve from Pool](../compositions/reserve-from-pool.md). What a containing pattern owes is stated where the atom's operations are — the window duration (Operation 11) and the response to an answer (Operation 12) — and is not restated here.
 
 ## Terms
 

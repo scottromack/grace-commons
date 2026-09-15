@@ -15,7 +15,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Undo History combines two simpler patterns — a single-user task list ([Personal Todo](../atoms/personal-todo.md)) and an add-only record of everything that happens ([Event Log](../atoms/event-log.md)) — to give the task list a familiar undo that neither part has on its own.
@@ -69,39 +68,40 @@ Composes 7 is what makes the first six enforceable. If callers could still reach
 
 ## Composition logic
 
-### Event schemas
+### Composition state
 
-```
-{type: "add",      event_id, recorded_at, id, description}
-{type: "edit",     event_id, recorded_at, id, prior_description, new_description}
-{type: "complete", event_id, recorded_at, id}
-{type: "delete",   event_id, recorded_at, id, snapshot}
-{type: "undo",     event_id, recorded_at, undone_event_id, undone_event_type}
-```
+The composition's one state is the derived state the replay builds from the log, and it is a derived index: the log is the sole truth and the replay is the named rebuild procedure (`execution-contract.md` §Composition state; Replay 15 through Replay 17).
+
+#### Replay
 
 ```text
-Event schema 1: The composition MUST append an event carrying EXACTLY ONE OF the five schemas.
-Event schema 2: Event Log MUST assign event_id and recorded_at at the log's own seam.
-Event schema 3: The composition MUST NOT change an appended event.
-Event schema 4: An admitted delete MUST record the unit's snapshot on the delete event.
-Event schema 5: An admitted edit MUST record the unit's prior description on the edit event.
-Event schema 6: The replay MUST NOT read a snapshot.
-Event schema 7: The replay MUST NOT read a prior description.
-Event schema 8: The composition MUST NOT answer Event Log's invalid-payload to a caller.
+Replay 1: The replay MUST read EVERY event of the event log instance in sequence_number order.
+Replay 2: The replay MUST build the undone set from EVERY undo event.
+Replay 3: The replay MUST skip an undo event.
+Replay 4: The replay MUST skip an event whose event_id EXISTS in the undone set.
+Replay 5: The replay MUST apply a surviving event to the derived state under construction.
+Replay 6: The replay MUST introduce a unit at the add event's id in pending.
+Replay 7: The replay MUST record the add event's recorded_at as the unit's added_at.
+Replay 8: The replay MUST record the add event's description on the unit.
+Replay 9: The replay MUST replace the unit's description with the edit event's new description.
+Replay 10: The replay MUST record the edit event's recorded_at as the unit's last_edited_at.
+Replay 11: The replay MUST move the unit at the complete event's id to done.
+Replay 12: The replay MUST record the complete event's recorded_at as the unit's completed_at.
+Replay 13: The replay MUST remove the unit at the delete event's id from the derived state.
+Replay 14: The replay MUST produce one derived state PER event log instance.
+Replay 15: The implementation MAY materialize the derived state.
+Replay 16: The implementation MUST rebuild a materialized derived state on a miss.
+Replay 17: An auditor MUST NOT read a materialized derived state in preference to a fresh replay.
 ```
 
-Terms › `event type`: `add` | `edit` | `complete` | `delete` | `undo`.
+Terms › `replay`: the named rebuild procedure Replay 1 through Replay 13 state — the composition's only route from the event log instance to the derived state.
 
-Terms › `forward event`: an event carrying `add`, `edit`, `complete` OR `delete` — every event an [Undo] may target.
-
-Terms › `snapshot`: the unit's full state at a delete — its description, its Personal Todo state and every instant it carries.
+Terms › `surviving event`: a forward event whose `event_id` NOT EXISTS in the undone set.
 
 WHY:
-Event schema 6 and Event schema 7 are the load-bearing absence. Both fields exist and neither feeds the replay: what a delete removed and what an edit replaced are readable straight from the log through [Read History], with no replay at all, and they are kept in the schemas for *that* reading. A replay that consumed them would be restoring state from a snapshot, which is the design this composition exists to reject (§The load-bearing wiring decision).
+Replay 5 rests on something worth stating: a surviving event was recorded only because its action succeeded, so Personal Todo's preconditions held when it was written and hold again at every replay step. The replay never has to validate — it is re-running a history that was valid when it happened. Event Log Invariant 5 is what bounds the replay to exactly that set.
 
-The undo schema is the only one carrying two fields of its own: [Undone Event Id], which the replay builds the undone set from (Replay 2), and [Undone Event Type], which the undo answers to the caller (Action wiring 18).
-
-Event schema 8 is a foreclosure rather than a mapping. [Event Log](../atoms/event-log.md)'s `append` declares an `invalid-payload` arm, and every payload this composition appends is one of five fixed schemas built by machine from already-validated inputs — so the arm cannot be reached, and reaching it would be a defect in this composition rather than a caller's fault. It surfaces as a deployment fault and is mapped to no caller rejection.
+Replay 15 through Replay 17 are the contract classification stated as rules (`execution-contract.md` §Composition state). The derived state is a derived index by construction: the log is the sole truth, Replay 1 through Replay 13 *are* the named rebuild, and nothing is stored that the rebuild does not regenerate. So the Contract's three obligations hold trivially — the projection sits outside any atomicity surface, since there is no second truth-bearing write to coordinate with the append; a lost materialization is a rebuild trigger and never data loss; and no consistency claim attaches beyond the replay's own determinism. A cache is permitted and is an ordinary derived index; Replay 17 is what stops an invariant being evaluated against one.
 
 ### Action wiring
 
@@ -165,38 +165,7 @@ Action wiring 11 through Action wiring 14 mirror the constituent exactly rather 
 
 Action wiring 19 is the boundary against redo. Undo events are not forward events, so no [Undo] reaches one; reversing an undo is redo, and redo is a different pattern reading a different class of compensating event (Non-goal 1).
 
-### Replay
-
-```text
-Replay 1: The replay MUST read EVERY event of the event log instance in sequence_number order.
-Replay 2: The replay MUST build the undone set from EVERY undo event.
-Replay 3: The replay MUST skip an undo event.
-Replay 4: The replay MUST skip an event whose event_id EXISTS in the undone set.
-Replay 5: The replay MUST apply a surviving event to the derived state under construction.
-Replay 6: The replay MUST introduce a unit at the add event's id in pending.
-Replay 7: The replay MUST record the add event's recorded_at as the unit's added_at.
-Replay 8: The replay MUST record the add event's description on the unit.
-Replay 9: The replay MUST replace the unit's description with the edit event's new description.
-Replay 10: The replay MUST record the edit event's recorded_at as the unit's last_edited_at.
-Replay 11: The replay MUST move the unit at the complete event's id to done.
-Replay 12: The replay MUST record the complete event's recorded_at as the unit's completed_at.
-Replay 13: The replay MUST remove the unit at the delete event's id from the derived state.
-Replay 14: The replay MUST produce one derived state PER event log instance.
-Replay 15: The implementation MAY materialize the derived state.
-Replay 16: The implementation MUST rebuild a materialized derived state on a miss.
-Replay 17: An auditor MUST NOT read a materialized derived state in preference to a fresh replay.
-```
-
-Terms › `replay`: the named rebuild procedure Replay 1 through Replay 13 state — the composition's only route from the event log instance to the derived state.
-
-Terms › `surviving event`: a forward event whose `event_id` NOT EXISTS in the undone set.
-
-WHY:
-Replay 5 rests on something worth stating: a surviving event was recorded only because its action succeeded, so Personal Todo's preconditions held when it was written and hold again at every replay step. The replay never has to validate — it is re-running a history that was valid when it happened. Event Log Invariant 5 is what bounds the replay to exactly that set.
-
-Replay 15 through Replay 17 are the contract classification stated as rules (`execution-contract.md` §Composition state). The derived state is a derived index by construction: the log is the sole truth, Replay 1 through Replay 13 *are* the named rebuild, and nothing is stored that the rebuild does not regenerate. So the Contract's three obligations hold trivially — the projection sits outside any atomicity surface, since there is no second truth-bearing write to coordinate with the append; a lost materialization is a rebuild trigger and never data loss; and no consistency claim attaches beyond the replay's own determinism. A cache is permitted and is an ordinary derived index; Replay 17 is what stops an invariant being evaluated against one.
-
-### The load-bearing wiring decision
+### Wiring decision
 
 ```text
 Wiring decision 1: The composition MUST restore an undone delete's unit at the unit's original id.
@@ -214,6 +183,40 @@ The likely objection: *could the delete save a snapshot and the undo restore fro
 The mechanism: the original `add` event is still in the log. Undoing the delete appends a compensating event and re-replays, skipping the delete — so the unit is reconstructed from its own `add`, at its own id, with its own instants. Personal Todo's delete is terminal and irreversible; this composition does not overturn that, it operates at the log level where the delete simply never happened.
 
 The result: Invariant 6.1 falls out of the replay rather than being designed in as a special case. The atoms are unchanged; the composition is entirely in the wiring.
+
+### Event schemas
+
+```
+{type: "add",      event_id, recorded_at, id, description}
+{type: "edit",     event_id, recorded_at, id, prior_description, new_description}
+{type: "complete", event_id, recorded_at, id}
+{type: "delete",   event_id, recorded_at, id, snapshot}
+{type: "undo",     event_id, recorded_at, undone_event_id, undone_event_type}
+```
+
+```text
+Event schema 1: The composition MUST append an event carrying EXACTLY ONE OF the five schemas.
+Event schema 2: Event Log MUST assign event_id and recorded_at at the log's own seam.
+Event schema 3: The composition MUST NOT change an appended event.
+Event schema 4: An admitted delete MUST record the unit's snapshot on the delete event.
+Event schema 5: An admitted edit MUST record the unit's prior description on the edit event.
+Event schema 6: The replay MUST NOT read a snapshot.
+Event schema 7: The replay MUST NOT read a prior description.
+Event schema 8: The composition MUST NOT answer Event Log's invalid-payload to a caller.
+```
+
+Terms › `event type`: `add` | `edit` | `complete` | `delete` | `undo`.
+
+Terms › `forward event`: an event carrying `add`, `edit`, `complete` OR `delete` — every event an [Undo] may target.
+
+Terms › `snapshot`: the unit's full state at a delete — its description, its Personal Todo state and every instant it carries.
+
+WHY:
+Event schema 6 and Event schema 7 are the load-bearing absence. Both fields exist and neither feeds the replay: what a delete removed and what an edit replaced are readable straight from the log through [Read History], with no replay at all, and they are kept in the schemas for *that* reading. A replay that consumed them would be restoring state from a snapshot, which is the design this composition exists to reject (§Wiring decision).
+
+The undo schema is the only one carrying two fields of its own: [Undone Event Id], which the replay builds the undone set from (Replay 2), and [Undone Event Type], which the undo answers to the caller (Action wiring 18).
+
+Event schema 8 is a foreclosure rather than a mapping. [Event Log](../atoms/event-log.md)'s `append` declares an `invalid-payload` arm, and every payload this composition appends is one of five fixed schemas built by machine from already-validated inputs — so the arm cannot be reached, and reaching it would be a defect in this composition rather than a caller's fault. It surfaces as a deployment fault and is mapped to no caller rejection.
 
 ---
 
@@ -371,7 +374,6 @@ Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14
 Terms › `terms`: `composition`, `event log instance`, `derived state`, `unit`, `seam`, `event type`, `forward event`, `snapshot`, `forward action`, `no-op edit`, `undone set`, `undo target`, `replay`, `surviving event`, `admitted add`, `admitted edit`, `admitted complete`, `admitted delete`, `admitted undo`, `admitted action`.
 
 Terms › `cited`: `execution-contract.md` §Logic confinement — the seam. `execution-contract.md` §Composition state — the derived index and its rebuild obligations.
-
 
 #### Add
 
@@ -538,7 +540,7 @@ Projects:  storage-failure
 ## Standards references
 
 - **Event sourcing (Fowler; CQRS literature)** — the shape this composition instantiates: state derived by replaying a log rather than stored, with compensating events rather than mutation. The composition's contribution is not the shape but what the shape buys when the substrate is a concept with its own invariants — identity preservation across a terminal delete.
-- **The Memento pattern (Gamma et al.)** — the design this composition explicitly rejects for restoration, and keeps for inspection. A memento restores state and produces a new copy; §The load-bearing wiring decision states why that loses the property users mean by undo.
+- **The Memento pattern (Gamma et al.)** — the design this composition explicitly rejects for restoration, and keeps for inspection. A memento restores state and produces a new copy; §Wiring decision states why that loses the property users mean by undo.
 - **Command pattern with undo (Gamma et al.)** — the classical undo shape, which reverses by invoking an inverse operation. This composition cannot use it, because [Personal Todo](../atoms/personal-todo.md)'s delete is terminal and its completion is persistent: there is no inverse to invoke, so the reversal happens one level down, at the log.
 
 It inherits from:

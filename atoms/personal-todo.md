@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Personal Todo is a single-person to-do list: one user records tasks, edits them while they are still open, marks them done, and deletes them. Every task gets a permanent internal identifier that never changes, so editing the wording of a task does not change which task it is. Each task is always in exactly one state — open (Pending) or finished (Done) — until it is deleted. No two active tasks can share the same wording, and the same text typed two different ways still counts as a match. It is built for one person managing their own list — personal tasks, reading lists, grocery lists, goals — not for shared or delegated lists, which are handled by separate patterns that build on this one.
@@ -52,26 +51,6 @@ Terms › `business caller`: the party whose action the call carries, as `execut
 
 Terms › `now`: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
-### Description policy
-
-```text
-Description 1: The atom MUST trim a description's leading and trailing whitespace.
-Description 2: The atom MUST normalize a description to Unicode normal form C.
-Description 3: The atom MUST preserve a description's internal whitespace.
-Description 4: IF the normalized description is empty THEN the atom MUST answer invalid-description.
-Description 5: IF the normalized description EXCEEDS the description cap THEN the atom MUST answer invalid-description.
-Description 6: The atom MUST compare two descriptions case-sensitively.
-Description 7: The atom MUST compare two descriptions on the normalized form.
-Description 8: The atom MUST show the normalized form.
-```
-
-Terms › `description`: the text the person gives a unit — a [Description]; normalized before it enters the list and before any comparison.
-
-Terms › `description cap`: the bound on a normalized description's length; 1024 codepoints where a deployment declares none.
-
-WHY:
-Normalization before comparison is what makes *café* typed and *café* pasted the same text — different sources produce different Unicode forms, and without normal form C the uniqueness rule would let one list hold both (Description 2, Invariant 6.1). Case sensitivity and internal whitespace are kept verbatim because the person's own text is what the person recognizes; a case-insensitive or fuzzy variant is a wrapping pattern's policy, not this atom's (Description 3, Description 6).
-
 ### State
 
 ```text
@@ -99,6 +78,15 @@ Terms › `active set`: the units standing in pending together with the units st
 
 WHY:
 Deletion is the only way out and it is terminal: the atom keeps no memory of what left, which is why re-adding a deleted description succeeds and why a system that wants *not twice this morning* composes [Duplicate Prevention](./duplicate-prevention.md) rather than asking this atom to remember (State 10, Composition note 2). There is no reopening, because a person who reopens a finished thing is describing a different pattern — one with history — and adding the transition here would quietly take that pattern's job (State 9).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -203,6 +191,26 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
   Invariant 8.3: [Edit] MUST NOT change the id.
   ```
 
+### Description policy
+
+```text
+Description 1: The atom MUST trim a description's leading and trailing whitespace.
+Description 2: The atom MUST normalize a description to Unicode normal form C.
+Description 3: The atom MUST preserve a description's internal whitespace.
+Description 4: IF the normalized description is empty THEN the atom MUST answer invalid-description.
+Description 5: IF the normalized description EXCEEDS the description cap THEN the atom MUST answer invalid-description.
+Description 6: The atom MUST compare two descriptions case-sensitively.
+Description 7: The atom MUST compare two descriptions on the normalized form.
+Description 8: The atom MUST show the normalized form.
+```
+
+Terms › `description`: the text the person gives a unit — a [Description]; normalized before it enters the list and before any comparison.
+
+Terms › `description cap`: the bound on a normalized description's length; 1024 codepoints where a deployment declares none.
+
+WHY:
+Normalization before comparison is what makes *café* typed and *café* pasted the same text — different sources produce different Unicode forms, and without normal form C the uniqueness rule would let one list hold both (Description 2, Invariant 6.1). Case sensitivity and internal whitespace are kept verbatim because the person's own text is what the person recognizes; a case-insensitive or fuzzy variant is a wrapping pattern's policy, not this atom's (Description 3, Description 6).
+
 ## Examples
 
 The same pattern, three personal-scope domains, identical mechanic. A fourth example walks the rejection paths.
@@ -277,15 +285,6 @@ WHY:
 
 The external set is three lines because this atom assumes almost nothing it cannot show. What it does assume is the two things no records can carry: that the clock moves forward, which every timestamp check above is best-effort under, and that each transition is atomic, without which `Invariant 1.1` is reachable-false — a crash mid-write leaving a unit in neither state. Both are named here rather than left to a reader to notice they were never proved.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -313,6 +312,14 @@ Where the atom breaks down: any system with more than one actor; a system where 
 
 ## Edge cases
 
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's timezone handling.
+Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
+```
+
 ### Concurrency on one unit
 
 ```text
@@ -323,14 +330,6 @@ Concurrency 3: A deployment running two clients MUST compose a concurrency-resol
 
 WHY:
 Two tabs acting on one unit is outside the atom: a crash or a race that leaves a unit in neither state breaks Invariant 1.1, and the transactional boundary that prevents it is the implementor's (Concurrency 2).
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
-```
 
 ### Re-adding a deleted description
 

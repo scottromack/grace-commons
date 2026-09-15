@@ -201,8 +201,6 @@ Composition state 35 is the map-population-after-event discipline stated once fo
 
 Composition state 36 through Composition state 43 are the cardinality and modality the relations carry, which the prose declared for one relation and left implicit for three. Composition state 44 and Composition state 45 are the referential-integrity template of `spec-format.md` §Structural-relation invariant templates, applied to the two indexes that point into a constituent's store.
 
----
-
 ### Capability requirement
 
 ```text
@@ -294,8 +292,6 @@ Capability requirement 32 is the repair for a payload that had no bound. [Clear 
 Capability requirement 39 is the deployment half of the gate, and it is an obligation rather than advice. If each activity system reads Party Identity and applies its own `Verified` check, the gate is re-implemented per system, and the first system that forgets it, reads a stale state, or applies a subtly different predicate breaks the before-activity guarantee silently and per-system. Centralizing it at [Activity Permitted] makes the guarantee exist exactly once; a deployment that bypasses it is a composition-bypass finding, and Invariant 1.3 is where the property is quantified.
 
 Capability requirement 40 and Capability requirement 41 keep the scheduler out. The composition holds the schedule *state* and is not the scheduling *engine* — it sets no timer, fires on no clock and owns no cadence policy. An external scheduler reads [Next Review Due] and the case's `active` flag and calls [Trigger Monitoring Review] when a review is due.
-
----
 
 ### Primitive policy
 
@@ -429,8 +425,6 @@ Audit arm 5 through Audit arm 7 are the one arm that is neither. The substrate's
 Audit arm 14 through Audit arm 17 bound the retry at both ends. Inside the completion bound the owed record is the invocation's, because the reconciliation cannot see an invocation that has not written yet and a re-emission fired at it would land a second outcome for one act. Past it the record is the reconciliation's, and every compensating write is preceded by a traversal for an outcome already carrying this `intent_event_id` — matched by equality, never by resemblance of payload.
 
 The cost is stated rather than hidden: audit-event volume rises by roughly one event per state-changing invocation, so `audit_trail_retention_policy` governs proportionally more events and each seal covers proportionally more entries.
-
----
 
 ### Action wiring
 
@@ -730,8 +724,6 @@ Action wiring 153: An invocation MUST derive the next review due from the inject
 WHY:
 Action wiring 146 through Action wiring 153 are where each outcome's instant comes from, stated per outcome because one universal claim was false. The spec once said an invocation stamps *every* timestamp from its own reading, and a completing closure does not: it finishes a closure Party Identity already committed, so the `closed_at` it records is the one Action wiring 118 reads back. Action wiring 152 is scoped to the committing closure for that reason.
 
----
-
 ### Wiring decision
 
 ```text
@@ -756,8 +748,6 @@ WHY:
 *Mechanism that resolves it.* Party Identity owns the state and exposes no gate: it records that a party is Verified, does not enforce that activity systems consult it, and does not know what regulated activity means — importing that notion would break the atom's freestanding status, which is what Wiring decision 6 and Wiring decision 7 refuse. The Audit Trail substrate records attributed, tamper-evident events and does not know which of them constitute a verification chain. Neither can, alone, deliver both halves of the obligation. The composition wires them: every `Unverified → Verified` transition flows through [Record Verification], which records an event carrying both the `verification_id` and the `state_change_id`, so the verification is attributed and tamper-evident (Invariant 2.1); and [Activity Permitted] is the *single* gate query, so the precondition is implemented exactly once at the composition boundary rather than re-implemented — or quietly skipped — in each activity system. Wiring decision 2 is the half a reader most often misses: the gate consults this composition's own case index as well as the party's state, so a party driven to `Verified` outside this composition has no case entry and fails the gate. The attribution half is delivered by Invariant 2.1 together with the exclusive-ownership obligation of Composes 19 and Composes 20, not by the state read; the gate's own job is to confine `permitted` to the `Verified` parties this composition governs.
 
 *Result.* The gate is structural and centralized. An auditor verifies from the records alone that for every party with regulated activity a verification record carrying a `state_change_id` precedes the activity (Check 1.1), and that no activity system held its own copy of the gate logic to drift from. The single-surface discipline is the records-alone-defensible signal: the verification precondition lives in one place, is exercised through one query, and produces one tamper-evident event class the auditor reads.
-
----
 
 ### Reconciliation
 
@@ -1076,7 +1066,6 @@ Non-goal 19: The composition MUST NOT index the audit log by a payload field.
 Non-goal 20: The composition MUST NOT admit a second Party Identity writer.
 ```
 
-
 WHY:
 Non-goal 1 and Non-goal 2 name the upstream boundary. What happens *during* verification — document OCR, biometric check, sanctions-database query, adverse-media search — produces the `verification_result`, `method` and `evidence_ref` this composition records. The composition is the lifecycle and the gate; the workflow is upstream, and Party Identity's own *Asynchronous verification workflows* edge case names the same seam from the constituent's side, which is why Non-goal 7 declines to model a pending state: the party simply stands `Unverified` until a `passed` result is recorded.
 
@@ -1098,54 +1087,9 @@ Non-goal 10 is the closure's honest limit. [Close Party] gates *new* activity an
 
 ---
 
-## Concurrency
+## Edge cases
 
-```text
-Concurrency 1: A deployment MUST serialize a state-changing action over one party_id.
-Concurrency 2: A deployment MUST NOT serialize [Activity Permitted].
-Concurrency 3: [Activity Permitted]'s two reads MUST NOT stand atomic.
-Concurrency 4: A skewed gate read MUST NOT answer permitted.
-Concurrency 5: The composition MUST answer a losing transition's constituent rejection.
-Concurrency 6: The composition MUST read a state rejection the trigger pre-check forecloses as a serialization breach.
-Concurrency 7: Two invocations MUST NOT hold one case's open-trigger set.
-Concurrency 8: The reconciliation MUST NOT run against a case an invocation holds.
-```
-
-WHY:
-Concurrency 1 is the obligation every state rejection behind a pre-check depends on. [Trigger Monitoring Review] reads the party's state before it records the trigger, so the suspend's own state arms are unreachable under the serialization; should one fire anyway, Concurrency 6 names it for what it is — a breach of the host's obligation, not a routine arm — and the trigger is voided so the rebuilt open set never carries an investigation against a party nobody suspended. [Clear Review]'s [Verification Failed] is the same shape: a concurrent suspend between the fresh verification and the reinstate, or a concurrent reinstate, re-arms a precondition the action had just satisfied.
-
-Concurrency 2 through Concurrency 4 exempt the gate, and the exemption is safe by construction rather than by luck. The gate reads its index and then the live state; between the two another writer may commit a transition, and every skew that read admits fails safe — a stale index yields a spurious [Party Not Known] and a stale state read yields a conservative [Not Verified], because the state read is authoritative and `permitted` requires it to answer `verified` at the instant it was read.
-
----
-
-## Clock semantics
-
-```text
-Clock semantics 4: The next review due MUST NOT EXCEED the placement's cover.
-NOTE: Clock semantics 2 deleted — Action wiring 146 through Action wiring 152 own it, one outcome at a time.
-NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
-NOTE: Clock semantics 3 deleted — Action wiring 153 owns it.
-NOTE: Clock semantics 5 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 6 deleted — `execution-contract.md` §Logic confinement owns it.
-Clock semantics 7: A reader MUST read insertion order as authoritative.
-Clock semantics 8: A reader MUST read a timestamp as advisory.
-Clock semantics 9: A reader MUST read a divergence between a trigger's triggered_at and the trigger's suspended_at as a conformance failure.
-Clock semantics 10: A deployment MUST inject a trustworthy clock reading.
-Clock semantics 11: The composition MUST NOT detect a dishonest clock reading.
-```
-
-Terms › `placement's cover`: `the current placement's retention_until − scheduler_tolerance` — the instant past which a review would fire too late to renew the placement before the placement lapses.
-
-WHY:
-Action wiring 146 through Action wiring 153 stamp from the one reading an invocation shares (`execution-contract.md` §Logic confinement), and the sharing is what several claims rest on. At [Initiate Onboarding] the opening instant and the first deadline derive from one reading, so the interval between them is exactly the monitoring interval rather than the interval plus an inter-read drift. At [Trigger Monitoring Review] the trigger's instant and the adverse path's suspension instant are the same value, which is why Clock semantics 9 reads a *divergence* between them as a conformance failure — an implementation that read a clock twice — rather than as clock granularity, and why Invariant 3 reads ordering from the log instead.
-
-Clock semantics 4 is the cap that makes Capability requirement 20's duration obligation sufficient. Every schedule advance is capped below the current placement's cover, because an advance that ignored the placement — a verification pass months after intake, a clearance after a long suspension — would push the first renewal past the placement's end no matter how the interval and the duration compared. The composition stores the deadline and never a derived *review due* or *overdue* flag (Composition state 48, Composition state 49): whether a review is due is a read-time projection against an injected reading at the moment the question is asked, so nothing lags the clock.
-
-Clock semantics 10 and Clock semantics 11 name the residual honestly. Where review deadlines or onboarding timestamps have legal force — FATF and BSA/AML require recording when Customer Due Diligence was performed — the deployment injects a reading from a trustworthy clock, and a composed Trusted Timestamping pattern supplies the verifiable anchor that binds insertion order to wall time. Under injection the residual risk is a deployment that injects a dishonest reading, not an internal race, and this composition detects neither.
-
----
-
-## Atomic writes
+### Atomic writes
 
 ```text
 Atomic writes 1: An invocation MUST record an outcome ONLY AFTER the invocation's committing call.
@@ -1174,6 +1118,49 @@ Several actions write to two or three stores in sequence, and a failure between 
 **Atomic writes 3 through Atomic writes 9 are the indeterminacy the page had not addressed.** A lost response after a commit is not a failure the invocation can tell from a failure before one, and the two demand opposite actions. `verify` and `place_under_retention` are re-queryable: the intent already fixed the values, the invocation's own injected instant is on it, and a read against the constituent's declared surface answers *did my call commit?* exactly. `enroll` is not, because it mints the identity a key would need — a re-query cannot tell this invocation's party from another's, and a blind retry mints a second party for one customer. So it is escalated rather than resolved, and its residue — an `Unverified` party with no case — is dispositioned administratively.
 
 The ordering disciplines are what shrink the windows rather than close them: the trigger is recorded before any transition, the clearance before the reinstatement, and every index after its own record. Atomic writes 2 is why a lost index entry is never a lost fact — the record landed first, so the rebuild regenerates it — and it is the rule the prose stated three times and broke twice.
+
+### Clock semantics
+
+```text
+Clock semantics 4: The next review due MUST NOT EXCEED the placement's cover.
+NOTE: Clock semantics 2 deleted — Action wiring 146 through Action wiring 152 own it, one outcome at a time.
+NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
+NOTE: Clock semantics 3 deleted — Action wiring 153 owns it.
+NOTE: Clock semantics 5 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 6 deleted — `execution-contract.md` §Logic confinement owns it.
+Clock semantics 7: A reader MUST read insertion order as authoritative.
+Clock semantics 8: A reader MUST read a timestamp as advisory.
+Clock semantics 9: A reader MUST read a divergence between a trigger's triggered_at and the trigger's suspended_at as a conformance failure.
+Clock semantics 10: A deployment MUST inject a trustworthy clock reading.
+Clock semantics 11: The composition MUST NOT detect a dishonest clock reading.
+```
+
+Terms › `placement's cover`: `the current placement's retention_until − scheduler_tolerance` — the instant past which a review would fire too late to renew the placement before the placement lapses.
+
+WHY:
+Action wiring 146 through Action wiring 153 stamp from the one reading an invocation shares (`execution-contract.md` §Logic confinement), and the sharing is what several claims rest on. At [Initiate Onboarding] the opening instant and the first deadline derive from one reading, so the interval between them is exactly the monitoring interval rather than the interval plus an inter-read drift. At [Trigger Monitoring Review] the trigger's instant and the adverse path's suspension instant are the same value, which is why Clock semantics 9 reads a *divergence* between them as a conformance failure — an implementation that read a clock twice — rather than as clock granularity, and why Invariant 3 reads ordering from the log instead.
+
+Clock semantics 4 is the cap that makes Capability requirement 20's duration obligation sufficient. Every schedule advance is capped below the current placement's cover, because an advance that ignored the placement — a verification pass months after intake, a clearance after a long suspension — would push the first renewal past the placement's end no matter how the interval and the duration compared. The composition stores the deadline and never a derived *review due* or *overdue* flag (Composition state 48, Composition state 49): whether a review is due is a read-time projection against an injected reading at the moment the question is asked, so nothing lags the clock.
+
+Clock semantics 10 and Clock semantics 11 name the residual honestly. Where review deadlines or onboarding timestamps have legal force — FATF and BSA/AML require recording when Customer Due Diligence was performed — the deployment injects a reading from a trustworthy clock, and a composed Trusted Timestamping pattern supplies the verifiable anchor that binds insertion order to wall time. Under injection the residual risk is a deployment that injects a dishonest reading, not an internal race, and this composition detects neither.
+
+### Concurrency
+
+```text
+Concurrency 1: A deployment MUST serialize a state-changing action over one party_id.
+Concurrency 2: A deployment MUST NOT serialize [Activity Permitted].
+Concurrency 3: [Activity Permitted]'s two reads MUST NOT stand atomic.
+Concurrency 4: A skewed gate read MUST NOT answer permitted.
+Concurrency 5: The composition MUST answer a losing transition's constituent rejection.
+Concurrency 6: The composition MUST read a state rejection the trigger pre-check forecloses as a serialization breach.
+Concurrency 7: Two invocations MUST NOT hold one case's open-trigger set.
+Concurrency 8: The reconciliation MUST NOT run against a case an invocation holds.
+```
+
+WHY:
+Concurrency 1 is the obligation every state rejection behind a pre-check depends on. [Trigger Monitoring Review] reads the party's state before it records the trigger, so the suspend's own state arms are unreachable under the serialization; should one fire anyway, Concurrency 6 names it for what it is — a breach of the host's obligation, not a routine arm — and the trigger is voided so the rebuilt open set never carries an investigation against a party nobody suspended. [Clear Review]'s [Verification Failed] is the same shape: a concurrent suspend between the fresh verification and the reinstate, or a concurrent reinstate, re-arms a precondition the action had just satisfied.
+
+Concurrency 2 through Concurrency 4 exempt the gate, and the exemption is safe by construction rather than by luck. The gate reads its index and then the live state; between the two another writer may commit a transition, and every skew that read admits fails safe — a stale index yields a spurious [Party Not Known] and a stale state read yields a conservative [Not Verified], because the state read is authoritative and `permitted` requires it to answer `verified` at the instant it was read.
 
 ---
 

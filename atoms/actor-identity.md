@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Actor Identity answers one question: "who authorized this action, and can you prove it?" It works through attestations — permanent records that tie a specific person or system to a specific action by way of a proof. A proof is a tamper-resistant artifact, computed from the actor's private credential, that anyone can later check without needing the credential itself. Creating an attestation consumes the credential to produce the proof and then throws the credential away; only the proof is kept. Checking one is purely read-only. Given an attestation's identifier, the system re-checks the stored proof against the recorded action and actor, using only public information about the actor. The guarantee is non-repudiation. If the check passes, the named actor really did authorize the named action and cannot credibly deny it — short of claiming their credential was stolen. This is the mechanism behind supervisor sign-off on large wire transfers, doctors' electronic prescriptions for controlled drugs, chip-and-PIN card payments, legally binding e-signatures, and signed code commits in regulated software. Attest when the action happens, verify at audit time, and the answer comes from the records rather than from anyone's word.
@@ -89,6 +88,15 @@ Terms › `attestation field`: `attestation_id` | `action_ref` | `actor_ref` | `
 
 WHY:
 One state and no way out: an attestation that could be revoked would prove nothing, because the party who wanted the attribution undone is the party who would revoke it. Reinterpretation under a compromised credential is real and is a Compromise Disclosure pattern's *(forthcoming)* — it writes new records rather than editing old ones (State 2, State 5, Non-goal 9). The credential is consumed and never stored: an atom holding actors' private material would be the highest-value target in the deployment (State 4).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -263,15 +271,6 @@ Check 5.1: An auditor MUST identify which composing patterns a deployment wired 
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove who authorized this action?* — never the developer's intuition.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -299,16 +298,14 @@ Where the atom breaks down: when authorization cannot be reduced to one actor �
 
 ## Edge cases
 
-### The registry's view moves
+### Attestation store durability
 
 ```text
-Registry view 1: A rotation of an actor's public material MAY turn a verified attestation into a failing one.
-Registry view 2: The actor registry MUST own whether historical public material is kept.
-Registry view 3: A deployment whose old attestations must keep verifying MUST retain the historical public material.
+Attestation durability 1: [Attest] MUST write EXACTLY ONE record per successful call.
+Attestation durability 2: The implementation MUST own durability across a crash.
+Attestation durability 3: A high-assurance deployment MUST compose a durability mechanism.
+Attestation durability 4: A storage-failure MUST agree with the absence of a persisted record.
 ```
-
-WHY:
-Audit Trail's long-lived attestations are the case: an attestation made years ago verifies under the key of its day, and a registry that keeps only current material silently converts every one of them into `proof-invalid` — indistinguishable, to a reader, from tampering (Registry view 3).
 
 ### Revocation status at verify time
 
@@ -322,14 +319,16 @@ Revocation status 4: The deployment MUST own the mechanism choice.
 WHY:
 Stapled status and short-lived credentials both satisfy Invariant 6.1; a live status query at verify time introduces the out-of-band dependency the invariant exists to exclude, and the honest thing is to say so in the deployment's own record rather than to claim the invariant anyway (Revocation status 3).
 
-### Attestation store durability
+### The registry's view moves
 
 ```text
-Attestation durability 1: [Attest] MUST write EXACTLY ONE record per successful call.
-Attestation durability 2: The implementation MUST own durability across a crash.
-Attestation durability 3: A high-assurance deployment MUST compose a durability mechanism.
-Attestation durability 4: A storage-failure MUST agree with the absence of a persisted record.
+Registry view 1: A rotation of an actor's public material MAY turn a verified attestation into a failing one.
+Registry view 2: The actor registry MUST own whether historical public material is kept.
+Registry view 3: A deployment whose old attestations must keep verifying MUST retain the historical public material.
 ```
+
+WHY:
+Audit Trail's long-lived attestations are the case: an attestation made years ago verifies under the key of its day, and a registry that keeps only current material silently converts every one of them into `proof-invalid` — indistinguishable, to a reader, from tampering (Registry view 3).
 
 ### Verification caching
 

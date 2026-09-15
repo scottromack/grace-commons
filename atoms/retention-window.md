@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Retention Window enforces the rule that a record must be kept for a minimum period and only then becomes eligible for destruction. For every managed record it stores which retention policy applies, when the keep-period ends, and the latest date by which destruction is expected. It blocks early deletion outright. Trying to destroy ("purge") a record before its period is up is refused. It also makes overdue records visible: anything still kept past its deadline shows up in the data as an "overshoot" that a compliance dashboard can spot, without anyone having to explain it. Two dates are fixed when a record is placed under retention: the earliest date destruction is allowed, and the latest date it is expected. The span between them is the window in which destruction is both permitted and expected. The pattern enforces the early boundary — no destruction before the period ends. It only observes the late one. A record destroyed past its deadline is flagged in the records as a finding, not refused, because refusing a late destruction would only make the overdue situation worse. This is the mechanism behind multi-year retention of financial and medical records, data-minimization rules for payment-card data, and contract retention that outlasts the deal. It does not handle where records physically live, litigation holds, or privacy-law erasure — those are separate patterns.
@@ -96,6 +95,15 @@ Terms › `purge eligible`: `yes` | `no` — a [Purge Eligible]; `yes` exactly w
 
 WHY:
 Two states and no third: a storage tier is an orthogonal axis a Storage Tier pattern *(forthcoming)* owns, and a record moves from active to cold storage without its obligation changing (State 10). Eligibility is derived rather than stored because a stored flag lags the clock — nothing fires when a retention crosses `retention_until`, no scheduler runs, and the only write is the purge that actually happened (State 7, Invariant 11.1). There is no un-purge and no policy edit: extending an obligation means a new retention under a new policy, which is a new audit record rather than a quiet overwrite of an old one (State 8, State 9).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -302,15 +310,6 @@ NOTE: the atom cannot answer these from the retention store — Simultaneous ret
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *was every record's obligation honored, and what is overdue now?* — answered from the records, never from a runtime claim.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -335,28 +334,25 @@ Where the atom breaks down: when the obligation is a function of the record's co
 
 ## Edge cases
 
-### Simultaneous retentions over one record
+### Clock semantics
 
 ```text
-Simultaneous retention 1: The atom MUST admit two live retentions over one record_ref.
-Simultaneous retention 2: The atom MUST gate a purge against the purging retention's own retention_until.
-Simultaneous retention 3: The atom MUST NOT read a sibling retention over one record_ref.
-Simultaneous retention 4: A composing pattern MUST destroy a record ONLY IF EVERY retention over the record is purge eligible.
+Clock semantics 1: The deployment MUST own the clock's honesty.
+Clock semantics 2: The deployment MUST own the clock's monotonicity.
+Clock semantics 3: Two readers judging purge eligible under skewed clocks MAY disagree near retention_until.
+Clock semantics 4: A deployment whose deadlines carry legal force MUST compose a trusted-timestamping pattern.
 ```
 
 WHY:
-This is the atom's sharpest edge and the one a composition must close. Purging the shorter retention destroys the record while a longer obligation over the same record is still live — an obligation this atom never saw, because it lived on another retention_id. Per-retention enforcement is the atom's; joint enforcement across siblings is the composing pattern's, and [Defensible Retention](../compositions/defensible-retention.md) is where it is wired (Simultaneous retention 3, Simultaneous retention 4).
+Because eligibility is derived, a brief disagreement between two readers near the boundary costs nothing — no write is at stake, and the binding decision is made by the single `now` injected at the purge (Operation 21, Operation 22, Clock semantics 3).
 
-### Purge that does not persist
+### Concurrency and atomicity
 
 ```text
-Purge persistence 1: A caller MUST read storage-failure from [Purge] as the record standing undestroyed.
-Purge persistence 2: A caller MUST retry a purge that answered storage-failure.
-Purge persistence 3: A high-assurance deployment MUST alert on storage-failure from [Purge].
+Concurrency 1: The implementation MUST hold EVERY state transition atomic per retention_id.
+Concurrency 2: The implementation MUST serialize two purges of one retention_id.
+Concurrency 3: The second purge of one retention_id MUST answer not-retained.
 ```
-
-WHY:
-A failed placement is a security-shaped failure — the obligation was never recorded. A failed purge is the opposite shape: the obligation was honored and the minimization was not, so the record that should be gone is still there and nothing about the retention looks wrong (Purge persistence 1).
 
 ### Divergence between the retention and the record
 
@@ -369,25 +365,28 @@ Record divergence 3: The atom MUST NOT read the record's existence.
 WHY:
 A retention that reads `purged` over a record that still exists is a compliance failure the audit cannot see — the evidence says destroyed and the data says otherwise. The atom signals the storage layer and cannot confirm the outcome itself, so the coordination is the implementation's and the honest answer on an unconfirmed destruction is a refusal (Record divergence 2).
 
-### Concurrency and atomicity
+### Purge that does not persist
 
 ```text
-Concurrency 1: The implementation MUST hold EVERY state transition atomic per retention_id.
-Concurrency 2: The implementation MUST serialize two purges of one retention_id.
-Concurrency 3: The second purge of one retention_id MUST answer not-retained.
-```
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's honesty.
-Clock semantics 2: The deployment MUST own the clock's monotonicity.
-Clock semantics 3: Two readers judging purge eligible under skewed clocks MAY disagree near retention_until.
-Clock semantics 4: A deployment whose deadlines carry legal force MUST compose a trusted-timestamping pattern.
+Purge persistence 1: A caller MUST read storage-failure from [Purge] as the record standing undestroyed.
+Purge persistence 2: A caller MUST retry a purge that answered storage-failure.
+Purge persistence 3: A high-assurance deployment MUST alert on storage-failure from [Purge].
 ```
 
 WHY:
-Because eligibility is derived, a brief disagreement between two readers near the boundary costs nothing — no write is at stake, and the binding decision is made by the single `now` injected at the purge (Operation 21, Operation 22, Clock semantics 3).
+A failed placement is a security-shaped failure — the obligation was never recorded. A failed purge is the opposite shape: the obligation was honored and the minimization was not, so the record that should be gone is still there and nothing about the retention looks wrong (Purge persistence 1).
+
+### Simultaneous retentions over one record
+
+```text
+Simultaneous retention 1: The atom MUST admit two live retentions over one record_ref.
+Simultaneous retention 2: The atom MUST gate a purge against the purging retention's own retention_until.
+Simultaneous retention 3: The atom MUST NOT read a sibling retention over one record_ref.
+Simultaneous retention 4: A composing pattern MUST destroy a record ONLY IF EVERY retention over the record is purge eligible.
+```
+
+WHY:
+This is the atom's sharpest edge and the one a composition must close. Purging the shorter retention destroys the record while a longer obligation over the same record is still live — an obligation this atom never saw, because it lived on another retention_id. Per-retention enforcement is the atom's; joint enforcement across siblings is the composing pattern's, and [Defensible Retention](../compositions/defensible-retention.md) is where it is wired (Simultaneous retention 3, Simultaneous retention 4).
 
 ## Composition notes
 

@@ -72,6 +72,56 @@ Terms › `transition`: the atom's evaluation of one call against the capability
 WHY:
 Identity 11 is the half of uniqueness that randomness cannot supply. Unguessability comes from the entropy source; *uniqueness* comes from the store refusing a colliding write, which is why Invariant 12.2 is a store obligation rather than a probabilistic hope (Identity 9, Identity 11, Invariant 12.1, Invariant 12.2).
 
+### State
+
+```text
+State 1: EVERY capability MUST stand in EXACTLY ONE OF allocated, redeemed, revoked.
+State 2: EVERY capability MUST carry capability_token, allocator_ref, scope, max_redemptions, remaining_redemptions, allocated_at, expires_at and status.
+State 3: EVERY capability MUST carry an expires_at.
+State 4: A redeemed capability MUST carry a redeemed_at.
+State 5: A revoked capability MUST carry revoked_at, revoked_by_ref and revocation_reason.
+State 6: An allocated capability MUST NOT carry a redeemed_at.
+State 7: An allocated capability MUST NOT carry a revocation field.
+State 8: A capability MUST NOT carry a stored expired status.
+State 9: A capability MUST NOT carry an expiry timestamp beside expires_at.
+State 10: A capability MUST NOT carry a redeemer's identity.
+State 11: The atom MUST NOT offer a transition out of redeemed.
+State 12: The atom MUST NOT offer a transition out of revoked.
+State 13: The atom MUST NOT remove a capability from the store.
+State 14: The atom MUST NOT evaluate a scope.
+State 15: The atom MUST NOT hold an authorization policy.
+```
+
+Terms › `revocation field`: `revoked_at` | `revoked_by_ref` | `revocation_reason` — what [Revoke] writes and nothing else does.
+
+Terms › `status`: `allocated` | `redeemed` | `revoked` — redeemable, exhausted, or cancelled. `expired` is not a value of it.
+
+#### Expiry
+
+```text
+Expiry 1: A lapse MUST NOT write to the capability.
+Expiry 2: A lapse MUST NOT fire a transition.
+Expiry 3: A lapse MUST NOT lower remaining_redemptions.
+Expiry 4: The atom MUST NOT stamp an expiry.
+Expiry 5: The deployment MUST NOT schedule a lapse.
+Expiry 6: The atom MUST derive a lapse from expires_at against now.
+Expiry 7: [Read] MUST surface a lapse as the effective_status.
+Expiry 8: [Redeem] MUST surface a lapse as expired.
+Expiry 9: [Revoke] MUST surface a lapse as already-terminal.
+```
+
+WHY:
+The boundary instant is on the dead side: `now` reaching `expires_at` reads [Expired], which matches the redemption guard requiring `now` short of it. The stored state space stays three values because lapsing needs no fourth, and nothing can lag the clock it idealizes (State 1, State 8, Expiry 6).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
+
 ### Operations
 
 ```
@@ -223,47 +273,6 @@ Both time guards write nothing. A [Redeem] on a lapsed capability answers `inval
 The rejection order on [Revoke] is carried by the guards: the three [Already Terminal] cases are exclusive of the revocable case by construction, and the attribution checks are conditioned on the capability being revocable — so a [Revoke] on a terminal capability with a blank reason answers [Already Terminal] and never [Invalid Request] (Operation 36–40).
 
 Revocation forfeits the remaining redemptions without spending them, and so does a lapse. The counter is evidence of redemption history, not of remaining life, which is why neither path touches it (Operation 31, Operation 46).
-
-### State
-
-```text
-State 1: EVERY capability MUST stand in EXACTLY ONE OF allocated, redeemed, revoked.
-State 2: EVERY capability MUST carry capability_token, allocator_ref, scope, max_redemptions, remaining_redemptions, allocated_at, expires_at and status.
-State 3: EVERY capability MUST carry an expires_at.
-State 4: A redeemed capability MUST carry a redeemed_at.
-State 5: A revoked capability MUST carry revoked_at, revoked_by_ref and revocation_reason.
-State 6: An allocated capability MUST NOT carry a redeemed_at.
-State 7: An allocated capability MUST NOT carry a revocation field.
-State 8: A capability MUST NOT carry a stored expired status.
-State 9: A capability MUST NOT carry an expiry timestamp beside expires_at.
-State 10: A capability MUST NOT carry a redeemer's identity.
-State 11: The atom MUST NOT offer a transition out of redeemed.
-State 12: The atom MUST NOT offer a transition out of revoked.
-State 13: The atom MUST NOT remove a capability from the store.
-State 14: The atom MUST NOT evaluate a scope.
-State 15: The atom MUST NOT hold an authorization policy.
-```
-
-Terms › `revocation field`: `revoked_at` | `revoked_by_ref` | `revocation_reason` — what [Revoke] writes and nothing else does.
-
-Terms › `status`: `allocated` | `redeemed` | `revoked` — redeemable, exhausted, or cancelled. `expired` is not a value of it.
-
-#### Expiry
-
-```text
-Expiry 1: A lapse MUST NOT write to the capability.
-Expiry 2: A lapse MUST NOT fire a transition.
-Expiry 3: A lapse MUST NOT lower remaining_redemptions.
-Expiry 4: The atom MUST NOT stamp an expiry.
-Expiry 5: The deployment MUST NOT schedule a lapse.
-Expiry 6: The atom MUST derive a lapse from expires_at against now.
-Expiry 7: [Read] MUST surface a lapse as the effective_status.
-Expiry 8: [Redeem] MUST surface a lapse as expired.
-Expiry 9: [Revoke] MUST surface a lapse as already-terminal.
-```
-
-WHY:
-The boundary instant is on the dead side: `now` reaching `expires_at` reads [Expired], which matches the redemption guard requiring `now` short of it. The stored state space stays three values because lapsing needs no fourth, and nothing can lag the clock it idealizes (State 1, State 8, Expiry 6).
 
 ### Invariants
 
@@ -433,15 +442,6 @@ Two things this store cannot clear, named rather than assumed. A refused [Redeem
 
 Check 4.3 asserts on the reproduced projection rather than on a stored field, because there is no stored field to assert on — an auditor who tested one would be testing a cache the atom refuses to keep.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -483,6 +483,41 @@ The purge posture is the honest one rather than the tidy one. The atom deletes n
 
 ## Edge cases
 
+### Clock dependence
+
+```text
+Clock dependence 1: A guard MAY read now ONLY IF the guard derives a lapse.
+Clock dependence 2: A guard MUST NOT read now to admit a caller-supplied instant.
+```
+
+WHY:
+Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
+
+### Clock semantics
+
+```text
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's honesty.
+Clock semantics 3: The deployment MUST own the clock's timezone handling.
+NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
+NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
+Clock semantics 6: The atom MUST NOT reconcile two readers disagreeing across the deadline.
+```
+
+WHY:
+This atom accepts no caller-supplied instant — the window arrives as a duration and every timestamp is the seam's reading — so the clock has exactly two jobs: stamping three immutable fields, and feeding the lapse derivation that three guards read (Clock dependence 1, Clock dependence 2). Two readers with skewed clocks near the deadline may briefly disagree on whether a record reads [Expired]; that is the read-time-derivation cost, bounded by the deployment's skew envelope, and harmless because no write is at stake (Clock semantics 6).
+
+### Concurrency
+
+```text
+Concurrency 1: The implementation MUST serialize a write on one capability_token.
+Concurrency 2: The implementation MUST make the counter read and the counter write one transition.
+Concurrency 3: A store enforcing a compare-and-set on remaining_redemptions MAY discharge Concurrency 2.
+```
+
+WHY:
+Operation 28 reads the counter and [Redeem] then writes it; two concurrent calls at a counter of one both read *redeemable* and both write, and Invariant 4.4 — the bound the atom exists to hold — is broken by the very sequence it forbids. The guard is check-then-act and the fix is the implementation's: one transition, or a compare-and-set in the store doing the same work (Concurrency 2, Concurrency 3).
+
 ### String policy
 
 ```text
@@ -500,41 +535,6 @@ Terms › `blank`: a value that is absent, empty, or carries only whitespace —
 
 WHY:
 Byte-exactness means two `allocator_ref` values differing only in normalization form are two distinct allocators here, and the audit queries that range over the field inherit that — so canonicalization is the deployment's, before the call (String 1, String 8).
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's honesty.
-Clock semantics 3: The deployment MUST own the clock's timezone handling.
-NOTE: Clock semantics 4 deleted — Clock dependence 1 owns it.
-NOTE: Clock semantics 5 deleted — Clock dependence 2 owns it.
-Clock semantics 6: The atom MUST NOT reconcile two readers disagreeing across the deadline.
-```
-
-WHY:
-This atom accepts no caller-supplied instant — the window arrives as a duration and every timestamp is the seam's reading — so the clock has exactly two jobs: stamping three immutable fields, and feeding the lapse derivation that three guards read (Clock dependence 1, Clock dependence 2). Two readers with skewed clocks near the deadline may briefly disagree on whether a record reads [Expired]; that is the read-time-derivation cost, bounded by the deployment's skew envelope, and harmless because no write is at stake (Clock semantics 6).
-
-### Clock dependence
-
-```text
-Clock dependence 1: A guard MAY read now ONLY IF the guard derives a lapse.
-Clock dependence 2: A guard MUST NOT read now to admit a caller-supplied instant.
-```
-
-WHY:
-Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
-
-### Concurrency
-
-```text
-Concurrency 1: The implementation MUST serialize a write on one capability_token.
-Concurrency 2: The implementation MUST make the counter read and the counter write one transition.
-Concurrency 3: A store enforcing a compare-and-set on remaining_redemptions MAY discharge Concurrency 2.
-```
-
-WHY:
-Operation 28 reads the counter and [Redeem] then writes it; two concurrent calls at a counter of one both read *redeemable* and both write, and Invariant 4.4 — the bound the atom exists to hold — is broken by the very sequence it forbids. The guard is check-then-act and the fix is the implementation's: one transition, or a compare-and-set in the store doing the same work (Concurrency 2, Concurrency 3).
 
 ## Composition notes
 

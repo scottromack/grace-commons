@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Approval Step records a single authorization gate. A specific thing was submitted for approval, presented to one named approver, and ended in a decision — approved, rejected, or withdrawn — with who decided, when, and why.
@@ -89,6 +88,40 @@ Terms › `transition`: the atom's evaluation of one call against the step store
 
 WHY:
 Identity 10 is the rule the exclusivity invariants rest on. `decided_by` against `approver_ref` (Invariant 4) and `withdrawn_by` against `submitter_ref` (Invariant 5) are exact byte-sequence comparisons on the values as supplied — no Unicode normalization, no case folding, no trimming. Two references that render identically and differ in bytes are different actors to this atom, and a precomposed accented character will not match its decomposed twin. That is unforgiving, and it is the only comparison an exclusivity guard can safely make: a normalizing comparison would let the atom decide that two spellings name one actor, which is an identity judgment this atom has no standing to make. Canonicalization is the deployment's (Identity 14).
+
+### State
+
+```text
+State 1: A step MUST NOT leave a terminal state.
+State 2: The atom MUST NOT offer a re-open surface.
+State 3: The atom MUST NOT offer a decision reversal surface.
+State 4: The atom MUST NOT offer a re-submission surface on a recorded step.
+State 5: The atom MUST NOT offer a removal surface.
+State 6: The atom MUST NOT offer a delegation surface.
+State 7: EVERY step MUST carry step_id, subject_ref, approver_ref, submitter_ref, scope, submitted_at and a state.
+State 8: A step MAY carry reason.
+State 9: EVERY approved step MUST carry decided_by and decided_at.
+State 10: EVERY rejected step MUST carry decided_by, decision_reason and decided_at.
+State 11: EVERY withdrawn step MUST carry withdrawn_by, withdrawal_reason and withdrawn_at.
+State 12: An approved step MAY carry decision_reason.
+State 13: A pending step MUST NOT carry an attribution field.
+State 14: The store instance's step count MUST NOT fall.
+State 15: The atom MUST NOT record a receipt instant.
+```
+
+WHY:
+State 4 is the one deployments push against. A pending [Approval Step] cannot be revised into a new version; a changed approval need is a new [Submit] producing a new `step_id`, and the original is withdrawn or decided on its own terms. Revision in place would make the record answer *what is being approved now* when the question an auditor asks is *what was presented to the approver, and what did they decide about it*.
+
+State 15 names what makes back-insertion undetectable here. The atom stores the declared instants and no separate creation instant, so a step written today with `submitted_at` a year back reads as a year-old gate. The composing [Audit Trail](../compositions/audit-trail.md) entry carries the receipt instant, and that comparison is where back-insertion surfaces.
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -224,31 +257,6 @@ Operation 19 states the within-step temporal bound as a precedence rather than a
 
 Operation 43 is the filter rule an auditor has to understand before trusting a result set: an instant-range filter on `decided_at` answers only steps carrying a `decided_at`, so pending and withdrawn steps are excluded whether or not a `state` filter says so. The alternative — treating an absent field as unmatched-but-present — would make *every step decided in March* silently include steps that were never decided at all.
 
-### State
-
-```text
-State 1: A step MUST NOT leave a terminal state.
-State 2: The atom MUST NOT offer a re-open surface.
-State 3: The atom MUST NOT offer a decision reversal surface.
-State 4: The atom MUST NOT offer a re-submission surface on a recorded step.
-State 5: The atom MUST NOT offer a removal surface.
-State 6: The atom MUST NOT offer a delegation surface.
-State 7: EVERY step MUST carry step_id, subject_ref, approver_ref, submitter_ref, scope, submitted_at and a state.
-State 8: A step MAY carry reason.
-State 9: EVERY approved step MUST carry decided_by and decided_at.
-State 10: EVERY rejected step MUST carry decided_by, decision_reason and decided_at.
-State 11: EVERY withdrawn step MUST carry withdrawn_by, withdrawal_reason and withdrawn_at.
-State 12: An approved step MAY carry decision_reason.
-State 13: A pending step MUST NOT carry an attribution field.
-State 14: The store instance's step count MUST NOT fall.
-State 15: The atom MUST NOT record a receipt instant.
-```
-
-WHY:
-State 4 is the one deployments push against. A pending [Approval Step] cannot be revised into a new version; a changed approval need is a new [Submit] producing a new `step_id`, and the original is withdrawn or decided on its own terms. Revision in place would make the record answer *what is being approved now* when the question an auditor asks is *what was presented to the approver, and what did they decide about it*.
-
-State 15 names what makes back-insertion undetectable here. The atom stores the declared instants and no separate creation instant, so a step written today with `submitted_at` a year back reads as a year-old gate. The composing [Audit Trail](../compositions/audit-trail.md) entry carries the receipt instant, and that comparison is where back-insertion surfaces.
-
 ### Invariants
 
 - **Invariant 1 — Submission immutability.**
@@ -306,6 +314,7 @@ State 15 names what makes back-insertion undetectable here. The atom stores the 
   WHY: a terminal step is retained as audit evidence. Deleting one would destroy the proof that the required gate was reached and resolved, which is the single thing an external evaluator comes to this store for.
 
 ---
+
 ## Examples
 
 ### SOX journal entry approval
@@ -390,17 +399,6 @@ External check 2 is the boundary that most resembles a gap and is not one. This 
 
 External check 4 records a deliberate silence. A refused call writes nothing here, so an `unauthorized` attempt leaves no trace in this store at all. That is correct for a record whose subject is decisions rather than attempts, and it means an investigation into attempted unauthorized approvals must read the composing audit log, not this one.
 
----
-
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -437,26 +435,21 @@ Non-goal 20 keeps `submitted_at` unbounded below on purpose. A gate is routinely
 
 ## Edge cases
 
-### String policy
+### Atomic writes
 
 ```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
-String 7: The deployment MUST canonicalize an opaque reference.
+Atomic writes 1: A reader MUST NOT observe a terminal state without the state's attribution fields.
+Atomic writes 2: An uncommitted crash MUST leave the step as the call found the step.
+Atomic writes 3: The implementation MUST resolve a dangling transition.
+Atomic writes 4: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
 ```
 
-Terms › `string input`: a reference, `reason` OR a filter's value — every caller-supplied string this atom accepts.
+Terms › `uncommitted crash`: a crash BEFORE an admitted resolve's commit lands.
 
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+Terms › `dangling transition`: an admitted resolve's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
 
 WHY:
-The cost of byte-exactness lands hardest on the exclusivity guards. An approver whose reference is stored one way and supplied another gets `unauthorized` on their own step — correct by Identity 10, and indistinguishable to them from being the wrong actor. A deployment that does not canonicalize will discover this as an approver who cannot approve.
-
-NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
+Every resolving action writes the state and its attribution fields together (Operation 31), and a crash between them produces a terminal step with a missing decider or a missing instant — which is Invariant 6 violated in exactly the way an auditor cannot distinguish from an implementation that never wrote them. The obligation is all-or-none observability: a partly applied resolve must never be servable.
 
 ### Clock semantics
 
@@ -482,22 +475,6 @@ Concurrency 3: The second serialized resolving action against one pending step M
 WHY:
 Unlike a store whose concurrent writes contend over nothing, two resolving calls on one step contend over the state itself, and the outcome is not a race: the first lands and the second reads a terminal state and answers `not-pending` (Operation 13). That makes a retry self-detecting, which is what Indeterminate outcome 3 rests on.
 
-### Atomic writes
-
-```text
-Atomic writes 1: A reader MUST NOT observe a terminal state without the state's attribution fields.
-Atomic writes 2: An uncommitted crash MUST leave the step as the call found the step.
-Atomic writes 3: The implementation MUST resolve a dangling transition.
-Atomic writes 4: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
-```
-
-Terms › `uncommitted crash`: a crash BEFORE an admitted resolve's commit lands.
-
-Terms › `dangling transition`: an admitted resolve's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
-
-WHY:
-Every resolving action writes the state and its attribution fields together (Operation 31), and a crash between them produces a terminal step with a missing decider or a missing instant — which is Invariant 6 violated in exactly the way an auditor cannot distinguish from an implementation that never wrote them. The obligation is all-or-none observability: a partly applied resolve must never be servable.
-
 ### Indeterminate outcome
 
 ```text
@@ -508,6 +485,27 @@ Indeterminate outcome 3: A caller retrying a landed resolving action MUST read n
 
 WHY:
 The [Storage Failure] guarantees are the store's: it committed or it did not, and the answer means it did not. The caller's knowledge is weaker — a lost response after a commit leaves them unable to tell *refused, nothing written* from *succeeded, answer lost*. The two actions differ under that ambiguity and the difference is worth knowing before the retry. Retrying a resolving action is self-detecting (Indeterminate outcome 3, Concurrency 3). Retrying [Submit] is not: submission is not idempotent, so a retry after a lost answer creates a second step (Non-goal 1, Non-goal 2).
+
+### String policy
+
+```text
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
+String 7: The deployment MUST canonicalize an opaque reference.
+```
+
+Terms › `string input`: a reference, `reason` OR a filter's value — every caller-supplied string this atom accepts.
+
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+
+WHY:
+The cost of byte-exactness lands hardest on the exclusivity guards. An approver whose reference is stored one way and supplied another gets `unauthorized` on their own step — correct by Identity 10, and indistinguishable to them from being the wrong actor. A deployment that does not canonicalize will discover this as an approver who cannot approve.
+
+NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 ---
 
@@ -535,6 +533,7 @@ WHY:
 [Permissions](./permissions.md) governs who may submit and who may read, and is also where segregation of duties lands (Composition note 3, Non-goal 13). [Actor Identity](./actor-identity.md) supplies the electronic signature that makes `decided_by` non-repudiable under FDA 21 CFR Part 11 and SOX §404 — the attestation is the signature event and this atom's record is the gate the signature attaches to. [Assignment](./assignment.md) is a composing peer rather than an overlap: it tracks who owns the work that becomes the subject. [Event Log](./event-log.md) journals every call as an event where this atom holds the current-state projection, [Tamper Evidence](./tamper-evidence.md) seals the records, and [Duplicate Prevention](./duplicate-prevention.md) supplies at-most-once submission under retry.
 
 ---
+
 ## Terms
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.

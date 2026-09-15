@@ -243,22 +243,6 @@ Wiring decision 5: The composition MUST NOT ask Actor Identity to refuse a revok
 WHY:
 The cascade is forward closure, and the two refusals are why it has to live here. actor identity(../atoms/actor-identity.md) validates an attestation credential against the actor registry's public material and has no knowledge of credential(../atoms/credential.md) at all — it structurally cannot see a revocation, so the gate cannot live inside it (Wiring decision 5). And a revoke-the-set cascade of the kind login(./login.md) runs over sessions has nothing to revoke: an attestation is an immutable record of a past act, not a live grant, so closing the surface forward is the only cascade available (Wiring decision 4).
 
-### Concurrency
-
-```text
-Concurrency 1: The section MUST serialize the composition's invocations for one principal_ref.
-Concurrency 2: The section MUST NOT serialize Credential's revoke.
-Concurrency 3: A revoke committing between the gate read and the attestation write MUST stand as the declared residue.
-Concurrency 4: The residue MUST NOT EXCEED the attest completion bound in duration.
-Concurrency 5: A gate read following a revoke MUST find no effective-active credential.
-Concurrency 6: A deployment needing the residue closed MUST route a revoke through a surface taking the principal's section.
-```
-
-WHY:
-The residue is named rather than cured, and both halves of that are deliberate. An externally-issued `Credential.revoke` contends on nothing of this composition's, so a revoke landing after the gate read and before the attestation write produces an attestation under a credential the gate observed effective-active — bounded in duration by the section, and closed for every later call by revocation's absorbing terminal (Concurrency 5). What finds it afterwards is the pair of stamps from two seams: the attestation's instant against the record's revoked instant, inside the clock skew allowance and the completion bound, which is what Check 2 reads.
-
-Concurrency 6 is the deployment's way out and is named as an option rather than folded in, because this composition does not revoke credentials (Composes 7) and a cut that reached into the identity-management surface to take a lock would be claiming an action it declines to own. A check-then-attest with **no** section is the time-of-check-to-time-of-use hazard the buggy twin demonstrates, which is a different thing entirely.
-
 ### Housekeeping
 
 ```text
@@ -315,7 +299,6 @@ Each emerges from the composition; none belongs to one constituent. Each carries
 ---
 
 ## Examples
-
 
 ### Walkthrough — register, attest, then revoke-and-fail, end to end
 
@@ -416,6 +399,26 @@ Non-goal 14 is why the orphan exists at all. Two stores, no distributed transact
 
 ---
 
+## Edge cases
+
+### Concurrency
+
+```text
+Concurrency 1: The section MUST serialize the composition's invocations for one principal_ref.
+Concurrency 2: The section MUST NOT serialize Credential's revoke.
+Concurrency 3: A revoke committing between the gate read and the attestation write MUST stand as the declared residue.
+Concurrency 4: The residue MUST NOT EXCEED the attest completion bound in duration.
+Concurrency 5: A gate read following a revoke MUST find no effective-active credential.
+Concurrency 6: A deployment needing the residue closed MUST route a revoke through a surface taking the principal's section.
+```
+
+WHY:
+The residue is named rather than cured, and both halves of that are deliberate. An externally-issued `Credential.revoke` contends on nothing of this composition's, so a revoke landing after the gate read and before the attestation write produces an attestation under a credential the gate observed effective-active — bounded in duration by the section, and closed for every later call by revocation's absorbing terminal (Concurrency 5). What finds it afterwards is the pair of stamps from two seams: the attestation's instant against the record's revoked instant, inside the clock skew allowance and the completion bound, which is what Check 2 reads.
+
+Concurrency 6 is the deployment's way out and is named as an option rather than folded in, because this composition does not revoke credentials (Composes 7) and a cut that reached into the identity-management surface to take a lock would be claiming an action it declines to own. A check-then-attest with **no** section is the time-of-check-to-time-of-use hazard the buggy twin demonstrates, which is a different thing entirely.
+
+---
+
 ## Composition notes
 
 ```text
@@ -435,6 +438,18 @@ Composition note 5 is the deployment's one route to a residue-free cascade and i
 ## Terms
 
 The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the three emergent actions it exposes ([Register Authenticated Actor], [Attest As Actor], [Verify Actor Attestation]) — none belonging to a single constituent — the attest-log fields those actions record ([Outcome], [Observed Status]), and its own rejections ([Namespace Conflict], [Invalid Credential], [Orphan Credential], [Not Bound], [Credential Not Active], [Invalid Attest Credential], [Attest Failed]). Its emergent state — the namespace-binding maps (`principal_to_actor`, `actor_to_principal`) and the `attest_log` — is a composition-introduced surface no constituent provides, left as backticked store tokens rather than carded. References to the constituent atoms and their operations — Credential's `register` / `rotate` / `revoke`, Actor Identity's `attest` / `verify` — the relayed tokens (`principal_ref`, `actor_ref`, `action_ref`, `credential_material`, `attest_credential`, `credential_type`, `credential_id`, `attestation_id`), the credential states (`Active` / `Revoked` / `Expired` / `Rotated`), and the inherited rejections (`invalid-request`, `storage-failure` — exported at this boundary with its position, `storage-failure(credential | binding)`; `duplicate-active-credential` is consumed by step 3's re-entry arm and not exported) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+
+### Vocabulary
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+
+Terms › `terms`: `composition`, `constituents`, `principal binding`, `attest log`, `bijection`, `attest surface separation`, `section`, `clock skew allowance`, `blank`, `opaque argument`, `admitted registration`, `admitted attestation`, `effective-active`.
+
+Terms › `record verbs`: call, answer, read, write, append, store, key, hold, take, release, serialize, resolve, bind, register, revoke, rotate, gate, precede, close, produce, provision, pass, agree, carry, stand, change, report, examine, promise, run, refuse, set, declare, own, act, compose, inherit, confirm, interpret, normalize, case-fold, compare, authorize, invalidate, rebind, wrap, find, serve, supply, ask, route, record.
+
+Terms › `actors`: the composition; the constituents; the host; a deployment; an auditor; a caller; a principal; an actor; the orphaned-credential leg; an invocation; an attestation; a credential.
+
+Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the extraction-pending classification. `pressure-testing.md` §Capability provenance — the declared-source discipline every invariant's rests-on clause follows.
 
 #### Register Authenticated Actor
 
@@ -554,16 +569,6 @@ Projects:  observed_status
 [Observed Status]: #observed-status
 
 ---
-
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
-
-Terms › `terms`: `composition`, `constituents`, `principal binding`, `attest log`, `bijection`, `attest surface separation`, `section`, `clock skew allowance`, `blank`, `opaque argument`, `admitted registration`, `admitted attestation`, `effective-active`.
-
-Terms › `record verbs`: call, answer, read, write, append, store, key, hold, take, release, serialize, resolve, bind, register, revoke, rotate, gate, precede, close, produce, provision, pass, agree, carry, stand, change, report, examine, promise, run, refuse, set, declare, own, act, compose, inherit, confirm, interpret, normalize, case-fold, compare, authorize, invalidate, rebind, wrap, find, serve, supply, ask, route, record.
-
-Terms › `actors`: the composition; the constituents; the host; a deployment; an auditor; a caller; a principal; an actor; the orphaned-credential leg; an invocation; an attestation; a credential.
-
-Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the extraction-pending classification. `pressure-testing.md` §Capability provenance — the declared-source discipline every invariant's rests-on clause follows.
 
 ## Standards references
 

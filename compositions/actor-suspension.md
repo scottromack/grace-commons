@@ -213,8 +213,6 @@ WHY:
 
 **Composition state 45 through Composition state 52 keep the plan and the outcome two records.** The enumerated active set is not standing state; it is computed at suspension time. The intent carries it as the plan and the outcome carries what was closed, and they are recorded separately *because their divergence is diagnostic*: a planned member the outcome does not name is an owed closure, and an outcome member the plan did not name is a conformance failure. Collapsing them into one record would delete the only evidence that makes *complete* checkable rather than asserted.
 
----
-
 ### Capability requirement
 
 ```text
@@ -298,8 +296,6 @@ Capability requirement 29 through Capability requirement 35 declare the section 
 Capability requirement 36 and Capability requirement 37 size the act before it runs. The largest record this composition can write is not the invocation's outcome but the sweep's compensating one, and a plan whose outcome could never be sealed must be refused before anything is revoked rather than discovered with every revocation committed and the binding unwritable for as long as the set stays over the cap — §*An outcome is sized before the intent*. The envelope is constructed and checked against the substrate's payload cap at instance start, so the cap is a number the deployment sets against a record the composition can actually write.
 
 Capability requirement 40 through Capability requirement 43 are the issuance gate, and they are the deployment's because the composition revokes and never issues. `Suspending` and `Suspended` are both closed states for the gate — a half-closed actor is exactly the one an issuance must not re-open — and the composition's job is to make that state readable, not to enforce the refusal it cannot reach.
-
----
 
 ### Primitive policy
 
@@ -432,8 +428,6 @@ WHY:
 **Audit arm 15 is a repair, and it is the arm a retrying caller used to loop on.** A credential rotated between the intent and the outcome refuses the outcome write, and the page mapped that to `recording-failure(outcome)` — which tells the caller to resume, on a credential that will refuse again, forever. The credential arm now carries the position exactly as the recording arm does: `invalid-credential(outcome)` says the revocations stand, this credential no longer attests, and the outcome is not this caller's to write. A resume under a *different* verified operator closes it, and the sweep closes it otherwise; a re-run under the same rotated credential is the one thing the arm no longer invites.
 
 Audit arm 23 and Audit arm 24 are the one-writer rule at the outcome position. The invocation yields rather than retrying, because an invocation retrying an outcome beside a sweep that has begun completing the same act is exactly the second writer the section and the pre-checks exist to exclude — §*A compensator is exclusive*.
-
----
 
 ### Action wiring
 
@@ -597,8 +591,6 @@ WHY:
 
 **Action wiring 80 through Action wiring 82 give the no-op refusal the payload it was already describing.** The page had [Already Active] carrying the reason `suspending` while the signature declared no payload at all, so a caller could not switch on the distinction the prose relied on. The arm is parameterized: `active` means there is nothing to lift, `suspending` means the cascade is finished first and then lifted — two different next actions for the caller, and now two different answers.
 
----
-
 ### Wiring decision
 
 ```text
@@ -618,8 +610,6 @@ WHY:
 **Half one — every surface closed, and a cascade that stops is finished rather than reversed.** *Principle:* an actor's ability to act is spread across two independent surfaces, each with its own multiplicity, so closing the actor out means closing both completely — and a partial close is dangerous exactly when it is invisible. *Likely objection:* why not let an administrator call `Permissions.revoke` per grant and `Session.revoke` per session directly, rather than wrapping them in one composition action? *Mechanism that resolves it:* independent revocation has no completeness guarantee and no record of incompleteness — an administrator who revokes the grants and forgets a session, or whose session step fails midway, leaves a half-open actor and nothing saying the closure was partial. This composition snapshots both surfaces, records the plan under a verified credential, revokes every enumerated member, and seals what it closed. **An earlier revision promised more and the promise was empty:** that on any failure the whole cascade would roll back, so the actor was either fully de-authorized or unchanged. A revoked grant is terminal, a revoked session absorbing, a revoked credential terminal, and the substrate's append cannot be withdrawn — no host transaction could enlist any of them, which is Wiring decision 4 — and the wiring that claimed otherwise made a *false record* reachable: a sealed outcome enumerating revocations a rollback had undone. Wiring decision 5 refuses the claim outright. *Result:* after a successful call the actor provably holds none of the planned access; after a `revocation-failure` the records say exactly which doors are still open and the sweep is what closes them — the completeness no single constituent provides, without a rollback no constituent could have honored.
 
 **Half two — the state gate fires the cascade once, and the sealed outcome records exactly what was closed.** *Principle:* the suspension must be idempotent and its completeness must be provable from the records alone. *Likely objection:* does recording the whole revoked set not duplicate what the constituent stores already show, each revoked grant and session carrying its own revocation record? *Mechanism that resolves it:* the per-constituent records show *that* each member was revoked; only the composition knows they were revoked *as one act* and which set constituted the actor's access at suspension time — which is Wiring decision 9. The state gate makes the cascade start exactly once: a second call sees `Suspended` and refuses, or sees `Suspending` and resumes under the same intent. The plan is the second record the auditor reads, and the pair is what makes *complete* checkable rather than asserted: a member the plan named that the outcome accounts for nowhere is an owed closure. *Result:* the suspension is idempotent, its completeness is records-alone provable, and it rests on the substrate's seal, so a later attempt to shrink the recorded set to hide a missed surface breaks it.
-
----
 
 ### Reconciliation
 
@@ -931,56 +921,9 @@ Non-goal 17 is an enrichment declined as a constituent: the state gate already m
 
 ---
 
-## Concurrency
+## Edge cases
 
-```text
-Concurrency 1: A deployment MUST serialize a state-changing call over one actor_ref.
-Concurrency 2: The state gate MUST stand inside the actor's section.
-Concurrency 3: Two calls MUST NOT write an intent for one actor.
-Concurrency 4: The sweep MUST NOT run against an actor a call holds.
-Concurrency 5: A call MUST NOT run against an actor the sweep holds.
-Concurrency 6: A cascade MUST count a concurrent terminal transition as a closure.
-Concurrency 7: The composition MUST NOT abort a cascade on a concurrent terminal transition.
-Concurrency 8: A concurrent issuance MUST stand outside the plan.
-Concurrency 9: [Suspension Report] MUST NOT stand inside the serialization obligation.
-```
-
-WHY:
-Concurrency 2 is the rule the gate's whole idempotence rests on, and the reason is one sentence: two calls that both read the gate before either wrote its intent would both write one, and two intents for one actor are two plans the sweep pairs twice and completes twice. The section is taken *ahead* of the read for exactly that reason.
-
-Concurrency 6 and Concurrency 7 are the benign race. A grant or session the cascade targets that another process already terminalized answers `not-active` or `already-terminal`, which is the cascade's goal reached by someone else — counted as closed, never treated as a failure. Concurrency 8 is the race that is *not* benign and is not this composition's to win: access issued after the snapshot is outside the plan, and the issuance gate is what closes it.
-
-Concurrency 9 exempts the read, and the exemption is safe by construction: the report writes no lifecycle transition, and every skew its two reads admit fails toward *more* closed rather than less — a stale index answers a miss the tail read resolves, and a stale constituent read can only show a member still open that is in fact closed.
-
----
-
-## Clock semantics
-
-```text
-Clock semantics 6: A reader MUST read the substrate's insertion order as the authoritative order.
-NOTE: Clock semantics 2 deleted — Identity 16, Action wiring 48 and Action wiring 84 own it: intended_at, suspended_at and reinstated_at are every timestamp this composition stamps, and each takes the injected now.
-NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
-NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 4 deleted — `execution-contract.md` §Logic confinement owns it.
-NOTE: Clock semantics 5 deleted — `execution-contract.md` §Logic confinement owns it.
-Clock semantics 7: A reader MUST read a stamp this composition wrote as advisory.
-NOTE: Clock semantics 8 deleted — Composes 31 owns it.
-Clock semantics 9: The composition MUST NOT compare a constituent's stamp against a write.
-Clock semantics 10: A check comparing two seams' stamps MUST run under the clock skew allowance.
-Clock semantics 11: A check comparing two seams' stamps MUST answer inconclusive inside the clock skew allowance.
-Clock semantics 12: The sweep MUST compare an intent's stamp against the sweep's own clock reading.
-Clock semantics 13: A deployment MUST inject a trustworthy clock reading.
-Clock semantics 14: The composition MUST NOT detect a dishonest clock reading.
-```
-
-WHY:
-Clock semantics 6 and Clock semantics 9 are one rule about where correctness comes from. The cascade's correctness rests on the section and on the log's insertion order, never on comparing clocks: no write on this page is decided by a cross-seam comparison, which is §*A stamp from another seam never decides a write alone* satisfied by construction rather than by care. Clock semantics 12 is the one comparison the composition does make, and it compares two readings of *one* clock — the intent's stamp against the sweep's own — which is why the sweep's lower edge is sound without a skew term.
-
-Clock semantics 10 and Clock semantics 11 put the skew allowance where it belongs: on the *checks*, which do compare across seams, and there it narrows a verdict rather than deciding one. A member whose stamp falls inside the allowance is inconclusive — reported, not counted either way — because a clock difference is not evidence of a missed surface and must not be recorded as one.
-
----
-
-## Atomic writes
+### Atomic writes
 
 ```text
 Atomic writes 1: An invocation MUST record an outcome ONLY AFTER the invocation's committing calls.
@@ -1007,6 +950,51 @@ Two partials are reachable here and both are completed rather than repaired. **T
 Atomic writes 5 through Atomic writes 9 are the indeterminacy the cascade faces on every member: a lost response after a `revoke` committed is indistinguishable, from the caller's side, from one that refused. Here the re-query is exact and needs no invocation identity, because each member has a handle of its own and the constituent's answer on that handle is the fact the cascade needs — terminal means closed, active means still open. That is the one thing this composition never has to guess about, and Atomic writes 7 forbids reaching for resemblance where a handle already decides.
 
 Atomic writes 12 is the limit on all of it: an unresolved member is *named*, not invented, and an outcome the sweep writes carries a revoked set derived from the plan and the stores rather than remembered from a process that died.
+
+### Clock semantics
+
+```text
+Clock semantics 6: A reader MUST read the substrate's insertion order as the authoritative order.
+NOTE: Clock semantics 2 deleted — Identity 16, Action wiring 48 and Action wiring 84 own it: intended_at, suspended_at and reinstated_at are every timestamp this composition stamps, and each takes the injected now.
+NOTE: Clock semantics 1 deleted — Capability requirement 1 owns it.
+NOTE: Clock semantics 3 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 4 deleted — `execution-contract.md` §Logic confinement owns it.
+NOTE: Clock semantics 5 deleted — `execution-contract.md` §Logic confinement owns it.
+Clock semantics 7: A reader MUST read a stamp this composition wrote as advisory.
+NOTE: Clock semantics 8 deleted — Composes 31 owns it.
+Clock semantics 9: The composition MUST NOT compare a constituent's stamp against a write.
+Clock semantics 10: A check comparing two seams' stamps MUST run under the clock skew allowance.
+Clock semantics 11: A check comparing two seams' stamps MUST answer inconclusive inside the clock skew allowance.
+Clock semantics 12: The sweep MUST compare an intent's stamp against the sweep's own clock reading.
+Clock semantics 13: A deployment MUST inject a trustworthy clock reading.
+Clock semantics 14: The composition MUST NOT detect a dishonest clock reading.
+```
+
+WHY:
+Clock semantics 6 and Clock semantics 9 are one rule about where correctness comes from. The cascade's correctness rests on the section and on the log's insertion order, never on comparing clocks: no write on this page is decided by a cross-seam comparison, which is §*A stamp from another seam never decides a write alone* satisfied by construction rather than by care. Clock semantics 12 is the one comparison the composition does make, and it compares two readings of *one* clock — the intent's stamp against the sweep's own — which is why the sweep's lower edge is sound without a skew term.
+
+Clock semantics 10 and Clock semantics 11 put the skew allowance where it belongs: on the *checks*, which do compare across seams, and there it narrows a verdict rather than deciding one. A member whose stamp falls inside the allowance is inconclusive — reported, not counted either way — because a clock difference is not evidence of a missed surface and must not be recorded as one.
+
+### Concurrency
+
+```text
+Concurrency 1: A deployment MUST serialize a state-changing call over one actor_ref.
+Concurrency 2: The state gate MUST stand inside the actor's section.
+Concurrency 3: Two calls MUST NOT write an intent for one actor.
+Concurrency 4: The sweep MUST NOT run against an actor a call holds.
+Concurrency 5: A call MUST NOT run against an actor the sweep holds.
+Concurrency 6: A cascade MUST count a concurrent terminal transition as a closure.
+Concurrency 7: The composition MUST NOT abort a cascade on a concurrent terminal transition.
+Concurrency 8: A concurrent issuance MUST stand outside the plan.
+Concurrency 9: [Suspension Report] MUST NOT stand inside the serialization obligation.
+```
+
+WHY:
+Concurrency 2 is the rule the gate's whole idempotence rests on, and the reason is one sentence: two calls that both read the gate before either wrote its intent would both write one, and two intents for one actor are two plans the sweep pairs twice and completes twice. The section is taken *ahead* of the read for exactly that reason.
+
+Concurrency 6 and Concurrency 7 are the benign race. A grant or session the cascade targets that another process already terminalized answers `not-active` or `already-terminal`, which is the cascade's goal reached by someone else — counted as closed, never treated as a failure. Concurrency 8 is the race that is *not* benign and is not this composition's to win: access issued after the snapshot is outside the plan, and the issuance gate is what closes it.
+
+Concurrency 9 exempts the read, and the exemption is safe by construction: the report writes no lifecycle transition, and every skew its two reads admit fails toward *more* closed rather than less — a stale index answers a miss the tail read resolves, and a stale constituent read can only show a member still open that is in fact closed.
 
 ---
 

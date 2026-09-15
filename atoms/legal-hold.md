@@ -27,20 +27,6 @@ When litigation is filed or reasonably anticipated, the duty to preserve arrives
 
 ## Structure
 
-### Store instance model
-
-```text
-Instance 1: The atom MUST hold every hold under EXACTLY ONE store instance.
-Instance 2: Two holds in one store instance MUST NOT share a hold_id.
-Instance 3: The atom MUST NOT reach across store instances.
-Instance 4: The deployment MUST route a call to one store instance.
-Instance 5: [Read] MUST answer the store_name the read was routed to.
-Instance 6: A composing pattern MUST match the answered store_name against the record's own store instance.
-Instance 7: IF the answered store_name != the record's store instance THEN a composing pattern MUST NOT read an empty answer as unheld.
-```
-
-Terms › `store instance`: one named hold store — a [Store Name] identifies it; a deployment runs one per organization, jurisdiction or business unit.
-
 ### Identity model
 
 ```text
@@ -105,6 +91,15 @@ Terms › `released_at`: the instant the obligation was documented as ended — 
 
 WHY:
 There is no aggregate *is this record held* field, because an aggregate is a second copy of the truth that drifts the moment a hold is placed or released; the question is answered by reading the active holds over the record (State 9, Operation 20). A released hold stays in the store because it is the proof the obligation was honoured and lawfully lifted — the evidence a court asks for, deleted by nobody (State 7, Invariant 8.1).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -236,6 +231,20 @@ A blank `hold_id` is refused before the store is consulted, because *you passed 
 
 Immutability and durability give the *preservation record* property — the full arc of an obligation, from recognition to lifting, recoverable from the store alone. Independence gives the property a multi-authority matter needs: one record, many obligations, each ending on its own day.
 
+### Store instance model
+
+```text
+Instance 1: The atom MUST hold every hold under EXACTLY ONE store instance.
+Instance 2: Two holds in one store instance MUST NOT share a hold_id.
+Instance 3: The atom MUST NOT reach across store instances.
+Instance 4: The deployment MUST route a call to one store instance.
+Instance 5: [Read] MUST answer the store_name the read was routed to.
+Instance 6: A composing pattern MUST match the answered store_name against the record's own store instance.
+Instance 7: IF the answered store_name != the record's store instance THEN a composing pattern MUST NOT read an empty answer as unheld.
+```
+
+Terms › `store instance`: one named hold store — a [Store Name] identifies it; a deployment runs one per organization, jurisdiction or business unit.
+
 ## Examples
 
 ### Happy path — litigation hold through release
@@ -253,8 +262,6 @@ After hold-001 is [Released], counsel's paralegal system retries: `release("hold
 ### Rejection path — release with future timestamp
 
 `release("hold-007", released_by: "counsel_kim", reason: "case closed", released_at: "2027-01-01T00:00:00Z")` → `rejected(invalid-request)`. A release documented as occurring in the future is not operationally meaningful; the atom records the present obligation, not a future intent.
-
----
 
 ### Regulated adversarial scenarios
 
@@ -312,15 +319,6 @@ External check 4: An auditor MUST read the matter a case_ref names from the depl
 
 NOTE: EVERY check names the rule the check tests. The hold store answers *what was preserved, by whom, and for how long*; whether the preservation was honoured at the purge surface is the composing pattern's record, because this atom deliberately enforces nothing (Non-goal 1).
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -349,17 +347,21 @@ Where the atom breaks down: when the preservation duty is defined by a query rat
 
 ## Edge cases
 
-### Place persistence failure
+### Clock semantics
 
 ```text
-Place persistence 1: A caller MUST read storage-failure from [Place] as the record standing unheld.
-Place persistence 2: A caller MUST retry a place that answered storage-failure.
-Place persistence 3: A high-assurance deployment MUST raise an alert on storage-failure from [Place].
-Place persistence 4: A caller MUST NOT read storage-failure from [Release] as the obligation standing ended.
+Clock semantics 1: The deployment MUST own the clock's monotonicity.
+Clock semantics 2: The deployment MUST own the clock's timezone handling.
+Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
 ```
 
-WHY:
-The two storage failures have opposite polarity, and this atom's dangerous side is the placement. A failed release leaves an obligation standing, which over-preserves — costly and safe. A failed place leaves a record unprotected while litigation pends, which is the spoliation the atom exists to document, and it surfaces as nothing at all unless the caller retries ([Permissions](./permissions.md) states the mirrored polarity for its own revoke; Council read 17).
+### Concurrency
+
+```text
+Concurrency 1: The implementation MUST serialize two releases of one hold_id.
+Concurrency 2: The second concurrent release MUST answer already-released.
+Concurrency 3: Two placements over one record MUST record two holds.
+```
 
 ### Back-dating a placement
 
@@ -375,28 +377,24 @@ An obligation recognized on Tuesday and recorded on Friday is honestly recorded 
 WHY:
 An empty answer and a misrouted answer read alike, and this atom's empty answer licenses a purge — so the deepest failure available here is a routing mistake wearing the shape of *no holds* (Instance 5–7, Aggregate 3; Council read 17). The atom cannot detect the misrouting, so it names the store it answered from and obliges the reader to check.
 
+### Place persistence failure
+
+```text
+Place persistence 1: A caller MUST read storage-failure from [Place] as the record standing unheld.
+Place persistence 2: A caller MUST retry a place that answered storage-failure.
+Place persistence 3: A high-assurance deployment MUST raise an alert on storage-failure from [Place].
+Place persistence 4: A caller MUST NOT read storage-failure from [Release] as the obligation standing ended.
+```
+
+WHY:
+The two storage failures have opposite polarity, and this atom's dangerous side is the placement. A failed release leaves an obligation standing, which over-preserves — costly and safe. A failed place leaves a record unprotected while litigation pends, which is the spoliation the atom exists to document, and it surfaces as nothing at all unless the caller retries ([Permissions](./permissions.md) states the mirrored polarity for its own revoke; Council read 17).
+
 ### The aggregate question
 
 ```text
 Aggregate 1: A composing pattern MUST read a record's active holds to answer whether the record is held.
 Aggregate 2: The atom MUST NOT carry a held flag on a record.
 Aggregate 3: A composing pattern MUST read an empty active set as the record standing unheld ONLY IF the answered store_name matches the record's store instance.
-```
-
-### Concurrency
-
-```text
-Concurrency 1: The implementation MUST serialize two releases of one hold_id.
-Concurrency 2: The second concurrent release MUST answer already-released.
-Concurrency 3: Two placements over one record MUST record two holds.
-```
-
-### Clock semantics
-
-```text
-Clock semantics 1: The deployment MUST own the clock's monotonicity.
-Clock semantics 2: The deployment MUST own the clock's timezone handling.
-Clock semantics 3: A deployment needing a defensible timeline MUST compose a trusted-timestamping pattern.
 ```
 
 ## Composition notes
@@ -665,7 +663,6 @@ Projects:  invalid-query
 
 ---
 
-
 ## Status
 
 `grounded on Final Critique 4 — 2026-05-20` — see the Ledger.
@@ -679,7 +676,6 @@ last gate: 2026-05-20 — Final Critique 4, fresh reader — clean
 
 open: none
 ```
-
 
 ## Decisions
 

@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Tamper Evidence answers the question "how do I know these records weren't altered after the fact?" It works through seals — permanent records that attach a cryptographic proof to the records they cover. A proof is a mathematical fingerprint of a set of records as they stood at a moment in time. Sealing computes that fingerprint and stores it. Verifying re-computes the fingerprint over the original records and compares. If anything was changed, the fingerprint no longer matches, and the check fails. The crucial limit is that this detects tampering rather than preventing it. It cannot stop someone with full write access from altering both the records and the seal. But it makes any alteration visible to anyone holding the original records and the seal. The pattern is deliberately neutral about the cryptographic method used, as long as the guarantee holds: any change since sealing is detectable from the records alone. This is the mechanism behind sealing financial transaction journals, medical-record change logs, and payment-card access logs so auditors can confirm nothing was rewritten — and behind Git's commit history, the most widely deployed example. It does not, on its own, prevent tampering, prove who created the seal, or guarantee the seal's timestamp. Each of those is a separate pattern layered on top.
@@ -84,6 +83,15 @@ Terms › `evidence field`: `evidence_id` | `record_set_ref` | `proof` | `sealed
 
 WHY:
 One state, no transitions out, no deletion and no revocation: an evidence that could be withdrawn would prove nothing, since the party who wanted the records rewritten is the party who would withdraw it (State 2, State 6, State 7, Invariant 9.1). The credential is consumed and never stored — key storage, rotation and recovery are a separate concept, and an atom that kept the key would be the weakest place in the deployment to keep it (State 5).
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+```
+
+WHY:
+What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -294,15 +302,6 @@ NOTE: mechanism health and anchor trust are what the seal store does not carry �
 
 NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove these records were not altered?* — answered from the records and the proof, never from a runtime claim.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 ## Non-goals
 
 ```text
@@ -329,24 +328,6 @@ Where the atom breaks down: when the host cannot supply a record_set_ref whose c
 
 ## Edge cases
 
-### Retention coupling
-
-```text
-Retention coupling 1: A purged record set MUST leave [Verify] unable to hold.
-Retention coupling 2: A composing pattern MUST own the cascading purge of an evidence alongside the records.
-Retention coupling 3: A deployment MUST NOT read a seal over destroyed records as proof of the records' content.
-```
-
-WHY:
-Tamper-evidence outlives the records only as far as the records are retained. Once [Retention Window](./retention-window.md) purges them, verification has nothing to re-present and answers `record-set-mismatch`, or the host's lookup answers nothing at all — a seal in that state is structurally meaningless and should leave in step with what it sealed.
-
-### Concurrent seals
-
-```text
-Concurrent seal 1: Two seals over one record set MUST stand as independent evidence.
-Concurrent seal 2: The atom MUST NOT order two seals over one record set.
-```
-
 ### Atomicity of a seal
 
 ```text
@@ -357,6 +338,24 @@ Seal atomicity 3: The deployment MUST own the durability of the seal store.
 
 WHY:
 The atom's contract assumes the evidence record is durable and the write is all-or-nothing; where the store can be silently rewritten, the evidence is only as strong as the store, which is the ceiling Non-goal 1 states.
+
+### Concurrent seals
+
+```text
+Concurrent seal 1: Two seals over one record set MUST stand as independent evidence.
+Concurrent seal 2: The atom MUST NOT order two seals over one record set.
+```
+
+### Retention coupling
+
+```text
+Retention coupling 1: A purged record set MUST leave [Verify] unable to hold.
+Retention coupling 2: A composing pattern MUST own the cascading purge of an evidence alongside the records.
+Retention coupling 3: A deployment MUST NOT read a seal over destroyed records as proof of the records' content.
+```
+
+WHY:
+Tamper-evidence outlives the records only as far as the records are retained. Once [Retention Window](./retention-window.md) purges them, verification has nothing to re-present and answers `record-set-mismatch`, or the host's lookup answers nothing at all — a seal in that state is structurally meaningless and should leave in step with what it sealed.
 
 ### Verification caching
 

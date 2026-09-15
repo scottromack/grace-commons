@@ -14,7 +14,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat. A hold is placed, stays open for a fixed window, and resolves into exactly one of three recorded end states: confirmed, released, or expired. The window is a promise in both directions: the resource stays reserved until it closes, and the requester must decide before it does.
@@ -83,6 +82,53 @@ Identity 5 ranges over a store instance's whole lifetime, which is what makes id
 Identity 6 is the load-bearing one. Identifying a commitment by `(resource, requester)` would muddle a re-hold: a requester re-holding the same resource after an earlier release is a *different* commitment with its own trail. Identifying by `placed_at` loses precision under concurrent placement. Opaque ids keep one commitment to one id, which is what makes per-event audit reconstruction tractable.
 
 Identity 10 and Identity 11 state the other boundary. The atom holds references it was handed and does not reach into stores it has no knowledge of; a commitment naming a resource the registry has never heard of is still a valid commitment here, and wrong at the deployment layer.
+
+### State
+
+```text
+State 1: EVERY commitment MUST carry id, resource, requester, placed_at, expires_at and a state.
+State 2: EVERY confirmed commitment MUST carry confirmed_at.
+State 3: EVERY released commitment MUST carry released_at.
+State 4: EVERY expired commitment MUST carry expired_at.
+State 5: A held commitment MUST NOT carry a terminal instant.
+State 6: The atom MUST NOT record the duration under the duration's own name.
+State 7: The atom MUST NOT hold a state for a resource carrying no commitment.
+State 8: The atom MUST NOT offer an unconfirm surface.
+State 9: The atom MUST NOT offer a reactivate surface.
+State 10: The atom MUST NOT offer a window extension surface.
+State 11: The atom MUST NOT offer a commitment removal surface.
+```
+
+WHY:
+State 6 is a small thing worth stating. `duration` sizes the window and is then gone: what persists is `placed_at` and `expires_at`, both immutable. Keeping `duration` as a field would make the window recomputable, and a recomputable window is one a later edit can move without touching `expires_at`.
+
+State 7 is the boundary a reader keeps looking for. There is no *unheld* state in this atom's record — unheld describes the resource, not the commitment, and it belongs to the registry. The lifecycle this atom holds begins at [Place Hold].
+
+State 8 through State 10 are the three surfaces a reader keeps expecting to find. A confirmed commitment is not unconfirmed, an expired one is not reactivated, and a window is not extended — a longer hold is a new commitment with a new id, placed after the original is released. Mutating `expires_at` would retroactively change when [Expire] became legal, which breaks the honored window for a hold that has already settled.
+
+### Capability requirement
+
+```text
+Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST supply the id material at the seam.
+Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one section.
+Capability requirement 4: The registry MUST release the section on the caller's return.
+Capability requirement 5: The registry MUST release the section on the caller's death.
+Capability requirement 6: The store MUST acknowledge a write ONLY IF the write commits.
+Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the cadence.
+Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the cadence falls inside.
+Capability requirement 9: The deployment MUST canonicalize an opaque reference.
+Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
+Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
+Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
+```
+
+WHY:
+Capability requirement 3 through Capability requirement 5 are a declared obligation rather than an ambient host guarantee, and naming them is the point: a registry that cannot serialize the availability read against the hold write will hand two callers the same resource, and both commitments will satisfy every invariant above. Capability requirement 6 is what makes `storage-failure` definitive — a store that can acknowledge a write it did not commit turns every refusal into an in-doubt write, and a deployment with such a store routes retries through [Duplicate Prevention](./duplicate-prevention.md) rather than trusting the answer.
+
+Capability requirement 10 and Capability requirement 11 are where the resource return lives, and the placement is the correction of a real defect: a draft of this migration carried the return as an `Operation`, obliging the atom to do something Non-goal 11 says it cannot see and External check 1's own WHY says it cannot check. The registry owns availability, so the registry carries the obligation, and External check 1 is the auditor's reading of it. The negative half is stated separately because a registry that frees the resource on a confirm has broken the atom's point as thoroughly as one that never frees it on an expire (council read 38).
+
+Capability requirement 12 is the liveness half of resolution, and it is a deployment's to make true rather than this atom's. The atom decides nothing about when [Expire] fires (Non-goal 13) and licenses lazy expiry, under which a lapsed commitment stays held until something touches it; a deployment that wants every lapse resolved declares a cadence and a window, and this is the rule that binds them together.
 
 ### Operations
 
@@ -179,29 +225,6 @@ Operation 17 through Operation 19 are the honored window, and the boundary is th
 [Release] and [Expire] are two actions rather than one because they differ in which side of the window they are legal on and in what the record then says happened. An auditor asking *did this requester give the resource back, or did the requester simply not answer* reads the terminal state and gets a different answer for each. The return of the resource itself is not here — it is Capability requirement 10, because this atom cannot see availability (Non-goal 11) and a MUST whose subject cannot evaluate it is decoration.
 
 Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the `now` declaration cites it rather than restating it. The clock is consumed twice per call — by the window reading and by the stamp — and both consumptions read the one `now` the seam supplied, so a transition is a pure function of the commitment, the inputs, `now` and the id material.
-
-### State
-
-```text
-State 1: EVERY commitment MUST carry id, resource, requester, placed_at, expires_at and a state.
-State 2: EVERY confirmed commitment MUST carry confirmed_at.
-State 3: EVERY released commitment MUST carry released_at.
-State 4: EVERY expired commitment MUST carry expired_at.
-State 5: A held commitment MUST NOT carry a terminal instant.
-State 6: The atom MUST NOT record the duration under the duration's own name.
-State 7: The atom MUST NOT hold a state for a resource carrying no commitment.
-State 8: The atom MUST NOT offer an unconfirm surface.
-State 9: The atom MUST NOT offer a reactivate surface.
-State 10: The atom MUST NOT offer a window extension surface.
-State 11: The atom MUST NOT offer a commitment removal surface.
-```
-
-WHY:
-State 6 is a small thing worth stating. `duration` sizes the window and is then gone: what persists is `placed_at` and `expires_at`, both immutable. Keeping `duration` as a field would make the window recomputable, and a recomputable window is one a later edit can move without touching `expires_at`.
-
-State 7 is the boundary a reader keeps looking for. There is no *unheld* state in this atom's record — unheld describes the resource, not the commitment, and it belongs to the registry. The lifecycle this atom holds begins at [Place Hold].
-
-State 8 through State 10 are the three surfaces a reader keeps expecting to find. A confirmed commitment is not unconfirmed, an expired one is not reactivated, and a window is not extended — a longer hold is a new commitment with a new id, placed after the original is released. Mutating `expires_at` would retroactively change when [Expire] became legal, which breaks the honored window for a hold that has already settled.
 
 ### Invariants
 
@@ -345,30 +368,6 @@ External check 1 is the sharpest boundary here and the one a deployment can quie
 
 External check 5 is the audit consequence of the eager-or-lazy choice (Non-goal 13). Under lazy expiry a lapsed commitment stays held until something touches it, so the resource is reclaimed at access time rather than at `expires_at`; the record is correct either way, and only the deployment's own declaration says how long the gap may be.
 
-### Capability requirements
-
-```text
-Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST supply the id material at the seam.
-Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one section.
-Capability requirement 4: The registry MUST release the section on the caller's return.
-Capability requirement 5: The registry MUST release the section on the caller's death.
-Capability requirement 6: The store MUST acknowledge a write ONLY IF the write commits.
-Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the cadence.
-Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the cadence falls inside.
-Capability requirement 9: The deployment MUST canonicalize an opaque reference.
-Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
-Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
-Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
-```
-
-WHY:
-Capability requirement 3 through Capability requirement 5 are a declared obligation rather than an ambient host guarantee, and naming them is the point: a registry that cannot serialize the availability read against the hold write will hand two callers the same resource, and both commitments will satisfy every invariant above. Capability requirement 6 is what makes `storage-failure` definitive — a store that can acknowledge a write it did not commit turns every refusal into an in-doubt write, and a deployment with such a store routes retries through [Duplicate Prevention](./duplicate-prevention.md) rather than trusting the answer.
-
-Capability requirement 10 and Capability requirement 11 are where the resource return lives, and the placement is the correction of a real defect: a draft of this migration carried the return as an `Operation`, obliging the atom to do something Non-goal 11 says it cannot see and External check 1's own WHY says it cannot check. The registry owns availability, so the registry carries the obligation, and External check 1 is the auditor's reading of it. The negative half is stated separately because a registry that frees the resource on a confirm has broken the atom's point as thoroughly as one that never frees it on an expire (council read 38).
-
-Capability requirement 12 is the liveness half of resolution, and it is a deployment's to make true rather than this atom's. The atom decides nothing about when [Expire] fires (Non-goal 13) and licenses lazy expiry, under which a lapsed commitment stays held until something touches it; a deployment that wants every lapse resolved declares a cadence and a window, and this is the rule that binds them together.
-
 ---
 
 ## Non-goals
@@ -412,27 +411,17 @@ Non-goal 24 names where the atom breaks down rather than where it declines. A bl
 
 ## Edge cases
 
-### String policy
+### Atomic writes
 
 ```text
-String 1: The atom MUST compare a string input byte-exactly.
-String 2: The atom MUST NOT trim a string input.
-String 3: The atom MUST NOT normalize a string input.
-String 4: The atom MUST NOT case-fold a string input.
-String 5: The atom MUST read a whitespace-only string input as blank.
-String 6: The atom MUST read an absent string input as blank.
+Atomic writes 1: The implementation MUST commit a transition whole.
+Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
+Atomic writes 3: The implementation MUST own the transactional boundary.
+Atomic writes 4: The implementation MUST NOT repair a dangling transition.
 ```
 
-Terms › `string input`: `resource` OR `requester` — every caller-supplied string this atom accepts.
-
-Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
-
 WHY:
-This family was missing from a draft of this migration, and its absence was invisible rather than benign: Operation 1 and Operation 2 read `NOT EXISTS` on caller-supplied strings, so without String 5 and String 6 a whitespace-only `resource` had no declared reading at all and two implementations could disagree about whether it is a hold (council read 38). The `blank` declaration is the corpus's, word for word across eleven specs, which is the point — the reading is shared and nobody owns it, and the *absence-as-nonexistence* watch entry counts it.
-
-Byte-exactness matters here for the same reason it does wherever an identifier comes from outside: `resource` and `requester` are the caller's references, not values this atom issued, so `Room-14` and `room-14` are two resources and a deployment that means them as one canonicalizes before calling (Capability requirement 9, Identity 9).
-
-NOTE: watch host obligations — this atom sets no maximum length on a string input and does not oblige the deployment to set one either, which is a fourth posture beside the three the *input-handling regime* docket row already counts: a declared cap, a delegated cap, and silence. `duration` is bounded by declaration (`duration bounds`) and the strings are bounded by nothing.
+Atomic writes 4 is the honest limit. A crash between the state change and the instant's write leaves a commitment this atom has no rule for, and no rule here recovers it: the transactional boundary is the implementation's (Atomic writes 3), and a repair written here would be this atom guessing at a host's storage semantics.
 
 ### Clock semantics
 
@@ -456,17 +445,27 @@ Concurrency 2: A losing resolving action MUST answer not-held.
 Concurrency 3: A losing [Place Hold] racing on one resource MUST answer resource-unavailable.
 ```
 
-### Atomic writes
+### String policy
 
 ```text
-Atomic writes 1: The implementation MUST commit a transition whole.
-Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
-Atomic writes 3: The implementation MUST own the transactional boundary.
-Atomic writes 4: The implementation MUST NOT repair a dangling transition.
+String 1: The atom MUST compare a string input byte-exactly.
+String 2: The atom MUST NOT trim a string input.
+String 3: The atom MUST NOT normalize a string input.
+String 4: The atom MUST NOT case-fold a string input.
+String 5: The atom MUST read a whitespace-only string input as blank.
+String 6: The atom MUST read an absent string input as blank.
 ```
 
+Terms › `string input`: `resource` OR `requester` — every caller-supplied string this atom accepts.
+
+Terms › `blank`: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
+
 WHY:
-Atomic writes 4 is the honest limit. A crash between the state change and the instant's write leaves a commitment this atom has no rule for, and no rule here recovers it: the transactional boundary is the implementation's (Atomic writes 3), and a repair written here would be this atom guessing at a host's storage semantics.
+This family was missing from a draft of this migration, and its absence was invisible rather than benign: Operation 1 and Operation 2 read `NOT EXISTS` on caller-supplied strings, so without String 5 and String 6 a whitespace-only `resource` had no declared reading at all and two implementations could disagree about whether it is a hold (council read 38). The `blank` declaration is the corpus's, word for word across eleven specs, which is the point — the reading is shared and nobody owns it, and the *absence-as-nonexistence* watch entry counts it.
+
+Byte-exactness matters here for the same reason it does wherever an identifier comes from outside: `resource` and `requester` are the caller's references, not values this atom issued, so `Room-14` and `room-14` are two resources and a deployment that means them as one canonicalizes before calling (Capability requirement 9, Identity 9).
+
+NOTE: watch host obligations — this atom sets no maximum length on a string input and does not oblige the deployment to set one either, which is a fourth posture beside the three the *input-handling regime* docket row already counts: a declared cap, a delegated cap, and silence. `duration` is bounded by declaration (`duration bounds`) and the strings are bounded by nothing.
 
 ---
 

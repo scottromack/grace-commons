@@ -86,34 +86,6 @@ Terms › `the holder`: the party the host holds the key for.
 WHY:
 A key frees by release or by the current holder's instant passing. The bound is fixed at arrival and never extended: a second waiter admitted while a first still holds fails on its own bound rather than waiting out the first's whole term, so a pattern that reasons about how long a take can block is entitled to that number and no other (Operation 3–5). [Try Take] exists for a caller with other work to do. [Remaining] is a host query and never a clock read by the caller: a caller that subtracts its own reading from a remembered `expires_at` has introduced a second clock and lost the property the atom exists to provide, since the two are minted at different seams (Operation 10). `not-held` covers a party whose term has passed and whose key another holder now holds; callers normally discard the answer, and it is declared because an implementer who treats it as a failure will retry it (Operation 14).
 
-### The terminus, and carrying it as a fence
-
-```text
-Fence 1: [Take] MUST return expires_at as an absolute instant on the granting host's clock.
-Fence 2: A holder MAY pass a fence to a third party.
-Fence 3: IF a work item's effect instant EXCEEDS the fence THEN the fenced party MUST refuse the work item.
-Fence 4: The fenced party MUST judge the fence on the fenced party's own clock.
-Fence 5: A fence MUST NOT EXCEED the fence ceiling.
-Fence 6: The fenced party MUST compare the fence bare.
-Fence 7: The holder MUST NOT apply the allowance at the reading.
-Fence 8: A holder fencing more than one party MUST mint EVERY fence separately.
-Fence 9: A holder MUST NOT derive a second fence bare from a minted fence.
-Fence 10: A work item MUST NOT carry an effect instant.
-```
-
-Terms › `fence`: an instant no later than the fence ceiling, handed to a third party as a deadline (a [Fence]) — refuse this holder's work if the work would take effect after this instant.
-
-Terms › `fence ceiling`: `expires_at − allowance`.
-
-Terms › `effect instant`: the instant a work item takes effect, read on the fenced party's own clock at the moment of judgement.
-
-Terms › `allowance`: the declared cross-seam allowance between the granting host's clock and the judging party's clock; one allowance per fenced party.
-
-Terms › `fenced party`: the third party a fence is handed to.
-
-WHY:
-`expires_at` is the point of the atom ([Expires At]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. The ceiling is a ceiling and not an equation: a holder may hand over an earlier instant and keep more margin, never a later one (Fence 5, Check 6.1). Two fenced parties are two seams with two allowances, which is what makes minting each fence separately more than bookkeeping (Fence 8). Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
-
 ### Invariants
 
 - **Invariant 1 — One holder.**
@@ -148,6 +120,34 @@ WHY:
   Invariant 6.1: EVERY instant handed to a party judging on another clock MUST carry the allowance subtracted.
   Invariant 6.2: The holder MUST mint EVERY such instant independently.
   ```
+
+### The terminus, and carrying it as a fence
+
+```text
+Fence 1: [Take] MUST return expires_at as an absolute instant on the granting host's clock.
+Fence 2: A holder MAY pass a fence to a third party.
+Fence 3: IF a work item's effect instant EXCEEDS the fence THEN the fenced party MUST refuse the work item.
+Fence 4: The fenced party MUST judge the fence on the fenced party's own clock.
+Fence 5: A fence MUST NOT EXCEED the fence ceiling.
+Fence 6: The fenced party MUST compare the fence bare.
+Fence 7: The holder MUST NOT apply the allowance at the reading.
+Fence 8: A holder fencing more than one party MUST mint EVERY fence separately.
+Fence 9: A holder MUST NOT derive a second fence bare from a minted fence.
+Fence 10: A work item MUST NOT carry an effect instant.
+```
+
+Terms › `fence`: an instant no later than the fence ceiling, handed to a third party as a deadline (a [Fence]) — refuse this holder's work if the work would take effect after this instant.
+
+Terms › `fence ceiling`: `expires_at − allowance`.
+
+Terms › `effect instant`: the instant a work item takes effect, read on the fenced party's own clock at the moment of judgement.
+
+Terms › `allowance`: the declared cross-seam allowance between the granting host's clock and the judging party's clock; one allowance per fenced party.
+
+Terms › `fenced party`: the third party a fence is handed to.
+
+WHY:
+`expires_at` is the point of the atom ([Expires At]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. The ceiling is a ceiling and not an equation: a holder may hand over an earlier instant and keep more margin, never a later one (Fence 5, Check 6.1). Two fenced parties are two seams with two allowances, which is what makes minting each fence separately more than bookkeeping (Fence 8). Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
 
 ## Examples
 
@@ -215,10 +215,6 @@ Composition note 7: A pattern MUST NOT invent a second deadline concept for a fe
 
 WHY:
 A section held on one node and not another is no section (Composition note 3). A pattern whose work can exceed the term it asks for has a defect this atom will not catch — it will hand the key on at the instant, exactly as specified (Composition note 5, Non-goal 11). A store deadline and a journal deadline are two uses of one atom (Composition note 6, Composition note 7).
-
-## Standards references
-
-The concept is not itself regulated. It appears in regulated patterns as the mechanism by which a single-writer obligation is met, and those patterns anchor their own regimes; the atom's contribution is that the obligation is met by an argument stated once. The nearest external statement of the same rule is the fencing-token discipline in the distributed-systems literature on lock services, where a lock that ends on a belief about liveness is shown to admit two writers.
 
 ## Terms
 
@@ -305,6 +301,10 @@ Kind: Type
 [Expires At]: #expires-at
 [Fence]: #fence
 [Lease]: #lease
+
+## Standards references
+
+The concept is not itself regulated. It appears in regulated patterns as the mechanism by which a single-writer obligation is met, and those patterns anchor their own regimes; the atom's contribution is that the obligation is met by an argument stated once. The nearest external statement of the same rule is the fencing-token discipline in the distributed-systems literature on lock services, where a lock that ends on a belief about liveness is shown to admit two writers.
 
 ## Status
 

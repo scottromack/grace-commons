@@ -86,27 +86,6 @@ The contract classification is *conforming, no stored composition state* (`execu
 
 [Responsible Actor] joins two constituents because one cannot answer it: Assignment alone cannot tell an unassigned task from a task that never existed, and the Personal Todo side of the join is exactly what separates `unassigned` from `not-known`.
 
-### Scope vocabulary
-
-```text
-Scope vocabulary 1: The composition MUST define the action scopes the Permissions instance carries.
-Scope vocabulary 2: The composition MUST gate a read on tasks:view.
-Scope vocabulary 3: The composition MUST gate an add on tasks:add.
-Scope vocabulary 4: The composition MUST gate an edit on tasks:edit.
-Scope vocabulary 5: The composition MUST gate a complete on tasks:complete.
-Scope vocabulary 6: The composition MUST gate a delete on tasks:delete.
-Scope vocabulary 7: The composition MUST gate an assign on tasks:assign.
-Scope vocabulary 8: The composition MUST gate a reassign on tasks:assign.
-Scope vocabulary 9: The composition MUST gate a recall on tasks:recall.
-Scope vocabulary 10: A deployment MAY define a finer action scope.
-Scope vocabulary 11: A deployment defining a finer action scope MUST wire the gate to the finer action scope.
-```
-
-Terms › `action scopes`: `tasks:view` | `tasks:add` | `tasks:edit` | `tasks:complete` | `tasks:delete` | `tasks:assign` | `tasks:recall` — the canonical vocabulary, and the minimum useful set.
-
-WHY:
-[Permissions](../atoms/permissions.md) treats an action scope as an opaque string and `Composition note 2` assigns the vocabulary to a composing pattern; this section is that assignment discharged. Scope vocabulary 7 and Scope vocabulary 8 share one scope deliberately — reassign is an assign with a recall folded in, and a deployment that wants them separable takes Scope vocabulary 10.
-
 ### Action wiring
 
 ```text
@@ -163,18 +142,26 @@ Wiring decision 3: The composition MUST leave a recalled assignment standing for
 WHY:
 The cascade is the composition's load-bearing decision and neither constituent holds it — [Personal Todo](../atoms/personal-todo.md) knows nothing of assignments and [Assignment](../atoms/assignment.md) knows nothing of task deletion. The ordering is what makes the failure safe rather than the transaction: recall first means a failed delete leaves an assignment Recalled against a task that still exists — an over-recall, which Assignment admits and [Responsible Actor] reports as `unassigned` — where delete-first would leave an Active assignment against a task that is gone, which Invariant 3 forbids. Invariant 3 is one-way on purpose, and Wiring decision 3 is the cost named rather than hidden.
 
-### Concurrency
+### Scope vocabulary
 
 ```text
-Concurrency 1: The composition MUST rest on the host's serialization for two calls naming one task_id.
-Concurrency 2: The composition MUST answer Assignment's already-assigned to the loser of two assigns.
-Concurrency 3: The composition MUST answer Personal Todo's not-known to the loser of two deletes.
-Concurrency 4: The composition MUST check permitted at a call's start.
-Concurrency 5: The composition MUST NOT recheck permitted inside a call.
+Scope vocabulary 1: The composition MUST define the action scopes the Permissions instance carries.
+Scope vocabulary 2: The composition MUST gate a read on tasks:view.
+Scope vocabulary 3: The composition MUST gate an add on tasks:add.
+Scope vocabulary 4: The composition MUST gate an edit on tasks:edit.
+Scope vocabulary 5: The composition MUST gate a complete on tasks:complete.
+Scope vocabulary 6: The composition MUST gate a delete on tasks:delete.
+Scope vocabulary 7: The composition MUST gate an assign on tasks:assign.
+Scope vocabulary 8: The composition MUST gate a reassign on tasks:assign.
+Scope vocabulary 9: The composition MUST gate a recall on tasks:recall.
+Scope vocabulary 10: A deployment MAY define a finer action scope.
+Scope vocabulary 11: A deployment defining a finer action scope MUST wire the gate to the finer action scope.
 ```
 
+Terms › `action scopes`: `tasks:view` | `tasks:add` | `tasks:edit` | `tasks:complete` | `tasks:delete` | `tasks:assign` | `tasks:recall` — the canonical vocabulary, and the minimum useful set.
+
 WHY:
-Concurrency 4 and Concurrency 5 are the revoked-grant window stated rather than closed. A grant revoked while an action is in flight does not reach that action; the composition's guarantee is point-in-time at the check, and a deployment needing tighter coupling re-checks at its own layer.
+[Permissions](../atoms/permissions.md) treats an action scope as an opaque string and `Composition note 2` assigns the vocabulary to a composing pattern; this section is that assignment discharged. Scope vocabulary 7 and Scope vocabulary 8 share one scope deliberately — reassign is an assign with a recall folded in, and a deployment that wants them separable takes Scope vocabulary 10.
 
 ---
 
@@ -216,44 +203,7 @@ Permission enforcement and the cascade together give the coherent multi-actor su
 
 ---
 
-## Generation acceptance
-
-The closing claim above is the acceptance bar and this section distributes it: *for any task and any actor, what the actor was allowed to do and who held the task is readable from the records alone.* Every check below clears from the three constituent stores; where a claim needs evidence the stores do not carry, it is an external check and says so.
-
-### Conformance checks
-
-```text
-Check 1.1: An auditor MUST find EVERY assignment of a deleted task standing in EXACTLY ONE OF recalled, transferred (Invariant 3.1).
-Check 1.2: An auditor MUST find no active assignment naming a task_id the Personal Todo store does not carry (Invariant 3.2).
-Check 2.1: An auditor MUST find no task_id carrying two active assignments in the Assignment store (Invariant 2.1).
-Check 3.1: An auditor MUST find a task's responsible actor from the Assignment store (Invariant 4.1).
-Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment store (Invariant 4.2).
-Check 4.1: An auditor MUST find an actor_ref's grant history in the Permissions store (Invariant 5.1).
-Check 4.2: An auditor MUST find a grant record for a task_id the Personal Todo store does not carry (Invariant 5.2).
-Check 5.1: An auditor MUST find [Responsible Actor] answering unassigned for a task carrying no active assignment (Composition state 2).
-Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task_id the Personal Todo store does not carry (Composition state 2).
-```
-
-NOTE: EVERY check names the rule the check tests.
-
-### External checks
-
-```text
-External check 1: An auditor needing the gate's order confirmed MUST read the deployment's own implementation (Invariant 1.1).
-External check 2: An auditor needing a denied call confirmed unreached MUST read the deployment's own implementation (Invariant 1.2).
-External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed [Audit Trail](./audit-trail.md) (Non-goal 7).
-External check 4: An auditor needing the actor_ref bound to a caller MUST read the deployment's authentication layer (Non-goal 12).
-```
-
-WHY:
-The split is the honest one and it is the same shape [Session-Gated Authorization](./session-gated-authorization.md) found. The three stores record *what stands*: an assignment's terminal state, a grant's history, a task's existence — so Check 1.1 through Check 5.2 clear from records. They do not record *what was attempted*: a denied call writes nothing anywhere, so the count of refusals and the order of the two steps inside an admitted call leave no trace in any constituent store. That is External check 1 through External check 3, and it is why a regulated deployment composes [Audit Trail](./audit-trail.md) rather than reading harder.
-
-External check 4 is the one a deployment can fail silently, and §Non-goals names it as a seam rather than a gap: every guarantee here is stated over the `actor_ref` values presented to the composition, and nothing here authenticates them.
-
----
-
 ## Examples
-
 
 ### Sprint board — role-based editing with task handoff
 
@@ -295,6 +245,42 @@ The accountability record is complete at the responsibility level: which nurse h
 
 ---
 
+## Generation acceptance
+
+The closing claim above is the acceptance bar and this section distributes it: *for any task and any actor, what the actor was allowed to do and who held the task is readable from the records alone.* Every check below clears from the three constituent stores; where a claim needs evidence the stores do not carry, it is an external check and says so.
+
+### Conformance checks
+
+```text
+Check 1.1: An auditor MUST find EVERY assignment of a deleted task standing in EXACTLY ONE OF recalled, transferred (Invariant 3.1).
+Check 1.2: An auditor MUST find no active assignment naming a task_id the Personal Todo store does not carry (Invariant 3.2).
+Check 2.1: An auditor MUST find no task_id carrying two active assignments in the Assignment store (Invariant 2.1).
+Check 3.1: An auditor MUST find a task's responsible actor from the Assignment store (Invariant 4.1).
+Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment store (Invariant 4.2).
+Check 4.1: An auditor MUST find an actor_ref's grant history in the Permissions store (Invariant 5.1).
+Check 4.2: An auditor MUST find a grant record for a task_id the Personal Todo store does not carry (Invariant 5.2).
+Check 5.1: An auditor MUST find [Responsible Actor] answering unassigned for a task carrying no active assignment (Composition state 2).
+Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task_id the Personal Todo store does not carry (Composition state 2).
+```
+
+NOTE: EVERY check names the rule the check tests.
+
+### External checks
+
+```text
+External check 1: An auditor needing the gate's order confirmed MUST read the deployment's own implementation (Invariant 1.1).
+External check 2: An auditor needing a denied call confirmed unreached MUST read the deployment's own implementation (Invariant 1.2).
+External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed [Audit Trail](./audit-trail.md) (Non-goal 7).
+External check 4: An auditor needing the actor_ref bound to a caller MUST read the deployment's authentication layer (Non-goal 12).
+```
+
+WHY:
+The split is the honest one and it is the same shape [Session-Gated Authorization](./session-gated-authorization.md) found. The three stores record *what stands*: an assignment's terminal state, a grant's history, a task's existence — so Check 1.1 through Check 5.2 clear from records. They do not record *what was attempted*: a denied call writes nothing anywhere, so the count of refusals and the order of the two steps inside an admitted call leave no trace in any constituent store. That is External check 1 through External check 3, and it is why a regulated deployment composes [Audit Trail](./audit-trail.md) rather than reading harder.
+
+External check 4 is the one a deployment can fail silently, and §Non-goals names it as a seam rather than a gap: every guarantee here is stated over the `actor_ref` values presented to the composition, and nothing here authenticates them.
+
+---
+
 ## Non-goals
 
 ```text
@@ -333,6 +319,19 @@ WHY:
 
 **A revoked grant mid-call.** Concurrency 4 checks at the call's start and Concurrency 5 does not re-check. A grant revoked during an in-flight action does not reach that action.
 
+### Concurrency
+
+```text
+Concurrency 1: The composition MUST rest on the host's serialization for two calls naming one task_id.
+Concurrency 2: The composition MUST answer Assignment's already-assigned to the loser of two assigns.
+Concurrency 3: The composition MUST answer Personal Todo's not-known to the loser of two deletes.
+Concurrency 4: The composition MUST check permitted at a call's start.
+Concurrency 5: The composition MUST NOT recheck permitted inside a call.
+```
+
+WHY:
+Concurrency 4 and Concurrency 5 are the revoked-grant window stated rather than closed. A grant revoked while an action is in flight does not reach that action; the composition's guarantee is point-in-time at the check, and a deployment needing tighter coupling re-checks at its own layer.
+
 ---
 
 ## Composition notes
@@ -352,6 +351,10 @@ Composition note 2 and Composition note 3 are the two constituent assignments th
 
 ## Terms
 
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the composed action-wirings and derived queries plus the scope vocabulary it defines; references to the constituent atoms ([Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md)) and their operations remain qualified calls to those atoms. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+
+### Vocabulary
+
 Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
 Terms › `terms`: `composition`, `constituents`, `responsible actor`, `visible tasks`, `action scopes`, `admitted add`, `admitted edit`, `admitted complete`, `admitted delete`, `admitted assign`, `admitted reassign`, `admitted recall`.
@@ -361,9 +364,6 @@ Terms › `record verbs`: call, answer, gate, define, derive, store, materialize
 Terms › `actors`: the composition; the constituents; a deployment; an auditor; an actor; an assignee; a task; an assignment; a grant; a caller.
 
 Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the no-stored-state classification. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding, declined. [Assignment](../atoms/assignment.md) `Composition note 2` — what a task is. [Assignment](../atoms/assignment.md) `Composition note 4` — the completed task's assignment, declined.
-
-
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the composed action-wirings and derived queries plus the scope vocabulary it defines; references to the constituent atoms ([Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md)) and their operations remain qualified calls to those atoms. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Add Task
 
@@ -515,6 +515,10 @@ Projects:  permission-denied
 [Permission Denied]: #permission-denied
 
 ---
+
+## Standards references
+
+Shared Todo is a wiring of three primitives and not a regulated pattern, so it carries no standard of its own at this layer. The standards it touches are its constituents' and are cited there: [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md) and [Assignment](../atoms/assignment.md).
 
 ## Status
 

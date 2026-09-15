@@ -2454,6 +2454,191 @@ def census(root: Path, patterns: dict[Path, Pattern]) -> int:
 
 
 # --------------------------------------------------------------------------- #
+# H. The heading standard — spec-format.md §Heading standard
+# --------------------------------------------------------------------------- #
+
+_HEADING_TABLES = {"atom": "### Atom headings", "composition": "### Composition headings"}
+
+
+def heading_standard(spec_format_text: str) -> dict[str, list[dict]]:
+    """The two heading tables, read from spec-format.md rather than held here.
+
+    Each row: name, level, inside, required (`yes` | `no` | `when grounded`),
+    unplaced (`yes` | `no` | `any order`). The linter holds no copy, so a
+    heading renamed in spec-format is renamed for the instrument in the same
+    edit (the lesson check.py learned from its category set, council read 29)."""
+    out: dict[str, list[dict]] = {}
+    for shape, title in _HEADING_TABLES.items():
+        start = spec_format_text.find(title + "\n")
+        if start < 0:
+            raise SystemExit(f"lint.py: spec-format.md carries no `{title}` table; "
+                             "the heading standard has no authority to read (H-heading)")
+        rows = []
+        for line in spec_format_text[start:].split("\n")[1:]:
+            if line.startswith("#"):
+                break
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) != 5 or cells[0] in ("Heading", "") or set(cells[0]) <= set("-"):
+                continue
+            rows.append({"name": cells[0], "level": int(cells[1]), "inside": cells[2],
+                         "required": cells[3], "unplaced": cells[4]})
+        out[shape] = rows
+    return out
+
+
+def _collation_key(name: str) -> str:
+    """Case-insensitive, punctuation ignored, a space before any letter."""
+    return "".join(ch for ch in name.casefold() if ch.isalnum() or ch == " ")
+
+
+def _heading_tree(text: str) -> list[tuple[int, str, int]]:
+    """(level, name, line) for every `##` and `###` outside a fence."""
+    out, fence = [], False
+    for i, line in enumerate(text.split("\n"), start=1):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+            continue
+        if fence:
+            continue
+        m = re.match(r"^(#{2,3}) (.+?)\s*$", line)
+        if m:
+            out.append((len(m.group(1)), m.group(2), i))
+    return out
+
+
+def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
+    """H. A migrated spec's `##` and `###` headings against spec-format.md
+    §Heading standard: every heading a known row or an unplaced child where the
+    parent admits one, at the row's level and under the row's parent, in table
+    order with unplaced children after the placed ones in collation order, and
+    every required row present.
+
+    The instrument open-questions.md carried as *a spec's section list is
+    declared and unread*: spec-format fixed the order, `Standard label 9` sent
+    promoted families to it, and nothing read either — which is how Idempotent
+    Reservation's `Housekeeping` sat second for a day and how `Clock semantics`
+    came to live at two depths (council read 80)."""
+    tables = heading_standard((root / "spec-format.md").read_text(encoding="utf-8"))
+    findings: list[Finding] = []
+    for p in patterns.values():
+        if not re.search(r"^Terms › `qualifiers`:.*\bmigrated\b", p.text, re.M):
+            continue
+        shape = "composition" if "/compositions/" in p.path.as_posix() else "atom"
+        rows = tables[shape]
+        top = [r for r in rows if r["level"] == 2]
+        top_index = {r["name"]: k for k, r in enumerate(top)}
+        kids = {r["name"]: [c for c in rows if c["level"] == 3 and c["inside"] == r["name"]] for r in top}
+        by_name = {r["name"]: r for r in rows}
+
+        def add(line: int, msg: str) -> None:
+            findings.append(Finding(p.path, line, "H-heading", msg))
+
+        parent = None
+        last_top = -1
+        last_child: tuple[int, str] = (-1, "")
+        present: set[tuple[str, str]] = set()
+        for level, name, line in _heading_tree(p.text):
+            if level == 2:
+                row = by_name.get(name)
+                if row is None or row["level"] != 2:
+                    where = f" (the standard places it at `###` under {row['inside']})" if row else ""
+                    add(line, f"`## {name}` is not a section of the {shape} shape{where}")
+                    parent = None
+                    continue
+                k = top_index[name]
+                if k < last_top:
+                    add(line, f"`## {name}` comes after `## {top[last_top]['name']}`; the "
+                              f"{shape} order puts it before (spec-format.md §Heading standard)")
+                last_top = max(last_top, k)
+                parent = row
+                last_child = (-1, "")
+                present.add(("", name))
+                continue
+            # level 3
+            if parent is None:
+                continue
+            placed = kids[parent["name"]]
+            names = [c["name"] for c in placed]
+            if name in names:
+                pos = names.index(name)
+                if last_child[0] >= len(names):
+                    add(line, f"`### {name}` follows the unplaced `### {last_child[1]}`; "
+                              f"placed headings come first under `## {parent['name']}`")
+                elif pos < last_child[0]:
+                    add(line, f"`### {name}` comes after `### {last_child[1]}`; the order "
+                              f"under `## {parent['name']}` puts it before")
+                last_child = (max(last_child[0], pos), name) if last_child[0] < len(names) else last_child
+                present.add((parent["name"], name))
+                continue
+            row = by_name.get(name)
+            if row is not None:
+                add(line, f"`### {name}` belongs "
+                          + (f"under `## {row['inside']}`" if row["inside"] else "at `##`")
+                          + f", not under `## {parent['name']}`")
+                continue
+            if parent["unplaced"] == "no":
+                add(line, f"`## {parent['name']}` takes no heading the standard does not name, "
+                          f"and `### {name}` is not one of its rows")
+                continue
+            if parent["unplaced"] == "yes":
+                if last_child[0] >= len(names) and _collation_key(name) < _collation_key(last_child[1]):
+                    add(line, f"`### {name}` comes after `### {last_child[1]}`; unplaced headings "
+                              f"under `## {parent['name']}` run in alphabetical order")
+                last_child = (len(names), name)
+        for r in rows:
+            if r["required"] == "no" or (r["required"] == "when grounded" and not p.grounded):
+                continue
+            if r["level"] == 3 and ("", r["inside"]) not in present:
+                continue  # the parent's own absence is the finding
+            if (r["inside"], r["name"]) not in present:
+                where = f"under `## {r['inside']}`" if r["inside"] else "at `##`"
+                add(1, f"carries no `{'#' * r['level']} {r['name']}` {where}, which the {shape} "
+                       f"shape requires (spec-format.md §Heading standard)")
+    return findings
+
+
+def check_section_classification(root: Path) -> list[Finding]:
+    """H. The section-name check execution-contract.md §Section-name
+    classification specified in June and nothing ran: every heading the
+    standard names is classified by the Contract, and every name the Contract
+    classifies is still a heading spec-format.md names. Both directions read by
+    case-insensitive containment, which is what a classification written as
+    prose admits."""
+    sf_path, ec_path = root / "spec-format.md", root / "execution-contract.md"
+    sf, ec = sf_path.read_text(encoding="utf-8"), ec_path.read_text(encoding="utf-8")
+    m = re.search(r"\*\*Every section name spec-format requires is classified exactly once\*\*(.*?)"
+                  r"\*\*The section-name lint check", ec, re.S)
+    if not m:
+        return [Finding(ec_path, 1, "H-classification",
+                        "no section-name classification block to read")]
+    block = m.group(1)
+    findings: list[Finding] = []
+    names = {r["name"] for rows in heading_standard(sf).values() for r in rows}
+    for n in sorted(names):
+        if n.lower() not in block.lower():
+            findings.append(Finding(ec_path, line_of(ec, m.start()), "H-classification",
+                                    f"`{n}` is a heading spec-format.md §Heading standard names "
+                                    f"and the Contract does not classify"))
+    for bullet in re.findall(r"^- \*\*[^*]+:\*\* (.*)$", block, re.M):
+        depth, parts, cur = 0, [], ""
+        for ch in bullet:
+            depth += (ch == "(") - (ch == ")")
+            if ch == ";" and depth == 0:
+                parts.append(cur)
+                cur = ""
+            else:
+                cur += ch
+        parts.append(cur)
+        for part in parts:
+            name = re.split(r" \(|\. ", part.strip())[0].strip().rstrip(".")
+            if name and name.lower() not in sf.lower():
+                findings.append(Finding(ec_path, line_of(ec, m.start()), "H-classification",
+                                        f"the Contract classifies `{name}`, which spec-format.md "
+                                        f"no longer names"))
+    return findings
+
+
+# --------------------------------------------------------------------------- #
 # Driver
 # --------------------------------------------------------------------------- #
 
@@ -2510,6 +2695,8 @@ def main(argv: list[str]) -> int:
     findings += check_whitelist_gloss(patterns)
     findings += check_term_registry(patterns)
     findings += check_ledger(patterns)
+    findings += check_heading_standard(root, patterns)
+    findings += check_section_classification(root)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
     for f in findings:

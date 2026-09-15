@@ -132,21 +132,23 @@ Reference examples: [`compositions/idempotent-reservation.md`](./compositions/id
 
     Wiring stated this way is checkable rather than trusted: every constituent action a `Composes` rule names must appear in that constituent's signature block, which is what catches a composition still calling an arm its atom has dropped.
 
-5. **Composition logic.** The main body of the composition's specification. Always contains the following named subsections, in this order:
+5. **Composition logic.** The main body of the composition's specification. Carries the following named subsections, in the order and with the requirements §Heading standard fixes:
 
    - **Composition state** (titled `Application state` before the 2026-06-11 vocabulary direction; corpus headings migrate in the vocabulary sweep) — the emergent state the composition carries (maps, indexes, derived records) that does not belong to any single constituent. What a composition may carry, and what each classification *means*, are runtime semantics **owned by the Execution Contract** — see [`execution-contract.md`](./execution-contract.md) §Composition state; this document does not restate them. This subsection is the container. For each state element: what it maps, what populates it, what removes it, what reads it, and its Contract classification — *derived index* or *extraction-pending* — per §Composition state, supplying the per-element detail that section requires (the rebuild procedure for a derived index; the proposed atom for an extraction-pending element). The State node's completeness rule (*what changes and under what condition*) is verified against this subsection.
 
-   - **Configuration** — deployment-settable knobs. Each knob: its name, type, default value, and the rule the deployment uses to set it (regulated deployments must use *X*; deployments under regulation *Y* must not configure *Z*). The configuration surface is what a deployment touches to specialize the composition; if the spec is silent, the runtime fills the gap silently — a Pass 3 finding.
+   - **Capability requirement** (titled `Configuration` before migration) — what the deployment supplies, deployment-settable knobs among it. Each knob: its name, type, default value, and the rule the deployment uses to set it (regulated deployments must use *X*; deployments under regulation *Y* must not configure *Z*). The configuration surface is what a deployment touches to specialize the composition; if the spec is silent, the runtime fills the gap silently — a Pass 3 finding.
 
-   - **Primitive policies** — composition-boundary input validation rules for every string-typed input the composition accepts (record references, actor references, credentials, reasons, identifiers, optional timestamps). For each input: empty allowed? whitespace? normalization? case-sensitivity? length cap? where validation occurs (composition layer or propagated from a constituent)? This subsection forecloses the "but what does *X* mean exactly?" Pass 3 finding by stating the rules up front. Added as a canonical subsection in Defensible Retention's Round 3.
+   - **Primitive policy** (titled `Primitive policies` before migration) — composition-boundary input validation rules for every string-typed input the composition accepts (record references, actor references, credentials, reasons, identifiers, optional timestamps). For each input: empty allowed? whitespace? normalization? case-sensitivity? length cap? where validation occurs (composition layer or propagated from a constituent)? This subsection forecloses the "but what does *X* mean exactly?" Pass 3 finding by stating the rules up front. Added as a canonical subsection in Defensible Retention's Round 3.
 
    - **Audit arm** — how the composition maps its audit substrate's rejection taxonomy at its own boundary: which arm is retryable, which arm arrives with the record already appended (so a blind retry double-appends), which is a pageable deployment fault, and what the composition exports for each. Promoted to the standard label families at [`GRACE-lang.md`](./GRACE-lang.md) v0.42, which declares the family's meaning; this list fixes only its position, before *Action wiring*, where all four naming specifications already placed it. Applies to a composition that records through an audit substrate; omitted by one that does not.
 
    - **Action wiring** — the orchestrating actions the composition exposes. Each action: its signature (`action(args) → result | rejected(reason | reason | ...)`), the rejection taxonomy enumerated, and numbered steps walking the action's flow. Steps name constituent calls, emergent state updates, audit recordings, and return points. Every constituent rejection is accounted for at the composition's boundary, mapped per the Contract's rejection-mapping rule (see [`execution-contract.md`](./execution-contract.md) §Substrate composition invocation); silent rejection-code drift is a Pass 1 reference-graph finding. The action surface may include **emergent actions** — actions that belong to no single constituent atom and exist only because the composition wires its constituents together. `undo()` in Undo History is the canonical example: neither Personal Todo nor Event Log has an undo surface; the composition introduces it as the action that makes the two atoms coherent. Emergent actions are expected and correct; their presence does not indicate over-absorption.
 
-   - **The load-bearing wiring decision** — the structural reason the composition exists. Each composition turns on one decision the constituents cannot make alone (a quorum evaluation, a hold-blocks-purge gate, a cascade rule). This subsection names that decision and defends it in-line in four parts: *Principle* (the rule the decision enforces), *Likely objection* (the question a sharp reader would ask), *Mechanism that resolves it* (why the decision lives at the composition layer rather than being pushed into a constituent or out to the calling layer), and *Result* (what the decision produces structurally — typically a records-alone-defensible signal). The defended-in-line discipline prevents Pass 3 from re-litigating a settled architectural choice; the choice is made visible and justified up front.
+   - **Identity** — what identifies an instance of the composition's own records, where the composition mints any. A standard label family (`GRACE-lang.md` §5); placed here because all four compositions that carry it already place it here.
 
-   - **Reconciliation** — the leg the composition runs outside every invocation whose output something awaits within a promised window: what it examines, the two edges that bound it (a declared completion bound below, the audit horizon above), what it may commit and under whose identity, and the window within which it closes or escalates. Promoted to the standard label families at [`GRACE-lang.md`](./GRACE-lang.md) v0.42, which declares the family's meaning; this list fixes only its position, after *The load-bearing wiring decision*. A leg whose output nothing awaits is `Housekeeping`, which the grammar watches rather than owns — the boundary is the question *does anything await you?*, not the leg's resemblance to a member.
+   - **Wiring decision** (titled `The load-bearing wiring decision` before migration) — the structural reason the composition exists. Each composition turns on one decision the constituents cannot make alone (a quorum evaluation, a hold-blocks-purge gate, a cascade rule). This subsection names that decision and defends it in-line in four parts: *Principle* (the rule the decision enforces), *Likely objection* (the question a sharp reader would ask), *Mechanism that resolves it* (why the decision lives at the composition layer rather than being pushed into a constituent or out to the calling layer), and *Result* (what the decision produces structurally — typically a records-alone-defensible signal). The defended-in-line discipline prevents Pass 3 from re-litigating a settled architectural choice; the choice is made visible and justified up front.
+
+   - **Reconciliation** — the leg the composition runs outside every invocation whose output something awaits within a promised window: what it examines, the two edges that bound it (a declared completion bound below, the audit horizon above), what it may commit and under whose identity, and the window within which it closes or escalates. Promoted to the standard label families at [`GRACE-lang.md`](./GRACE-lang.md) v0.42, which declares the family's meaning; this list fixes only its position, after *Wiring decision*. A leg whose output nothing awaits is `Housekeeping`, which the grammar watches rather than owns — the boundary is the question *does anything await you?*, not the leg's resemblance to a member.
 
    - **Housekeeping** — the leg the composition runs outside every invocation whose output **nothing** awaits: what it examines, the edges that bound it, what it may report or remove, and — load-bearing — what it may not do, since a leg that repaired what it found would be a second writer over an act the invocation owns. Promoted to the standard label families at [`GRACE-lang.md`](./GRACE-lang.md) v0.43, which declares the family's meaning; this list fixes only its position, in the same slot as *Reconciliation*, which is its declared pair. Which of the two a leg belongs to is settled by one question — *does anything await its output?* — and not by the leg's inherited name or by what sibling compositions call theirs.
 
@@ -182,12 +184,96 @@ Applies to any atom carrying the regulated overlay, any atom in another category
 
 **Generation acceptance** — a standalone section (placed after Examples, before Non-goals) naming what a derived implementation must produce. **Its presence is not the overlay's to require: every migrated spec carries it, regulated or not, or declines by delegation on its `Terms › qualifiers` line** ([`pressure-testing.md`](./pressure-testing.md) §Generation acceptance, amended 2026-09-14; enforced by the linter). What the overlay owns is the two-subsection structure below and the records-alone bar. The bar — what an auditor must be able to clear *from the records alone*, with no recourse to source code, runbooks, or developer narration — is methodology content owned by [`pressure-testing.md`](./pressure-testing.md) §Regulated-pattern conventions. This document fixes the section's placement and, for compositions, its two-subsection structure:
 
-- **Record checks** — the checks an auditor can answer by reading the composition's records (including the Audit Trail substrate where applicable). Each check references the composition-level invariant it verifies.
+- **Conformance checks** (titled `Record checks` in the prose shape) — the checks an auditor can answer by reading the composition's records (including the Audit Trail substrate where applicable). Each check references the composition-level invariant it verifies.
 - **External checks** — questions that arise around the composition but require external evidence (a Policy Registry, a Permissions registry, court documentation) to answer. These are the *audit-gap* questions — important to surface, but not the composition's own contract to satisfy.
 
 The split convention was established in Multi-Party Approval's Round 3 and applied retroactively to regulated compositions; the bar an external auditor can clear from the records alone is structurally distinct from the bar the composing organization must clear with its own governance evidence.
 
 Both regulated-overlay conventions are *inherited from the methodology directly* (see [`pressure-testing.md`](./pressure-testing.md)'s *Regulated-pattern conventions*), not re-derived from predecessor patterns. A new regulated pattern's commit message cites the methodology, not earlier worked examples.
+
+---
+
+## Heading standard
+
+A spec's headings are its structure. Each heading is an element and its level is its nesting, so a reader — or a tool — knows the address of a fact before opening the spec: the section, the family inside it, the rule. The tables below are the one owner of every heading name, level, parent, order and requirement for a spec rewritten in GRACE lang; the numbered lists above describe what each container holds. `tools/linter/lint.py` reads these tables directly (`H-heading`), so a heading renamed here is renamed for the instrument in the same edit. Adopted 2026-09-15, on the maintainer's rulings that headings and levels are standardized, that a spec carries every heading its shape requires and may skip the rest, and that one order governs.
+
+**Levels.** `#` is the spec's name, once. `##` is a row of the table with no parent. `###` is a row whose parent is the `##` above it, or an *unplaced* heading where that parent admits one. `####` is free: it nests under a `###` and carries whatever that `###` holds — a term entry under `Vocabulary`, a step block under `Action wiring`, a scenario under a worked example. No other level carries meaning.
+
+**Order.** Rows appear in table order. Inside a parent, the unplaced headings follow every placed one, in alphabetical order — compared case-insensitively, letter by letter, punctuation ignored and a space sorting before any letter. Alphabetical is the interim order for what the table does not place; ordering them by importance is the stated upgrade, and it changes this paragraph and nothing else. `Examples` is the one parent whose children keep the author's order, because a walkthrough reads first. Order carries no normative meaning (`GRACE-lang.md` Timing 13).
+
+**Required.** `yes` — the heading is present. `when grounded` — present once the Status token is `grounded`. `no` — present only when the spec has something to put there. A required heading that the spec cannot fill is a finding against the spec, never a reason to drop the row.
+
+### Atom headings
+
+| Heading | Level | Inside | Required | Unplaced children |
+|---|---|---|---|---|
+| Summary | 2 | | when grounded | no |
+| Intent | 2 | | yes | no |
+| Structure | 2 | | yes | yes |
+| Identity model | 3 | Structure | yes | no |
+| State | 3 | Structure | yes | no |
+| Capability requirement | 3 | Structure | no | no |
+| Operations | 3 | Structure | yes | no |
+| Invariants | 3 | Structure | yes | no |
+| Examples | 2 | | yes | any order |
+| Generation acceptance | 2 | | yes | yes |
+| Conformance checks | 3 | Generation acceptance | yes | no |
+| External checks | 3 | Generation acceptance | no | no |
+| Non-goals | 2 | | yes | yes |
+| Edge cases | 2 | | no | yes |
+| Atomic writes | 3 | Edge cases | no | no |
+| Clock dependence | 3 | Edge cases | no | no |
+| Clock semantics | 3 | Edge cases | no | no |
+| Concurrency | 3 | Edge cases | no | no |
+| Indeterminate outcome | 3 | Edge cases | no | no |
+| String policy | 3 | Edge cases | no | no |
+| Composition notes | 2 | | yes | no |
+| Terms | 2 | | yes | no |
+| Vocabulary | 3 | Terms | yes | no |
+| Standards references | 2 | | yes | no |
+| Status | 2 | | yes | no |
+| Ledger | 2 | | yes | no |
+| Decisions | 2 | | yes | no |
+
+### Composition headings
+
+| Heading | Level | Inside | Required | Unplaced children |
+|---|---|---|---|---|
+| Summary | 2 | | when grounded | no |
+| Intent | 2 | | yes | no |
+| Composes | 2 | | yes | yes |
+| Composition logic | 2 | | yes | yes |
+| Composition state | 3 | Composition logic | yes | no |
+| Capability requirement | 3 | Composition logic | no | no |
+| Primitive policy | 3 | Composition logic | no | no |
+| Identity | 3 | Composition logic | no | no |
+| Audit arm | 3 | Composition logic | no | no |
+| Action wiring | 3 | Composition logic | yes | no |
+| Wiring decision | 3 | Composition logic | yes | no |
+| Reconciliation | 3 | Composition logic | no | no |
+| Housekeeping | 3 | Composition logic | no | no |
+| Composition-level invariants | 2 | | yes | no |
+| Examples | 2 | | yes | any order |
+| Generation acceptance | 2 | | yes | yes |
+| Conformance checks | 3 | Generation acceptance | yes | no |
+| External checks | 3 | Generation acceptance | yes | no |
+| Non-goals | 2 | | yes | yes |
+| Edge cases | 2 | | no | yes |
+| Atomic writes | 3 | Edge cases | no | no |
+| Clock dependence | 3 | Edge cases | no | no |
+| Clock semantics | 3 | Edge cases | no | no |
+| Concurrency | 3 | Edge cases | no | no |
+| Indeterminate outcome | 3 | Edge cases | no | no |
+| String policy | 3 | Edge cases | no | no |
+| Composition notes | 2 | | no | no |
+| Terms | 2 | | yes | no |
+| Vocabulary | 3 | Terms | yes | no |
+| Standards references | 2 | | yes | no |
+| Status | 2 | | yes | no |
+| Ledger | 2 | | yes | no |
+| Decisions | 2 | | yes | no |
+
+The rule families the corpus files as edge cases — `Atomic writes`, `Clock dependence`, `Clock semantics`, `Concurrency`, `Indeterminate outcome`, `String policy` — are rows under `Edge cases` in both shapes, so one family has one address whichever shape carries it; a prose edge case is an unplaced heading after them. A heading that names the same thing as a row takes the row's name: *Record checks* is `Conformance checks`, *Configuration* knobs the deployment must set are `Capability requirement`, *Wiring decision* is `Wiring decision`.
 
 ---
 
@@ -262,4 +348,4 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 
 ## Status.
 
-`grounded — 2026-05-20` — first version of the canonical spec format reference. Enumerates the three shapes (atom, composition, regulated overlay) as exercised across the grounded corpus through Defensible Retention's Round 3 — [`roadmap.md`](./roadmap.md) is the single source of truth for the corpus's current contents and counts; this document states no library-state snapshot. Revised 2026-06-10 (Refactor 1): the ownership seam with the Execution Contract assigned (§Ownership seam with the Execution Contract), the composition-state subsection's semantics (then titled `Application state`) deferred to the Contract's composition-state rule, and the drifted pattern-count snapshot this line previously carried removed under the no-snapshot rule ([`CLAUDE.md`](./CLAUDE.md) §Current state of the library). Revised 2026-06-11: the cross-cutting authoring conventions gained the structural-relation invariant templates (guided-tool design review, F4), and the vocabulary direction landed — the composition shape's state subsection renamed `Application state` → **Composition state**, with the working nouns banned by lint rules J and K scoped out of this document. Revised 2026-06-13: the structural-relation invariant templates gained a fourth member — *acyclicity / well-foundedness* for self-referential relations — landing the concept-recovery exercise's strongest candidate as a template rather than a new atom (see [`roadmap.md`](./roadmap.md) §Concept-recovery atom backlog); the four templates were then promoted from an inline cross-cutting-conventions bullet to their own §Structural-relation invariant templates section with a plain-language table (presentation only — semantics unchanged, still cross-referenced to [`pressure-testing.md`](./pressure-testing.md) Pass 3 §Relations and [`execution-contract.md`](./execution-contract.md) §Composition state). Future refinements land via the standard scheduled-rescan and touch-triggered re-pass disciplines.
+`grounded — 2026-05-20` — first version of the canonical spec format reference. Enumerates the three shapes (atom, composition, regulated overlay) as exercised across the grounded corpus through Defensible Retention's Round 3 — [`roadmap.md`](./roadmap.md) is the single source of truth for the corpus's current contents and counts; this document states no library-state snapshot. Revised 2026-06-10 (Refactor 1): the ownership seam with the Execution Contract assigned (§Ownership seam with the Execution Contract), the composition-state subsection's semantics (then titled `Application state`) deferred to the Contract's composition-state rule, and the drifted pattern-count snapshot this line previously carried removed under the no-snapshot rule ([`CLAUDE.md`](./CLAUDE.md) §Current state of the library). Revised 2026-06-11: the cross-cutting authoring conventions gained the structural-relation invariant templates (guided-tool design review, F4), and the vocabulary direction landed — the composition shape's state subsection renamed `Application state` → **Composition state**, with the working nouns banned by lint rules J and K scoped out of this document. Revised 2026-06-13: the structural-relation invariant templates gained a fourth member — *acyclicity / well-foundedness* for self-referential relations — landing the concept-recovery exercise's strongest candidate as a template rather than a new atom (see [`roadmap.md`](./roadmap.md) §Concept-recovery atom backlog); the four templates were then promoted from an inline cross-cutting-conventions bullet to their own §Structural-relation invariant templates section with a plain-language table (presentation only — semantics unchanged, still cross-referenced to [`pressure-testing.md`](./pressure-testing.md) Pass 3 §Relations and [`execution-contract.md`](./execution-contract.md) §Composition state). Revised 2026-09-15: §Heading standard added as the one owner of every heading's name, level, parent, order and requirement for a migrated spec, read by `lint.py`'s `H-heading`; the composition list's subsections renamed to the names the migrated corpus uses (council read 80). Future refinements land via the standard scheduled-rescan and touch-triggered re-pass disciplines.

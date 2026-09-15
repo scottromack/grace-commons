@@ -15,7 +15,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Login wires together the full lifecycle of logging in: checking the presented credential, issuing a time-limited session on success, logging out, and — crucially — cancelling every session that came from a credential when that credential is revoked. It combines three patterns: one that verifies credentials (Credential), one that issues and tracks time-limited sessions (Session), and the tamper-evident audit record that spans all of it (Audit Trail).
@@ -299,7 +298,7 @@ Reconciliation 3 is what keeps the sweep cheap to reason about: every comparison
 
 ---
 
-### Composition-level invariants
+## Composition-level invariants
 
 Each emerges from the composition; none belongs to one constituent.
 
@@ -340,7 +339,6 @@ Each emerges from the composition; none belongs to one constituent.
 ---
 
 ## Examples
-
 
 ### Successful login and session use
 
@@ -470,6 +468,18 @@ Composition note 3 is the cascade's trigger and it is the deployment's to pull. 
 
 The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the emergent cascade action it exposes ([Revoke Sessions For Credential]) — the load-bearing surface neither constituent provides — its own `login` rejection ([Credential Invalid]), the distinctive `login_event_log` classifications it records ([Outcome], with its [Success With Map Failure] and [Failed Storage Failure] members), and the cascade result's integrity-gap counter ([Not Found]). The two eponymous thin-wrapper actions — `login` (verify → issue) and `logout` (revoke) — are left backticked (their names would also collide with the page heading and the *Logout* example anchor). Its emergent state — the cascade maps (`credential_to_sessions`, `session_to_credential`) and the `login_event_log` — is a composition-introduced surface no constituent provides, left as backticked store tokens. References to the constituent atoms and their operations — Credential's `verify` / `register` / `revoke`, Session's `issue` / `revoke` / `validate`, Audit Trail's `record_action` — the relayed tokens (`principal_ref`, `credential_id`, `session_token`, `credential_type`), the constituent states (`Active` / `Revoked`, and the derived `Expired` effective status), the Audit Trail event types (`login_succeeded`, `session_revoked_by_cascade`, `orphan_session_revoked`, …), and the inherited rejections (`invalid-request`, `not-known`, `already-terminal`, `storage-failure`) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
+### Vocabulary
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+
+Terms › `terms`: `composition`, `constituents`, `service identity`, `credential-to-sessions map`, `login event log`, `login-family events`, `seam`, `transition`, `issuer refs`, `login completion bound`, `blank`, `opaque argument`, `admitted login`, `admitted logout`, `admitted cascade`, `cascade set`, `revocation-family event`.
+
+Terms › `record verbs`: call, answer, read, write, append, store, key, hold, remove, change, rest, rebuild, record, retry, re-emit, close, escalate, examine, revoke, issue, gate, cascade, verify, attest, carry, select, query, offer, serve, compose, inherit, declare, set, configure, provision, rotate, own, act, adopt, bound, renew, bind, authorize, register, count, stand, follow, name, equal, agree, match, find, persist, generate, mint, normalize, compare, skip, union, supply, take, alert, run, limit, derive, shrink.
+
+Terms › `actors`: the composition; the constituents; the substrate; the host; the transition; a deployment; an auditor; a caller; a principal; the sweep; a session; a credential; an event.
+
+Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the derived-index and extraction-pending classifications. `execution-contract.md` §Substrate composition invocation — what naming a composition as a constituent means at runtime. `execution-contract.md` §Logic confinement — the seam and the transition.
+
 #### Revoke Sessions For Credential
 
 The composition's load-bearing emergent action: given a `credential_id`, it walks `credential_to_sessions[credential_id]` and revokes every still-`Active` derived session through `Session.revoke`, recording an initiation event, one event per session it acted on (already-terminal sessions are counted, not recorded), and a completion event carrying the counters. Returns `{revoked, skipped, failures, not_found}` (the snapshot accounting), or an inherited rejection. Called *after* an external `Credential.revoke`; it never revokes the credential itself. Neither constituent carries this cascade.
@@ -534,16 +544,6 @@ Projects:  not_found
 [Not Found]: #not-found
 
 ---
-
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
-
-Terms › `terms`: `composition`, `constituents`, `service identity`, `credential-to-sessions map`, `login event log`, `login-family events`, `seam`, `transition`, `issuer refs`, `login completion bound`, `blank`, `opaque argument`, `admitted login`, `admitted logout`, `admitted cascade`, `cascade set`, `revocation-family event`.
-
-Terms › `record verbs`: call, answer, read, write, append, store, key, hold, remove, change, rest, rebuild, record, retry, re-emit, close, escalate, examine, revoke, issue, gate, cascade, verify, attest, carry, select, query, offer, serve, compose, inherit, declare, set, configure, provision, rotate, own, act, adopt, bound, renew, bind, authorize, register, count, stand, follow, name, equal, agree, match, find, persist, generate, mint, normalize, compare, skip, union, supply, take, alert, run, limit, derive, shrink.
-
-Terms › `actors`: the composition; the constituents; the substrate; the host; the transition; a deployment; an auditor; a caller; a principal; the sweep; a session; a credential; an event.
-
-Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the derived-index and extraction-pending classifications. `execution-contract.md` §Substrate composition invocation — what naming a composition as a constituent means at runtime. `execution-contract.md` §Logic confinement — the seam and the transition.
 
 ## Standards references
 

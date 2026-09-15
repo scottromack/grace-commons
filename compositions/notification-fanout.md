@@ -15,7 +15,6 @@ toc: true
 {:toc}
 </details>
 
-
 ## Summary
 
 Notification Fanout connects an event to everyone who wants to hear about it. It combines two simpler patterns: one that records who is interested in which kind of event (Subscription) and one that creates a delivery record for one recipient and tracks whether it succeeded (Notification). Neither can do the job alone — the first knows who is interested but cannot deliver, the second can record a delivery but cannot decide who should get it.
@@ -177,38 +176,6 @@ The alternative is all-or-nothing, and it fails the case it exists for: a store 
 
 Wiring decision 3 is bounded by what a completed call can claim. A crash inside the fan-out produces no result and therefore no account of anybody — the coverage claim is over an invocation that answered, and Invariant 1 carries the same bound (Ledger 2026-08-27-g).
 
-### Clock semantics
-
-```text
-Clock semantics 1: The fired_at MUST stand as a lower bound on the instant the subscription store fixed the subscriber set.
-Clock semantics 2: The composition MUST NOT claim the fired_at as the instant the subscription store fixed the subscriber set.
-Clock semantics 3: The composition MUST NOT claim the fired_at equal to a notification record's created_at.
-Clock semantics 4: The composition MUST answer the fired_at to the caller.
-```
-
-WHY:
-The set is fixed when the subscription store executes the read, which the composition never observes — `subscribers_for` takes and returns no instant — and validation, dispatch and read latency stand between the seam reading and that execution. An earlier draft called `fired_at` *the instant the subscriber set is fixed*, which named a moment nothing on this page can see. Clock semantics 4 is why the field is returned at all: the caller cannot observe that instant either, so asking a caller to log its own invocation time would pin the wrong one and silently widen the very window Check 1 bounds.
-
-### Indeterminate outcome
-
-```text
-Indeterminate outcome 1: An unrecordable create MUST stand as indeterminate.
-Indeterminate outcome 2: The composition MUST NOT read an unrecordable create as no record.
-Indeterminate outcome 3: A caller retrying a failed subscriber_ref MUST call Notification's create for the subscriber_ref.
-Indeterminate outcome 4: A caller retrying an indeterminate subscriber_ref MUST accept a second notification record.
-Indeterminate outcome 5: A caller MUST read every subscriber_ref failing alike as the payload's fault.
-Indeterminate outcome 6: A caller MUST read one subscriber_ref failing alone as the subscriber_ref's fault.
-Indeterminate outcome 7: A caller needing at-most-once across an indeterminate create MUST compose [Idempotent Reservation](./idempotent-reservation.md).
-Indeterminate outcome 8: A caller MUST NOT read Notification's pending_for as finding an indeterminate create's record.
-```
-
-WHY:
-A create that times out or comes back unacknowledged may have committed a record whose id never returned, and **no reconciliation from the bare atoms can find it.** `pending_for` answers only records still pending, so one the delivery layer already moved is invisible to it (Indeterminate outcome 8); a payload is not a fanout identity, since [Notification](../atoms/notification.md) permits any number of records over one `(recipient_ref, payload)` pair and concurrent fanouts legitimately share a payload; and `create` declares no idempotency key by which a retry could name the record it means. A guard composed around the *retry* alone sees nothing of the original create and admits the retry.
-
-So a retry of an indeterminate entry is at-least-once and a second record is a residual the caller accepts, which is why Invariant 4 is scoped to the records the composition observed. Indeterminate outcome 7 names the cure rather than promising it: closing this needs an idempotency key at a store that can honor one, which is outside this composition's surface.
-
-Indeterminate outcome 5 and Indeterminate outcome 6 are the discriminator the composition can offer without a reason field. Every subscriber failing identically is the payload outside [Notification](../atoms/notification.md)'s acceptance; one subscriber failing alone is that `subscriber_ref` outside it — [Subscription](../atoms/subscription.md) admits a whitespace-only ref and imposes no length cap where Notification refuses both, and that enumerable divergence is where a single structural failure comes from (Ledger 2026-08-27-l).
-
 ---
 
 ## Composition-level invariants
@@ -256,7 +223,6 @@ Invariants 1 through 5 and Invariant 8 emerge from the composition; neither cons
 ---
 
 ## Examples
-
 
 ### Walkthrough
 
@@ -389,6 +355,42 @@ Non-goal 10 is the boundary with the delivery layer. This composition creates re
 
 ---
 
+## Edge cases
+
+### Clock semantics
+
+```text
+Clock semantics 1: The fired_at MUST stand as a lower bound on the instant the subscription store fixed the subscriber set.
+Clock semantics 2: The composition MUST NOT claim the fired_at as the instant the subscription store fixed the subscriber set.
+Clock semantics 3: The composition MUST NOT claim the fired_at equal to a notification record's created_at.
+Clock semantics 4: The composition MUST answer the fired_at to the caller.
+```
+
+WHY:
+The set is fixed when the subscription store executes the read, which the composition never observes — `subscribers_for` takes and returns no instant — and validation, dispatch and read latency stand between the seam reading and that execution. An earlier draft called `fired_at` *the instant the subscriber set is fixed*, which named a moment nothing on this page can see. Clock semantics 4 is why the field is returned at all: the caller cannot observe that instant either, so asking a caller to log its own invocation time would pin the wrong one and silently widen the very window Check 1 bounds.
+
+### Indeterminate outcome
+
+```text
+Indeterminate outcome 1: An unrecordable create MUST stand as indeterminate.
+Indeterminate outcome 2: The composition MUST NOT read an unrecordable create as no record.
+Indeterminate outcome 3: A caller retrying a failed subscriber_ref MUST call Notification's create for the subscriber_ref.
+Indeterminate outcome 4: A caller retrying an indeterminate subscriber_ref MUST accept a second notification record.
+Indeterminate outcome 5: A caller MUST read every subscriber_ref failing alike as the payload's fault.
+Indeterminate outcome 6: A caller MUST read one subscriber_ref failing alone as the subscriber_ref's fault.
+Indeterminate outcome 7: A caller needing at-most-once across an indeterminate create MUST compose [Idempotent Reservation](./idempotent-reservation.md).
+Indeterminate outcome 8: A caller MUST NOT read Notification's pending_for as finding an indeterminate create's record.
+```
+
+WHY:
+A create that times out or comes back unacknowledged may have committed a record whose id never returned, and **no reconciliation from the bare atoms can find it.** `pending_for` answers only records still pending, so one the delivery layer already moved is invisible to it (Indeterminate outcome 8); a payload is not a fanout identity, since [Notification](../atoms/notification.md) permits any number of records over one `(recipient_ref, payload)` pair and concurrent fanouts legitimately share a payload; and `create` declares no idempotency key by which a retry could name the record it means. A guard composed around the *retry* alone sees nothing of the original create and admits the retry.
+
+So a retry of an indeterminate entry is at-least-once and a second record is a residual the caller accepts, which is why Invariant 4 is scoped to the records the composition observed. Indeterminate outcome 7 names the cure rather than promising it: closing this needs an idempotency key at a store that can honor one, which is outside this composition's surface.
+
+Indeterminate outcome 5 and Indeterminate outcome 6 are the discriminator the composition can offer without a reason field. Every subscriber failing identically is the payload outside [Notification](../atoms/notification.md)'s acceptance; one subscriber failing alone is that `subscriber_ref` outside it — [Subscription](../atoms/subscription.md) admits a whitespace-only ref and imposes no length cap where Notification refuses both, and that enumerable divergence is where a single structural failure comes from (Ledger 2026-08-27-l).
+
+---
+
 ## Composition notes
 
 ```text
@@ -407,6 +409,20 @@ Composition note 4 is the mechanism-versus-policy split written as an obligation
 ## Terms
 
 The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the single emergent action it exposes ([Fanout]) and the parts of the result that action returns — the [Fanout Id] correlation handle it takes from the seam, the [Fired At] instant at which it fixed the subscriber set, plus the [Created] and [Failed] lists that partition that set — and its own [Subscribers Unavailable] rejection. The composition keeps **no state of its own** (Composition state: none), so there is no record store to carry a term entry. References to the constituent atoms and their operations — Subscription's `subscribers_for`, Notification's `create` / `status_of` — the relayed constituent tokens (`event_scope`, `subscriber_ref`, `notification_id`, `payload`), and the composition's own boundary rejection (`invalid-request`, Primitive policy 1–2, inherited from neither constituent) remain qualified/backticked, not carded here (the write-side infrastructure failure carries no constituent token — it is the boundary-owned classification of action wiring step 4, absorbed into [Failed]). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+
+### Vocabulary
+
+Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+
+Terms › `terms`: `composition`, `constituents`, `seam`, `transition`, `read latency bound`, `blank`, `admitted fanout`, `created list`, `failed list`, `unrecordable create`, `boundary window`.
+
+Terms › `record verbs`: call, answer, take, read, write, record, validate, compare, normalize, bound, stand, carry, claim, find, name, own, discharge, inherit, change, serve, compose, declare, disclose, supply, draw, mint, commit, order, continue, abort, account, skip, expand, match, deliver, authorize, reconstruct, sum, persist, guarantee, accept, retry, follow, reference, share, store, meet.
+
+Terms › `actors`: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; a subscriber; a notification record; a subscription record.
+
+Terms › `value sets`: fanout answers = {fanout_id, created, failed, fired_at} | rejected(invalid-request | subscribers-unavailable).
+
+Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the no-stored-state classification and the record-coordination rule. `execution-contract.md` §Logic confinement — the seam and the transition.
 
 #### Fanout
 
@@ -498,18 +514,6 @@ Projects: boundary_window
 [Boundary Window]: #boundary-window
 
 ---
-
-Terms › `qualifiers`: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
-
-Terms › `terms`: `composition`, `constituents`, `seam`, `transition`, `read latency bound`, `blank`, `admitted fanout`, `created list`, `failed list`, `unrecordable create`, `boundary window`.
-
-Terms › `record verbs`: call, answer, take, read, write, record, validate, compare, normalize, bound, stand, carry, claim, find, name, own, discharge, inherit, change, serve, compose, declare, disclose, supply, draw, mint, commit, order, continue, abort, account, skip, expand, match, deliver, authorize, reconstruct, sum, persist, guarantee, accept, retry, follow, reference, share, store, meet.
-
-Terms › `actors`: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; a subscriber; a notification record; a subscription record.
-
-Terms › `value sets`: fanout answers = {fanout_id, created, failed, fired_at} | rejected(invalid-request | subscribers-unavailable).
-
-Terms › `cited`: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the no-stored-state classification and the record-coordination rule. `execution-contract.md` §Logic confinement — the seam and the transition.
 
 ## Standards references
 
