@@ -345,8 +345,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   ```text
   reference_length_cap 1: [Record Action] step 1 MUST apply reference_length_cap to action_ref and to actor_ref independently.
   reference_length_cap 2: reference_length_cap MUST NOT EXCEED reference headroom.
-  reference_length_cap 3: A deployment MAY raise reference_length_cap above 1 KB ONLY IF a genuine reference scheme EXCEEDS 1 KB.
-  reference_length_cap 4: IF reference_length_cap NOT EXISTS THEN the instance MUST take 1 KB.
+  reference_length_cap 3: A deployment MAY raise reference_length_cap above 1 kilobyte ONLY IF a genuine reference scheme EXCEEDS 1 kilobyte.
+  reference_length_cap 4: IF reference_length_cap NOT EXISTS THEN the instance MUST take 1 kilobyte.
   ```
   Terms › `reference headroom`: `payload_cap − attestation_id_width − the largest data the deployment intends to accept`.
 

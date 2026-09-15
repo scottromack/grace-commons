@@ -912,7 +912,7 @@ def check_doubled_section_synthetic(problems: list[str]) -> None:
 
 
 def check_caps_synthetic(problems: list[str]) -> None:
-    """R-caps / W-caps (tools/grace/check.py) — landed at council read 79, when
+    """R-caps (tools/grace/check.py) — landed at council read 79, when
     WHILE, WHERE and EXIST were found in three normative rules both checkers
     passed. Six fixtures, one per shape the split has to hold."""
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
@@ -928,7 +928,7 @@ def check_caps_synthetic(problems: list[str]) -> None:
     for name, text, shaped, other in cases:
         got = unreserved_capitals(text)
         if got != (shaped, other):
-            problems.append(f"R-caps/W-caps: {name} read as {got}, expected {(shaped, other)}")
+            problems.append(f"R-caps: {name} read as {got}, expected {(shaped, other)}")
 
 
 def check_heading_synthetic(problems: list[str]) -> None:
@@ -1094,9 +1094,9 @@ def main(argv: list[str]) -> int:
     check_caps_synthetic(caps_problems)
     failures.extend(caps_problems)
     if not caps_problems:
-        print("R-caps / W-caps: 6 synthetic fixtures hold (a watched form, an "
+        print("R-caps: 6 synthetic fixtures hold (a watched form, an "
               "inflection and a provisional form gate; a capitalized proper noun is "
-              "advisory; reserved tokens and a quoted form stay silent) \u2713")
+              "sorted apart, both gating; reserved tokens and a quoted form stay silent) \u2713")
 
     r_problems: list[str] = []
     check_r_synthetic(r_problems)

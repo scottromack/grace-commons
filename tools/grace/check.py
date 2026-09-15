@@ -113,8 +113,8 @@ def unreserved_capitals(text: str) -> tuple[list[str], list[str]]:
 
     Grammar-shaped: a provisional or watched form, or an inflection of a reserved
     token (EXIST, EXCEEDING). Other: a proper noun written in capitals (an
-    acronym, the language's name) — whether a rule may carry one is a ruling the
-    grammar has not made, so it is reported and not decided.
+    acronym, the language's name). Both gate: the maintainer ruled at council
+    read 85 that a rule spells a proper noun out, with no declared exception.
     """
     shaped, other = [], []
     for w in CAPITAL_WORD.findall(re.sub(r"`[^`]*`", " ", text)):
@@ -212,7 +212,7 @@ SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-two-obligations", "W-demonstrative", "W-comparator", "W-modal",
             "W-unconditional-effect", "W-condition-operator", "W-duplicate-proposition",
-            "W-ge-disjunction", "W-caps",
+            "W-ge-disjunction",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
 # F-prefix-first gates: a demoted rule is a deleted rule
@@ -468,10 +468,10 @@ def scan(path: Path) -> list[Finding]:
                 f"{r.label}: {', '.join(caps_shaped)} in capitals is not a reserved token — "
                 f"a watched or provisional form, or an inflection of one (Casing 2, Casing 6)")
         if caps_other:
-            add(r.line, "W-caps",
-                f"{r.label}: {', '.join(caps_other)} in capitals is not a reserved token, and "
-                f"Casing 6 reads the capital tier as reserved (a proper noun in capitals "
-                f"awaits a ruling)")
+            add(r.line, "R-caps",
+                f"{r.label}: {', '.join(caps_other)} in capitals is not a reserved token — a proper "
+                f"noun or acronym in a rule is spelled out, because Casing 6 reads the capital "
+                f"tier as reserved (ruled at council read 85)")
         if body.startswith("WHEN "):
             if not body.endswith(":"):
                 add(r.line, "R-when-colon", f"{r.label}: WHEN condition must end with a colon")

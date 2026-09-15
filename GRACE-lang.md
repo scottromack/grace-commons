@@ -50,12 +50,12 @@ Surface 3: The parser MUST NOT read a line outside a normative block as normativ
 Surface 4: EVERY normative line MUST parse.
 Surface 5: A normative line MUST state `WHAT`.
 Surface 6: WHY: MUST NOT create, satisfy or alter an obligation, an enumeration or a reverse-diff result.
-Surface 7: A reader MUST NOT infer normative GRACE from WHY:.
-Surface 8: A human or AI MAY generate WHY: from normative GRACE.
+Surface 7: A reader MUST NOT infer a normative line from WHY:.
+Surface 8: A human or a language model MAY generate WHY: from a normative line.
 Surface 9: A writer MAY regenerate or discard WHY: at any time.
-Surface 10: UX: MUST NOT create behavior absent from normative GRACE.
+Surface 10: UX: MUST NOT create behavior absent from every normative line.
 Surface 11: UX: MUST NOT alter normative meaning.
-Surface 12: A reader MUST NOT infer normative GRACE from UX:.
+Surface 12: A reader MUST NOT infer a normative line from UX:.
 Surface 13: A writer MAY write UX: warm, explanatory or context-specific.
 Surface 14: A provisional form MUST NOT carry normative force.
 Surface 15: The parser MUST ignore WHY:, UX:, NOTE: and PROVISIONAL: lines.
@@ -134,12 +134,12 @@ Only the normative line carries meaning the system must obey (Surface 16, Surfac
 ### 4. Direction of Generation
 
 ```text
-Direction 1: A writer MAY generate WHY: from normative GRACE.
-Direction 2: A writer MAY generate UX: from normative GRACE.
-Direction 3: A writer MUST NOT generate normative GRACE from WHY:.
-Direction 4: A writer MUST NOT generate normative GRACE from UX:.
+Direction 1: A writer MAY generate WHY: from a normative line.
+Direction 2: A writer MAY generate UX: from a normative line.
+Direction 3: A writer MUST NOT generate a normative line from WHY:.
+Direction 4: A writer MUST NOT generate a normative line from UX:.
 Direction 5: A drafter MAY use fuzzy intent while drafting.
-Direction 6: A written normative rule MUST stand alone and pass every GRACE check.
+Direction 6: A written normative rule MUST stand alone and pass every check this grammar declares.
 Direction 7: A writer MUST NOT keep fuzzy intent as a source of truth.
 ```
 
@@ -443,7 +443,7 @@ Terms › `identifier`: a subject, an object, a term name or a value in a rule; 
 
 Terms › `actor`: a declared identifier that may serve as a rule's subject.
 
-Terms › `agent`: an actor that can perform a rule's verb — the grammar; §21; the parser; a specification; a citing spec; an owner; a system; a reader; a writer; a drafter; a human; AI; the reverse diff; a maintainer; a party. A rule whose subject is an actor and not an agent constrains the writer (`obey`).
+Terms › `agent`: an actor that can perform a rule's verb — the grammar; §21; the parser; a specification; a citing spec; an owner; a system; a reader; a writer; a drafter; a human; a language model; the reverse diff; a maintainer; a party. A rule whose subject is an actor and not an agent constrains the writer (`obey`).
 
 WHY:
 A named expression has one owner, and a diff can match it by name. Closed vocabulary 8 is what rejects the passive — *The actor MUST be granted invite_actor* has no declared record verb after the modal — which is why no parser invariant restates the rule. A citation form lets a composition use a constituent's term without restating it.
@@ -455,7 +455,7 @@ record verb record_action: Audit Trail
 
 #### This document's own vocabulary
 
-Terms › `actors`: (every subject in this document, agent or not) the grammar; §21 (the lock list); the parser; a specification (a spec); a rule; a statement; a sentence (a rule's text); a condition; a form; a sugar form; a term; a declaration; a WHEN block; a tail; a surface; a system; a reader; a writer; a drafter; a human; AI; the reverse diff; the normalized form (the representation); fuzzy intent; a value set; a value; an enumeration; a synonym; a citing spec; an owner (the spec that declares a term); a registry (a spec's Terms section); `WHY:`; `UX:`; `NOTE:`; `PROVISIONAL:`; sugar; complexity; arithmetic; a label; an obligation; a proposition; an invariant; a tombstone; an ordinal; a pronoun; a line; a fenced block; a party; a run; a maintainer; a child; a category; an actor; an agent.
+Terms › `actors`: (every subject in this document, agent or not) the grammar; §21 (the lock list); the parser; a specification (a spec); a rule; a statement; a sentence (a rule's text); a condition; a form; a sugar form; a term; a declaration; a WHEN block; a tail; a surface; a system; a reader; a writer; a drafter; a human; a language model; the reverse diff; the normalized form (the representation); fuzzy intent; a value set; a value; an enumeration; a synonym; a citing spec; an owner (the spec that declares a term); a registry (a spec's Terms section); `WHY:`; `UX:`; `NOTE:`; `PROVISIONAL:`; sugar; complexity; arithmetic; a label; an obligation; a proposition; an invariant; a tombstone; an ordinal; a pronoun; a line; a fenced block; a party; a run; a maintainer; a child; a category; an actor; an agent.
 
 Terms › `record verbs`: decide, contain, admit, recur, satisfy, live, state, read, parse, create, alter, infer, generate, regenerate, discard, write, obey, ignore, carry, use, stand, pass, route, mix, nest, normalize, name, restate, resolve, cite, declare, acquire, redeclare, renumber, reuse, enumerate, reject, lower, report, treat, assume, keep, express, mark, shorten, add, accept, supply, earn, belong, cover, classify, claim, qualify, give, match, place, bind, reserve, compare, land, promote, rest, take, rank, omit, order.
 

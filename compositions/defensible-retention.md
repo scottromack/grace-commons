@@ -180,9 +180,9 @@ Capability requirement 23: A deployment MAY start an instance ONLY IF the compen
 Capability requirement 24: A deployment MUST set the hold check mode.
 Capability requirement 25: The hold check mode MUST stand as one instance-wide value.
 Capability requirement 26: An action MUST NOT read a per-record hold check mode.
-Capability requirement 27: A deployment under FRCP Rule 37(e) MUST NOT set advisory.
-Capability requirement 28: A deployment under SEC Rule 17a-4 MUST NOT set advisory.
-Capability requirement 29: A deployment under SOX MUST NOT set advisory.
+Capability requirement 27: A deployment under Rule 37(e) of the Federal Rules of Civil Procedure MUST NOT set advisory.
+Capability requirement 28: A deployment under Securities and Exchange Commission Rule 17a-4 MUST NOT set advisory.
+Capability requirement 29: A deployment under the Sarbanes-Oxley Act MUST NOT set advisory.
 Capability requirement 30: A deployment needing two hold check modes MUST run two instances over disjoint records.
 Capability requirement 31: A deployment MUST resolve a policy_ref at Retention Window's seam.
 Capability requirement 32: The composition MUST NOT reconcile two policies.

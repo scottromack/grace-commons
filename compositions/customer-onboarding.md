@@ -245,7 +245,7 @@ Capability requirement 38: The composition MUST NOT reconcile two policies.
 Capability requirement 39: An activity system MUST NOT read the Party Identity instance.
 Capability requirement 40: A deployment MUST run a review scheduler outside the composition.
 Capability requirement 41: The composition MUST NOT fire a review.
-Capability requirement 42: A deployment under BSA/AML MUST alert on an owed record.
+Capability requirement 42: A deployment under the Bank Secrecy Act and Anti-Money Laundering rules MUST alert on an owed record.
 Capability requirement 43: A deployment MUST NOT set the monitoring interval PER party at this composition.
 Capability requirement 44: The deployment MUST own the clock's honesty.
 ```
