@@ -31,6 +31,9 @@ the three-pass review otherwise has to catch by eye —
                               F-stripped-link.
   F. Composes list          — a composition's Composes section lists its linked
                               constituents. F-composes-list.
+  F. Constituents agree     — a composition's Composes list, `Term constituents`
+                              and `EXACTLY ONE … MUST serve` rules name the same
+                              specifications. F-constituents.
   F. Range form             — every run of labels, in every Markdown file, is
                               written `Family N through M`: no dash, no repeated or
                               plural family, no *to*, and the last number follows the
@@ -2803,7 +2806,10 @@ STRIPPED_LINK = re.compile(
     r"(?<![\[\]\w`/])[A-Za-z][A-Za-z' -]*\((?:\.\./)*(?:atoms/|compositions/|\./)"
     r"[a-z0-9-]+\.md(?:#[^)]*)?\)")
 COMPOSES_BULLET = re.compile(
-    r"^\s*-\s+\*{0,2}\[[^\]]+\]\((?:\.\./atoms/(?:[a-z-]+/)?|\./)[a-z0-9-]+\.md\)", re.M)
+    r"^\s*-\s+\*{0,2}\[[^\]]+\]\((?:\.\./atoms/(?:[a-z-]+/)?|\./)([a-z0-9-]+)\.md\)", re.M)
+CONSTITUENT_LINK = re.compile(r"\[[^\]]+\]\((?:\.\./atoms/(?:[a-z-]+/)?|\./)([a-z0-9-]+)\.md\)")
+TERM_CONSTITUENTS = re.compile(r"^Term constituents: (.*)$", re.M)
+SERVE_RULE = re.compile(r"^\s*Composes \d+[a-z]?: EXACTLY ONE (.+?) (?:instance|shape) MUST serve", re.M)
 
 
 def check_stripped_links(root: Path) -> list[Finding]:
@@ -2845,6 +2851,44 @@ def check_composes_list(patterns: dict[Path, Pattern]) -> list[Finding]:
                 "the Composes section lists no linked constituent — "
                 "`- **[Name](path)** — role.` (spec-format.md §Composes); the "
                 "generated catalogue, graph and pattern data read this list"))
+    return out
+
+
+def check_constituents_agree(patterns: dict[Path, Pattern]) -> list[Finding]:
+    """F. A composition names its constituents in up to three places: the
+    Composes list (the reader's copy, which the generated views read), a
+    `Term constituents` declaration, and the `Composes N: EXACTLY ONE X instance
+    MUST serve` rules. Where a second or third is present, it names the same
+    specifications as the list. Actor Suspension's list carried a constituent
+    its declaration and its rules did not, found by hand (council read 94)."""
+    titles: dict[str, str] = {}
+    for q in patterns.values():
+        m = H1_TITLE.search(q.text)
+        if m:
+            titles[TRAILING_PAREN.sub("", m.group(1)).strip()] = q.path.stem
+    out: list[Finding] = []
+    for p in patterns.values():
+        if p.path.parent.name != "compositions":
+            continue
+        sec = re.search(r"(?ms)^## Composes\b[^\n]*\n(.*?)(?=^## |\Z)", p.text)
+        if not sec or not COMPOSES_BULLET.search(sec.group(1)):
+            continue  # F-composes-list owns a missing list
+        listed = set(COMPOSES_BULLET.findall(sec.group(1)))
+        homes = []
+        tc = TERM_CONSTITUENTS.search(p.text)
+        if tc:
+            homes.append(("`Term constituents`", tc.start(), set(CONSTITUENT_LINK.findall(tc.group(1)))))
+        serve = SERVE_RULE.findall(sec.group(1))
+        if serve:
+            homes.append(("the `EXACTLY ONE … MUST serve` rules", sec.start(),
+                          {titles.get(n, "?" + n) for n in serve}))
+        for where, at, named in homes:
+            if named != listed:
+                extra = sorted(listed - named)
+                missing = sorted(named - listed)
+                out.append(Finding(p.path, line_of(p.text, at), "F-constituents",
+                    f"{where} and the Composes list disagree — list only: "
+                    f"{', '.join(extra) or 'none'}; {where} only: {', '.join(missing) or 'none'}"))
     return out
 
 
@@ -2910,6 +2954,7 @@ def main(argv: list[str]) -> int:
     findings += check_range_form(root)
     findings += check_stripped_links(root)
     findings += check_composes_list(patterns)
+    findings += check_constituents_agree(patterns)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
     for f in findings:

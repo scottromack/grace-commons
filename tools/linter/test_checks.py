@@ -39,6 +39,7 @@ from lint import (  # noqa: E402
     check_range_form,
     check_stripped_links,
     check_composes_list,
+    check_constituents_agree,
     invariant_numbers,
     Pattern,
     check_atomicity_over_audit,
@@ -1299,6 +1300,50 @@ def check_generated_views_synthetic(problems: list[str]) -> int:
     return n
 
 
+def check_constituents_synthetic(problems: list[str]) -> int:
+    """F-constituents (council read 94). Three homes that agree stay silent; a
+    list item the declaration omits, a declaration naming a spec the list omits,
+    and a serve rule naming a spec the list omits each fire; a composition with
+    no second home is not compared. Returns the fixture count."""
+    import tempfile
+    head = "# {t}\n\nTerm qualifiers: migrated.\n\n"
+    def comp(title, items, term, serve):
+        body = head.format(t=title) + "## Composes\n\n"
+        body += "".join(f"- **[{n}](../atoms/{s}.md)** — a role.\n" for n, s in items) + "\n"
+        if serve:
+            body += "```\n" + "".join(f"Composes {i}: EXACTLY ONE {n} instance MUST serve the composition.\n"
+                                        for i, n in enumerate(serve, 1)) + "```\n\n"
+        if term is not None:
+            body += "Term constituents: " + ", ".join(f"[{n}](../atoms/{s}.md)" for n, s in term) + ".\n\n"
+        return body + "## Next\n"
+    P, S = ("Permissions", "permissions"), ("Session", "session")
+    cases = [
+        ("agree", comp("Agree", [P, S], [P, S], ["Permissions", "Session"]), False),
+        ("no second home", comp("Alone", [P, S], None, []), False),
+        ("a list item the declaration omits", comp("Extra", [P, S], [P], []), True),
+        ("a declaration naming a spec the list omits", comp("Short", [P], [P, S], []), True),
+        ("a serve rule naming a spec the list omits", comp("Serve", [P], None, ["Permissions", "Session"]), True),
+    ]
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        (root / "compositions").mkdir()
+        pats = {}
+        for n, stem in (P, S):
+            f = root / "atoms" / f"{stem}.md"
+            f.write_text(f"# {n}\n", encoding="utf-8")
+            pats[f] = Pattern(path=f, text=f"# {n}\n", invariant_count=0, grounded=False)
+        for name, text, _ in cases:
+            f = root / "compositions" / (name.replace(" ", "-") + ".md")
+            f.write_text(text, encoding="utf-8")
+            pats[f] = Pattern(path=f, text=text, invariant_count=0, grounded=False)
+        fired = {f.path.stem.replace("-", " ") for f in check_constituents_agree(pats)}
+    for name, _, should in cases:
+        if (name in fired) != should:
+            problems.append(f"F-constituents: {name} {'did not fire' if should else 'fired'}")
+    return len(cases)
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -1428,6 +1473,14 @@ def main(argv: list[str]) -> int:
         print("D-tombstone-form: 5 synthetic fixtures hold (a tombstone written first keeps "
               "its block live; the retired shape, a missing period, a missing close and "
               "a missing label fire) \u2713")
+
+    constituent_problems: list[str] = []
+    n_const = check_constituents_synthetic(constituent_problems)
+    failures.extend(constituent_problems)
+    if not constituent_problems:
+        print(f"F-constituents: {n_const} synthetic fixtures hold (three agreeing homes and a lone list "
+              "silent; an extra list item, a declaration naming more, and a serve rule naming more "
+              "fire) \u2713")
 
     view_problems: list[str] = []
     n_view = check_generated_views_synthetic(view_problems)
