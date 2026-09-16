@@ -107,11 +107,23 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-assign(task_ref, assignee_ref) → assignment_id | rejected(invalid-request | already-assigned | storage-failure)
-recall(assignment_id) → ok | rejected(not-known | not-active | storage-failure)
-reassign(assignment_id, new_assignee_ref) → new_assignment_id | rejected(not-known | not-active | invalid-request | storage-failure)
-active_for(task_ref) → assignment | none
-history_for(task_ref) → assignments
+assign(task_ref, assignee_ref)
+  answers assignment_id
+  refuses invalid-request | already-assigned | storage-failure
+
+recall(assignment_id)
+  answers ok
+  refuses not-known | not-active | storage-failure
+
+reassign(assignment_id, new_assignee_ref)
+  answers new_assignment_id
+  refuses not-known | not-active | invalid-request | storage-failure
+
+active_for(task_ref)
+  answers assignment | none
+
+history_for(task_ref)
+  answers assignments
 ```
 
 ```text
@@ -364,7 +376,7 @@ Term records: `assignment` — one binding, carrying `assignment_id`, `task_ref`
 
 Term record verbs: identify, allocate, supply, reuse, carry, stand, stamp, offer, delete, hold, record, answer, leave, write, read, commit, withdraw, order, set, change, move, take, share, observe, shrink, make, repair, accept, require, expire, check, cap, bind, recall, compose, own, attest, declare, find, reconstruct, re-derive, exceed.
 
-Term value sets: assign answers = assignment_id | rejected(invalid-request | already-assigned | storage-failure). recall answers = ok | rejected(not-known | not-active | storage-failure). reassign answers = new_assignment_id | rejected(not-known | not-active | invalid-request | storage-failure). active_for answers = an assignment | none. history_for answers = the assignments carrying the task_ref, by assigned_at. `status` = active | recalled | transferred.
+Term value sets: assign answers assignment_id and refuses invalid-request | already-assigned | storage-failure. recall answers ok and refuses not-known | not-active | storage-failure. reassign answers new_assignment_id and refuses not-known | not-active | invalid-request | storage-failure. active_for answers an assignment | none. history_for answers the assignments carrying the task_ref, by assigned_at. `status` = active | recalled | transferred.
 
 Term bounds: empty.
 

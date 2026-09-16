@@ -219,6 +219,81 @@ ARITH = re.compile(r"[+×−]|\s-\s")
 MARKER = re.compile(r"\[([^\]\[]+)\]")
 CODE_SPAN = re.compile(r"`[^`]*`")
 SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
+# The signature form (GRACE-lang v0.48, Closed vocabulary 24): a header naming
+# the inputs, an answers line, a refuses line where the action refuses.
+_SIG_NAME = r"[a-z_][a-z0-9_]*"
+SIG_HEAD = re.compile(r"^(" + _SIG_NAME + r")\(((?:optional )?" + _SIG_NAME +
+                      r"(?:, (?:optional )?" + _SIG_NAME + r")*)?\)$")
+_SIG_WORD = r"[a-z][a-z0-9_-]*"
+_SIG_ARM = (_SIG_WORD + r"(?: " + _SIG_WORD + r")*" +
+            r"(?:\((?:" + _SIG_WORD + r"(?: " + _SIG_WORD + r")*)(?:, " +
+            _SIG_WORD + r"(?: " + _SIG_WORD + r")*)*\))?")
+SIG_ARMS = re.compile(r"^" + _SIG_ARM + r"(?: \| " + _SIG_ARM + r")*$")
+# a refusal is one word: two words with no `|` between them are two codes
+# read as one (the class V-signature-alternation caught in the older form)
+_SIG_CODE = _SIG_WORD + _SIG_ARM[_SIG_ARM.index("(?:\\(("):]
+SIG_CODES = re.compile(r"^" + _SIG_CODE + r"(?: \| " + _SIG_CODE + r")*$")
+SIG_RETIRED = (("→", "the arrow"), ("->", "the arrow"), ("?", "a trailing `?`"),
+               ("{", "a braced record"), ("rejected(", "the `rejected(…)` wrapper"))
+
+
+def signature_form(body: list[str]) -> list[tuple[int, str]]:
+    """Where a signature block leaves the signature form, and why — offsets
+    into `body`. Closed vocabulary 24 through 27."""
+    out: list[tuple[int, str]] = []
+    expect = "head"
+    for off, raw in enumerate(body):
+        why = next((w for tok, w in SIG_RETIRED if tok in raw), None)
+        if why:
+            out.append((off, f"{why}, which the signature form retired"))
+            expect = "head"
+            continue
+        if not raw.strip():
+            if expect == "answers":
+                out.append((off, "a signature with no answers line"))
+            expect = "head"
+            continue
+        if raw.startswith("  answers "):
+            if expect != "answers":
+                out.append((off, "an answers line with no signature above it"))
+            elif not SIG_ARMS.match(raw[len("  answers "):]):
+                out.append((off, "answers arms that are not names, or an arm holding an arm"))
+            expect = "refuses"
+            continue
+        if raw.startswith("  refuses "):
+            if expect != "refuses":
+                out.append((off, "a refuses line that does not follow an answers line"))
+            elif not SIG_CODES.match(raw[len("  refuses "):]):
+                out.append((off, "refusals that are not one-word codes separated by `|`, or an arm holding an arm"))
+            expect = "blank"
+            continue
+        if expect not in ("head",):
+            out.append((off, "two signatures with no blank line between them"
+                        if SIG_HEAD.match(raw) else "a line the signature form has no place for"))
+            expect = "answers" if SIG_HEAD.match(raw) else "head"
+            continue
+        if not SIG_HEAD.match(raw):
+            out.append((off, "a header that is not `name(input, optional input)` on one line"))
+        expect = "answers"
+    if expect == "answers":
+        out.append((len(body) - 1, "a signature with no answers line"))
+    return out
+
+
+def example_call(lines: list[str], k: int) -> bool:
+    """A bare fence opening with a call whose arguments carry values — `name:
+    value` or a literal — is an example, the surface nothing (Surface 21)."""
+    text = "\n".join(lines[k:k + 8])
+    depth, args = 0, ""
+    for ch in text[text.index("("):]:
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth == 0:
+                break
+        args += ch
+    return ":" in args or '"' in args
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-two-obligations", "W-demonstrative", "W-comparator", "W-modal",
             "W-unconditional-effect", "W-condition-operator", "W-duplicate-proposition",
@@ -361,17 +436,16 @@ def scan(path: Path) -> list[Finding]:
             while k < n and not lines[k].strip():
                 k += 1
             head = lines[k].strip() if k < n else ""
-            if m.group(2) == "" and SIGNATURE.match(head):
+            if m.group(2) == "" and SIGNATURE.match(head) and not example_call(lines, k):
                 end = k
                 while end < n and not (FENCE.match(lines[end]) and FENCE.match(lines[end]).group(2) == ""):
                     end += 1
-                body = " ".join(x.strip() for x in lines[k:end])
-                if "→" not in body:
-                    add(k, "F-signature", f"signature block without a result arrow: {head[:60]}")
-                # v0.35: one line per action, one or more lines per block
+                # v0.48: the signature form, one signature per action (Closed vocabulary 24)
+                for off, why in signature_form(lines[k:end]):
+                    add(k + off + 1, "D-signature-form", f"{why}: {lines[k + off].strip()[:60]}")
                 for off, sig in enumerate(lines[k:end]):
-                    if SIGNATURE.match(sig.strip()):
-                        signatures.append((k + off, sig.strip().split("(")[0]))
+                    if SIGNATURE.match(sig):
+                        signatures.append((k + off, sig.split("(")[0]))
                 i = end + 1
                 continue
             i += 1
@@ -650,11 +724,12 @@ def scan(path: Path) -> list[Finding]:
         if m and m.group(1) in CATEGORIES:
             universe.update(x for span in re.findall(r"`([^`]+)`", m.group(2))
                             for x in DECL_TOKEN.findall(span))
-        sm = re.match(r"^([a-z_][a-z0-9_]*)\(([^)]*)\)\s*(?:→|->)(.*)$", line.strip())
+        sm = SIG_HEAD.match(line)
         if sm:
             universe.add(sm.group(1))
-            universe.update(DECL_TOKEN.findall(sm.group(2)))
-            universe.update(DECL_TOKEN.findall(sm.group(3)))
+            universe.update(t for t in DECL_TOKEN.findall(sm.group(2) or "") if t != "optional")
+        if line.startswith(("  answers ", "  refuses ")):
+            universe.update(DECL_TOKEN.findall(line[len("  answers "):]))
     for name, k in decls.items():
         body = TERM_DECL.match(lines[k - 1]).group(2)
         bare = CODE_SPAN.sub(" ", body)

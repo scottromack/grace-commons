@@ -154,14 +154,37 @@ The clock has exactly one job here — stamping `declared_at` and each event's `
 ### Operations
 
 ```
-declare_pool(capacity, declaring_actor_ref, reason) → pool_id | rejected(invalid-request | storage-failure)
-allocate(pool_id, count, allocating_actor_ref) → allocation_event_id | rejected(not-known | over-capacity | suspended | closed | invalid-request | storage-failure)
-release(pool_id, count, releasing_actor_ref) → release_event_id | rejected(not-known | over-release | invalid-request | storage-failure)
-adjust_capacity(pool_id, new_capacity, adjusting_actor_ref, reason) → adjustment_event_id | rejected(not-known | closed | over-allocated | invalid-request | storage-failure)
-suspend_pool(pool_id, suspending_actor_ref, reason) → state_change_id | rejected(not-known | not-open | already-closed | invalid-request | storage-failure)
-resume_pool(pool_id, resuming_actor_ref, reason) → state_change_id | rejected(not-known | not-suspended | already-closed | invalid-request | storage-failure)
-close_pool(pool_id, closing_actor_ref, reason) → state_change_id | rejected(not-known | already-closed | invalid-request | storage-failure)
-query(pool_id) → pool_snapshot | rejected(not-known)
+declare_pool(capacity, declaring_actor_ref, reason)
+  answers pool_id
+  refuses invalid-request | storage-failure
+
+allocate(pool_id, count, allocating_actor_ref)
+  answers allocation_event_id
+  refuses not-known | over-capacity | suspended | closed | invalid-request | storage-failure
+
+release(pool_id, count, releasing_actor_ref)
+  answers release_event_id
+  refuses not-known | over-release | invalid-request | storage-failure
+
+adjust_capacity(pool_id, new_capacity, adjusting_actor_ref, reason)
+  answers adjustment_event_id
+  refuses not-known | closed | over-allocated | invalid-request | storage-failure
+
+suspend_pool(pool_id, suspending_actor_ref, reason)
+  answers state_change_id
+  refuses not-known | not-open | already-closed | invalid-request | storage-failure
+
+resume_pool(pool_id, resuming_actor_ref, reason)
+  answers state_change_id
+  refuses not-known | not-suspended | already-closed | invalid-request | storage-failure
+
+close_pool(pool_id, closing_actor_ref, reason)
+  answers state_change_id
+  refuses not-known | already-closed | invalid-request | storage-failure
+
+query(pool_id)
+  answers pool_snapshot
+  refuses not-known
 ```
 
 ```text
@@ -396,7 +419,7 @@ Invariants 4 and 5 together give the *bounded-arithmetic* property — at every 
 
 ### Airline — non-overbooking seat pool
 
-A carrier declares a cabin: `declare_pool(capacity: 180, declaring_actor_ref: inventory_svc, reason: "NK1234 2026-05-14 main cabin")` → `pool_a1`. Each booking calls `allocate(pool_a1, count: 1, allocating_actor_ref: booking_svc)`; the 181st answers `rejected(over-capacity)` and the cabin is not oversold. A cancellation calls `release(pool_a1, count: 1, ...)` and the seat returns to the pool. An equipment swap to a smaller aircraft with 174 seats sold calls `adjust_capacity(pool_a1, new_capacity: 174, ...)` → accepted; the same call against 170 answers `rejected(over-allocated)`, because four passengers are already holding seats the smaller bound would not cover, and the carrier must release before it can adjust (Operation 32).
+A carrier declares a cabin: `declare_pool(capacity: 180, declaring_actor_ref: inventory_svc, reason: "NK1234 2026-05-14 main cabin")` → `pool_a1`. Each booking calls `allocate(pool_a1, count: 1, allocating_actor_ref: booking_svc)`; the 181st answers `over-capacity` and the cabin is not oversold. A cancellation calls `release(pool_a1, count: 1, ...)` and the seat returns to the pool. An equipment swap to a smaller aircraft with 174 seats sold calls `adjust_capacity(pool_a1, new_capacity: 174, ...)` → accepted; the same call against 170 answers `over-allocated`, because four passengers are already holding seats the smaller bound would not cover, and the carrier must release before it can adjust (Operation 32).
 
 ### Banking — credit-limit headroom
 
@@ -412,13 +435,13 @@ A primary pool of 200 connections, allocated on checkout and released on return.
 
 ### Rejection paths
 
-`allocate(pool_a1, count: 0, ...)` → `rejected(invalid-request)`. A zero-unit allocation is not a use of the action (Operation 12).
+`allocate(pool_a1, count: 0, ...)` → `invalid-request`. A zero-unit allocation is not a use of the action (Operation 12).
 
-`adjust_capacity(pool_a1, new_capacity: 180, ...)` where capacity is already 180 → `rejected(invalid-request)`. A no-op adjustment would append an event recording no change (Operation 31).
+`adjust_capacity(pool_a1, new_capacity: 180, ...)` where capacity is already 180 → `invalid-request`. A no-op adjustment would append an event recording no change (Operation 31).
 
-`allocate(pool_x, count: 1, ...)` where `pool_x` names nothing → `rejected(not-known)` — which covers both *never declared* and *declared, closed, and since purged under a composed retention pattern*. The atom cannot tell them apart and does not pretend to (Operation 8, Invariant 1.1).
+`allocate(pool_x, count: 1, ...)` where `pool_x` names nothing → `not-known` — which covers both *never declared* and *declared, closed, and since purged under a composed retention pattern*. The atom cannot tell them apart and does not pretend to (Operation 8, Invariant 1.1).
 
-`allocate(pool_closed, count: -5, ...)` against a closed pool → `rejected(closed)`, not `invalid-request`. State precedes format, and the caller learns about the count on retry against a live pool.
+`allocate(pool_closed, count: -5, ...)` against a closed pool → `closed`, not `invalid-request`. State precedes format, and the caller learns about the count on retry against a live pool.
 
 ### Regulated adversarial scenarios
 
@@ -614,7 +637,7 @@ Term records: `pool` — one bounded resource, carrying `pool_id`, `capacity`, `
 
 Term record verbs: identify, offer, share, re-order, retain, allocate, change, match, normalize, order, write, refuse, draw, reuse, hold, record, stand, set, stamp, answer, append, raise, lower, admit, release, fit, interpret, leave, insert, remove, carry, read, supply, rest, fall, commit, scrub, reconstruct, replay, bound, find, equal, purge, evict, expire, attest, move, merge, split, notify, seal, compose, gate, distinguish, serialize, make, discharge, compute, own, declare, call, name, store, case-fold, exceed.
 
-Term value sets: declare_pool answers = pool_id | rejected(invalid-request | storage-failure). allocate answers = allocation_event_id | rejected(not-known | over-capacity | suspended | closed | invalid-request | storage-failure). release answers = release_event_id | rejected(not-known | over-release | invalid-request | storage-failure). adjust_capacity answers = adjustment_event_id | rejected(not-known | closed | over-allocated | invalid-request | storage-failure). suspend_pool, resume_pool and close_pool answers = state_change_id | rejected(not-known | not-open | not-suspended | already-closed | invalid-request | storage-failure). query answers = pool_snapshot | rejected(not-known). `pool state` and `event class` are declared above and cited here (Closed vocabulary 15).
+Term value sets: declare_pool answers pool_id and refuses invalid-request | storage-failure. allocate answers allocation_event_id and refuses not-known | over-capacity | suspended | closed | invalid-request | storage-failure. release answers release_event_id and refuses not-known | over-release | invalid-request | storage-failure. adjust_capacity answers adjustment_event_id and refuses not-known | closed | over-allocated | invalid-request | storage-failure. suspend_pool, resume_pool and close_pool answers state_change_id and refuses not-known | already-closed | invalid-request | storage-failure. query answers pool_snapshot and refuses not-known. `pool state` and `event class` are declared above and cited here (Closed vocabulary 15).
 
 Term bounds: `reason cap` (2000 codepoints); `maximum length` (the deployment's cap per string field); `whole count` and `positive count` (the integer floors); `capacity` (the pool's own declared bound).
 

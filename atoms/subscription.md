@@ -107,10 +107,19 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-subscribe(subscriber_ref, event_scope) → subscription_id | rejected(invalid-request | already-subscribed | storage-failure)
-cancel(subscription_id) → ok | rejected(not-known | not-active | storage-failure)
-subscribed(subscriber_ref, event_scope) → subscribed | not-subscribed
-subscribers_for(event_scope) → subscriber_refs
+subscribe(subscriber_ref, event_scope)
+  answers subscription_id
+  refuses invalid-request | already-subscribed | storage-failure
+
+cancel(subscription_id)
+  answers ok
+  refuses not-known | not-active | storage-failure
+
+subscribed(subscriber_ref, event_scope)
+  answers subscribed | not-subscribed
+
+subscribers_for(event_scope)
+  answers subscriber_refs
 ```
 
 ```text
@@ -233,7 +242,7 @@ An administrator issues subscriptions for each compliance officer: `subscribe(of
 
 ### Rejection path
 
-A developer attempts to subscribe twice to the same scope: `subscribe(dev_d, task:assigned:dev_d) → sub_42`. Then `subscribe(dev_d, task:assigned:dev_d)` → `rejected(already-subscribed)`. The second call does not create a second subscription. To refresh the subscription, the developer first calls `cancel(sub_42)`, then `subscribe(dev_d, task:assigned:dev_d) → sub_97`. The cancellation of sub_42 remains in the subscription store; sub_97 is the new active record.
+A developer attempts to subscribe twice to the same scope: `subscribe(dev_d, task:assigned:dev_d) → sub_42`. Then `subscribe(dev_d, task:assigned:dev_d)` → `already-subscribed`. The second call does not create a second subscription. To refresh the subscription, the developer first calls `cancel(sub_42)`, then `subscribe(dev_d, task:assigned:dev_d) → sub_97`. The cancellation of sub_42 remains in the subscription store; sub_97 is the new active record.
 
 ### Regulated adversarial scenarios
 
@@ -363,7 +372,7 @@ Term records: `subscription` — one standing interest, carrying `subscription_i
 
 Term record verbs: make, discharge, recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, leave, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, exceed.
 
-Term value sets: subscribe answers = subscription_id | rejected(invalid-request | already-subscribed | storage-failure). cancel answers = ok | rejected(not-known | not-active | storage-failure). subscribed answers = subscribed | not-subscribed. subscribers_for answers = a list of subscriber_ref, empty where nothing matches. `status` = active | cancelled.
+Term value sets: subscribe answers subscription_id and refuses invalid-request | already-subscribed | storage-failure. cancel answers ok and refuses not-known | not-active | storage-failure. subscribed answers subscribed | not-subscribed. subscribers_for answers a list of subscriber_ref, empty where nothing matches. `status` = active | cancelled.
 
 Term bounds: `id entropy` (the random material a subscription_id is drawn from).
 

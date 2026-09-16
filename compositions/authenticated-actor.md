@@ -165,25 +165,21 @@ Primitive policy 8 through 10 inherit credential(../atoms/credential.md)'s opaqu
 ### Action wiring
 
 ```
-register_authenticated_actor(principal_ref, actor_ref, credential_material, credential_type?, expires_at?) →
-    {credential_id, actor_ref, bound_at}
-  | rejected(
-      invalid-request | invalid-credential(existing)
-    | namespace-conflict(conflict position)
-    | storage-failure(storage position)
-    | orphan-credential(credential_id)
-    )
+register_authenticated_actor(principal_ref, actor_ref, credential_material, optional credential_type, optional expires_at)
+  answers registration result
+  refuses invalid-request | invalid-credential(existing) | namespace-conflict(conflict position) | storage-failure(storage position) | orphan-credential(credential_id)
 
-attest_as_actor(principal_ref, action_ref, attest_credential) →
-    attestation_id
-  | rejected(
-      invalid-request | not-bound | credential-not-active
-    | invalid-attest-credential
-    | attest-failed(attest position)
-    )
+attest_as_actor(principal_ref, action_ref, attest_credential)
+  answers attestation_id
+  refuses invalid-request | not-bound | credential-not-active | invalid-attest-credential | attest-failed(attest position)
 
-verify_actor_attestation(attestation_id) → {result, actor_ref?, principal_ref?}
+verify_actor_attestation(attestation_id)
+  answers attestation verification result
 ```
+
+Term registration result: `credential_id`, `actor_ref` and `bound_at` — what `register_authenticated_actor` answers.
+
+Term attestation verification result: `result`, an optional `actor_ref` and an optional `principal_ref` — what `verify_actor_attestation` answers.
 
 Term conflict position: `guard` | `binding` — where a namespace conflict is found: at the guard or at the binding write.
 
@@ -314,7 +310,7 @@ A regulated software vendor authenticates developers and requires every release 
 
 2. **Attestation while Active.** The developer signs a release commit with their **separate hardware signing key**: `attest_as_actor(principal_ref = "dev_smith", action_ref = "commit_c44a", attest_credential = <hardware-signing-key>)`. Step 2 resolves `actor_smith`. Step 3 takes `dev_smith`'s section and reads Credential's `read(filter)` surface: an effective-Active `fido2` credential, `cred_s01`, exists for `("dev_smith", "fido2")` → gate open. Step 4 calls `Actor Identity.attest("commit_c44a", "actor_smith", <hardware-signing-key>) → attestation_id = "att_a17"`. Step 5 logs `success` with `credential_id: "cred_s01"` and releases the section. Returns `att_a17`. The continuous-integration system later calls `verify_actor_attestation("att_a17") → {result: verified, actor_ref: "actor_smith", principal_ref: "dev_smith"}` before merging — the signature verifies *and* resolves to the authenticated developer.
 
-3. **Revocation closes the surface.** Security determines `cred_s01` was compromised. The identity-management surface calls `Credential.revoke("cred_s01", revoked_by_ref = "security_team", reason = "key-compromise")` — `cred_s01` is now `Revoked` (Credential Invariant 4). No call into Authenticated Actor is required to "cascade": the next attestation attempt is refused structurally. `attest_as_actor("dev_smith", "commit_c45b", <hardware-signing-key>)` → step 3 reads the credential store under the section, finds **no effective-Active credential** for `("dev_smith", "fido2")` → appends `attest_log {outcome: credential-not-active(Revoked), credential_id: "cred_s01"}`; returns `rejected(credential-not-active)`. The revoked login can no longer sign (Invariant 1). The earlier `att_a17` remains `verified` — it was validly authorized before revocation (Actor Identity Invariant 8).
+3. **Revocation closes the surface.** Security determines `cred_s01` was compromised. The identity-management surface calls `Credential.revoke("cred_s01", revoked_by_ref = "security_team", reason = "key-compromise")` — `cred_s01` is now `Revoked` (Credential Invariant 4). No call into Authenticated Actor is required to "cascade": the next attestation attempt is refused structurally. `attest_as_actor("dev_smith", "commit_c45b", <hardware-signing-key>)` → step 3 reads the credential store under the section, finds **no effective-Active credential** for `("dev_smith", "fido2")` → appends `attest_log {outcome: credential-not-active(Revoked), credential_id: "cred_s01"}`; returns `credential-not-active`. The revoked login can no longer sign (Invariant 1). The earlier `att_a17` remains `verified` — it was validly authorized before revocation (Actor Identity Invariant 8).
 
 ### Domain example — rotation keeps the surface open
 
@@ -322,9 +318,9 @@ The same developer's hardware authenticator is replaced under the 12-month rotat
 
 ### Rejection path — namespace conflict and unbound attest
 
-- **Namespace conflict.** A second registration reuses an already-bound actor: `register_authenticated_actor("dev_jones", "actor_smith", <material>, "fido2")` → step 2 finds `actor_smith` already in `actor_to_principal` → `rejected(namespace-conflict(guard))`; no credential is registered, no binding written. Had two registrations for `actor_smith` under two different principals passed step 2 concurrently — two sections, one per principal — both would register a credential and the maps' uniqueness constraint would refuse the second binding at step 4 → `rejected(namespace-conflict(binding))`; that principal's credential is an orphan until a re-invocation with an unbound `actor_ref` adopts it through step 3's arm. The bijection (Invariant 3) is preserved: `actor_smith` stays bound to exactly `dev_smith`.
-- **Attest for an unbound principal.** `attest_as_actor("dev_unknown", "action_x", <key>)` for a principal never registered through the composition → step 2 finds no binding → `attest_log {outcome: not-bound}`; `rejected(not-bound)`. This is distinct from `credential-not-active`: the principal was never an authenticated actor at all.
-- **Invalid attestation credential.** `attest_as_actor("dev_smith", "commit_c47d", <wrong-signing-key>)` while the credential is `Active` → gate open, but `Actor Identity.attest` returns `invalid-credential` (the signing material does not validate against the registry's public material for `actor_smith`) → `attest_log {outcome: invalid-attest-credential}`; `rejected(invalid-attest-credential)`. The gate (authentication still valid) and the attest check (signing key valid) are independent surfaces — secret-surface separation in action (Invariant 2).
+- **Namespace conflict.** A second registration reuses an already-bound actor: `register_authenticated_actor("dev_jones", "actor_smith", <material>, "fido2")` → step 2 finds `actor_smith` already in `actor_to_principal` → `namespace-conflict(guard)`; no credential is registered, no binding written. Had two registrations for `actor_smith` under two different principals passed step 2 concurrently — two sections, one per principal — both would register a credential and the maps' uniqueness constraint would refuse the second binding at step 4 → `namespace-conflict(binding)`; that principal's credential is an orphan until a re-invocation with an unbound `actor_ref` adopts it through step 3's arm. The bijection (Invariant 3) is preserved: `actor_smith` stays bound to exactly `dev_smith`.
+- **Attest for an unbound principal.** `attest_as_actor("dev_unknown", "action_x", <key>)` for a principal never registered through the composition → step 2 finds no binding → `attest_log {outcome: not-bound}`; `not-bound`. This is distinct from `credential-not-active`: the principal was never an authenticated actor at all.
+- **Invalid attestation credential.** `attest_as_actor("dev_smith", "commit_c47d", <wrong-signing-key>)` while the credential is `Active` → gate open, but `Actor Identity.attest` returns `invalid-credential` (the signing material does not validate against the registry's public material for `actor_smith`) → `attest_log {outcome: invalid-attest-credential}`; `invalid-attest-credential`. The gate (authentication still valid) and the attest check (signing key valid) are independent surfaces — secret-surface separation in action (Invariant 2).
 
 ### Regulated adversarial scenarios
 
@@ -449,7 +445,7 @@ The canonical concepts this spec refers to. Each `term` marker in the prose abov
 
 Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: `composition`, `constituents`, `principal binding`, `attest log`, `bijection`, `attest surface separation`, `section`, `clock offset allowance`, `blank`, `opaque argument`, `admitted registration`, `admitted attestation`, `effective-active`, `conflict position`, `storage position`, `attest position`.
+Term terms: `composition`, `constituents`, `principal binding`, `attest log`, `bijection`, `attest surface separation`, `section`, `clock offset allowance`, `blank`, `opaque argument`, `admitted registration`, `admitted attestation`, `effective-active`, `conflict position`, `storage position`, `attest position`, `registration result`, `attestation verification result`.
 
 Term record verbs: call, answer, read, write, append, store, key, hold, take, release, serialize, resolve, bind, register, revoke, rotate, gate, precede, close, produce, provision, pass, agree, carry, stand, change, report, examine, promise, run, refuse, set, declare, own, act, compose, inherit, confirm, interpret, normalize, case-fold, compare, authorize, invalidate, rebind, wrap, find, serve, supply, ask, route, record.
 
@@ -471,7 +467,7 @@ Kind: Operation
 
 #### Verify Actor Attestation
 
-The composition's read-only query: a pass-through to `Actor Identity.verify` that additionally resolves the verified attestation's `actor_ref` back to its bound `principal_ref`. Returns `{result, actor_ref?, principal_ref?}`; changes no state.
+The composition's read-only query: a pass-through to `Actor Identity.verify` that additionally resolves the verified attestation's `actor_ref` back to its bound `principal_ref`. Returns an attestation verification result; changes no state.
 
 Kind: Operation
 

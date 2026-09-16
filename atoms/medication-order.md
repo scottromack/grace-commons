@@ -136,37 +136,49 @@ Capability requirement 3 and Capability requirement 4 are one value declared and
 ### Operations
 
 ```
-order(patient_ref, prescriber_ref, medication_ref, dose, dose_unit, route, frequency, duration?, clinical_evidence_ref?, ordered_at?)
-  → order_id | rejected(invalid-order | storage-failure)
+order(patient_ref, prescriber_ref, medication_ref, dose, dose_unit, route, frequency, optional duration, optional clinical_evidence_ref, optional ordered_at)
+  answers order_id
+  refuses invalid-order | storage-failure
 
-amend(order_id, amended_by, dose?, dose_unit?, route?, frequency?, duration?, reason)
-  → new_order_id | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-dispensed | invalid-request | storage-failure)
+amend(order_id, amended_by, optional dose, optional dose_unit, optional route, optional frequency, optional duration, reason)
+  answers new_order_id
+  refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-dispensed | invalid-request | storage-failure
 
 verify(order_id, verifier_ref)
-  → verified | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-in-ordered-state | invalid-request | storage-failure)
+  answers verified
+  refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-in-ordered-state | invalid-request | storage-failure
 
 hold(order_id, held_by, reason)
-  → held | rejected(not-known | already-on-hold | already-amended | already-cancelled | already-discontinued | already-completed | invalid-request | storage-failure)
+  answers held
+  refuses not-known | already-on-hold | already-amended | already-cancelled | already-discontinued | already-completed | invalid-request | storage-failure
 
 reinstate(order_id, reinstated_by)
-  → reinstated | rejected(not-known | not-on-hold | invalid-request | storage-failure)
+  answers reinstated
+  refuses not-known | not-on-hold | invalid-request | storage-failure
 
-dispense(order_id, dispenser_ref, quantity, lot_number?, dispensed_at?)
-  → dispensed | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-verified | already-dispensed | invalid-request | storage-failure)
+dispense(order_id, dispenser_ref, quantity, optional lot_number, optional dispensed_at)
+  answers dispensed
+  refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-verified | already-dispensed | invalid-request | storage-failure
 
-administer(order_id, administerer_ref, administered_at?)
-  → administered | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | already-administered | invalid-request | storage-failure)
+administer(order_id, administerer_ref, optional administered_at)
+  answers administered
+  refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | already-administered | invalid-request | storage-failure
 
-complete(order_id, completed_by, completed_at?)
-  → completed | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-administered | invalid-request | storage-failure)
+complete(order_id, completed_by, optional completed_at)
+  answers completed
+  refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-administered | invalid-request | storage-failure
 
 cancel(order_id, cancelled_by, reason)
-  → cancelled | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | already-dispensed | invalid-request | storage-failure)
+  answers cancelled
+  refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | already-dispensed | invalid-request | storage-failure
 
 discontinue(order_id, discontinued_by, reason)
-  → discontinued | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | invalid-request | storage-failure)
+  answers discontinued
+  refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | invalid-request | storage-failure
 
-read(query) → the matching orders | rejected(invalid-query)
+read(query)
+  answers the matching orders
+  refuses invalid-query
 ```
 
 ```text
@@ -631,7 +643,7 @@ Term records: `order` — one prescription's whole life, carrying `order_id`, `p
 
 Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, replace, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, acknowledge, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, serialize, evaluate, block, place, cancel, exceed, retry, model, remove, release, amend, append, map, advise.
 
-Term value sets: order answers = order_id | rejected(invalid-order | storage-failure). amend answers = new_order_id | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-dispensed | invalid-request | storage-failure). verify answers = verified | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-in-ordered-state | invalid-request | storage-failure). hold answers = held | rejected(not-known | already-on-hold | already-amended | already-cancelled | already-discontinued | already-completed | invalid-request | storage-failure). reinstate answers = reinstated | rejected(not-known | not-on-hold | invalid-request | storage-failure). dispense answers = dispensed | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-verified | already-dispensed | invalid-request | storage-failure). administer answers = administered | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | already-administered | invalid-request | storage-failure). complete answers = completed | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-administered | invalid-request | storage-failure). cancel answers = cancelled | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | already-dispensed | invalid-request | storage-failure). discontinue answers = discontinued | rejected(not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | invalid-request | storage-failure). read answers = the matching orders | rejected(invalid-query). `state` = ordered | verified | amended | on-hold | dispensed | administered | completed | cancelled | discontinued. `terminal state` = completed | cancelled | discontinued. `inactive state` = amended | completed | cancelled | discontinued. `pre-dispensing state` = ordered | verified. `post-dispensing state` = dispensed | administered. `core field` = patient_ref | prescriber_ref | medication_ref | dose | dose_unit | route | frequency | duration | clinical_evidence_ref | ordered_at. `dosing parameter` = dose | dose_unit | route | frequency | duration. `blank-input rejection` = invalid-order | invalid-request.
+Term value sets: order answers order_id and refuses invalid-order | storage-failure. amend answers new_order_id and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-dispensed | invalid-request | storage-failure. verify answers verified and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-in-ordered-state | invalid-request | storage-failure. hold answers held and refuses not-known | already-on-hold | already-amended | already-cancelled | already-discontinued | already-completed | invalid-request | storage-failure. reinstate answers reinstated and refuses not-known | not-on-hold | invalid-request | storage-failure. dispense answers dispensed and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-verified | already-dispensed | invalid-request | storage-failure. administer answers administered and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | already-administered | invalid-request | storage-failure. complete answers completed and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-administered | invalid-request | storage-failure. cancel answers cancelled and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | already-dispensed | invalid-request | storage-failure. discontinue answers discontinued and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | invalid-request | storage-failure. read answers the matching orders and refuses invalid-query. `state` = ordered | verified | amended | on-hold | dispensed | administered | completed | cancelled | discontinued. `terminal state` = completed | cancelled | discontinued. `inactive state` = amended | completed | cancelled | discontinued. `pre-dispensing state` = ordered | verified. `post-dispensing state` = dispensed | administered. `core field` = patient_ref | prescriber_ref | medication_ref | dose | dose_unit | route | frequency | duration | clinical_evidence_ref | ordered_at. `dosing parameter` = dose | dose_unit | route | frequency | duration. `blank-input rejection` = invalid-order | invalid-request.
 
 Term bounds: `future bound`, `length bound`, `clock_offset_allowance`.
 

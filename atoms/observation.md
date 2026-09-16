@@ -145,17 +145,21 @@ WHY:
 ### Operations
 
 ```
-record(subject_ref, recorded_by, observation_type, value, unit, recorded_at?)
-  → observation_id | rejected(invalid-observation | storage-failure)
+record(subject_ref, recorded_by, observation_type, value, unit, optional recorded_at)
+  answers observation_id
+  refuses invalid-observation | storage-failure
 
 amend(observation_id, amended_by, value, unit, reason)
-  → observation_id
-  | rejected(not-known | already-amended | already-retracted | invalid-request | invalid-observation | storage-failure)
+  answers observation_id
+  refuses not-known | already-amended | already-retracted | invalid-request | invalid-observation | storage-failure
 
 retract(observation_id, retracted_by, reason)
-  → retracted | rejected(not-known | already-retracted | invalid-request | storage-failure)
+  answers retracted
+  refuses not-known | already-retracted | invalid-request | storage-failure
 
-read(query) → the matching observations | rejected(invalid-query)
+read(query)
+  answers the matching observations
+  refuses invalid-query
 ```
 
 ```text
@@ -344,19 +348,19 @@ An amended observation can still be retracted — retraction reaches any link in
 
 ### Rejection paths
 
-`record(..., observation_type: "cardiac_index")` where the deployment has declared no value constraint for that type → `rejected(invalid-observation)`. The atom refuses to record a measurement it cannot check (Operation 5).
+`record(..., observation_type: "cardiac_index")` where the deployment has declared no value constraint for that type → `invalid-observation`. The atom refuses to record a measurement it cannot check (Operation 5).
 
-`amend("obs-0441", amended_by: "rn.okafor", value: 150, unit: "mmHg", reason: "…")` against the already-amended original → `rejected(already-amended)`. A second amendment would branch the chain (Operation 14, Invariant 3.1).
+`amend("obs-0441", amended_by: "rn.okafor", value: 150, unit: "mmHg", reason: "…")` against the already-amended original → `already-amended`. A second amendment would branch the chain (Operation 14, Invariant 3.1).
 
 `amend("obs-0450", …)` against the retracted observation → [Already Retracted] (Operation 13).
 
 `amend("obs-9999", …)` → [Not Known] (Operation 11).
 
-`retract("obs-0441", retracted_by: "dr.mensah", reason: "   ")` → `rejected(invalid-request)`. A withdrawal with no stated reason is not an audit record (Operation 17).
+`retract("obs-0441", retracted_by: "dr.mensah", reason: "   ")` → `invalid-request`. A withdrawal with no stated reason is not an audit record (Operation 17).
 
-`record(..., recorded_at: <an instant past the future bound>)` → `rejected(invalid-observation)`. A measurement recorded as taken later than it could have been is a logical impossibility, and the allowance exists only because two clocks are being compared (Operation 7, Capability requirement 5).
+`record(..., recorded_at: <an instant past the future bound>)` → `invalid-observation`. A measurement recorded as taken later than it could have been is a logical impossibility, and the allowance exists only because two clocks are being compared (Operation 7, Capability requirement 5).
 
-`read({subject_ref: "p42", recorded_by: "rn.okafor"})` → `rejected(invalid-query)`. The clinician axis is not among the five, and the key is refused rather than ignored (Operation 47).
+`read({subject_ref: "p42", recorded_by: "rn.okafor"})` → `invalid-query`. The clinician axis is not among the five, and the key is refused rather than ignored (Operation 47).
 
 ### Regulated adversarial scenarios
 
@@ -550,7 +554,7 @@ Term records: `observation` — one recorded measurement, carrying `observation_
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, stamp, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, raise, compare, trim, case-fold, refuse, write, read, find, observe, repair, commit, fall, bound, decide, declare, compose, wire, supply, remove, order, sort, name, bind, derive, map, define, apply, hold, release, serialize, lapse, return, canonicalize, store, fail, accept, rest, capture.
 
-Term value sets: record answers = observation_id | rejected(invalid-observation | storage-failure). amend answers = the successor's observation_id | rejected(not-known | already-amended | already-retracted | invalid-request | invalid-observation | storage-failure). retract answers = retracted | rejected(not-known | already-retracted | invalid-request | storage-failure). read answers = the matching observations | rejected(invalid-query). `state` = recorded | amended | retracted.
+Term value sets: record answers observation_id and refuses invalid-observation | storage-failure. amend answers the successor's observation_id and refuses not-known | already-amended | already-retracted | invalid-request | invalid-observation | storage-failure. retract answers retracted and refuses not-known | already-retracted | invalid-request | storage-failure. read answers the matching observations and refuses invalid-query. `state` = recorded | amended | retracted.
 
 Term bounds: `clock_offset_allowance` (the margin a deployment declares between a caller's clock and the seam's); `value constraint` (the bound a deployment declares per observation_type).
 

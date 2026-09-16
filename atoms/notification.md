@@ -101,12 +101,27 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-create(recipient_ref, payload) → notification_id | rejected(invalid-request | storage-failure)
-deliver(notification_id) → ok | rejected(not-known | not-pending | storage-failure)
-fail(notification_id) → ok | rejected(not-known | not-pending | storage-failure)
-expire(notification_id) → ok | rejected(not-known | not-pending | storage-failure)
-status_of(notification_id) → notification | not-known
-pending_for(recipient_ref) → notification_ids
+create(recipient_ref, payload)
+  answers notification_id
+  refuses invalid-request | storage-failure
+
+deliver(notification_id)
+  answers ok
+  refuses not-known | not-pending | storage-failure
+
+fail(notification_id)
+  answers ok
+  refuses not-known | not-pending | storage-failure
+
+expire(notification_id)
+  answers ok
+  refuses not-known | not-pending | storage-failure
+
+status_of(notification_id)
+  answers notification | not-known
+
+pending_for(recipient_ref)
+  answers notification_ids
 ```
 
 ```text
@@ -247,7 +262,7 @@ An administrator broadcasts a policy update. Three compliance officers each rece
 
 ### Rejection path — invalid create
 
-A composing system attempts to create a notification with an empty recipient reference: `create(recipient_ref: "", payload: {type: "task:assigned", task_id: "t1"})` → `rejected(invalid-request)`. No [Notification Id] is issued; no record enters the store. The composing system must supply a non-empty recipient reference before the notification can be created.
+A composing system attempts to create a notification with an empty recipient reference: `create(recipient_ref: "", payload: {type: "task:assigned", task_id: "t1"})` → `invalid-request`. No [Notification Id] is issued; no record enters the store. The composing system must supply a non-empty recipient reference before the notification can be created.
 
 ### Regulated adversarial scenarios
 
@@ -404,7 +419,7 @@ Term records: `notification` — one delivery record, carrying `notification_id`
 
 Term record verbs: identify, allocate, supply, reuse, carry, compare, trim, normalize, case-fold, read, stand, stamp, offer, delete, hold, record, answer, accept, leave, refuse, order, write, change, move, set, share, shrink, keep, own, evaluate, choose, retry, create, deliver, validate, deduplicate, purge, gate, expire, enumerate, call, serialize, compose, guard, declare, find, reconstruct, raise, require, exceed.
 
-Term value sets: create answers = notification_id | rejected(invalid-request | storage-failure). deliver answers = ok | rejected(not-known | not-pending | storage-failure). fail answers = ok | rejected(not-known | not-pending | storage-failure). expire answers = ok | rejected(not-known | not-pending | storage-failure). status_of answers = the notification's stored fields | not-known. pending_for answers = a list of notification_id, empty where nothing pends. `status` = pending | delivered | failed | expired. `terminal stamp` = delivered_at | failed_at | expired_at.
+Term value sets: create answers notification_id and refuses invalid-request | storage-failure. deliver answers ok and refuses not-known | not-pending | storage-failure. fail answers ok and refuses not-known | not-pending | storage-failure. expire answers ok and refuses not-known | not-pending | storage-failure. status_of answers the notification's stored fields | not-known. pending_for answers a list of notification_id, empty where nothing pends. `status` = pending | delivered | failed | expired. `terminal stamp` = delivered_at | failed_at | expired_at.
 
 Term bounds: `string cap` (the deployment's bound on a string input's length).
 

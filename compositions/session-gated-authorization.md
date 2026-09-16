@@ -94,13 +94,9 @@ WHY:
 ### Action wiring
 
 ```
-check_permitted(session_token, action_scope) →
-    permitted
-  | denied
-  | rejected(
-      invalid-request
-    | session-invalid(validation failure)
-    )
+check_permitted(session_token, action_scope)
+  answers permitted | denied
+  refuses invalid-request | session-invalid(validation failure)
 ```
 
 ```text
@@ -208,7 +204,7 @@ The session token identifies a session whose `expires_at` has passed.
 check_permitted(
   session_token: "tok_expired",
   action_scope:  "invoice:read"
-) → rejected(session-invalid(expired))
+) → session-invalid(expired)
 ```
 
 Internally: `Session.validate("tok_expired") → invalid(expired)`. Permissions is never consulted.
@@ -221,7 +217,7 @@ The session was revoked — directly by `Session.revoke`, by `logout`, or via ca
 check_permitted(
   session_token: "tok_revoked",
   action_scope:  "invoice:read"
-) → rejected(session-invalid(revoked))
+) → session-invalid(revoked)
 ```
 
 Internally: `Session.validate("tok_revoked") → invalid(revoked)`. Permissions is never consulted.
@@ -234,7 +230,7 @@ The token is unrecognized — never issued, already purged, or fabricated.
 check_permitted(
   session_token: "tok_unknown",
   action_scope:  "invoice:read"
-) → rejected(session-invalid(not-known))
+) → session-invalid(not-known)
 ```
 
 Internally: `Session.validate("tok_unknown") → invalid(not-known)`. Permissions is never consulted.
@@ -247,7 +243,7 @@ The caller presents a whitespace-only token.
 check_permitted(
   session_token: "   ",
   action_scope:  "invoice:read"
-) → rejected(invalid-request)
+) → invalid-request
 ```
 
 The token fails the Primitive-policies predicate (whitespace-only counts as absent). Neither `Session.validate` nor `Permissions.permitted` is consulted. The outcome is not `denied` (no permission was evaluated) and not `session-invalid` (no session was consulted) — the three classes stay distinct.
@@ -267,9 +263,9 @@ Internally: `Session.validate("tok_abc123") → valid(principal_ref: "usr_42", .
 
 ### Regulated adversarial scenarios
 
-**Regulator audit.** An auditor queries whether the system enforces access control at session-expiry boundaries — specifically, whether an expired session is permitted to evaluate any authorization query. By Invariant 1, any [Check Permitted] call with an expired session token returns `rejected(session-invalid(expired))` before Permissions is consulted. The session expiry state is verifiable from Session's own records; the composition's invariant is derivable from the action wiring alone, without inspecting runtime logs. If Audit Trail is composed in as a substrate, the individual [Check Permitted] records confirm the rejected outcome directly.
+**Regulator audit.** An auditor queries whether the system enforces access control at session-expiry boundaries — specifically, whether an expired session is permitted to evaluate any authorization query. By Invariant 1, any [Check Permitted] call with an expired session token returns `session-invalid(expired)` before Permissions is consulted. The session expiry state is verifiable from Session's own records; the composition's invariant is derivable from the action wiring alone, without inspecting runtime logs. If Audit Trail is composed in as a substrate, the individual [Check Permitted] records confirm the rejected outcome directly.
 
-**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revoked at time T; (b) any [Check Permitted] call after T with that session token returned `rejected(session-invalid(revoked))`, not `permitted` or `denied`. Session's state records the revocation timestamp. The composition's Invariant 1 establishes that Permissions was never reached after revocation. If Audit Trail is composed in, the dispute is answerable from records alone. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that an invalid session cannot produce a `permitted` or `denied` result.
+**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revoked at time T; (b) any [Check Permitted] call after T with that session token returned `session-invalid(revoked)`, not `permitted` or `denied`. Session's state records the revocation timestamp. The composition's Invariant 1 establishes that Permissions was never reached after revocation. If Audit Trail is composed in, the dispute is answerable from records alone. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that an invalid session cannot produce a `permitted` or `denied` result.
 
 **Breach forensics.** An investigator determines that a session token was stolen and seeks to establish what permissions were exercised under it before revocation. This composition does not maintain an authorization event log; forensic coverage of individual [Check Permitted] calls requires [Audit Trail](./audit-trail.md) composed in as a substrate (see *Composition notes*). Without Audit Trail, the investigator can establish from Session's state that the session was active for a given window and was eventually revoked, and from Permissions' state what grants the principal held during that window — but cannot enumerate individual [Check Permitted] calls or their outcomes from the composition's own state. This is a known scope limitation that composition with Audit Trail resolves.
 
@@ -380,7 +376,7 @@ Term record verbs: validate, call, answer, accept, read, write, store, derive, e
 
 Term actors: the composition; the constituents; a deployment; an auditor; a caller; a principal; a session; a grant; an argument; an answer.
 
-Term value sets: check_permitted answers = permitted | denied | rejected(invalid-request | session-invalid(validation failure)). `invalid answer` reasons = expired | revoked | not-known.
+Term value sets: check_permitted answers permitted | denied and refuses invalid-request | session-invalid(validation failure). `invalid answer` reasons = expired | revoked | not-known.
 
 Term cited: `execution-contract.md` §Composition state — the no-stored-state classification. [Session](../atoms/session.md) `Composition note 4` — the gate obligation. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding; `validation failure`: Session.
 

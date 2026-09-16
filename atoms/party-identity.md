@@ -129,22 +129,31 @@ Every enrollment names an [Enrolling Actor Ref], and Capability requirement 3 is
 
 ```
 enroll(name, date_of_birth, document_type, document_ref, enrolling_actor_ref)
-  → party_id | rejected(invalid-request | storage-failure)
+  answers party_id
+  refuses invalid-request | storage-failure
 
 verify(party_id, verifying_actor_ref, verification_method, verification_result, evidence_ref)
-  → (verification_id, state_change_id?) | rejected(not-known | already-closed | invalid-request | storage-failure)
+  answers verification result
+  refuses not-known | already-closed | invalid-request | storage-failure
 
 suspend(party_id, suspending_actor_ref, reason)
-  → state_change_id | rejected(not-known | already-closed | not-verifiable | already-suspended | invalid-request | storage-failure)
+  answers state_change_id
+  refuses not-known | already-closed | not-verifiable | already-suspended | invalid-request | storage-failure
 
 reinstate(party_id, reinstating_actor_ref, reason)
-  → state_change_id | rejected(not-known | already-closed | not-suspended | no-passed-verification-since-suspend | invalid-request | storage-failure)
+  answers state_change_id
+  refuses not-known | already-closed | not-suspended | no-passed-verification-since-suspend | invalid-request | storage-failure
 
 close(party_id, closing_actor_ref, reason)
-  → state_change_id | rejected(not-known | already-closed | invalid-request | storage-failure)
+  answers state_change_id
+  refuses not-known | already-closed | invalid-request | storage-failure
 
-read(query) → the matching parties | rejected(invalid-query)
+read(query)
+  answers the matching parties
+  refuses invalid-query
 ```
+
+Term verification result: `verification_id` and an optional `state_change_id` — what `verify` answers.
 
 ```text
 Operation 1: IF a required string input NOT EXISTS THEN an action MUST answer invalid-request.
@@ -542,7 +551,7 @@ Term records: `party` — one external party, carrying `party_id`, `name`, `date
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, acknowledge, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, serialize, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
 
-Term value sets: enroll answers = party_id | rejected(invalid-request | storage-failure). verify answers = (verification_id, state_change_id?) | rejected(not-known | already-closed | invalid-request | storage-failure). suspend answers = state_change_id | rejected(not-known | already-closed | not-verifiable | already-suspended | invalid-request | storage-failure). reinstate answers = state_change_id | rejected(not-known | already-closed | not-suspended | no-passed-verification-since-suspend | invalid-request | storage-failure). close answers = state_change_id | rejected(not-known | already-closed | invalid-request | storage-failure). read answers = the matching parties | rejected(invalid-query). `state` = unverified | verified | suspended | closed. `verification_result` = passed | failed. `state rejection` = already-closed | not-verifiable | already-suspended | not-suspended. `enrollment field` = name | date_of_birth | document_type | document_ref | enrolled_at | enrolling_actor_ref.
+Term value sets: enroll answers party_id and refuses invalid-request | storage-failure. verify answers verification result and refuses not-known | already-closed | invalid-request | storage-failure. suspend answers state_change_id and refuses not-known | already-closed | not-verifiable | already-suspended | invalid-request | storage-failure. reinstate answers state_change_id and refuses not-known | already-closed | not-suspended | no-passed-verification-since-suspend | invalid-request | storage-failure. close answers state_change_id and refuses not-known | already-closed | invalid-request | storage-failure. read answers the matching parties and refuses invalid-query. `state` = unverified | verified | suspended | closed. `verification_result` = passed | failed. `state rejection` = already-closed | not-verifiable | already-suspended | not-suspended. `enrollment field` = name | date_of_birth | document_type | document_ref | enrolled_at | enrolling_actor_ref.
 
 Term bounds: `length bound`.
 
@@ -550,7 +559,7 @@ Term cadences: empty.
 
 Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: `party`, `party_id`, `verification event`, `state change event`, `identifier`, `enrollment field`, `acting reference`, `reference`, `store instance`, `seam`, `transition`, `now`, `party action`, `transitioning action`, `state`, `state rejection`, `state check`, `required string input`, `fresh verification`, `insertion order`, `length bound`, `reasoned action`, `custody field`, `evidence reference`, `query axes`, `admitted enroll`, `admitted verify`, `admitted suspend`, `admitted reinstate`, `admitted close`, `admitted read`, `string input`, `blank`.
+Term terms: `party`, `party_id`, `verification event`, `state change event`, `identifier`, `enrollment field`, `acting reference`, `reference`, `store instance`, `seam`, `transition`, `now`, `party action`, `transitioning action`, `state`, `state rejection`, `state check`, `required string input`, `fresh verification`, `insertion order`, `length bound`, `reasoned action`, `custody field`, `evidence reference`, `query axes`, `admitted enroll`, `admitted verify`, `admitted suspend`, `admitted reinstate`, `admitted close`, `admitted read`, `string input`, `blank`, `verification result`.
 
 Term cited: `execution-contract.md` §Logic confinement — the seam and the transition.
 

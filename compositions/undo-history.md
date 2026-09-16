@@ -106,12 +106,29 @@ Replay 15 through 17 are the contract classification stated as rules (`execution
 ### Action wiring
 
 ```
-add(description) → id | rejected(invalid-description | duplicate-active | storage-failure)
-edit(id, new_description) → ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure)
-complete(id) → ok | rejected(not-known | not-pending | storage-failure)
-delete(id) → ok | rejected(not-known | storage-failure)
-undo() → undone_event_type | rejected(nothing-to-undo | storage-failure)
-read_history(query) → the matching events | rejected(invalid-query)
+add(description)
+  answers id
+  refuses invalid-description | duplicate-active | storage-failure
+
+edit(id, new_description)
+  answers ok
+  refuses not-known | not-editable | invalid-description | duplicate-active | storage-failure
+
+complete(id)
+  answers ok
+  refuses not-known | not-pending | storage-failure
+
+delete(id)
+  answers ok
+  refuses not-known | storage-failure
+
+undo()
+  answers undone_event_type
+  refuses nothing-to-undo | storage-failure
+
+read_history(query)
+  answers the matching events
+  refuses invalid-query
 ```
 
 ```text
@@ -363,7 +380,7 @@ Term records: `event` — one appended record in the event log instance, carryin
 
 Term record verbs: serve, derive, store, call, change, replace, append, assign, read, skip, apply, introduce, remove, move, record, answer, validate, refuse, recompute, capture, restore, preserve, hold, carry, stand, commit, leave, name, mirror, bound, compose, wire, decide, define, guarantee, confirm, reach, walk, target, generate, materialize, rebuild, equal, follow, reverse, surface, claim, build, produce, rewrite, find, run, reconstruct, offer, undo, reapply.
 
-Term value sets: add answers = id | rejected(invalid-description | duplicate-active | storage-failure). edit answers = ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure). complete answers = ok | rejected(not-known | not-pending | storage-failure). delete answers = ok | rejected(not-known | storage-failure). undo answers = undone_event_type | rejected(nothing-to-undo | storage-failure). read_history answers = the matching events | rejected(invalid-query). `event type` = add | edit | complete | delete | undo. `forward event` = add | edit | complete | delete.
+Term value sets: add answers id and refuses invalid-description | duplicate-active | storage-failure. edit answers ok and refuses not-known | not-editable | invalid-description | duplicate-active | storage-failure. complete answers ok and refuses not-known | not-pending | storage-failure. delete answers ok and refuses not-known | storage-failure. undo answers undone_event_type and refuses nothing-to-undo | storage-failure. read_history answers the matching events and refuses invalid-query. `event type` = add | edit | complete | delete | undo. `forward event` = add | edit | complete | delete.
 
 Term bounds: empty.
 

@@ -148,19 +148,23 @@ Non-goal 27 is the price of the derivation and it is cheaper here than it looks.
 ### Operations
 
 ```
-register(principal_ref, credential_material, credential_type, expires_at?)
-  → credential_id | rejected(invalid-request | duplicate-active-credential | storage-failure)
+register(principal_ref, credential_material, credential_type, optional expires_at)
+  answers credential_id
+  refuses invalid-request | duplicate-active-credential | storage-failure
 
 verify(principal_ref, credential_type, presented_material)
-  → verified | failed-verification(verification failure)
+  answers verified | failed-verification(verification failure)
 
 rotate(credential_id, new_credential_material)
-  → new_credential_id | rejected(not-known | not-active | invalid-request | storage-failure)
+  answers new_credential_id
+  refuses not-known | not-active | invalid-request | storage-failure
 
 revoke(credential_id, revoked_by_ref, reason)
-  → revoked | rejected(not-known | already-terminal | invalid-request | storage-failure)
+  answers revoked
+  refuses not-known | already-terminal | invalid-request | storage-failure
 
-read(filter) → the matching credentials
+read(filter)
+  answers the matching credentials
 ```
 
 Term verification failure: `material-mismatch` | `no-active-credential` — the reasons [Verify] gives for a failed verification.
@@ -561,7 +565,7 @@ Term records: `credential` — one principal's binding to one verifier for one c
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, acknowledge, canonicalize, declare, compose, remove, bind, decide, define, bound, reach, accept, retain, trim, case-fold, compute, reproduce, reconstruct, verify, issue, detect, guarantee, take, derive, expose, store, own, persist, enumerate, distinguish, select, walk, mutate, serialize, rotate, revoke, block, invalidate, migrate, recover, reinterpret, constrain, count, sequence, release, run.
 
-Term value sets: register answers = credential_id | rejected(invalid-request | duplicate-active-credential | storage-failure). verify answers = verified | failed-verification(verification failure). rotate answers = new_credential_id | rejected(not-known | not-active | invalid-request | storage-failure). revoke answers = revoked | rejected(not-known | already-terminal | invalid-request | storage-failure). read answers = the matching credentials. `status` = active | rotated | revoked. `stored terminal` = rotated | revoked. `standing rejection` = not-active | already-terminal. `window reading` = live | lapsed. `property` = principal_ref | credential_type | verifier | registered_at | expires_at. `terminal field` = rotated_at | successor_credential_id | revoked_at | revoked_by_ref | revocation_reason.
+Term value sets: register answers credential_id and refuses invalid-request | duplicate-active-credential | storage-failure. verify answers verified | failed-verification(verification failure). rotate answers new_credential_id and refuses not-known | not-active | invalid-request | storage-failure. revoke answers revoked and refuses not-known | already-terminal | invalid-request | storage-failure. read answers the matching credentials. `status` = active | rotated | revoked. `stored terminal` = rotated | revoked. `standing rejection` = not-active | already-terminal. `window reading` = live | lapsed. `property` = principal_ref | credential_type | verifier | registered_at | expires_at. `terminal field` = rotated_at | successor_credential_id | revoked_at | revoked_by_ref | revocation_reason.
 
 Term bounds: `default expires_at`, `length bound`.
 

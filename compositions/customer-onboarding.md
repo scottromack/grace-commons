@@ -430,70 +430,29 @@ The cost is stated rather than hidden: audit-event volume rises by roughly one e
 ### Action wiring
 
 ```
-initiate_onboarding(party_id?, enrollment_fields?, actor_ref, credential, retention_policy_ref) →
-    case_id
-  | rejected(
-      invalid-request
-    | invalid-credential
-    | party-not-known
-    | party-not-admissible(state)
-    | already-onboarded
-    | enrollment-failed(enrollment failure)
-    | recording-failure(position)
-    )
+initiate_onboarding(optional party_id, optional enrollment_fields, actor_ref, credential, retention_policy_ref)
+  answers case_id
+  refuses invalid-request | invalid-credential | party-not-known | party-not-admissible(state) | already-onboarded | enrollment-failed(enrollment failure) | recording-failure(position)
 
-record_verification(case_id, verifying_actor_ref, method, verification_result, evidence_ref, credential) →
-    recorded
-  | rejected(
-      invalid-request
-    | invalid-credential
-    | not-known
-    | not-active
-    | already-closed
-    | recording-failure(position)
-    )
+record_verification(case_id, verifying_actor_ref, method, verification_result, evidence_ref, credential)
+  answers recorded
+  refuses invalid-request | invalid-credential | not-known | not-active | already-closed | recording-failure(position)
 
-trigger_monitoring_review(case_id, trigger_type, trigger_ref, actor_ref, credential) →
-    recorded
-  | rejected(
-      invalid-request
-    | invalid-credential
-    | not-known
-    | not-active
-    | not-verified(state)
-    | state-unavailable
-    | recording-failure(position)
-    )
+trigger_monitoring_review(case_id, trigger_type, trigger_ref, actor_ref, credential)
+  answers recorded
+  refuses invalid-request | invalid-credential | not-known | not-active | not-verified(state) | state-unavailable | recording-failure(position)
 
-clear_review(case_id, verifying_actor_ref, method, evidence_ref, actor_ref, credential, reason) →
-    cleared
-  | rejected(
-      invalid-request
-    | invalid-credential
-    | not-known
-    | no-open-trigger
-    | verification-failed
-    | already-closed
-    | recording-failure(position)
-    )
+clear_review(case_id, verifying_actor_ref, method, evidence_ref, actor_ref, credential, reason)
+  answers cleared
+  refuses invalid-request | invalid-credential | not-known | no-open-trigger | verification-failed | already-closed | recording-failure(position)
 
-close_party(case_id, closing_actor_ref, reason, credential) →
-    closed
-  | rejected(
-      invalid-request
-    | invalid-credential
-    | not-known
-    | not-active
-    | recording-failure(position)
-    )
+close_party(case_id, closing_actor_ref, reason, credential)
+  answers closed
+  refuses invalid-request | invalid-credential | not-known | not-active | recording-failure(position)
 
-activity_permitted(party_id) →
-    permitted
-  | rejected(
-      not-known
-    | not-verified(state)
-    | state-unavailable
-    )
+activity_permitted(party_id)
+  answers permitted
+  refuses not-known | not-verified(state) | state-unavailable
 ```
 
 Term enrollment failure: `invalid-request` | `storage-failure` — Party Identity's enroll codes an initiation passes through.
@@ -896,7 +855,7 @@ A bank onboards a retail customer with no prior system identity. Configuration: 
 
 1. **Initiate.** `initiate_onboarding(party_id=absent, enrollment_fields={name:"Amara Osei", date_of_birth:"1981-03-14", document_type:"passport", document_ref:"doc_p901", enrolling_actor_ref:"officer_r3"}, actor_ref="officer_r3", credential=<officer_r3>, retention_policy_ref="bsa_active_cdd") → case_5501`. The intent record `customer-onboarding.initiation-intended` lands first, carrying `case_5501` and no `party_id`; `PartyIdentity.enroll` returns `party_9017` in `Unverified`; `RetentionWindow.place_under_retention(party_9017, bsa_active_cdd)` returns `ret_active_9017`; `customer-onboarding.initiated` lands carrying `intent_event_id`, the schedule pair and the placement; the three indexes are populated after it.
 
-2. **Gate before verification.** `activity_permitted(party_9017) → rejected(not-verified(Unverified))`. The account is not opened.
+2. **Gate before verification.** `activity_permitted(party_9017) → not-verified(Unverified)`. The account is not opened.
 
 3. **Verification.** `record_verification(case_5501, verifying_actor_ref="system_verification_auto", method="automated-ocr", verification_result="passed", evidence_ref="evidence_ocr_442", credential=<system_verification_auto>) → recorded`. `customer-onboarding.verification-intended` lands, `PartyIdentity.verify` returns `{verif_1101, sc_4401}` — the `Unverified → Verified` transition — and `customer-onboarding.verification-recorded` lands carrying both ids and the advanced deadline.
 
@@ -906,11 +865,11 @@ A bank onboards a retail customer with no prior system identity. Configuration: 
 
 6. **Closure.** Ten years later, `close_party(case_5501, closing_actor_ref="officer_r3", reason="account-closed-customer-request", credential=<officer_r3>) → closed`. `customer-onboarding.closure-intended` lands; `PartyIdentity.close` returns `sc_9901`; `RetentionWindow.place_under_retention(party_9017, bsa_5yr_post_closure)` returns `ret_postclose_9017` — the five-year floor; `customer-onboarding.party-closed` lands carrying the floor and an empty open-triggers set; the indexes follow it.
 
-7. **Gate after closure.** `activity_permitted(party_9017) → rejected(not-verified(Closed))`.
+7. **Gate after closure.** `activity_permitted(party_9017) → not-verified(Closed)`.
 
 ### External path — upstream enrollment
 
-A broker-dealer admits a counterparty through External Onboarding, which enrolls the party `Unverified` and registers a credential. `initiate_onboarding(party_id="party_4421", enrollment_fields=absent, actor_ref="onboard_svc", credential=<onboard_svc>, retention_policy_ref="bsa_active_cdd") → case_6602`. The read confirms `party_4421` is known **and `Unverified`**, the intent lands carrying the `party_id`, the placement is made, and `customer-onboarding.initiated` records `enrollment_path = external-onboarding`. A party the read showed `Verified`, `Suspended` or `Closed` answers `rejected(party-not-admissible(<state>))` and opens no case.
+A broker-dealer admits a counterparty through External Onboarding, which enrolls the party `Unverified` and registers a credential. `initiate_onboarding(party_id="party_4421", enrollment_fields=absent, actor_ref="onboard_svc", credential=<onboard_svc>, retention_policy_ref="bsa_active_cdd") → case_6602`. The read confirms `party_4421` is known **and `Unverified`**, the intent lands carrying the `party_id`, the placement is made, and `customer-onboarding.initiated` records `enrollment_path = external-onboarding`. A party the read showed `Verified`, `Suspended` or `Closed` answers `party-not-admissible(<state>)` and opens no case.
 
 ### Adverse trigger and clearance — sanctions match
 
@@ -918,7 +877,7 @@ An existing `Verified` party, `party_7732` (case `case_7700`), triggers a sancti
 
 1. **Adverse trigger.** `trigger_monitoring_review(case_7700, trigger_type="sanctions-match", trigger_ref="ofac-sdn-12894", actor_ref="compliance_mgr_01", credential=<compliance_mgr_01>) → recorded`. The pre-check reads the party `Verified`; `customer-onboarding.monitoring-triggered` lands **first**; `PartyIdentity.suspend` returns `sc_7701`; `customer-onboarding.party-suspended` lands carrying it; the trigger enters the open set. Invariant 3 holds — the trigger record is ordered before the suspension record.
 
-2. **Gate during investigation.** `activity_permitted(party_7732) → rejected(not-verified(Suspended))`.
+2. **Gate during investigation.** `activity_permitted(party_7732) → not-verified(Suspended)`.
 
 3. **Clearance.** The match is a false positive. `clear_review(case_7700, verifying_actor_ref="compliance_analyst_02", method="database-check", evidence_ref="evidence_db_clearance_882", actor_ref="compliance_mgr_01", credential=<compliance_mgr_01>, reason="ofac-match-resolved-different-individual") → cleared`. `customer-onboarding.clearance-intended` lands carrying the open set; `PartyIdentity.verify(passed)` returns `verif_3901` with no `state_change_id` — a `passed` verification against a `Suspended` party records the event and changes no state; `customer-onboarding.review-cleared` lands carrying `verif_3901` and the `closed_triggers` set **and no deadline**; `PartyIdentity.reinstate` returns `sc_7702`; `customer-onboarding.party-reinstated` lands carrying `sc_7702` and the advanced deadline; the closed triggers are dropped and the deadline is taken from that payload.
 
@@ -926,19 +885,19 @@ An existing `Verified` party, `party_7732` (case `case_7700`), triggers a sancti
 
 ### Rejection path — clearing a review with no open trigger
 
-A compliance officer calls `clear_review(case_5501, …)` for a party with no open adverse trigger: the open set is empty → `rejected(no-open-trigger)`. No intent is recorded, no verification, no reinstatement — and, because the guard sits before the intent, the officer's credential is never validated.
+A compliance officer calls `clear_review(case_5501, …)` for a party with no open adverse trigger: the open set is empty → `no-open-trigger`. No intent is recorded, no verification, no reinstatement — and, because the guard sits before the intent, the officer's credential is never validated.
 
 ### Rejection path — periodic trigger against an unknown case
 
-`trigger_monitoring_review("case_bogus", …) → rejected(not-known)` at the index read. No audit event is recorded: the case is unknown, so there is no party to attribute a trigger to.
+`trigger_monitoring_review("case_bogus", …) → not-known` at the index read. No audit event is recorded: the case is unknown, so there is no party to attribute a trigger to.
 
 ### Rejection path — a credential that does not validate
 
-An operator whose credential was revoked calls `record_verification(case_5501, verifying_actor_ref="officer_r7", method="manual-review", verification_result="passed", evidence_ref="evidence_manual_77", credential=<stale_officer_r7>)`. The index read passes, the boundary predicate passes, and `customer-onboarding.verification-intended` refuses with `invalid-credential` → `rejected(invalid-credential)`. **Nothing committed**: `PartyIdentity.verify` was never called, so a mis-credentialed actor could not drive the transition and be discovered over it afterwards. This is the seam Invariant 8 exists for, and it is the path that makes `invalid-credential` a declared code on every state-changing signature rather than a theoretical arm.
+An operator whose credential was revoked calls `record_verification(case_5501, verifying_actor_ref="officer_r7", method="manual-review", verification_result="passed", evidence_ref="evidence_manual_77", credential=<stale_officer_r7>)`. The index read passes, the boundary predicate passes, and `customer-onboarding.verification-intended` refuses with `invalid-credential` → `invalid-credential`. **Nothing committed**: `PartyIdentity.verify` was never called, so a mis-credentialed actor could not drive the transition and be discovered over it afterwards. This is the seam Invariant 8 exists for, and it is the path that makes `invalid-credential` a declared code on every state-changing signature rather than a theoretical arm.
 
 ### Failure path — the intent appended and the call still failed
 
-`close_party(case_5501, …)` reaches its closure intent, and `AuditTrail.record_action` answers `recording-failure(step)` naming the substrate's **retention** step: the event is appended and attested — so the credential *was* validated — and the call returned a failure. The invocation **aborts with nothing committed**: `PartyIdentity.close` is not called, the intent is not re-recorded (a blind re-record would double-append), and the appended `customer-onboarding.closure-intended` stands as an open marker. The reconciliation, past the completion bound, finds the marker, re-queries Party Identity, sees no closure, and closes the marker — nothing to compensate. The caller receives `rejected(recording-failure(intent))` and may retry the whole action.
+`close_party(case_5501, …)` reaches its closure intent, and `AuditTrail.record_action` answers `recording-failure(step)` naming the substrate's **retention** step: the event is appended and attested — so the credential *was* validated — and the call returned a failure. The invocation **aborts with nothing committed**: `PartyIdentity.close` is not called, the intent is not re-recorded (a blind re-record would double-append), and the appended `customer-onboarding.closure-intended` stands as an open marker. The reconciliation, past the completion bound, finds the marker, re-queries Party Identity, sees no closure, and closes the marker — nothing to compensate. The caller receives `recording-failure(intent)` and may retry the whole action.
 
 ### Failure path — an unmatched intent
 
@@ -946,7 +905,7 @@ A [Record Verification] invocation records its intent, calls `PartyIdentity.veri
 
 ### Failure path — verification committed, outcome record fails
 
-A [Record Verification] call drives the `Unverified → Verified` transition and its outcome record fails: `rejected(recording-failure(outcome))` — the position telling the caller the verification is committed and the action must not be re-run. The party *is* `Verified`, so the gate answers `permitted` while Invariant 2.3's coverage is temporarily broken; Invariant 2.4 is the window, bounded by the compensation window. The composition alerts on the owed record; the invocation retries it to the completion bound and then yields it to the reconciliation. Deployments under BSA/AML exposure treat the open window as a hard alerting condition.
+A [Record Verification] call drives the `Unverified → Verified` transition and its outcome record fails: `recording-failure(outcome)` — the position telling the caller the verification is committed and the action must not be re-run. The party *is* `Verified`, so the gate answers `permitted` while Invariant 2.3's coverage is temporarily broken; Invariant 2.4 is the window, bounded by the compensation window. The composition alerts on the owed record; the invocation retries it to the completion bound and then yields it to the reconciliation. Deployments under BSA/AML exposure treat the open window as a hard alerting condition.
 
 ### Regulated adversarial scenarios
 
@@ -1200,7 +1159,7 @@ Term cadences: `reconciliation cadence` (`reconciliation_cadence`), `seal cadenc
 
 Term qualifiers: `migrated` — rewritten in GRACE lang v0.41 (2026-09-14).
 
-Term value sets: initiate_onboarding answers = case_id | rejected(invalid-request | invalid-credential | party-not-known | party-not-admissible(state) | already-onboarded | enrollment-failed(enrollment failure) | recording-failure(position)). record_verification answers = recorded | rejected(invalid-request | invalid-credential | not-known | not-active | already-closed | recording-failure(position)). trigger_monitoring_review answers = recorded | rejected(invalid-request | invalid-credential | not-known | not-active | not-verified(state) | state-unavailable | recording-failure(position)). clear_review answers = cleared | rejected(invalid-request | invalid-credential | not-known | no-open-trigger | verification-failed | already-closed | recording-failure(position)). close_party answers = closed | rejected(invalid-request | invalid-credential | not-known | not-active | recording-failure(position)). activity_permitted answers = permitted | rejected(not-known | not-verified(state) | state-unavailable). `admissible states` = unverified. `suspendable states` = verified | suspended. `verification results` = passed | failed. `trigger vocabulary` = periodic-review-due | a member of the adverse trigger types. `adverse trigger types` = sanctions-match | pep-status-change | adverse-media, extended by the deployment. `intent` = customer-onboarding.initiation-intended | customer-onboarding.verification-intended | customer-onboarding.clearance-intended | customer-onboarding.closure-intended | customer-onboarding.monitoring-triggered | customer-onboarding.recovery-intended. `outcome` = customer-onboarding.initiated | customer-onboarding.verification-recorded | customer-onboarding.party-suspended | customer-onboarding.trigger-on-suspended-party | customer-onboarding.trigger-voided | customer-onboarding.retention-renewed | customer-onboarding.review-cleared | customer-onboarding.party-reinstated | customer-onboarding.party-closed. `enrollment_path` = direct | external-onboarding.
+Term value sets: initiate_onboarding answers case_id and refuses invalid-request | invalid-credential | party-not-known | party-not-admissible(state) | already-onboarded | enrollment-failed(enrollment failure) | recording-failure(position). record_verification answers recorded and refuses invalid-request | invalid-credential | not-known | not-active | already-closed | recording-failure(position). trigger_monitoring_review answers recorded and refuses invalid-request | invalid-credential | not-known | not-active | not-verified(state) | state-unavailable | recording-failure(position). clear_review answers cleared and refuses invalid-request | invalid-credential | not-known | no-open-trigger | verification-failed | already-closed | recording-failure(position). close_party answers closed and refuses invalid-request | invalid-credential | not-known | not-active | recording-failure(position). activity_permitted answers permitted and refuses not-known | not-verified(state) | state-unavailable. `admissible states` = unverified. `suspendable states` = verified | suspended. `verification results` = passed | failed. `trigger vocabulary` = periodic-review-due | a member of the adverse trigger types. `adverse trigger types` = sanctions-match | pep-status-change | adverse-media, extended by the deployment. `intent` = customer-onboarding.initiation-intended | customer-onboarding.verification-intended | customer-onboarding.clearance-intended | customer-onboarding.closure-intended | customer-onboarding.monitoring-triggered | customer-onboarding.recovery-intended. `outcome` = customer-onboarding.initiated | customer-onboarding.verification-recorded | customer-onboarding.party-suspended | customer-onboarding.trigger-on-suspended-party | customer-onboarding.trigger-voided | customer-onboarding.retention-renewed | customer-onboarding.review-cleared | customer-onboarding.party-reinstated | customer-onboarding.party-closed. `enrollment_path` = direct | external-onboarding.
 
 Term terms: `composition`, `constituents`, `party retention instance`, `service identity`, `direct path`, `external path`, `case-to-monitoring index`, `party-to-case index`, `case-to-retentions index`, `case-to-open-triggers index`, `index`, `current placement`, `post closure placement`, `audit horizon`, `aged-out event`, `rebuild`, `miss`, `unrebuildable entry`, `binding-bearing payload`, `schedule-bearing payload`, `placement-bearing payload`, `landed record`, `owed record`, `seam`, `transition`, `monitoring interval`, `scheduler tolerance`, `renewal floor`, `binding floor`, `closure floor`, `onboarding completion bound`, `active relationship policy`, `post closure policy`, `post closure minimum`, `adverse trigger types`, `periodic trigger type`, `trigger set cap`, `field cap`, `blank`, `boundary predicate`, `opaque argument`, `actor reference`, `trigger vocabulary`, `verification results`, `truncation marker`, `set digest`, `intent`, `outcome`, `committing call`, `landed intent`, `open marker`, `outcome traversal`, `yielded invocation`, `recovery marker`, `recovery outcome`, `party state`, `admissible states`, `suspendable states`, `unanswered read`, `admitted initiation`, `admitted verification`, `admitted trigger`, `admitted clearance`, `admitted closure`, `transitioning verification`, `adverse trigger`, `periodic trigger`, `suspending trigger`, `renewing trigger`, `completing closure`, `committing closure`, `composed suspend reason`, `closed triggers`, `open triggers at close`, `scoped retry`, `prior placement`, `renewed placement`, `regulated activity`, `reconciliation`, `young marker`, `elapsed placement`, `quiescent case`, `quiescent verified party`, `quiescent suspended party`, `quiescent closed case`, `continuous chain`, `unelapsed placement`, `post closure floor`, `clearance window`, `surfaced orphan`, `clearing actor`, `placement's cover`, `trigger outcome`, `orphan`, `indeterminate committing call`, `enrollment failure`, `position`.
 

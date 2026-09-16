@@ -109,9 +109,17 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-place(record_ref, placed_by, reason, case_ref?, placed_at?) → hold_id | rejected(invalid-request | storage-failure)
-release(hold_id, released_by, reason, released_at?) → released | rejected(invalid-request | not-known | already-released | storage-failure)
-read(query) → holds | rejected(invalid-query)
+place(record_ref, placed_by, reason, optional case_ref, optional placed_at)
+  answers hold_id
+  refuses invalid-request | storage-failure
+
+release(hold_id, released_by, reason, optional released_at)
+  answers released
+  refuses invalid-request | not-known | already-released | storage-failure
+
+read(query)
+  answers holds
+  refuses invalid-query
 ```
 
 ```text
@@ -258,15 +266,15 @@ See Flow section. A complete hold arc is walked there: placement by counsel, sec
 
 ### Rejection path — release attempted twice
 
-After hold-001 is [Released], counsel's paralegal system retries: `release("hold-001", released_by: "system_retry", reason: "automated retry")` → `rejected(already-released)`. The hold record is unchanged. The paralegal system detects the rejection and suppresses the retry.
+After hold-001 is [Released], counsel's paralegal system retries: `release("hold-001", released_by: "system_retry", reason: "automated retry")` → `already-released`. The hold record is unchanged. The paralegal system detects the rejection and suppresses the retry.
 
 ### Rejection path — place with empty reason
 
-`place(record_ref: "doc-0099", placed_by: "compliance_chen", reason: "   ")` → `rejected(invalid-request)`. Whitespace-only reason is treated as empty. No hold is created.
+`place(record_ref: "doc-0099", placed_by: "compliance_chen", reason: "   ")` → `invalid-request`. Whitespace-only reason is treated as empty. No hold is created.
 
 ### Rejection path — release with future timestamp
 
-`release("hold-007", released_by: "counsel_kim", reason: "case closed", released_at: "2027-01-01T00:00:00Z")` → `rejected(invalid-request)`. A release documented as occurring in the future is not operationally meaningful; the atom records the present obligation, not a future intent.
+`release("hold-007", released_by: "counsel_kim", reason: "case closed", released_at: "2027-01-01T00:00:00Z")` → `invalid-request`. A release documented as occurring in the future is not operationally meaningful; the atom records the present obligation, not a future intent.
 
 ### Regulated adversarial scenarios
 
@@ -421,7 +429,7 @@ Term records: `hold` — one preservation obligation, carrying `hold_id`, `recor
 
 Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, leave, read, order, write, change, rest, shrink, find, serialize, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, exceed, fall.
 
-Term value sets: place answers = hold_id | rejected(invalid-request | storage-failure). release answers = released | rejected(invalid-request | not-known | already-released | storage-failure). read answers = the matching holds, ordered | rejected(invalid-query). `hold state` = active | released.
+Term value sets: place answers hold_id and refuses invalid-request | storage-failure. release answers released and refuses invalid-request | not-known | already-released | storage-failure. read answers the matching holds, ordered and refuses invalid-query. `hold state` = active | released.
 
 Term bounds: empty.
 

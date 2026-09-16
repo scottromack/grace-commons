@@ -50,10 +50,17 @@ There is no third state, and the passing of the instant is compared against a re
 ### Operations
 
 ```
-take(key, holder, duration) → expires_at | unavailable
-try_take(key, holder, duration) → taken(expires_at) | held
-remaining(key, holder) → duration | none
-release(key, holder) → released | not-held
+take(key, holder, duration)
+  answers expires_at | unavailable
+
+try_take(key, holder, duration)
+  answers taken(expires_at) | held
+
+remaining(key, holder)
+  answers duration | none
+
+release(key, holder)
+  answers released | not-held
 ```
 
 ```text
@@ -228,7 +235,7 @@ Term records: empty — the atom writes nothing.
 
 Term record verbs: identify, compare, normalize, hold, derive, store, wait, succeed, answer, extend, compute, end, reach, treat, return, pass, refuse, judge, mint, apply, stand, report, equal, take, offer, admit, carry, make, roll, isolate, write, record, choose, state, check, name, supply, share, own, invent, confirm, fail.
 
-Term value sets: `lease state` = free | held. grant terminus = release | instant. take answers = expires_at | unavailable. try_take answers = taken(expires_at) | held. remaining answers = duration | none. release answers = released | not-held.
+Term value sets: `lease state` = free | held. grant terminus = release | instant. take answers expires_at | unavailable. try_take answers taken(expires_at) | held. remaining answers duration | none. release answers released | not-held.
 
 Term bounds: `duration` (the term a take asks for); the allowance; the fence ceiling.
 

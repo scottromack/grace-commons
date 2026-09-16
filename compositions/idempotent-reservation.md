@@ -31,7 +31,7 @@ This is the same mechanism every payment processor uses to stop a retried charge
 
 ## Intent
 
-Real reservation systems run over unreliable networks. A client submits [Place Hold]; the network drops the response before it arrives; the client retries. Without idempotency, the second call produces a *second* commitment — two distinct ids, two distinct audit trails, one unintended double-hold of the resource. The same hazard recurs for [Confirm], [Release], and [Expire]: a retry past Provisional Commitment's terminal-absorption boundary returns `rejected(not-held)`, which the caller cannot distinguish from a *new* failure without out-of-band information.
+Real reservation systems run over unreliable networks. A client submits [Place Hold]; the network drops the response before it arrives; the client retries. Without idempotency, the second call produces a *second* commitment — two distinct ids, two distinct audit trails, one unintended double-hold of the resource. The same hazard recurs for [Confirm], [Release], and [Expire]: a retry past Provisional Commitment's terminal-absorption boundary returns `not-held`, which the caller cannot distinguish from a *new* failure without out-of-band information.
 
 This composition solves the problem at the composition layer rather than absorbing it into Provisional Commitment. The caller supplies an **`idempotency_token`** on every state-changing call. The composition checks the token against a duplicate prevention(../atoms/duplicate-prevention.md) instance; if the token has been seen within the window (the configurable time period during which repeated tokens are detected and deduplicated), the composition returns the *original* response (the same commitment id, the same `ok`, the same rejection reason) without invoking provisional commitment(../atoms/provisional-commitment.md) a second time — with one exception Invariant 2 states: a resolving action whose first invocation died before recording the constituent's answer is re-run, effect-free by the constituent's own single-resolution invariant. The constituent atoms are unchanged; the composition is the wiring.
 
@@ -154,25 +154,24 @@ Every other argument — `resource`, `requester`, `duration`, `id` — is provis
 ### Action wiring
 
 ```
-place_hold(resource, requester, duration, idempotency_token) →
-    id
-  | rejected(
-      invalid-request | token-collision | resource-unavailable | storage-failure
-    | outcome-unknown(candidates) | recording-failure(place hold position)
-    )
+place_hold(resource, requester, duration, idempotency_token)
+  answers id
+  refuses invalid-request | token-collision | resource-unavailable | storage-failure | outcome-unknown(candidates) | recording-failure(place hold position)
 
-confirm(id, idempotency_token) →
-    ok
-  | rejected(
-      invalid-request | token-collision | not-known | not-held | window-elapsed
-    | storage-failure | outcome-unknown(candidates) | recording-failure(resolution position)
-    )
+confirm(id, idempotency_token)
+  answers ok
+  refuses invalid-request | token-collision | not-known | not-held | window-elapsed | storage-failure | outcome-unknown(candidates) | recording-failure(resolution position)
 
-release(id, idempotency_token) → ok | rejected(… as confirm …)
-expire(id, idempotency_token) → ok | rejected(… as confirm, with window-not-elapsed …)
+release(id, idempotency_token)
+  answers ok
+  refuses invalid-request | token-collision | not-known | not-held | window-elapsed | storage-failure | outcome-unknown(candidates) | recording-failure(resolution position)
+
+expire(id, idempotency_token)
+  answers ok
+  refuses invalid-request | token-collision | not-known | not-held | window-not-elapsed | storage-failure | outcome-unknown(candidates) | recording-failure(resolution position)
 ```
 
-Term place hold position: `intent` | `outcome(id?)` — the record a [Place Hold] write lands: the intent, or the outcome carrying the id where one was issued.
+Term place hold position: `intent` | `outcome(optional id)` — the record a [Place Hold] write lands: the intent, or the outcome carrying the id where one was issued.
 
 Term resolution position: `intent` | `outcome(result)` — the record a resolving write lands: the intent, or the outcome carrying the result.
 
@@ -304,7 +303,7 @@ A client behind a flaky network reserves a hotel room. The composition is config
 2. **Network drops the response. Client retries:** `place_hold(room_307, guest_g91, 24h, idem_x73a)` → `check(idem_x73a) → seen`; lookup matches; returns cached `rm_b4c`. *Provisional Commitment is not invoked.* No second commitment is created.
 3. **Client retries twice more:** identical outcome. Provisional Commitment still sees only one [Place Hold].
 4. **Two hours later, client confirms** with a fresh token: `confirm(rm_b4c, idem_y22)` → `check(idem_y22) → not-seen`; delegates to `ProvisionalCommitment.confirm(rm_b4c)` → `ok`. Records and returns `ok`. State: `rm_b4c` Confirmed.
-5. **Client retries the confirm** (browser back button or replay): `confirm(rm_b4c, idem_y22)` → `check → seen`; returns cached `ok`. Crucially, the second call does *not* return `rejected(not-held)` — which is what would happen if the retry hit Provisional Commitment directly, because `rm_b4c` has already moved Held → Confirmed. The idempotency cache hides the terminal-absorption rejection from the legitimate retry.
+5. **Client retries the confirm** (browser back button or replay): `confirm(rm_b4c, idem_y22)` → `check → seen`; returns cached `ok`. Crucially, the second call does *not* return `not-held` — which is what would happen if the retry hit Provisional Commitment directly, because `rm_b4c` has already moved Held → Confirmed. The idempotency cache hides the terminal-absorption rejection from the legitimate retry.
 6. **Eleven minutes later, client retries the original [Place Hold]** with `idem_x73a`. The 10-minute window has elapsed; `idem_x73a` is no longer in `DuplicatePrevention.recorded` (eventual-expiry invariant). `check → not-seen`; once the eviction leg has run, `token_results[idem_x73a]` is gone and the call is a fresh request — and where it has not yet run (its timing is not promised), the complete-entry arm finds an entry past the window with a `not-seen` token, evicts it in place under the section, and proceeds identically. Either way the composition delegates afresh. Provisional Commitment receives [Place Hold] against `room_307`; the room is no longer hold-able because `rm_b4c` is in Confirmed; it returns `resource-unavailable`. The composition caches *that* rejection against the new occurrence of the token. The client sees `resource-unavailable` — accurately reflecting the current state of the resource, not the stale identity of an old token.
 
 ### Banking — credit-hold authorization with retry
@@ -317,7 +316,7 @@ An emergency department coordinator clicks *Assign Bed* on the dashboard. The da
 
 ### Retail — inventory reservation with mobile retry
 
-A shopper on flaky mobile WiFi taps *Reserve* on a one-of-one luxury item. The app generates an idempotency token from the cart session id and the item sku, attaches it to the request, and retries on network failure with exponential backoff. The composition guarantees the shopper either reserves the item once and sees a successful reservation, or sees a single `resource-unavailable` rejection (someone else got there first) regardless of how many retries the network handler attempts — or, where the service died between reserving and recording, one of the two honest answers in place of a second reservation: `recording-failure(outcome(id?))` carrying the reservation's `id`, or `outcome-unknown(candidates)` naming the hold it can see but cannot pair, which the app resolves before trying again under a fresh token. No phantom *two reservations* state.
+A shopper on flaky mobile WiFi taps *Reserve* on a one-of-one luxury item. The app generates an idempotency token from the cart session id and the item sku, attaches it to the request, and retries on network failure with exponential backoff. The composition guarantees the shopper either reserves the item once and sees a successful reservation, or sees a single `resource-unavailable` rejection (someone else got there first) regardless of how many retries the network handler attempts — or, where the service died between reserving and recording, one of the two honest answers in place of a second reservation: `recording-failure(outcome(optional id))` carrying the reservation's `id`, or `outcome-unknown(candidates)` naming the hold it can see but cannot pair, which the app resolves before trying again under a fresh token. No phantom *two reservations* state.
 
 ### Airline — seat hold with session replay
 
@@ -330,7 +329,7 @@ Three scenarios the composition must survive in regulated contexts, beyond happy
 - **Regulator audit — "show me every double-charge."** An auditor filters the underlying Provisional Commitment instance's exported commitment sets — the atom exports the sets and each record's fields, not a query keyed by them, so the filter is the auditor's own — for commitments sharing a `(resource, requester, placed_at-near)` signature. The composition's `Invariant 3 — Token-to-commitment one-to-one within the window` guarantees the query returns the empty set within the window; outside the window the audit must distinguish *legitimate sequential holds* (separate logical operations with separate tokens) from *retry-induced doubles* (which the composition has structurally prevented). The auditor sees a structural guarantee, not a procedural promise.
 - **Disputed transaction — "you charged me twice."** The investigator inspects the composition's `token_results` map (or its persistent journal). If two of the customer's submitted requests carried the *same* token, the composition's cache produced one commitment and replayed the response — there is no double-spend to dispute. If the customer's client generated *different* tokens for what they intended as the same operation, the composition correctly processed them as independent operations; the dispute belongs to the client's token-generation logic, not to the reservation system.
 - **Replay attack — adversary captures and replays a token.** An adversary captures an in-flight request and replays it later within the window. The composition correctly returns the cached result. The replay produces no new state change — `Invariant 2 — Idempotent state transitions within the window`. Replays *outside* the window are treated as fresh requests; the adversary may succeed in placing a new commitment if the resource is available and they hold valid credentials, but that is an authentication / authorization failure (see actor identity(../atoms/actor-identity.md)), not an idempotency failure.
-- **Token reuse collision — caller accidentally reuses a token across two operations.** A developer reuses `idem_x73a` (originally used for `place_hold(room_307, ...)`) in a subsequent `confirm(rm_b4c, idem_x73a)` call. The composition checks: `DuplicatePrevention.check(idem_x73a) → seen`; looks up `token_results[idem_x73a]` and finds `action_type = place_hold`. Current call's `action_type = confirm` — mismatch. Returns `rejected(token-collision)`. No state change occurs. The caller must use a fresh token for the confirm. Invariant 4 (*Token-action binding*) is the structural guarantee; [Token Collision] is its observable form.
+- **Token reuse collision — caller accidentally reuses a token across two operations.** A developer reuses `idem_x73a` (originally used for `place_hold(room_307, ...)`) in a subsequent `confirm(rm_b4c, idem_x73a)` call. The composition checks: `DuplicatePrevention.check(idem_x73a) → seen`; looks up `token_results[idem_x73a]` and finds `action_type = place_hold`. Current call's `action_type = confirm` — mismatch. Returns `token-collision`. No state change occurs. The caller must use a fresh token for the confirm. Invariant 4 (*Token-action binding*) is the structural guarantee; [Token Collision] is its observable form.
 
 ---
 
@@ -550,7 +549,7 @@ Projects:  outcome-unknown
 
 #### Recording Failure
 
-The composition's own rejection for a write to `token_results` that did not land, carrying its position and, at the outcome position, the constituent's answer. `intent`: the `pending` entry failed — nothing is committed, and the whole action may be retried (a write that landed unacknowledged is found by the retry's `pending` arm, whose empty-candidates case proceeds as never delegated). `outcome(id?)` for [Place Hold], `outcome(result)` for the resolving actions: the constituent has answered — the committed `id` where there is one, else its rejection or `ok` — and the [Result] could not be recorded by `reservation_completion_bound`; the act must not be re-run under a fresh token, and a same-token retry lands the `pending` arm.
+The composition's own rejection for a write to `token_results` that did not land, carrying its position and, at the outcome position, the constituent's answer. `intent`: the `pending` entry failed — nothing is committed, and the whole action may be retried (a write that landed unacknowledged is found by the retry's `pending` arm, whose empty-candidates case proceeds as never delegated). `outcome(optional id)` for [Place Hold], `outcome(result)` for the resolving actions: the constituent has answered — the committed `id` where there is one, else its rejection or `ok` — and the [Result] could not be recorded by `reservation_completion_bound`; the act must not be re-run under a fresh token, and a same-token retry lands the `pending` arm.
 
 Kind:      Member
 Member of: the action rejection

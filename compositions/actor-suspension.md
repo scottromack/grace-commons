@@ -433,31 +433,24 @@ Audit arm 23 and Audit arm 24 are the one-writer rule at the outcome position. T
 ### Action wiring
 
 ```
-suspend_actor(actor_ref, suspended_by_ref, credential, reason) →
-    {suspended, revoked_grants, revoked_sessions, revoked_credentials, unresolved_members, event_id, resumed_by?}
-  | rejected(
-      invalid-request
-    | invalid-credential(position)
-    | already-suspended
-    | revocation-failure(surface, open_members)
-    | recording-failure(position)
-    )
+suspend_actor(actor_ref, suspended_by_ref, credential, reason)
+  answers suspension result
+  refuses invalid-request | invalid-credential(position) | already-suspended | revocation-failure(surface, open_members) | recording-failure(position)
 
-suspension_report(actor_ref) →
-    {state, intent_event_id?, open_members?, suspended_at?, suspended_by_ref?, reason?,
-     revoked_grants?, revoked_sessions?, revoked_credentials?, unresolved_members?,
-     enumeration_availability?, suspension_event_id?}
-  | rejected(invalid-request)
+suspension_report(actor_ref)
+  answers suspension record
+  refuses invalid-request
 
-reinstate_actor(actor_ref, reinstated_by_ref, credential, reason) →
-    {reinstated, event_id}
-  | rejected(
-      invalid-request
-    | invalid-credential
-    | already-active(not-suspended state)
-    | recording-failure
-    )
+reinstate_actor(actor_ref, reinstated_by_ref, credential, reason)
+  answers reinstatement result
+  refuses invalid-request | invalid-credential | already-active(not-suspended state) | recording-failure
 ```
+
+Term suspension result: `suspended`, `revoked_grants`, `revoked_sessions`, `revoked_credentials`, `unresolved_members`, `event_id` and an optional `resumed_by` — what `suspend_actor` answers.
+
+Term suspension record: `state`, an optional `intent_event_id`, an optional `open_members`, an optional `suspended_at`, an optional `suspended_by_ref`, an optional `reason`, an optional `revoked_grants`, an optional `revoked_sessions`, an optional `revoked_credentials`, an optional `unresolved_members`, an optional `enumeration_availability` and an optional `suspension_event_id` — what `suspension_report` answers.
+
+Term reinstatement result: `reinstated` and `event_id` — what `reinstate_actor` answers.
 
 Term position: `intent` | `outcome` — the record a write lands: the intent or the outcome.
 
@@ -763,13 +756,13 @@ A bank deploys the composition over its access surfaces with the actor namespace
 
 ### Domain example — compromised account, a cascade that stops and is completed
 
-A security team suspends a compromised account: `suspend_actor("svc_8830", "soc_analyst_k", <cred>, "credential-in-paste-dump")`. The snapshot finds five grants and one long-lived session; the intent lands with that plan and `svc_8830` stands suspending. Mid-cascade `Session.revoke(tok_svc)` answers `storage-failure` — the session store is briefly unreachable. **Nothing is undone:** the five committed grant revocations are terminal and stand. The cascade finishes its remaining members, the log records the failure — its [Outcome] a revocation failure — with `tok_svc` open, and the call answers `rejected(revocation-failure(session, {tok_svc}))`. The account is *mostly* closed and the records say exactly which door is open: [Suspension Report] answers suspending with `open_members = {tok_svc}`, and the issuance gate refuses new access.
+A security team suspends a compromised account: `suspend_actor("svc_8830", "soc_analyst_k", <cred>, "credential-in-paste-dump")`. The snapshot finds five grants and one long-lived session; the intent lands with that plan and `svc_8830` stands suspending. Mid-cascade `Session.revoke(tok_svc)` answers `storage-failure` — the session store is briefly unreachable. **Nothing is undone:** the five committed grant revocations are terminal and stand. The cascade finishes its remaining members, the log records the failure — its [Outcome] a revocation failure — with `tok_svc` open, and the call answers `revocation-failure(session, {tok_svc})`. The account is *mostly* closed and the records say exactly which door is open: [Suspension Report] answers suspending with `open_members = {tok_svc}`, and the issuance gate refuses new access.
 
 The Security Operations Center (SOC) retries once the store recovers. The state gate finds suspending, so this is a **resume**: `actor.resume_intended` lands under the analyst's credential naming `{tok_svc}` as open — the analyst is verified here, not the original service actor — the session is revoked as `soc_analyst_k` under the resume-prefixed reason, and `actor.suspended` lands with `resumed_by`, the resume event's id and the recovery marker. Had nobody retried, the sweep would have done the same within the window under the service identity behind an `actor.recovery_intended` record. Either way the outcome says the cascade was completed and by whom.
 
 ### Rejection path — already suspended, and the benign race
 
-- **Already suspended.** A retry of the offboarding call finds `Suspended` at the gate → `rejected(already-suspended)`: no second cascade, no second revoke, no second outcome.
+- **Already suspended.** A retry of the offboarding call finds `Suspended` at the gate → `already-suspended`: no second cascade, no second revoke, no second outcome.
 - **Benign time-of-check-to-time-of-use race.** While the cascade runs, the employee's laptop fires its own logout. The cascade's `Session.revoke(tok_laptop)` then answers `already-terminal` — the session is terminal, which *is* the cascade's goal — so the member is counted in the revoked set and the cascade does not abort.
 - **A lapsed session in the plan.** `tok_phone` lapsed an hour before the suspension: it is stored-active, so it enters the plan, and the revoke answers `already-terminal` by Session's own derivation, writing nothing in the constituent and counting as closed here. Enumerating by derived status instead would have dropped it from the plan, and the record of what the suspension set out to close would have been quietly short by one.
 
@@ -779,7 +772,7 @@ A planned grant answers `not-known` — a store inconsistency, since Permissions
 
 ### Failure path — a credential rotated mid-act
 
-An operator's credential is rotated between the intent and the outcome. The outcome write answers `invalid-credential`, and the call answers `rejected(invalid-credential(outcome))`: the revocations **stand**, this credential no longer attests, and the outcome is not this caller's to write. The caller does not re-run — a re-run under the same rotated credential would refuse again, which is the loop the un-positioned arm used to invite. A resume under a different verified operator closes it, and the sweep closes it otherwise.
+An operator's credential is rotated between the intent and the outcome. The outcome write answers `invalid-credential`, and the call answers `invalid-credential(outcome)`: the revocations **stand**, this credential no longer attests, and the outcome is not this caller's to write. The caller does not re-run — a re-run under the same rotated credential would refuse again, which is the loop the un-positioned arm used to invite. A resume under a different verified operator closes it, and the sweep closes it otherwise.
 
 ### Failure path — the intent appended and the call still failed
 
@@ -1034,9 +1027,9 @@ Term cadences: `reconciliation cadence` (`reconciliation_cadence`), `seal cadenc
 
 Term qualifiers: `migrated` — rewritten in GRACE lang v0.41 (2026-09-15).
 
-Term value sets: suspend_actor answers = the suspension result | rejected(invalid-request | invalid-credential(position) | already-suspended | revocation-failure(surface, open_members) | recording-failure(position)). suspension_report answers = the suspension record | rejected(invalid-request). reinstate_actor answers = the reinstatement result | rejected(invalid-request | invalid-credential | already-active(not-suspended state) | recording-failure). `lifecycle state` = active | suspending | suspended. `intent` = actor.suspension_intended | actor.resume_intended | actor.recovery_intended. `outcome` = actor.suspended | actor.reinstated. `surface` = permissions | session | credential. `enumeration availability` = available | unavailable-past-horizon. `already-active` reason = active | suspending. `benign terminal answer` = not-active | already-terminal.
+Term value sets: suspend_actor answers the suspension result and refuses invalid-request | invalid-credential(position) | already-suspended | revocation-failure(surface, open_members) | recording-failure(position). suspension_report answers the suspension record and refuses invalid-request. reinstate_actor answers the reinstatement result and refuses invalid-request | invalid-credential | already-active(not-suspended state) | recording-failure. `lifecycle state` = active | suspending | suspended. `intent` = actor.suspension_intended | actor.resume_intended | actor.recovery_intended. `outcome` = actor.suspended | actor.reinstated. `surface` = permissions | session | credential. `enumeration availability` = available | unavailable-past-horizon. `already-active` reason = active | suspending. `benign terminal answer` = not-active | already-terminal.
 
-Term terms: `composition`, `constituents`, `credential arm`, `service identity`, `operator`, `resumer`, `suspension-state index`, `high-water mark`, `suspension log`, `mirrored log entry`, `refusal log entry`, `tail read`, `audit horizon`, `aged-out event`, `rebuild`, `miss`, `aged-out entry`, `aged-out log entry`, `aged-out actor`, `aged-out outcome`, `aged-out open cascade`, `post-snapshot member`, `admitted suspension`, `admitted reinstatement`, `plan`, `revoked set`, `open cascade`, `seam`, `transition`, `unified actor namespace`, `section`, `suspension completion bound`, `completion window`, `closure floor`, `access retention floor`, `planned set cap`, `maximal outcome`, `clock offset allowance`, `blank`, `boundary predicate`, `opaque argument`, `operator reference`, `resume prefix`, `completion prefix`, `intent`, `outcome`, `committing call`, `landed intent`, `append step`, `retention step`, `read-back`, `owed outcome`, `stored active`, `effective active`, `snapshot`, `fresh cascade`, `resume`, `cascade`, `benign terminal answer`, `non-benign refusal`, `open members`, `unresolved members`, `closed plan`, `recovery marker`, `enumeration availability`, `sweep`, `pre-check`, `young intent`, `plan-unavailable marker`, `accounted cascade`, `accounted member`, `escalated finding`, `orphan`, `indeterminate committing call`, `position`, `not-suspended state`.
+Term terms: `composition`, `constituents`, `credential arm`, `service identity`, `operator`, `resumer`, `suspension-state index`, `high-water mark`, `suspension log`, `mirrored log entry`, `refusal log entry`, `tail read`, `audit horizon`, `aged-out event`, `rebuild`, `miss`, `aged-out entry`, `aged-out log entry`, `aged-out actor`, `aged-out outcome`, `aged-out open cascade`, `post-snapshot member`, `admitted suspension`, `admitted reinstatement`, `plan`, `revoked set`, `open cascade`, `seam`, `transition`, `unified actor namespace`, `section`, `suspension completion bound`, `completion window`, `closure floor`, `access retention floor`, `planned set cap`, `maximal outcome`, `clock offset allowance`, `blank`, `boundary predicate`, `opaque argument`, `operator reference`, `resume prefix`, `completion prefix`, `intent`, `outcome`, `committing call`, `landed intent`, `append step`, `retention step`, `read-back`, `owed outcome`, `stored active`, `effective active`, `snapshot`, `fresh cascade`, `resume`, `cascade`, `benign terminal answer`, `non-benign refusal`, `open members`, `unresolved members`, `closed plan`, `recovery marker`, `enumeration availability`, `sweep`, `pre-check`, `young intent`, `plan-unavailable marker`, `accounted cascade`, `accounted member`, `escalated finding`, `orphan`, `indeterminate committing call`, `position`, `not-suspended state`, `suspension result`, `suspension record`, `reinstatement result`.
 
 Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. credential(../atoms/credential.md) — the effective-active reading and the per-pair bound.
 

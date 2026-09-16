@@ -128,12 +128,29 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-originate(artifact_ref, custodian_ref, genesis_type, metadata) → chain_id | rejected(invalid-ref | invalid-genesis-type | storage-failure)
-transfer(chain_id, to_custodian_ref) → entry_id | rejected(not-known | archived | invalid-ref | storage-failure)
-transform(chain_id, custodian_ref, transformation_descriptor) → entry_id | rejected(not-known | archived | invalid-ref | invalid-descriptor | not-current-custodian | storage-failure)
-disclose(chain_id, custodian_ref, recipient_ref) → entry_id | rejected(not-known | archived | invalid-ref | not-current-custodian | storage-failure)
-archive(chain_id, custodian_ref) → entry_id | rejected(not-known | already-archived | invalid-ref | not-current-custodian | storage-failure)
-read(chain_id, query) → entry_sequence | rejected(not-known | invalid-query)
+originate(artifact_ref, custodian_ref, genesis_type, metadata)
+  answers chain_id
+  refuses invalid-ref | invalid-genesis-type | storage-failure
+
+transfer(chain_id, to_custodian_ref)
+  answers entry_id
+  refuses not-known | archived | invalid-ref | storage-failure
+
+transform(chain_id, custodian_ref, transformation_descriptor)
+  answers entry_id
+  refuses not-known | archived | invalid-ref | invalid-descriptor | not-current-custodian | storage-failure
+
+disclose(chain_id, custodian_ref, recipient_ref)
+  answers entry_id
+  refuses not-known | archived | invalid-ref | not-current-custodian | storage-failure
+
+archive(chain_id, custodian_ref)
+  answers entry_id
+  refuses not-known | already-archived | invalid-ref | not-current-custodian | storage-failure
+
+read(chain_id, query)
+  answers entry_sequence
+  refuses not-known | invalid-query
 ```
 
 ```text
@@ -338,23 +355,23 @@ Defense counsel claims an undocumented handler between the detective and the lab
 
 ### Rejection paths
 
-`transform("chain-0041", "manuf-lab-7", "added label update")` against the archived pharmaceutical chain → `rejected(archived)`. The chain-state rejection precedes the attribution guard, so the caller learns the chain is closed rather than that they are not the custodian (Operation 13, Operation 16).
+`transform("chain-0041", "manuf-lab-7", "added label update")` against the archived pharmaceutical chain → `archived`. The chain-state rejection precedes the attribution guard, so the caller learns the chain is closed rather than that they are not the custodian (Operation 13, Operation 16).
 
-The same call against the chain while it stood open, after custody had moved to `pharm-hosp-9` → `rejected(not-current-custodian)` (Operation 26).
+The same call against the chain while it stood open, after custody had moved to `pharm-hosp-9` → `not-current-custodian` (Operation 26).
 
-`originate("sample-99", custodian_ref: "", genesis_type: originated)` → `rejected(invalid-ref)`. No chain is recorded (Operation 2, Operation 43).
+`originate("sample-99", custodian_ref: "", genesis_type: originated)` → `invalid-ref`. No chain is recorded (Operation 2, Operation 43).
 
-`originate("sample-77", "lab-2", genesis_type: imported)` → `rejected(invalid-genesis-type)`. `imported` stands outside the genesis types (Operation 3).
+`originate("sample-77", "lab-2", genesis_type: imported)` → `invalid-genesis-type`. `imported` stands outside the genesis types (Operation 3).
 
-`transform("chain-0107", "forensic-lab-12", "   ")` → `rejected(invalid-descriptor)`. A whitespace-only descriptor NOT EXISTS (Operation 24, String 5).
+`transform("chain-0107", "forensic-lab-12", "   ")` → `invalid-descriptor`. A whitespace-only descriptor NOT EXISTS (Operation 24, String 5).
 
-`archive("chain-0041", "pharm-hosp-9")` against the archived chain → `rejected(already-archived)` — a distinct reason from the writer actions' `archived`, so a retrying archiver learns the work is done rather than refused (Operation 15).
+`archive("chain-0041", "pharm-hosp-9")` against the archived chain → `already-archived` — a distinct reason from the writer actions' `archived`, so a retrying archiver learns the work is done rather than refused (Operation 15).
 
-`read("chain-9999")` → `rejected(not-known)` (Operation 10).
+`read("chain-9999")` → `not-known` (Operation 10).
 
-`read("chain-0041", {sequence_range: [5, 2]})` → `rejected(invalid-query)`. The caller corrects the query rather than reading an empty answer as *no entries matched* (Operation 47, Operation 48).
+`read("chain-0041", {sequence_range: [5, 2]})` → `invalid-query`. The caller corrects the query rather than reading an empty answer as *no entries matched* (Operation 47, Operation 48).
 
-`transfer("chain-0107", "forensic-lab-12")` while the store's write path is down → `rejected(storage-failure)`. Every precondition passed and the write did not; no entry is appended, no `sequence_number` is taken, and the current custodian holds its prior value (Operation 41 through 45).
+`transfer("chain-0107", "forensic-lab-12")` while the store's write path is down → `storage-failure`. Every precondition passed and the write did not; no entry is appended, no `sequence_number` is taken, and the current custodian holds its prior value (Operation 41 through 45).
 
 ### Regulated adversarial scenarios
 
@@ -566,7 +583,7 @@ Term records: `chain` — one artifact's custody history for one episode, carryi
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, read, take, raise, commit, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, govern, survive, route, share, equal, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, replay, reconstruct, repeat, observe, complete, roll back, serve, accept, serialize, name, claim, detect, bound, dispose, decide, compose, declare, wire, guard, rest, apply, supply, inject, fall, remove, edit, reorder, empty, move, cache, resolve, run.
 
-Term value sets: originate answers = chain_id | rejected(invalid-ref | invalid-genesis-type | storage-failure). transfer answers = entry_id | rejected(not-known | archived | invalid-ref | storage-failure). transform answers = entry_id | rejected(not-known | archived | invalid-ref | invalid-descriptor | not-current-custodian | storage-failure). disclose answers = entry_id | rejected(not-known | archived | invalid-ref | not-current-custodian | storage-failure). archive answers = entry_id | rejected(not-known | already-archived | invalid-ref | not-current-custodian | storage-failure). read answers = the matching entries | rejected(not-known | invalid-query). `event_type` = originated | received | transferred | transformed | disclosed | archived. `genesis types` = originated | received. `chain state` = open | archived.
+Term value sets: originate answers chain_id and refuses invalid-ref | invalid-genesis-type | storage-failure. transfer answers entry_id and refuses not-known | archived | invalid-ref | storage-failure. transform answers entry_id and refuses not-known | archived | invalid-ref | invalid-descriptor | not-current-custodian | storage-failure. disclose answers entry_id and refuses not-known | archived | invalid-ref | not-current-custodian | storage-failure. archive answers entry_id and refuses not-known | already-archived | invalid-ref | not-current-custodian | storage-failure. read answers the matching entries and refuses not-known | invalid-query. `event_type` = originated | received | transferred | transformed | disclosed | archived. `genesis types` = originated | received. `chain state` = open | archived.
 
 Term bounds: `maximum length` (the deployment's cap per string input).
 

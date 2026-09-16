@@ -96,10 +96,21 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-add(description) → id | rejected(invalid-description | duplicate-active | storage-failure)
-edit(id, new_description) → ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure)
-complete(id) → ok | rejected(not-known | not-pending | storage-failure)
-delete(id) → ok | rejected(not-known | storage-failure)
+add(description)
+  answers id
+  refuses invalid-description | duplicate-active | storage-failure
+
+edit(id, new_description)
+  answers ok
+  refuses not-known | not-editable | invalid-description | duplicate-active | storage-failure
+
+complete(id)
+  answers ok
+  refuses not-known | not-pending | storage-failure
+
+delete(id)
+  answers ok
+  refuses not-known | storage-failure
 ```
 
 ```text
@@ -364,7 +375,7 @@ Term records: `unit` — one thing to do, carrying `id`, `description`, `added_a
 
 Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find.
 
-Term value sets: add answers = id | rejected(invalid-description | duplicate-active | storage-failure). edit answers = ok | rejected(not-known | not-editable | invalid-description | duplicate-active | storage-failure). complete answers = ok | rejected(not-known | not-pending | storage-failure). delete answers = ok | rejected(not-known | storage-failure). `unit state` = pending | done.
+Term value sets: add answers id and refuses invalid-description | duplicate-active | storage-failure. edit answers ok and refuses not-known | not-editable | invalid-description | duplicate-active | storage-failure. complete answers ok and refuses not-known | not-pending | storage-failure. delete answers ok and refuses not-known | storage-failure. `unit state` = pending | done.
 
 Term bounds: `description cap` (the bound on a normalized description's length).
 

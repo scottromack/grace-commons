@@ -137,19 +137,25 @@ Clock skew between a caller and the seam can push a `decided_at` the caller beli
 ### Operations
 
 ```
-submit(subject_ref, approver_ref, submitter_ref, scope, reason?, submitted_at?)
-  → step_id | rejected(invalid-request | storage-failure)
+submit(subject_ref, approver_ref, submitter_ref, scope, optional reason, optional submitted_at)
+  answers step_id
+  refuses invalid-request | storage-failure
 
-approve(step_id, decided_by, reason?, decided_at?)
-  → approved | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure)
+approve(step_id, decided_by, optional reason, optional decided_at)
+  answers approved
+  refuses invalid-request | not-known | not-pending | unauthorized | storage-failure
 
-reject(step_id, decided_by, reason, decided_at?)
-  → rejected_outcome | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure)
+reject(step_id, decided_by, reason, optional decided_at)
+  answers rejected_outcome
+  refuses invalid-request | not-known | not-pending | unauthorized | storage-failure
 
-withdraw(step_id, withdrawn_by, reason, withdrawn_at?)
-  → withdrawn | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure)
+withdraw(step_id, withdrawn_by, reason, optional withdrawn_at)
+  answers withdrawn
+  refuses invalid-request | not-known | not-pending | unauthorized | storage-failure
 
-read(query) → the matching steps | rejected(invalid-query)
+read(query)
+  answers the matching steps
+  refuses invalid-query
 ```
 
 ```text
@@ -342,19 +348,19 @@ Or the controller catches a routing error first: `withdraw("step-001", withdrawn
 
 ### Rejection paths
 
-`approve("step-001", decided_by: "controller_morgan")` → `rejected(unauthorized)`. The submitter is not the approver, and the step stays pending with nothing written (Operation 21, Operation 36).
+`approve("step-001", decided_by: "controller_morgan")` → `unauthorized`. The submitter is not the approver, and the step stays pending with nothing written (Operation 21, Operation 36).
 
-`approve("step-001", decided_by: "finance_director_chen")` against the already-approved step → `rejected(not-pending)`. Not `unauthorized`, even though the caller is the right actor — the step refuses every resolving call, and saying so sends the caller to the right problem (Operation 13, Operation 20).
+`approve("step-001", decided_by: "finance_director_chen")` against the already-approved step → `not-pending`. Not `unauthorized`, even though the caller is the right actor — the step refuses every resolving call, and saying so sends the caller to the right problem (Operation 13, Operation 20).
 
-`reject("step-002", decided_by: "tax_director", reason: "   ")` → `rejected(invalid-request)`. A rejection with no stated reason is not an audit record (Operation 16, Invariant 6.3).
+`reject("step-002", decided_by: "tax_director", reason: "   ")` → `invalid-request`. A rejection with no stated reason is not an audit record (Operation 16, Invariant 6.3).
 
-`approve("", decided_by: "finance_director_chen")` → `rejected(invalid-request)`, refused before any store lookup — a blank id is garbage, not a reference to a missing step (Operation 10, Operation 12).
+`approve("", decided_by: "finance_director_chen")` → `invalid-request`, refused before any store lookup — a blank id is garbage, not a reference to a missing step (Operation 10, Operation 12).
 
-`approve("step-003", decided_by: "finance_director_chen", decided_at: "2020-01-01")` against a step submitted in 2026 → `rejected(invalid-request)`. A decision cannot predate its submission (Operation 19).
+`approve("step-003", decided_by: "finance_director_chen", decided_at: "2020-01-01")` against a step submitted in 2026 → `invalid-request`. A decision cannot predate its submission (Operation 19).
 
-`submit(subject_ref: "je-0442", approver_ref: "dir_chen", submitter_ref: "controller_morgan", scope: "   ")` → `rejected(invalid-request)` (Operation 4).
+`submit(subject_ref: "je-0442", approver_ref: "dir_chen", submitter_ref: "controller_morgan", scope: "   ")` → `invalid-request` (Operation 4).
 
-`read({subject_ref: "je-2026-0441", approver_email: "chen@…"})` → `rejected(invalid-query)`. The key stands outside the nine axes and is refused rather than ignored (Operation 44).
+`read({subject_ref: "je-2026-0441", approver_email: "chen@…"})` → `invalid-query`. The key stands outside the nine axes and is refused rather than ignored (Operation 44).
 
 ### Multiple gates on one subject
 
@@ -545,7 +551,7 @@ Term records: `step` — one authorization gate, carrying `step_id`, `subject_re
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, order, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, capture, choose, canonicalize, retry, permit.
 
-Term value sets: submit answers = step_id | rejected(invalid-request | storage-failure). approve answers = approved | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure). reject answers = rejected_outcome | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure). withdraw answers = withdrawn | rejected(invalid-request | not-known | not-pending | unauthorized | storage-failure). read answers = the matching steps | rejected(invalid-query). `state` = pending | approved | rejected | withdrawn.
+Term value sets: submit answers step_id and refuses invalid-request | storage-failure. approve answers approved and refuses invalid-request | not-known | not-pending | unauthorized | storage-failure. reject answers rejected_outcome and refuses invalid-request | not-known | not-pending | unauthorized | storage-failure. withdraw answers withdrawn and refuses invalid-request | not-known | not-pending | unauthorized | storage-failure. read answers the matching steps and refuses invalid-query. `state` = pending | approved | rejected | withdrawn.
 
 Term bounds: empty.
 

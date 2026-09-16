@@ -1072,6 +1072,50 @@ def check_range_form_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing) + 1 + len(covers)
 
 
+def check_signature_form_synthetic(problems: list[str]) -> int:
+    """D-signature-form (tools/grace/check.py) — landed with the signature form at
+    council read 89. The form, a record named by a term and an example call stay
+    silent; each retired spelling and each misplaced line fires. Returns the
+    fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: `migrated` — rewritten in GRACE lang v0.48 (2026-09-15).\n\n"
+            "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n")
+    tail = ("\n```text\nOperation 1: [Place] MUST read the store.\n"
+            "Operation 2: [Read] MUST read the store.\n```\n")
+    def run(block: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + block + "```\n" + tail, encoding="utf-8")
+            return [x for x in scan(f) if x.code == "D-signature-form"]
+    good = ("place(item_ref, optional reason)\n  answers placement result\n"
+            "  refuses invalid-request | recording-failure(position)\n\n"
+            "read(filter)\n  answers the matching items | not-known\n")
+    silent = [("the form", good),
+              ("an example call", 'place(item_ref: "i-1")\n→ rejected(invalid-request)\n')]
+    firing = [
+        ("the arrow", "place(item_ref) → ok\n"),
+        ("a trailing ?", "place(item_ref, reason?)\n  answers ok\n"),
+        ("a braced record", "place(item_ref)\n  answers {ok, event_id}\n"),
+        ("the rejected wrapper", "place(item_ref)\n  answers ok\n  refuses rejected(not-known)\n"),
+        ("an arm holding an arm", "place(item_ref)\n  answers ok\n  refuses invalid(expired | revoked)\n"),
+        ("two codes with no bar", "place(item_ref)\n  answers ok\n  refuses invalid-request not-known\n"),
+        ("no answers line", "place(item_ref)\n  refuses not-known\n"),
+        ("no blank line between", "place(item_ref)\n  answers ok\nread(filter)\n  answers ok\n"),
+        ("a header over two lines", "place(item_ref,\n      reason)\n  answers ok\n"),
+    ]
+    for name, block in silent:
+        got = run(block)
+        if got:
+            problems.append(f"D-signature-form: fired on {name}: {got[0].message}")
+    for name, block in firing:
+        if not run(block):
+            problems.append(f"D-signature-form: {name} did not fire")
+    return len(silent) + len(firing)
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -1201,6 +1245,15 @@ def main(argv: list[str]) -> int:
         print("D-tombstone-form: 5 synthetic fixtures hold (a tombstone written first keeps "
               "its block live; the retired shape, a missing period, a missing close and "
               "a missing label fire) \u2713")
+
+    sig_problems: list[str] = []
+    n_sig = check_signature_form_synthetic(sig_problems)
+    failures.extend(sig_problems)
+    if not sig_problems:
+        print(f"D-signature-form: {n_sig} synthetic fixtures hold (the form and an example "
+              "call silent; the arrow, a `?`, a braced record, the `rejected(…)` wrapper, "
+              "a nested arm, two codes with no bar, a missing answers line, a missing blank "
+              "line and a split header fire) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)

@@ -570,8 +570,8 @@ def check_rests_on_refs(patterns: dict[Path, Pattern], md_files: list[Path]) -> 
 #     declared in an unrecognized format never false-positives;
 #   - keyword arguments are checked only where a STRICT contract declaration
 #     was parsed ("Projected contract: `f(a, b)`" or a bold-inline signature
-#     "**`f(a, b) → ...`**"), with `?`-optional and [bracket]-optional markers
-#     stripped;
+#     "**`f(a, b) → ...`**"), with `optional`, `?`-optional and [bracket]-optional
+#     markers stripped;
 #   - positional-arity drift, renamed rejection reasons, and semantic drift
 #     stay fresh-reader concerns.
 # Call sites are scanned only ABOVE the "## Status" heading — Lineage notes
@@ -584,10 +584,11 @@ CONTRACT_PROJECTED = re.compile(
 CONTRACT_BOLD = re.compile(
     r"^\s*(?:[-*]\s*)?\*\*`([a-z_][a-z0-9_]*)\(([^)]*)\)", re.M)
 BACKTICKED_ACTION = re.compile(r"`([a-z_][a-z0-9_]*)\(")
-# A GRACE lang signature block: a bare fence whose lines read
-# `name(param, param) -> outcome | outcome` (GRACE-lang Closed vocabulary 20).
+# A GRACE lang signature: `name(param, optional param)` over an answers line
+# (GRACE-lang Term signature form, v0.48). An unmigrated spec still writes
+# `name(param, param?) -> outcome | rejected(...)`, and both are contracts.
 CONTRACT_SIGNATURE = re.compile(
-    r"^([a-z_][a-z0-9_]*)\(([^)]*)\)\s*(?:\u2192|->)", re.M)
+    r"^([a-z_][a-z0-9_]*)\(([^)]*)\)(?:\s*(?:\u2192|->)|\n  answers )", re.M)
 KWARG = re.compile(r"^\s*([a-z_][a-z0-9_]*)\s*=[^=]")
 HANDLE_ALIASES = {"workflow-state-machine": "state-machine"}
 
@@ -622,6 +623,7 @@ def _declared_contracts(text: str) -> dict[str, set[str]]:
             cleaned = set()
             for piece in params.split(","):
                 piece = piece.strip().strip("?").strip("[]").strip("?").strip()
+                piece = piece.removeprefix("optional ")
                 if re.fullmatch(r"[a-z_][a-z0-9_]*", piece):
                     cleaned.add(piece)
             out.setdefault(name, set()).update(cleaned)

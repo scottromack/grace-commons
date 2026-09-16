@@ -124,16 +124,21 @@ The lower bounds (Operation 17, Operation 18) hold against the *resolved* value,
 ### Operations
 
 ```
-soft_delete(record_id, deleted_by, reason?, deleted_at?)
-  → deleted | rejected(invalid-request | already-deleted | already-purged | storage-failure)
+soft_delete(record_id, deleted_by, optional reason, optional deleted_at)
+  answers deleted
+  refuses invalid-request | already-deleted | already-purged | storage-failure
 
-restore(record_id, restored_by, reason?, restored_at?)
-  → restored | rejected(invalid-request | not-known | not-deleted | already-purged | storage-failure)
+restore(record_id, restored_by, optional reason, optional restored_at)
+  answers restored
+  refuses invalid-request | not-known | not-deleted | already-purged | storage-failure
 
-purge(record_id, purged_by, reason, purged_at?)
-  → purged | rejected(invalid-request | not-known | not-deleted | storage-failure)
+purge(record_id, purged_by, reason, optional purged_at)
+  answers purged
+  refuses invalid-request | not-known | not-deleted | storage-failure
 
-read(query) → the matching lifecycle records | rejected(invalid-query)
+read(query)
+  answers the matching lifecycle records
+  refuses invalid-query
 ```
 
 ```text
@@ -302,7 +307,7 @@ The user reconsiders within the undo window: `restore("post-8821", restored_by: 
 
 The user deletes it again. The deletion fields are replaced with the new epoch's attribution and the restore fields stand as they were (Invariant 1.3, Operation 27). Ninety days later the retention service purges it: `purge("post-8821", purged_by: "retention_service", reason: "90-day deleted-record purge policy")` → `purged`. The host destroys the content; the lifecycle record stays as the evidence (State 11).
 
-A support agent asks whether it can be recovered: `restore("post-8821", …)` → `rejected(already-purged)` (Operation 11). What they *can* see is the whole lifecycle — the latest deletion, the restore, and the purge with its actor and reason.
+A support agent asks whether it can be recovered: `restore("post-8821", …)` → `already-purged` (Operation 11). What they *can* see is the whole lifecycle — the latest deletion, the restore, and the purge with its actor and reason.
 
 ### GDPR Article 17 erasure
 
@@ -310,19 +315,19 @@ A data subject submits an erasure request. The DSAR workflow calls `soft_delete(
 
 ### Rejection paths
 
-`purge("doc-77", purged_by: "admin", reason: "cleanup")` where `doc-77` has never been deleted → `rejected(not-known)`. There is no lifecycle record to purge, and [Purge] does not create one (Operation 5).
+`purge("doc-77", purged_by: "admin", reason: "cleanup")` where `doc-77` has never been deleted → `not-known`. There is no lifecycle record to purge, and [Purge] does not create one (Operation 5).
 
-`purge("post-8821", …)` against the restored, active record → `rejected(not-deleted)`. A record must be deleted before it can be destroyed; there is no direct path (Operation 13, State 4).
+`purge("post-8821", …)` against the restored, active record → `not-deleted`. A record must be deleted before it can be destroyed; there is no direct path (Operation 13, State 4).
 
-`soft_delete("post-8821", deleted_by: "user-4491")` against the already-deleted record → `rejected(already-deleted)`, not a silent success (Operation 9, Non-goal 1).
+`soft_delete("post-8821", deleted_by: "user-4491")` against the already-deleted record → `already-deleted`, not a silent success (Operation 9, Non-goal 1).
 
-`purge("post-8821", purged_by: "retention_service", reason: "   ")` → `rejected(invalid-request)`. A destruction with no stated reason is not an audit record (Operation 3, Invariant 5.2).
+`purge("post-8821", purged_by: "retention_service", reason: "   ")` → `invalid-request`. A destruction with no stated reason is not an audit record (Operation 3, Invariant 5.2).
 
-`soft_delete("post-8821", deleted_by: "svc", deleted_at: "2030-01-01")` → `rejected(invalid-request)` (Operation 16).
+`soft_delete("post-8821", deleted_by: "svc", deleted_at: "2030-01-01")` → `invalid-request` (Operation 16).
 
-`restore("post-8821", restored_by: "svc", restored_at: "2020-01-01")` against a record deleted in 2026 → `rejected(invalid-request)`. A restore cannot precede the deletion it undoes (Operation 17).
+`restore("post-8821", restored_by: "svc", restored_at: "2020-01-01")` against a record deleted in 2026 → `invalid-request`. A restore cannot precede the deletion it undoes (Operation 17).
 
-`read({record_id: "post-8821", deleted_reason: "spam"})` → `rejected(invalid-query)`. The key stands outside the seven axes and is refused rather than ignored (Operation 41).
+`read({record_id: "post-8821", deleted_reason: "spam"})` → `invalid-query`. The key stands outside the seven axes and is refused rather than ignored (Operation 41).
 
 ### Regulated adversarial scenarios
 
@@ -492,7 +497,7 @@ Term records: `lifecycle record` — the state and attribution this atom holds f
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, set, replace, leave, own, match, normalize, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, order, name, bind, destroy, hold, gate, retain, define, canonicalize, register, untrack.
 
-Term value sets: soft_delete answers = deleted | rejected(invalid-request | already-deleted | already-purged | storage-failure). restore answers = restored | rejected(invalid-request | not-known | not-deleted | already-purged | storage-failure). purge answers = purged | rejected(invalid-request | not-known | not-deleted | storage-failure). read answers = the matching lifecycle records | rejected(invalid-query). `state` = active | deleted | purged.
+Term value sets: soft_delete answers deleted and refuses invalid-request | already-deleted | already-purged | storage-failure. restore answers restored and refuses invalid-request | not-known | not-deleted | already-purged | storage-failure. purge answers purged and refuses invalid-request | not-known | not-deleted | storage-failure. read answers the matching lifecycle records and refuses invalid-query. `state` = active | deleted | purged.
 
 Term bounds: empty.
 

@@ -110,8 +110,13 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-place_under_retention(record_ref, policy_ref) → retention_id | rejected(invalid-request | invalid-policy | policy-not-found | storage-failure)
-purge(retention_id) → ok | rejected(not-known | not-retained | retention-period-not-elapsed | storage-failure)
+place_under_retention(record_ref, policy_ref)
+  answers retention_id
+  refuses invalid-request | invalid-policy | policy-not-found | storage-failure
+
+purge(retention_id)
+  answers ok
+  refuses not-known | not-retained | retention-period-not-elapsed | storage-failure
 ```
 
 ```text
@@ -259,7 +264,7 @@ A company places each executed contract under retention with policy = max(contra
 
 ```
 purge(retention_id: "ret-0047")          # seam injects now = 2026-06-22T00:00:00Z
-→ rejected(retention-period-not-elapsed)
+→ retention-period-not-elapsed
 ```
 
 The pure eligibility guard evaluates [Now] ≥ [Retention Until] against the seam-injected [Now] and finds it false — [Retention Until] has not been reached; the atom rejects the purge outright and **writes nothing**. No state change occurs; the record remains in [Retained], and its [Purge Eligible] projection reads `false`. The rejection is the structural enforcement of Invariant 7 — early purge is not just refused, it is structurally impossible.
@@ -268,7 +273,7 @@ The pure eligibility guard evaluates [Now] ≥ [Retention Until] against the sea
 
 ```
 place_under_retention(record_ref: "txn-1188", policy_ref: "policy-obsolete-v1")
-→ rejected(policy-not-found)
+→ policy-not-found
 ```
 
 No retention is created. The host system must supply a valid, resolvable policy reference before any retention can be placed.
@@ -416,7 +421,7 @@ Term records: `retention` — one obligation, carrying `retention_id`, `record_r
 
 Term record verbs: identify, allocate, supply, reuse, carry, stand, set, store, offer, hold, record, answer, read, resolve, stamp, judge, leave, refuse, write, derive, change, delete, shrink, share, admit, gate, destroy, retry, alert, coordinate, confirm, serialize, own, disagree, compose, place, define, version, retain, permit, purge, choose, suspend, renumber, add, find, reproduce, compute, reconstruct, declare, exceed, bound.
 
-Term value sets: place_under_retention answers = retention_id | rejected(invalid-request | invalid-policy | policy-not-found | storage-failure). purge answers = ok | rejected(not-known | not-retained | retention-period-not-elapsed | storage-failure). `retention state` = retained | purged. `purge eligible` = yes | no.
+Term value sets: place_under_retention answers retention_id and refuses invalid-request | invalid-policy | policy-not-found | storage-failure. purge answers ok and refuses not-known | not-retained | retention-period-not-elapsed | storage-failure. `retention state` = retained | purged. `purge eligible` = yes | no.
 
 Term bounds: `duration` (the policy's retention period); `max_purge_delay` (the lag the policy allows); `retention_until`; `purge_deadline`.
 

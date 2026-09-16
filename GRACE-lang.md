@@ -1,4 +1,4 @@
-# GRACE lang v0.47 — Minimal Earned Grammar
+# GRACE lang v0.48 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -81,7 +81,7 @@ Term term entry: a Terms registry entry — a heading, prose and a `Kind` line �
 
 Term bracket marker: `[Name]` in prose, and the link line that lands it on the name's term entry; a pointer to the declaration, never a second copy of the declaration.
 
-Term signature block: a fenced block with no info string whose lines are signature lines — `name(args) →` followed by the action's arms — one line per action, one or more lines per block; each line is the declaration of that action's outcomes, read as the value set the action's rules land on.
+Term signature block: a fenced block with no info string whose first line is a signature, in the signature form, one signature per action and one or more per block; each signature is the declaration of that action's outcomes, read as the value set the action's rules land on.
 
 Term normative: unprefixed Strict Caveman (§20) inside a normative block, other than a tombstone.
 
@@ -432,6 +432,10 @@ Closed vocabulary 20: A specification MUST declare EVERY action's outcomes in a 
 Closed vocabulary 21: The parser MUST read a signature block as the value set of the action's outcomes.
 Closed vocabulary 22: A rule MUST NOT land an outcome absent from the action's signature block.
 Closed vocabulary 23: The parser MUST NOT infer order from a signature block's arms.
+Closed vocabulary 24: A writer MUST write a signature in the signature form.
+Closed vocabulary 25: The parser MUST read the arms of an answers line as the action's answers.
+Closed vocabulary 26: The parser MUST read the arms of a refuses line as the action's refusals.
+Closed vocabulary 27: A writer MUST declare a record an action answers as a term.
 ```
 
 Term category: `actor` | `record` | `record verb` | `value set` | `bound` | `cadence` | `term` | `qualifier` | `cited` | `composing pattern`.
@@ -439,6 +443,8 @@ Term category: `actor` | `record` | `record verb` | `value set` | `bound` | `cad
 Term declaration form: `Term name: definition.` on one line — the name runs from `Term ` to the first colon and carries no colon and no backtick, one space follows the colon, and the definition ends with a period.
 
 Term value-set form: member names separated by `|`.
+
+Term signature form: three lines — `name(input, input, optional input)`; then an answers line, two spaces and `answers` and the arms; then, where the action refuses anything, a refuses line, two spaces and `refuses` and the arms. An input is a declared name, and `optional` marks one the caller may omit. Arms are separated by `|`; an arm is a declared name, followed by the names it carries in parentheses where it carries any, and never holds another arm. A blank line separates two signatures.
 
 Term name: a spec's name is the spec's file stem, case preserved; this document's is `GRACE-lang` (the title spaces it for reading).
 
@@ -623,6 +629,9 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.48 (2026-09-15): a signature is written in words — `name(inputs, optional input)`, an answers line, a refuses line (Term signature form, Closed vocabulary 24 through 27) — replacing the arrow, the trailing `?`, the braced or bracketed record and the `rejected(…)` wrapper. A record an action answers is a declared term, as an inner choice became one at council read 84. 171 signatures in 51 blocks across forty specifications; the wrapper also left 69 rules and 115 prose and example sites, where the outcome now stands by its own name. Admitted with the syntax table, formatted strictly: `check.py`'s `D-signature-form` gates. Council read 89.
 
 NOTE:
 v0.47 (2026-09-15): a run of labels is written one way, `Family N through M` (Term range citation, Hard invariant 29 through 31), replacing the dash, the repeated family, the plural family and *to*. 379 citations converted across sixty-two files; two degenerate ranges, `Capability requirement 2–2`, became the one label they cited. Admitted with the syntax table, formatted strictly: `lint.py`'s `F-range-form` gates every Markdown file in the repository. Council read 88.

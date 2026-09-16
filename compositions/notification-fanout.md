@@ -122,10 +122,12 @@ Primitive policy 7 is a deliberate absence. A payload cap is the composing syste
 ### Action wiring
 
 ```
-fanout(event_scope, payload) →
-    {fanout_id, created, failed, fired_at}
-  | rejected(invalid-request | subscribers-unavailable)
+fanout(event_scope, payload)
+  answers fanout result
+  refuses invalid-request | subscribers-unavailable
 ```
+
+Term fanout result: `fanout_id`, `created`, `failed` and `fired_at` — what `fanout` answers.
 
 ```text
 Action wiring 1: An admitted fanout MUST call Subscription's subscribers_for with the event_scope.
@@ -248,16 +250,16 @@ A project management system uses Notification Fanout to notify subscribers when 
 A caller passes a null payload.
 
 - `fanout("task:assigned", null)` → step 1: payload is null; validation fails immediately before any id is generated or any constituent is called.
-- Returns `rejected(invalid-request)`. No [Fanout Id] is generated; no subscriber query is made; no notification records are created.
+- Returns `invalid-request`. No [Fanout Id] is generated; no subscriber query is made; no notification records are created.
 
-The same rejection fires for an empty `event_scope`: `fanout("", {task_id: t9})` → `rejected(invalid-request)`.
+The same rejection fires for an empty `event_scope`: `fanout("", {task_id: t9})` → `invalid-request`.
 
 ### Subscription store unavailable
 
 The subscription store is down when the fanout fires.
 
 - `fanout("task:assigned", {task_id: t9, assigned_by: manager_m})` → step 3: `Subscription.subscribers_for` fails with an infrastructure error.
-- Returns `rejected(subscribers-unavailable)`. No notification records are created; the [Fanout Id] generated in step 2 is discarded and not returned — the invocation did not complete. The caller may retry when the store recovers.
+- Returns `subscribers-unavailable`. No notification records are created; the [Fanout Id] generated in step 2 is discarded and not returned — the invocation did not complete. The caller may retry when the store recovers.
 
 ### Partial failure
 
@@ -416,13 +418,13 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: `composition`, `constituents`, `seam`, `transition`, `read latency bound`, `blank`, `admitted fanout`, `created list`, `failed list`, `unrecordable create`, `clock offset allowance`, `boundary window`.
+Term terms: `composition`, `constituents`, `seam`, `transition`, `read latency bound`, `blank`, `admitted fanout`, `created list`, `failed list`, `unrecordable create`, `clock offset allowance`, `boundary window`, `fanout result`.
 
 Term record verbs: call, answer, take, read, write, record, validate, compare, normalize, bound, stand, carry, claim, find, name, own, discharge, inherit, change, serve, compose, declare, disclose, supply, draw, mint, commit, order, continue, abort, account, skip, expand, match, deliver, authorize, reconstruct, sum, persist, guarantee, accept, retry, follow, reference, share, store, meet.
 
 Term actors: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; a subscriber; a notification record; a subscription record.
 
-Term value sets: fanout answers = {fanout_id, created, failed, fired_at} | rejected(invalid-request | subscribers-unavailable).
+Term value sets: fanout answers fanout result and refuses invalid-request | subscribers-unavailable.
 
 Term cited: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the no-stored-state classification and the record-coordination rule. `execution-contract.md` §Logic confinement — the seam and the transition.
 

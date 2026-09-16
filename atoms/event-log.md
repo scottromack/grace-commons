@@ -101,8 +101,13 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-append(data) → event_id | rejected(invalid-payload | storage-failure)
-read(query) → events | rejected(invalid-query)
+append(data)
+  answers event_id
+  refuses invalid-payload | storage-failure
+
+read(query)
+  answers events
+  refuses invalid-query
 ```
 
 ```text
@@ -355,7 +360,7 @@ Term records: `event` — one recorded fact, carrying `event_id`, `sequence_numb
 
 Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match, find.
 
-Term value sets: append answers = event_id | rejected(invalid-payload | storage-failure). read answers = events | rejected(invalid-query). `event field` = event_id | sequence_number | recorded_at | data.
+Term value sets: append answers event_id and refuses invalid-payload | storage-failure. read answers events and refuses invalid-query. `event field` = event_id | sequence_number | recorded_at | data.
 
 Term bounds: `payload cap` (the per-instance bound on data's size).
 

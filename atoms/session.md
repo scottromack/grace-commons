@@ -160,10 +160,19 @@ That derivation has a bounded consequence worth naming rather than hiding: two r
 ### Operations
 
 ```
-issue(principal_ref, issued_by_ref, session_duration) → session_token | rejected(invalid-request | storage-failure)
-validate(session_token) → valid(principal_ref, expires_at) | invalid(validation failure)
-revoke(session_token, revoked_by_ref, reason) → revoked | rejected(invalid-request | already-terminal | not-known | storage-failure)
-read(filter) → session_records
+issue(principal_ref, issued_by_ref, session_duration)
+  answers session_token
+  refuses invalid-request | storage-failure
+
+validate(session_token)
+  answers valid(principal_ref, expires_at) | invalid(validation failure)
+
+revoke(session_token, revoked_by_ref, reason)
+  answers revoked
+  refuses invalid-request | already-terminal | not-known | storage-failure
+
+read(filter)
+  answers session_records
 ```
 
 Term validation failure: `expired` | `revoked` | `not-known` — the reasons [Validate] gives for an invalid session.
@@ -374,9 +383,9 @@ The user closes the browser without logging out. The window passes at `11:00:00Z
 
 ### Rejection paths
 
-`issue(principal_ref: svc_s03, issued_by_ref: api_gateway_g01, session_duration: 0)` → `rejected(invalid-request)`. A zero-length window is not an operating state (Operation 8).
+`issue(principal_ref: svc_s03, issued_by_ref: api_gateway_g01, session_duration: 0)` → `invalid-request`. A zero-length window is not an operating state (Operation 8).
 
-`revoke(tok_abc123, revoked_by_ref: admin_a01, reason: "incident-response")` against an already-revoked session → `rejected(already-terminal)`. The existing [Revocation Reason] is unchanged (Operation 23). A session that has merely *lapsed* is not a stored terminal, so the same call against a lapsed-but-unrevoked session succeeds and records the attribution (Operation 27).
+`revoke(tok_abc123, revoked_by_ref: admin_a01, reason: "incident-response")` against an already-revoked session → `already-terminal`. The existing [Revocation Reason] is unchanged (Operation 23). A session that has merely *lapsed* is not a stored terminal, so the same call against a lapsed-but-unrevoked session succeeds and records the attribution (Operation 27).
 
 `validate(tok_forged_xyz)` → `invalid(not-known)`. No record for the token — structurally distinct from [Invalid Revoked], because nothing was revoked and nothing exists (Operation 14, Invariant 6.1).
 
@@ -544,7 +553,7 @@ Term records: `session` — one bounded-lifetime attestation, carrying `session_
 
 Term record verbs: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, commit, leave, rest, remove, merge, return, reach, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, exceed, differ, give, reduce, detect, canonicalize, reconcile, serialize, declare.
 
-Term value sets: issue answers = session_token | rejected(invalid-request | storage-failure). validate answers = valid(principal_ref, expires_at) | invalid(validation failure). revoke answers = revoked | rejected(invalid-request | already-terminal | not-known | storage-failure). read answers = the matching sessions, each carrying its `effective_status`. `status` = active | revoked.
+Term value sets: issue answers session_token and refuses invalid-request | storage-failure. validate answers valid(principal_ref, expires_at) | invalid(validation failure). revoke answers revoked and refuses invalid-request | already-terminal | not-known | storage-failure. read answers the matching sessions, each carrying its `effective_status`. `status` = active | revoked.
 
 Term bounds: `token entropy` (the floor a session_token's random material is drawn from); `default session duration` (the window [Issue] applies where the call supplies none); `zero duration` (the floor a session_duration must exceed); `maximum length` (the deployment's cap per string input).
 

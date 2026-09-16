@@ -128,17 +128,25 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-instantiate(declaration, actor_ref?, instance_metadata?, instantiated_at?)
-  → instance_id
-  | rejected(invalid-declaration | invalid-request | storage-failure)
+instantiate(declaration, optional actor_ref, optional instance_metadata, optional instantiated_at)
+  answers instance_id
+  refuses invalid-declaration | invalid-request | storage-failure
 
-fire(instance_id, action, actor_ref?, guard_satisfied?, fired_at?)
-  → new_state
-  | rejected(invalid-request | not-known | terminal | invalid-transition | guard-not-satisfied | storage-failure)
+fire(instance_id, action, optional actor_ref, optional guard_satisfied, optional fired_at)
+  answers new_state
+  refuses invalid-request | not-known | terminal | invalid-transition | guard-not-satisfied | storage-failure
 
-current(instance_id)      → current_state | rejected(invalid-request | not-known)
-history(instance_id, query?) → the matching history entries | rejected(invalid-request | not-known | invalid-query)
-read_declaration(instance_id) → declaration | rejected(invalid-request | not-known)
+current(instance_id)
+  answers current_state
+  refuses invalid-request | not-known
+
+history(instance_id, optional query)
+  answers the matching history entries
+  refuses invalid-request | not-known | invalid-query
+
+read_declaration(instance_id)
+  answers declaration
+  refuses invalid-request | not-known
 ```
 
 ```text
@@ -368,7 +376,7 @@ A quality system instantiates a batch-release workflow. The declaration names `s
 
 `fire("wf_01HQ…", "test", actor_ref: "lab-tech-r.chen")` → `tested`. One history entry lands at `sequence_number: 1` carrying `from_state: sampled`, `to_state: tested` (Operation 21 through 28).
 
-`fire("wf_01HQ…", "qualify", actor_ref: "qa-lead-m.ross")` → `rejected(guard-not-satisfied)`. The declared transition carries the `qa_signoff` guard and the call asserted nothing (Operation 17). The same call with `guard_satisfied: true` → `qualified`, and the entry records the assertion (Operation 29).
+`fire("wf_01HQ…", "qualify", actor_ref: "qa-lead-m.ross")` → `guard-not-satisfied`. The declared transition carries the `qa_signoff` guard and the call asserted nothing (Operation 17). The same call with `guard_satisfied: true` → `qualified`, and the entry records the assertion (Operation 29).
 
 `fire("wf_01HQ…", "release", guard_satisfied: true, actor_ref: "qa-lead-m.ross")` → `released`. The instance now stands in a terminal state.
 
@@ -378,19 +386,19 @@ An inspector asks whether the batch moved only through the approved sequence. `r
 
 ### Rejection paths
 
-`fire("wf_01HQ…", "test")` against the released instance → `rejected(terminal)`. Not `invalid-transition`, even though no `test` edge leaves `released` — an absorbed instance refuses every action, and saying so sends the caller to the right problem (Operation 13, Operation 16).
+`fire("wf_01HQ…", "test")` against the released instance → `terminal`. Not `invalid-transition`, even though no `test` edge leaves `released` — an absorbed instance refuses every action, and saying so sends the caller to the right problem (Operation 13, Operation 16).
 
-`fire("wf_01HQ…", "expedite")` against a live instance in `tested` → `rejected(invalid-transition)`. No declared transition matches, and there is no wildcard (Operation 15, Operation 32).
+`fire("wf_01HQ…", "expedite")` against a live instance in `tested` → `invalid-transition`. No declared transition matches, and there is no wildcard (Operation 15, Operation 32).
 
-`fire("wf_99999", "test")` → `rejected(not-known)`. `fire("", "test")` → `rejected(invalid-request)`, refused before any store lookup (Operation 9, Operation 12).
+`fire("wf_99999", "test")` → `not-known`. `fire("", "test")` → `invalid-request`, refused before any store lookup (Operation 9, Operation 12).
 
-`instantiate(declaration)` where two declared transitions both leave `tested` on `qualify` → `rejected(invalid-declaration)`. The determinism constraint refuses the ambiguity at birth rather than inventing a tiebreak at fire time (Declaration 13).
+`instantiate(declaration)` where two declared transitions both leave `tested` on `qualify` → `invalid-declaration`. The determinism constraint refuses the ambiguity at birth rather than inventing a tiebreak at fire time (Declaration 13).
 
-`instantiate(declaration)` where `initial state: released` and `released` is terminal → `rejected(invalid-declaration)`. An instance born absorbed accepts nothing (Declaration 9).
+`instantiate(declaration)` where `initial state: released` and `released` is terminal → `invalid-declaration`. An instance born absorbed accepts nothing (Declaration 9).
 
-`instantiate(declaration)` carrying an edge out of `released` → `rejected(invalid-declaration)` (Declaration 12).
+`instantiate(declaration)` carrying an edge out of `released` → `invalid-declaration` (Declaration 12).
 
-`fire("wf_01HQ…", "test", fired_at: "2020-01-01")` against an instance instantiated in 2026 → `rejected(invalid-request)`. A transition cannot fire before the instance existed (Operation 20).
+`fire("wf_01HQ…", "test", fired_at: "2020-01-01")` against an instance instantiated in 2026 → `invalid-request`. A transition cannot fire before the instance existed (Operation 20).
 
 ### Multi-instance independence
 
@@ -580,7 +588,7 @@ Term records: `instance` — one workflow instance, carrying `instance_id`, a de
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, commit, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, observe, resolve, complete, serve, serialize, shrink, fall, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, survive, canonicalize.
 
-Term value sets: instantiate answers = instance_id | rejected(invalid-declaration | invalid-request | storage-failure). fire answers = the matched transition's to_state | rejected(invalid-request | not-known | terminal | invalid-transition | guard-not-satisfied | storage-failure). current answers = the instance's current state | rejected(invalid-request | not-known). history answers = the matching history entries | rejected(invalid-request | not-known | invalid-query). read_declaration answers = the instance's declaration | rejected(invalid-request | not-known).
+Term value sets: instantiate answers instance_id and refuses invalid-declaration | invalid-request | storage-failure. fire answers the matched transition's to_state and refuses invalid-request | not-known | terminal | invalid-transition | guard-not-satisfied | storage-failure. current answers the instance's current state and refuses invalid-request | not-known. history answers the matching history entries and refuses invalid-request | not-known | invalid-query. read_declaration answers the instance's declaration and refuses invalid-request | not-known.
 
 Term bounds: empty.
 

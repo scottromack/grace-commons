@@ -101,8 +101,12 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-attest(action_ref, actor_ref, credential) → attestation_id | rejected(invalid-request | invalid-credential | storage-failure)
-verify(attestation_id) → verified | failed-verification(verification failure) | not-known
+attest(action_ref, actor_ref, credential)
+  answers attestation_id
+  refuses invalid-request | invalid-credential | storage-failure
+
+verify(attestation_id)
+  answers verified | failed-verification(verification failure) | not-known
 ```
 
 Term verification failure: `proof-invalid` | `actor-unknown-in-registry` | `registry-unavailable` — the reasons [Verify] gives for a failed verification.
@@ -242,7 +246,7 @@ The mechanic is identical across all five. What differs: the credential mechanis
 
 **[Verify] → [Not Known]:** A composing pattern references an [Attestation Id] that was never written (a partial-failure scenario where [Attest] returned [Storage Failure] and the composing pattern cached the id before confirming success). `verify(attestation_a_unknown)` returns `not-known` — the id is not in the attestation store. This is structurally distinct from [Failed Verification]: the id does not reference any [Attestation]. The composing pattern must treat [Not Known] as a missing record (requiring re-attestation) rather than a verification failure.
 
-**[Attest] → [Invalid Credential]:** A supervisor approves a high-value wire using a [Credential] that was rotated out earlier that day. `attest(wire_w55, supervisor_s12, rotated_credential)` → the [Credential] fails to validate against the registry's current public material for `supervisor_s12`; the atom returns `rejected(invalid-credential)`. No [Attestation] is recorded — [Invalid Credential] is a guard rejection that fails before any store write (see Decision points); the composing workflow prompts re-attestation with the current [Credential].
+**[Attest] → [Invalid Credential]:** A supervisor approves a high-value wire using a [Credential] that was rotated out earlier that day. `attest(wire_w55, supervisor_s12, rotated_credential)` → the [Credential] fails to validate against the registry's current public material for `supervisor_s12`; the atom returns `invalid-credential`. No [Attestation] is recorded — [Invalid Credential] is a guard rejection that fails before any store write (see Decision points); the composing workflow prompts re-attestation with the current [Credential].
 
 ### Regulated adversarial scenarios
 
@@ -367,7 +371,7 @@ Term records: `attestation` — one binding, carrying `attestation_id`, `action_
 
 Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, agree, fail.
 
-Term value sets: attest answers = attestation_id | rejected(invalid-request | invalid-credential | storage-failure). verify answers = verified | failed-verification(verification failure) | not-known. `registry answer` = material | unknown-actor | unreachable. `proof check` = held | failed. `attestation field` = attestation_id | action_ref | actor_ref | proof | attested_at.
+Term value sets: attest answers attestation_id and refuses invalid-request | invalid-credential | storage-failure. verify answers verified | failed-verification(verification failure) | not-known. `registry answer` = material | unknown-actor | unreachable. `proof check` = held | failed. `attestation field` = attestation_id | action_ref | actor_ref | proof | attested_at.
 
 Term bounds: empty.
 

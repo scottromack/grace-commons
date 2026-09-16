@@ -139,19 +139,24 @@ Non-goal 25 is the price of deriving the status, and it is worth naming rather t
 ### Operations
 
 ```
-initiate(inviter_ref, invitee_ref?, context, ttl?)
-  → invitation_token | rejected(invalid-request | storage-failure)
+initiate(inviter_ref, optional invitee_ref, context, optional ttl)
+  answers invitation_token
+  refuses invalid-request | storage-failure
 
 accept(invitation_token, accepting_identity_ref)
-  → accepted | rejected(not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure)
+  answers accepted
+  refuses not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure
 
 decline(invitation_token)
-  → declined | rejected(not-known | already-resolved(stored terminal) | expired | storage-failure)
+  answers declined
+  refuses not-known | already-resolved(stored terminal) | expired | storage-failure
 
 revoke(invitation_token, revoked_by_ref, reason)
-  → revoked | rejected(not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure)
+  answers revoked
+  refuses not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure
 
-read(filter) → the matching invitations
+read(filter)
+  answers the matching invitations
 ```
 
 ```text
@@ -509,7 +514,7 @@ Term records: `invitation` — one invitation issued by one inviter to join one 
 
 Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, append, register, create, pass, attest, cover, call, fall, precede, sample, consume, supply, deliver, acknowledge, canonicalize, declare, compose, remove, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, draw, verify, sequence, issue, detect, guarantee, take, store, own.
 
-Term value sets: initiate answers = invitation_token | rejected(invalid-request | storage-failure). accept answers = accepted | rejected(not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure). decline answers = declined | rejected(not-known | already-resolved(stored terminal) | expired | storage-failure). revoke answers = revoked | rejected(not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure). read answers = the matching invitations. `status` = pending | accepted | declined | revoked. `stored terminal` = accepted | declined | revoked. `window reading` = live | lapsed. `property` = inviter_ref | invitee_ref | context | initiated_at | expires_at. `resolution field` = accepting_identity_ref | accepted_at | declined_at | revoked_at | revoked_by_ref | revocation_reason.
+Term value sets: initiate answers invitation_token and refuses invalid-request | storage-failure. accept answers accepted and refuses not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure. decline answers declined and refuses not-known | already-resolved(stored terminal) | expired | storage-failure. revoke answers revoked and refuses not-known | already-resolved(stored terminal) | expired | invalid-request | storage-failure. read answers the matching invitations. `status` = pending | accepted | declined | revoked. `stored terminal` = accepted | declined | revoked. `window reading` = live | lapsed. `property` = inviter_ref | invitee_ref | context | initiated_at | expires_at. `resolution field` = accepting_identity_ref | accepted_at | declined_at | revoked_at | revoked_by_ref | revocation_reason.
 
 Term bounds: `ttl bounds`, `default ttl`, `expiry bound`.
 

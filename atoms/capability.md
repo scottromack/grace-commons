@@ -137,10 +137,19 @@ This atom accepts no caller-supplied instant — the window arrives as a duratio
 ### Operations
 
 ```
-allocate(allocator_ref, scope, max_redemptions, ttl) → capability_token | rejected(invalid-request | storage-failure)
-redeem(capability_token) → redeemed(scope, allocator_ref) | invalid(redemption failure)
-revoke(capability_token, revoked_by_ref, reason) → revoked | rejected(invalid-request | already-terminal | not-known | storage-failure)
-read(filter) → capability_records
+allocate(allocator_ref, scope, max_redemptions, ttl)
+  answers capability_token
+  refuses invalid-request | storage-failure
+
+redeem(capability_token)
+  answers redeemed(scope, allocator_ref) | invalid(redemption failure)
+
+revoke(capability_token, revoked_by_ref, reason)
+  answers revoked
+  refuses invalid-request | already-terminal | not-known | storage-failure
+
+read(filter)
+  answers capability_records
 ```
 
 Term redemption failure: `exhausted` | `expired` | `revoked` | `not-known` — the reasons [Redeem] gives for an invalid capability.
@@ -406,9 +415,9 @@ The window closes with two redemptions unspent. **Nothing is called and nothing 
 
 ### Rejection paths
 
-`allocate(allocator_ref: share_svc_s02, scope: "read::document::doc_d448", max_redemptions: 0, ttl: 3600)` → `rejected(invalid-request)`. A capability redeemable zero times authorizes nothing (Operation 9).
+`allocate(allocator_ref: share_svc_s02, scope: "read::document::doc_d448", max_redemptions: 0, ttl: 3600)` → `invalid-request`. A capability redeemable zero times authorizes nothing (Operation 9).
 
-`revoke(cap_tok_7f3a, revoked_by_ref: admin_a01, reason: "incident")` against the exhausted reset token → `rejected(already-terminal)` (Operation 36). The same call against a capability whose window has merely closed answers the same way, by derivation, writing nothing (Operation 38) — which is the one place this atom and [Session](./session.md) part company on identical mechanics, and neither declares the fork.
+`revoke(cap_tok_7f3a, revoked_by_ref: admin_a01, reason: "incident")` against the exhausted reset token → `already-terminal` (Operation 36). The same call against a capability whose window has merely closed answers the same way, by derivation, writing nothing (Operation 38) — which is the one place this atom and [Session](./session.md) part company on identical mechanics, and neither declares the fork.
 
 `redeem(cap_tok_forged)` → `invalid(not-known)`. No record for the token — and after a composed retention purge, the same answer covers a capability that once existed (Invariant 12.4).
 
@@ -567,7 +576,7 @@ Term records: `capability` — one bearer-token authorization, carrying `capabil
 
 Term record verbs: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, commit, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, canonicalize, reconcile, serialize, make, discharge, attest, declare, call.
 
-Term value sets: allocate answers = capability_token | rejected(invalid-request | storage-failure). redeem answers = redeemed(scope, allocator_ref) | invalid(redemption failure). revoke answers = revoked | rejected(invalid-request | already-terminal | not-known | storage-failure). read answers = the matching capabilities, each carrying its `effective_status`. `status` = allocated | redeemed | revoked.
+Term value sets: allocate answers capability_token and refuses invalid-request | storage-failure. redeem answers redeemed(scope, allocator_ref) | invalid(redemption failure). revoke answers revoked and refuses invalid-request | already-terminal | not-known | storage-failure. read answers the matching capabilities, each carrying its `effective_status`. `status` = allocated | redeemed | revoked.
 
 Term bounds: `default capability ttl` (the validity duration [Allocate] applies where the call supplies none); `single-use default` (the `max_redemptions` [Allocate] applies where the call supplies none); `zero duration` (the floor a ttl must exceed); `zero` (the floor a max_redemptions must exceed); `maximum length` (the deployment's cap per string input).
 

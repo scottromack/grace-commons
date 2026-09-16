@@ -31,7 +31,7 @@ Every system that authenticates principals eventually faces the same composabili
 
 Login is that composition. It provides three services: the `login` action wires `Credential.verify → Session.issue` in the correct order, with every login attempt (successful or failed) recorded in the Audit Trail before returning. The `logout` action wires `Session.revoke` with attribution and Audit Trail recording. And [Revoke Sessions For Credential] provides the cascade: when a Credential is revoked — whether by the credential owner, an administrator, or an automated compromise-response process — every Session derived from that Credential is revoked in the same operation, and the full cascade is recorded.
 
-The cascade is load-bearing for downstream compositions. Privileged Access Provisioning's `exercise_access` action depends on Session validity as its first guard: a session invalidated by credential revocation will block all subsequent `exercise_access` calls for any Capability issued to that principal's sessions. The cascade path is: `Credential.revoke` (outside this composition's surface) → caller invokes [Revoke Sessions For Credential] → Login walks `credential_to_sessions[credential_id]` → `Session.revoke` for each Active session → Audit Trail records each revocation → Privileged Access Provisioning's session check thereafter returns `rejected(session-invalid)`. The Login composition is the mechanism that makes this arc visible and traceable from records alone.
+The cascade is load-bearing for downstream compositions. Privileged Access Provisioning's `exercise_access` action depends on Session validity as its first guard: a session invalidated by credential revocation will block all subsequent `exercise_access` calls for any Capability issued to that principal's sessions. The cascade path is: `Credential.revoke` (outside this composition's surface) → caller invokes [Revoke Sessions For Credential] → Login walks `credential_to_sessions[credential_id]` → `Session.revoke` for each Active session → Audit Trail records each revocation → Privileged Access Provisioning's session check thereafter returns `session-invalid`. The Login composition is the mechanism that makes this arc visible and traceable from records alone.
 
 This composition does not implement multi-factor authentication (MFA — requiring two or more independent proofs of identity), account lockout, rate limiting, or session renewal. It implements the minimal correct wiring of three atoms for the common authenticated-session case — the pattern that every other authentication-adjacent composition either calls or depends on.
 
@@ -193,18 +193,22 @@ One arm rule for every `record_action` this composition makes, stated once here 
 ### Action wiring
 
 ```
-login(principal_ref, credential_type, presented_material, issued_by_ref, session_duration?) →
-    {session_token, expires_at}
-  | rejected(invalid-request | credential-invalid | storage-failure(stage))
+login(principal_ref, credential_type, presented_material, issued_by_ref, optional session_duration)
+  answers login result
+  refuses invalid-request | credential-invalid | storage-failure(stage)
 
-logout(session_token, revoked_by_ref, reason) →
-    ok
-  | rejected(invalid-request | not-found)
+logout(session_token, revoked_by_ref, reason)
+  answers ok
+  refuses invalid-request | not-found
 
-revoke_sessions_for_credential(credential_id, revoked_by_ref, reason) →
-    {revoked, skipped, failed}
-  | rejected(invalid-request)
+revoke_sessions_for_credential(credential_id, revoked_by_ref, reason)
+  answers revocation tally
+  refuses invalid-request
 ```
+
+Term login result: `session_token` and `expires_at` — what `login` answers.
+
+Term revocation tally: `revoked`, `skipped` and `failed` — what `revoke_sessions_for_credential` answers.
 
 ```text
 Action wiring 1: An admitted login MUST call Credential's verify with the principal_ref, the credential_type AND the presented_material.
@@ -350,7 +354,7 @@ The host system sets a session cookie. On the next request, the host system (or 
 
 ### Failed login — wrong password
 
-The user enters an incorrect password. `login(user_u91, "password", <wrong-password>, login_svc_l01)`. Step 2: `Credential.verify → failed-verification(material-mismatch)`. Step 2 path: `login_event_log` entry with `outcome: failed-verification(material-mismatch)`; Audit Trail `login_failed` event. Return: `rejected(credential-invalid)`. No session is issued; no entry appears in `credential_to_sessions` or `session_to_credential`.
+The user enters an incorrect password. `login(user_u91, "password", <wrong-password>, login_svc_l01)`. Step 2: `Credential.verify → failed-verification(material-mismatch)`. Step 2 path: `login_event_log` entry with `outcome: failed-verification(material-mismatch)`; Audit Trail `login_failed` event. Return: `credential-invalid`. No session is issued; no entry appears in `credential_to_sessions` or `session_to_credential`.
 
 ### Logout
 
@@ -362,7 +366,7 @@ An incident-response team determines that `cred_c01` (user_u91's password creden
 
 Step 2: `credential_to_sessions[cred_c01]` = `{tok_abc123, tok_def456}` (two sessions were issued over the credential's lifetime). Step 3: Audit Trail `credential_revocation_cascade_initiated` event for `cred_c01`, `session_count: 2`. Step 5a — `tok_abc123`: `Session.validate → valid(...)` → `Session.revoke(tok_abc123, security_team_s01, "credential-revocation-cascade: suspected-compromise-2026-09-12") → revoked`; Audit Trail `session_revoked_by_cascade`. Step 5b — `tok_def456`: `Session.validate → invalid(expired)` → skipped (dead by derivation; no revocation write needed). Return: `{revoked: 1, skipped: 1, failures: 0, not_found: 0}`.
 
-Any subsequent Privileged Access Provisioning `exercise_access` call under `tok_abc123` will return `rejected(session-invalid)` at step 1, before the Capability is presented.
+Any subsequent Privileged Access Provisioning `exercise_access` call under `tok_abc123` will return `session-invalid` at step 1, before the Capability is presented.
 
 ### Regulated adversarial scenarios
 
@@ -472,7 +476,7 @@ The canonical concepts this spec refers to. Each `term` marker in the prose abov
 
 Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: `composition`, `constituents`, `service identity`, `credential-to-sessions map`, `login event log`, `login-family events`, `seam`, `transition`, `issuer refs`, `login completion bound`, `blank`, `opaque argument`, `admitted login`, `admitted logout`, `admitted cascade`, `cascade set`, `revocation-family event`.
+Term terms: `composition`, `constituents`, `service identity`, `credential-to-sessions map`, `login event log`, `login-family events`, `seam`, `transition`, `issuer refs`, `login completion bound`, `blank`, `opaque argument`, `admitted login`, `admitted logout`, `admitted cascade`, `cascade set`, `revocation-family event`, `login result`, `revocation tally`.
 
 Term record verbs: call, answer, read, write, append, store, key, hold, remove, change, rest, rebuild, record, retry, re-emit, close, escalate, examine, revoke, issue, gate, cascade, verify, attest, carry, select, query, offer, serve, compose, inherit, declare, set, configure, provision, rotate, own, act, adopt, bound, renew, bind, authorize, register, count, stand, follow, name, equal, agree, match, find, persist, generate, mint, normalize, compare, skip, union, supply, take, alert, run, limit, derive, shrink.
 

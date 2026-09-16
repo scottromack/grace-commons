@@ -100,9 +100,16 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-grant(subject_ref, action_scope) → grant_id | rejected(invalid-request | storage-failure)
-revoke(grant_id) → ok | rejected(not-known | not-active | storage-failure)
-permitted(subject_ref, action_scope) → permitted | denied
+grant(subject_ref, action_scope)
+  answers grant_id
+  refuses invalid-request | storage-failure
+
+revoke(grant_id)
+  answers ok
+  refuses not-known | not-active | storage-failure
+
+permitted(subject_ref, action_scope)
+  answers permitted | denied
 ```
 
 ```text
@@ -380,7 +387,7 @@ Term records: `grant record` — one binding, carrying `grant_id`, `subject_ref`
 
 Term record verbs: identify, allocate, supply, reuse, hold, reach, compare, trim, normalize, case-fold, read, stand, carry, stamp, offer, delete, record, answer, refuse, leave, take, write, match, rest, consult, change, move, set, share, shrink, evaluate, expand, model, expire, authenticate, bind, revoke, retry, raise, enumerate, call, guard, succeed, compose, resolve, attest, own, declare, find, reconstruct, commit, exceed.
 
-Term value sets: grant answers = grant_id | rejected(invalid-request | storage-failure). revoke answers = ok | rejected(not-known | not-active | storage-failure). permitted answers = permitted | denied. `status` = active | revoked.
+Term value sets: grant answers grant_id and refuses invalid-request | storage-failure. revoke answers ok and refuses not-known | not-active | storage-failure. permitted answers permitted | denied. `status` = active | revoked.
 
 Term bounds: `string cap` (the deployment's bound on a string input's length).
 

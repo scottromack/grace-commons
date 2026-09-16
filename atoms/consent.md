@@ -135,10 +135,20 @@ What the deployment supplies, which is what the family means. The rule stood und
 ### Operations
 
 ```
-grant(subject_ref, purpose, granted_by, expires_at?, metadata?) → consent_id | rejected(invalid-request | storage-failure)
-revoke(consent_id, revoked_by, reason, revoked_at?) → revoked | rejected(invalid-request | not-known | already-revoked | already-expired | storage-failure)
-check(subject_ref, purpose, at_time?) → granted | revoked | expired | not-known
-read(query) → consent_records | rejected(invalid-query)
+grant(subject_ref, purpose, granted_by, optional expires_at, optional metadata)
+  answers consent_id
+  refuses invalid-request | storage-failure
+
+revoke(consent_id, revoked_by, reason, optional revoked_at)
+  answers revoked
+  refuses invalid-request | not-known | already-revoked | already-expired | storage-failure
+
+check(subject_ref, purpose, optional at_time)
+  answers granted | revoked | expired | not-known
+
+read(query)
+  answers consent_records
+  refuses invalid-query
 ```
 
 ```text
@@ -376,11 +386,11 @@ Six months later the user re-enables analytics: `grant(...)` → `cns-0088`, a s
 
 ### Rejection paths
 
-`revoke(cns-0001, revoked_by: privacy_service, reason: "retry")` after the first revoke → `rejected(already-revoked)`; the guard reads the stored record and writes nothing (Operation 18).
+`revoke(cns-0001, revoked_by: privacy_service, reason: "retry")` after the first revoke → `already-revoked`; the guard reads the stored record and writes nothing (Operation 18).
 
-`grant(subject_ref: user-8823, purpose: "  ", granted_by: consent_ui)` → `rejected(invalid-request)`. A whitespace-only purpose is blank (Operation 5).
+`grant(subject_ref: user-8823, purpose: "  ", granted_by: consent_ui)` → `invalid-request`. A whitespace-only purpose is blank (Operation 5).
 
-`grant(subject_ref: user-9001, purpose: marketing:sms, granted_by: consent_ui, expires_at: 2020-01-01T00:00:00Z)` → `rejected(invalid-request)`. A consent expiring in the past is already expired at the moment of grant, which is not a consent (Operation 8).
+`grant(subject_ref: user-9001, purpose: marketing:sms, granted_by: consent_ui, expires_at: 2020-01-01T00:00:00Z)` → `invalid-request`. A consent expiring in the past is already expired at the moment of grant, which is not a consent (Operation 8).
 
 ### Check against an instant
 
@@ -536,7 +546,7 @@ Term records: `consent record` — one agreement to one purpose, carrying `conse
 
 Term record verbs: route, share, name, accept, carry, identify, allocate, reuse, change, draw, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, exclude, ignore, leave, read, supply, rest, offer, remove, suppress, hold, poll, equal, serialize, appear, meet, fall, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, guard, declare, call, run, merge, precede.
 
-Term value sets: grant answers = consent_id | rejected(invalid-request | storage-failure). revoke answers = revoked | rejected(invalid-request | not-known | already-revoked | already-expired | storage-failure). check answers = granted | revoked | expired | not-known. read answers = an ordered sequence of consent records, empty where nothing matches | rejected(invalid-query). `state` = granted | revoked | expired. `supported filter axes` and `grant field` are declared above and cited here (Closed vocabulary 15).
+Term value sets: grant answers consent_id and refuses invalid-request | storage-failure. revoke answers revoked and refuses invalid-request | not-known | already-revoked | already-expired | storage-failure. check answers granted | revoked | expired | not-known. read answers an ordered sequence of consent records, empty where nothing matches and refuses invalid-query. `state` = granted | revoked | expired. `supported filter axes` and `grant field` are declared above and cited here (Closed vocabulary 15).
 
 Term bounds: empty.
 

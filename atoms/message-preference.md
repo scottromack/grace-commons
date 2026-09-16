@@ -141,11 +141,23 @@ Because no precondition consults the reading, a non-monotonic clock degrades onl
 ### Operations
 
 ```
-set(principal_ref, channel_preferences?, frequency_limit?, quiet_hours?, format?, metadata?) → preference_id | rejected(invalid-request | undeclared-channel | storage-failure)
-suspend(preference_id) → ok | rejected(not-known | not-active | storage-failure)
-delete(preference_id) → ok | rejected(not-known | already-deleted | storage-failure)
-current_for(principal_ref) → preference_record | none
-read(preference_id) → preference_record | not-known
+set(principal_ref, optional channel_preferences, optional frequency_limit, optional quiet_hours, optional format, optional metadata)
+  answers preference_id
+  refuses invalid-request | undeclared-channel | storage-failure
+
+suspend(preference_id)
+  answers ok
+  refuses not-known | not-active | storage-failure
+
+delete(preference_id)
+  answers ok
+  refuses not-known | already-deleted | storage-failure
+
+current_for(principal_ref)
+  answers preference_record | none
+
+read(preference_id)
+  answers preference_record | not-known
 ```
 
 ```text
@@ -388,13 +400,13 @@ A user closes their account, and the closure flow calls `delete(pref_141)` → `
 
 ### Rejection paths
 
-A set carrying nothing: `set(principal_ref: user_u)` → `rejected(invalid-request)`. No id is issued, no record enters the store (Operation 5).
+A set carrying nothing: `set(principal_ref: user_u)` → `invalid-request`. No id is issued, no record enters the store (Operation 5).
 
-A set naming a channel outside the injected set: `set(principal_ref: user_v, channel_preferences: {email: "preferred", carrier-pigeon: "backup"})` → `rejected(undeclared-channel)`. The reason names the vocabulary error as its own class, so the composing system knows to fix the channel name rather than the call shape (Operation 8).
+A set naming a channel outside the injected set: `set(principal_ref: user_v, channel_preferences: {email: "preferred", carrier-pigeon: "backup"})` → `undeclared-channel`. The reason names the vocabulary error as its own class, so the composing system knows to fix the channel name rather than the call shape (Operation 8).
 
-A retry after a network timeout: `suspend(pref_001)` → `rejected(not-active)`; `pref_001` is [Deleted] (Operation 19).
+A retry after a network timeout: `suspend(pref_001)` → `not-active`; `pref_001` is [Deleted] (Operation 19).
 
-A duplicate teardown: `delete(pref_141)` → `rejected(already-deleted)`; nothing changes (Operation 25). A delete on a *[Suspended]* record, by contrast, answers `ok` — that transition is admitted (Operation 26, Invariant 2.2).
+A duplicate teardown: `delete(pref_141)` → `already-deleted`; nothing changes (Operation 25). A delete on a *[Suspended]* record, by contrast, answers `ok` — that transition is admitted (Operation 26, Invariant 2.2).
 
 ### Regulated adversarial scenarios
 
@@ -594,7 +606,7 @@ Term records: `preference record` — one principal's stated delivery shaping, c
 
 Term record verbs: route, share, read, name, accept, carry, hold, offer, resolve, inject, stamp, validate, write, answer, surface, identify, allocate, reuse, change, interpret, normalize, match, canonicalize, record, stand, compare, commit, remove, leave, refuse, supply, rest, appear, move, call, observe, clear, fall, own, enumerate, find, reconstruct, mark, disclose, fire, create, deliver, compose, evaluate, declare, detect, gate, expire, redact, seal, guarantee, push, replay, drop, make, serialize, choose, witness, store, bound, return, capture, apply.
 
-Term value sets: set answers = preference_id | rejected(invalid-request | undeclared-channel | storage-failure). suspend answers = ok | rejected(not-known | not-active | storage-failure). delete answers = ok | rejected(not-known | already-deleted | storage-failure). current_for answers = the preference record currently in effect | none. read answers = the whole preference record | not-known. `status` = active | suspended | deleted. `preference field` = channel_preferences | frequency_limit | quiet_hours | format.
+Term value sets: set answers preference_id and refuses invalid-request | undeclared-channel | storage-failure. suspend answers ok and refuses not-known | not-active | storage-failure. delete answers ok and refuses not-known | already-deleted | storage-failure. current_for answers the preference record currently in effect | none. read answers the whole preference record | not-known. `status` = active | suspended | deleted. `preference field` = channel_preferences | frequency_limit | quiet_hours | format.
 
 Term bounds: `supersession gap bound` (the largest supersession gap one operation is expected to span); `opaque input size bound` (the deployment's cap on a stored opaque value).
 

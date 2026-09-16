@@ -127,13 +127,13 @@ Clock skew between a caller and the seam can push a `disclosed_at` the caller be
 ### Operations
 
 ```
-record(subject_ref, recipient, scope, authority, disclosed_at?)
-  → recorded(disclosure_id)
-  | rejected(invalid-request | unknown-authority-type | storage-failure)
+record(subject_ref, recipient, scope, authority, optional disclosed_at)
+  answers recorded(disclosure_id)
+  refuses invalid-request | unknown-authority-type | storage-failure
 
 read(filters)
-  → the matching disclosure records
-  | rejected(invalid-query)
+  answers the matching disclosure records
+  refuses invalid-query
 ```
 
 ```text
@@ -270,17 +270,17 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 
 ### Rejection paths
 
-`record("", "Northgate Research Institute", "medical-record:summary", {type: consent, reference: "consent-3301"})` → `rejected(invalid-request)`. A blank `subject_ref` NOT EXISTS (Operation 1, String 5).
+`record("", "Northgate Research Institute", "medical-record:summary", {type: consent, reference: "consent-3301"})` → `invalid-request`. A blank `subject_ref` NOT EXISTS (Operation 1, String 5).
 
-`record("patient-88213", "Northgate", "summary", {type: "legitimate-interest", reference: "policy-7"})` → `rejected(unknown-authority-type)`. The value stands outside the three (Operation 9). The same call with a blank `scope` answers `invalid-request` instead — the field-level checks complete first, so the caller learns the blank field before the bad type (Operation 8).
+`record("patient-88213", "Northgate", "summary", {type: "legitimate-interest", reference: "policy-7"})` → `unknown-authority-type`. The value stands outside the three (Operation 9). The same call with a blank `scope` answers `invalid-request` instead — the field-level checks complete first, so the caller learns the blank field before the bad type (Operation 8).
 
-`record("patient-88213", "Northgate", "summary", {type: consent, reference: "   "})` → `rejected(invalid-request)`. A whitespace-only reference is blank, and a reference nobody can follow defeats the record's purpose (Operation 6).
+`record("patient-88213", "Northgate", "summary", {type: consent, reference: "   "})` → `invalid-request`. A whitespace-only reference is blank, and a reference nobody can follow defeats the record's purpose (Operation 6).
 
-`record(..., disclosed_at: "2027-01-01T00:00:00Z")` against `now: 2026-03-04` → `rejected(invalid-request)`. Nothing is written (Operation 7, Operation 16).
+`record(..., disclosed_at: "2027-01-01T00:00:00Z")` against `now: 2026-03-04` → `invalid-request`. Nothing is written (Operation 7, Operation 16).
 
-`read({subject_ref: "patient-88213", authority_reference: "consent-3301"})` → `rejected(invalid-query)`. Reference-level filtering is not an axis this atom offers, and the key is refused rather than ignored (Operation 22, Non-goal 22).
+`read({subject_ref: "patient-88213", authority_reference: "consent-3301"})` → `invalid-query`. Reference-level filtering is not an axis this atom offers, and the key is refused rather than ignored (Operation 22, Non-goal 22).
 
-`read({disclosed_at: {after: "2026-06-01", before: "2026-03-01"}})` → `rejected(invalid-query)` (Operation 25).
+`read({disclosed_at: {after: "2026-06-01", before: "2026-03-01"}})` → `invalid-query` (Operation 25).
 
 `read({subject_ref: "patient-99999"})` → an empty record sequence. No disclosure of that subject's data has been recorded, which is itself the compliance answer (Operation 20).
 
@@ -453,7 +453,7 @@ Term records: `disclosure record` — one recorded disclosure, carrying `disclos
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, sort, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, fall, call, produce, choose, capture.
 
-Term value sets: record answers = recorded(disclosure_id) | rejected(invalid-request | unknown-authority-type | storage-failure). read answers = the matching disclosure records | rejected(invalid-query). `authority_type` = consent | legal-hold | regulatory.
+Term value sets: record answers recorded(disclosure_id) and refuses invalid-request | unknown-authority-type | storage-failure. read answers the matching disclosure records and refuses invalid-query. `authority_type` = consent | legal-hold | regulatory.
 
 Term bounds: empty.
 
