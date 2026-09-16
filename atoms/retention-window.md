@@ -330,7 +330,7 @@ Non-goal 7: The atom MUST NOT define a policy.
 Non-goal 8: The atom MUST NOT version a policy.
 Non-goal 9: The atom MUST NOT retain the atom's own records.
 Non-goal 10: The atom MUST NOT record who authorized a purge.
-Non-goal 11: A deployment needing an attributable purge MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 11: A deployment needing an attributable purge MUST compose Actor Identity.
 Non-goal 12: The atom MUST NOT purge two retentions as one write.
 Non-goal 13: A deployment whose deadlines carry legal force MUST compose a trusted timestamping pattern.
 ```
@@ -400,7 +400,7 @@ This is the atom's sharpest edge and the one a composition must close. Purging t
 
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-Composition note 2: A regulated [Event Log](./event-log.md) instance MUST place an appended event under retention.
+Composition note 2: A regulated Event Log instance MUST place an appended event under retention.
 Composition note 3: A composing pattern MUST own joint enforcement across retentions over one record.
 Composition note 4: A composing pattern MUST own the policy the pattern places a record under.
 Composition note 5: This atom's invariant numbers MUST stand as a frozen contract surface.

@@ -305,12 +305,12 @@ The external set is three lines because this atom assumes almost nothing it cann
 
 ```
 Non-goal 1: The atom MUST NOT hold a second actor.
-Non-goal 2: A deployment needing a shared list MUST compose [Shared Todo](../compositions/shared-todo.md).
+Non-goal 2: A deployment needing a shared list MUST compose Shared Todo.
 Non-goal 3: The atom MUST NOT assign a unit to an actor.
 Non-goal 4: The atom MUST NOT remember a deleted description.
-Non-goal 5: A deployment needing a recency guard MUST compose [Duplicate Prevention](./duplicate-prevention.md).
+Non-goal 5: A deployment needing a recency guard MUST compose Duplicate Prevention.
 Non-goal 6: The atom MUST NOT restore a deleted unit.
-Non-goal 7: A deployment needing restoration MUST compose [Undo History](../compositions/undo-history.md).
+Non-goal 7: A deployment needing restoration MUST compose Undo History.
 Non-goal 8: The atom MUST NOT reopen a done unit.
 Non-goal 9: The atom MUST NOT regenerate a unit on a schedule.
 Non-goal 10: The atom MUST NOT order units.
@@ -354,10 +354,10 @@ WHY:
 
 ```
 Composition note 1: A composing pattern MUST own what this atom declines.
-Composition note 2: A composing pattern needing a recency guard MUST record a deleted description with [Duplicate Prevention](./duplicate-prevention.md).
-Composition note 3: A composing pattern needing a recency guard MUST NOT call [Add] BEFORE a [Duplicate Prevention](./duplicate-prevention.md) check.
-Composition note 4: A composing pattern needing restoration MUST append a deleted unit to an [Event Log](./event-log.md).
-Composition note 5: A composing pattern needing a shared list MUST compose [Permissions](./permissions.md) and [Assignment](./assignment.md).
+Composition note 2: A composing pattern needing a recency guard MUST record a deleted description with Duplicate Prevention.
+Composition note 3: A composing pattern needing a recency guard MUST NOT call [Add] BEFORE a Duplicate Prevention check.
+Composition note 4: A composing pattern needing restoration MUST append a deleted unit to an Event Log.
+Composition note 5: A composing pattern needing a shared list MUST compose Permissions and Assignment.
 ```
 
 WHY:

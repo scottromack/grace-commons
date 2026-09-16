@@ -374,9 +374,9 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: A deployment needing the resource confirmed returned to availability MUST read the registry (Non-goal 11, Non-goal 12).
-External check 2: A deployment needing the transitions of one commitment ordered MUST read the composing [Event Log](./event-log.md) (Non-goal 3).
-External check 3: A deployment needing a rejection observed MUST read the composing [Event Log](./event-log.md) (Non-goal 23).
-External check 4: A deployment needing a requester bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Non-goal 14).
+External check 2: A deployment needing the transitions of one commitment ordered MUST read the composing Event Log (Non-goal 3).
+External check 3: A deployment needing a rejection observed MUST read the composing Event Log (Non-goal 23).
+External check 4: A deployment needing a requester bound to an actor MUST read the composing Actor Identity attestation (Non-goal 14).
 External check 5: A deployment needing the reclamation lag bounded MUST read the sweep's declared cadence (Capability requirement 7).
 External check 6: A deployment needing the composing patterns named MUST read the deployment's own wiring (Non-goal 2, Non-goal 4, Non-goal 6, Non-goal 10, Non-goal 15, Non-goal 17, Non-goal 20).
 ```
@@ -392,9 +392,9 @@ External check 5 is the audit consequence of the eager-or-lazy choice (Non-goal 
 
 ```
 Non-goal 1: The atom MUST NOT answer a repeated [Place Hold] with one commitment.
-Non-goal 2: A deployment needing an idempotent place hold MUST compose [Duplicate Prevention](./duplicate-prevention.md).
+Non-goal 2: A deployment needing an idempotent place hold MUST compose Duplicate Prevention.
 Non-goal 3: The atom MUST NOT record a transition history.
-Non-goal 4: A deployment needing the full transition history MUST compose [Event Log](./event-log.md).
+Non-goal 4: A deployment needing the full transition history MUST compose Event Log.
 Non-goal 5: The atom MUST NOT read a pool's capacity rule.
 Non-goal 6: A deployment needing an aggregate capacity rule MUST compose a capacity constraint pattern.
 Non-goal 7: The atom MUST NOT hold two resources on one commitment.
@@ -405,18 +405,18 @@ Non-goal 11: The atom MUST NOT define availability.
 Non-goal 12: The atom MUST NOT decide whether a resource is hold-able.
 Non-goal 13: The atom MUST NOT decide when [Expire] fires.
 Non-goal 14: The atom MUST NOT bind a requester to an actor.
-Non-goal 15: A deployment needing a non-repudiable commitment MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 15: A deployment needing a non-repudiable commitment MUST compose Actor Identity.
 Non-goal 16: The atom MUST NOT decide who may call an action.
-Non-goal 17: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 17: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 18: The atom MUST NOT decide what a confirmation means to the host.
 Non-goal 19: The atom MUST NOT bound a commitment's retention.
-Non-goal 20: A deployment needing retention MUST compose [Retention Window](./retention-window.md).
+Non-goal 20: A deployment needing retention MUST compose Retention Window.
 Non-goal 21: The atom MUST NOT pause a hold window.
 Non-goal 22: The atom MUST NOT offer a multi-commitment transaction.
 Non-goal 23: The atom MUST NOT surface a rejection to an audit trail.
 Non-goal 24: The atom MUST NOT hold a resource fungible below the commitment's grain.
 Non-goal 25: The atom MUST NOT guarantee that a lapsed commitment resolves.
-Non-goal 26: A deployment needing two racing transitions ordered MUST read the composing [Event Log](./event-log.md) sequence_number.
+Non-goal 26: A deployment needing two racing transitions ordered MUST read the composing Event Log sequence_number.
 ```
 
 WHY:
@@ -477,17 +477,17 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 ## Composition notes
 
 ```
-Composition note 1: A composing [Duplicate Prevention](./duplicate-prevention.md) MUST map an idempotency token to the id an admitted place hold answered.
-Composition note 2: A composing [Duplicate Prevention](./duplicate-prevention.md) MUST answer a repeated token with the mapped id.
-Composition note 3: A composing [Event Log](./event-log.md) MUST append an event on EVERY admitted action.
-Composition note 4: A composing [Event Log](./event-log.md) MUST append an event on EVERY refused action.
-Composition note 5: A composing [Retention Window](./retention-window.md) MUST place a commitment under retention ONLY IF the commitment stands in a terminal state.
+Composition note 1: A composing Duplicate Prevention MUST map an idempotency token to the id an admitted place hold answered.
+Composition note 2: A composing Duplicate Prevention MUST answer a repeated token with the mapped id.
+Composition note 3: A composing Event Log MUST append an event on EVERY admitted action.
+Composition note 4: A composing Event Log MUST append an event on EVERY refused action.
+Composition note 5: A composing Retention Window MUST place a commitment under retention ONLY IF the commitment stands in a terminal state.
 Composition note 6: A composing capacity constraint pattern MUST read the pool's capacity rule PER place hold.
 Composition note 7: A composing capacity constraint pattern MUST NOT call [Place Hold] BEFORE the capacity decision.
 Composition note 8: A composing capacity constraint pattern MUST return the pool slot on a releasing action.
 Composition note 9: A composing reversal pattern MUST produce a new commitment.
 Composition note 10: A composing reversal pattern MUST NOT change the offset commitment.
-Composition note 11: A composing [Actor Identity](./actor-identity.md) MUST attest the actor behind EVERY call.
+Composition note 11: A composing Actor Identity MUST attest the actor behind EVERY call.
 ```
 
 WHY:

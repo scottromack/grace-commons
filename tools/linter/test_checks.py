@@ -1155,6 +1155,45 @@ def check_fence_form_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing)
 
 
+def check_bracket_synthetic(problems: list[str]) -> int:
+    """F-bracket after brackets were kept for actions and terms (council read 91).
+    A marker with a link line, a specification named bare and a link in a Term
+    line stay silent; a link in a rule, in a condition or under a WHEN, and a
+    marker with no link line fire. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: `migrated` — rewritten in GRACE lang v0.50 (2026-09-16).\n\n"
+            "Term record verbs: read, compose.\n\n"
+            "Term composing pattern: [Permissions](./permissions.md).\n\n"
+            "## Structure\n\n### Operations\n\n")
+    tail = "\n[Read]: #read\n"
+    def run(rules: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rules + "```\n" + tail, encoding="utf-8")
+            return [x for x in scan(f) if x.code == "F-bracket"]
+    silent = [
+        ("a marker with a link line", "Operation 1: [Read] MUST read the store.\n"),
+        ("a specification named bare", "Operation 1: A deployment MUST compose Permissions.\n"),
+    ]
+    firing = [
+        ("a link in a rule", "Operation 1: A deployment MUST compose [Permissions](./permissions.md).\n"),
+        ("a link in a condition", "Operation 1: IF [Permissions](./permissions.md) EXISTS THEN [Read] MUST read the store.\n"),
+        ("a link under a WHEN", "Operation 1: WHEN [Permissions](./permissions.md) EXISTS:\n    Operation 1a: [Read] MUST read the store.\n"),
+        ("a marker with no link line", "Operation 1: [Purge] MUST read the store.\n"),
+    ]
+    for name, rules in silent:
+        got = run(rules)
+        if got:
+            problems.append(f"F-bracket: fired on {name}: {got[0].message}")
+    for name, rules in firing:
+        if not run(rules):
+            problems.append(f"F-bracket: {name} did not fire")
+    return len(silent) + len(firing)
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -1284,6 +1323,14 @@ def main(argv: list[str]) -> int:
         print("D-tombstone-form: 5 synthetic fixtures hold (a tombstone written first keeps "
               "its block live; the retired shape, a missing period, a missing close and "
               "a missing label fire) \u2713")
+
+    bracket_problems: list[str] = []
+    n_bracket = check_bracket_synthetic(bracket_problems)
+    failures.extend(bracket_problems)
+    if not bracket_problems:
+        print(f"F-bracket: {n_bracket} synthetic fixtures hold (a linked marker and a bare "
+              "specification name silent; a link in a rule, in a condition and under a WHEN, "
+              "and a marker with no link line fire) \u2713")
 
     fence_problems: list[str] = []
     n_fence = check_fence_form_synthetic(fence_problems)

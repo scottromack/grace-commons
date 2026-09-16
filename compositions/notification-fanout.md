@@ -67,8 +67,8 @@ Composes 5 and Composes 6 are what the preservation claims carried *beyond* the 
 ```
 Composition state 1: The composition MUST NOT store a record.
 Composition state 2: The composition MUST NOT persist a fanout id.
-Composition state 3: A deployment needing a fanout recorded MUST compose [Event Log](../atoms/event-log.md).
-Composition state 4: A deployment needing a fanout deduplicated MUST compose [Duplicate Prevention](../atoms/duplicate-prevention.md).
+Composition state 3: A deployment needing a fanout recorded MUST compose Event Log.
+Composition state 4: A deployment needing a fanout deduplicated MUST compose Duplicate Prevention.
 ```
 
 WHY:
@@ -318,10 +318,10 @@ Term boundary window: the interval the read latency bound and the clock offset a
 
 ```
 External check 1: An auditor needing create-time isolation confirmed MUST read the deployment's own transaction configuration (Invariant 3.1).
-External check 2: An auditor needing a fanout grouped MUST read a composed [Event Log](../atoms/event-log.md) (Composition state 2).
+External check 2: An auditor needing a fanout grouped MUST read a composed Event Log (Composition state 2).
 External check 3: An auditor needing the boundary window computed MUST read the deployment's disclosed bounds (Capability requirement 6, Capability requirement 7).
 External check 4: An auditor needing the composing patterns named MUST read the deployment's own declaration (Composition note 1).
-External check 5: An auditor needing a notification record verified MUST read [Notification](../atoms/notification.md)'s own acceptance (Composes 7).
+External check 5: An auditor needing a notification record verified MUST read Notification's own acceptance (Composes 7).
 ```
 
 WHY:
@@ -345,7 +345,7 @@ Non-goal 8: The composition MUST NOT match an event_scope by pattern.
 Non-goal 9: The composition MUST NOT order a create.
 Non-goal 10: The composition MUST NOT deliver a notification record.
 Non-goal 11: The composition MUST NOT authorize a caller.
-Non-goal 12: A deployment needing an authorized fanout MUST compose [Permissions](../atoms/permissions.md).
+Non-goal 12: A deployment needing an authorized fanout MUST compose Permissions.
 Non-goal 13: The composition MUST NOT validate a payload's schema.
 Non-goal 14: The composition MUST NOT bound the fan-out's cost.
 ```
@@ -382,7 +382,7 @@ Indeterminate outcome 3: A caller retrying a failed subscriber_ref MUST call Not
 Indeterminate outcome 4: A caller retrying an indeterminate subscriber_ref MUST accept a second notification record.
 Indeterminate outcome 5: A caller MUST read every subscriber_ref failing alike as the payload's fault.
 Indeterminate outcome 6: A caller MUST read one subscriber_ref failing alone as the subscriber_ref's fault.
-Indeterminate outcome 7: A caller needing at-most-once across an indeterminate create MUST compose [Idempotent Reservation](./idempotent-reservation.md).
+Indeterminate outcome 7: A caller needing at-most-once across an indeterminate create MUST compose Idempotent Reservation.
 Indeterminate outcome 8: A caller MUST NOT read Notification's pending_for as finding an indeterminate create's record.
 ```
 

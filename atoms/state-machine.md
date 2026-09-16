@@ -443,7 +443,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: A deployment needing a guard's condition confirmed MUST read the composing pattern that evaluates the guard (Invariant 8.2).
 External check 2: A deployment needing an instance's history entry count matched against the instance's admitted fire count MUST capture the fire answers (Invariant 5.2).
-External check 3: A deployment needing an actor_ref bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Non-goal 11).
+External check 3: A deployment needing an actor_ref bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
 ```
 
 WHY:
@@ -455,7 +455,7 @@ External check 1 is the atom's central restraint stated as an audit boundary. `g
 
 ```
 Non-goal 1: A deployment needing a guard evaluated MUST compose the evaluating pattern.
-Non-goal 2: A deployment gating a declared transition on an approval MUST compose [Approval Step](./approval-step.md).
+Non-goal 2: A deployment gating a declared transition on an approval MUST compose Approval Step.
 Non-goal 3: The atom MUST NOT stand an instance in two states at once.
 Non-goal 4: The atom MUST NOT offer a fork declared transition.
 Non-goal 5: The atom MUST NOT offer a join declared transition.
@@ -465,13 +465,13 @@ Non-goal 8: The atom MUST NOT share one declaration across two instances.
 Non-goal 9: The atom MUST NOT version a declaration.
 Non-goal 10: A deployment needing a shared declaration template MUST compose a definition registry pattern.
 Non-goal 11: The atom MUST NOT bind an actor_ref to an actor.
-Non-goal 12: A deployment needing a non-repudiable actor MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 12: A deployment needing a non-repudiable actor MUST compose Actor Identity.
 Non-goal 13: The atom MUST NOT detect a rewrite under the store.
-Non-goal 14: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 14: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 15: The atom MUST NOT bound an instance's retention.
-Non-goal 16: A deployment needing a retention bound MUST compose [Retention Window](./retention-window.md).
+Non-goal 16: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 17: The atom MUST NOT decide who may call an action.
-Non-goal 18: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 18: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 19: The atom MUST NOT decide which state an instance ought to stand in.
 Non-goal 20: The atom MUST NOT read two [Fire] calls carrying one instance_id and one action as one fire.
 Non-goal 21: A deployment needing at-most-once firing MUST supply the deployment's own idempotency key.

@@ -285,12 +285,12 @@ Non-goal 2: The atom MUST NOT retire an actor.
 Non-goal 3: A deployment MUST compose an actor-registry pattern for the actor's lifecycle.
 Non-goal 4: The atom MUST NOT authenticate an actor.
 Non-goal 5: The atom MUST NOT decide whether an actor was permitted to take an action.
-Non-goal 6: A deployment needing permission MUST compose [Permissions](./permissions.md).
+Non-goal 6: A deployment needing permission MUST compose Permissions.
 Non-goal 7: The atom MUST NOT manage a credential.
 Non-goal 8: The atom MUST NOT record two actors on one attestation.
 Non-goal 9: The atom MUST NOT invalidate an attestation under a later compromise.
 Non-goal 10: The atom MUST NOT detect a rewrite of the attestation store.
-Non-goal 11: A deployment needing a tamper-evident store MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 11: A deployment needing a tamper-evident store MUST compose Tamper Evidence.
 Non-goal 12: The atom MUST NOT vouch for the clock.
 Non-goal 13: The atom MUST NOT bind the action's content.
 Non-goal 14: A host whose action content is mutable MUST bind an immutable reference.

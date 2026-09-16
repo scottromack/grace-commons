@@ -405,8 +405,8 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: A deployment needing EVERY issued step_id found in the store MUST capture the submit answers (Invariant 10.3).
 External check 2: A deployment needing the subjects carrying no step identified MUST read the subject set beside the step store (Non-goal 19).
-External check 3: A deployment needing a decided_by bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Non-goal 14).
-External check 4: A deployment needing a refused call's attempt recorded MUST read the composing [Audit Trail](../compositions/audit-trail.md) (Operation 37).
+External check 3: A deployment needing a decided_by bound to an actor MUST read the composing Actor Identity attestation (Non-goal 14).
+External check 4: A deployment needing a refused call's attempt recorded MUST read the composing Audit Trail (Operation 37).
 ```
 
 WHY:
@@ -420,22 +420,22 @@ External check 4 records a deliberate silence. A refused call writes nothing her
 
 ```
 Non-goal 1: The atom MUST NOT read two [Submit] calls carrying one field set as one step.
-Non-goal 2: A deployment needing at-most-once submission MUST compose [Duplicate Prevention](./duplicate-prevention.md).
+Non-goal 2: A deployment needing at-most-once submission MUST compose Duplicate Prevention.
 Non-goal 3: The atom MUST NOT decide whether a subject's open gates are enough.
-Non-goal 4: A deployment needing a quorum rule MUST compose [Multi-Party Approval](../compositions/multi-party-approval.md).
+Non-goal 4: A deployment needing a quorum rule MUST compose Multi-Party Approval.
 Non-goal 5: The atom MUST NOT bind a second actor to stand in for an approver_ref.
 Non-goal 6: A deployment needing delegation MUST compose a delegation pattern.
 Non-goal 7: The atom MUST NOT confirm that a subject stands in an approvable state.
 Non-goal 8: The atom MUST NOT interpret what an approved step permits.
 Non-goal 9: The atom MUST NOT decide who may call an action.
-Non-goal 10: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 10: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 11: The atom MUST NOT notify an approver_ref.
-Non-goal 12: A deployment needing an approver notified MUST compose [Notification](./notification.md).
+Non-goal 12: A deployment needing an approver notified MUST compose Notification.
 Non-goal 13: The atom MUST NOT refuse a submitter_ref matching the step's approver_ref.
 Non-goal 14: The atom MUST NOT bind a decided_by to an actor.
-Non-goal 15: A deployment needing a non-repudiable decision MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 15: A deployment needing a non-repudiable decision MUST compose Actor Identity.
 Non-goal 16: The atom MUST NOT detect a rewrite under the store.
-Non-goal 17: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 17: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 18: The atom MUST NOT declare which gates a subject requires.
 Non-goal 19: The atom MUST NOT detect a subject carrying no step.
 Non-goal 20: The atom MUST NOT bound submitted_at from below.

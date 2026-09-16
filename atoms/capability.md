@@ -455,9 +455,9 @@ NOTE: EVERY check names the rule the check tests.
 #### External checks
 
 ```
-External check 1: An auditor MUST read a refused [Redeem] from the composing [Audit Trail](../compositions/audit-trail.md) (Invariant 7.3).
+External check 1: An auditor MUST read a refused [Redeem] from the composing Audit Trail (Invariant 7.3).
 External check 2: An auditor needing a redemption's attribution MUST read the attribution from the composing pattern's records (Invariant 5.2, Non-goal 6).
-External check 3: An auditor needing a capability's field history MUST read the history from the composing [Audit Trail](../compositions/audit-trail.md) (Invariant 1.1).
+External check 3: An auditor needing a capability's field history MUST read the history from the composing Audit Trail (Invariant 1.1).
 ```
 
 WHY:
@@ -469,7 +469,7 @@ Check 4.3 asserts on the reproduced projection rather than on a stored field, be
 
 ```
 Non-goal 1: The atom MUST NOT confirm an allocator_ref's authority.
-Non-goal 2: A deployment gating allocation MUST compose [Permissions](./permissions.md).
+Non-goal 2: A deployment gating allocation MUST compose Permissions.
 Non-goal 3: The atom MUST NOT evaluate a scope.
 Non-goal 4: A composing pattern MUST own the scope vocabulary.
 Non-goal 5: The atom MUST NOT record a redeemer's identity.
@@ -481,20 +481,20 @@ Non-goal 10: A bearer delegating a narrowed authorization MUST call [Allocate].
 Non-goal 11: The atom MUST NOT notify a bearer of a revocation.
 Non-goal 12: The atom MUST NOT notify an allocator_ref of a revocation.
 Non-goal 13: The atom MUST NOT gate a redemption on an identity.
-Non-goal 14: A deployment needing identity-keyed authorization MUST compose [Permissions](./permissions.md).
+Non-goal 14: A deployment needing identity-keyed authorization MUST compose Permissions.
 Non-goal 15: The atom MUST NOT bind an identity at redemption.
-Non-goal 16: A deployment needing an identity bound at redemption MUST compose [Invitation](./invitation.md).
+Non-goal 16: A deployment needing an identity bound at redemption MUST compose Invitation.
 Non-goal 17: The atom MUST NOT record a bearer's act beyond the redemption.
-Non-goal 18: A deployment needing a post-redemption record MUST compose [Audit Trail](../compositions/audit-trail.md).
+Non-goal 18: A deployment needing a post-redemption record MUST compose Audit Trail.
 Non-goal 19: The atom MUST NOT seal a capability against modification.
-Non-goal 20: A deployment needing court-admissible records MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 20: A deployment needing court-admissible records MUST compose Tamper Evidence.
 Non-goal 21: The atom MUST NOT purge a terminal capability.
 Non-goal 22: The atom MUST NOT forbid a deployment purging a terminal capability.
 Non-goal 23: The atom MUST NOT distinguish a purged capability_token from an unallocated capability_token.
 Non-goal 24: The atom MUST NOT guarantee a replay bound beyond max_redemptions and expires_at.
 Non-goal 25: The atom MUST NOT attest an allocator_ref.
 Non-goal 26: The atom MUST NOT attest a revoked_by_ref.
-Non-goal 27: A deployment needing an attested actor MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 27: A deployment needing an attested actor MUST compose Actor Identity.
 Non-goal 28: The atom MUST NOT reconcile two readers disagreeing across the deadline.
 ```
 

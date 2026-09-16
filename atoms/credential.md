@@ -427,10 +427,10 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: A deployment needing credential material confirmed absent from a log MUST read the deployment's own logging (State 9, State 10).
 External check 2: A deployment needing a verifier comparison confirmed constant-time MUST read the implementation (Operation 24).
 External check 3: A deployment needing a derivation function confirmed one-way MUST read the derivation registry (Capability requirement 5).
-External check 4: A deployment needing a verify answer observed MUST read the composing [Event Log](./event-log.md) (Non-goal 25).
-External check 5: A deployment needing a principal_ref bound to a real party MUST read the composing [Party Identity](./party-identity.md) (Non-goal 1).
-External check 6: A deployment needing a failed verify counted MUST read the composing [Login](../compositions/login.md) (Non-goal 8).
-External check 7: A deployment needing the store confirmed free of a retroactive edit MUST read the composing [Tamper Evidence](./tamper-evidence.md) (Non-goal 21).
+External check 4: A deployment needing a verify answer observed MUST read the composing Event Log (Non-goal 25).
+External check 5: A deployment needing a principal_ref bound to a real party MUST read the composing Party Identity (Non-goal 1).
+External check 6: A deployment needing a failed verify counted MUST read the composing Login (Non-goal 8).
+External check 7: A deployment needing the store confirmed free of a retroactive edit MUST read the composing Tamper Evidence (Non-goal 21).
 ```
 
 WHY:
@@ -444,18 +444,18 @@ External check 4 is the lost-answer family. `verified` and `failed-verification`
 
 ```
 Non-goal 1: The atom MUST NOT confirm that a principal_ref names a proofed party.
-Non-goal 2: A deployment needing identity proofing MUST compose [Party Identity](./party-identity.md).
+Non-goal 2: A deployment needing identity proofing MUST compose Party Identity.
 Non-goal 3: The atom MUST NOT sequence two credential checks.
-Non-goal 4: A deployment needing multi-factor sequencing MUST compose [Login](../compositions/login.md).
+Non-goal 4: A deployment needing multi-factor sequencing MUST compose Login.
 Non-goal 5: The atom MUST NOT issue a session.
-Non-goal 6: A deployment needing a persisted verification MUST compose [Session](./session.md).
+Non-goal 6: A deployment needing a persisted verification MUST compose Session.
 Non-goal 7: The atom MUST NOT count a failed verify.
-Non-goal 8: A deployment needing lockout MUST compose [Login](../compositions/login.md).
+Non-goal 8: A deployment needing lockout MUST compose Login.
 Non-goal 9: The atom MUST NOT decide what a verified principal may do.
-Non-goal 10: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 10: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 11: The atom MUST NOT offer a credential recovery flow.
 Non-goal 12: The atom MUST NOT bind one credential to two principals.
-Non-goal 13: A deployment needing bearer delegation MUST compose [Capability](./capability.md).
+Non-goal 13: A deployment needing bearer delegation MUST compose Capability.
 Non-goal 14: The atom MUST NOT enumerate the admitted credential types.
 Non-goal 15: The atom MUST NOT constrain credential material's strength.
 Non-goal 16: A deployment needing a material strength floor MUST declare the floor in the derivation function.
@@ -463,7 +463,7 @@ Non-goal 17: The atom MUST NOT migrate a verifier to a new derivation function.
 Non-goal 18: The atom MUST NOT recover credential material from a verifier.
 Non-goal 19: The atom MUST NOT reinterpret a verified answer the atom gave.
 Non-goal 20: The atom MUST NOT detect a rewrite under the store.
-Non-goal 21: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 21: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 22: The atom MUST NOT bound a credential's retention.
 Non-goal 23: The atom MUST NOT decide whether a verifier is special-category data.
 Non-goal 24: The atom MUST NOT record a transition history.
@@ -531,16 +531,16 @@ Byte-exactness bites hardest on `credential_type`, because that string is half t
 ## Composition notes
 
 ```
-Composition note 1: A composing [Login](../compositions/login.md) MUST issue a session ONLY AFTER a verified answer.
-Composition note 2: A composing [Login](../compositions/login.md) MUST own the lockout policy.
-Composition note 3: A composing [Login](../compositions/login.md) MUST invalidate EVERY session derived from a revoked credential.
-Composition note 4: A composing [External Onboarding](../compositions/external-onboarding.md) MUST call [Register] ONLY AFTER a party record EXISTS.
-Composition note 5: A composing [Event Log](./event-log.md) MUST append an event on EVERY admitted action.
-Composition note 6: A composing [Event Log](./event-log.md) MUST append an event on EVERY refused action.
-Composition note 7: A composing [Event Log](./event-log.md) MUST append an event on EVERY verify answer.
-Composition note 8: A composing [Actor Identity](./actor-identity.md) MUST attest the principal behind a verified answer.
-Composition note 9: A composing [Tamper Evidence](./tamper-evidence.md) MUST cover EVERY credential the store holds.
-Composition note 10: A composing [Tamper Evidence](./tamper-evidence.md) MUST NOT expose a verifier.
+Composition note 1: A composing Login MUST issue a session ONLY AFTER a verified answer.
+Composition note 2: A composing Login MUST own the lockout policy.
+Composition note 3: A composing Login MUST invalidate EVERY session derived from a revoked credential.
+Composition note 4: A composing External Onboarding MUST call [Register] ONLY AFTER a party record EXISTS.
+Composition note 5: A composing Event Log MUST append an event on EVERY admitted action.
+Composition note 6: A composing Event Log MUST append an event on EVERY refused action.
+Composition note 7: A composing Event Log MUST append an event on EVERY verify answer.
+Composition note 8: A composing Actor Identity MUST attest the principal behind a verified answer.
+Composition note 9: A composing Tamper Evidence MUST cover EVERY credential the store holds.
+Composition note 10: A composing Tamper Evidence MUST NOT expose a verifier.
 Composition note 11: A composing compromise disclosure pattern MUST record a new credential rather than change a credential.
 ```
 

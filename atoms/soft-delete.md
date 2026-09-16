@@ -366,9 +366,9 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: A deployment needing the host record's content confirmed destroyed MUST read the host system (Identity 11, Non-goal 3).
-External check 2: A deployment needing two deletion epochs ordered MUST read the composing [Event Log](./event-log.md) (Invariant 6.3).
+External check 2: A deployment needing two deletion epochs ordered MUST read the composing Event Log (Invariant 6.3).
 External check 3: A deployment needing a purge's eligibility confirmed MUST read the composing gate (Non-goal 8).
-External check 4: A deployment needing an acting reference bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Non-goal 12).
+External check 4: A deployment needing an acting reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 12).
 ```
 
 WHY:
@@ -384,18 +384,18 @@ Non-goal 2: A deployment needing an idempotent delete MUST read already-deleted 
 Non-goal 3: The atom MUST NOT destroy the host record's content.
 Non-goal 4: The atom MUST NOT confirm that the host record's content stands destroyed.
 Non-goal 5: The atom MUST NOT retain a prior deletion epoch's attribution.
-Non-goal 6: A deployment needing the full cycle history MUST compose [Event Log](./event-log.md).
+Non-goal 6: A deployment needing the full cycle history MUST compose Event Log.
 Non-goal 7: The atom MUST NOT gate a purge on the purge's eligibility.
-Non-goal 8: A deployment needing a purge gated MUST compose [Defensible Retention](../compositions/defensible-retention.md).
+Non-goal 8: A deployment needing a purge gated MUST compose Defensible Retention.
 Non-goal 9: The atom MUST NOT read a live hold.
 Non-goal 10: The atom MUST NOT read a retention deadline.
 Non-goal 11: The atom MUST NOT offer a batch transitioning action.
 Non-goal 12: The atom MUST NOT bind an acting reference to an actor.
-Non-goal 13: A deployment needing a non-repudiable purge MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 13: A deployment needing a non-repudiable purge MUST compose Actor Identity.
 Non-goal 14: The atom MUST NOT decide who may call an action.
-Non-goal 15: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 15: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 16: The atom MUST NOT detect a rewrite under the store.
-Non-goal 17: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 17: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 18: The atom MUST NOT define which read surface a deleted record leaves.
 Non-goal 19: The atom MUST NOT bound a transition instant from below by anything beside the lifecycle record's own deleted_at.
 Non-goal 20: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.

@@ -277,7 +277,7 @@ NOTE: EVERY check names the rule the check tests.
 Non-goal 1: The atom MUST NOT fire an event.
 Non-goal 2: The atom MUST NOT match an event to a subscription.
 Non-goal 3: The atom MUST NOT create a notification.
-Non-goal 4: A deployment needing fanout MUST compose [Notification Fanout](../compositions/notification-fanout.md).
+Non-goal 4: A deployment needing fanout MUST compose Notification Fanout.
 Non-goal 5: The atom MUST NOT deliver a notification.
 Non-goal 6: The atom MUST NOT expand a scope hierarchy.
 Non-goal 7: The atom MUST NOT match a scope pattern.
@@ -287,7 +287,7 @@ Non-goal 10: A deployment needing a time-bounded subscription MUST compose a tem
 Non-goal 11: The atom MUST NOT hold a subscriber's lifecycle.
 Non-goal 12: A deployment deprovisioning an actor MUST cancel the actor's active subscriptions one by one.
 Non-goal 13: The atom MUST NOT record who called [Subscribe].
-Non-goal 14: A deployment needing attribution MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 14: A deployment needing attribution MUST compose Actor Identity.
 Non-goal 15: The atom MUST NOT gate [Cancel] beyond the subscription_id.
 Non-goal 16: The atom MUST NOT offer a bulk cancel.
 Non-goal 17: The atom MUST NOT record an event's firing history.
@@ -316,7 +316,7 @@ Half a cancel breaks Invariant 2.1 or Invariant 9.1 while every field looks indi
 ```
 Cancel capability 1: A caller holding the subscription_id MUST reach [Cancel].
 Cancel capability 2: The atom MUST NOT enumerate subscription_ids.
-Cancel capability 3: A deployment needing richer authorization MUST compose [Permissions](./permissions.md).
+Cancel capability 3: A deployment needing richer authorization MUST compose Permissions.
 ```
 
 WHY:

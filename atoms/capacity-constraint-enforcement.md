@@ -478,9 +478,9 @@ NOTE: EVERY check names the rule the check tests.
 #### External checks
 
 ```
-External check 1: An auditor needing a refused call MUST read the refusal from a composing [Event Log](./event-log.md) (Non-goal 26).
-External check 2: An auditor needing a per-unit history MUST read the history from a composing [Provisional Commitment](./provisional-commitment.md) (Non-goal 1).
-External check 3: An auditor needing an attested actor MUST read the attestation from a composing [Actor Identity](./actor-identity.md) (Non-goal 12).
+External check 1: An auditor needing a refused call MUST read the refusal from a composing Event Log (Non-goal 26).
+External check 2: An auditor needing a per-unit history MUST read the history from a composing Provisional Commitment (Non-goal 1).
+External check 3: An auditor needing an attested actor MUST read the attestation from a composing Actor Identity (Non-goal 12).
 ```
 
 WHY:
@@ -492,32 +492,32 @@ The three External checks name what this store cannot answer. Refused calls leav
 
 ```
 Non-goal 1: The atom MUST NOT hold a per-allocation lifecycle.
-Non-goal 2: A deployment needing per-unit identity MUST compose [Provisional Commitment](./provisional-commitment.md).
+Non-goal 2: A deployment needing per-unit identity MUST compose Provisional Commitment.
 Non-goal 3: The atom MUST NOT order two contending calls fairly.
 Non-goal 4: A deployment needing fairness MUST compose a queueing pattern.
 Non-goal 5: The atom MUST NOT gate an action on a caller's authority.
-Non-goal 6: A deployment needing authorization MUST compose [Permissions](./permissions.md).
+Non-goal 6: A deployment needing authorization MUST compose Permissions.
 Non-goal 7: The atom MUST NOT evict an allocation to admit another.
 Non-goal 8: The atom MUST NOT admit an allocation beyond capacity.
 Non-goal 9: A deployment needing overcommit MUST compose a soft-limit pattern.
 Non-goal 10: The atom MUST NOT expire an allocation.
-Non-goal 11: A deployment needing a bounded allocation lifetime MUST compose [Lease](./lease.md).
+Non-goal 11: A deployment needing a bounded allocation lifetime MUST compose Lease.
 Non-goal 12: The atom MUST NOT attest an actor reference.
-Non-goal 13: A deployment needing an attested actor MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 13: A deployment needing an attested actor MUST compose Actor Identity.
 Non-goal 14: The atom MUST NOT interpret what a unit represents.
 Non-goal 15: The atom MUST NOT move a unit between two pools.
 Non-goal 16: The atom MUST NOT merge two pools.
 Non-goal 17: The atom MUST NOT split a pool.
 Non-goal 18: The atom MUST NOT notify a reader of a state change.
-Non-goal 19: A deployment needing notification MUST compose [Subscription](./subscription.md).
+Non-goal 19: A deployment needing notification MUST compose Subscription.
 Non-goal 20: The atom MUST NOT hold a cross-pool bound.
 Non-goal 21: The atom MUST NOT seal a pool against modification.
-Non-goal 22: A deployment needing court-admissible records MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 22: A deployment needing court-admissible records MUST compose Tamper Evidence.
 Non-goal 23: The atom MUST NOT bound how long a pool is kept.
-Non-goal 24: A deployment needing a retention bound MUST compose [Retention Window](./retention-window.md).
+Non-goal 24: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 25: The atom MUST NOT distinguish a purged pool_id from an undeclared pool_id.
 Non-goal 26: The atom MUST NOT record a refused call.
-Non-goal 27: A deployment needing refusal visibility MUST compose [Event Log](./event-log.md).
+Non-goal 27: A deployment needing refusal visibility MUST compose Event Log.
 Non-goal 28: The atom MUST NOT hold a multi-dimensional capacity.
 Non-goal 29: A deployment needing verifiable wall-time order MUST compose a trusted timestamping pattern.
 ```

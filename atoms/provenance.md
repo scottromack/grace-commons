@@ -416,25 +416,25 @@ Check 5.1 rests on `sequence_number` rather than `recorded_at` deliberately: a b
 
 ```
 Non-goal 1: The atom MUST NOT confirm that a custodian_ref names a credentialed party.
-Non-goal 2: A deployment needing a non-repudiable custodian MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 2: A deployment needing a non-repudiable custodian MUST compose Actor Identity.
 Non-goal 3: The atom MUST NOT decide who may call an action.
-Non-goal 4: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 4: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 5: The atom MUST NOT record a disclosure's scope.
 Non-goal 6: The atom MUST NOT record a disclosure's authority.
-Non-goal 7: A deployment needing a disclosure's scope recorded MUST compose [Selective Disclosure](./selective-disclosure.md).
+Non-goal 7: A deployment needing a disclosure's scope recorded MUST compose Selective Disclosure.
 Non-goal 8: The atom MUST NOT claim a custody the chain's entries do not record.
 Non-goal 9: The atom MUST NOT offer an amendment entry.
 Non-goal 10: The atom MUST NOT offer a supersedes link between two entries.
 Non-goal 11: The atom MUST NOT offer a view that resolves a correction.
 Non-goal 12: The atom MUST NOT detect a rewrite under the store.
-Non-goal 13: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 13: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 14: The atom MUST NOT bound a chain's retention.
-Non-goal 15: A deployment needing a retention bound MUST compose [Retention Window](./retention-window.md).
+Non-goal 15: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 16: The atom MUST NOT record a chain derived from a second chain.
 Non-goal 17: The atom MUST NOT record two current custodians on one chain.
 Non-goal 18: The atom MUST NOT interpret the artifact's medium.
 Non-goal 19: The atom MUST NOT dispose of a chain.
-Non-goal 20: A deployment needing a lawful disposal MUST compose [Defensible Retention](../compositions/defensible-retention.md).
+Non-goal 20: A deployment needing a lawful disposal MUST compose Defensible Retention.
 Non-goal 21: The atom MUST NOT offer a read keyed by artifact_ref.
 Non-goal 22: The atom MUST NOT offer a compare-and-swap arm on [Transfer].
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.

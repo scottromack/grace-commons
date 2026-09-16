@@ -68,7 +68,7 @@ Composes 6 and Composes 7 name the two constituent obligations this composition 
 Composition state 1: The composition MUST NOT store a record.
 Composition state 2: The composition MUST NOT derive an index.
 Composition state 3: The composition MUST evaluate the gate from the constituents' own surfaces.
-Composition state 4: A deployment needing a record of an authorization decision MUST compose [Audit Trail](./audit-trail.md).
+Composition state 4: A deployment needing a record of an authorization decision MUST compose Audit Trail.
 ```
 
 WHY:
@@ -293,8 +293,8 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: An auditor needing the gate's order confirmed MUST read the deployment's own implementation (Invariant 1.1).
 External check 2: An auditor needing the principal binding confirmed MUST read the deployment's own implementation (Invariant 2.1).
-External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed [Audit Trail](./audit-trail.md) (Composition state 1).
-External check 4: An auditor needing a gate rejection's record MUST read a composed [Audit Trail](./audit-trail.md) (Composition state 1).
+External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed Audit Trail (Composition state 1).
+External check 4: An auditor needing a gate rejection's record MUST read a composed Audit Trail (Composition state 1).
 External check 5: An auditor needing the constituents' surfaces confirmed unexposed MUST read the deployment's own wiring (Composes 5).
 ```
 

@@ -217,6 +217,8 @@ ACTION_RULE = re.compile(r"^(?:IF .*? THEN )?\[([A-Z][A-Za-z ]+)\] (MUST(?: NOT)
 COND_ENGLISH = re.compile(r"^IF .*?\b(is not|is no|are not|does not|do not|is a|are a)\b.*? THEN ")
 ARITH = re.compile(r"[+×−]|\s-\s")
 MARKER = re.compile(r"\[([^\]\[]+)\]")
+MD_LINK = re.compile(r"\[([^\]\[]+)\]\(([^)\s]*)\)")
+LINK_LINE = re.compile(r"(?m)^\[([^\]]+)\]:\s*\S")
 CODE_SPAN = re.compile(r"`[^`]*`")
 SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
 # The signature form (GRACE-lang v0.48, Closed vocabulary 24): a header naming
@@ -547,8 +549,19 @@ def scan(path: Path) -> list[Finding]:
             add(labels[lab], "L-tombstone-reuse", f"{lab} is tombstoned at line {k} and used as a rule (Hard invariant 27)")
 
     verbs = declared_verbs(text)
+    link_lines = set(LINK_LINE.findall(text))
     for r in rules:
         body = CODE_SPAN.sub("QUOTED", r.text)  # a code span quotes text; never the rule's own tokens
+        # a link names another specification, and a rule names one bare (Surface 29):
+        # inside a fence a link does not render, so it reads as a marker
+        for lk in MD_LINK.finditer(r.text):
+            add(r.line, "F-bracket", f"{r.label}: '[{lk.group(1)}]({lk.group(2)})' is a link in a rule; "
+                f"name the specification alone (Surface 29)")
+        # a marker lands on the name's term entry through a link line (Surface 26)
+        for mk in MARKER.findall(MD_LINK.sub("", body)):
+            if re.match(r"^[A-Z][A-Za-z -]*[A-Za-z]$", mk) and mk not in link_lines:
+                add(r.line, "F-bracket", f"{r.label}: '[{mk}]' lands on no term entry — no `[{mk}]:` "
+                    f"link line in this spec (Surface 26)")
         if body.startswith("PROVISIONAL:"):
             continue  # Surface 14: no normative force; not shape-checked
         caps_shaped, caps_other = unreserved_capitals(r.text)
@@ -658,7 +671,7 @@ def scan(path: Path) -> list[Finding]:
                 if v not in verbs:
                     add(r.line, "C-verb", f"{r.label}: '{v}' after the modal is not a declared record verb (Closed vocabulary 8)")
         # a [Marker] that is not a term card — a bracket range read as a marker
-        for mk in MARKER.findall(stmt):
+        for mk in MARKER.findall(MD_LINK.sub("", stmt)):
             # a pattern name may carry a hyphen (Multi-Party Approval); a bracket
             # range read as a marker carries digits, commas or brackets and does
             # not (council read 32)

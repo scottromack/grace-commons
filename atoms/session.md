@@ -427,11 +427,11 @@ Check 5.1 is the one check that reads a contract rather than records. Four disti
 
 ```
 Non-goal 1: The atom MUST NOT verify an authentication credential.
-Non-goal 2: A deployment needing an authentication credential verified MUST compose [Credential](./credential.md).
+Non-goal 2: A deployment needing an authentication credential verified MUST compose Credential.
 Non-goal 3: The atom MUST NOT sequence a multi-factor challenge.
-Non-goal 4: A deployment needing a login flow MUST compose [Login](../compositions/login.md).
+Non-goal 4: A deployment needing a login flow MUST compose Login.
 Non-goal 5: The atom MUST NOT decide what a principal_ref may do.
-Non-goal 6: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 6: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 7: The atom MUST NOT extend a session in place.
 Non-goal 8: A deployment needing a sliding window MUST call [Issue] again.
 Non-goal 9: A composing pattern renewing a session MUST revoke the prior session.
@@ -446,10 +446,10 @@ Non-goal 17: The atom MUST NOT define how the store holds a session_token.
 Non-goal 18: The atom MUST NOT enumerate a session_token.
 Non-goal 19: The atom MUST NOT seal a session against modification.
 Non-goal 20: The atom MUST NOT bound how long a session is kept.
-Non-goal 21: A deployment needing a retention bound MUST compose [Retention Window](./retention-window.md).
-Non-goal 22: A deployment needing court-admissible records MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 21: A deployment needing a retention bound MUST compose Retention Window.
+Non-goal 22: A deployment needing court-admissible records MUST compose Tamper Evidence.
 Non-goal 23: The atom MUST NOT record who called [Issue].
-Non-goal 24: A deployment needing attribution on issuance MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 24: A deployment needing attribution on issuance MUST compose Actor Identity.
 Non-goal 25: The atom MUST NOT reconcile two readers disagreeing across the deadline.
 Non-goal 26: A deployment needing an externally verifiable timestamp MUST compose a trusted timestamping pattern.
 ```
@@ -524,7 +524,7 @@ The format is the deployment's (Capability requirement 5, Non-goal 16), but one 
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: IF the verified answer NOT EXISTS THEN a composing pattern MUST NOT call [Issue].
 Composition note 3: A composing pattern MUST own the attribution of an issuance.
-Composition note 4: IF [Validate] gives an invalid answer THEN a composing pattern MUST NOT call [Permissions](./permissions.md).
+Composition note 4: IF [Validate] gives an invalid answer THEN a composing pattern MUST NOT call Permissions.
 Composition note 5: A composing pattern MUST own the renewal policy.
 Composition note 6: A composing pattern MUST own the logout propagation across a principal_ref's sessions.
 Composition note 7: A composing pattern MUST own the device binding.

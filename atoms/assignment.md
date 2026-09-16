@@ -297,8 +297,8 @@ Check 5.1: An auditor MUST identify which composing patterns a deployment wired 
 ### External checks
 
 ```
-External check 1: An auditor MUST read the assigner's authority from the composing [Permissions](./permissions.md) records (Non-goal 5).
-External check 2: An auditor MUST read who issued an assignment from the composing [Actor Identity](./actor-identity.md) attestations (Non-goal 7).
+External check 1: An auditor MUST read the assigner's authority from the composing Permissions records (Non-goal 5).
+External check 2: An auditor MUST read who issued an assignment from the composing Actor Identity attestations (Non-goal 7).
 External check 3: An auditor MUST read a task's completion from the host's task system (Non-goal 11).
 External check 4: An auditor MUST read the serialization evidence from the deployment's own concurrency probe (Invariant 7.3, Invariant 7.4, Assign race 1).
 ```
@@ -315,9 +315,9 @@ Non-goal 2: A deployment needing acceptance MUST compose an acceptance pattern.
 Non-goal 3: The atom MUST NOT expire an assignment.
 Non-goal 4: A deployment needing a time-bounded assignment MUST compose a temporal-grant pattern.
 Non-goal 5: The atom MUST NOT check an assigner's authority.
-Non-goal 6: A deployment needing an authorized assigner MUST compose [Permissions](./permissions.md).
+Non-goal 6: A deployment needing an authorized assigner MUST compose Permissions.
 Non-goal 7: The atom MUST NOT record who issued an assignment.
-Non-goal 8: A deployment needing assigner attribution MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 8: A deployment needing assigner attribution MUST compose Actor Identity.
 Non-goal 9: The atom MUST NOT cap an assignee's active assignments.
 Non-goal 10: The atom MUST NOT bind two assignees to one active assignment.
 Non-goal 11: The atom MUST NOT read a task's state.

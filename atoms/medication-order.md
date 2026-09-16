@@ -474,14 +474,14 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: A deployment needing an amendment chain's full hold history MUST read the composing [Event Log](./event-log.md) (Invariant 12.2, Non-goal 20).
+External check 1: A deployment needing an amendment chain's full hold history MUST read the composing Event Log (Invariant 12.2, Non-goal 20).
 External check 2: A deployment needing a second dose event recorded MUST read the composing dose-event pattern (Operation 69, Non-goal 12).
-External check 3: A deployment needing a caller authorized MUST read the composing [Permissions](./permissions.md) (Non-goal 15).
-External check 4: A deployment needing the store confirmed free of a retroactive edit MUST read the composing [Tamper Evidence](./tamper-evidence.md) (Non-goal 18).
+External check 3: A deployment needing a caller authorized MUST read the composing Permissions (Non-goal 15).
+External check 4: A deployment needing the store confirmed free of a retroactive edit MUST read the composing Tamper Evidence (Non-goal 18).
 External check 5: A deployment needing a medication_ref's controlled-substance schedule MUST read the composing formulary (Identity 13, Non-goal 17).
-External check 6: A deployment needing a duplicate order prevented MUST read the composing [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 9).
-External check 7: A deployment needing an order's retention bounded MUST read the composing [Retention Window](./retention-window.md) (Non-goal 22).
-External check 8: A deployment needing an attribution reference bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Identity 12, Non-goal 13).
+External check 6: A deployment needing a duplicate order prevented MUST read the composing Duplicate Prevention (Non-goal 9).
+External check 7: A deployment needing an order's retention bounded MUST read the composing Retention Window (Non-goal 22).
+External check 8: A deployment needing an attribution reference bound to an actor MUST read the composing Actor Identity attestation (Identity 12, Non-goal 13).
 ```
 
 WHY:
@@ -502,18 +502,18 @@ Non-goal 5: The atom MUST NOT read a drug interaction.
 Non-goal 6: The atom MUST NOT read an allergy.
 Non-goal 7: A deployment needing clinical decision support MUST compose a decision-support pattern.
 Non-goal 8: The atom MUST NOT answer a repeated [Order] with one order.
-Non-goal 9: A deployment needing an idempotent order MUST compose [Duplicate Prevention](./duplicate-prevention.md).
+Non-goal 9: A deployment needing an idempotent order MUST compose Duplicate Prevention.
 Non-goal 10: The atom MUST NOT offer an entered-in-error state.
 Non-goal 11: The atom MUST NOT record a second dose event.
 Non-goal 12: A deployment needing a dose schedule MUST compose a dose-event pattern.
 Non-goal 13: The atom MUST NOT bind an attribution reference to an actor.
-Non-goal 14: A deployment needing a non-repudiable transition MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 14: A deployment needing a non-repudiable transition MUST compose Actor Identity.
 Non-goal 15: The atom MUST NOT decide who may call an action.
-Non-goal 16: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 16: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 17: The atom MUST NOT read a medication_ref's regulatory schedule.
 Non-goal 18: The atom MUST NOT detect a rewrite under the store.
 Non-goal 19: The atom MUST NOT record a transition history.
-Non-goal 20: A deployment needing the full hold history MUST compose [Event Log](./event-log.md).
+Non-goal 20: A deployment needing the full hold history MUST compose Event Log.
 Non-goal 21: The atom MUST NOT model a refill.
 Non-goal 22: The atom MUST NOT bound an order's retention.
 Non-goal 23: The atom MUST NOT record an answer the atom gave.
@@ -610,14 +610,14 @@ Blankness carries more weight here than in most atoms because two whole invarian
 ## Composition notes
 
 ```
-Composition note 1: A composing [Permissions](./permissions.md) MUST decide who may call an order action.
-Composition note 2: A composing [Actor Identity](./actor-identity.md) MUST attest the actor behind EVERY state-changing action.
-Composition note 3: A composing [Event Log](./event-log.md) MUST append an event on EVERY admitted action.
-Composition note 4: A composing [Event Log](./event-log.md) MUST append an event on EVERY refused action.
-Composition note 5: A composing [Tamper Evidence](./tamper-evidence.md) MUST cover EVERY order the store holds.
-Composition note 6: A composing [Retention Window](./retention-window.md) MUST place an order under retention ONLY IF the order stands in a terminal state.
-Composition note 7: A composing [Legal Hold](./legal-hold.md) MUST block a composing retention's purge.
-Composition note 8: A composing [Duplicate Prevention](./duplicate-prevention.md) MUST map an idempotency token to the order_id an admitted order answered.
+Composition note 1: A composing Permissions MUST decide who may call an order action.
+Composition note 2: A composing Actor Identity MUST attest the actor behind EVERY state-changing action.
+Composition note 3: A composing Event Log MUST append an event on EVERY admitted action.
+Composition note 4: A composing Event Log MUST append an event on EVERY refused action.
+Composition note 5: A composing Tamper Evidence MUST cover EVERY order the store holds.
+Composition note 6: A composing Retention Window MUST place an order under retention ONLY IF the order stands in a terminal state.
+Composition note 7: A composing Legal Hold MUST block a composing retention's purge.
+Composition note 8: A composing Duplicate Prevention MUST map an idempotency token to the order_id an admitted order answered.
 Composition note 9: A composing dose-event pattern MUST name the order_id on EVERY dose event.
 Composition note 10: A composing dose-event pattern MUST NOT change the order.
 Composition note 11: A composing decision-support pattern MUST NOT advise BEFORE reading a dosing parameter.

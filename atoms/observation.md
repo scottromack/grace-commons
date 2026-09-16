@@ -400,8 +400,8 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: A deployment needing EVERY issued observation_id found in the store MUST capture the record answers (Invariant 7.1).
-External check 2: A deployment needing a recorded_by confirmed authorized MUST read the composing [Permissions](./permissions.md) record (Non-goal 13).
-External check 3: A deployment needing a reference bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Non-goal 11).
+External check 2: A deployment needing a recorded_by confirmed authorized MUST read the composing Permissions record (Non-goal 13).
+External check 3: A deployment needing a reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
 External check 4: A deployment needing a value confirmed correct MUST read outside the observation store (Non-goal 5).
 ```
 
@@ -423,16 +423,16 @@ Non-goal 7: The atom MUST NOT map a unit to a controlled vocabulary.
 Non-goal 8: The atom MUST NOT offer an amendment that changes an observation_type.
 Non-goal 9: The atom MUST NOT offer an amendment that changes a subject_ref.
 Non-goal 10: The atom MUST NOT bind a reference to an actor.
-Non-goal 11: A deployment needing a non-repudiable observer MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 11: A deployment needing a non-repudiable observer MUST compose Actor Identity.
 Non-goal 12: The atom MUST NOT decide who may call an action.
-Non-goal 13: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 13: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 14: The atom MUST NOT bound an observation's retention.
-Non-goal 15: A deployment needing a retention bound MUST compose [Retention Window](./retention-window.md).
-Non-goal 16: A deployment needing a preservation obligation MUST compose [Legal Hold](./legal-hold.md).
+Non-goal 15: A deployment needing a retention bound MUST compose Retention Window.
+Non-goal 16: A deployment needing a preservation obligation MUST compose Legal Hold.
 Non-goal 17: The atom MUST NOT detect a rewrite under the store.
-Non-goal 18: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 18: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 19: The atom MUST NOT read two [Record] calls carrying one field set as one observation.
-Non-goal 20: A deployment needing at-most-once recording MUST compose [Duplicate Prevention](./duplicate-prevention.md).
+Non-goal 20: A deployment needing at-most-once recording MUST compose Duplicate Prevention.
 Non-goal 21: The atom MUST NOT derive a trend across two observations.
 Non-goal 22: The atom MUST NOT route a call across two store instances.
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.

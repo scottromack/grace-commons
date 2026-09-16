@@ -388,8 +388,8 @@ External check 2: A deployment needing an accepting_identity_ref matched to the 
 External check 3: A deployment needing the inviter's authority confirmed MUST read the composing policy layer (Non-goal 6).
 External check 4: A deployment needing the token's delivery to the invitee confirmed MUST read the delivery channel (Non-goal 4).
 External check 5: A deployment needing a declining actor identified MUST read the composing pattern's own record (Operation 27, Non-goal 12).
-External check 6: A deployment needing the store confirmed free of a retroactive edit MUST read the composing [Tamper Evidence](./tamper-evidence.md) (Non-goal 20).
-External check 7: A deployment needing the accepting party's real-world identity confirmed MUST read the composing [Party Identity](./party-identity.md) proofing (Non-goal 18).
+External check 6: A deployment needing the store confirmed free of a retroactive edit MUST read the composing Tamper Evidence (Non-goal 20).
+External check 7: A deployment needing the accepting party's real-world identity confirmed MUST read the composing Party Identity proofing (Non-goal 18).
 ```
 
 WHY:
@@ -403,25 +403,25 @@ External check 5 follows from Operation 27. [Decline] takes no acting reference,
 
 ```
 Non-goal 1: The atom MUST NOT create an identity record for an accepted invitation.
-Non-goal 2: A deployment needing an identity record MUST compose [Party Identity](./party-identity.md).
+Non-goal 2: A deployment needing an identity record MUST compose Party Identity.
 Non-goal 3: The atom MUST NOT register a credential.
 Non-goal 4: The atom MUST NOT deliver the invitation_token.
 Non-goal 5: The atom MUST NOT issue a session.
 Non-goal 6: The atom MUST NOT decide who may invite whom.
 Non-goal 7: The atom MUST NOT decide what a context names.
 Non-goal 8: The atom MUST NOT sequence the steps following an acceptance.
-Non-goal 9: A deployment needing the onboarding arc sequenced MUST compose [External Onboarding](../compositions/external-onboarding.md).
+Non-goal 9: A deployment needing the onboarding arc sequenced MUST compose External Onboarding.
 Non-goal 10: A deployment needing an accepting identity matched to an invitee MUST compose a matching rule.
 Non-goal 11: The atom MUST NOT offer a second acceptance of one invitation.
 Non-goal 12: The atom MUST NOT record who declined.
 Non-goal 13: The atom MUST NOT record a transition history.
-Non-goal 14: A deployment needing the full transition history MUST compose [Event Log](./event-log.md).
+Non-goal 14: A deployment needing the full transition history MUST compose Event Log.
 Non-goal 15: The atom MUST NOT bind an acting reference to an actor.
-Non-goal 16: A deployment needing a non-repudiable acceptance MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 16: A deployment needing a non-repudiable acceptance MUST compose Actor Identity.
 Non-goal 17: The atom MUST NOT verify an accepting party's real-world credentials.
-Non-goal 18: A deployment needing identity proofing MUST compose [Party Identity](./party-identity.md).
+Non-goal 18: A deployment needing identity proofing MUST compose Party Identity.
 Non-goal 19: The atom MUST NOT detect a rewrite under the store.
-Non-goal 20: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 20: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 21: The atom MUST NOT bound an invitation's retention.
 Non-goal 22: The atom MUST NOT record an answer the atom gave.
 Non-goal 23: The atom MUST NOT decide whether a token holder may pass the token on.
@@ -484,15 +484,15 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 ## Composition notes
 
 ```
-Composition note 1: A composing [External Onboarding](../compositions/external-onboarding.md) MUST create the party record ONLY AFTER an admitted accept.
-Composition note 2: A composing [External Onboarding](../compositions/external-onboarding.md) MUST pass the accepting_identity_ref as the party record's reference.
-Composition note 3: A composing [Credential](./credential.md) MUST register against the accepting_identity_ref.
-Composition note 4: A composing [Event Log](./event-log.md) MUST append an event on EVERY admitted action.
-Composition note 5: A composing [Event Log](./event-log.md) MUST append an event on EVERY refused action.
-Composition note 6: A composing [Actor Identity](./actor-identity.md) MUST attest the actor behind an admitted accept.
-Composition note 7: A composing [Actor Identity](./actor-identity.md) MUST attest the actor behind an admitted initiate.
-Composition note 8: A composing [Tamper Evidence](./tamper-evidence.md) MUST cover EVERY reference the store holds.
-Composition note 9: A composing [Capability](./capability.md) MUST call [Initiate] PER redemption.
+Composition note 1: A composing External Onboarding MUST create the party record ONLY AFTER an admitted accept.
+Composition note 2: A composing External Onboarding MUST pass the accepting_identity_ref as the party record's reference.
+Composition note 3: A composing Credential MUST register against the accepting_identity_ref.
+Composition note 4: A composing Event Log MUST append an event on EVERY admitted action.
+Composition note 5: A composing Event Log MUST append an event on EVERY refused action.
+Composition note 6: A composing Actor Identity MUST attest the actor behind an admitted accept.
+Composition note 7: A composing Actor Identity MUST attest the actor behind an admitted initiate.
+Composition note 8: A composing Tamper Evidence MUST cover EVERY reference the store holds.
+Composition note 9: A composing Capability MUST call [Initiate] PER redemption.
 ```
 
 WHY:

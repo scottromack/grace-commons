@@ -441,7 +441,7 @@ Check 5.1 asserts on [Check]'s answer and not on a stored [Expired] field, becau
 
 ```
 Non-goal 1: The atom MUST NOT merge two [Grant] calls carrying one subject_ref and one purpose.
-Non-goal 2: A deployment needing at-most-once grant MUST compose [Duplicate Prevention](./duplicate-prevention.md).
+Non-goal 2: A deployment needing at-most-once grant MUST compose Duplicate Prevention.
 Non-goal 3: The atom MUST NOT hold at most one granted consent record per subject_ref and purpose.
 Non-goal 4: A deployment needing one live agreement per pair MUST enforce the bound at the composing layer.
 Non-goal 5: The atom MUST NOT define a valid purpose.
@@ -452,15 +452,15 @@ Non-goal 9: The atom MUST NOT propagate a withdrawal downstream.
 Non-goal 10: A deployment needing propagation MUST compose a consent-revocation-propagation pattern.
 Non-goal 11: The atom MUST NOT hold a lawful basis the data subject did not give.
 Non-goal 12: The atom MUST NOT gate an action on a caller's authority.
-Non-goal 13: A deployment needing access control MUST compose [Permissions](./permissions.md).
+Non-goal 13: A deployment needing access control MUST compose Permissions.
 Non-goal 14: The atom MUST NOT establish that a granting actor may agree for the data subject.
 Non-goal 15: A deployment needing proxy consent MUST compose a guardian-relationship pattern.
 Non-goal 16: The atom MUST NOT seal a consent record against modification.
-Non-goal 17: A deployment needing court-admissible records MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 17: A deployment needing court-admissible records MUST compose Tamper Evidence.
 Non-goal 18: The atom MUST NOT bound how long a consent record is kept.
-Non-goal 19: A deployment needing a retention bound MUST compose [Retention Window](./retention-window.md).
+Non-goal 19: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 20: The atom MUST NOT record who called an action.
-Non-goal 21: A deployment needing attribution MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 21: A deployment needing attribution MUST compose Actor Identity.
 Non-goal 22: The atom MUST NOT guarantee a consent_id unique across store instances.
 ```
 

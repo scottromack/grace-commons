@@ -272,8 +272,8 @@ Check 6.1: An auditor MUST identify which composing patterns a deployment wired 
 ### External checks
 
 ```
-External check 1: An auditor MUST read who issued a grant from the composing [Actor Identity](./actor-identity.md) attestations (Non-goal 9).
-External check 2: An auditor MUST read whether an access was attempted from the composing [Event Log](./event-log.md) records (Non-goal 11).
+External check 1: An auditor MUST read who issued a grant from the composing Actor Identity attestations (Non-goal 9).
+External check 2: An auditor MUST read whether an access was attempted from the composing Event Log records (Non-goal 11).
 External check 3: An auditor MUST read a departing subject's full revocation from the composing pattern's deprovisioning records (Deprovisioning 2, Deprovisioning 3, Deprovisioning 4).
 External check 4: An auditor MUST read the serialization evidence for concurrent revokes from the deployment's own concurrency probe (Operation 12).
 ```
@@ -292,9 +292,9 @@ Non-goal 6: The atom MUST NOT record an explicit denial.
 Non-goal 7: The atom MUST NOT model a delegation.
 Non-goal 8: The atom MUST NOT expire a grant.
 Non-goal 9: The atom MUST NOT record who issued a grant.
-Non-goal 10: A deployment needing grantor attribution MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 10: A deployment needing grantor attribution MUST compose Actor Identity.
 Non-goal 11: The atom MUST NOT record a [Check] call.
-Non-goal 12: A deployment needing access-attempt records MUST compose [Event Log](./event-log.md).
+Non-goal 12: A deployment needing access-attempt records MUST compose Event Log.
 Non-goal 13: The atom MUST NOT authenticate the caller.
 Non-goal 14: The atom MUST NOT bind a subject_ref to the authenticated caller.
 Non-goal 15: The atom MUST NOT revoke a subject's grants in bulk.

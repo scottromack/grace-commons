@@ -261,8 +261,8 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: An auditor needing the log instance's durability confirmed MUST read the deployment's own store (Durability 2).
 External check 2: An auditor needing the appends serialized confirmed MUST read the host's own concurrency control (Operation 12).
 External check 3: An auditor needing the clock non-decreasing confirmed MUST read the deployment's own clock discipline (Invariant 7.1).
-External check 4: An auditor needing the log untampered confirmed MUST compose [Tamper Evidence](./tamper-evidence.md) (Non-goal 4).
-External check 5: An auditor needing an event's writer confirmed MUST compose [Actor Identity](./actor-identity.md) (Non-goal 6).
+External check 4: An auditor needing the log untampered confirmed MUST compose Tamper Evidence (Non-goal 4).
+External check 5: An auditor needing an event's writer confirmed MUST compose Actor Identity (Non-goal 6).
 External check 6: An auditor needing the payload cap confirmed MUST read the deployment's own declaration (Operation 5).
 ```
 
@@ -275,11 +275,11 @@ The external set is where the real limit sits, and it is larger than a reader ex
 
 ```
 Non-goal 1: The atom MUST NOT prune an event.
-Non-goal 2: A pattern needing time-bounded retention MUST compose [Retention Window](./retention-window.md).
+Non-goal 2: A pattern needing time-bounded retention MUST compose Retention Window.
 Non-goal 3: The atom MUST NOT detect tampering.
-Non-goal 4: A pattern needing integrity proof MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 4: A pattern needing integrity proof MUST compose Tamper Evidence.
 Non-goal 5: The atom MUST NOT record who appended an event.
-Non-goal 6: A pattern needing attribution MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 6: A pattern needing attribution MUST compose Actor Identity.
 Non-goal 7: The atom MUST NOT index data.
 Non-goal 8: A pattern needing lookup by payload field MUST compose a reverse-index pattern.
 Non-goal 9: The atom MUST NOT order events across log instances.

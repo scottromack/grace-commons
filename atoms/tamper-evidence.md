@@ -319,7 +319,7 @@ Non-goal 3: The atom MUST NOT anchor a proof once the seal lands.
 Non-goal 4: The atom MUST NOT choose the mechanism's hash function.
 Non-goal 5: The atom MUST NOT choose the mechanism's signature scheme.
 Non-goal 6: The atom MUST NOT bind a proof to a named actor.
-Non-goal 7: A deployment needing an attributable seal MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 7: A deployment needing an attributable seal MUST compose Actor Identity.
 Non-goal 8: The atom MUST NOT vouch for the clock.
 Non-goal 9: A deployment whose time of seal carries legal force MUST compose a trusted-timestamping pattern.
 Non-goal 10: The atom MUST NOT purge an evidence alongside purged records.
@@ -379,7 +379,7 @@ WHY:
 
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-Composition note 2: An integrity-relevant [Event Log](./event-log.md) instance MUST compose this atom.
+Composition note 2: An integrity-relevant Event Log instance MUST compose this atom.
 Composition note 3: A deployment needing an attributable seal MUST supply an actor's credential as the mechanism_credential.
 Composition note 4: A composing pattern MUST own the decision to purge an evidence alongside the records the evidence commits to.
 Composition note 5: This atom's invariant numbers MUST stand as a frozen contract surface.

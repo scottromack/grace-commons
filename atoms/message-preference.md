@@ -451,29 +451,29 @@ Non-goal 3: The atom MUST NOT create a notification.
 Non-goal 4: The atom MUST NOT deliver a notification.
 Non-goal 5: A deployment needing fanout MUST compose a preference-aware fanout pattern.
 Non-goal 6: The atom MUST NOT evaluate a legal permission.
-Non-goal 7: A deployment needing a legal-permission decision MUST compose [Consent](./consent.md).
+Non-goal 7: A deployment needing a legal-permission decision MUST compose Consent.
 Non-goal 8: The atom MUST NOT evaluate a topic subscription.
-Non-goal 9: A deployment needing a topic-interest decision MUST compose [Subscription](./subscription.md).
+Non-goal 9: A deployment needing a topic-interest decision MUST compose Subscription.
 Non-goal 10: The atom MUST NOT carry a transport mechanism.
 Non-goal 11: The atom MUST NOT interpret a preference field's contents.
 Non-goal 12: The atom MUST NOT declare which channel names are valid.
 Non-goal 13: The atom MUST NOT record who changed the declared channel set.
-Non-goal 14: A deployment needing channel-set attribution MUST compose [Audit Trail](../compositions/audit-trail.md).
+Non-goal 14: A deployment needing channel-set attribution MUST compose Audit Trail.
 Non-goal 15: The atom MUST NOT hold a default preference for a principal carrying no preference record.
 Non-goal 16: The atom MUST NOT offer a resume action.
 Non-goal 17: The atom MUST NOT carry a deletion reason on a preference record.
-Non-goal 18: A deployment needing a recorded deletion reason MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 18: A deployment needing a recorded deletion reason MUST compose Actor Identity.
 Non-goal 19: The atom MUST NOT detect a conflicting preference.
 Non-goal 20: The atom MUST NOT offer a bulk action.
 Non-goal 21: The atom MUST NOT hold a per-topic preference.
 Non-goal 22: The atom MUST NOT record who called an action.
 Non-goal 23: The atom MUST NOT gate an action beyond the identifier the action accepts.
-Non-goal 24: A deployment needing richer authorization MUST compose [Permissions](./permissions.md).
+Non-goal 24: A deployment needing richer authorization MUST compose Permissions.
 Non-goal 25: The atom MUST NOT expire a preference record.
 Non-goal 26: The atom MUST NOT redact a preference record.
-Non-goal 27: A deployment needing lawful disposal MUST compose [Retention Window](./retention-window.md).
+Non-goal 27: A deployment needing lawful disposal MUST compose Retention Window.
 Non-goal 28: The atom MUST NOT seal a preference record against modification.
-Non-goal 29: A deployment needing court-admissible records MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 29: A deployment needing court-admissible records MUST compose Tamper Evidence.
 Non-goal 30: The atom MUST NOT guarantee a preference_id unique across store instances.
 Non-goal 31: The atom MUST NOT push an update into queued work.
 Non-goal 32: The atom MUST NOT change a caller's captured copy of a preference record.

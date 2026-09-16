@@ -320,7 +320,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing authority store (Non-goal 7, Non-goal 8).
 External check 2: A deployment needing Invariant 5.1 cleared MUST read the egress record beside the disclosure store.
-External check 3: A deployment needing a backdated disclosed_at detected MUST read the composing [Event Log](./event-log.md)'s receipt instant (State 10).
+External check 3: A deployment needing a backdated disclosed_at detected MUST read the composing Event Log's receipt instant (State 10).
 External check 4: A deployment needing EVERY issued disclosure_id found in the store MUST capture the recorded answers (Invariant 6.3).
 ```
 
@@ -342,15 +342,15 @@ Non-goal 7: The atom MUST NOT confirm that an authority_reference names a live a
 Non-goal 8: The atom MUST NOT confirm that an authority_reference agrees with the authority_type.
 Non-goal 9: A deployment needing an authority's legitimacy confirmed MUST compose the authority's own pattern.
 Non-goal 10: The atom MUST NOT decide who may call an action.
-Non-goal 11: A deployment needing an authorization decision MUST compose [Permissions](./permissions.md).
+Non-goal 11: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 12: The atom MUST NOT record who called [Record].
-Non-goal 13: A deployment needing the recording actor bound MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 13: A deployment needing the recording actor bound MUST compose Actor Identity.
 Non-goal 14: The atom MUST NOT read two [Record] calls carrying one field set as one disclosure.
-Non-goal 15: A deployment needing at-most-once recording MUST compose [Duplicate Prevention](./duplicate-prevention.md).
+Non-goal 15: A deployment needing at-most-once recording MUST compose Duplicate Prevention.
 Non-goal 16: The atom MUST NOT detect a rewrite under the store.
-Non-goal 17: A deployment needing a rewrite detected MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 17: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 18: The atom MUST NOT bound a disclosure record's retention.
-Non-goal 19: A deployment needing a retention bound MUST compose [Retention Window](./retention-window.md).
+Non-goal 19: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 20: The atom MUST NOT decide whether a disclosure to the subject stands as a disclosure.
 Non-goal 21: The atom MUST NOT bound disclosed_at from below.
 Non-goal 22: The atom MUST NOT offer a filter axis over an authority_reference.

@@ -270,7 +270,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: An auditor needing the gate's order confirmed MUST read the deployment's own implementation (Invariant 1.1).
 External check 2: An auditor needing a denied call confirmed unreached MUST read the deployment's own implementation (Invariant 1.2).
-External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed [Audit Trail](./audit-trail.md) (Non-goal 7).
+External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed Audit Trail (Non-goal 7).
 External check 4: An auditor needing the actor_ref bound to a caller MUST read the deployment's authentication layer (Non-goal 12).
 ```
 
@@ -289,9 +289,9 @@ Non-goal 2: The composition MUST NOT grant tasks:view with an assignment.
 Non-goal 3: The composition MUST NOT refuse a self-assignment.
 Non-goal 4: The composition MUST NOT own whether a completed task's assignment is recalled.
 Non-goal 5: The composition MUST NOT offer an undo.
-Non-goal 6: A deployment needing an undo MUST compose [Undo History](./undo-history.md).
+Non-goal 6: A deployment needing an undo MUST compose Undo History.
 Non-goal 7: The composition MUST NOT record an action.
-Non-goal 8: A deployment needing a tamper-evident record MUST compose [Audit Trail](./audit-trail.md).
+Non-goal 8: A deployment needing a tamper-evident record MUST compose Audit Trail.
 Non-goal 9: The composition MUST NOT carry a task's priority.
 Non-goal 10: The composition MUST NOT carry a task's due date.
 Non-goal 11: The composition MUST NOT wire an action for Permissions' grant.

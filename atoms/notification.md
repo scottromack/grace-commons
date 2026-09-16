@@ -296,8 +296,8 @@ Check 6.1: An auditor MUST identify which composing patterns a deployment wired 
 
 ```
 External check 1: An auditor MUST read the deployment's fail-versus-expire policy from the deployment's own declaration (Operation 14).
-External check 2: An auditor MUST read a payload's retention from the composing [Retention Window](./retention-window.md) records (Non-goal 13).
-External check 3: An auditor MUST read who created a notification from the composing [Actor Identity](./actor-identity.md) attestations (Non-goal 11).
+External check 2: An auditor MUST read a payload's retention from the composing Retention Window records (Non-goal 13).
+External check 3: An auditor MUST read who created a notification from the composing Actor Identity attestations (Non-goal 11).
 External check 4: An auditor MUST read the transport's own outcome from the deployment's delivery layer (Non-goal 5).
 ```
 
@@ -384,7 +384,7 @@ The transport accepted the notification and the store did not record it, so the 
 ```
 Payload retention 1: The atom MUST keep a payload for the store's life.
 Payload retention 2: The atom MUST NOT offer a payload purge.
-Payload retention 3: A deployment whose payloads carry sensitive content MUST compose [Retention Window](./retention-window.md).
+Payload retention 3: A deployment whose payloads carry sensitive content MUST compose Retention Window.
 Payload retention 4: A composing pattern purging a payload MUST leave EVERY stored field as written.
 Payload retention 5: A composing pattern MUST NOT delete a notification record.
 ```
@@ -399,7 +399,7 @@ Composition note 1: A deployment MUST declare which composing patterns the deplo
 Composition note 2: A deployment MUST declare the deployment's fail-versus-expire policy.
 Composition note 3: A composing pattern MUST own who is notified.
 Composition note 4: A composing pattern MUST own the transport.
-Composition note 5: A composing pattern needing at-most-once notification MUST guard [Create] with [Duplicate Prevention](./duplicate-prevention.md).
+Composition note 5: A composing pattern needing at-most-once notification MUST guard [Create] with Duplicate Prevention.
 Composition note 6: A composing pattern MUST own a payload's retention.
 Composition note 7: A composing pattern MUST own the delivery window.
 ```

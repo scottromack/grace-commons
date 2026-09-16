@@ -325,8 +325,8 @@ Check 7.1: An auditor MUST identify which composing patterns a deployment wired 
 
 ```
 External check 1: An auditor MUST read whether a held record was purged from the composing pattern's purge records (Non-goal 1, Composition note 2).
-External check 2: An auditor MUST read who was permitted to place a hold from the composing [Permissions](./permissions.md) records (Non-goal 7).
-External check 3: An auditor MUST read a hold record's integrity from the composing [Tamper Evidence](./tamper-evidence.md) seals (Non-goal 11).
+External check 2: An auditor MUST read who was permitted to place a hold from the composing Permissions records (Non-goal 7).
+External check 3: An auditor MUST read a hold record's integrity from the composing Tamper Evidence seals (Non-goal 11).
 External check 4: An auditor MUST read the matter a case_ref names from the deployment's case-management system (Non-goal 9).
 ```
 
@@ -336,17 +336,17 @@ NOTE: EVERY check names the rule the check tests. The hold store answers *what w
 
 ```
 Non-goal 1: The atom MUST NOT block a purge.
-Non-goal 2: A deployment needing an enforced hold MUST compose [Defensible Retention](../compositions/defensible-retention.md).
+Non-goal 2: A deployment needing an enforced hold MUST compose Defensible Retention.
 Non-goal 3: The atom MUST NOT read the record a record_ref names.
 Non-goal 4: The atom MUST NOT refuse a hold over a destroyed record.
 Non-goal 5: The atom MUST NOT deduplicate two holds.
-Non-goal 6: A deployment needing at-most-once placement MUST compose [Duplicate Prevention](./duplicate-prevention.md).
+Non-goal 6: A deployment needing at-most-once placement MUST compose Duplicate Prevention.
 Non-goal 7: The atom MUST NOT gate who places a hold.
-Non-goal 8: A deployment needing gated placement MUST compose [Permissions](./permissions.md).
+Non-goal 8: A deployment needing gated placement MUST compose Permissions.
 Non-goal 9: The atom MUST NOT hold a matter's lifecycle.
 Non-goal 10: The atom MUST NOT release every hold over a record in one call.
 Non-goal 11: The atom MUST NOT detect tampering with a hold record.
-Non-goal 12: A deployment needing court-admissible hold records MUST compose [Tamper Evidence](./tamper-evidence.md).
+Non-goal 12: A deployment needing court-admissible hold records MUST compose Tamper Evidence.
 Non-goal 13: The atom MUST NOT place one hold over two records.
 Non-goal 14: The atom MUST NOT import a retention policy.
 Non-goal 15: The atom MUST NOT purge a hold record.

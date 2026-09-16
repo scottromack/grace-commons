@@ -399,11 +399,11 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: A deployment needing an identity check performed MUST read the composing verification workflow (Non-goal 7).
 External check 2: A deployment needing two parties resolved as one natural person MUST read the composing identity resolution (Identity 16, Non-goal 1).
 External check 3: A deployment needing an enrollment field scrubbed MUST read the composing erasure coordination (Invariant 7.1, Non-goal 12).
-External check 4: A deployment needing an acting reference bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Identity 15, Non-goal 15).
+External check 4: A deployment needing an acting reference bound to an actor MUST read the composing Actor Identity attestation (Identity 15, Non-goal 15).
 External check 5: A deployment needing a recorded instant anchored to wall time MUST read the composing trusted timestamping pattern (Ordering 5, Ordering 6).
 External check 6: A deployment needing an evidence reference resolved MUST read the composing document store (Identity 13, Identity 14).
-External check 7: A deployment needing a party's record retention bounded MUST read the composing [Retention Window](./retention-window.md) (Non-goal 13).
-External check 8: A deployment needing an answer observed MUST read the composing [Event Log](./event-log.md) (Non-goal 19).
+External check 7: A deployment needing a party's record retention bounded MUST read the composing Retention Window (Non-goal 13).
+External check 8: A deployment needing an answer observed MUST read the composing Event Log (Non-goal 19).
 
 ```
 
@@ -423,16 +423,16 @@ Non-goal 3: The atom MUST NOT change an enrollment field.
 Non-goal 4: A deployment needing an attribute update MUST compose an attribute update pattern.
 Non-goal 5: The atom MUST NOT perform an identity check.
 Non-goal 6: The atom MUST NOT read a sanctions list.
-Non-goal 7: A deployment needing the verification workflow MUST compose [Customer Onboarding](../compositions/customer-onboarding.md).
+Non-goal 7: A deployment needing the verification workflow MUST compose Customer Onboarding.
 Non-goal 8: The atom MUST NOT schedule a re-verification.
 Non-goal 9: The atom MUST NOT count a failed verification.
 Non-goal 10: The atom MUST NOT score a party's risk.
 Non-goal 11: The atom MUST NOT model an ownership relationship.
 Non-goal 12: The atom MUST NOT scrub an enrollment field.
 Non-goal 13: The atom MUST NOT bound a party's retention.
-Non-goal 14: A deployment needing retention bounded MUST compose [Retention Window](./retention-window.md).
+Non-goal 14: A deployment needing retention bounded MUST compose Retention Window.
 Non-goal 15: The atom MUST NOT bind an acting reference to an actor.
-Non-goal 16: A deployment needing a non-repudiable transition MUST compose [Actor Identity](./actor-identity.md).
+Non-goal 16: A deployment needing a non-repudiable transition MUST compose Actor Identity.
 Non-goal 17: The atom MUST NOT model a representative acting for a party.
 Non-goal 18: The atom MUST NOT link a party_id across two trust domains.
 Non-goal 19: The atom MUST NOT record an answer the atom gave.
@@ -518,18 +518,18 @@ The blank rule earns its keep on `reason` more than anywhere else. A suspension,
 ## Composition notes
 
 ```
-Composition note 1: A composing [Customer Onboarding](../compositions/customer-onboarding.md) MUST gate regulated activity on the party standing in verified.
-Composition note 2: A composing [Customer Onboarding](../compositions/customer-onboarding.md) MUST own the verification workflow.
-Composition note 3: A composing [External Onboarding](../compositions/external-onboarding.md) MUST call [Enroll] ONLY AFTER an accepted invitation.
-Composition note 4: A composing [Actor Identity](./actor-identity.md) MUST attest the actor behind EVERY transitioning action.
-Composition note 5: A composing [Actor Identity](./actor-identity.md) MUST bind an attestation to a state_change_id.
-Composition note 6: A composing [Audit Trail](../compositions/audit-trail.md) MUST record EVERY verification event and EVERY state change event.
-Composition note 7: A composing [Consent](./consent.md) MUST name the party_id as the data subject reference.
-Composition note 8: A composing [Retention Window](./retention-window.md) MUST NOT scrub an enrollment field.
+Composition note 1: A composing Customer Onboarding MUST gate regulated activity on the party standing in verified.
+Composition note 2: A composing Customer Onboarding MUST own the verification workflow.
+Composition note 3: A composing External Onboarding MUST call [Enroll] ONLY AFTER an accepted invitation.
+Composition note 4: A composing Actor Identity MUST attest the actor behind EVERY transitioning action.
+Composition note 5: A composing Actor Identity MUST bind an attestation to a state_change_id.
+Composition note 6: A composing Audit Trail MUST record EVERY verification event and EVERY state change event.
+Composition note 7: A composing Consent MUST name the party_id as the data subject reference.
+Composition note 8: A composing Retention Window MUST NOT scrub an enrollment field.
 Composition note 9: A composing erasure coordination pattern MUST record a scrub as an attributed event.
 Composition note 10: A composing erasure coordination pattern MUST NOT scrub a custody field.
-Composition note 11: A composing [Event Log](./event-log.md) MUST append an event on EVERY admitted action.
-Composition note 12: A composing [Event Log](./event-log.md) MUST append an event on EVERY refused action.
+Composition note 11: A composing Event Log MUST append an event on EVERY admitted action.
+Composition note 12: A composing Event Log MUST append an event on EVERY refused action.
 ```
 
 WHY:

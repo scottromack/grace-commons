@@ -1,4 +1,4 @@
-# GRACE lang v0.49 — Minimal Earned Grammar
+# GRACE lang v0.50 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -72,6 +72,7 @@ Surface 25: The parser MUST read a term entry as the surface nothing.
 Surface 26: The parser MUST resolve a bracket marker to the declaration the marker names.
 Surface 27: A term entry MUST NOT carry an obligation.
 Surface 28: A writer MUST write EVERY block the parser classifies in a bare fence.
+Surface 29: A rule MUST name another specification by the specification's name alone.
 ```
 
 Term normative block: a fenced block of labelled rules, a `Term` declaration, or a signature block — a spec's whole normative surface (`spec-format.md` §*The normative surface*).
@@ -80,7 +81,7 @@ Term bare fence: a fenced block whose opening line carries no info string — th
 
 Term term entry: a Terms registry entry — a heading, prose and a `Kind` line — the reader's copy of a declaration (`spec-format.md` §*Terms*).
 
-Term bracket marker: `[Name]` in prose, and the link line that lands it on the name's term entry; a pointer to the declaration, never a second copy of the declaration.
+Term bracket marker: `[Name]` in prose or in a rule, naming an action or a term the specification declares, and the link line that lands it on the name's term entry; a pointer to the declaration, never a second copy of the declaration. Another specification is named without brackets — a rule sits in a fence, where a link does not render, so `[Permissions](./permissions.md)` there reads as a bracket marker with nothing to resolve to.
 
 Term signature block: a bare fence whose first line is a signature, in the signature form, one signature per action and one or more per block; each signature is the declaration of that action's outcomes, read as the value set the action's rules land on.
 
@@ -630,6 +631,9 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.50 (2026-09-16): brackets point only to actions and terms. A rule naming another specification carried a Markdown link, `[Permissions](./permissions.md)`, which renders nowhere inside a fence and reads there as a bracket marker Surface 26 cannot resolve; it now names the specification alone (Surface 29), as Hard invariant 28 already writes a cross-spec label. 218 links removed from 217 rules in twenty-nine specifications, each link's text the linked specification's own title. Formatted strictly: `check.py`'s `F-bracket` gates a link in a rule and a bracket marker that lands on no term entry. Council read 91.
 
 NOTE:
 v0.49 (2026-09-16): one fence kind. A block of rules was a fence marked `text`, a signature block a fence marked with nothing, and the two marks said nothing the first line did not already say — so the mark goes and the first line decides (Surface 18, Term bare fence). A block that carries a labelled rule under a first line that opens nothing is still rejected (Surface 19), which is what the `text` mark used to guard. 982 fences unmarked across the grammar, `spec-format.md` and forty-one specifications. Formatted strictly: `check.py`'s `D-fence-form` gates a fence still marked `text`. Council read 90.
