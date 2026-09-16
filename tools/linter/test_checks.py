@@ -40,6 +40,7 @@ from lint import (  # noqa: E402
     check_stripped_links,
     check_composes_list,
     check_constituents_agree,
+    check_invariant_numbers,
     invariant_numbers,
     Pattern,
     check_atomicity_over_audit,
@@ -1346,6 +1347,72 @@ def check_constituents_synthetic(problems: list[str]) -> int:
     return len(cases)
 
 
+def check_renumber_synthetic(problems: list[str]) -> int:
+    """F-renumber (council read 96), in a throwaway git repository. A migration
+    that tombstones what it removes stays silent; one that drops an invariant
+    and moves another into the freed number fires twice; a working-tree edit
+    that declares a tombstoned number again fires. Returns the fixture count."""
+    import subprocess
+    import tempfile
+
+    def inv(pairs, migrated=False, tomb=()):
+        head = "# X\n\n" + ("Term qualifiers: migrated — rewritten in GRACE lang v0.51.\n\n" if migrated else "")
+        body = "".join(f"- **Invariant {n} — {t}.**\n" + (f"  ```\n  Invariant {n}.1: A store MUST keep it.\n  ```\n" if migrated else "")
+                       for n, t in pairs)
+        body += "".join(f"```\nDeleted: Invariant {n}. Identity 1 owns it.\n```\n" for n in tomb)
+        return head + body
+
+    def sh(d, *args):
+        subprocess.run(args, cwd=d, check=True, capture_output=True)
+
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        sh(d, "git", "init", "-q")
+        sh(d, "git", "config", "user.email", "t@t")
+        sh(d, "git", "config", "user.name", "t")
+        files = {
+            "moved": [inv([(1, "Entry immutability"), (2, "No id reuse"), (3, "Chain and store durability")]),
+                      inv([(1, "Entry immutability"), (2, "Chain durability")], migrated=True)],
+            "kept": [inv([(1, "Entry immutability"), (2, "No id reuse"), (3, "Chain and store durability")]),
+                     inv([(1, "Entry immutability"), (3, "Chain durability")], migrated=True, tomb=(2,))],
+            "reused": [inv([(1, "Entry immutability")], migrated=True, tomb=(2,)),
+                       inv([(1, "Entry immutability")], migrated=True, tomb=(2,))],
+        }
+        for stage in (0, 1):
+            for name, texts in files.items():
+                (root / "atoms" / f"{name}.md").write_text(texts[stage], encoding="utf-8")
+            sh(d, "git", "add", "-A")
+            sh(d, "git", "commit", "-q", "-m", f"stage {stage}")
+        # a spec migrated under one name and renamed afterwards is read at its old name
+        (root / "atoms" / "old-name.md").write_text(files["moved"][0], encoding="utf-8")
+        sh(d, "git", "add", "-A")
+        sh(d, "git", "commit", "-q", "-m", "an unmigrated spec under its old name")
+        (root / "atoms" / "old-name.md").write_text(files["moved"][1], encoding="utf-8")
+        sh(d, "git", "add", "-A")
+        sh(d, "git", "commit", "-q", "-m", "migrate it")
+        sh(d, "git", "mv", "atoms/old-name.md", "atoms/renamed.md")
+        sh(d, "git", "commit", "-q", "-m", "rename it")
+        files["renamed"] = files["moved"]
+        # the working tree declares the tombstoned number again
+        (root / "atoms" / "reused.md").write_text(
+            inv([(1, "Entry immutability"), (2, "Order density")], migrated=True), encoding="utf-8")
+        pats = {}
+        for name in files:
+            f = root / "atoms" / f"{name}.md"
+            pats[f] = Pattern(path=f, text=f.read_text(encoding="utf-8"), invariant_count=0, grounded=False)
+        got: dict[str, list[str]] = {}
+        for x in check_invariant_numbers(root, pats):
+            got.setdefault(x.path.stem, []).append(x.message)
+    wants = [("kept", 0, ""), ("moved", 2, "now stands at Invariant 2"), ("reused", 1, "tombstoned at HEAD"),
+             ("renamed", 2, "now stands at Invariant 2")]
+    for name, count, needle in wants:
+        msgs = got.get(name, [])
+        if len(msgs) != count or (needle and not any(needle in m for m in msgs)):
+            problems.append(f"F-renumber: {name} gave {msgs}")
+    return len(wants)
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -1475,6 +1542,14 @@ def main(argv: list[str]) -> int:
         print("D-tombstone-form: 5 synthetic fixtures hold (a tombstone written first keeps "
               "its block live; the retired shape, a missing period, a missing close and "
               "a missing label fire) \u2713")
+
+    renumber_problems: list[str] = []
+    n_renumber = check_renumber_synthetic(renumber_problems)
+    failures.extend(renumber_problems)
+    if not renumber_problems:
+        print(f"F-renumber: {n_renumber} synthetic repositories hold (a migration that tombstones what it "
+              "removes silent; one that drops an invariant and moves another into its number fires "
+              "twice, and again after a rename; a working-tree edit declaring a tombstoned number fires) \u2713")
 
     constituent_problems: list[str] = []
     n_const = check_constituents_synthetic(constituent_problems)

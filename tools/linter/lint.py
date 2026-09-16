@@ -34,6 +34,9 @@ the three-pass review otherwise has to catch by eye —
   F. Constituents agree     — a composition's Composes list, `Term constituents`
                               and `EXACTLY ONE … MUST serve` rules name the same
                               specifications. F-constituents.
+  F. Renumber               — an invariant keeps its number and a tombstoned
+                              number stays retired, against HEAD and against the
+                              spec before its migration. F-renumber.
   F. Range form             — every run of labels, in every Markdown file, is
                               written `Family N through M`: no dash, no repeated or
                               plural family, no *to*, and the last number follows the
@@ -2897,6 +2900,128 @@ def check_constituents_agree(patterns: dict[Path, Pattern]) -> list[Finding]:
 
 
 # --------------------------------------------------------------------------- #
+# F-renumber — an invariant keeps its number (GRACE-lang Hard invariant 26, 27)
+# --------------------------------------------------------------------------- #
+# Provenance's migration moved its "No id reuse" invariant into two Identity
+# rules and gave the freed number 9 to the durability invariant that had been
+# 10. Nothing read a number's meaning across time, so the break surfaced four
+# days later, only because a range citation in another spec became readable
+# (council read 95). The references are read from git, never from a stored
+# copy: the spec at HEAD when the working tree differs from it, and, for a
+# migrated spec, the spec as it stood before the commit that migrated it.
+# Three things are compared, all by number and one by title:
+#   * every number a reference declared is still declared or tombstoned;
+#   * a number a reference had wholly tombstoned is not declared again;
+#   * an invariant's title does not reappear under another number — a title's
+#     content words overlapping the other number's title by half or more, and
+#     by more than they overlap the title now at their own number.
+INVARIANT_TITLE = re.compile(r"^\s*-?\s*\*\*Invariant\s+(\d+)\s+[—-]\s*(.*?)\.?\*\*", re.M)
+INVARIANT_TOMBSTONE = re.compile(r"^\s*Deleted:\s*Invariant\s+(\d+)\b", re.M)
+MIGRATED_LINE = re.compile(r"^(?:Terms › `?qualifiers`?|Term qualifiers):[^\n]*\bmigrated\b", re.M)
+_TITLE_STOP = frozenset("the a an of to in on at by for and or with is are as it its this that "
+                        "no not over own one every any be never".split())
+
+
+def _title_words(t: str) -> set[str]:
+    t = re.sub(r"[`*\[\]().,;:—-]", " ", t.lower())
+    return {w.rstrip("s") for w in t.split() if w not in _TITLE_STOP and len(w) > 2}
+
+
+def _invariant_shape(text: str) -> tuple[set[int], set[int], dict[int, str]]:
+    live = invariant_numbers(text)
+    tomb = {int(n) for n in INVARIANT_TOMBSTONE.findall(text)} - live
+    titles = {int(n): t.strip() for n, t in INVARIANT_TITLE.findall(text)}
+    return live, tomb, titles
+
+
+def check_invariant_numbers(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
+    def git(*args):
+        try:
+            r = subprocess.run(["git", "--no-optional-locks", *args], cwd=root,
+                               capture_output=True, text=True, timeout=60)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return r.stdout if r.returncode == 0 else None
+
+    if git("rev-parse", "--is-inside-work-tree") is None:
+        return []
+    changed = set((git("diff", "--name-only", "HEAD") or "").split())
+    # every commit that changed how often "migrated" appears, oldest first, with
+    # the files it touched: the migration commit of a spec is among them
+    log = git("log", "--reverse", "--format=@%h", "--name-only", "-S", "migrated",
+              "--", "atoms", "compositions") or ""
+    candidates: dict[str, list[str]] = {}
+    commit = None
+    for ln in log.splitlines():
+        if ln.startswith("@"):
+            commit = ln[1:]
+        elif ln.strip() and commit:
+            candidates.setdefault(ln.strip(), []).append(commit)
+
+    out: list[Finding] = []
+    for p in patterns.values():
+        rel = p.path.relative_to(root).as_posix()
+        refs: list[tuple[str, str]] = []
+        if rel in changed and (head := git("show", f"HEAD:{rel}")) is not None:
+            refs.append(("at HEAD", head))
+        if MIGRATED_LINE.search(p.text):
+            def migration(name: str):
+                for c in candidates.get(name, []):
+                    body = git("show", f"{c}:{name}")
+                    if body is not None and MIGRATED_LINE.search(body):
+                        prior = git("show", f"{c}^:{name}")
+                        if prior is not None and not MIGRATED_LINE.search(prior):
+                            return c, prior
+                        return None
+                return None
+            before = migration(rel)
+            if before is None:
+                # a spec migrated under an earlier name (Observation was Clinical
+                # Observation) is read at that name
+                follow = git("log", "--follow", "--format=", "--name-status", "--", rel) or ""
+                for ln in follow.splitlines():
+                    parts = ln.split("\t")
+                    if parts[0].startswith("R") and len(parts) == 3:
+                        before = migration(parts[1])
+                        if before is not None:
+                            break
+            if before is not None:
+                refs.append((f"before its migration ({before[0]})", before[1]))
+        if not refs:
+            continue
+        live, tomb, titles = _invariant_shape(p.text)
+        reported: set[tuple[str, int]] = set()
+
+        def add(kind: str, n: int, msg: str, at: int | None = None) -> None:
+            if (kind, n) not in reported:
+                reported.add((kind, n))
+                hm = re.search(r"^\s*-?\s*\*\*Invariant\s+" + str(at or n) + r"\b", p.text, re.M)
+                out.append(Finding(p.path, line_of(p.text, hm.start()) if hm else 1, "F-renumber", msg))
+
+        for where, ref in refs:
+            r_live, r_tomb, r_titles = _invariant_shape(ref)
+            for n in sorted(r_live - live - tomb):
+                add("lost", n, f"Invariant {n} was declared {where} and is neither declared nor "
+                    f"tombstoned now (Hard invariant 26, Hard invariant 27)")
+            for n in sorted(r_tomb & live):
+                add("reused", n, f"Invariant {n} was tombstoned {where} and is declared again "
+                    f"(Hard invariant 27)")
+            for n, old in r_titles.items():
+                words = _title_words(old)
+                if not words:
+                    continue
+                own = len(words & _title_words(titles.get(n, ""))) / len(words)
+                for m, now in titles.items():
+                    if m == n:
+                        continue
+                    moved = len(words & _title_words(now)) / len(words)
+                    if moved >= 0.5 and moved > own:
+                        add("moved", n, f"Invariant {n}, *{old}* {where}, now stands at Invariant "
+                            f"{m} — an invariant keeps its number (Hard invariant 26)", at=m)
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Driver
 # --------------------------------------------------------------------------- #
 
@@ -2959,6 +3084,7 @@ def main(argv: list[str]) -> int:
     findings += check_stripped_links(root)
     findings += check_composes_list(patterns)
     findings += check_constituents_agree(patterns)
+    findings += check_invariant_numbers(root, patterns)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
     for f in findings:
