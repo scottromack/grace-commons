@@ -218,7 +218,7 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 
 Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Term genesis_type: the call argument selecting a genesis entry's event_type — a [Genesis Type]; an input name, never a stored field.
+Term genesis_type: the call input selecting a genesis entry's event_type — a [Genesis Type]; an input name, never a stored field.
 
 Term genesis types: originated | received — what a genesis entry's event_type may be.
 

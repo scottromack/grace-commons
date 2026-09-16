@@ -175,7 +175,7 @@ Operation 17: [Allocate] MUST set remaining_redemptions to the max_redemptions.
 Operation 18: IF the store refuses the write THEN [Allocate] MUST answer storage-failure.
 Operation 19: [Redeem] MUST answer EXACTLY ONE OF redeemed, exhausted, expired, revoked, not-known.
 Operation 20: [Redeem] MUST accept the capability_token as the whole call.
-Operation 21: [Redeem] MUST NOT accept an identity argument.
+Operation 21: [Redeem] MUST NOT accept an identity input.
 Operation 22: [Redeem] MUST NOT record a redeemer's identity.
 Operation 23: IF the capability_token names no capability THEN [Redeem] MUST answer not-known.
 Operation 24: IF the capability stands in redeemed THEN [Redeem] MUST answer exhausted.
@@ -259,7 +259,7 @@ Term revoked_by_ref: the opaque reference naming the actor that cancelled the ca
 
 Term revocation_reason: the stated ground for the cancellation — a [Revocation Reason], carried from the call's [Reason].
 
-Term reason: the [Revoke] argument the capability keeps as revocation_reason — a [Reason].
+Term reason: the [Revoke] input the capability keeps as revocation_reason — a [Reason].
 
 Term filter: the selection a [Read] call scopes the answer by; consumed per call, never stored.
 

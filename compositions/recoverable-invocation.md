@@ -196,7 +196,7 @@ The section is released on the holder's return, well inside journal_write_bound,
 - **`act_section`** — an instance capability requirement: a [Lease](../atoms/lease.md) host. *Default:* none.
   ```
   act_section 3: The deployment MUST share act_section across every node of the instance.
-  act_section 4: EVERY action but [Reconcile] MUST take kind as the first argument.
+  act_section 4: EVERY action but [Reconcile] MUST take kind as the first input.
   act_section 5: [Open] step 2 and [Resolve] MUST transcribe the atom's unavailable arm as section-unavailable.
   act_section 6: EVERY caller on this page MUST discard the atom's not-held arm.
   act_section 7: The composition MUST NOT use try_take.

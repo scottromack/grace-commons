@@ -1178,6 +1178,42 @@ def check_condition_form_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing)
 
 
+def check_rule_noun_synthetic(problems: list[str]) -> int:
+    """D-rule-noun (tools/grace/check.py) — the rule nouns are the grammar's at
+    GRACE-lang v0.53 (council read 100). Using one stays silent; declaring one,
+    or writing *argument* for *input*, fires. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.53 (2026-09-16).\n\n"
+            "Term record verbs: answer, read.\n\n## Structure\n\n### Operations\n\n")
+    def run(rule: str, decl: str = ""):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rule + "\n```\n" + (decl and "\n" + decl + "\n"),
+                         encoding="utf-8")
+            return [x for x in scan(f) if x.code == "D-rule-noun"]
+    silent = [
+        ("a rule noun used", "Operation 1: IF an input EQUALS blank THEN a call MUST answer invalid-request.", ""),
+        ("a domain term declared", "Operation 1: A call MUST read the store.", "Term hold: one preservation obligation."),
+        ("argument quoted", "Operation 1: A call MUST read the store, never `argument`.", ""),
+    ]
+    firing = [
+        ("a rule noun declared", "Operation 1: A call MUST read the store.", "Term call: one request."),
+        ("argument in a rule", "Operation 1: IF an argument EQUALS blank THEN a call MUST answer invalid-request.", ""),
+        ("arguments in a declaration", "Operation 1: A call MUST read the store.", "Term admitted call: a call whose arguments cleared the check."),
+    ]
+    for name, rule, decl in silent:
+        got = run(rule, decl)
+        if got:
+            problems.append(f"D-rule-noun: fired on {name}: {got[0].message}")
+    for name, rule, decl in firing:
+        if not run(rule, decl):
+            problems.append(f"D-rule-noun: {name} did not fire")
+    return len(silent) + len(firing)
+
+
 def check_fence_form_synthetic(problems: list[str]) -> int:
     """D-fence-form and Surface 19 after the fence kinds merged (council read 90).
     A bare fence of rules, a Ledger-shaped block, another language's code and a
@@ -1666,6 +1702,14 @@ def main(argv: list[str]) -> int:
               "and a value set silent; NOT EXISTS on a value and on a thing, `is blank`, EXISTS in a set, an "
               "input tested with EXISTS, = and != in a condition, = in a write and != in a "
               "declaration fire) \u2713")
+
+    noun_problems: list[str] = []
+    n_noun = check_rule_noun_synthetic(noun_problems)
+    failures.extend(noun_problems)
+    if not noun_problems:
+        print(f"D-rule-noun: {n_noun} synthetic fixtures hold (a rule noun used, a domain term "
+              "declared and a quoted *argument* silent; a rule noun declared and *argument* in a "
+              "rule and in a declaration fire) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)

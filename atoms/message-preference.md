@@ -192,10 +192,10 @@ Operation 29: IF the store refuses the write THEN [Delete] MUST answer storage-f
 Operation 30: A refused write MUST leave the store as the call found the store.
 Operation 31: [Current For] MUST answer EXACTLY ONE OF the preference record currently in effect, none.
 Operation 32: [Current For] MUST NOT answer a deleted preference record.
-Operation 33: [Current For] MUST NOT refuse a blank argument.
+Operation 33: [Current For] MUST NOT refuse a blank input.
 Operation 34: [Read] MUST answer EXACTLY ONE OF the whole preference record, not-known.
 Operation 35: [Read] MUST answer a deleted preference record in full.
-Operation 36: [Read] MUST NOT refuse a blank argument.
+Operation 36: [Read] MUST NOT refuse a blank input.
 Operation 37: [Current For] MUST NOT write.
 Operation 38: [Read] MUST NOT write.
 Deleted: Operation 39. Capability requirement 1 owns it.
@@ -215,7 +215,7 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 
 Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Term guard: a transition's precondition test; reads the stored preference record and the call's arguments, and writes nothing.
+Term guard: a transition's precondition test; reads the stored preference record and the call's inputs, and writes nothing.
 
 The case space, and the rule that owns each case:
 
@@ -338,7 +338,7 @@ Instance 1: The deployment MUST route EVERY call to one store instance.
 Instance 2: Two preference records in one store instance MUST NOT share a preference_id.
 Instance 3: The atom MUST read one principal_ref in two store instances as two principals.
 Instance 4: A store_name MUST name one store instance.
-Instance 5: The atom MUST NOT accept a store_name as an argument.
+Instance 5: The atom MUST NOT accept a store_name as an input.
 Instance 6: A preference record MUST NOT carry a store_name.
 Instance 7: The atom MUST NOT hold the declared channel set.
 Instance 8: The atom MUST NOT offer an action that changes the declared channel set.
@@ -356,7 +356,7 @@ Term preference record: one principal's stated delivery shaping — the record t
 
 Term store instance: one named preference store a call is routed to; preference_id uniqueness ranges over one instance.
 
-Term store_name: the identifier naming one store instance — a [Store Name]; deployment routing, never an argument and never a stored field.
+Term store_name: the identifier naming one store instance — a [Store Name]; deployment routing, never an input and never a stored field.
 
 Term declared channel set: the named delivery surfaces a preference record in this deployment may reference; deployment configuration the host resolves, never state this atom holds.
 

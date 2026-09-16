@@ -108,8 +108,8 @@ Capability requirement 6 and Capability requirement 7 are the two halves of the 
 ```
 Primitive policy 1: [Fanout] MUST answer invalid-request for a blank event_scope.
 Primitive policy 2: [Fanout] MUST answer invalid-request for a payload that EQUALS blank.
-Primitive policy 3: The composition MUST take the fanout id ONLY AFTER the arguments clear the boundary predicate.
-Primitive policy 4: [Fanout] MUST NOT call a constituent for an argument the boundary predicate refuses.
+Primitive policy 3: The composition MUST take the fanout id ONLY AFTER the inputs clear the boundary predicate.
+Primitive policy 4: [Fanout] MUST NOT call a constituent for an input the boundary predicate refuses.
 Primitive policy 5: The composition MUST compare an event_scope byte-exact.
 Primitive policy 6: [Fanout] MUST NOT normalize an event_scope.
 Primitive policy 7: [Fanout] MUST NOT bound a payload's length.
@@ -152,7 +152,7 @@ Action wiring 17: An admitted fanout MUST NOT order the failed list.
 Action wiring 18: An admitted fanout MUST NOT answer a create's reason.
 ```
 
-Term admitted fanout: a [Fanout] call whose arguments cleared the boundary predicate.
+Term admitted fanout: a [Fanout] call whose inputs cleared the boundary predicate.
 
 Term created list: the notification_id of EVERY create the composition saw answer — a [Created] list.
 

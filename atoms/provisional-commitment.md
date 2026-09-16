@@ -203,7 +203,7 @@ Deleted: Operation 37. `execution-contract.md` §Logic confinement owns it.
 
 Term resolving action: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.
 
-Term well-formedness check: Operation 1, Operation 2, Operation 3 and Operation 4 — every check [Place Hold] makes on the call's own arguments.
+Term well-formedness check: Operation 1, Operation 2, Operation 3 and Operation 4 — every check [Place Hold] makes on the call's own inputs.
 
 Term duration bounds: the implementation's admitted range for a duration; every admitted value exceeds zero.
 

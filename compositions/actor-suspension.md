@@ -220,7 +220,7 @@ Capability requirement 2: The host MUST supply one invocation_id at the seam PER
 Deleted: Capability requirement 3. `execution-contract.md` §Logic confinement owns it.
 Capability requirement 4: The transition MUST NOT mint an invocation_id.
 Deleted: Capability requirement 5. `execution-contract.md` §Logic confinement owns it.
-Capability requirement 6: The composition MUST NOT accept an invocation_id as an argument.
+Capability requirement 6: The composition MUST NOT accept an invocation_id as an input.
 Capability requirement 7: The composition MUST NOT mint a grant_id.
 Capability requirement 8: The composition MUST NOT mint a session_token.
 Capability requirement 9: The composition MUST NOT mint a credential_id.
@@ -305,10 +305,10 @@ Primitive policy 2: The boundary predicate MUST refuse a blank actor_ref.
 Primitive policy 3: The boundary predicate MUST refuse a blank operator reference.
 Primitive policy 4: The boundary predicate MUST refuse a blank credential.
 Primitive policy 5: The boundary predicate MUST refuse a blank reason.
-Primitive policy 6: The composition MUST NOT normalize an opaque argument.
-Primitive policy 7: The composition MUST NOT fold an opaque argument's case.
-Primitive policy 8: The composition MUST NOT trim an opaque argument.
-Primitive policy 9: The composition MUST compare an opaque argument by byte identity.
+Primitive policy 6: The composition MUST NOT normalize an opaque input.
+Primitive policy 7: The composition MUST NOT fold an opaque input's case.
+Primitive policy 8: The composition MUST NOT trim an opaque input.
+Primitive policy 9: The composition MUST compare an opaque input by byte identity.
 Primitive policy 10: An action MUST answer invalid-request for a boundary predicate refusal.
 Primitive policy 11: The composition MUST propagate a constituent's invalid-request as invalid-request.
 Primitive policy 12: The composition MUST carry the operator's reason into a constituent revocation.
@@ -325,9 +325,9 @@ Primitive policy 22: The composition MUST carry the revoked set on an outcome in
 ```
 
 
-Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
+Term boundary predicate: the composition's own validation of an input at an action's boundary, judged before any constituent call.
 
-Term opaque argument: actor_ref | suspended_by_ref | reinstated_by_ref | credential | grant_id | session_token | credential_id.
+Term opaque input: actor_ref | suspended_by_ref | reinstated_by_ref | credential | grant_id | session_token | credential_id.
 
 Term operator reference: suspended_by_ref | reinstated_by_ref.
 
@@ -1027,7 +1027,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.41 (2026-09-15).
 
 Term value sets: lifecycle state = active | suspending | suspended. intent = actor.suspension_intended | actor.resume_intended | actor.recovery_intended. outcome = actor.suspended | actor.reinstated. surface = permissions | session | credential. enumeration availability = available | unavailable-past-horizon. already-active reason = active | suspending. benign terminal answer = not-active | already-terminal.
 
-Term terms: composition, constituents, credential arm, service identity, operator, resumer, suspension-state index, high-water mark, suspension log, mirrored log entry, refusal log entry, tail read, audit horizon, aged-out event, rebuild, miss, aged-out entry, aged-out log entry, aged-out actor, aged-out outcome, aged-out open cascade, post-snapshot member, admitted suspension, admitted reinstatement, plan, revoked set, open cascade, seam, transition, unified actor namespace, section, suspension completion bound, completion window, closure floor, access retention floor, planned set cap, maximal outcome, clock offset allowance, blank, boundary predicate, opaque argument, operator reference, resume prefix, completion prefix, intent, outcome, committing call, landed intent, append step, retention step, read-back, owed outcome, stored active, effective active, snapshot, fresh cascade, resume, cascade, benign terminal answer, non-benign refusal, open members, unresolved members, closed plan, recovery marker, enumeration availability, sweep, pre-check, young intent, plan-unavailable marker, accounted cascade, accounted member, escalated finding, orphan, indeterminate committing call, position, not-suspended state, suspension result, suspension record, reinstatement result.
+Term terms: composition, constituents, credential arm, service identity, operator, resumer, suspension-state index, high-water mark, suspension log, mirrored log entry, refusal log entry, tail read, audit horizon, aged-out event, rebuild, miss, aged-out entry, aged-out log entry, aged-out actor, aged-out outcome, aged-out open cascade, post-snapshot member, admitted suspension, admitted reinstatement, plan, revoked set, open cascade, seam, transition, unified actor namespace, section, suspension completion bound, completion window, closure floor, access retention floor, planned set cap, maximal outcome, clock offset allowance, blank, boundary predicate, opaque input, operator reference, resume prefix, completion prefix, intent, outcome, committing call, landed intent, append step, retention step, read-back, owed outcome, stored active, effective active, snapshot, fresh cascade, resume, cascade, benign terminal answer, non-benign refusal, open members, unresolved members, closed plan, recovery marker, enumeration availability, sweep, pre-check, young intent, plan-unavailable marker, accounted cascade, accounted member, escalated finding, orphan, indeterminate committing call, position, not-suspended state, suspension result, suspension record, reinstatement result.
 
 Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. [Credential](../atoms/credential.md) — the effective-active reading and the per-pair bound.
 

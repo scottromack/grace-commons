@@ -253,7 +253,7 @@ Term revoked_by_ref: the opaque reference naming the actor that cancelled the se
 
 Term revocation_reason: the stated ground for the cancellation — a [Revocation Reason], carried from the call's [Reason].
 
-Term reason: the [Revoke] argument the session keeps as revocation_reason — a [Reason].
+Term reason: the [Revoke] input the session keeps as revocation_reason — a [Reason].
 
 Term filter: the selection a [Read] call scopes the answer by — a [Filter]; consumed per call, never stored.
 

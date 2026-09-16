@@ -149,15 +149,15 @@ Primitive policy 4: The composition MUST answer invalid-request for a blank cred
 Primitive policy 5: The composition MUST answer invalid-request for a blank action_ref.
 Primitive policy 6: The composition MUST answer invalid-request for a blank attest_credential.
 Primitive policy 7: The composition MUST answer invalid-request for an expires_at the clock reading does not precede.
-Primitive policy 8: The composition MUST compare an opaque argument byte-exact.
-Primitive policy 9: The composition MUST NOT normalize an opaque argument.
-Primitive policy 10: The composition MUST NOT case-fold an opaque argument.
+Primitive policy 8: The composition MUST compare an opaque input byte-exact.
+Primitive policy 9: The composition MUST NOT normalize an opaque input.
+Primitive policy 10: The composition MUST NOT case-fold an opaque input.
 Primitive policy 11: The composition MUST NOT interpret an action_ref.
 Primitive policy 12: The composition MUST NOT confirm an actor_ref in the actor registry.
 ```
 
 
-Term opaque argument: principal_ref | actor_ref | credential_type | action_ref | attestation_id.
+Term opaque input: principal_ref | actor_ref | credential_type | action_ref | attestation_id.
 
 WHY:
 Primitive policy 12 is a refusal to duplicate a constituent's judgment. [Actor Identity](../atoms/actor-identity.md)'s `attest` and `verify` surface a registry-unknown actor_ref through their own outcomes, so a composition-layer existence check would be a second opinion with no store behind it.
@@ -221,9 +221,9 @@ Action wiring 28: [Verify Actor Attestation] MUST NOT write.
 Action wiring 29: The composition MUST take a principal_ref, an actor_ref AND a credential_material on register_authenticated_actor.
 ```
 
-Term admitted registration: a [Register Authenticated Actor] call whose arguments cleared the boundary predicate.
+Term admitted registration: a [Register Authenticated Actor] call whose inputs cleared the boundary predicate.
 
-Term admitted attestation: an [Attest As Actor] call whose arguments cleared the boundary predicate.
+Term admitted attestation: an [Attest As Actor] call whose inputs cleared the boundary predicate.
 
 Term effective-active: Credential's derived status projection reading active — stored active AND the credential's expiry instant not reached, evaluated by Credential against the clock reading at Credential's own seam.
 
@@ -447,7 +447,7 @@ The canonical concepts this spec refers to. Each `term` marker in the prose abov
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: composition, constituents, principal binding, attest log, bijection, attest surface separation, section, clock offset allowance, blank, opaque argument, admitted registration, admitted attestation, effective-active, conflict position, storage position, attest position, registration result, attestation verification result.
+Term terms: composition, constituents, principal binding, attest log, bijection, attest surface separation, section, clock offset allowance, blank, opaque input, admitted registration, admitted attestation, effective-active, conflict position, storage position, attest position, registration result, attestation verification result.
 
 Term record verbs: call, answer, read, write, append, store, key, hold, take, release, serialize, resolve, bind, register, revoke, rotate, gate, precede, close, produce, provision, pass, agree, carry, stand, change, report, examine, promise, run, refuse, set, declare, own, act, compose, inherit, confirm, interpret, normalize, case-fold, compare, authorize, invalidate, rebind, wrap, find, serve, supply, ask, route, record.
 

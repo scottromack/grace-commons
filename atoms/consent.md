@@ -232,7 +232,7 @@ Term revoked_by: the opaque reference naming the actor that recorded the withdra
 
 Term revocation_reason: the stated ground for the withdrawal — a [Revocation Reason], carried from the call's [Reason].
 
-Term reason: the [Revoke] argument the record keeps as revocation_reason — a [Reason].
+Term reason: the [Revoke] input the record keeps as revocation_reason — a [Reason].
 
 Term revoked_at: the instant the withdrawal takes effect — a [Revoked At]; caller-supplied or resolved from now.
 
@@ -355,7 +355,7 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
 Instance 1: The deployment MUST route EVERY call to one store instance.
 Instance 2: Two consent records in one store instance MUST NOT share a consent_id.
 Instance 3: A store_name MUST name one store instance.
-Instance 4: The atom MUST NOT accept a store_name as an argument.
+Instance 4: The atom MUST NOT accept a store_name as an input.
 Instance 5: A consent record MUST NOT carry a store_name.
 ```
 
@@ -363,7 +363,7 @@ Term consent record: one data subject's agreement to one named processing purpos
 
 Term store instance: one named consent store a call is routed to; consent_id uniqueness ranges over one instance.
 
-Term store_name: the identifier naming one store instance — a [Store Name]; deployment routing, never an argument and never a stored field.
+Term store_name: the identifier naming one store instance — a [Store Name]; deployment routing, never an input and never a stored field.
 
 Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the consent_id here.
 

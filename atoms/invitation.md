@@ -214,7 +214,7 @@ Term stored terminal: accepted | declined | revoked.
 
 Term status: pending | accepted | declined | revoked — the value an invitation stores.
 
-Term status check: Operation 15, Operation 16 and Operation 20 — every check a resolving write makes on the invitation's own standing before reading the call's arguments.
+Term status check: Operation 15, Operation 16 and Operation 20 — every check a resolving write makes on the invitation's own standing before reading the call's inputs.
 
 Term ttl bounds: the deployment's admitted range for a ttl; every admitted value exceeds zero.
 

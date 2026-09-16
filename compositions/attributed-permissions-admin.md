@@ -214,7 +214,7 @@ Term purge record: the retention layer's own record that a named attestation was
 
 Term clock offset allowance: clock_offset_allowance — the declared envelope within which the two constituents' stamps, each written at its own seam, may be compared.
 
-Term length cap: the composition's declared maximum length of an opaque argument.
+Term length cap: the composition's declared maximum length of an opaque input.
 
 WHY:
 **Capability requirement 10 through 14 are two rules doing two different jobs, and the asymmetry between the two proposal formats is the argument for it.** The grant proposal needs a **nonce**, so that two issuances for one pair produce distinguishable proposals; and it needs the **namespace prefix**, so orphan attestations are enumerable audit-side. The revocation proposal needs neither invented: a grant's handle is already unique by the constituent's own invariants, and the prefix is the *same* prefix, because one composition issues both and the auditor applies one filter. So the revocation format is fixed rather than configurable — Capability requirement 14 — because a separate knob buys nothing and lets a misconfigured deployment produce revocation proposals outside the grant namespace, which makes orphan detection incomplete for exactly half the population and silently.
@@ -233,16 +233,16 @@ Capability requirement 31 through 33 are two declined obligations. The compositi
 
 ```
 Primitive policy 1: An action MUST call a constituent ONLY AFTER the boundary predicate.
-Primitive policy 2: The boundary predicate MUST refuse a blank opaque argument.
-Primitive policy 3: The boundary predicate MUST refuse an opaque argument exceeding the length cap.
+Primitive policy 2: The boundary predicate MUST refuse a blank opaque input.
+Primitive policy 3: The boundary predicate MUST refuse an opaque input exceeding the length cap.
 Primitive policy 4: The boundary predicate MUST refuse a blank credential.
 Primitive policy 5: An action MUST answer invalid-request for a boundary predicate refusal.
-Primitive policy 6: The composition MUST trim an administered opaque argument.
-Primitive policy 7: The composition MUST trim an administered opaque argument EXACTLY ONE time.
+Primitive policy 6: The composition MUST trim an administered opaque input.
+Primitive policy 7: The composition MUST trim an administered opaque input EXACTLY ONE time.
 Primitive policy 8: The composition MUST pass the trimmed value to a constituent.
-Primitive policy 9: The composition MUST compare an opaque argument case-sensitively.
-Primitive policy 10: The composition MUST NOT fold an opaque argument's case.
-Primitive policy 11: The composition MUST NOT trim an evaluation argument.
+Primitive policy 9: The composition MUST compare an opaque input case-sensitively.
+Primitive policy 10: The composition MUST NOT fold an opaque input's case.
+Primitive policy 11: The composition MUST NOT trim an evaluation input.
 Primitive policy 12: The composition MUST NOT inspect a credential.
 Primitive policy 13: The composition MUST NOT persist a credential.
 Primitive policy 14: The composition MUST propagate a constituent's invalid-request as invalid-request.
@@ -252,11 +252,11 @@ Primitive policy 17: The composition MUST NOT query Permissions BEFORE a revocat
 ```
 
 
-Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
+Term boundary predicate: the composition's own validation of an input at an action's boundary, judged before any constituent call.
 
-Term opaque argument: subject_ref | action_scope | grantor_ref | grantor_credential | grant_id | revoker_ref | revoker_credential.
+Term opaque input: subject_ref | action_scope | grantor_ref | grantor_credential | grant_id | revoker_ref | revoker_credential.
 
-Term administered opaque argument: an opaque argument an administrative action carries — as against one the evaluation passthrough relays.
+Term administered opaque input: an opaque input an administrative action carries — as against one the evaluation passthrough relays.
 
 WHY:
 Primitive policy 6 through 11 carry one asymmetry the page names rather than hides. Administration inputs are trimmed once at this boundary and the trimmed value is what the constituent stores; the evaluation passthrough is **not** trimmed, by design, because the composition relays that query and does not silently rewrite it. The consequence is exact-match: an evaluation whose subject or scope differs from the stored form only by surrounding whitespace answers denied. Callers normalize as the administration surface does, or accept the miss — and either way the behaviour is stated instead of discovered.
@@ -838,7 +838,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.42 (2026-09-15).
 
 Term value sets: verify result = verified | failed-verification(reason) | not-known | not-applicable(purged). underlying reason = grant-storage-failure | revocation-storage-failure | invalid-request | not-known | not-active | pairing-write-failure. retention scope = pair-scoped | per-store.
 
-Term terms: composition, constituents, administered grant, administrative act, grant attribution map, revocation attribution map, attribution entry, orphan log, underlying reason, orphan attestation, binding registry, seam, transition, grant proposal format, revocation proposal format, namespace prefix, issuance completion bound, revocation completion bound, pair-scoped completion bound, pairing write atomicity, constituent store durability, retention scope, purge record, clock offset allowance, length cap, blank, boundary predicate, opaque argument, administered opaque argument, admitted issuance, admitted revocation, pair-scoped revocation, enumerated set, remaining grants, verify result, tamper reading, lawful destruction, forensic finding, failed-grant leg, post-enumeration grant, aged-out attestation, landed attestation, retention horizon, purge-pending orphan, non-conformant purge, known grant, unpaired administered grant, issuance orphan position, revocation orphan position, grant issuance result, grant revocation result, permission revocation result, attribution record.
+Term terms: composition, constituents, administered grant, administrative act, grant attribution map, revocation attribution map, attribution entry, orphan log, underlying reason, orphan attestation, binding registry, seam, transition, grant proposal format, revocation proposal format, namespace prefix, issuance completion bound, revocation completion bound, pair-scoped completion bound, pairing write atomicity, constituent store durability, retention scope, purge record, clock offset allowance, length cap, blank, boundary predicate, opaque input, administered opaque input, admitted issuance, admitted revocation, pair-scoped revocation, enumerated set, remaining grants, verify result, tamper reading, lawful destruction, forensic finding, failed-grant leg, post-enumeration grant, aged-out attestation, landed attestation, retention horizon, purge-pending orphan, non-conformant purge, known grant, unpaired administered grant, issuance orphan position, revocation orphan position, grant issuance result, grant revocation result, permission revocation result, attribution record.
 
 Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Composition state — the derived-index and extraction-pending classifications. `execution-contract.md` §Logic confinement — the seam.
 

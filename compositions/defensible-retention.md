@@ -159,7 +159,7 @@ Capability requirement 2: The host MUST supply one invocation_id at the seam PER
 Deleted: Capability requirement 3. `execution-contract.md` §Logic confinement owns it.
 Capability requirement 4: The transition MUST NOT mint an invocation_id.
 Deleted: Capability requirement 5. `execution-contract.md` §Logic confinement owns it.
-Capability requirement 6: The composition MUST NOT accept an invocation_id as an argument.
+Capability requirement 6: The composition MUST NOT accept an invocation_id as an input.
 Capability requirement 7: The composition MUST NOT mint a retention_id.
 Capability requirement 8: The composition MUST NOT mint a hold_id.
 Capability requirement 9: The composition MUST NOT mint an event_id.
@@ -234,8 +234,8 @@ Primitive policy 12: IF a payload field EXCEEDS the field's cap THEN the composi
 Primitive policy 13: The composition MUST NOT call a constituent BEFORE judging the boundary predicate.
 Primitive policy 14: The composition MUST size the largest record an invocation writes against the field caps.
 Primitive policy 15: The composition MUST size a compensation record against the field caps.
-Primitive policy 16: The composition MUST compare an opaque argument byte-exact.
-Primitive policy 17: The composition MUST NOT normalize an opaque argument.
+Primitive policy 16: The composition MUST compare an opaque input byte-exact.
+Primitive policy 17: The composition MUST NOT normalize an opaque input.
 Primitive policy 18: The composition MUST NOT store a credential.
 Primitive policy 19: The composition MUST NOT answer a credential.
 Primitive policy 20: The composition MUST truncate an answered hold id list PER the hold ids cap.
@@ -244,9 +244,9 @@ Primitive policy 22: The composition MUST NOT read a truncated hold id list as a
 ```
 
 
-Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
+Term boundary predicate: the composition's own validation of an input at an action's boundary, judged before any constituent call.
 
-Term opaque argument: record_ref | policy_ref | actor_ref | placed_by | released_by | hold_id | retention_id | case_ref.
+Term opaque input: record_ref | policy_ref | actor_ref | placed_by | released_by | hold_id | retention_id | case_ref.
 
 WHY:
 Primitive policy 14 and Primitive policy 15 are why a substrate invalid-request over a payload is a deployment fault here and never a live arm. The composition sizes the **largest** record an invocation can write — the outcome, not the intent, and the compensation record a sweep would write for it, which is larger than either because it carries the acting human and the candidate list besides. Sizing the intent alone is the failure mode the corpus names: the intent fits, the constituent commits, and the outcome that would bind it cannot be written. The set-valued fields resolve to the same bound rather than to caps of their own — the sibling set is enumerated before the outcome is sized, and the hold id list is truncated with its count carried (Primitive policy 20, Primitive policy 21).
@@ -331,7 +331,7 @@ Action wiring 2: The composition MUST NOT make a committing call BEFORE recordin
 Action wiring 3: An intent MUST carry the invocation_id.
 Action wiring 4: An outcome MUST carry the invocation_id.
 Action wiring 5: A gate record MUST carry the invocation_id.
-Action wiring 6: An intent MUST carry the invocation's arguments.
+Action wiring 6: An intent MUST carry the invocation's inputs.
 Action wiring 7: An intent MUST NOT carry a constituent-minted id.
 Action wiring 8: An intent MUST carry the injected now as intended_at.
 Action wiring 9: An admitted placement MUST call Retention Window's place_under_retention with the record_ref AND the policy_ref.
@@ -480,7 +480,7 @@ Reconciliation 3: The sweep MUST NOT store a record of the sweep's own.
 Reconciliation 4: The sweep MUST NOT examine a young marker.
 Reconciliation 5: The sweep MUST read an intent carrying no outcome as an open marker.
 Reconciliation 6: The sweep MUST match an intent to an outcome by the invocation_id.
-Reconciliation 7: The sweep MUST NOT match an intent to an outcome by an argument.
+Reconciliation 7: The sweep MUST NOT match an intent to an outcome by an input.
 Reconciliation 8: The sweep MUST read the constituent store for the act an open marker names.
 Reconciliation 9: IF the act did not commit THEN the sweep MUST close the open marker as intent_abandoned.
 Reconciliation 10: IF another intent over the act carries a matched outcome THEN the sweep MUST close the open marker as intent_abandoned.
@@ -908,7 +908,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
 Term value sets: hold check mode = strict | advisory. hold check result = empty | the blocking hold ids with the blocking count. intent = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. outcome = retention_placed | hold_placed | hold_released | record_purged. sibling disposition = purged | pending.
 
-Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, blank, boundary predicate, opaque argument, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, late hold, position.
+Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, blank, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, late hold, position.
 
 Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam.
 

@@ -181,6 +181,24 @@ RULE_EQUALS = re.compile(r"(?<![!<>=])=(?!=)")
 VALUE_EXISTS = re.compile(r"(?:^|\b(?:IF|WHEN|AND|OR|ONLY IF) )(?:(?:the|a|an|no|EVERY) )?([a-z_][a-z0-9_]*) EXISTS\b")
 
 
+# The rule nouns (GRACE-lang v0.53): nouns every specification's rules share,
+# declared once in the grammar, read from its `Term rule noun` line so the set
+# has one owner. A specification writes no `Term` declaration for one, and
+# writes each under its own name — *argument* was a second name for input
+# (council read 100).
+def rule_nouns(grammar_path=None) -> set[str]:
+    p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "GRACE-lang.md")
+    try:
+        m = re.search(r"^Term rule noun:.*? — (.+)\.$", open(p, encoding="utf-8").read(), re.M)
+    except OSError:
+        return set()
+    return {x.strip() for x in m.group(1).split(",")} if m else set()
+
+
+RULE_NOUNS = rule_nouns()
+RETIRED_NOUNS = ((re.compile(r"\barguments?\b"), "argument", "input"),)
+
+
 def condition_form(text: str, inputs: set[str], in_rule: bool) -> list[str]:
     """Why a rule or declaration leaves the condition operators, if it does."""
     bare = CODE_SPAN.sub(" ", text)
@@ -471,6 +489,14 @@ def scan(path: Path) -> list[Finding]:
             continue
         for why in condition_form(ln, sig_inputs, False):
             add(k, "D-condition-form", f"{why}: {ln.strip()[:60]}")
+        dm = TERM_DECL.match(ln)
+        if path.name != "GRACE-lang.md" and dm.group(1).strip() in RULE_NOUNS:
+            add(k, "D-rule-noun", f"`{dm.group(1).strip()}` is a rule noun the grammar declares; "
+                f"a specification writes no declaration for one (Earned vocabulary 13)")
+        for rx, old, new in RETIRED_NOUNS:
+            if rx.search(CODE_SPAN.sub(" ", ln)):
+                add(k, "D-rule-noun", f"*{old}* names the rule noun *{new}*; write {new} "
+                    f"(Earned vocabulary 14): {ln.strip()[:60]}")
 
     # D-code-span: a declared name is written bare (Surface 30)
     names_here = declared_names(text)
@@ -673,6 +699,10 @@ def scan(path: Path) -> list[Finding]:
                 f"tier as reserved (ruled at council read 85)")
         for why in condition_form(body, sig_inputs, True):
             add(r.line, "D-condition-form", f"{r.label}: {why}")
+        for rx, old, new in RETIRED_NOUNS:
+            if rx.search(CODE_SPAN.sub(" ", body)):
+                add(r.line, "D-rule-noun", f"{r.label}: *{old}* names the rule noun *{new}*; "
+                    f"write {new} (Earned vocabulary 14)")
         if body.startswith("WHEN "):
             if not body.endswith(":"):
                 add(r.line, "R-when-colon", f"{r.label}: WHEN condition must end with a colon")

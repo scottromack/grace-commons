@@ -227,7 +227,7 @@ Term state: unverified | verified | suspended | closed.
 
 Term state rejection: already-closed | not-verifiable | already-suspended | not-suspended.
 
-Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operation 16 and Operation 18 — every check a party action makes on the party's own standing before reading the call's remaining arguments.
+Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operation 16 and Operation 18 — every check a party action makes on the party's own standing before reading the call's remaining inputs.
 
 Term required string input: name, document_type, document_ref, verification_method, evidence_ref, reason, an acting reference OR party_id — every string an action refuses when blank.
 

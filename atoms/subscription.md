@@ -140,7 +140,7 @@ Operation 14: IF the store refuses the write THEN [Cancel] MUST answer storage-f
 Operation 15: A refused write MUST leave the store as the call found the store.
 Operation 16: [Subscribed] MUST answer EXACTLY ONE OF subscribed, not-subscribed.
 Operation 17: [Subscribed] MUST answer subscribed ONLY IF an active subscription EXISTS for the pair.
-Operation 18: [Subscribed] MUST NOT refuse a blank argument.
+Operation 18: [Subscribed] MUST NOT refuse a blank input.
 Operation 19: [Subscribers For] MUST answer the subscriber_ref of EVERY active subscription matching the event_scope.
 Operation 20: [Subscribers For] MUST NOT answer a cancelled subscription's subscriber_ref.
 Operation 21: [Subscribers For] MUST match an event_scope exactly.

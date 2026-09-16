@@ -235,11 +235,11 @@ Term stored terminal: rotated | revoked.
 
 Term status: active | rotated | revoked — the value a credential stores.
 
-Term standing check: Operation 27, Operation 28 and Operation 29 — every check a transitioning write makes on the credential's own standing before reading the call's arguments.
+Term standing check: Operation 27, Operation 28 and Operation 29 — every check a transitioning write makes on the credential's own standing before reading the call's inputs.
 
 Term standing rejection: not-active | already-terminal.
 
-Term well-formedness check: Operation 1, Operation 2, Operation 3, Operation 4 and Operation 5 — every check [Register] makes on the call's own arguments.
+Term well-formedness check: Operation 1, Operation 2, Operation 3, Operation 4 and Operation 5 — every check [Register] makes on the call's own inputs.
 
 Term window reading: live | lapsed — how an active credential's window reads against now.
 

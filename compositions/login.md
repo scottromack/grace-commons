@@ -161,14 +161,14 @@ Primitive policy 2: The composition MUST answer invalid-request for a blank cred
 Primitive policy 3: The composition MUST answer invalid-request for a blank presented_material.
 Primitive policy 4: The composition MUST answer invalid-request for a blank session_token.
 Primitive policy 5: The composition MUST answer invalid-request for a session_duration the deployment did not set AND the caller did not supply.
-Primitive policy 6: The composition MUST compare an opaque argument byte-exact.
-Primitive policy 7: The composition MUST NOT normalize an opaque argument.
+Primitive policy 6: The composition MUST compare an opaque input byte-exact.
+Primitive policy 7: The composition MUST NOT normalize an opaque input.
 Primitive policy 8: The composition MUST NOT persist a presented_material.
 Primitive policy 9: The composition MUST NOT answer a presented_material.
 ```
 
 
-Term opaque argument: principal_ref | credential_type | session_token | credential_id.
+Term opaque input: principal_ref | credential_type | session_token | credential_id.
 
 WHY:
 Primitive policy 8 and Primitive policy 9 inherit [Credential](../atoms/credential.md)'s consumed-never-stored discipline and restate it here only because this composition **holds** the material briefly on its way to `verify`. The constituent's guarantee is about the constituent's store; this rule is about the composition's own hands.
@@ -242,11 +242,11 @@ Action wiring 25: An admitted cascade MUST record a cascade completion event nam
 Action wiring 26: An admitted cascade MUST answer the revoked count, the skipped count AND the failed count.
 ```
 
-Term admitted login: a login call whose arguments cleared the boundary predicate.
+Term admitted login: a login call whose inputs cleared the boundary predicate.
 
-Term admitted logout: a logout call whose arguments cleared the boundary predicate.
+Term admitted logout: a logout call whose inputs cleared the boundary predicate.
 
-Term admitted cascade: a [Revoke Sessions For Credential] call whose arguments cleared the boundary predicate.
+Term admitted cascade: a [Revoke Sessions For Credential] call whose inputs cleared the boundary predicate.
 
 Term cascade set: the union of the credential-to-sessions map's entry for a credential_id and the event-derived set the substrate's login-family events carry for it.
 
@@ -479,7 +479,7 @@ The canonical concepts this spec refers to. Each `term` marker in the prose abov
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: composition, constituents, service identity, credential-to-sessions map, login event log, login-family events, seam, transition, issuer refs, login completion bound, blank, opaque argument, admitted login, admitted logout, admitted cascade, cascade set, revocation-family event, login result, revocation tally.
+Term terms: composition, constituents, service identity, credential-to-sessions map, login event log, login-family events, seam, transition, issuer refs, login completion bound, blank, opaque input, admitted login, admitted logout, admitted cascade, cascade set, revocation-family event, login result, revocation tally.
 
 Term record verbs: call, answer, read, write, append, store, key, hold, remove, change, rest, rebuild, record, retry, re-emit, close, escalate, examine, revoke, issue, gate, cascade, verify, attest, carry, select, query, offer, serve, compose, inherit, declare, set, configure, provision, rotate, own, act, adopt, bound, renew, bind, authorize, register, count, stand, follow, name, equal, agree, match, find, persist, generate, mint, normalize, compare, skip, union, supply, take, alert, run, limit, derive, shrink.
 

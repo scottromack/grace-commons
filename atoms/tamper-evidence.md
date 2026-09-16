@@ -77,7 +77,7 @@ Term sealed_at: the wall-time instant the evidence was recorded, stamped from th
 
 Term anchored_at: the time an external anchor recorded at seal time — an [Anchored At]; absent where the mechanism anchors nothing.
 
-Term mechanism_credential: the material the mechanism consumes to produce the proof — a [Mechanism Credential]; keying material for a keyed mechanism, and an empty value — present, carrying nothing — for an unkeyed one. Absent is not empty: Operation 7 refuses the argument that was never supplied, Operation 8 accepts the one supplied with no content.
+Term mechanism_credential: the material the mechanism consumes to produce the proof — a [Mechanism Credential]; keying material for a keyed mechanism, and an empty value — present, carrying nothing — for an unkeyed one. Absent is not empty: Operation 7 refuses the input that was never supplied, Operation 8 accepts the one supplied with no content.
 
 Term evidence field: evidence_id | record_set_ref | proof | sealed_at | anchored_at.
 

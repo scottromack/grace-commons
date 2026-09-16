@@ -83,12 +83,12 @@ The contract classification is *conforming, no stored composition state* (`execu
 Primitive policy 1: A deployment MUST pin the length bound.
 Primitive policy 2: [Check Permitted] MUST answer invalid-request for a blank session_token.
 Primitive policy 3: [Check Permitted] MUST answer invalid-request for a blank action_scope.
-Primitive policy 4: [Check Permitted] MUST answer invalid-request for an argument EXCEEDS the length bound.
-Primitive policy 5: The composition MUST compare an argument byte-exact.
-Primitive policy 6: [Check Permitted] MUST NOT trim an argument.
-Primitive policy 7: [Check Permitted] MUST NOT case-fold an argument.
-Primitive policy 8: [Check Permitted] MUST NOT normalize an argument.
-Primitive policy 9: [Check Permitted] MUST NOT call a constituent for an argument the boundary predicate refuses.
+Primitive policy 4: [Check Permitted] MUST answer invalid-request for an input EXCEEDS the length bound.
+Primitive policy 5: The composition MUST compare an input byte-exact.
+Primitive policy 6: [Check Permitted] MUST NOT trim an input.
+Primitive policy 7: [Check Permitted] MUST NOT case-fold an input.
+Primitive policy 8: [Check Permitted] MUST NOT normalize an input.
+Primitive policy 9: [Check Permitted] MUST NOT call a constituent for an input the boundary predicate refuses.
 ```
 
 WHY:
@@ -103,8 +103,8 @@ check_permitted(session_token, action_scope)
 ```
 
 ```
-Action wiring 1: The composition MUST validate the arguments against the boundary predicate.
-Action wiring 2: The composition MUST call Session's validate ONLY AFTER the arguments clear the boundary predicate.
+Action wiring 1: The composition MUST validate the inputs against the boundary predicate.
+Action wiring 2: The composition MUST call Session's validate ONLY AFTER the inputs clear the boundary predicate.
 Action wiring 3: The composition MUST call Session's validate with the session_token.
 Deleted: Action wiring 4. Wiring decision 1 owns it.
 Action wiring 5: An admitted gate MUST call Permissions' permitted with the valid answer's principal_ref.
@@ -120,16 +120,16 @@ Action wiring 14: [Check Permitted] MUST NOT read a validate answer a prior call
 Action wiring 15: [Check Permitted] MUST NOT write.
 ```
 
-Term boundary predicate: the composition's own argument check — an argument EQUALS blank OR EXCEEDS the length bound.
+Term boundary predicate: the composition's own input check — an input EQUALS blank OR EXCEEDS the length bound.
 
 
-Term length bound: the cap a deployment pins for an opaque argument — a [Length Bound]; the value is the deployment's, the existence is this composition's contract.
+Term length bound: the cap a deployment pins for an opaque input — a [Length Bound]; the value is the deployment's, the existence is this composition's contract.
 
 Term valid answer: Session's validate answer carrying a principal_ref and an expires_at.
 
 Term invalid answer: Session's validate answer carrying expired, revoked OR not-known.
 
-Term admitted gate: a [Check Permitted] call whose arguments cleared the boundary predicate AND whose Session validate gave a valid answer.
+Term admitted gate: a [Check Permitted] call whose inputs cleared the boundary predicate AND whose Session validate gave a valid answer.
 
 WHY:
 Action wiring 2 and Wiring decision 1 are the whole composition stated as order. The boundary check runs before either constituent, the gate runs before Permissions, and both are `ONLY AFTER` rather than `BEFORE` because the grammar admits the positive form only in that direction (Timing 6, Hard invariant 11).
@@ -376,7 +376,7 @@ Term terms: composition, constituents, boundary predicate, blank, length bound, 
 
 Term record verbs: validate, call, answer, accept, read, write, store, derive, evaluate, compare, trim, normalize, equal, stand, follow, reach, find, name, own, discharge, obey, change, replace, hold, serve, compose, declare, pin, bound, issue, terminate, grant, revoke, expand, match, aggregate, distinguish, record, detect, claim, query, receive, cover, case-fold.
 
-Term actors: the composition; the constituents; a deployment; an auditor; a caller; a principal; a session; a grant; an argument; an answer.
+Term actors: the composition; the constituents; a deployment; an auditor; a caller; a principal; a session; a grant; an input; an answer.
 
 Term value sets: invalid answer reasons = expired | revoked | not-known.
 
@@ -419,7 +419,7 @@ Projects:  invalid-request
 
 #### Length Bound
 
-The cap a deployment pins for an opaque argument at the composition boundary. The value is the deployment's choice; that a cap exists is this composition's contract, and an argument over it is refused as [Invalid Request] before either constituent runs (Primitive policy 1, Primitive policy 4).
+The cap a deployment pins for an opaque input at the composition boundary. The value is the deployment's choice; that a cap exists is this composition's contract, and an argument over it is refused as [Invalid Request] before either constituent runs (Primitive policy 1, Primitive policy 4).
 
 Kind:      Parameter
 Parameter of: the deployment

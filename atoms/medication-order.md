@@ -283,7 +283,7 @@ Term actionable state: a pre-dispensing state OR a post-dispensing state — eve
 
 Term inactive state's rejection: already-amended for amended, already-completed for completed, already-cancelled for cancelled, already-discontinued for discontinued.
 
-Term state check: Operation 11, Operation 13, Operation 14 and Operation 15 through 26 — every check an order action makes on the order's own standing before reading the call's remaining arguments.
+Term state check: Operation 11, Operation 13, Operation 14 and Operation 15 through 26 — every check an order action makes on the order's own standing before reading the call's remaining inputs.
 
 Term blank-input rejection: invalid-order for [Order], invalid-request for an order action.
 
