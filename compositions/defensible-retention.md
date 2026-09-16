@@ -370,7 +370,7 @@ Action wiring 41: [Purge Eligible] MUST NOT write.
 Action wiring 42: [Purge Eligible] MUST NOT refuse a call.
 Action wiring 43: A reader MUST NOT read [Purge Eligible]'s answer as a sibling statement.
 Action wiring 44: The composition MUST NOT answer not-known for a purge BEFORE rebuilding the retention-to-record index.
-Action wiring 45: IF no entry EXISTS for the retention_id in the retention-to-record index THEN [Purge Record] MUST answer not-known.
+Action wiring 45: IF the retention_id IS NOT IN the retention-to-record index THEN [Purge Record] MUST answer not-known.
 Action wiring 47: IF the sibling set carries a retention outside elapsed retention THEN [Purge Record] MUST answer under-active-retention.
 Action wiring 48: A purge MUST call Legal Hold's read with the record_ref AND the active state.
 Action wiring 49: A purge MUST call Legal Hold's read whatever the named retention's eligibility.

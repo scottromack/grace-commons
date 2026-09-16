@@ -125,7 +125,7 @@ Operation 2: [Place Under Retention] MUST stand the retention in retained.
 Operation 3: [Place Under Retention] MUST answer retention_id.
 Operation 4: IF record_ref EQUALS blank THEN [Place Under Retention] MUST answer invalid-request.
 Operation 5: IF policy_ref EQUALS blank THEN [Place Under Retention] MUST answer invalid-request.
-Operation 6: IF no policy EXISTS for the policy_ref in the registry THEN [Place Under Retention] MUST answer policy-not-found.
+Operation 6: IF the policy_ref IS NOT IN the policy registry THEN [Place Under Retention] MUST answer policy-not-found.
 Operation 7: IF the policy's duration is not positive THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 7a: IF the policy's duration EQUALS degenerate duration THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 8: IF the policy's max_purge_delay is negative THEN [Place Under Retention] MUST answer invalid-policy.

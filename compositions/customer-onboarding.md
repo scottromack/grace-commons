@@ -595,7 +595,7 @@ Action wiring 131: An admitted closure MUST empty the open-trigger set ONLY AFTE
 Action wiring 132: An admitted closure MUST answer closed.
 Action wiring 133: A caller MUST NOT retry a committing call across an invocation.
 Action wiring 134: The composition MUST read the party-to-case index at [Activity Permitted].
-Action wiring 135: IF no entry EXISTS for the party_id in the party-to-case index THEN [Activity Permitted] MUST answer not-known.
+Action wiring 135: IF the party_id IS NOT IN the party-to-case index THEN [Activity Permitted] MUST answer not-known.
 Action wiring 136: The composition MUST read the party through Party Identity's declared read at [Activity Permitted].
 Action wiring 137: IF the party's state EQUALS verified THEN [Activity Permitted] MUST answer permitted.
 Action wiring 138: IF the party's state DOES NOT EQUAL verified THEN [Activity Permitted] MUST answer not-verified carrying the state.
