@@ -228,7 +228,7 @@ Where the composition breaks down: when a step's external effect is genuinely ir
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the composed action-wirings it exposes ([Start Workflow], [Advance], [Cancel]) and the two derived reads ([Position], [Read Log]), the signature concept it introduces (the [Compensating Action]), the fields of the recorded effects it owns ([Effect Key], [Compensation Ref]), its own terminal outcomes and holding state ([Committed], [Compensated], [Halted]), and its own rejections ([Invalid Definition], [Step Failed], [Arguments Overflow], [Effect Indeterminate], [Spine Fault], [Step Unresolved]). Its positioned `storage-failure(effect-landed | spine | none)` on [Advance] and `storage-failure(spine | none)` on [Cancel] are the inherited token carrying a composition-owned position, not a new rejection, and stay backticked; the operator parameters `within_horizon` and `compensation_arguments` are backticked likewise, being the Primitive-policies rules they land under. Its emergent state is entirely a **derived index** of the Event Log (the `compensable workflow_store`, `completed_steps`, `unresolved_attempts`, `compensation_registry`, `applied_effects`) — it stores no truth the log does not, so those projections are left as backticked derived-index tokens rather than carded. References to the constituent atoms and their operations — State Machine's `fire` / `current_state`, Event Log's `append` / `read` — the inherited rejection tokens (`not-known`, `already-terminal`, `invalid-request`, `invalid-payload`, `storage-failure`, `invalid-query`), and the deployment configuration knobs (`compensation_order`, `on_compensation_failure`) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the composed action-wirings it exposes ([Start Workflow], [Advance], [Cancel]) and the two derived reads ([Position], [Read Log]), the signature concept it introduces (the [Compensating Action]), the fields of the recorded effects it owns ([Effect Key], [Compensation Ref]), its own terminal outcomes and holding state ([Committed], [Compensated], [Halted]), and its own rejections ([Invalid Definition], [Step Failed], [Arguments Overflow], [Effect Indeterminate], [Spine Fault], [Step Unresolved]). Its positioned `storage-failure(effect-landed | spine | none)` on [Advance] and `storage-failure(spine | none)` on [Cancel] are the inherited token carrying a composition-owned position, not a new rejection, and stay backticked; the operator parameters `within_horizon` and `compensation_arguments` are backticked likewise, being the Primitive-policies rules they land under. Its emergent state is entirely a **derived index** of the Event Log (the `compensable workflow_store`, `completed_steps`, `unresolved_attempts`, `compensation_registry`, `applied_effects`) — it stores no truth the log does not, so those projections are left as backticked derived-index tokens rather than carded. References to the constituent atoms and their operations — State Machine's `fire` / `current_state`, Event Log's `append` / `read` — the inherited rejection tokens (`not-known`, `already-terminal`, `invalid-request`, `invalid-payload`, `storage-failure`, `invalid-query`), and the deployment configuration knobs (`compensation_order`, `on_compensation_failure`) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Start Workflow
 
@@ -270,100 +270,100 @@ Kind: Type
 
 The at-most-once idempotency key carried by each recorded step effect and compensation. Stable across retries — derived deterministically from the run id and step (and compensation), never minted fresh per attempt — so a retried effect collides with its own prior key. Two halves key off it: the record-side `applied_effects` ledger, where a present key means the effect and its record both landed, and the effect-side target discipline (`effect_key_honoured`, within `effect_key_horizon`), which refuses to apply the key twice in the window the ledger cannot see and returns the original result (Invariant 7).
 
-Kind:      Field
-Field of:  a recorded effect
-Role:      the at-most-once dedup key
-Projects:  effect_key
+Kind:       Field
+Field of:   a recorded effect
+Role:       the at-most-once dedup key
+Projection: effect_key
 
 #### Compensation Ref
 
 The reference to a completed step's registered [Compensating Action], recorded in its `step_completed` event alongside the arguments captured at completion. Consulted, newest-first, when the run compensates.
 
-Kind:      Field
-Field of:  the step-completion record
-Role:      the step's registered reversal
-Projects:  compensation_ref
+Kind:       Field
+Field of:   the step-completion record
+Role:       the step's registered reversal
+Projection: compensation_ref
 
 #### Committed
 
 The terminal outcome in which every step completed and all effects are meant to stand. One of the run's two resting outcomes.
 
-Kind:      Member
-Member of: the run outcome
-Role:      terminal outcome
-Projects:  committed
+Kind:       Member
+Member of:  the run outcome
+Role:       terminal outcome
+Projection: committed
 
 #### Compensated
 
 The terminal outcome in which the run aborted and every completed step's [Compensating Action] has been run. The other of the two resting outcomes.
 
-Kind:      Member
-Member of: the run outcome
-Role:      terminal outcome
-Projects:  compensated
+Kind:       Member
+Member of:  the run outcome
+Role:       terminal outcome
+Projection: compensated
 
 #### Halted
 
 The explicitly-surfaced, **non-terminal** holding state a stalled compensation enters (`on_compensation_failure = halt-and-surface`), or a post-pivot step still failing at `step_completion_bound`, an overflowed envelope, a target that lost the outcome, or a spine fault. The halted marker **parks** the attempts it names — they stay unresolved, so [Cancel] stays refused. Not a third terminal: an operator's [Advance] with `within_horizon = true` appends a resume marker per parked step and returns the run to the phase it left (`compensating → halted → compensating → compensated`; `forward → halted → forward → committed`). Carries the outstanding compensation or step as a visible, routed obligation — never a silent partial.
 
-Kind:      Member
-Member of: the run phase
-Role:      non-terminal holding state
-Projects:  halted
+Kind:       Member
+Member of:  the run phase
+Role:       non-terminal holding state
+Projection: halted
 
 #### Invalid Definition
 
 The composition's own rejection at [Start Workflow] — returned when the supplied definition has an external-effect step with no [Compensating Action] and no `read-only` / `pivot` marker. The run never starts, because all-or-compensated cannot be promised for an irreversible effect.
 
-Kind:      Member
-Member of: the start rejection
-Role:      Rejection
-Projects:  invalid-definition
+Kind:       Member
+Member of:  the start rejection
+Role:       Rejection
+Projection: invalid-definition
 
 #### Step Failed
 
 The composition's own outcome from [Advance] when a forward step's external effect **definitely** fails — a verdict the target returned. No completion is recorded; before the pivot `compensation_begun` is appended (flipping the run to the compensating phase), past it `compensable workflow_halted(forward, step)` is appended at the bound; and this is returned to the caller. An effect with no verdict is not this outcome — it is [Effect Indeterminate].
 
-Kind:      Member
-Member of: the advance rejection
-Role:      Outcome
-Projects:  step-failed
+Kind:       Member
+Member of:  the advance rejection
+Role:       Outcome
+Projection: step-failed
 
 #### Effect Indeterminate
 
 The composition's own outcome from [Advance] when a step's or compensation's effect returned no usable verdict by `step_completion_bound`, carrying which: `no-verdict` — no reply, a timeout, a transport failure; the attempt marker stands in `unresolved_attempts`, the phase does not change, and the next [Advance] re-attempts under the same [Effect Key]; `target-unknown` — the target recognized the key but had lost the outcome; the run halts with the attempt parked, and only an operator's [Advance] from [Halted] re-asks it. Distinguished from [Step Failed] because an effect that may have landed must never be treated as one that did not.
 
-Kind:      Member
-Member of: the advance rejection
-Role:      Outcome
-Projects:  effect-indeterminate
+Kind:       Member
+Member of:  the advance rejection
+Role:       Outcome
+Projection: effect-indeterminate
 
 #### Arguments Overflow
 
 The composition's own outcome from [Advance] when a step's effect applied but the target returned reversal arguments larger than the step's declared envelope. The completion is recorded with the arguments truncated and `arguments_overflow = true`, the run halts from the forward phase, and the compensation's arguments become operator-supplied on the resuming [Advance] (`compensation_arguments`).
 
-Kind:      Member
-Member of: the advance rejection
-Role:      Outcome
-Projects:  arguments-overflow
+Kind:       Member
+Member of:  the advance rejection
+Role:       Outcome
+Projection: arguments-overflow
 
 #### Spine Fault
 
 The composition's own rejection from [Advance] or [Cancel] when a `fire` after a landed record is refused for a reason the definition validation forecloses — `invalid-transition`, `terminal`, `guard-not-satisfied` or `invalid-request` — meaning the declaration and the log disagree. A conformance fault, not a position: the run halts carrying the finding, fires nothing further, and rests surfaced until the finding is cleared and an operator resumes it.
 
-Kind:      Member
-Member of: the advance rejection
-Role:      Rejection
-Projects:  spine-fault
+Kind:       Member
+Member of:  the advance rejection
+Role:       Rejection
+Projection: spine-fault
 
 #### Step Unresolved
 
 The composition's own rejection at [Cancel] when the run carries an unresolved attempt — an effect whose outcome nobody recorded. A compensating phase begun over it would leave that effect standing, so the abort waits until an [Advance] resolves the attempt.
 
-Kind:      Member
-Member of: the cancel rejection
-Role:      Rejection
-Projects:  step-unresolved
+Kind:       Member
+Member of:  the cancel rejection
+Role:       Rejection
+Projection: step-unresolved
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

@@ -3,32 +3,32 @@
 // WHY: canonical prose marks every named concept with a `[Term]` shortcut-reference
 // link that resolves to a per-page card; the card teaches WHAT the Term is (kind,
 // member/field/parameter-of, role) and — for the two identifier kinds (Field,
-// Parameter) and any pinned Member — carries a single `Projects:` line giving the
+// Parameter) and any pinned Member — carries a single `Projection:` line giving the
 // concept's ONE canonical lowering token in plain view. Casing leaves the prose:
-// the sentence says [Recorded At], the card's `Projects:` line says recorded_at.
+// the sentence says [Recorded At], the card's `Projection:` line says recorded_at.
 //
 // A code generator needs every target's casing, not just the canonical token. Rather
 // than hand-maintain a multi-target casing table per page (a drift-prone mirror — the
 // exact failure annotation.md exists to remove), this adapter DERIVES the full
-// manifest on demand from the card's canonical `Projects:` token, the same way
+// manifest on demand from the card's canonical `Projection:` token, the same way
 // tla-adapter.mjs derives a TLC-safe camelCase MODULE name from a kebab filename.
 // Derive-don't-lag, applied to identifier casing.
 //
 // The manifest is a DERIVED build artifact (build-terms/, git-ignored). The canonical
-// source is the spec page: its Terms cards + `Projects:` lines. Nothing here renders on
+// source is the spec page: its Terms cards + `Projection:` lines. Nothing here renders on
 // GitHub Pages and nothing here needs to — the page already shows the canonical token.
 //
 // USAGE:
 //   node term-adapter.mjs <spec.md> [outDir]   # one page -> <name>.terms.json
 //   node term-adapter.mjs --all [outDir]        # every atom/composition with a Terms registry
 // Default outDir: build-terms/  (git-ignored). Then a codegen reads, e.g.:
-//   build-terms/duplicate-prevention.terms.json  ->  { "recorded-at": { kind, projects: {...} }, ... }
+//   build-terms/duplicate-prevention.terms.json  ->  { "recorded-at": { kind, projections: {...} }, ... }
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { join, basename, resolve } from "node:path";
 
 // --- projection: derive every target casing from one canonical token ----------
-// The canonical `Projects:` token is written in the concept's most natural plain
+// The canonical `Projection:` token is written in the concept's most natural plain
 // form — snake_case for a Field (recorded_at), lowerCamel or snake for a Parameter,
 // kebab for a pinned wire Member (duplicate-recent). We split it into words on any
 // non-alphanumeric boundary and on camelCase humps, then re-case for each target.
@@ -53,7 +53,7 @@ export function project(canonical) {
 // --- parse a spec page's Terms registry --------------------------------------
 // A card is an h4 heading (`#### Name`) inside the `## Terms` section, followed by
 // its body until the next h4 / section. We read `Kind:`, the `<X> of:` relation,
-// `Role:`, `Projects:` (canonical token), and the optional `Wire: pinned` flag.
+// `Role:`, `Projection:` (canonical token), and the optional `Wire: pinned` flag.
 const CARD = /^####\s+(.+?)\s*$/;
 const SECTION = /^##\s+/;
 
@@ -75,14 +75,14 @@ function parseTerms(md, path) {
       continue;
     }
     if (!cur) continue;
-    const kv = line.match(/^\s*(Kind|Role|Projects|Wire|Member of|Field of|Parameter of)\s*:\s*(.+?)\s*$/i);
+    const kv = line.match(/^\s*(Kind|Role|Projection|Wire|Member of|Field of|Parameter of)\s*:\s*(.+?)\s*$/i);
     if (kv) {
       const key = kv[1].toLowerCase();
       const val = kv[2].trim();
       if (key === "kind") terms[cur].kind = val.toLowerCase();
       else if (key === "role") terms[cur].role = val;
       else if (key === "wire") terms[cur].wire = val.toLowerCase();
-      else if (key === "projects") terms[cur].projects_token = val.replace(/`/g, "");
+      else if (key === "projection") terms[cur].projection_token = val.replace(/`/g, "");
       else terms[cur].of = val; // "member of" / "field of" / "parameter of"
     }
   }
@@ -98,10 +98,10 @@ function adaptOne(mdPath, outDir) {
     const entry = { kind: t.kind || "unknown" };
     if (t.of) entry.of = t.of;
     if (t.role) entry.role = t.role;
-    if (t.projects_token) {
-      entry.canonical = t.projects_token;
-      entry.projects = project(t.projects_token);
-      if (t.wire === "pinned") { entry.wire = "pinned"; entry.projects.wire = t.projects_token; }
+    if (t.projection_token) {
+      entry.canonical = t.projection_token;
+      entry.projections = project(t.projection_token);
+      if (t.wire === "pinned") { entry.wire = "pinned"; entry.projections.wire = t.projection_token; }
     }
     // registry key: the kebab projection of the Term name (stable, anchor-aligned)
     const key = splitWords(name).join("-");

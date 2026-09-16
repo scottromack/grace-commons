@@ -442,7 +442,7 @@ What this composition does not cover:
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the six actions it exposes — the chain intake ([Initiate Chain]), the three step decisions ([Approve Step], [Reject Step], [Withdraw Step]), the chain withdrawal ([Withdraw Chain]), and the read ([Read Chain]); the [Trailing] flag that distinguishes a late decision from an on-chain one in the audit record; the three-scope authorization vocabulary it defines for its Permissions instance ([Chains Initiate], [Chains Withdraw], [Chains Read]); the three quorum rules it names ([All Of N], [M Of N], [One Of N]); and the [Permission Denied] / [Recording Failure] rejections it surfaces. Its load-bearing guarantees — the quorum evaluation rule (chain state is a deterministic function of the step states) and full records-alone auditability (Invariant 1 through 10) — are structural properties, not data. Its emergent state (`chain_store`, `chain_to_steps`, `step_to_chain`, `step_to_assignment`, `chain_terminal_at`, `chain_to_events`) — all derived indexes per Composition state — wires the constituents into one approval-chain surface, left as backticked tokens; the chain lifecycle states (Pending → Approved | Rejected | Withdrawn) overload Approval Step's own step states, so they are left uncarded rather than ambiguously carded. The chain- and step-level audit event types (`chain_initiated`, `chain_resolved`, `chain_withdrawn`, `step_approved`, `step_rejected`, `step_withdrawn`, and the recovery records `chain_initiation_failed` and `cascade_completed`) stay backticked as wire values, as do the audit-data flags and fields beside [Trailing] (`cascade`, `cascade_partial`, `recovery`, `disposition`) and the recovery markers `audit_pending` and `audit_pending_transition`, as do the constituent calls and their outcomes — Approval Step's `submit` / `approve` / `reject` / `withdraw` / `read`, Permissions' `permitted` / `grant` / `revoke`, Assignment's `assign` / `recall`, Audit Trail's `record_action` / `verify_record` — the relayed constituent tokens (`chain_id`, `step_id`, `assignment_id`, `subject_ref`, `scope`, `approver_ref`, `approver_set`, `quorum_rule`, `actor_ref`), the parameterized `M-of-N(M)`, the generic/relayed rejections (`invalid-request`, `invalid-credential`, `not-known`, `not-pending`, `unauthorized`, `invalid-query`), the deployment configuration knobs (`approver_set_minimum`, `approver_set_uniqueness`, `quorum_rule_allowed`, `audit_trail_retention_policy`, `application_actor_ref`, `application_credential`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the six actions it exposes — the chain intake ([Initiate Chain]), the three step decisions ([Approve Step], [Reject Step], [Withdraw Step]), the chain withdrawal ([Withdraw Chain]), and the read ([Read Chain]); the [Trailing] flag that distinguishes a late decision from an on-chain one in the audit record; the three-scope authorization vocabulary it defines for its Permissions instance ([Chains Initiate], [Chains Withdraw], [Chains Read]); the three quorum rules it names ([All Of N], [M Of N], [One Of N]); and the [Permission Denied] / [Recording Failure] rejections it surfaces. Its load-bearing guarantees — the quorum evaluation rule (chain state is a deterministic function of the step states) and full records-alone auditability (Invariant 1 through 10) — are structural properties, not data. Its emergent state (`chain_store`, `chain_to_steps`, `step_to_chain`, `step_to_assignment`, `chain_terminal_at`, `chain_to_events`) — all derived indexes per Composition state — wires the constituents into one approval-chain surface, left as backticked tokens; the chain lifecycle states (Pending → Approved | Rejected | Withdrawn) overload Approval Step's own step states, so they are left uncarded rather than ambiguously carded. The chain- and step-level audit event types (`chain_initiated`, `chain_resolved`, `chain_withdrawn`, `step_approved`, `step_rejected`, `step_withdrawn`, and the recovery records `chain_initiation_failed` and `cascade_completed`) stay backticked as wire values, as do the audit-data flags and fields beside [Trailing] (`cascade`, `cascade_partial`, `recovery`, `disposition`) and the recovery markers `audit_pending` and `audit_pending_transition`, as do the constituent calls and their outcomes — Approval Step's `submit` / `approve` / `reject` / `withdraw` / `read`, Permissions' `permitted` / `grant` / `revoke`, Assignment's `assign` / `recall`, Audit Trail's `record_action` / `verify_record` — the relayed constituent tokens (`chain_id`, `step_id`, `assignment_id`, `subject_ref`, `scope`, `approver_ref`, `approver_set`, `quorum_rule`, `actor_ref`), the parameterized `M-of-N(M)`, the generic/relayed rejections (`invalid-request`, `invalid-credential`, `not-known`, `not-pending`, `unauthorized`, `invalid-query`), the deployment configuration knobs (`approver_set_minimum`, `approver_set_uniqueness`, `quorum_rule_allowed`, `audit_trail_retention_policy`, `application_actor_ref`, `application_credential`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Initiate Chain
 
@@ -484,82 +484,82 @@ Kind: Operation
 
 The flag the composition records on every step-decision audit event: `true` when the decision lands on a step whose chain had *already* reached a terminal state (a permitted late decision), `false` otherwise. It is the audit-distinguishing signal that lets an auditor tell a late decision from an on-chain one from the records alone — without it a `step_approved` event after the chain's `chain_resolved` reads as a contradiction. Its sibling flag `cascade` (backticked, not carded) marks the composition's own cascade-emitted step withdrawals; the two never overlap — a cascade record is part of the termination (`trailing = false`), a trailing record comes after it (`cascade = false`).
 
-Kind:      Field
-Field of:  the step-decision audit event
-Role:      the late-decision audit flag
-Projects:  trailing
+Kind:       Field
+Field of:   the step-decision audit event
+Role:       the late-decision audit flag
+Projection: trailing
 
 #### Chains Initiate
 
 The scope permitting [Initiate Chain] — create a new approval chain.
 
-Kind:      Member
-Member of: the chain scope vocabulary
-Role:      Scope
-Projects:  chains:initiate
+Kind:       Member
+Member of:  the chain scope vocabulary
+Role:       Scope
+Projection: chains:initiate
 
 #### Chains Withdraw
 
 The scope permitting [Withdraw Chain] — withdraw a chain (the chain initiator's act).
 
-Kind:      Member
-Member of: the chain scope vocabulary
-Role:      Scope
-Projects:  chains:withdraw
+Kind:       Member
+Member of:  the chain scope vocabulary
+Role:       Scope
+Projection: chains:withdraw
 
 #### Chains Read
 
 The scope permitting [Read Chain] — read chain records and their composed step, assignment, and attestation surface.
 
-Kind:      Member
-Member of: the chain scope vocabulary
-Role:      Scope
-Projects:  chains:read
+Kind:       Member
+Member of:  the chain scope vocabulary
+Role:       Scope
+Projection: chains:read
 
 #### All Of N
 
 The quorum rule requiring every named approver to approve: the chain is Approved when `A == N`, and Rejected the moment any step is rejected.
 
-Kind:      Member
-Member of: the quorum rule
-Role:      Quorum rule
-Projects:  all-of-N
+Kind:       Member
+Member of:  the quorum rule
+Role:       Quorum rule
+Projection: all-of-N
 
 #### M Of N
 
 The quorum rule requiring any M of the N named approvers (with `1 ≤ M ≤ N`): the chain is Approved when `A ≥ M`, and Rejected once fewer than M steps remain achievable with a rejection present.
 
-Kind:      Member
-Member of: the quorum rule
-Role:      Quorum rule
-Projects:  M-of-N
+Kind:       Member
+Member of:  the quorum rule
+Role:       Quorum rule
+Projection: M-of-N
 
 #### One Of N
 
 The quorum rule requiring any single approver (the `M = 1` case of [M Of N]): the first approval Approves the chain.
 
-Kind:      Member
-Member of: the quorum rule
-Role:      Quorum rule
-Projects:  one-of-N
+Kind:       Member
+Member of:  the quorum rule
+Role:       Quorum rule
+Projection: one-of-N
 
 #### Permission Denied
 
 The composition's rejection when the acting actor lacks the required chain scope at the Permissions check in [Initiate Chain], [Withdraw Chain], or [Read Chain]. (Step decisions are not chain-layer permission-gated — Approval Step's own approver and submitter exclusivity is the enforcement.)
 
-Kind:      Member
-Member of: the chain rejection
-Role:      Rejection
-Projects:  permission-denied
+Kind:       Member
+Member of:  the chain rejection
+Role:       Rejection
+Projection: permission-denied
 
 #### Recording Failure
 
 The composition's uniform rejection for a constituent `storage-failure` or an Audit Trail `record_action` failure surfaced at the composition boundary — the failure the partial-state recovery paths and the `audit_pending` quarantine address. `invalid-credential` is not folded into it: a credential the substrate refuses surfaces under its own code, over whatever committed constituent state the recovery paths own.
 
-Kind:      Member
-Member of: the chain rejection
-Role:      Rejection
-Projects:  recording-failure
+Kind:       Member
+Member of:  the chain rejection
+Role:       Rejection
+Projection: recording-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

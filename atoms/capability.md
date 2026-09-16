@@ -613,105 +613,105 @@ Kind: Operation
 
 The opaque, cryptographically random, immutable, system-generated value [Allocate] produces — both the record's identity and the bearer credential presented to [Redeem] and [Revoke]. It is the injected `id_t`; no two records share one, and it is not reused after a capability reaches a terminal state.
 
-Kind:     Field
-Field of: Capability
-Projects: capability_token
+Kind:       Field
+Field of:   Capability
+Projection: capability_token
 
 #### Allocator Ref
 
 The opaque reference to the actor or mechanism that allocated the capability — the one identity the record permanently carries (the audit asymmetry). Set on [Allocate], immutable thereafter. The atom does not validate that it is an active principal.
 
-Kind:     Field
-Field of: Capability
-Projects: allocator_ref
+Kind:       Field
+Field of:   Capability
+Projection: allocator_ref
 
 #### Scope
 
 The opaque value describing what the capability authorizes, returned to the bearer by [Redeem]. The atom stores and returns it but never interprets it; the composing pattern defines and reads scope values. Set on [Allocate], immutable thereafter.
 
-Kind:     Field
-Field of: Capability
-Projects: scope
+Kind:       Field
+Field of:   Capability
+Projection: scope
 
 #### Max Redemptions
 
 The total number of redemptions permitted, set on [Allocate] (or 1 if null — the single-use default). Immutable thereafter; [Remaining Redemptions] is initialised from it.
 
-Kind:     Field
-Field of: Capability
-Projects: max_redemptions
+Kind:       Field
+Field of:   Capability
+Projection: max_redemptions
 
 #### Remaining Redemptions
 
 The redemptions still available — the one mutable field between allocation and a stored terminal. Set to [Max Redemptions] on [Allocate], decremented by exactly 1 on each successful [Redeem], never increasing; reaching 0 is the exhaustion transition to [Redeemed].
 
-Kind:     Field
-Field of: Capability
-Projects: remaining_redemptions
+Kind:       Field
+Field of:   Capability
+Projection: remaining_redemptions
 
 #### Allocated At
 
 The wall-time [Allocate] was called, stamped from the injected [Now]. Immutable thereafter. [Expires At] is computed once as [Allocated At] + [TTL].
 
-Kind:     Field
-Field of: Capability
-Projects: allocated_at
+Kind:       Field
+Field of:   Capability
+Projection: allocated_at
 
 #### Expires At
 
 The absolute expiry time, set on [Allocate] as [Allocated At] + [TTL]. Never null and never mutated. It is the sole stored input to the expiry derivation: a still-[Allocated] record reads [Expired] once [Now] ≥ [Expires At].
 
-Kind:     Field
-Field of: Capability
-Projects: expires_at
+Kind:       Field
+Field of:   Capability
+Projection: expires_at
 
 #### Status
 
 The stored status of a capability: [Allocated], [Redeemed], or [Revoked]. Set to [Allocated] on [Allocate]; transitions once to a stored terminal and never returns. The derived [Expired] is *not* a value of this field — it appears only in the [Effective Status] read projection.
 
-Kind:     Field
-Field of: Capability
-Projects: status
+Kind:       Field
+Field of:   Capability
+Projection: status
 
 #### Redeemed At
 
 The wall-time the capability exhausted (its counter reached zero), stamped from the injected [Now]. Present only in [Redeemed]; null otherwise; immutable once set.
 
-Kind:     Field
-Field of: Capability
-Projects: redeemed_at
+Kind:       Field
+Field of:   Capability
+Projection: redeemed_at
 
 #### Revoked At
 
 The wall-time the capability was revoked, stamped from the injected [Now] on [Revoke]. Present only in [Revoked]; null otherwise; immutable once set.
 
-Kind:     Field
-Field of: Capability
-Projects: revoked_at
+Kind:       Field
+Field of:   Capability
+Projection: revoked_at
 
 #### Revoked By Ref
 
 The opaque reference to the actor or mechanism that performed the revocation. Required at [Revoke]; null until revocation; immutable once set.
 
-Kind:     Field
-Field of: Capability
-Projects: revoked_by_ref
+Kind:       Field
+Field of:   Capability
+Projection: revoked_by_ref
 
 #### Revocation Reason
 
 The caller-supplied reason recorded for the revocation (from the [Reason] parameter). Required at [Revoke]; null until revocation; immutable once set.
 
-Kind:     Field
-Field of: Capability
-Projects: revocation_reason
+Kind:       Field
+Field of:   Capability
+Projection: revocation_reason
 
 #### Effective Status
 
 The status [Read] attaches to each returned record: [Expired] when [Status] = [Allocated] ∧ [Now] ≥ [Expires At], otherwise the stored [Status]. A pure projection over the record and the injected [Now] — derived at read time, never stored — and what makes [Redeem] return `invalid(expired)`. Every liveness query applies it.
 
-Kind:     Field
-Field of: Capability
-Projects: effective_status
+Kind:       Field
+Field of:   Capability
+Projection: effective_status
 
 #### TTL
 
@@ -719,7 +719,7 @@ The validity duration [Allocate] consumes to compute [Expires At] ([Allocated At
 
 Kind:         Parameter
 Parameter of: Allocate
-Projects:     ttl
+Projection:   ttl
 
 #### Reason
 
@@ -727,7 +727,7 @@ The caller-supplied reason string [Revoke] consumes, written into [Revocation Re
 
 Kind:         Parameter
 Parameter of: Revoke
-Projects:     reason
+Projection:   reason
 
 #### Now
 
@@ -735,7 +735,7 @@ The current clock reading every action consumes — the pipeline's `clock_t`, in
 
 Kind:         Parameter
 Parameter of: Allocate
-Projects:     now
+Projection:   now
 
 #### Allocated
 
@@ -773,37 +773,37 @@ Role:      Outcome
 
 The outcome returned when the supplied [Capability Token] references no record — `invalid(not-known)` from [Redeem], a [Not Known] rejection from [Revoke]. A lookup miss; after external purge it also subsumes once-allocated-but-purged records.
 
-Kind:      Member
-Member of: the action outcome
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action outcome
+Role:       Outcome
+Projection: not-known
 
 #### Already Terminal
 
 The refusal [Revoke] returns when the capability is not revocable — a stored terminal ([Redeemed] or [Revoked]) *or* a still-[Allocated] record whose window has lapsed (which reads [Expired]). A pure derivation that writes nothing.
 
-Kind:      Member
-Member of: the Revoke rejection
-Role:      Outcome
-Projects:  already-terminal
+Kind:       Member
+Member of:  the Revoke rejection
+Role:       Outcome
+Projection: already-terminal
 
 #### Invalid Request
 
 The refusal [Allocate] or [Revoke] returns when an argument is malformed — a null/empty [Allocator Ref], [Scope], [Revoked By Ref], or [Reason], a non-positive [Max Redemptions] or [TTL], or an absent deployment default. A guard rejection before any store write; no record is created or changed.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Storage Failure
 
 The refusal [Allocate] or [Revoke] returns when the store write fails after the preconditions pass. No partial record is written (for [Allocate]) or no state change is committed (for [Revoke]); a token-reuse write is also rejected here (Invariant 12). The caller must treat it as definitive.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

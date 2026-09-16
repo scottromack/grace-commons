@@ -296,7 +296,7 @@ A derived implementation is *acceptable* when an external auditor, given the fou
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the three exposed action surfaces — the shaping fanout ([Fanout Shaped]), the journaled per-principal retry ([Redispose]), and the reconciliation pair ([Reconcile Gaps], [Reconcile Overshoots]) — plus the composition-introduced pure gate they all run ([Shaping Disposition]); the correlation handle ([Fanout Id]) and two of the gate's journaled data ([Retry Eligible], [Evaluation Inputs]); the closed **suppression-reason** vocabulary the gate renders ([Suspended], [Quiet Window], [Frequency Cap], [No Record], [Channel Opt Out], and the redispose-only [Unsubscribed]); the closed **fail-closed cause** set it introduces ([Preference Unreadable], [Accounting Unreadable], [Interpretation Undeclared]); and its own rejections — the invocation-level [Journal Rejected], and the three the per-disposition section, the gap leg's lower edge, and the orphan refusal introduce, [Yielded], [Too Young], and [Orphan Pending]. Its load-bearing guarantees — the disposition trichotomy, quiet-window and frequency-cap safety, no-silent-disposition, replayability — are structural Invariants, not data. Its emergent state (`delivery_count_index`, `fanout_dispositions`) is derived-index over the four constituent stores, carried as backticked tokens per the Execution-Contract Composition-state rule; there is no composition-introduced record store to carry a term entry as a Type, and every action input (`event_scope`, `payload_content`, `principal_ref`, `fanout_id` as input) is a relayed constituent concept, so there is no composition-introduced Parameter. The disposition-list names (`created` / `failed` / `suppressed` / `yielded`) and the journal event types (`fanout.initiated` / `fanout.created` — including its `recovery: true` adoption form — / `fanout.suppressed` / `fanout.create-failed` / `fanout.reconcile-intended` / `fanout.abandoned` / `fanout.cap-overshoot-reconciled`) stay backticked as wire values, as do the constituent calls and their outcomes — Subscription's `subscribers_for` / `subscribed`, Notification's `create` / `status_of` / `pending_for`, Message Preference's `current_for` / `read`, Event Log's `append` / `read` — the interpretation and policy knobs (`quiet_hours_interpretation`, `frequency_limit_interpretation`, `channel_interpretation`, `no_record_policy`, `cap_policy`, `quiet_window_policy`, `cap_serialization`, `statutory_quiet_window`, `journal_query_capability`, `payload_digest_function`, `reconciliation_window`, `invocation_duration_bound`, `clock_tolerance`), the relayed constituent tokens (`quiet_hours`, `frequency_limit`, `channel_preferences`, `format`, `preference_id`, `notification_id`, `subscriber_ref`, `config_version`), the inherited/relayed rejections (`invalid-request`, `subscribers-unavailable`, `not-known`, `not-retryable`, `payload-mismatch`) and the `create-failed` cause, and concrete example ids. Constituent atom names remain the existing full links to `../atoms/*`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the three exposed action surfaces — the shaping fanout ([Fanout Shaped]), the journaled per-principal retry ([Redispose]), and the reconciliation pair ([Reconcile Gaps], [Reconcile Overshoots]) — plus the composition-introduced pure gate they all run ([Shaping Disposition]); the correlation handle ([Fanout Id]) and two of the gate's journaled data ([Retry Eligible], [Evaluation Inputs]); the closed **suppression-reason** vocabulary the gate renders ([Suspended], [Quiet Window], [Frequency Cap], [No Record], [Channel Opt Out], and the redispose-only [Unsubscribed]); the closed **fail-closed cause** set it introduces ([Preference Unreadable], [Accounting Unreadable], [Interpretation Undeclared]); and its own rejections — the invocation-level [Journal Rejected], and the three the per-disposition section, the gap leg's lower edge, and the orphan refusal introduce, [Yielded], [Too Young], and [Orphan Pending]. Its load-bearing guarantees — the disposition trichotomy, quiet-window and frequency-cap safety, no-silent-disposition, replayability — are structural Invariants, not data. Its emergent state (`delivery_count_index`, `fanout_dispositions`) is derived-index over the four constituent stores, carried as backticked tokens per the Execution-Contract Composition-state rule; there is no composition-introduced record store to carry a term entry as a Type, and every action input (`event_scope`, `payload_content`, `principal_ref`, `fanout_id` as input) is a relayed constituent concept, so there is no composition-introduced Parameter. The disposition-list names (`created` / `failed` / `suppressed` / `yielded`) and the journal event types (`fanout.initiated` / `fanout.created` — including its `recovery: true` adoption form — / `fanout.suppressed` / `fanout.create-failed` / `fanout.reconcile-intended` / `fanout.abandoned` / `fanout.cap-overshoot-reconciled`) stay backticked as wire values, as do the constituent calls and their outcomes — Subscription's `subscribers_for` / `subscribed`, Notification's `create` / `status_of` / `pending_for`, Message Preference's `current_for` / `read`, Event Log's `append` / `read` — the interpretation and policy knobs (`quiet_hours_interpretation`, `frequency_limit_interpretation`, `channel_interpretation`, `no_record_policy`, `cap_policy`, `quiet_window_policy`, `cap_serialization`, `statutory_quiet_window`, `journal_query_capability`, `payload_digest_function`, `reconciliation_window`, `invocation_duration_bound`, `clock_tolerance`), the relayed constituent tokens (`quiet_hours`, `frequency_limit`, `channel_preferences`, `format`, `preference_id`, `notification_id`, `subscriber_ref`, `config_version`), the inherited/relayed rejections (`invalid-request`, `subscribers-unavailable`, `not-known`, `not-retryable`, `payload-mismatch`) and the `create-failed` cause, and concrete example ids. Constituent atom names remain the existing full links to `../atoms/*`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Fanout Shaped
 
@@ -332,145 +332,145 @@ Kind: Operation
 
 The opaque, system-generated, invocation-unique correlation handle that binds an invocation's journal entries together. Generated at the start of [Fanout Shaped], journaled in the `fanout.initiated` entry before any disposition commits, and carried on every disposition event; [Redispose] appends under the original one.
 
-Kind:      Field
-Field of:  the fanout result and every disposition event
-Role:      the invocation correlation handle
-Projects:  fanout_id
+Kind:       Field
+Field of:   the fanout result and every disposition event
+Role:       the invocation correlation handle
+Projection: fanout_id
 
 #### Retry Eligible
 
 The boolean the composition records on every `fanout.suppressed` event marking whether the suppression may be retried after time passes: [Quiet Window] and [Frequency Cap] carry the deployment's `hold` / `drop` policy; [Suspended], [No Record], [Channel Opt Out], and [Unsubscribed] are always false (they relent only by the principal's own action, not time).
 
-Kind:      Field
-Field of:  the suppression event
-Role:      the time-relents retry marker
-Projects:  retry_eligible
+Kind:       Field
+Field of:   the suppression event
+Role:       the time-relents retry marker
+Projection: retry_eligible
 
 #### Evaluation Inputs
 
 The record of what the gate observed at disposition time — the observed record status, the injected `now`, and (for a cap verdict) the interpreted `(window, cap)` pairs and in-window counts — journaled on both `fanout.created` and `fanout.suppressed` events. It is what makes a verdict replayable (Invariant 7) and a best-effort overshoot diagnosable, because it captures the mutable and ephemeral inputs a later re-read cannot recover.
 
-Kind:      Field
-Field of:  the disposition event
-Role:      the recorded gate observation
-Projects:  evaluation_inputs
+Kind:       Field
+Field of:   the disposition event
+Role:       the recorded gate observation
+Projection: evaluation_inputs
 
 #### Suspended
 
 The [Shaping Disposition] verdict (precedence rule i) when the in-effect preference record's status is `suspended` — the subscriber is suppressed even though their Subscription is Active, which is what makes Message Preference's pause operative. Consults no count or interpretation, so it wins even during an Event Log outage.
 
-Kind:      Member
-Member of: the suppression reason
-Role:      Suppression reason
-Projects:  suspended
+Kind:       Member
+Member of:  the suppression reason
+Role:       Suppression reason
+Projection: suspended
 
 #### Quiet Window
 
 The [Shaping Disposition] verdict (rule iii, and the statutory arm of rule v) when the injected `now` falls inside the recipient's stored `quiet_hours`, or inside a declared `statutory_quiet_window` for the delivering channel. The structural mechanism of quiet-window safety (Invariant 3, the TCPA arm).
 
-Kind:      Member
-Member of: the suppression reason
-Role:      Suppression reason
-Projects:  quiet-window
+Kind:       Member
+Member of:  the suppression reason
+Role:       Suppression reason
+Projection: quiet-window
 
 #### Frequency Cap
 
 The [Shaping Disposition] verdict (rule iv) when the in-window count of a principal's delivery history has reached an interpreted `(window, cap)` pair. The structural mechanism of frequency-cap safety (Invariant 4, the TCPA frequency arm).
 
-Kind:      Member
-Member of: the suppression reason
-Role:      Suppression reason
-Projects:  frequency-cap
+Kind:       Member
+Member of:  the suppression reason
+Role:       Suppression reason
+Projection: frequency-cap
 
 #### No Record
 
 The [Shaping Disposition] verdict (rule ii) when `Message Preference.current_for` returns `none` and the deployment's `no_record_policy` is `suppress` — distinct from a delivery on the `deliver-unshaped` path, and distinct in the records from a stated opt-out (*they never said* versus *they said no*).
 
-Kind:      Member
-Member of: the suppression reason
-Role:      Suppression reason
-Projects:  no-record
+Kind:       Member
+Member of:  the suppression reason
+Role:       Suppression reason
+Projection: no-record
 
 #### Channel Opt Out
 
 The [Shaping Disposition] verdict (rule v) when interpreting the record's `channel_preferences` yields an empty deliverable set — the enforcement point for honored opt-outs (Invariant 3 / CAN-SPAM). The journaled event is the honored-opt-out evidence.
 
-Kind:      Member
-Member of: the suppression reason
-Role:      Suppression reason
-Projects:  channel-opt-out
+Kind:       Member
+Member of:  the suppression reason
+Role:       Suppression reason
+Projection: channel-opt-out
 
 #### Unsubscribed
 
 The suppression reason [Redispose] alone produces, from its audience re-check: a principal who left the audience (`Subscription.subscribed` returns not-subscribed) between the original invocation and a later retry. Deliberately excluded from Invariant 2's "even though Active" scope, because it is not a gate verdict against an Active subscriber.
 
-Kind:      Member
-Member of: the suppression reason
-Role:      Suppression reason
-Projects:  unsubscribed
+Kind:       Member
+Member of:  the suppression reason
+Role:       Suppression reason
+Projection: unsubscribed
 
 #### Preference Unreadable
 
 The pre-gate fail-closed cause: a failed Message Preference *read* (infrastructure failure, distinct from a successful `none`) raised by the orchestration before [Shaping Disposition] runs, since the record gates every rule. A preference-store outage degrades to this named failure — never a silent unshaped deliver to a suspended or quiet-houred principal.
 
-Kind:      Member
-Member of: the delivery-failure cause
-Role:      Fail-closed cause
-Projects:  preference-unreadable
+Kind:       Member
+Member of:  the delivery-failure cause
+Role:       Fail-closed cause
+Projection: preference-unreadable
 
 #### Accounting Unreadable
 
 The in-gate fail-closed cause raised at rule iv when a cap-carrying record's delivery history cannot be rebuilt (the journal read fails) — raised only if no higher-precedence rule already suppressed, so a [Suspended] record still suppresses first.
 
-Kind:      Member
-Member of: the delivery-failure cause
-Role:      Fail-closed cause
-Projects:  accounting-unreadable
+Kind:       Member
+Member of:  the delivery-failure cause
+Role:       Fail-closed cause
+Projection: accounting-unreadable
 
 #### Interpretation Undeclared
 
 The in-gate fail-closed cause raised at the precedence rule (iii / iv / v) that would consult a preference field whose interpretation the deployment never declared — never a silent deliver past an unevaluable value, never a suppression reason claiming an evaluation that did not happen.
 
-Kind:      Member
-Member of: the delivery-failure cause
-Role:      Fail-closed cause
-Projects:  interpretation-undeclared
+Kind:       Member
+Member of:  the delivery-failure cause
+Role:       Fail-closed cause
+Projection: interpretation-undeclared
 
 #### Journal Rejected
 
 The composition's own invocation-level rejection when the `fanout.initiated` append (or a [Redispose] disposition append) is refused by Event Log — the composition does not run an unjournaled fanout, because every downstream guarantee reads from the journal. Covers both the retryable `storage-failure` and the definitive `invalid-payload` append outcomes under one name; on [Redispose] and [Reconcile Gaps] it carries the position — `read | outcome(notification_id | none)` and `intent | abandonment` — because on those surfaces the token can land after a write that stands.
 
-Kind:      Member
-Member of: the fanout rejection
-Role:      Rejection
-Projects:  journal-rejected
+Kind:       Member
+Member of:  the fanout rejection
+Role:       Rejection
+Projection: journal-rejected
 
 #### Yielded
 
 The rejection [Redispose] returns when its per-disposition lease expired before its disposition committed: the call wrote nothing after the expiry, and the principal is [Reconcile Gaps]'s. It is also what a [Redispose] returns when a foreign holder — a live [Fanout Shaped], or [Reconcile Gaps] — holds the pair's section: the call does not wait. Its batch counterpart is [Fanout Shaped]'s `yielded` list — the subscribers an invocation left undisposed at its terminus or as a deliver-pair orphan.
 
-Kind:      Member
-Member of: the redispose rejection
-Role:      Rejection
-Projects:  yielded
+Kind:       Member
+Member of:  the redispose rejection
+Role:       Rejection
+Projection: yielded
 
 #### Too Young
 
 The rejection [Reconcile Gaps] returns for an invocation whose `fired_at` is younger than `invocation_duration_bound + notification_create_latency`: the invocation may still be in its loop, or a create it issued at the lease's edge may still be landing, its undisposed subscribers are work in flight rather than gaps, and the leg examines nothing and writes nothing.
 
-Kind:      Member
-Member of: the reconcile-gaps rejection
-Role:      Rejection
-Projects:  too-young
+Kind:       Member
+Member of:  the reconcile-gaps rejection
+Role:       Rejection
+Projection: too-young
 
 #### Orphan Pending
 
 The rejection [Redispose] returns on its crash-gap path when the pair already holds a deliver-pair orphan — a Pending record whose envelope carries the `fanout_id` and which no `fanout.created` names: the call writes nothing and creates nothing beside it, because adoption is [Reconcile Gaps]'s alone, under its intent record and the deployment's service identity. Carries the record's `notification_id`.
 
-Kind:      Member
-Member of: the redispose rejection
-Role:      Rejection
-Projects:  orphan-pending
+Kind:       Member
+Member of:  the redispose rejection
+Role:       Rejection
+Projection: orphan-pending
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

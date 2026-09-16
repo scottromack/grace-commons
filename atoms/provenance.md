@@ -633,121 +633,121 @@ Kind: Operation
 
 The opaque, immutable, system-generated identity of a chain — produced by [Originate], unique within a store, never reused (Identity 15). It is the chain's identity; [Artifact Ref] is a property, not the identity.
 
-Kind:     Field
-Field of: the chain
-Projects: chain_id
+Kind:       Field
+Field of:   the chain
+Projection: chain_id
 
 #### Artifact Ref
 
 The opaque reference to *what* the chain tracks. Set at genesis, immutable; the atom neither validates nor interprets it. The same reference may recur across store instances for genuinely different artifacts.
 
-Kind:     Field
-Field of: the chain
-Projects: artifact_ref
+Kind:       Field
+Field of:   the chain
+Projection: artifact_ref
 
 #### Chain State
 
 The chain's lifecycle state — [Open] or [Archived]. Begins [Open] on [Originate]; transitions once to [Archived] on [Archive], then never again.
 
-Kind:     Field
-Field of: the chain
-Projects: chain_state
+Kind:       Field
+Field of:   the chain
+Projection: chain_state
 
 #### Current Custodian
 
 The opaque reference of the chain's single current holder — a derived projection (cache) of the entry chain: the [To Custodian Ref] of the latest transferred entry, or the genesis [Custodian Ref]. Non-null while the chain exists; changes only on [Transfer]. On any disagreement the replayed entry chain is authoritative.
 
-Kind:     Field
-Field of: the chain
-Projects: current_custodian
+Kind:       Field
+Field of:   the chain
+Projection: current_custodian
 
 #### Next Sequence Number
 
 The chain's per-instance counter, beginning at 1 and incrementing by one per successful entry write. Part of persistent chain state; must survive restarts (State 19).
 
-Kind:     Field
-Field of: the chain
-Projects: next_sequence_number
+Kind:       Field
+Field of:   the chain
+Projection: next_sequence_number
 
 #### Entry Id
 
 The opaque, immutable, system-generated identity of a custody entry — assigned at append, unique within the chain, never reused (Invariants 1 and 9).
 
-Kind:     Field
-Field of: the entry
-Projects: entry_id
+Kind:       Field
+Field of:   the entry
+Projection: entry_id
 
 #### Sequence Number
 
 The strictly increasing integer assigned to an entry from [Next Sequence Number] at append. The authoritative, clock-independent order source within the chain (Invariant 5); [Recorded At] is not.
 
-Kind:     Field
-Field of: the entry
-Projects: sequence_number
+Kind:       Field
+Field of:   the entry
+Projection: sequence_number
 
 #### Event Type
 
 The entry's kind — one of originated, received, transferred, transformed, disclosed, or archived (Invariant 8). Set at append, immutable. The [Genesis Type] argument selects the genesis entry's value.
 
-Kind:     Field
-Field of: the entry
-Projects: event_type
+Kind:       Field
+Field of:   the entry
+Projection: event_type
 
 #### Custodian Ref
 
 On every non-transferred entry, the custodian who performed or is affected by the entry's event — non-empty (Invariant 7), immutable. A transferred entry carries no single [Custodian Ref]; it records the [From Custodian Ref]/[To Custodian Ref] pair instead. For [Transform], [Disclose], and [Archive] the supplied value must equal [Current Custodian] (else [Not Current Custodian]).
 
-Kind:     Field
-Field of: the entry
-Projects: custodian_ref
+Kind:       Field
+Field of:   the entry
+Projection: custodian_ref
 
 #### Recorded At
 
 The best-effort wall-time an entry was appended, stamped from the wall-time reading injected at the atom's I/O seam — never read inside a transition and never a caller-supplied argument. An annotation only — never the order source ([Sequence Number] is).
 
-Kind:     Field
-Field of: the entry
-Projects: recorded_at
+Kind:       Field
+Field of:   the entry
+Projection: recorded_at
 
 #### From Custodian Ref
 
 On a transferred entry, the outgoing custodian — read from [Current Custodian] at transition time, never caller-supplied (the hand-to-hand guarantee that forecloses a false predecessor). Non-empty (Invariant 7).
 
-Kind:     Field
-Field of: the entry
-Projects: from_custodian_ref
+Kind:       Field
+Field of:   the entry
+Projection: from_custodian_ref
 
 #### To Custodian Ref
 
 On a transferred entry, the incoming custodian supplied by the caller; it becomes the new [Current Custodian] after the entry. Non-empty (Invariant 7).
 
-Kind:     Field
-Field of: the entry
-Projects: to_custodian_ref
+Kind:       Field
+Field of:   the entry
+Projection: to_custodian_ref
 
 #### Transformation Descriptor
 
 On a transformed entry, the opaque, non-empty description of what was done. An empty or whitespace-only value is [Invalid Descriptor].
 
-Kind:     Field
-Field of: the entry
-Projects: transformation_descriptor
+Kind:       Field
+Field of:   the entry
+Projection: transformation_descriptor
 
 #### Recipient Ref
 
 On a disclosed entry, the opaque reference to the party a view or copy was disclosed to. Custody is not transferred.
 
-Kind:     Field
-Field of: the entry
-Projects: recipient_ref
+Kind:       Field
+Field of:   the entry
+Projection: recipient_ref
 
 #### Metadata
 
 Optional opaque data carried on a genesis (originated/received) entry — e.g., a link to pre-intake provenance for a received artifact.
 
-Kind:     Field
-Field of: the entry
-Projects: metadata
+Kind:       Field
+Field of:   the entry
+Projection: metadata
 
 #### Genesis Type
 
@@ -755,7 +755,7 @@ The [Originate] argument selecting the genesis entry's [Event Type] — exactly 
 
 Kind:         Parameter
 Parameter of: Originate
-Projects:     genesis_type
+Projection:   genesis_type
 
 #### Open
 
@@ -769,82 +769,82 @@ Role:      Outcome
 
 The terminal, absorbing state of a chain at final disposition (Invariant 6): [Transfer], [Transform], [Disclose], and [Archive] are all rejected, but the chain remains readable. Reached once, via [Archive]. Its name also projects as the archived rejection reason the writer actions return against a closed chain — the shared term entry the Decision points name, kept backticked in prose to keep the rejection token distinct from this state anchor.
 
-Kind:      Member
-Member of: the chain state
-Role:      Outcome
-Projects:  archived
+Kind:       Member
+Member of:  the chain state
+Role:       Outcome
+Projection: archived
 
 #### Invalid Ref
 
 The rejection an action returns when a required reference ([Artifact Ref], [Custodian Ref], [To Custodian Ref], or [Recipient Ref]) is empty, whitespace-only, or over the deployment-pinned length cap — also returned by [Originate] for an over-limit [Metadata] (Edge cases — *Length caps*).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-ref
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-ref
 
 #### Invalid Genesis Type
 
 The rejection [Originate] returns when [Genesis Type] is not exactly originated or received.
 
-Kind:      Member
-Member of: the Originate rejection
-Role:      Outcome
-Projects:  invalid-genesis-type
+Kind:       Member
+Member of:  the Originate rejection
+Role:       Outcome
+Projection: invalid-genesis-type
 
 #### Storage Failure
 
 The rejection any action returns when its store write fails after all preconditions pass; guarantees no partial record is observable (Invariant 10).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Not Known
 
 The rejection [Transfer], [Transform], [Disclose], [Archive], or [Read] returns when the [Chain Id] references no known chain.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Already Archived
 
 The rejection [Archive] returns when the target chain is already [Archived]. (The same condition reaches [Transfer], [Transform], and [Disclose] as the archived rejection — kept a distinct token to avoid colliding with the [Archived] state.)
 
-Kind:      Member
-Member of: the Archive rejection
-Role:      Outcome
-Projects:  already-archived
+Kind:       Member
+Member of:  the Archive rejection
+Role:       Outcome
+Projection: already-archived
 
 #### Not Current Custodian
 
 The rejection [Transform], [Disclose], or [Archive] returns when the supplied [Custodian Ref] is not the chain's [Current Custodian] — a prior holder has no write authority.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-current-custodian
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-current-custodian
 
 #### Invalid Descriptor
 
 The rejection [Transform] returns when the [Transformation Descriptor] is empty, whitespace-only, or over the deployment-pinned length cap — a content field, distinct from [Invalid Ref].
 
-Kind:      Member
-Member of: the Transform rejection
-Role:      Outcome
-Projects:  invalid-descriptor
+Kind:       Member
+Member of:  the Transform rejection
+Role:       Outcome
+Projection: invalid-descriptor
 
 #### Invalid Query
 
 The rejection [Read] returns when a query parameter is malformed — e.g., a range with start greater than end, or an unknown [Event Type] filter value.
 
-Kind:      Member
-Member of: the Read rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the Read rejection
+Role:       Outcome
+Projection: invalid-query
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

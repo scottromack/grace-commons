@@ -396,9 +396,9 @@ Kind: Type
 
 The [Assignment]'s lifecycle state — [Active], [Recalled] or [Transferred]. Set to [Active] on creation; moves once, to one terminal state, and never back (Invariant 3.1, Invariant 3.2).
 
-Kind:     Field
-Field of: the assignment
-Projects: status
+Kind:       Field
+Field of:   the assignment
+Projection: status
 
 #### Assign
 
@@ -434,49 +434,49 @@ Kind: Operation
 
 The opaque, immutable identity of an [Assignment], host-allocated from injected id material at the I/O seam and never reused after a terminal state. The [Task Ref] and [Assignee Ref] are properties of the [Assignment], not its identity.
 
-Kind:     Field
-Field of: Assignment
-Projects: assignment_id
+Kind:       Field
+Field of:   Assignment
+Projection: assignment_id
 
 #### Task Ref
 
 The opaque reference identifying the unit of work an [Assignment] is for. The atom does not know what a task is or how its lifecycle is managed. Set on creation, immutable thereafter.
 
-Kind:     Field
-Field of: Assignment
-Projects: task_ref
+Kind:       Field
+Field of:   Assignment
+Projection: task_ref
 
 #### Assignee Ref
 
 The opaque reference identifying the actor an [Assignment] binds responsibility to. The actor registry is a separate concept. Set on creation, immutable thereafter.
 
-Kind:     Field
-Field of: Assignment
-Projects: assignee_ref
+Kind:       Field
+Field of:   Assignment
+Projection: assignee_ref
 
 #### Assigned At
 
 The wall-time the [Assignment] was created, stamped from the injected [Now] on [Assign] (and on the [Assign] inside [Reassign]). Immutable thereafter. [Assigned At] ≤ [Recalled At] and [Assigned At] ≤ [Transferred At] always hold.
 
-Kind:     Field
-Field of: Assignment
-Projects: assigned_at
+Kind:       Field
+Field of:   Assignment
+Projection: assigned_at
 
 #### Recalled At
 
 The wall-time the [Assignment] was recalled, stamped from the injected [Now] on [Recall]. Present only in [Recalled]; immutable once set.
 
-Kind:     Field
-Field of: Assignment
-Projects: recalled_at
+Kind:       Field
+Field of:   Assignment
+Projection: recalled_at
 
 #### Transferred At
 
 The wall-time the [Assignment] was transferred, stamped from the injected [Now] on [Reassign]. Present only in [Transferred]; immutable once set.
 
-Kind:     Field
-Field of: Assignment
-Projects: transferred_at
+Kind:       Field
+Field of:   Assignment
+Projection: transferred_at
 
 #### New Assignee Ref
 
@@ -484,7 +484,7 @@ The reference to the new responsible actor [Reassign] consumes and writes into t
 
 Kind:         Parameter
 Parameter of: Reassign
-Projects:     new_assignee_ref
+Projection:   new_assignee_ref
 
 #### Now
 
@@ -492,7 +492,7 @@ The current clock reading every writing action consumes — the pipeline's `cloc
 
 Kind:         Parameter
 Parameter of: Assign, Recall and Reassign
-Projects:     now
+Projection:   now
 
 #### Active
 
@@ -522,46 +522,46 @@ Role:      Outcome
 
 The refusal [Assign] returns when [Task Ref] or [Assignee Ref] is not well-formed or is empty, and [Reassign] returns when [New Assignee Ref] is not well-formed or is empty. A guard rejection that fails before any store write; no [Assignment] is created or changed.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Already Assigned
 
 The refusal [Assign] returns when an [Active] [Assignment] already exists for the [Task Ref]. The loser of a concurrent assign race for the same [Task Ref] also receives this. No [Assignment] is created. This is the at-most-one-Active guard (Invariant 1) enforced at the [Assign] boundary.
 
-Kind:      Member
-Member of: the Assign rejection
-Role:      Outcome
-Projects:  already-assigned
+Kind:       Member
+Member of:  the Assign rejection
+Role:       Outcome
+Projection: already-assigned
 
 #### Not Known
 
 The refusal [Recall] or [Reassign] returns when the supplied [Assignment Id] references no known [Assignment]. A lookup miss, distinct from a state rejection.
 
-Kind:      Member
-Member of: the resolving-action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the resolving-action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Active
 
 The refusal [Recall] or [Reassign] returns when the referenced [Assignment] is already terminal — [Recalled] or [Transferred]. This is the terminal-absorption guard: a resolving action on an already-resolved [Assignment] is refused without modifying any record.
 
-Kind:      Member
-Member of: the resolving-action rejection
-Role:      Outcome
-Projects:  not-active
+Kind:       Member
+Member of:  the resolving-action rejection
+Role:       Outcome
+Projection: not-active
 
 #### Storage Failure
 
 The refusal any action returns when the store write fails after the preconditions pass. No [Assignment] is created (for [Assign]), the [Assignment] remains [Active] (for [Recall]), or both [Reassign] writes are rolled back. The caller must treat it as definitive.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

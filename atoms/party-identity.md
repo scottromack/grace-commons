@@ -605,165 +605,165 @@ Kind: Operation
 The record this atom defines: one external party's enrollment, verification history and state history. Carries [Party Id], the enrollment fields, a [Current State], a [State-Change Log] and a [Verification Event] list.
 
 Kind: Type
-Projects: state
+Projection: state
 
 #### Verification Event
 
 The record of one identity check, appended to a party and never changed. Carries [Verification Id], [Verifying Actor Ref], [Verification Method], [Verification Result], [Evidence Ref] and [Verified At]. It records that a check was made, by whom, how, and what it found — never that the check was in fact performed.
 
 Kind: Type
-Projects: verification_event
+Projection: verification_event
 
 #### State-Change Event
 
 The record of one transition, appended to a party and never changed. Carries [State Change Id], [Prior State], [New State], an acting reference, an instant and — for a suspend, a reinstate or a close — a [Reason].
 
 Kind: Type
-Projects: state_change_event
+Projection: state_change_event
 
 #### Party Id
 
 The opaque, immutable identity of a [Party], assigned on [Enroll] from the id material the seam supplies. Never a content field, because a legal name changes and a document is renewed without the party becoming a different party.
 
-Kind:     Field
-Field of: Party
-Projects: party_id
+Kind:       Field
+Field of:   Party
+Projection: party_id
 
 #### Name
 
 The party's legal name at enrollment, stored as supplied — no normalization, no case folding, no transliteration. Immutable; a later legal name change is a composing pattern's event, not an edit here.
 
-Kind:     Field
-Field of: Party
-Projects: name
+Kind:       Field
+Field of:   Party
+Projection: name
 
 #### Date Of Birth
 
 The party's date of birth at enrollment, as a calendar date that does not exceed [Now]. Immutable.
 
-Kind:     Field
-Field of: Party
-Projects: date_of_birth
+Kind:       Field
+Field of:   Party
+Projection: date_of_birth
 
 #### Document Type
 
 The class of identity document presented — `passport`, `national-id`, `drivers-license`. Opaque to the atom; which values a regime admits is the composing system's.
 
-Kind:     Field
-Field of: Party
-Projects: document_type
+Kind:       Field
+Field of:   Party
+Projection: document_type
 
 #### Document Ref
 
 The opaque pointer to the identity document record in the composing document store. Never resolved here.
 
-Kind:     Field
-Field of: Party
-Projects: document_ref
+Kind:       Field
+Field of:   Party
+Projection: document_ref
 
 #### Enrolled At
 
 The instant the party was enrolled, stamped from [Now]. Immutable, and one of the three fields an erasure scrub must leave.
 
-Kind:     Field
-Field of: Party
-Projects: enrolled_at
+Kind:       Field
+Field of:   Party
+Projection: enrolled_at
 
 #### Enrolling Actor Ref
 
 The opaque reference naming who enrolled the party. Attribution only — binding it to a verifiable actor is [Actor Identity](./actor-identity.md)'s. One of the three fields an erasure scrub must leave.
 
-Kind:     Field
-Field of: Party
-Projects: enrolling_actor_ref
+Kind:       Field
+Field of:   Party
+Projection: enrolling_actor_ref
 
 #### Current State
 
 The party's standing — [Unverified], [Verified], [Suspended] or [Closed]. Changes only through a [Verification Event]-driven transition, [Suspend], [Reinstate] or [Close], and never silently.
 
-Kind:     Field
-Field of: Party
-Projects: state
+Kind:       Field
+Field of:   Party
+Projection: state
 
 #### State-Change Log
 
 The party's append-only, insertion-ordered list of [State-Change Event]s. It travels with the record on [Read], which is what makes a party's whole biography answerable from one surface.
 
-Kind:     Field
-Field of: Party
-Projects: state_change_log
+Kind:       Field
+Field of:   Party
+Projection: state_change_log
 
 #### Verification Id
 
 The opaque, immutable identity of a [Verification Event]. Answered by [Verify] so a composing attestation binds to the check itself.
 
-Kind:     Field
-Field of: Verification Event
-Projects: verification_id
+Kind:       Field
+Field of:   Verification Event
+Projection: verification_id
 
 #### Verifying Actor Ref
 
 The opaque reference naming who performed the check. Attribution only.
 
-Kind:     Field
-Field of: Verification Event
-Projects: verifying_actor_ref
+Kind:       Field
+Field of:   Verification Event
+Projection: verifying_actor_ref
 
 #### Verification Method
 
 The opaque label naming how the check was made — `manual-document-review`, `automated-ocr`, `biometric-match`, `database-check`. Recorded, never interpreted.
 
-Kind:     Field
-Field of: Verification Event
-Projects: verification_method
+Kind:       Field
+Field of:   Verification Event
+Projection: verification_method
 
 #### Verification Result
 
 What the check found: `passed` or failed, and nothing else. A `passed` result against an [Unverified] party drives the transition to [Verified]; against a [Suspended] party it is recorded and lifts nothing.
 
-Kind:     Field
-Field of: Verification Event
-Projects: verification_result
+Kind:       Field
+Field of:   Verification Event
+Projection: verification_result
 
 #### Evidence Ref
 
 The opaque pointer to the evidence record supporting the check. Never resolved here.
 
-Kind:     Field
-Field of: Verification Event
-Projects: evidence_ref
+Kind:       Field
+Field of:   Verification Event
+Projection: evidence_ref
 
 #### Verified At
 
 The instant the check was recorded, stamped from [Now]. Advisory: insertion order, not this field, decides what *most recent* means.
 
-Kind:     Field
-Field of: Verification Event
-Projects: verified_at
+Kind:       Field
+Field of:   Verification Event
+Projection: verified_at
 
 #### State Change Id
 
 The opaque, immutable identity of a [State-Change Event]. Answered directly by every transitioning action, so an attestation binds to one specific suspension rather than to whichever was most recent when the caller looked.
 
-Kind:     Field
-Field of: State-Change Event
-Projects: state_change_id
+Kind:       Field
+Field of:   State-Change Event
+Projection: state_change_id
 
 #### Prior State
 
 The state the party left. Recorded on every [State-Change Event].
 
-Kind:     Field
-Field of: State-Change Event
-Projects: prior_state
+Kind:       Field
+Field of:   State-Change Event
+Projection: prior_state
 
 #### New State
 
 The state the party entered. Recorded on every [State-Change Event].
 
-Kind:     Field
-Field of: State-Change Event
-Projects: new_state
+Kind:       Field
+Field of:   State-Change Event
+Projection: new_state
 
 #### Reason
 
@@ -771,14 +771,14 @@ The caller-supplied basis for a suspension, a reinstatement or a closure. Requir
 
 Kind:         Parameter
 Parameter of: Suspend
-Projects:     reason
+Projection:   reason
 
 #### Fresh Verification
 
 A [Verification Event] carrying `passed` that follows the party's most recent [Suspend] in insertion order — or the enrollment, where the party was never suspended. What [Reinstate] requires, and what every [Verified] party carries.
 
 Kind: Type
-Projects: fresh_verification
+Projection: fresh_verification
 
 #### Now
 
@@ -786,7 +786,7 @@ The wall-time reading the host takes at the seam and hands to the transition, as
 
 Kind:         Parameter
 Parameter of: Enroll
-Projects:     now
+Projection:   now
 
 #### Query
 
@@ -794,7 +794,7 @@ The filter a [Read] carries, over exactly three axes: [Party Id], [Current State
 
 Kind:         Parameter
 Parameter of: Read
-Projects:     query
+Projection:   query
 
 #### Unverified
 
@@ -832,82 +832,82 @@ Role:      Outcome
 
 The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date or exceeds [Now], a [Verification Result] is neither `passed` nor failed, or a string input exceeds the deployment's length bound. A blank [Party Id] earns it before the store is consulted; every other field fault earns it after every state check passes.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Not Known
 
 The refusal a party action returns when a well-formed [Party Id] names no party. Distinct from [Invalid Request] on a blank one: the first says the party is not there, the second says the caller sent garbage.
 
-Kind:      Member
-Member of: the party-action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the party-action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Already Closed
 
 The refusal a party action returns against a [Closed] party. Closure is absorbing, so this is final for that [Party Id].
 
-Kind:      Member
-Member of: the party-action rejection
-Role:      Outcome
-Projects:  already-closed
+Kind:       Member
+Member of:  the party-action rejection
+Role:       Outcome
+Projection: already-closed
 
 #### Not Verifiable
 
 The refusal [Suspend] returns against an [Unverified] party — there is no verified standing to suspend. Distinct from [Already Suspended], because a caller reading this looks at the verification workflow while one reading that looks for a duplicate call.
 
-Kind:      Member
-Member of: the Suspend rejection
-Role:      Outcome
-Projects:  not-verifiable
+Kind:       Member
+Member of:  the Suspend rejection
+Role:       Outcome
+Projection: not-verifiable
 
 #### Already Suspended
 
 The refusal [Suspend] returns against a [Suspended] party — a duplicate or raced call.
 
-Kind:      Member
-Member of: the Suspend rejection
-Role:      Outcome
-Projects:  already-suspended
+Kind:       Member
+Member of:  the Suspend rejection
+Role:       Outcome
+Projection: already-suspended
 
 #### Not Suspended
 
 The refusal [Reinstate] returns against an [Unverified] or a [Verified] party. One answer for two states, deliberately: both mean there is no suspension to lift, and the remedy is the same.
 
-Kind:      Member
-Member of: the Reinstate rejection
-Role:      Outcome
-Projects:  not-suspended
+Kind:       Member
+Member of:  the Reinstate rejection
+Role:       Outcome
+Projection: not-suspended
 
 #### No Passed Verification Since Suspend
 
 The refusal [Reinstate] returns against a [Suspended] party carrying no [Fresh Verification]. The atom's one purpose-built rejection arm, and the reason reinstatement cannot be a flag toggle.
 
-Kind:      Member
-Member of: the Reinstate rejection
-Role:      Outcome
-Projects:  no-passed-verification-since-suspend
+Kind:       Member
+Member of:  the Reinstate rejection
+Role:       Outcome
+Projection: no-passed-verification-since-suspend
 
 #### Invalid Query
 
 The refusal [Read] returns for a filter axis or a filter value it cannot read. Refusing rather than ignoring, because a silently dropped filter answers a different question from the one asked.
 
-Kind:      Member
-Member of: the Read rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the Read rejection
+Role:       Outcome
+Projection: invalid-query
 
 #### Storage Failure
 
 The refusal any writing action returns when the store refuses the write after every precondition passes. No record the action would have written is persisted. [Read] never returns it.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

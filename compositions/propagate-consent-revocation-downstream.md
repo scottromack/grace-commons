@@ -471,7 +471,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the five actions it exposes — the four state-changing wirings ([Record Consent], [Register Processing], [Withdraw Consent], [Read Consent History]) and the read-only consent gate ([Processing Permitted]); the load-bearing [Affected Scopes] the propagation event enumerates; the [Processing Scope] each downstream binding names; the four-scope administration vocabulary it defines for its Permissions instance ([Consent Grant], [Consent Revoke], [Consent Register Processing], [Consent Read]); and the gate's own [Not Permitted] rejection. Its load-bearing guarantee — a withdrawal commits the Consent revocation and then a complete, sealed propagation record: revoke, then propagation event, ordered; bijective at quiescence modulo compensation (Invariant 3) — is a structural property, not a datum. Its emergent state (`consent_to_downstream`, `consent_to_retention`, `consent_to_subject_purpose`) is a set of indexes into the constituent stores, left as backticked tokens; there is no composition-introduced record store to carry a term entry as a Type. The audit event types it emits (`consent.grant_intended`, `consent.granted`, `processing.registered`, `consent.withdrawal_intended`, `consent.revoked`, `consent.history-read`, and the scan's `consent.recovery_intended` and `consent.propagation_escalated`) stay backticked as wire values, as do the tokens that bind an intent event to its outcome (`intent_event_id`, `intent_event_candidates`, `intended_at`) and the compensation marker (`cascade_recovery`), as do the constituent calls and their outcomes — Consent's `grant` / `revoke` / `check` / `read` (and its `granted` / `revoked` / `expired` / `not-known` results), Permissions' `permitted` / `grant` / `revoke`, Retention Window's `place_under_retention`, Audit Trail's `record_action` / `verify_record` — the relayed constituent tokens (`consent_id`, `subject_ref`, `purpose`, `processor_ref`, `credential`, `actor_ref`, `retention_policy_ref`, `reason`), the generic and relayed rejections (`permission-denied`, `recording-failure(intent | outcome)` at [Record Consent] and [Withdraw Consent] and the bare `recording-failure` [Register Processing] and [Read Consent History] lawfully export from their one landing position, `invalid-request`, `not-known`, `already-revoked`, `already-expired`), the composition's own `already-granted` and `registration-cap-exceeded`, and the `not-permitted(state)` parameter values, the deployment configuration knobs (`consent_record_retention_policy_ref`, `audit_trail_retention_policy`, `compensation_window`, `reconciliation_cadence`, `outcome_write_latency`, `administration_completion_bound`, `application_actor_ref`, `application_credential`, `index_durability`, `outcome_retry_attempts`, `per_key_serialization`, `clock_offset_allowance`, `field_length_cap`, `registrations_cap`, `intent_candidates_cap`, `event_id_width`), and concrete example ids. Constituent atom names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the five actions it exposes — the four state-changing wirings ([Record Consent], [Register Processing], [Withdraw Consent], [Read Consent History]) and the read-only consent gate ([Processing Permitted]); the load-bearing [Affected Scopes] the propagation event enumerates; the [Processing Scope] each downstream binding names; the four-scope administration vocabulary it defines for its Permissions instance ([Consent Grant], [Consent Revoke], [Consent Register Processing], [Consent Read]); and the gate's own [Not Permitted] rejection. Its load-bearing guarantee — a withdrawal commits the Consent revocation and then a complete, sealed propagation record: revoke, then propagation event, ordered; bijective at quiescence modulo compensation (Invariant 3) — is a structural property, not a datum. Its emergent state (`consent_to_downstream`, `consent_to_retention`, `consent_to_subject_purpose`) is a set of indexes into the constituent stores, left as backticked tokens; there is no composition-introduced record store to carry a term entry as a Type. The audit event types it emits (`consent.grant_intended`, `consent.granted`, `processing.registered`, `consent.withdrawal_intended`, `consent.revoked`, `consent.history-read`, and the scan's `consent.recovery_intended` and `consent.propagation_escalated`) stay backticked as wire values, as do the tokens that bind an intent event to its outcome (`intent_event_id`, `intent_event_candidates`, `intended_at`) and the compensation marker (`cascade_recovery`), as do the constituent calls and their outcomes — Consent's `grant` / `revoke` / `check` / `read` (and its `granted` / `revoked` / `expired` / `not-known` results), Permissions' `permitted` / `grant` / `revoke`, Retention Window's `place_under_retention`, Audit Trail's `record_action` / `verify_record` — the relayed constituent tokens (`consent_id`, `subject_ref`, `purpose`, `processor_ref`, `credential`, `actor_ref`, `retention_policy_ref`, `reason`), the generic and relayed rejections (`permission-denied`, `recording-failure(intent | outcome)` at [Record Consent] and [Withdraw Consent] and the bare `recording-failure` [Register Processing] and [Read Consent History] lawfully export from their one landing position, `invalid-request`, `not-known`, `already-revoked`, `already-expired`), the composition's own `already-granted` and `registration-cap-exceeded`, and the `not-permitted(state)` parameter values, the deployment configuration knobs (`consent_record_retention_policy_ref`, `audit_trail_retention_policy`, `compensation_window`, `reconciliation_cadence`, `outcome_write_latency`, `administration_completion_bound`, `application_actor_ref`, `application_credential`, `index_durability`, `outcome_retry_attempts`, `per_key_serialization`, `clock_offset_allowance`, `field_length_cap`, `registrations_cap`, `intent_candidates_cap`, `event_id_width`), and concrete example ids. Constituent atom names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Record Consent
 
@@ -507,10 +507,10 @@ Kind: Operation
 
 The complete set of downstream processing bindings ([Processing Scope] plus processor) registered against a consent, derived from the `processing.registered` events at withdrawal time (the map supplying only the entries whose named event the substrate reports Purged), bounded by `registrations_cap`, and recorded on the `consent.revoked` propagation event. Its completeness is Invariant 3: the enumeration is exactly what relied on the consent, never silently shrunk, so a withdrawal's downstream impact is a records-alone fact.
 
-Kind:      Field
-Field of:  the consent.revoked propagation event
-Role:      the propagation enumeration
-Projects:  affected_scopes
+Kind:       Field
+Field of:   the consent.revoked propagation event
+Role:       the propagation enumeration
+Projection: affected_scopes
 
 #### Processing Scope
 
@@ -519,52 +519,52 @@ The opaque reference to one downstream processing activity bound to a consent (e
 Kind:         Parameter
 Parameter of: [Register Processing]
 Role:         the downstream-activity reference
-Projects:     processing_scope
+Projection:   processing_scope
 
 #### Consent Grant
 
 The scope permitting [Record Consent] — administer a new consent grant on a data subject's behalf.
 
-Kind:      Member
-Member of: the consent-administration scope vocabulary
-Role:      Scope
-Projects:  consent:grant
+Kind:       Member
+Member of:  the consent-administration scope vocabulary
+Role:       Scope
+Projection: consent:grant
 
 #### Consent Revoke
 
 The scope permitting [Withdraw Consent] — record (operator-side) a withdrawal on a data subject's behalf. (The subject's own right to withdraw is absolute and honored upstream; this scope gates the operator recording it.)
 
-Kind:      Member
-Member of: the consent-administration scope vocabulary
-Role:      Scope
-Projects:  consent:revoke
+Kind:       Member
+Member of:  the consent-administration scope vocabulary
+Role:       Scope
+Projection: consent:revoke
 
 #### Consent Register Processing
 
 The scope permitting [Register Processing] — bind a downstream processing activity to a consent.
 
-Kind:      Member
-Member of: the consent-administration scope vocabulary
-Role:      Scope
-Projects:  consent:register-processing
+Kind:       Member
+Member of:  the consent-administration scope vocabulary
+Role:       Scope
+Projection: consent:register-processing
 
 #### Consent Read
 
 The scope permitting [Read Consent History] — read a data subject's consent history.
 
-Kind:      Member
-Member of: the consent-administration scope vocabulary
-Role:      Scope
-Projects:  consent:read
+Kind:       Member
+Member of:  the consent-administration scope vocabulary
+Role:       Scope
+Projection: consent:read
 
 #### Not Permitted
 
 The [Processing Permitted] gate's rejection when no valid consent exists, parameterized by the actual `Consent.check` result — `revoked` (withdrawn), `expired` (time bound elapsed), or `not-known` (no record) — so the calling system can distinguish *never consented* from *withdrawn* from *lapsed* and choose the right remediation.
 
-Kind:      Member
-Member of: the processing-gate rejection
-Role:      Rejection
-Projects:  not-permitted
+Kind:       Member
+Member of:  the processing-gate rejection
+Role:       Rejection
+Projection: not-permitted
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

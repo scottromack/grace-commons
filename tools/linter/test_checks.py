@@ -1295,7 +1295,7 @@ def check_bracket_synthetic(problems: list[str]) -> int:
 
 def check_code_span_synthetic(problems: list[str]) -> int:
     """D-code-span and the bare-name readers (council read 92). A name written
-    bare, a code spelling, a file name, a wire token on a Projects line and a
+    bare, a code spelling, a file name, a wire token on a Projection line and a
     name quoted inside the Ledger stay silent; a declared Term name, a value-set
     member, a signature arm and an input in backticks fire. The grammar's
     category set, reserved tokens and standard families still read with their
@@ -1319,7 +1319,7 @@ def check_code_span_synthetic(problems: list[str]) -> int:
         ("a name written bare", "A write lands intent, then the fence margin holds.\n"),
         ("a code spelling", "The payload names `audit.compensation` and `max(a, b)`.\n"),
         ("a file name", "See `execution-contract.md`.\n"),
-        ("a Projects line", "Projects:  `not-known`\n"),
+        ("a Projection line", "Projection: `not-known`\n"),
         ("the Ledger", "## Ledger\n\n- `intent` stays quoted in history.\n"),
     ]
     firing = [
@@ -1664,7 +1664,7 @@ def main(argv: list[str]) -> int:
     failures.extend(span_problems)
     if not span_problems:
         print(f"D-code-span: {n_span} synthetic fixtures hold (a bare name, a code spelling, a file "
-              "name, a Projects line and the Ledger silent; a Term name, a value-set member, a "
+              "name, a Projection line and the Ledger silent; a Term name, a value-set member, a "
               "signature arm and an input in backticks fire; the grammar's category set, reserved "
               "tokens and standard families read bare) \u2713")
 

@@ -473,7 +473,7 @@ Composition note 3 is the cascade's trigger and it is the deployment's to pull. 
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the emergent cascade action it exposes ([Revoke Sessions For Credential]) — the load-bearing surface neither constituent provides — its own login rejection ([Credential Invalid]), the distinctive `login_event_log` classifications it records ([Outcome], with its [Success With Map Failure] and [Failed Storage Failure] members), and the cascade result's integrity-gap counter ([Not Found]). The two eponymous thin-wrapper actions — login (verify → issue) and logout (revoke) — are left backticked (their names would also collide with the page heading and the *Logout* example anchor). Its emergent state — the cascade maps (`credential_to_sessions`, `session_to_credential`) and the `login_event_log` — is a composition-introduced surface no constituent provides, left as backticked store tokens. References to the constituent atoms and their operations — Credential's `verify` / `register` / `revoke`, Session's `issue` / `revoke` / `validate`, Audit Trail's `record_action` — the relayed tokens (principal_ref, credential_id, session_token, credential_type), the constituent states (`Active` / `Revoked`, and the derived `Expired` effective status), the Audit Trail event types (login_succeeded, session_revoked_by_cascade, orphan_session_revoked, …), and the inherited rejections (invalid-request, `not-known`, `already-terminal`, storage-failure) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the emergent cascade action it exposes ([Revoke Sessions For Credential]) — the load-bearing surface neither constituent provides — its own login rejection ([Credential Invalid]), the distinctive `login_event_log` classifications it records ([Outcome], with its [Success With Map Failure] and [Failed Storage Failure] members), and the cascade result's integrity-gap counter ([Not Found]). The two eponymous thin-wrapper actions — login (verify → issue) and logout (revoke) — are left backticked (their names would also collide with the page heading and the *Logout* example anchor). Its emergent state — the cascade maps (`credential_to_sessions`, `session_to_credential`) and the `login_event_log` — is a composition-introduced surface no constituent provides, left as backticked store tokens. References to the constituent atoms and their operations — Credential's `verify` / `register` / `revoke`, Session's `issue` / `revoke` / `validate`, Audit Trail's `record_action` — the relayed tokens (principal_ref, credential_id, session_token, credential_type), the constituent states (`Active` / `Revoked`, and the derived `Expired` effective status), the Audit Trail event types (login_succeeded, session_revoked_by_cascade, orphan_session_revoked, …), and the inherited rejections (invalid-request, `not-known`, `already-terminal`, storage-failure) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -497,46 +497,46 @@ Kind: Operation
 
 The composition's own login rejection — returned when `Credential.verify` fails (`failed-verification(reason)`): the credential check did not pass, so no session is issued and a failed-login event is recorded. The observable form of the credential-gates-issuance boundary (Invariant 1).
 
-Kind:      Member
-Member of: the login rejection
-Role:      Rejection
-Projects:  credential-invalid
+Kind:       Member
+Member of:  the login rejection
+Role:       Rejection
+Projection: credential-invalid
 
 #### Outcome
 
 The `login_event_log` entry's classification of a login call: one of `success`, [Success With Map Failure], `failed-verification(reason)`, or [Failed Storage Failure]. Every login call appends exactly one entry (Invariant 4), giving the composition a records-alone query surface alongside the tamper-evident Audit Trail.
 
-Kind:      Field
-Field of:  the login-event-log entry
-Role:      the login-attempt classification
-Projects:  outcome
+Kind:       Field
+Field of:   the login-event-log entry
+Role:       the login-attempt classification
+Projection: outcome
 
 #### Success With Map Failure
 
 The [Outcome] for the load-bearing step-5 asymmetry: `Session.issue` succeeded and the session was returned to the caller, but the cascade-map write failed. The session is valid and stays cascade-covered through the event side (Invariant 2.3's union); the login_map_write_failure Audit Trail event is both that coverage and the canonical remediation signal for the fast-path map.
 
-Kind:      Member
-Member of: the login outcome
-Role:      Outcome
-Projects:  success-with-map-failure
+Kind:       Member
+Member of:  the login outcome
+Role:       Outcome
+Projection: success-with-map-failure
 
 #### Failed Storage Failure
 
 The [Outcome] for a login call that failed at a named stage (`credential-id-lookup`, `credential-id-confirm`, or `session-issue`) after credential verification but before a session was issued. Carries the stage; the session token is null.
 
-Kind:      Member
-Member of: the login outcome
-Role:      Outcome
-Projects:  failed-storage-failure
+Kind:       Member
+Member of:  the login outcome
+Role:       Outcome
+Projection: failed-storage-failure
 
 #### Not Found
 
 The [Revoke Sessions For Credential] counter for a data-integrity gap: a session_token present in `credential_to_sessions` but absent from the Session store (`Session.validate → invalid(not-known)`). Distinct from skipped (already-terminal sessions); each increment writes a `session_not_found_during_cascade` event for investigation.
 
-Kind:      Field
-Field of:  the cascade result
-Role:      the integrity-gap count
-Projects:  not_found
+Kind:       Field
+Field of:   the cascade result
+Role:       the integrity-gap count
+Projection: not_found
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a term marker to its term entry heading above (kramdown

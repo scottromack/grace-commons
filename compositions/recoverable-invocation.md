@@ -1391,27 +1391,27 @@ Kind: Operation
 
 The positioned failure code `recording-failure(intent | outcome | refusal | resolution)`; refusal carries a second slot for the constituent's pre-commit code. intent: nothing committed, retry the action. outcome: the act exists or may exist, never re-run; the sweep or an operator writes the record. refusal: the intent stays open; the sweep or an operator closes it. resolution: nothing appended — the one retry-safe arm of [Resolve].
 
-Kind:      Type
-Role:      the positioned failure code
-Projects:  recording_failure
+Kind:       Type
+Role:       the positioned failure code
+Projection: recording_failure
 
 #### Act In Flight
 
 [Open]'s refusal where an open intent for the same act exists — younger than the bound (another invocation is between intent and outcome) or older (a dead invocation the sweep will close within the window). Carries the open invocation_id.
 
-Kind:      Member
-Member of: the open rejections
-Role:      Rejection
-Projects:  act_in_flight
+Kind:       Member
+Member of:  the open rejections
+Role:       Rejection
+Projection: act_in_flight
 
 #### Section Unavailable
 
 [Open]'s and [Resolve]'s refusal where the act's section could not be taken within the current holder's remaining lease; nothing is written and the call may be retried.
 
-Kind:      Member
-Member of: the open rejections and the resolve rejections
-Role:      Rejection
-Projects:  section_unavailable
+Kind:       Member
+Member of:  the open rejections and the resolve rejections
+Role:       Rejection
+Projection: section_unavailable
 
 #### Not Open
 
@@ -1431,53 +1431,53 @@ WHY: on a multi-node instance a local absence is not a miss, and a retained hand
 
 The read's answer for an act with no readable intent at all, at [Read Invocation] and at [Resolve]. Absence, not destruction: a lawfully purged intent is answered `invalid-request(purged)` at [Resolve], which takes intent_event_id for exactly that reason. [Read Invocation] is the one surface that cannot make the distinction and says so.
 
-Kind:      Member
-Member of: the read rejections and the resolve rejections
-Role:      Rejection
-Projects:  not_known
+Kind:       Member
+Member of:  the read rejections and the resolve rejections
+Role:       Rejection
+Projection: not_known
 
 #### Finding
 
 A record in the instance's `findings` register (*Composition state* owns the contract). An act finding names one act the run could not close and carries no span; an instance finding names a condition of the instance, or of one bound kind, and carries one.
 
-Kind:      Type
-Role:      the surfaced record
-Projects:  finding
+Kind:       Type
+Role:       the surfaced record
+Projection: finding
 
 #### Binding Duplicate
 
 The one token three surfaces agree on — [Read Invocation]'s two fields, [Reconcile] step 5's scan, Generation acceptance check 2 — answering two keys. Closings key: two closing records naming one invocation_id that neither supersede one another nor are superseded; holds under every binding. Intents key: two intents open at once on one `(kind, act_key)`; holds only if the kind declares a service_identity. §*Which closing stands* owns both keys.
 
-Kind:      Type
-Role:      the conformance finding two writers leave
-Projects:  binding_duplicate
+Kind:       Type
+Role:       the conformance finding two writers leave
+Projection: binding_duplicate
 
 #### Journal Unavailable
 
 The read-path outage code at [Open] step 3, [Reconcile] step 1 and [Read Invocation]: nothing was written, retry. A read's failure, never a write's. [Close], [Refuse] and [Resolve] do not carry it — by the time they read, the act's existence is decided, so their read failures land on their position's recording-failure arm.
 
-Kind:      Member
-Member of: the open rejections and the sweep's
-Role:      Rejection
-Projects:  journal_unavailable
+Kind:       Member
+Member of:  the open rejections and the sweep's
+Role:       Rejection
+Projection: journal_unavailable
 
 #### Already Accounted
 
 [Refuse]'s and [Resolve]'s refusal where a closing record already names the invocation_id; carries that record's `event_id`. Nothing is appended; the caller reports the act as accounted for. Distinct from not-open (a programming-error diagnosis never decided from a journal read) and not named `already-closed`, a constituent's pre-commit code an adopter transcribes verbatim.
 
-Kind:      Member
-Member of: the refuse rejections and the resolve rejections
-Role:      Rejection
-Projects:  already_accounted
+Kind:       Member
+Member of:  the refuse rejections and the resolve rejections
+Role:       Rejection
+Projection: already_accounted
 
 #### Act Landed
 
 [Open]'s refusal for a non-repeatable act whose outcome already exists; carries the outcome_event_id. The adopter's own re-entry arm answers the caller.
 
-Kind:      Member
-Member of: the open rejections
-Role:      Rejection
-Projects:  act_landed
+Kind:       Member
+Member of:  the open rejections
+Role:       Rejection
+Projection: act_landed
 
 [Open]: #open
 [Close]: #close

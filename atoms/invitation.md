@@ -564,119 +564,119 @@ Kind: Operation
 The record this atom defines: one invitation, issued by one inviter to join one context, resolved by at most one write. Carries [Invitation Token], [Inviter Ref], an optional [Invitee Ref], [Context], [Initiated At], [Expires At], [Status], and the resolution fields of whichever write settled it.
 
 Kind: Type
-Projects: status
+Projection: status
 
 #### Invitation Token
 
 The opaque, immutable identity of an [Invitation] and the bearer credential a holder presents. Assigned on [Initiate] from the token material the seam supplies, drawn from a cryptographically random source, and unique by the store's refusal of a colliding write rather than by probability.
 
-Kind:     Field
-Field of: Invitation
-Projects: invitation_token
+Kind:       Field
+Field of:   Invitation
+Projection: invitation_token
 
 #### Inviter Ref
 
 The opaque reference naming who issued the invitation. Required, set on [Initiate], immutable thereafter. The atom does not confirm it names a known actor, nor that the actor was authorized to invite.
 
-Kind:     Field
-Field of: Invitation
-Projects: inviter_ref
+Kind:       Field
+Field of:   Invitation
+Projection: inviter_ref
 
 #### Invitee Ref
 
 The opaque reference naming the intended recipient. **Optional** — an invitation is very often addressed to someone with no system identity yet, which is the case this atom exists to serve. Never validated, and never matched against [Accepting Identity Ref].
 
-Kind:     Field
-Field of: Invitation
-Projects: invitee_ref
+Kind:       Field
+Field of:   Invitation
+Projection: invitee_ref
 
 #### Context
 
 The opaque descriptor of what the invitee is being invited to join — an organization, a workspace, a role. Required, immutable, and interpreted by the composing pattern rather than here.
 
-Kind:     Field
-Field of: Invitation
-Projects: context
+Kind:       Field
+Field of:   Invitation
+Projection: context
 
 #### Initiated At
 
 The instant the invitation was issued, stamped from [Now] on [Initiate]. Immutable.
 
-Kind:     Field
-Field of: Invitation
-Projects: initiated_at
+Kind:       Field
+Field of:   Invitation
+Projection: initiated_at
 
 #### Expires At
 
 The instant the window closes, recorded on [Initiate] as the expiry bound. Immutable, never absent, and the sole stored input the derived [Effective Status] needs.
 
-Kind:     Field
-Field of: Invitation
-Projects: expires_at
+Kind:       Field
+Field of:   Invitation
+Projection: expires_at
 
 #### Status
 
 The stored status of an [Invitation] — [Pending], [Accepted], [Declined] or [Revoked]. [Expired] is not a value of this field; it appears only in the derived [Effective Status].
 
-Kind:     Field
-Field of: Invitation
-Projects: status
+Kind:       Field
+Field of:   Invitation
+Projection: status
 
 #### Accepting Identity Ref
 
 The identity bound at acceptance — the permanent record of who joined. Recorded on [Accept], never absent on an [Accepted] invitation, immutable once set.
 
-Kind:     Field
-Field of: Invitation
-Projects: accepting_identity_ref
+Kind:       Field
+Field of:   Invitation
+Projection: accepting_identity_ref
 
 #### Accepted At
 
 The instant the acceptance committed, stamped from [Now] on [Accept]. Present only in [Accepted]; immutable once set.
 
-Kind:     Field
-Field of: Invitation
-Projects: accepted_at
+Kind:       Field
+Field of:   Invitation
+Projection: accepted_at
 
 #### Declined At
 
 The instant the refusal was recorded, stamped from [Now] on [Decline]. Present only in [Declined]; immutable once set. It is the whole of what a decline records.
 
-Kind:     Field
-Field of: Invitation
-Projects: declined_at
+Kind:       Field
+Field of:   Invitation
+Projection: declined_at
 
 #### Revoked At
 
 The instant the withdrawal was recorded, stamped from [Now] on [Revoke]. Present only in [Revoked]; immutable once set.
 
-Kind:     Field
-Field of: Invitation
-Projects: revoked_at
+Kind:       Field
+Field of:   Invitation
+Projection: revoked_at
 
 #### Revoked By Ref
 
 The opaque reference naming who withdrew the invitation. Required on [Revoke], never blank on a [Revoked] invitation.
 
-Kind:     Field
-Field of: Invitation
-Projects: revoked_by_ref
+Kind:       Field
+Field of:   Invitation
+Projection: revoked_by_ref
 
 #### Revocation Reason
 
 The caller-supplied [Reason] for the withdrawal. Required on [Revoke] and never blank, because withdrawal is the one resolution taken against the invitee rather than by them.
 
-Kind:     Field
-Field of: Invitation
-Projects: revocation_reason
+Kind:       Field
+Field of:   Invitation
+Projection: revocation_reason
 
 #### Effective Status
 
 The status a [Read] answers: [Expired] where the invitation reads lapsed, and the stored [Status] otherwise. A projection over the invitation and [Now] — computed at read time, never stored, and the only surface on which [Expired] appears.
 
-Kind:     Field
-Field of: Invitation
-Projects: effective_status
+Kind:       Field
+Field of:   Invitation
+Projection: effective_status
 
 #### TTL
 
@@ -684,7 +684,7 @@ The window length supplied to [Initiate]. Optional — an absent one takes the d
 
 Kind:         Parameter
 Parameter of: Initiate
-Projects:     ttl
+Projection:   ttl
 
 #### Reason
 
@@ -692,7 +692,7 @@ The withdrawal reason supplied to [Revoke], recorded as [Revocation Reason]. Req
 
 Kind:         Parameter
 Parameter of: Revoke
-Projects:     reason
+Projection:   reason
 
 #### Now
 
@@ -700,7 +700,7 @@ The wall-time reading the host takes at the seam and hands to the transition, as
 
 Kind:         Parameter
 Parameter of: Initiate
-Projects:     now
+Projection:   now
 
 #### Pending
 
@@ -746,46 +746,46 @@ Role:      Outcome
 
 The refusal returned when a required argument is blank, or a supplied [TTL] falls outside the ttl bounds, or no default ttl is declared. On a resolving write it is reached only after every status check passes.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Not Known
 
 The refusal a resolving write returns when the supplied [Invitation Token] names no invitation. A lookup miss, distinct from a status or window rejection.
 
-Kind:      Member
-Member of: the resolving-write rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the resolving-write rejection
+Role:       Outcome
+Projection: not-known
 
 #### Already Resolved
 
 The refusal a resolving write returns when the invitation already stands in a stored terminal, naming which one. A bare answer without the terminal is not conformant — `already-resolved(accepted)` and `already-resolved(revoked)` are different facts about why the call failed.
 
-Kind:      Member
-Member of: the resolving-write rejection
-Role:      Outcome
-Projects:  already-resolved
+Kind:       Member
+Member of:  the resolving-write rejection
+Role:       Outcome
+Projection: already-resolved
 
 #### Expired Rejection
 
 The refusal a resolving write returns when the invitation stands in [Pending] and reads lapsed. Nothing is written and the record is left [Pending]. Never spelled as an already-resolved payload, because there is no stored [Expired] to name.
 
-Kind:      Member
-Member of: the resolving-write rejection
-Role:      Outcome
-Projects:  expired
+Kind:       Member
+Member of:  the resolving-write rejection
+Role:       Outcome
+Projection: expired
 
 #### Storage Failure
 
 The refusal any action returns when the store refuses the write after every precondition passes — including the store's refusal of a colliding [Invitation Token]. No invitation is recorded, or the invitation remains [Pending].
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

@@ -583,97 +583,97 @@ Kind: Operation
 
 The opaque, immutable, system-generated identity of a consent record, assigned on [Grant], never reused or reassigned within the store instance. A non-empty string sortable in lexicographic byte-order — required for deterministic [Read] ordering and [Check] tiebreaking. The subject, purpose, actor, and timestamps are properties of the record, not its identity.
 
-Kind:     Field
-Field of: the consent record
-Projects: consent_id
+Kind:       Field
+Field of:   the consent record
+Projection: consent_id
 
 #### Subject Ref
 
 The opaque reference to the data subject whose consent is recorded. Set on [Grant], immutable. The atom does not validate that the subject exists elsewhere; it is the caller's responsibility.
 
-Kind:     Field
-Field of: the consent record
-Projects: subject_ref
+Kind:       Field
+Field of:   the consent record
+Projection: subject_ref
 
 #### Purpose
 
 The opaque string naming the processing-purpose scope the consent covers (e.g., `marketing:email`). Set on [Grant], immutable, caller-declared vocabulary the atom does not interpret. Two records with the same [Subject Ref] and [Purpose] are distinct records.
 
-Kind:     Field
-Field of: the consent record
-Projects: purpose
+Kind:       Field
+Field of:   the consent record
+Projection: purpose
 
 #### Granted By
 
 The opaque reference to the actor who recorded the data subject's affirmative agreement — the attribution anchor for the consent event. Set on [Grant], immutable; empty or whitespace-only is rejected.
 
-Kind:     Field
-Field of: the consent record
-Projects: granted_by
+Kind:       Field
+Field of:   the consent record
+Projection: granted_by
 
 #### Granted At
 
 The timestamp the consent was granted, stamped from the injected [Now] at [Grant]. Set once, immutable (Invariant 1). The lower temporal bound for [Revoked At] (Invariant 5) and the selection key for [Check] / ordering key for [Read].
 
-Kind:     Field
-Field of: the consent record
-Projects: granted_at
+Kind:       Field
+Field of:   the consent record
+Projection: granted_at
 
 #### Expires At
 
 The optional timestamp at which the consent expires. Set on [Grant] (must be strictly in the future relative to the injected [Now]); immutable. When [Expires At] ≤ the evaluating clock and no revocation precedes it, the semantic state is [Expired]. Absent ⇒ the consent never expires by time.
 
-Kind:     Field
-Field of: the consent record
-Projects: expires_at
+Kind:       Field
+Field of:   the consent record
+Projection: expires_at
 
 #### Metadata
 
 The optional opaque payload supplied at [Grant] — consent form version, signal type, jurisdiction. Stored as-is, never parsed or validated; immutable after grant (Invariant 1). Deployment-specific content rules belong to the composing layer.
 
-Kind:     Field
-Field of: the consent record
-Projects: metadata
+Kind:       Field
+Field of:   the consent record
+Projection: metadata
 
 #### Revoked By
 
 The opaque reference to the actor who recorded the withdrawal. Set at [Revoke], immutable thereafter; present on [Revoked] records only. Empty or whitespace-only is rejected [Invalid Request].
 
-Kind:     Field
-Field of: the consent record
-Projects: revoked_by
+Kind:       Field
+Field of:   the consent record
+Projection: revoked_by
 
 #### Revocation Reason
 
 The required, non-empty reason for the withdrawal — written from the [Reason] parameter. Set at [Revoke], immutable thereafter; present on [Revoked] records only. A blank reason defeats the audit trail and is rejected.
 
-Kind:     Field
-Field of: the consent record
-Projects: revocation_reason
+Kind:       Field
+Field of:   the consent record
+Projection: revocation_reason
 
 #### Revoked At
 
 The timestamp the consent was revoked — supplied or defaulted to the injected [Now]. Must not be future and must be ≥ [Granted At] (Invariant 5). Set at [Revoke], immutable; present on [Revoked] records only.
 
-Kind:     Field
-Field of: the consent record
-Projects: revoked_at
+Kind:       Field
+Field of:   the consent record
+Projection: revoked_at
 
 #### State
 
 The consent record's lifecycle state — [Granted], [Revoked], or [Expired]. The stored [State] field is a materialized cache of the derived semantic state, constrained to equal it at read time (Invariants 2 and 6) — not the authority for expiry, which is derived.
 
-Kind:     Field
-Field of: the consent record
-Projects: state
+Kind:       Field
+Field of:   the consent record
+Projection: state
 
 #### Store Name
 
 The identifier of the store instance a consent record belongs to. Multiple instances coexist; [Consent Id]s are unique within an instance. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
 
-Kind:     Field
-Field of: the store instance
-Projects: store_name
+Kind:       Field
+Field of:   the store instance
+Projection: store_name
 
 #### Now
 
@@ -681,7 +681,7 @@ The current clock reading the pipeline consumes — the injected `clock_t`, supp
 
 Kind:         Parameter
 Parameter of: Grant
-Projects:     now
+Projection:   now
 
 #### At Time
 
@@ -689,7 +689,7 @@ The point-in-time the caller is asking [Check] about — a caller-supplied query
 
 Kind:         Parameter
 Parameter of: Check
-Projects:     at_time
+Projection:   at_time
 
 #### Reason
 
@@ -697,7 +697,7 @@ The required, non-empty reason string [Revoke] consumes — written into [Revoca
 
 Kind:         Parameter
 Parameter of: Revoke
-Projects:     reason
+Projection:   reason
 
 #### Query
 
@@ -705,7 +705,7 @@ The selection [Read] consumes — a filter over [Consent Id], [Subject Ref], [Pu
 
 Kind:         Parameter
 Parameter of: Read
-Projects:     query
+Projection:   query
 
 #### Granted
 
@@ -735,55 +735,55 @@ Role:      Outcome
 
 The outcome [Check] returns — and the refusal [Revoke] returns — when no record exists for the queried (subject, [Purpose]) pair, or when the named [Consent Id] references no record in this store instance. A first-class [Check] result, never an error there.
 
-Kind:      Member
-Member of: the action outcome
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action outcome
+Role:       Outcome
+Projection: not-known
 
 #### Invalid Request
 
 The refusal [Grant] or [Revoke] returns when request fields fail — an empty or whitespace-only [Subject Ref], [Purpose], [Granted By], [Revoked By], or [Reason]; an [Expires At] not in the future at [Grant]; a malformed [Consent Id]; or a [Revoked At] that is future or before [Granted At].
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Storage Failure
 
 The refusal any writing action returns when a durable write fails after preconditions pass. All-or-none: no partial record is observable, and the prior state is unchanged (Invariant 8).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Already Revoked
 
 The refusal [Revoke] returns when the target is already [Revoked] — terminal absorption (Invariant 3); a pure guard that writes nothing.
 
-Kind:      Member
-Member of: the Revoke rejection
-Role:      Outcome
-Projects:  already-revoked
+Kind:       Member
+Member of:  the Revoke rejection
+Role:       Outcome
+Projection: already-revoked
 
 #### Already Expired
 
 The refusal [Revoke] returns when the target is already [Expired] — terminal absorption (Invariant 3); a pure guard, evaluated as the derived semantic state, that writes nothing.
 
-Kind:      Member
-Member of: the Revoke rejection
-Role:      Outcome
-Projects:  already-expired
+Kind:       Member
+Member of:  the Revoke rejection
+Role:       Outcome
+Projection: already-expired
 
 #### Invalid Query
 
 The refusal [Read] returns when query parameters are malformed — a null/empty/whitespace filter value, a [State] value outside {[Granted], [Revoked], [Expired]}, a time range with end before start, or an unrecognized filter key.
 
-Kind:      Member
-Member of: the Read rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the Read rejection
+Role:       Outcome
+Projection: invalid-query
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

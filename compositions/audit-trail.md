@@ -1500,7 +1500,7 @@ WHY: two things put an event in the tail — the cadence has not fired, or a sea
 
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind** — Type, Operation, Member, Field or Parameter — with the Type it is a Member of, its Role, and one **Projects** line for every pinned or wire Member, the single canonical lowering token every target casing is derived from by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs). This is a composition, so its concepts are the composed action-wirings, the consolidated read, the derived read over eligible events, the [Audit Record], and its own outcomes and rejections. Backticked rather than carded, because they are reasons or qualifiers under inherited tokens rather than outcomes of their own: `unsealed` and purged under `failed-verification(...)`, partially-purged-coverage under `unverifiable(...)`, the `(compensation-window)` qualifier, and the reserved references `audit.compensation` and `audit.reconciliation`. The erasure mechanism's two outcome values belong to the deployment-declared mechanism and stay uncarded on the same terms as the constituent tokens; the derived indexes store no truth the constituent stores do not, and the three extraction-pending facts will be carded on Erasure Tombstone's own page when it lands. Constituent operations, inherited outcome tokens, constituent id tokens, the seventeen knobs and the per-act section stay backticked. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind** — Type, Operation, Member, Field or Parameter — with the Type it is a Member of, its Role, and one **Projection** line for every pinned or wire Member, the single canonical lowering token every target casing is derived from by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs). This is a composition, so its concepts are the composed action-wirings, the consolidated read, the derived read over eligible events, the [Audit Record], and its own outcomes and rejections. Backticked rather than carded, because they are reasons or qualifiers under inherited tokens rather than outcomes of their own: `unsealed` and purged under `failed-verification(...)`, partially-purged-coverage under `unverifiable(...)`, the `(compensation-window)` qualifier, and the reserved references `audit.compensation` and `audit.reconciliation`. The erasure mechanism's two outcome values belong to the deployment-declared mechanism and stay uncarded on the same terms as the constituent tokens; the derived indexes store no truth the constituent stores do not, and the three extraction-pending facts will be carded on Erasure Tombstone's own page when it lands. Constituent operations, inherited outcome tokens, constituent id tokens, the seventeen knobs and the per-act section stay backticked. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -1570,73 +1570,73 @@ Kind: Type
 
 The composition's rejection for *a store refused the write*, carrying the step: from [Record Action] on any constituent storage-failure — nothing committed at step 2, a partial state after the attestation at step 3 or 4 — and as a lease host's terminus between steps 2 and 4; from [Seal Now] when the seal store would not persist a computed proof. The surface that failed is a store, not a mechanism.
 
-Kind:      Member
-Member of: the record-action and seal rejections
-Role:      Rejection
-Projects:  recording-failure
+Kind:       Member
+Member of:  the record-action and seal rejections
+Role:       Rejection
+Projection: recording-failure
 
 #### Nothing To Seal
 
 The composition's rejection from [Seal Now] when the unsealed tail is empty.
 
-Kind:      Member
-Member of: the seal rejection
-Role:      Rejection
-Projects:  nothing-to-seal
+Kind:       Member
+Member of:  the seal rejection
+Role:       Rejection
+Projection: nothing-to-seal
 
 #### Mechanism Failure
 
 The composition's rejection from [Seal Now] when the mechanism could not compute a proof, carrying the constituent's `(reason)` unchanged: a transient outage or a standing preconditions failure, told apart by the reason. Not a malformed request (invalid-request) and not a store refusal ([Recording Failure]). No coverage entry is written and sealed_through does not move.
 
-Kind:      Member
-Member of: the seal rejection
-Role:      Rejection
-Projects:  mechanism-failure
+Kind:       Member
+Member of:  the seal rejection
+Role:       Rejection
+Projection: mechanism-failure
 
 #### Cascade Failure
 
 The composition's rejection from [Purge Event] when a store or the seal mechanism refuses mid-cascade, carrying the step: seal and step-1 leave nothing changed and the event on [Purge Eligible]'s list; step-2 and step-3 leave the retention *Purged* over an incomplete cascade, invisible to [Purge Eligible] and re-driven by the reconciliation scan. On a lease host, the cascade's terminus after step 1.
 
-Kind:      Member
-Member of: the purge rejection
-Role:      Rejection
-Projects:  cascade-failure
+Kind:       Member
+Member of:  the purge rejection
+Role:       Rejection
+Projection: cascade-failure
 
 #### Not Eligible
 
 The composition's rejection from [Purge Event] when the retention has not elapsed and Retention Window's no-early-purge gate refuses the cascade.
 
-Kind:      Member
-Member of: the purge rejection
-Role:      Rejection
-Projects:  not-eligible
+Kind:       Member
+Member of:  the purge rejection
+Role:       Rejection
+Projection: not-eligible
 
 #### Retention Unresolved
 
 The composition's rejection from [Purge Event] step 0½ when the event_id resolves to a log entry but to no retention record — the compensation-window state of Invariant 2's liveness arm. Nothing to purge; the remedy is the reconciliation path. Distinct from not-known and from [Not Eligible].
 
-Kind:      Member
-Member of: the purge rejection
-Role:      Rejection
-Projects:  retention-unresolved
+Kind:       Member
+Member of:  the purge rejection
+Role:       Rejection
+Projection: retention-unresolved
 
 #### Under Legal Hold
 
 The conditional rejection from [Purge Event], present exactly when the deployment composes a [Legal Hold](../atoms/legal-hold.md) pattern: a preservation order intercepts the cascade before its first step, so no step runs.
 
-Kind:      Member
-Member of: the purge rejection
-Role:      Rejection
-Projects:  under-legal-hold
+Kind:       Member
+Member of:  the purge rejection
+Role:       Rejection
+Projection: under-legal-hold
 
 #### Unverifiable
 
 The composition's [Verify Record] outcome for *verification could not be performed*: two availability reasons, retried when the surface returns, and partially-purged-coverage, standing for the rest of the event's retained lifetime. Nothing is known to be wrong with the record.
 
-Kind:      Member
-Member of: the verify-record outcome
-Role:      Outcome
-Projects:  unverifiable
+Kind:       Member
+Member of:  the verify-record outcome
+Role:       Outcome
+Projection: unverifiable
 
 [Record Action]: #record-action
 [Seal Now]: #seal-now

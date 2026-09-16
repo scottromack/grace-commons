@@ -325,8 +325,8 @@ Kind: Type
 
 The atom's short-term memory: the collection of identities currently under guard, each held together with the time it was recorded. An [Identity] enters on [Record] and leaves automatically once its [Window] has elapsed. It is an internal mechanism, queryable for diagnostics, not a user-facing surface.
 
-Kind:     Type
-Projects: recorded
+Kind:       Type
+Projection: recorded
 
 #### Record
 
@@ -344,27 +344,27 @@ Kind: Operation
 
 The answer [Check] gives when the [Identity] is currently under guard — recorded, and still within its [Window]. It signals "this was observed recently"; the containing pattern decides whether that means reject, de-duplicate, or return an earlier result.
 
-Kind:      Member
-Member of: the Check outcome
-Role:      Outcome
-Projects:  seen
+Kind:       Member
+Member of:  the Check outcome
+Role:       Outcome
+Projection: seen
 
 #### Not Seen
 
 The answer [Check] gives when the [Identity] is not currently under guard — either never recorded, or its [Window] has elapsed. It signals "this is fresh"; the containing pattern is clear to proceed.
 
-Kind:      Member
-Member of: the Check outcome
-Role:      Outcome
-Projects:  not-seen
+Kind:       Member
+Member of:  the Check outcome
+Role:       Outcome
+Projection: not-seen
 
 #### Recorded At
 
 The moment an [Identity] was placed under guard — the per-entry timestamp the guard window is measured from. It is stamped from the injected [Now] on the [Record] that opens the guard, and a [Record] on an already-guarded [Identity] leaves it unchanged (single-recording). It is the only datum the [Recorded Set] carries per entry beyond the [Identity] itself.
 
-Kind:     Field
-Field of: Recorded Set
-Projects: recorded_at
+Kind:       Field
+Field of:   Recorded Set
+Projection: recorded_at
 
 #### Window Duration
 
@@ -372,7 +372,7 @@ The length the containing pattern chooses for a [Window] — how long a recently
 
 Kind:         Parameter
 Parameter of: Record
-Projects:     window
+Projection:   window
 
 #### Now
 
@@ -380,7 +380,7 @@ The current wall-time reading the [Record] and [Check] behaviors evaluate agains
 
 Kind:         Parameter
 Parameter of: Check
-Projects:     now
+Projection:   now
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

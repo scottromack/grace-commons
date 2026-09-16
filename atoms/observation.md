@@ -591,121 +591,121 @@ Kind: Operation
 
 The opaque, immutable, system-generated identity of an observation, assigned on [Record], never reused or reassigned within the store instance. The clinical content is a property of the observation, not its identity.
 
-Kind:     Field
-Field of: Observation
-Projects: observation_id
+Kind:       Field
+Field of:   Observation
+Projection: observation_id
 
 #### Subject Ref
 
 The opaque, globally-scoped reference to the subject the observation is about. Set on [Record], immutable, and inherited unchanged by any successor across an amendment chain (Invariant 4).
 
-Kind:     Field
-Field of: Observation
-Projects: subject_ref
+Kind:       Field
+Field of:   Observation
+Projection: subject_ref
 
 #### Recorded By
 
 The opaque reference to the observer who performed the measurement. Set on [Record], immutable; an amendment carries its own [Amended By] and never changes the original [Recorded By].
 
-Kind:     Field
-Field of: Observation
-Projects: recorded_by
+Kind:       Field
+Field of:   Observation
+Projection: recorded_by
 
 #### Observation Type
 
 The opaque string naming what was measured (a vital sign, lab result, assessment score). Set on [Record], immutable, inherited across an amendment chain (Invariant 5). It must have a declared value constraint at the deployment.
 
-Kind:     Field
-Field of: Observation
-Projects: observation_type
+Kind:       Field
+Field of:   Observation
+Projection: observation_type
 
 #### Value
 
 The measured value, validated against the declared per-[Observation Type] constraint at [Record] and [Amend] time. Set on [Record], immutable on the record it belongs to; a correction is a new successor [Value], not an edit.
 
-Kind:     Field
-Field of: Observation
-Projects: value
+Kind:       Field
+Field of:   Observation
+Projection: value
 
 #### Unit
 
 The unit of measure for the [Value], a non-empty opaque string. Set on [Record], immutable on its record; terminology standardization (UCUM) is a deployment convention.
 
-Kind:     Field
-Field of: Observation
-Projects: unit
+Kind:       Field
+Field of:   Observation
+Projection: unit
 
 #### Recorded At
 
 The wall-time the observation was recorded — supplied to [Record] or defaulted from the receiving node's wall clock; must not be future-dated. Set once (Invariant 8), immutable. A successor carries its own [Recorded At] (when the correction was entered), not the original measurement time.
 
-Kind:     Field
-Field of: Observation
-Projects: recorded_at
+Kind:       Field
+Field of:   Observation
+Projection: recorded_at
 
 #### State
 
 The observation's lifecycle state — [Recorded], [Amended], or [Retracted]. Set to [Recorded] on [Record]; transitions via [Amend] (original → [Amended]) and [Retract] (→ [Retracted]).
 
-Kind:     Field
-Field of: Observation
-Projects: state
+Kind:       Field
+Field of:   Observation
+Projection: state
 
 #### Predecessor Id
 
 The [Observation Id] of the record a successor corrects — set on the successor at [Amend] time, immutable thereafter (Invariant 9). At most one per observation (linear chains, Invariant 3).
 
-Kind:     Field
-Field of: Observation
-Projects: predecessor_id
+Kind:       Field
+Field of:   Observation
+Projection: predecessor_id
 
 #### Successor Id
 
 The [Observation Id] of the correcting record — set on the original when it is [Amended], immutable thereafter (Invariant 9). At most one per observation (linear chains, Invariant 3).
 
-Kind:     Field
-Field of: Observation
-Projects: successor_id
+Kind:       Field
+Field of:   Observation
+Projection: successor_id
 
 #### Amended By
 
 The opaque reference to the observer who made a correction — set on the successor at [Amend] time, immutable thereafter.
 
-Kind:     Field
-Field of: Observation
-Projects: amended_by
+Kind:       Field
+Field of:   Observation
+Projection: amended_by
 
 #### Amendment Reason
 
 The required, non-empty reason for a correction — set on the successor at [Amend] time, immutable thereafter. A blank reason defeats the audit trail and is rejected.
 
-Kind:     Field
-Field of: Observation
-Projects: amendment_reason
+Kind:       Field
+Field of:   Observation
+Projection: amendment_reason
 
 #### Retracted By
 
 The opaque reference to the observer who withdrew an observation — set at [Retract] time, immutable thereafter (Invariant 9).
 
-Kind:     Field
-Field of: Observation
-Projects: retracted_by
+Kind:       Field
+Field of:   Observation
+Projection: retracted_by
 
 #### Retraction Reason
 
 The required, non-empty reason for a retraction — set at [Retract] time, immutable thereafter. A blank reason is rejected.
 
-Kind:     Field
-Field of: Observation
-Projects: retraction_reason
+Kind:       Field
+Field of:   Observation
+Projection: retraction_reason
 
 #### Store Name
 
 The identifier of the store instance an observation belongs to. Multiple instances coexist; [Observation Id]s are unique within an instance, while [Subject Ref] is portable across instances. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
 
-Kind:     Field
-Field of: the store instance
-Projects: store_name
+Kind:       Field
+Field of:   the store instance
+Projection: store_name
 
 #### Reason
 
@@ -713,7 +713,7 @@ The required, non-empty reason string [Amend] and [Retract] consume — written 
 
 Kind:         Parameter
 Parameter of: Amend
-Projects:     reason
+Projection:   reason
 
 #### Query
 
@@ -721,7 +721,7 @@ The selection [Read] consumes — a filter over [Observation Id], [Subject Ref],
 
 Kind:         Parameter
 Parameter of: Read
-Projects:     query
+Projection:   query
 
 #### Recorded
 
@@ -751,64 +751,64 @@ Role:      Outcome
 
 The refusal [Record] (or [Amend]) returns when observation content fails — an empty/whitespace [Subject Ref], [Recorded By], [Observation Type], or [Unit]; a [Value] failing the per-type constraint; an [Observation Type] with no declared constraint; or a future-dated [Recorded At].
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-observation
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-observation
 
 #### Storage Failure
 
 The refusal any writing action returns when a durable write fails after preconditions pass. All-or-none: no partial record is observable (Invariant 7).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Not Known
 
 The refusal [Amend] or [Retract] returns when the named [Observation Id] references no record in this store instance — a lookup miss (a common cause is cross-instance referencing).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Already Amended
 
 The refusal [Amend] returns when the target is already [Amended] — it has a successor, and amending it again would branch the chain, which Invariant 3 prohibits.
 
-Kind:      Member
-Member of: the Amend rejection
-Role:      Outcome
-Projects:  already-amended
+Kind:       Member
+Member of:  the Amend rejection
+Role:       Outcome
+Projection: already-amended
 
 #### Already Retracted
 
 The refusal [Amend] or [Retract] returns when the target is already [Retracted] — retraction is terminal (Invariant 6).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  already-retracted
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: already-retracted
 
 #### Invalid Request
 
 The refusal [Amend] or [Retract] returns when request metadata fails — an empty or whitespace-only [Amended By], [Retracted By], or [Reason].
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Invalid Query
 
 The refusal [Read] returns when query parameters are malformed — a time range with end before start, an unrecognized state value, or a syntactically invalid [Observation Id].
 
-Kind:      Member
-Member of: the Read rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the Read rejection
+Role:       Outcome
+Projection: invalid-query
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

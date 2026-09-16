@@ -398,49 +398,49 @@ Kind: Operation
 
 The opaque, immutable identity of an [Event], allocated by the host at the I/O seam on [Append], never reused. It supports equality but carries no ordering — ordering is [Sequence Number]'s job.
 
-Kind:     Field
-Field of: Event
-Projects: event_id
+Kind:       Field
+Field of:   Event
+Projection: event_id
 
 #### Sequence Number
 
 The strictly increasing integer assigned to each [Event] at [Append]. It fixes the [Event]'s place in the total order and is the authoritative basis for ordering — kept separate from [Recorded At] on purpose, because a clock can drift but the sequence never does.
 
-Kind:     Field
-Field of: Event
-Projects: sequence_number
+Kind:       Field
+Field of:   Event
+Projection: sequence_number
 
 #### Recorded At
 
 The wall-time at which an [Event] was appended — an annotation of when, not the basis of order. Stamped from the host-injected clock on [Append]; best-effort monotonic, with [Sequence Number] authoritative if the clock misbehaves.
 
-Kind:     Field
-Field of: Event
-Projects: recorded_at
+Kind:       Field
+Field of:   Event
+Projection: recorded_at
 
 #### Data
 
 The opaque payload a composing pattern supplies on [Append] and the [Event] then carries. The Event Log stores and returns it verbatim and never interprets it.
 
-Kind:     Field
-Field of: Event
-Projects: data
+Kind:       Field
+Field of:   Event
+Projection: data
 
 #### Log Name
 
 The identifier that distinguishes one [Event Log] instance from the others co-existing in a system (one per audited subsystem, one per user history, and so on).
 
-Kind:     Field
-Field of: Event Log
-Projects: name
+Kind:       Field
+Field of:   Event Log
+Projection: name
 
 #### Next Sequence Number
 
 The [Sequence Number] the next appended [Event] will receive. It begins at 1 for a fresh instance and increments on each [Append]; durable implementations preserve it across restarts, or sequence-number monotonicity breaks over the instance's lifetime.
 
-Kind:     Field
-Field of: Event Log
-Projects: next_sequence_number
+Kind:       Field
+Field of:   Event Log
+Projection: next_sequence_number
 
 #### Query
 
@@ -448,34 +448,34 @@ The selection a caller passes to [Read] — a sequence-number range, a wall-time
 
 Kind:         Parameter
 Parameter of: Read
-Projects:     query
+Projection:   query
 
 #### Invalid Payload
 
 The refusal [Append] returns when the supplied [Data] violates the configured payload constraints (for example, exceeding the size cap). The [Event] does not land.
 
-Kind:      Member
-Member of: the Append rejection
-Role:      Outcome
-Projects:  invalid-payload
+Kind:       Member
+Member of:  the Append rejection
+Role:       Outcome
+Projection: invalid-payload
 
 #### Invalid Query
 
 The refusal [Read] returns when the [Query] is malformed — an invalid range, an unparseable predicate. No events are returned.
 
-Kind:      Member
-Member of: the Read rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the Read rejection
+Role:       Outcome
+Projection: invalid-query
 
 #### Storage Failure
 
 The refusal [Append] returns when the underlying store write fails after all preconditions pass. The caller must treat it as definitive — the [Event] did not land — though a [Sequence Number] may have been consumed (see Edge cases).
 
-Kind:      Member
-Member of: the Append rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the Append rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

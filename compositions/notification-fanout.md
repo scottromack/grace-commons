@@ -414,7 +414,7 @@ Composition note 4 is the mechanism-versus-policy split written as an obligation
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the single emergent action it exposes ([Fanout]) and the parts of the result that action returns — the [Fanout Id] correlation handle it takes from the seam, the [Fired At] instant at which it fixed the subscriber set, plus the [Created] and [Failed] lists that partition that set — and its own [Subscribers Unavailable] rejection. The composition keeps **no state of its own** (Composition state: none), so there is no record store to carry a term entry. References to the constituent atoms and their operations — Subscription's `subscribers_for`, Notification's `create` / `status_of` — the relayed constituent tokens (event_scope, `subscriber_ref`, `notification_id`, payload), and the composition's own boundary rejection (invalid-request, Primitive policy 1 through 2, inherited from neither constituent) remain qualified/backticked, not carded here (the write-side infrastructure failure carries no constituent token — it is the boundary-owned classification of action wiring step 4, absorbed into [Failed]). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the single emergent action it exposes ([Fanout]) and the parts of the result that action returns — the [Fanout Id] correlation handle it takes from the seam, the [Fired At] instant at which it fixed the subscriber set, plus the [Created] and [Failed] lists that partition that set — and its own [Subscribers Unavailable] rejection. The composition keeps **no state of its own** (Composition state: none), so there is no record store to carry a term entry. References to the constituent atoms and their operations — Subscription's `subscribers_for`, Notification's `create` / `status_of` — the relayed constituent tokens (event_scope, `subscriber_ref`, `notification_id`, payload), and the composition's own boundary rejection (invalid-request, Primitive policy 1 through 2, inherited from neither constituent) remain qualified/backticked, not carded here (the write-side infrastructure failure carries no constituent token — it is the boundary-owned classification of action wiring step 4, absorbed into [Failed]). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -439,46 +439,46 @@ Kind: Operation
 
 The opaque, invocation-unique correlation handle the composition generates for each fanout (Invariant 8). Present in every non-rejected result, including the empty-subscriber case; ephemeral unless Event Log is composed in, in which case it becomes the durable invocation identity. Not returned on rejection.
 
-Kind:      Field
-Field of:  the fanout result
-Role:      the invocation correlation handle
-Projects:  fanout_id
+Kind:       Field
+Field of:   the fanout result
+Role:       the invocation correlation handle
+Projection: fanout_id
 
 #### Created
 
 The result list of `notification_id`s for the subscribers whose `Notification.create` succeeded in this fanout.
 
-Kind:      Field
-Field of:  the fanout result
-Role:      the succeeded recipients
-Projects:  created
+Kind:       Field
+Field of:   the fanout result
+Role:       the succeeded recipients
+Projection: created
 
 #### Fired At
 
 The seam-injected clock reading the host supplied when the invocation began — a lower bound on the instant `subscribers_for` fixed the subscriber set, which the composition never observes. Returned so the caller's Event Log entry can pin the instant the composition held; the caller never reproduces it. It is the composition's one clock use (*Logic confinement*) and is a different seam's reading from each record's `created_at`.
 
-Kind:      Field
-Field of:  the fanout result
-Role:      the lower bound on the instant the subscriber set was fixed
-Projects:  fired_at
+Kind:       Field
+Field of:   the fanout result
+Role:       the lower bound on the instant the subscriber set was fixed
+Projection: fired_at
 
 #### Failed
 
 The result list of `subscriber_ref`s for whom no delivery record was observed — the constituent's declared invalid-request (no record exists) and the boundary-classified indeterminate outcome (a record may exist with an id the composition never saw) collapsed into one "delivery not observed" outcome, which is why a retry reconciles first. Together with [Created] it accounts for every subscriber in the query result (Invariant 1: `|created| + |failed| = |subscribers|`); it is the pressure valve that makes the reachable/unreachable split explicit rather than silent.
 
-Kind:      Field
-Field of:  the fanout result
-Role:      the unreached recipients (retry-eligible)
-Projects:  failed
+Kind:       Field
+Field of:   the fanout result
+Role:       the unreached recipients (retry-eligible)
+Projection: failed
 
 #### Subscribers Unavailable
 
 The composition's own rejection from [Fanout] — returned when the subscription-store read (`Subscription.subscribers_for`) fails with an infrastructure error. No notification records are created and no [Fanout Id] is returned; the invocation did not complete.
 
-Kind:      Member
-Member of: the fanout rejection
-Role:      Rejection
-Projects:  subscribers-unavailable
+Kind:       Member
+Member of:  the fanout rejection
+Role:       Rejection
+Projection: subscribers-unavailable
 
 #### Entropy Floor
 
@@ -486,7 +486,7 @@ The uniqueness bound this composition places on its host's id source: 128 bits o
 
 Kind:      Parameter
 Parameter of: the host
-Projects:  entropy_floor
+Projection: entropy_floor
 
 #### Read Latency Bound
 
@@ -494,14 +494,14 @@ The deployment's disclosed bound on the interval between the composition dispatc
 
 Kind:      Parameter
 Parameter of: the deployment
-Projects:  read_latency_bound
+Projection: read_latency_bound
 
 #### Boundary Window
 
 The interval the [Read Latency Bound] and the clock offset allowance together span around a [Fired At]. A subscribe or a cancel stamped inside it can move a reconstructed subscriber count by one, so a coverage mismatch inside the window is boundary-adjacent and one outside it is a violation (Check 1.5, Check 1.6).
 
 Kind: Type
-Projects: boundary_window
+Projection: boundary_window
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

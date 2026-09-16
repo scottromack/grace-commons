@@ -600,113 +600,113 @@ Kind: Operation
 
 The opaque, immutable, system-generated identity of an approval step, assigned on [Submit], never reused or reassigned within the store instance. It must be a non-empty string sortable in lexicographic byte-order (for deterministic [Read] ordering). The subject, approver, scope, submitter, reason, and timestamps are properties of the step, not its identity.
 
-Kind:     Field
-Field of: Approval Step
-Projects: step_id
+Kind:       Field
+Field of:   Approval Step
+Projection: step_id
 
 #### Subject Ref
 
 The opaque reference to the thing being approved — a document, transaction, work item, or protocol-deviation id. Set on [Submit], immutable thereafter. The atom does not validate that the subject exists or is in any particular state; that is the caller's responsibility.
 
-Kind:     Field
-Field of: Approval Step
-Projects: subject_ref
+Kind:       Field
+Field of:   Approval Step
+Projection: subject_ref
 
 #### Approver Ref
 
 The opaque reference to the actor required to approve. Set on [Submit], immutable. It is the authorization anchor: only the actor whose reference matches it may [Approve] or [Reject] the step (Invariant 4). Delegation is a composing concept, not a property of this atom.
 
-Kind:     Field
-Field of: Approval Step
-Projects: approver_ref
+Kind:       Field
+Field of:   Approval Step
+Projection: approver_ref
 
 #### Submitter Ref
 
 The opaque reference to the actor submitting the approval request. Set on [Submit], immutable. It is the attribution anchor for the submission and the authorization anchor for [Withdraw]: only the actor whose reference matches it may withdraw the step (Invariant 5).
 
-Kind:     Field
-Field of: Approval Step
-Projects: submitter_ref
+Kind:       Field
+Field of:   Approval Step
+Projection: submitter_ref
 
 #### Scope
 
 The non-empty string naming the kind of approval being requested (for example `"financial:journal-entry:post"`). Set on [Submit], immutable. The atom does not interpret scope semantics; it records the scope as an auditable field and uses it as an exact-match filter axis for [Read].
 
-Kind:     Field
-Field of: Approval Step
-Projects: scope
+Kind:       Field
+Field of:   Approval Step
+Projection: scope
 
 #### Reason
 
 The optional submission-context string supplied at [Submit] — a description of what is being approved, the underlying business rule, or a summary of the deviation. Stored under its own name; immutable thereafter. Its absence is valid; if supplied it must contain at least one non-whitespace character. (Distinct from the [Decision Reason] and [Withdrawal Reason] fields the resolving actions write.)
 
-Kind:     Field
-Field of: Approval Step
-Projects: reason
+Kind:       Field
+Field of:   Approval Step
+Projection: reason
 
 #### Submitted At
 
 The timestamp at which the step was submitted, set on [Submit] (caller-supplied or wall-clock-defaulted; must not be in the future). Immutable. It is the lower bound the temporal-ordering invariant measures decision and withdrawal timestamps against (Invariant 7).
 
-Kind:     Field
-Field of: Approval Step
-Projects: submitted_at
+Kind:       Field
+Field of:   Approval Step
+Projection: submitted_at
 
 #### State
 
 The field holding the step's current state — one of [Pending], [Approved], [Rejected], or [Withdrawn]. Set to [Pending] on [Submit]; transitions once to a terminal via [Approve], [Reject], or [Withdraw], then never changes (Invariants 2 and 3).
 
-Kind:     Field
-Field of: Approval Step
-Projects: state
+Kind:       Field
+Field of:   Approval Step
+Projection: state
 
 #### Decided By
 
 The opaque reference to the actor who decided, stamped on [Approve] or [Reject]. Present on [Approved] and [Rejected] steps; immutable once set. It must match [Approver Ref] for the decision to be accepted (Invariant 4) and must contain at least one non-whitespace character (Invariant 6).
 
-Kind:     Field
-Field of: Approval Step
-Projects: decided_by
+Kind:       Field
+Field of:   Approval Step
+Projection: decided_by
 
 #### Decision Reason
 
 The stated reason recorded with a decision, stamped on [Approve] or [Reject]. Required on a [Rejected] step (Invariant 6); optional on an [Approved] step. Present on [Approved] and [Rejected] steps only; immutable once set.
 
-Kind:     Field
-Field of: Approval Step
-Projects: decision_reason
+Kind:       Field
+Field of:   Approval Step
+Projection: decision_reason
 
 #### Decided At
 
 The timestamp at which the decision was recorded, stamped on [Approve] or [Reject] (caller-supplied or wall-clock-defaulted; must not be in the future). Present on [Approved] and [Rejected] steps; immutable once set. [Decided At] ≥ [Submitted At] always holds (Invariant 7).
 
-Kind:     Field
-Field of: Approval Step
-Projects: decided_at
+Kind:       Field
+Field of:   Approval Step
+Projection: decided_at
 
 #### Withdrawn By
 
 The opaque reference to the actor who withdrew the request, stamped on [Withdraw]. Present on [Withdrawn] steps; immutable once set. It must match [Submitter Ref] for the withdrawal to be accepted (Invariant 5) and must contain at least one non-whitespace character (Invariant 6).
 
-Kind:     Field
-Field of: Approval Step
-Projects: withdrawn_by
+Kind:       Field
+Field of:   Approval Step
+Projection: withdrawn_by
 
 #### Withdrawal Reason
 
 The stated reason recorded with a withdrawal, stamped on [Withdraw]. Required (Invariant 6). Present on [Withdrawn] steps only; immutable once set.
 
-Kind:     Field
-Field of: Approval Step
-Projects: withdrawal_reason
+Kind:       Field
+Field of:   Approval Step
+Projection: withdrawal_reason
 
 #### Withdrawn At
 
 The timestamp at which the withdrawal was recorded, stamped on [Withdraw] (caller-supplied or wall-clock-defaulted; must not be in the future). Present on [Withdrawn] steps; immutable once set. [Withdrawn At] ≥ [Submitted At] always holds (Invariant 7).
 
-Kind:     Field
-Field of: Approval Step
-Projects: withdrawn_at
+Kind:       Field
+Field of:   Approval Step
+Projection: withdrawn_at
 
 #### Query
 
@@ -714,97 +714,97 @@ The selection a caller passes to [Read] to scope which steps are returned — an
 
 Kind:         Parameter
 Parameter of: Read
-Projects:     query
+Projection:   query
 
 #### Pending
 
 The single non-terminal state: the approval gate is open and no terminal decision has been made. The lifecycle proceeds [Pending] → one of {[Approved], [Rejected], [Withdrawn]}. It is also the state filter value queried for outstanding gates on a subject.
 
-Kind:      Member
-Member of: the step state
-Role:      Outcome
-Projects:  pending
+Kind:       Member
+Member of:  the step state
+Role:       Outcome
+Projection: pending
 
 #### Approved
 
 The terminal state a step reaches when the named approver affirmatively decided within [Approve]. Carries all submission fields plus [Decided By], [Decision Reason] (if supplied), and [Decided At]. Absorbing: no action transitions it elsewhere. It is also the [Approve] success token and a state filter value.
 
-Kind:      Member
-Member of: the step state
-Role:      Outcome
-Projects:  approved
+Kind:       Member
+Member of:  the step state
+Role:       Outcome
+Projection: approved
 
 #### Rejected
 
 The terminal state a step reaches when the named approver negatively decided within [Reject]. Carries all submission fields plus [Decided By], [Decision Reason] (required), and [Decided At]. Absorbing. As a state filter value its wire form is rejected; the [Reject] success token is the distinct rejected_outcome, kept verbatim in the projected contract.
 
-Kind:      Member
-Member of: the step state
-Role:      Outcome
-Projects:  rejected
+Kind:       Member
+Member of:  the step state
+Role:       Outcome
+Projection: rejected
 
 #### Withdrawn
 
 The terminal state a step reaches when the submitter retracted the request within [Withdraw]. Carries all submission fields plus [Withdrawn By], [Withdrawal Reason], and [Withdrawn At]. Absorbing. It is also the [Withdraw] success token and a state filter value.
 
-Kind:      Member
-Member of: the step state
-Role:      Outcome
-Projects:  withdrawn
+Kind:       Member
+Member of:  the step state
+Role:       Outcome
+Projection: withdrawn
 
 #### Invalid Request
 
 The rejection a write action ([Submit], [Approve], [Reject], [Withdraw]) returns when an input is malformed — a blank required field, a malformed [Step Id], a missing-reason [Reject]/[Withdraw], a future or backdated-before-[Submitted At] timestamp. A guard rejection that writes nothing.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Not Known
 
 The rejection a resolving action ([Approve], [Reject], [Withdraw]) returns when the supplied [Step Id] is well-formed but references no step in the store. Checked after the malformed-[Step Id] guard and before the state check.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Pending
 
 The rejection a resolving action returns when the referenced step is already terminal — [Approved], [Rejected], or [Withdrawn]. It is the structural expression of terminal absorption (Invariant 3): no further transition is admitted.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-pending
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-pending
 
 #### Unauthorized
 
 The rejection a resolving action returns when the deciding actor is not the authorized one — [Decided By] not matching [Approver Ref] on [Approve]/[Reject], or [Withdrawn By] not matching [Submitter Ref] on [Withdraw]. The record is left [Pending] and nothing is written (Invariants 4 and 5).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  unauthorized
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: unauthorized
 
 #### Storage Failure
 
 The rejection any write action returns when the underlying store write fails after all preconditions pass. No [Step Id] is issued on [Submit]; a resolving action leaves the step in [Pending]. The caller must retry.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Invalid Query
 
 The rejection [Read] returns when a filter is malformed — a blank string-axis value, a [State] value outside the four states, a time range with end before start, or an unrecognized filter key (rejected rather than silently ignored).
 
-Kind:      Member
-Member of: the Read rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the Read rejection
+Role:       Outcome
+Projection: invalid-query
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

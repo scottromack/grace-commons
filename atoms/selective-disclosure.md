@@ -478,101 +478,101 @@ Kind: Operation
 
 The opaque, immutable identity of a disclosure record — the injected `id_t`, supplied at the I/O seam (fresh per call, never reused), byte-order sortable for deterministic [Read] ordering (Invariant 6). It is the record's identity; the other fields are properties.
 
-Kind:     Field
-Field of: the disclosure record
-Projects: disclosure_id
+Kind:       Field
+Field of:   the disclosure record
+Projection: disclosure_id
 
 #### Subject Ref
 
 The opaque reference to the data subject whose data was disclosed. Set on [Record], immutable, non-whitespace (Invariant 3); the same subject may appear in many records.
 
-Kind:     Field
-Field of: the disclosure record
-Projects: subject_ref
+Kind:       Field
+Field of:   the disclosure record
+Projection: subject_ref
 
 #### Recipient
 
 The non-empty string naming the party the data was disclosed to. Set on [Record], immutable (Invariants 1 and 3); opaque and exact-match on [Read] (subject-recognizable naming is the calling system's obligation).
 
-Kind:     Field
-Field of: the disclosure record
-Projects: recipient
+Kind:       Field
+Field of:   the disclosure record
+Projection: recipient
 
 #### Scope
 
 The non-empty string naming what subset of the subject's data was disclosed, as declared by the calling system. Set on [Record], immutable; opaque (subject-comprehensible vocabulary is the calling system's obligation).
 
-Kind:     Field
-Field of: the disclosure record
-Projects: scope
+Kind:       Field
+Field of:   the disclosure record
+Projection: scope
 
 #### Authority
 
 The structured field naming the legal basis for the disclosure — exactly two sub-fields, [Authority Type] and [Authority Reference]. Always present in structured form (Invariant 2). Set on [Record], immutable.
 
-Kind:     Field
-Field of: the disclosure record
-Projects: authority
+Kind:       Field
+Field of:   the disclosure record
+Projection: authority
 
 #### Authority Type
 
 The kind of authority — exactly consent, legal-hold, or regulatory (any other value is [Unknown Authority Type]). The machine-queryable half of [Authority]; the [Read] filter axis of the same name matches on it.
 
-Kind:     Field
-Field of: the authority field
-Projects: authority.type
+Kind:       Field
+Field of:   the authority field
+Projection: authority.type
 
 #### Authority Reference
 
 The opaque, non-whitespace string identifying the specific authority — a Consent id, a Legal Hold id, or a regulatory citation. The human-readable half of [Authority]; the atom validates its presence, not its legitimacy.
 
-Kind:     Field
-Field of: the authority field
-Projects: authority.reference
+Kind:       Field
+Field of:   the authority field
+Projection: authority.reference
 
 #### Disclosed At
 
 The timestamp of the disclosure event. Set on [Record] or defaulted to the injected clock now; immutable. Must not be in the future relative to the injected now (Invariant 4); may be backdated. Best-effort — the wall clock, not this atom, bounds its honesty.
 
-Kind:     Field
-Field of: the disclosure record
-Projects: disclosed_at
+Kind:       Field
+Field of:   the disclosure record
+Projection: disclosed_at
 
 #### Invalid Request
 
 The rejection [Record] returns when a required field ([Subject Ref], [Recipient], [Scope], or [Authority Reference]) is missing or whitespace-only, [Authority] is structurally malformed, or the resolved [Disclosed At] is in the future.
 
-Kind:      Member
-Member of: the record rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the record rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Unknown Authority Type
 
 The rejection [Record] returns when [Authority Type] is not one of consent, legal-hold, or regulatory — checked after all field-level validation passes.
 
-Kind:      Member
-Member of: the record rejection
-Role:      Outcome
-Projects:  unknown-authority-type
+Kind:       Member
+Member of:  the record rejection
+Role:       Outcome
+Projection: unknown-authority-type
 
 #### Storage Failure
 
 The rejection [Record] returns when the store write fails after all preconditions pass; guarantees no partial record was persisted (Invariant 6).
 
-Kind:      Member
-Member of: the record rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the record rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Invalid Query
 
 The rejection [Read] returns when a filter value is malformed — a null or whitespace [Disclosure Id], [Subject Ref], or [Recipient]; an [Authority Type] outside the three values; a reversed [Disclosed At] range; or an unrecognized filter key.
 
-Kind:      Member
-Member of: the read rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the read rejection
+Role:       Outcome
+Projection: invalid-query
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

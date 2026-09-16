@@ -551,71 +551,71 @@ Kind: Operation
 The record this atom defines: one resource held for one requester for a bounded window, resolved to exactly one terminal state. Carries [Id], [Resource], [Requester], [Placed At], [Expires At], a state, and the terminal instant of the transition that settled it.
 
 Kind: Type
-Projects: state
+Projection: state
 
 #### Id
 
 The opaque, immutable identity of a [Commitment], assigned on [Place Hold] from the id material the seam supplies and never shared with a second commitment. The [Resource], [Requester] and window are properties, not identity.
 
-Kind:     Field
-Field of: Commitment
-Projects: id
+Kind:       Field
+Field of:   Commitment
+Projection: id
 
 #### Resource
 
 The reference naming what is held. Opaque to the atom — the registry owns what a resource is and what availability means. Set on [Place Hold], immutable thereafter.
 
-Kind:     Field
-Field of: Commitment
-Projects: resource
+Kind:       Field
+Field of:   Commitment
+Projection: resource
 
 #### Requester
 
 The reference naming who the hold is for. Set on [Place Hold], immutable thereafter. The atom names the requester and does not bind the call to a verifiable actor — that is an [Actor Identity](./actor-identity.md) composition.
 
-Kind:     Field
-Field of: Commitment
-Projects: requester
+Kind:       Field
+Field of:   Commitment
+Projection: requester
 
 #### Placed At
 
 The instant the [Commitment] was placed, stamped from [Now] on [Place Hold]. Immutable. The window opens here.
 
-Kind:     Field
-Field of: Commitment
-Projects: placed_at
+Kind:       Field
+Field of:   Commitment
+Projection: placed_at
 
 #### Expires At
 
 The instant the window closes, recorded on [Place Hold] as the window bound. Immutable. The boundary the window reading is taken against: open above it, lapsed at it and below.
 
-Kind:     Field
-Field of: Commitment
-Projects: expires_at
+Kind:       Field
+Field of:   Commitment
+Projection: expires_at
 
 #### Confirmed At
 
 The instant the [Commitment] was confirmed, stamped from [Now] on [Confirm]. Present only in [Confirmed]; immutable once set.
 
-Kind:     Field
-Field of: Commitment
-Projects: confirmed_at
+Kind:       Field
+Field of:   Commitment
+Projection: confirmed_at
 
 #### Released At
 
 The instant the [Commitment] was released, stamped from [Now] on [Release]. Present only in [Released]; immutable once set.
 
-Kind:     Field
-Field of: Commitment
-Projects: released_at
+Kind:       Field
+Field of:   Commitment
+Projection: released_at
 
 #### Expired At
 
 The instant the [Commitment] expired, stamped from [Now] on [Expire]. Present only in [Expired]; immutable once set, and never earlier than [Expires At].
 
-Kind:     Field
-Field of: Commitment
-Projects: expired_at
+Kind:       Field
+Field of:   Commitment
+Projection: expired_at
 
 #### Duration
 
@@ -623,7 +623,7 @@ The window length supplied to [Place Hold]. It sizes the window and is not store
 
 Kind:         Parameter
 Parameter of: Place Hold
-Projects:     duration
+Projection:   duration
 
 #### Now
 
@@ -631,7 +631,7 @@ The wall-time reading the host takes at the seam and hands to the transition, as
 
 Kind:         Parameter
 Parameter of: Place Hold
-Projects:     now
+Projection:   now
 
 #### Held
 
@@ -669,64 +669,64 @@ Role:      Outcome
 
 The refusal [Place Hold] returns when [Resource], [Requester] or [Duration] is absent, or [Duration] falls outside the duration bounds. No commitment is recorded.
 
-Kind:      Member
-Member of: the Place Hold rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the Place Hold rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Resource Unavailable
 
 The refusal [Place Hold] returns when the registry refuses the resource. The loser of a concurrent place-hold race for one resource receives this. No commitment is recorded.
 
-Kind:      Member
-Member of: the Place Hold rejection
-Role:      Outcome
-Projects:  resource-unavailable
+Kind:       Member
+Member of:  the Place Hold rejection
+Role:       Outcome
+Projection: resource-unavailable
 
 #### Not Known
 
 The refusal a resolving action returns when the supplied [Id] names no commitment. A lookup miss, distinct from a state or window rejection.
 
-Kind:      Member
-Member of: the resolving-action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the resolving-action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Held
 
 The refusal a resolving action returns when the commitment already stands in a terminal state — distinct from [Not Known], which says the id resolved to nothing at all. The single-resolution guard; nothing is written.
 
-Kind:      Member
-Member of: the resolving-action rejection
-Role:      Outcome
-Projects:  not-held
+Kind:       Member
+Member of:  the resolving-action rejection
+Role:       Outcome
+Projection: not-held
 
 #### Window Elapsed
 
 The refusal [Confirm] or [Release] returns when the still-[Held] commitment reads lapsed. Nothing is written; the atom never records a resolution after the window closes.
 
-Kind:      Member
-Member of: the resolving-action rejection
-Role:      Outcome
-Projects:  window-elapsed
+Kind:       Member
+Member of:  the resolving-action rejection
+Role:       Outcome
+Projection: window-elapsed
 
 #### Window Not Elapsed
 
 The refusal [Expire] returns when the commitment reads open. The symmetric counterpart to [Window Elapsed]; nothing is written, and the atom never expires a commitment before its window closes.
 
-Kind:      Member
-Member of: the Expire rejection
-Role:      Outcome
-Projects:  window-not-elapsed
+Kind:       Member
+Member of:  the Expire rejection
+Role:       Outcome
+Projection: window-not-elapsed
 
 #### Storage Failure
 
 The refusal any action returns when the store refuses the write after every precondition passes. No commitment is recorded, or the commitment remains [Held]. Definitive, which rests on Capability requirement 6.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

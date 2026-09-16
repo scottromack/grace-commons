@@ -738,273 +738,273 @@ Kind: Operation
 
 The opaque, immutable identity of an [Order], assigned from the id material the seam supplies and unique within one store instance. Never reused, and never the patient — two orders for one patient are two orders.
 
-Kind:     Field
-Field of: Order
-Projects: order_id
+Kind:       Field
+Field of:   Order
+Projection: order_id
 
 #### Patient Ref
 
 The opaque reference naming whose prescription this is. Set at placement, immutable, inherited unchanged by every successor, and scoped globally rather than per store instance.
 
-Kind:     Field
-Field of: Order
-Projects: patient_ref
+Kind:       Field
+Field of:   Order
+Projection: patient_ref
 
 #### Prescriber Ref
 
 The opaque reference naming who placed the order. Immutable and inherited by every successor — prescribing authorship belongs to the original prescriber, and [Amended By] records who corrected it.
 
-Kind:     Field
-Field of: Order
-Projects: prescriber_ref
+Kind:       Field
+Field of:   Order
+Projection: prescriber_ref
 
 #### Medication Ref
 
 The opaque reference naming the drug and formulation — a formulary code, a National Drug Code. Never interpreted, never changed, and inherited by every successor: an order for the wrong medication is cancelled and re-placed, because [Amend] takes no medication.
 
-Kind:     Field
-Field of: Order
-Projects: medication_ref
+Kind:       Field
+Field of:   Order
+Projection: medication_ref
 
 #### Dose
 
 The prescribed quantity per administration. A dosing parameter, so an amendment may correct it on a successor; positive, and paired with a [Dose Unit].
 
-Kind:     Field
-Field of: Order
-Projects: dose
+Kind:       Field
+Field of:   Order
+Projection: dose
 
 #### Dose Unit
 
 The unit the [Dose] is expressed in — `mg`, `mL`, `unit`. A dosing parameter, opaque to the atom.
 
-Kind:     Field
-Field of: Order
-Projects: dose_unit
+Kind:       Field
+Field of:   Order
+Projection: dose_unit
 
 #### Route
 
 How the medication is given — `oral`, `IV`, `topical`. A dosing parameter, opaque to the atom.
 
-Kind:     Field
-Field of: Order
-Projects: route
+Kind:       Field
+Field of:   Order
+Projection: route
 
 #### Frequency
 
 How often the medication is given — `QD`, `BID`, `PRN`. A dosing parameter, opaque to the atom.
 
-Kind:     Field
-Field of: Order
-Projects: frequency
+Kind:       Field
+Field of:   Order
+Projection: frequency
 
 #### Duration
 
 How long the course runs. Optional: an absent [Duration] is an open-ended order, which stands active until someone completes or discontinues it. A dosing parameter, so an amendment may add one, change one, or remove one.
 
-Kind:     Field
-Field of: Order
-Projects: duration
+Kind:       Field
+Field of:   Order
+Projection: duration
 
 #### Clinical Evidence Ref
 
 An optional opaque reference to the evidence that informed the prescribing decision — an [Observation](./observation.md)'s id, for instance. Advisory metadata; the atom never reads a [Clinical Evidence Ref] it was given.
 
-Kind:     Field
-Field of: Order
-Projects: clinical_evidence_ref
+Kind:       Field
+Field of:   Order
+Projection: clinical_evidence_ref
 
 #### Ordered At
 
 The instant the order was placed — the caller's supplied value, or [Now]. Immutable, and the only timestamp bounded from above, because a prescription cannot be dated in the future.
 
-Kind:     Field
-Field of: Order
-Projects: ordered_at
+Kind:       Field
+Field of:   Order
+Projection: ordered_at
 
 #### State
 
 The order's position in the chain — one of the nine. Changes only through an action, and never out of an inactive state.
 
-Kind:     Field
-Field of: Order
-Projects: state
+Kind:       Field
+Field of:   Order
+Projection: state
 
 #### Predecessor Id
 
 The [Order Id] of the order this one corrects. Present only on a successor; written once, because a re-link would rewrite the amendment chain an auditor walks.
 
-Kind:     Field
-Field of: Order
-Projects: predecessor_id
+Kind:       Field
+Field of:   Order
+Projection: predecessor_id
 
 #### Successor Id
 
 The [Order Id] of the order that corrected this one. Present only on an [Amended] order; written once.
 
-Kind:     Field
-Field of: Order
-Projects: successor_id
+Kind:       Field
+Field of:   Order
+Projection: successor_id
 
 #### Amended By
 
 The opaque reference naming who made the correction. Recorded on the successor, distinct from the inherited [Prescriber Ref].
 
-Kind:     Field
-Field of: Order
-Projects: amended_by
+Kind:       Field
+Field of:   Order
+Projection: amended_by
 
 #### Prior State
 
 The state a [Hold] paused, recorded so [Reinstate] can return the order to it. Replaced by each new hold cycle.
 
-Kind:     Field
-Field of: Order
-Projects: prior_state
+Kind:       Field
+Field of:   Order
+Projection: prior_state
 
 #### Verifier Ref
 
 The opaque reference naming the pharmacist who cleared the order. Written once at [Verify] and carried on every later state.
 
-Kind:     Field
-Field of: Order
-Projects: verifier_ref
+Kind:       Field
+Field of:   Order
+Projection: verifier_ref
 
 #### Dispenser Ref
 
 The opaque reference naming who released the medication. Written once at [Dispense].
 
-Kind:     Field
-Field of: Order
-Projects: dispenser_ref
+Kind:       Field
+Field of:   Order
+Projection: dispenser_ref
 
 #### Quantity
 
 How much was released at [Dispense]. Positive; written once.
 
-Kind:     Field
-Field of: Order
-Projects: quantity
+Kind:       Field
+Field of:   Order
+Projection: quantity
 
 #### Lot Number
 
 The optional manufacturing lot of what was released — the field a recall is traced through. Written once at [Dispense] where supplied.
 
-Kind:     Field
-Field of: Order
-Projects: lot_number
+Kind:       Field
+Field of:   Order
+Projection: lot_number
 
 #### Administerer Ref
 
 The opaque reference naming who gave the medication to the patient. Written once at [Administer].
 
-Kind:     Field
-Field of: Order
-Projects: administerer_ref
+Kind:       Field
+Field of:   Order
+Projection: administerer_ref
 
 #### Verified At
 
 The instant the pharmacist's clearance was recorded, stamped from [Now] at [Verify]. Written once.
 
-Kind:     Field
-Field of: Order
-Projects: verified_at
+Kind:       Field
+Field of:   Order
+Projection: verified_at
 
 #### Dispensed At
 
 The instant the release was recorded — the caller's supplied value, or [Now]. Written once, and not bounded from above, because a release may be documented after the fact.
 
-Kind:     Field
-Field of: Order
-Projects: dispensed_at
+Kind:       Field
+Field of:   Order
+Projection: dispensed_at
 
 #### Held By
 
 The opaque reference naming who suspended the order. Replaced by each new hold cycle.
 
-Kind:     Field
-Field of: Order
-Projects: held_by
+Kind:       Field
+Field of:   Order
+Projection: held_by
 
 #### Hold Reason
 
 Why the order was suspended — a surgical pause, an interaction review. Never blank; replaced by each new hold cycle.
 
-Kind:     Field
-Field of: Order
-Projects: hold_reason
+Kind:       Field
+Field of:   Order
+Projection: hold_reason
 
 #### Held At
 
 The instant the suspension was recorded, stamped from [Now]. Replaced by each new hold cycle.
 
-Kind:     Field
-Field of: Order
-Projects: held_at
+Kind:       Field
+Field of:   Order
+Projection: held_at
 
 #### Completed By
 
 The opaque reference naming who closed the order after the course was given. Written once.
 
-Kind:     Field
-Field of: Order
-Projects: completed_by
+Kind:       Field
+Field of:   Order
+Projection: completed_by
 
 #### Completed At
 
 The instant the closure was recorded — the caller's supplied value, or [Now]. Written once.
 
-Kind:     Field
-Field of: Order
-Projects: completed_at
+Kind:       Field
+Field of:   Order
+Projection: completed_at
 
 #### Cancelled By
 
 The opaque reference naming who terminated the order before any dispensing. Written once.
 
-Kind:     Field
-Field of: Order
-Projects: cancelled_by
+Kind:       Field
+Field of:   Order
+Projection: cancelled_by
 
 #### Cancellation Reason
 
 Why the order was terminated before dispensing. Never blank, and the field carrying the difference between a clinical decision and a clerical correction — which is why this atom needs no separate entered-in-error state.
 
-Kind:     Field
-Field of: Order
-Projects: cancellation_reason
+Kind:       Field
+Field of:   Order
+Projection: cancellation_reason
 
 #### Cancelled At
 
 The instant the cancellation was recorded, stamped from [Now]. Written once.
 
-Kind:     Field
-Field of: Order
-Projects: cancelled_at
+Kind:       Field
+Field of:   Order
+Projection: cancelled_at
 
 #### Discontinued By
 
 The opaque reference naming who stopped the order after dispensing had begun. Written once.
 
-Kind:     Field
-Field of: Order
-Projects: discontinued_by
+Kind:       Field
+Field of:   Order
+Projection: discontinued_by
 
 #### Discontinuation Reason
 
 Why the order was stopped after dispensing. Never blank — a stopped controlled substance with no stated basis is the record a diversion investigation cannot read.
 
-Kind:     Field
-Field of: Order
-Projects: discontinuation_reason
+Kind:       Field
+Field of:   Order
+Projection: discontinuation_reason
 
 #### Discontinued At
 
 The instant the discontinuation was recorded, stamped from [Now]. Written once.
 
-Kind:     Field
-Field of: Order
-Projects: discontinued_at
+Kind:       Field
+Field of:   Order
+Projection: discontinued_at
 
 #### Now
 
@@ -1012,39 +1012,39 @@ The wall-time reading the host takes at the seam and hands to the transition, as
 
 Kind:         Parameter
 Parameter of: Order
-Projects:     now
+Projection:   now
 
 #### Administered At
 
 The instant the dose was given — the caller's supplied value, or [Now]. Written once at [Administer], and not bounded from above, because an administration at the bedside is often documented after it happened.
 
-Kind:     Field
-Field of: Order
-Projects: administered_at
+Kind:       Field
+Field of:   Order
+Projection: administered_at
 
 #### Amendment Reason
 
 Why the order was corrected. Recorded on the successor, never blank — an amendment with no stated basis leaves the chain walkable and unreadable.
 
-Kind:     Field
-Field of: Order
-Projects: amendment_reason
+Kind:       Field
+Field of:   Order
+Projection: amendment_reason
 
 #### Reinstated By
 
 The opaque reference naming who resumed a held order. Replaced by each new hold cycle.
 
-Kind:     Field
-Field of: Order
-Projects: reinstated_by
+Kind:       Field
+Field of:   Order
+Projection: reinstated_by
 
 #### Reinstated At
 
 The instant the resumption was recorded, stamped from [Now]. Replaced by each new hold cycle.
 
-Kind:     Field
-Field of: Order
-Projects: reinstated_at
+Kind:       Field
+Field of:   Order
+Projection: reinstated_at
 
 #### Ordered
 
@@ -1122,73 +1122,73 @@ Role:      Outcome
 
 The refusal [Order] returns when a required string input is blank, a supplied [Ordered At] exceeds the future bound, or a [Dose] does not exceed zero.
 
-Kind:      Member
-Member of: the Order rejection
-Role:      Outcome
-Projects:  invalid-order
+Kind:       Member
+Member of:  the Order rejection
+Role:       Outcome
+Projection: invalid-order
 
 #### Invalid Request
 
 The refusal an order action returns for a blank input, a non-positive [Quantity], or an [Amend] whose supplied dosing parameters all match the original. Reached only after every state check passes.
 
-Kind:      Member
-Member of: the order-action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the order-action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Not Known
 
 The refusal an order action returns when the [Order Id] names no order in this store instance.
 
-Kind:      Member
-Member of: the order-action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the order-action rejection
+Role:       Outcome
+Projection: not-known
 
 #### On Hold Rejection
 
 The refusal a held-refusing action returns against an [On Hold] order. Answered before any rejection about the state underneath the hold, because the hold is what the caller must resolve first.
 
-Kind:      Member
-Member of: the order-action rejection
-Role:      Outcome
-Projects:  on-hold
+Kind:       Member
+Member of:  the order-action rejection
+Role:       Outcome
+Projection: on-hold
 
 #### Already Dispensed
 
 The refusal [Amend] and [Cancel] return across the dispensing edge, and [Dispense] returns against an order already dispensed. One token, one fact: the medication has left the pharmacy.
 
-Kind:      Member
-Member of: the order-action rejection
-Role:      Outcome
-Projects:  already-dispensed
+Kind:       Member
+Member of:  the order-action rejection
+Role:       Outcome
+Projection: already-dispensed
 
 #### Not Dispensed
 
 The refusal [Discontinue] returns on the near side of the dispensing edge, and [Administer] returns against an unreleased order. The mirror of [Already Dispensed], and the reason [Cancel] exists.
 
-Kind:      Member
-Member of: the order-action rejection
-Role:      Outcome
-Projects:  not-dispensed
+Kind:       Member
+Member of:  the order-action rejection
+Role:       Outcome
+Projection: not-dispensed
 
 #### Storage Failure
 
 The refusal any writing action returns when the store refuses the write after every precondition passes. No partial record is left, and none is repaired afterwards.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Invalid Query
 
 The refusal [Read] returns for a filter axis or a filter value it cannot read.
 
-Kind:      Member
-Member of: the Read rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the Read rejection
+Role:       Outcome
+Projection: invalid-query
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

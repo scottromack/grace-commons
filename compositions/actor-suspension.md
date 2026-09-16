@@ -1009,7 +1009,7 @@ These are adjacent patterns, **not** constituents of Actor Suspension:
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind**, the Type it is a **Member of** or **Field of**, the Operation it is a **Parameter of**, its **Role** where the domain assigns one, and one **Projects** line — the concept's single canonical lowering token. Everything else about casing is derived from that token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. The composition's own concepts are the three actions it exposes, the enumerations its outcome carries, the suspension log's classification, and its own rejections. The actor lifecycle states are left uncarded because *active* is pervasively overloaded with the constituents' own grant and session statuses; the emergent stores, the `actor.*` event classes, the constituent calls and their answers, the relayed tokens and the deployment knobs stay backticked as wire values.
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind**, the Type it is a **Member of** or **Field of**, the Operation it is a **Parameter of**, its **Role** where the domain assigns one, and one **Projection** line — the concept's single canonical lowering token. Everything else about casing is derived from that token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. The composition's own concepts are the three actions it exposes, the enumerations its outcome carries, the suspension log's classification, and its own rejections. The actor lifecycle states are left uncarded because *active* is pervasively overloaded with the constituents' own grant and session statuses; the emergent stores, the `actor.*` event classes, the constituent calls and their answers, the relayed tokens and the deployment knobs stay backticked as wire values.
 
 ### Vocabulary
 
@@ -1055,64 +1055,64 @@ Kind: Operation
 
 The set of grant handles the cascade closed, carried in the sealed outcome's payload (Invariant 2.2). Its completeness — every planned grant accounted for, no surface omitted — is what makes the suspension provable from one tamper-evident record.
 
-Kind:      Field
-Field of:  the suspension outcome
-Role:      the revoked grant enumeration
-Projects:  revoked_grants
+Kind:       Field
+Field of:   the suspension outcome
+Role:       the revoked grant enumeration
+Projection: revoked_grants
 
 #### Revoked Sessions
 
 The set of session handles the cascade closed, carried in the sealed outcome's payload (Invariant 2.3). Together with [Revoked Grants] and, where the credential arm stands composed, the revoked credentials, it is the complete sealed record of everything the suspension closed.
 
-Kind:      Field
-Field of:  the suspension outcome
-Role:      the revoked session enumeration
-Projects:  revoked_sessions
+Kind:       Field
+Field of:   the suspension outcome
+Role:       the revoked session enumeration
+Projection: revoked_sessions
 
 #### Unresolved Members
 
 The set of planned members no cascade can close, because the constituent no longer knows the handle or refused the composition's reference. Carried on the outcome (Invariant 2.5) so the act can complete honestly: such a member is **accounted for by being named**, not by being closed, and the sweep does not chase it. Without this field a single lost handle held the actor in suspending forever while the completeness check demanded a closure nobody could make.
 
-Kind:      Field
-Field of:  the suspension outcome
-Role:      the unclosable-member enumeration
-Projects:  unresolved_members
+Kind:       Field
+Field of:   the suspension outcome
+Role:       the unclosable-member enumeration
+Projection: unresolved_members
 
 #### Outcome
 
 The suspension log entry's classification of a [Suspend Actor] or [Reinstate Actor] call: suspended, reinstated, [Already Suspended], [Already Active], [Revocation Failure], a positioned recording failure, a positioned credential failure, or an invalid request. The composition's own query surface alongside the tamper-evident trail; its refusal entries are evidence of refusals and never of acts.
 
-Kind:      Field
-Field of:  the suspension-log entry
-Role:      the call classification
-Projects:  outcome
+Kind:       Field
+Field of:   the suspension-log entry
+Role:       the call classification
+Projection: outcome
 
 #### Already Suspended
 
 The composition's idempotence refusal from [Suspend Actor], answered when the actor is already suspended: no second cascade, no second revocation, no second outcome. The state gate is what fires the cascade exactly once, on the active-to-suspending edge.
 
-Kind:      Member
-Member of: the suspend rejection
-Role:      Rejection
-Projects:  already-suspended
+Kind:       Member
+Member of:  the suspend rejection
+Role:       Rejection
+Projection: already-suspended
 
 #### Revocation Failure
 
 The composition's refusal from [Suspend Actor] when a member is left open — every revocation that committed stands, the actor stays suspending, and the refusal names the surface and the open members. A retry resumes the cascade under the resumer's own verified credential, and the sweep closes it otherwise. A benign already-terminal target is *not* this: it is counted toward the closure. Nor is an [Unresolved Members] entry, which no retry can close and the outcome names instead.
 
-Kind:      Member
-Member of: the suspend rejection
-Role:      Rejection
-Projects:  revocation-failure
+Kind:       Member
+Member of:  the suspend rejection
+Role:       Rejection
+Projection: revocation-failure
 
 #### Already Active
 
 The composition's no-op refusal from [Reinstate Actor], parameterized by what it found: active means there is nothing to lift, suspending means the actor's cascade is completed first and then lifted. The parameter is the caller's next action, which is why the arm carries one — the prose described the distinction while the signature declared no payload to switch on.
 
-Kind:      Member
-Member of: the reinstate rejection
-Role:      Rejection
-Projects:  already-active
+Kind:       Member
+Member of:  the reinstate rejection
+Role:       Rejection
+Projection: already-active
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

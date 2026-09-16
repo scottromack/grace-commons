@@ -950,55 +950,55 @@ Kind: Operation
 
 What Legal Hold's read answered at the gate, carried on the destruction record and on the gate record alike: empty when no active hold covered the record, and the blocking hold ids with the blocking count when one did. It is the records-alone proof that the gate passed or fired.
 
-Kind:      Field
-Field of:  the destruction record
-Role:      the auditable gate result
-Projects:  hold_check_result
+Kind:       Field
+Field of:   the destruction record
+Role:       the auditable gate result
+Projection: hold_check_result
 
 #### Hold Override
 
 The marker a destruction record carries when the [Hold Check Result] stands non-empty under advisory mode, and only then — the records-alone signal that a destruction proceeded past an active hold under an authority this layer does not hold.
 
-Kind:      Field
-Field of:  the destruction record
-Role:      the advisory-override marker
-Projects:  hold_override
+Kind:       Field
+Field of:   the destruction record
+Role:       the advisory-override marker
+Projection: hold_override
 
 #### Under Legal Hold
 
 The load-bearing refusal: under strict mode a destruction is refused while any active hold covers the record, whatever the retention clock says (`Invariant 1.4`). The refusal carries the blocking hold ids and count, and the gate's firing is itself recorded, so the refusal is a record rather than a silence.
 
-Kind:      Member
-Member of: the purge rejection
-Role:      Rejection
-Projects:  under-legal-hold
+Kind:       Member
+Member of:  the purge rejection
+Role:       Rejection
+Projection: under-legal-hold
 
 #### Not Eligible
 
 The refusal for a record whose **named** retention has not yet elapsed — the window is still running, so the record may not be destroyed even with no hold over it.
 
-Kind:      Member
-Member of: the purge rejection
-Role:      Rejection
-Projects:  not-eligible
+Kind:       Member
+Member of:  the purge rejection
+Role:       Rejection
+Projection: not-eligible
 
 #### Under Active Retention
 
 The refusal from the cross-retention gate (`Invariant 9.1`): a *sibling* retention over the same record is still inside its window, and `RetentionWindow.purge` destroys the record rather than closing the named retention alone, so the longer live obligation refuses the shorter one's destruction.
 
-Kind:      Member
-Member of: the purge rejection
-Role:      Rejection
-Projects:  under-active-retention
+Kind:       Member
+Member of:  the purge rejection
+Role:       Rejection
+Projection: under-active-retention
 
 #### Hold Check Unavailable
 
 The fail-closed refusal when the hold store cannot answer the gate's read. An unreadable hold store is never read as no holds (`Invariant 1.3`), and nothing is destroyed on this arm.
 
-Kind:      Member
-Member of: the purge rejection
-Role:      Rejection
-Projects:  hold-check-unavailable
+Kind:       Member
+Member of:  the purge rejection
+Role:       Rejection
+Projection: hold-check-unavailable
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

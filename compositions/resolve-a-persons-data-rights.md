@@ -428,7 +428,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the four actions it exposes — the intake ([Receive Request]), the two fulfillment siblings ([Fulfill Access Request], [Fulfill Erasure Request]), and the read-only [Disposition Report]; the [Dispositions] set that carries a verdict for every enumerated record (the no-silent-omission surface); the closed disposition vocabulary those verdicts draw from ([Included], [Withheld] for access; [Erased], [Retained] for erasure); and its own fulfillment rejections ([Wrong Right Type], [Already Fulfilled], [Incomplete Enumeration]). Its load-bearing guarantees — no-silent-omission (every enumerated record carries exactly one disposition) and the binding bijection (the complete disposition set, the response-disclosure, and the sealed Audit Trail event bind into one accountable act, with the sealed event written last and the one reachable gap surfaced and compensated) — are structural properties, not data. Its emergent state (`request_to_subject`, `request_to_fulfillment`) is a pair of indexes into the constituent stores plus the sealed fulfillment mirror, left as backticked tokens; there is no composition-introduced record store to carry a term entry as a Type, and the record-universe enumeration is a composition-introduced surface (the forthcoming Completeness Model atom) it merely exposes. The `dsar.*` audit event types (`dsar.received`, `dsar.access_fulfilled`, `dsar.erasure_fulfilled`) and the disposition-reason parameters (`third-party-confidentiality`, `legal-exemption`, `legal-hold`, `retention-obligation`, `other-lawful-basis`) stay backticked as wire values, as do the two `right_type` values (`access` / `erasure`), the constituent calls and their outcomes — Selective Disclosure's `record` / `read`, Consent's `check` / `read` (and its `granted` / `revoked` / `expired` / `not-known` results), Defensible Retention's `purge_record` / `purge_eligible` (and its `ok` / `under-legal-hold` / `not-eligible` / `not-known` outcomes), Audit Trail's `record_action` — the relayed constituent tokens (`subject_ref`, `request_id`, `record_ref`, `retention_id`, `consent_id`, `actor_ref`, `credential`, `requester`, `declared_basis`), the generic/relayed rejections (`invalid-request`, `recording-failure`, `not-known`), the deployment configuration knobs (`record_source_registry`, `audit_trail_retention_policy`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./defensible-retention.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the four actions it exposes — the intake ([Receive Request]), the two fulfillment siblings ([Fulfill Access Request], [Fulfill Erasure Request]), and the read-only [Disposition Report]; the [Dispositions] set that carries a verdict for every enumerated record (the no-silent-omission surface); the closed disposition vocabulary those verdicts draw from ([Included], [Withheld] for access; [Erased], [Retained] for erasure); and its own fulfillment rejections ([Wrong Right Type], [Already Fulfilled], [Incomplete Enumeration]). Its load-bearing guarantees — no-silent-omission (every enumerated record carries exactly one disposition) and the binding bijection (the complete disposition set, the response-disclosure, and the sealed Audit Trail event bind into one accountable act, with the sealed event written last and the one reachable gap surfaced and compensated) — are structural properties, not data. Its emergent state (`request_to_subject`, `request_to_fulfillment`) is a pair of indexes into the constituent stores plus the sealed fulfillment mirror, left as backticked tokens; there is no composition-introduced record store to carry a term entry as a Type, and the record-universe enumeration is a composition-introduced surface (the forthcoming Completeness Model atom) it merely exposes. The `dsar.*` audit event types (`dsar.received`, `dsar.access_fulfilled`, `dsar.erasure_fulfilled`) and the disposition-reason parameters (`third-party-confidentiality`, `legal-exemption`, `legal-hold`, `retention-obligation`, `other-lawful-basis`) stay backticked as wire values, as do the two `right_type` values (`access` / `erasure`), the constituent calls and their outcomes — Selective Disclosure's `record` / `read`, Consent's `check` / `read` (and its `granted` / `revoked` / `expired` / `not-known` results), Defensible Retention's `purge_record` / `purge_eligible` (and its `ok` / `under-legal-hold` / `not-eligible` / `not-known` outcomes), Audit Trail's `record_action` — the relayed constituent tokens (`subject_ref`, `request_id`, `record_ref`, `retention_id`, `consent_id`, `actor_ref`, `credential`, `requester`, `declared_basis`), the generic/relayed rejections (`invalid-request`, `recording-failure`, `not-known`), the deployment configuration knobs (`record_source_registry`, `audit_trail_retention_policy`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./defensible-retention.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Receive Request
 
@@ -458,73 +458,73 @@ Kind: Operation
 
 The complete set of per-record verdicts `{record_ref, source, disposition, reason}` covering the *entire* enumerated in-scope universe for a request — the no-silent-omission surface an auditor reads to confirm every record was accounted for. Bound into the sealed fulfillment event, so a later silent edit breaks the seal (Invariants 1, 2, 4).
 
-Kind:      Field
-Field of:  the fulfillment record
-Role:      the complete per-record verdict set
-Projects:  dispositions
+Kind:       Field
+Field of:   the fulfillment record
+Role:       the complete per-record verdict set
+Projection: dispositions
 
 #### Included
 
 The access disposition for a record handed over to the requester — no third-party-confidentiality implication and no legal exemption applied.
 
-Kind:      Member
-Member of: the record disposition
-Role:      Disposition
-Projects:  included
+Kind:       Member
+Member of:  the record disposition
+Role:       Disposition
+Projection: included
 
 #### Withheld
 
 The access disposition for a record *not* handed over, carrying a stated reason — `third-party-confidentiality` (Article 15(4)) or `legal-exemption` — so the omission is recorded and attributed, never silent.
 
-Kind:      Member
-Member of: the record disposition
-Role:      Disposition
-Projects:  withheld
+Kind:       Member
+Member of:  the record disposition
+Role:       Disposition
+Projection: withheld
 
 #### Erased
 
 The erasure disposition for a record actually destroyed — either through Defensible Retention's `purge_record` returning `ok`, or via a host-owned delete for a host-managed record. Irreversible by the time the fulfillment binds.
 
-Kind:      Member
-Member of: the record disposition
-Role:      Disposition
-Projects:  erased
+Kind:       Member
+Member of:  the record disposition
+Role:       Disposition
+Projection: erased
 
 #### Retained
 
 The erasure disposition for a record *preserved rather than destroyed*, carrying the strongest applicable reason — `legal-hold` (Article 17(3)(e)), `retention-obligation` (Article 17(3)(b)), or `other-lawful-basis` (Article 17(1)(b), including a consent still in force) — read off Defensible Retention's gate outcome or the upstream Consent oracle.
 
-Kind:      Member
-Member of: the record disposition
-Role:      Disposition
-Projects:  retained
+Kind:       Member
+Member of:  the record disposition
+Role:       Disposition
+Projection: retained
 
 #### Wrong Right Type
 
 The fulfillment rejection when a request's stored `right_type` does not match the sibling invoked — an erasure request sent to [Fulfill Access Request], or vice versa.
 
-Kind:      Member
-Member of: the fulfillment rejection
-Role:      Rejection
-Projects:  wrong-right-type
+Kind:       Member
+Member of:  the fulfillment rejection
+Role:       Rejection
+Projection: wrong-right-type
 
 #### Already Fulfilled
 
 The fulfillment rejection when the request is already in `request_to_fulfillment` — Fulfilled is terminal (Invariant 6), so a request is fulfilled exactly once.
 
-Kind:      Member
-Member of: the fulfillment rejection
-Role:      Rejection
-Projects:  already-fulfilled
+Kind:       Member
+Member of:  the fulfillment rejection
+Role:       Rejection
+Projection: already-fulfilled
 
 #### Incomplete Enumeration
 
 The fulfillment rejection when any declared record source fails to enumerate — completeness is all-or-nothing at the enumeration boundary, so a partial universe records nothing rather than being fulfilled as if whole (the silent omission the composition exists to forbid).
 
-Kind:      Member
-Member of: the fulfillment rejection
-Role:      Rejection
-Projects:  incomplete-enumeration
+Kind:       Member
+Member of:  the fulfillment rejection
+Role:       Rejection
+Projection: incomplete-enumeration
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

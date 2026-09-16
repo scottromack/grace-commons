@@ -649,123 +649,123 @@ Kind: Operation
 
 The opaque, immutable identity of a preference record, host-allocated at the I/O seam on [Set], never reused (Invariant 8). The principal reference and the preference values are properties of the record, not its identity.
 
-Kind:     Field
-Field of: the preference record
-Projects: preference_id
+Kind:       Field
+Field of:   the preference record
+Projection: preference_id
 
 #### Principal Ref
 
 The opaque reference to the principal whose preferences are recorded. Set on [Set], immutable. Equality is exact and the atom normalizes nothing; the at-most-one-in-effect rule (Invariant 3) ranges over it, so canonicalization is the deployment's before the call.
 
-Kind:     Field
-Field of: the preference record
-Projects: principal_ref
+Kind:       Field
+Field of:   the preference record
+Projection: principal_ref
 
 #### Channel Preferences
 
 The optional map from a declared channel name to an opaque per-channel preference value. Set on [Set] if supplied, immutable. Every key must be a member of the record's own [Declared Channels] stamp — the set injected at the seam for that [Set] call (Invariant 5). A supplied-but-empty map is stored as absent.
 
-Kind:     Field
-Field of: the preference record
-Projects: channel_preferences
+Kind:       Field
+Field of:   the preference record
+Projection: channel_preferences
 
 #### Frequency Limit
 
 The optional, opaque deployment-shaped value carrying the principal's frequency cap. Set on [Set] if supplied, immutable; interpreted by the composing fanout pattern, not by the atom.
 
-Kind:     Field
-Field of: the preference record
-Projects: frequency_limit
+Kind:       Field
+Field of:   the preference record
+Projection: frequency_limit
 
 #### Quiet Hours
 
 The optional, opaque deployment-shaped value carrying the windows during which delivery should be suppressed. Set on [Set] if supplied, immutable; interpreted by the composing layer.
 
-Kind:     Field
-Field of: the preference record
-Projects: quiet_hours
+Kind:       Field
+Field of:   the preference record
+Projection: quiet_hours
 
 #### Format
 
 The optional, opaque deployment-shaped value carrying format preferences. Set on [Set] if supplied, immutable; interpreted by the composing layer.
 
-Kind:     Field
-Field of: the preference record
-Projects: format
+Kind:       Field
+Field of:   the preference record
+Projection: format
 
 #### Metadata
 
 The optional opaque payload the atom stores unchanged (form version, user-agent, consent-flow id). Set on [Set] if supplied, immutable. Not a preference field: it does not by itself satisfy the at-least-one requirement on [Set].
 
-Kind:     Field
-Field of: the preference record
-Projects: metadata
+Kind:       Field
+Field of:   the preference record
+Projection: metadata
 
 #### Set At
 
 The wall-time the record was created, stamped from the seam-injected clock reading at [Set]. Immutable (Invariant 1). The currency-reconstruction key for [Current For] and for audit.
 
-Kind:     Field
-Field of: the preference record
-Projects: set_at
+Kind:       Field
+Field of:   the preference record
+Projection: set_at
 
 #### Status
 
 The record's lifecycle state — [Active], [Suspended] or [Deleted]. Set to [Active] on [Set]; the only mutable field, moving monotonically (Invariant 2).
 
-Kind:     Field
-Field of: the preference record
-Projects: status
+Kind:       Field
+Field of:   the preference record
+Projection: status
 
 #### Suspended At
 
 The wall-time the record was suspended, stamped at [Suspend]. Absent on a record that has never been [Suspended]; immutable once set, and retained through a later move to [Deleted].
 
-Kind:     Field
-Field of: the preference record
-Projects: suspended_at
+Kind:       Field
+Field of:   the preference record
+Projection: suspended_at
 
 #### Deleted At
 
 The wall-time the record reached [Deleted], stamped at [Delete] or at supersession. Absent unless the record is [Deleted]; immutable once set.
 
-Kind:     Field
-Field of: the preference record
-Projects: deleted_at
+Kind:       Field
+Field of:   the preference record
+Projection: deleted_at
 
 #### Store Name
 
 The identifier of the store instance; [Preference Id] values are unique within an instance. No action accepts it as a parameter and no record stores it — instance selection and naming live at the deployment-routing layer (Store instance model).
 
-Kind:     Field
-Field of: the store instance
-Projects: store_name
+Kind:       Field
+Field of:   the store instance
+Projection: store_name
 
 #### Declared Channels
 
 The declared channel set injected at the seam for a record's [Set] call and stamped onto the record at creation — the record's own validation context (Invariants 5 and 10). Non-empty; immutable. What the deployment's channel declaration has done since never touches it.
 
-Kind:     Field
-Field of: the preference record
-Projects: declared_channels
+Kind:       Field
+Field of:   the preference record
+Projection: declared_channels
 
 #### Undeclared Channel
 
 The [Set] rejection when a supplied [Channel Preferences] key is not a member of the seam-injected declared channel set — a vocabulary error with its own remedy (fix the channel name, or take the declaration question to the deployment), distinct from a malformed call's [Invalid Request].
 
-Kind:      Member
-Member of: the Set rejection
-Role:      Outcome
-Projects:  undeclared-channel
+Kind:       Member
+Member of:  the Set rejection
+Role:       Outcome
+Projection: undeclared-channel
 
 #### Storage Failure
 
 The rejection any state-changing action returns when the write fails after all preconditions pass. Fail-closed at the write: nothing observable was written — for [Set] with supersession, neither half landed (Invariant 4); for [Suspend] and [Delete], no status moved. Which record keeps governing after a refused [Set] is Invariant 4.3's answer, not this term entry's: the prior record stays in effect, so a failed write is fail-closed on the store and not on whatever the new record was carrying.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Active
 
@@ -795,46 +795,46 @@ Role:      Outcome
 
 The refusal [Set] returns when the request's shape fails — a blank [Principal Ref], or no preference field supplied (an empty [Channel Preferences] map does not count). A [Channel Preferences] key naming an undeclared channel is not this refusal; it is [Undeclared Channel], its own class with its own remedy.
 
-Kind:      Member
-Member of: the Set rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the Set rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Not Known
 
 The refusal [Suspend] or [Delete] returns when the [Preference Id] references no record in the store. Also the read answer [Read] returns for an id no record carries — there, a first-class outcome rather than a rejection.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Active
 
 The refusal [Suspend] returns when the target is not [Active] — that is, [Suspended] or [Deleted]. The single code covers both ([Suspended] never returns to [Active], Invariant 2); a caller distinguishes them through [Read].
 
-Kind:      Member
-Member of: the Suspend rejection
-Role:      Outcome
-Projects:  not-active
+Kind:       Member
+Member of:  the Suspend rejection
+Role:       Outcome
+Projection: not-active
 
 #### None
 
 The answer [Current For] returns when no record is currently in effect for the [Principal Ref] — never subscribed to a shape, or every record retired. A first-class outcome, not a rejection, and structurally what a blank argument gets. The composing pattern's fanout-on-no-record policy keys on it, and the deployment must disclose that policy (Composition note 5, Check 6.2).
 
-Kind:      Member
-Member of: the Current For answer
-Role:      Outcome
-Projects:  none
+Kind:       Member
+Member of:  the Current For answer
+Role:       Outcome
+Projection: none
 
 #### Already Deleted
 
 The refusal [Delete] returns when the target is already [Deleted]. A [Suspended] record may still be deleted ([Suspended] → [Deleted]).
 
-Kind:      Member
-Member of: the Delete rejection
-Role:      Outcome
-Projects:  already-deleted
+Kind:       Member
+Member of:  the Delete rejection
+Role:       Outcome
+Projection: already-deleted
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

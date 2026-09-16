@@ -534,89 +534,89 @@ Kind: Operation
 
 The opaque identity of the record in the host system — supplied by the caller on [Soft Delete] (the atom accepts ids, never generates them), immutable once a lifecycle record exists (Invariant 7). Unique within a store instance.
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: record_id
+Kind:       Field
+Field of:   the lifecycle record
+Projection: record_id
 
 #### State
 
 The record's lifecycle state — [Active], [Deleted], or [Purged] (Invariant 2). Set on each transition; exactly one value at any time.
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: state
+Kind:       Field
+Field of:   the lifecycle record
+Projection: state
 
 #### Deleted By
 
 The opaque reference to the actor who performed the most recent deletion. Set on [Soft Delete], non-whitespace (Invariant 8), immutable within the deletion epoch (Invariant 1).
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: deleted_by
+Kind:       Field
+Field of:   the lifecycle record
+Projection: deleted_by
 
 #### Deleted At
 
 The timestamp of the most recent deletion. Set on [Soft Delete] (caller-supplied or wall-clock-defaulted; not in the future); immutable within the epoch. The lower bound for [Restored At] and [Purged At] (Invariant 6).
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: deleted_at
+Kind:       Field
+Field of:   the lifecycle record
+Projection: deleted_at
 
 #### Deletion Reason
 
 The optional stated reason for the most recent deletion — the [Reason] parameter of [Soft Delete], stored under this name. Immutable within the epoch.
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: deletion_reason
+Kind:       Field
+Field of:   the lifecycle record
+Projection: deletion_reason
 
 #### Restored By
 
 The opaque reference to the actor who performed the most recent restore. Set on [Restore].
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: restored_by
+Kind:       Field
+Field of:   the lifecycle record
+Projection: restored_by
 
 #### Restored At
 
 The timestamp of the most recent restore. Set on [Restore]; must be ≥ the then-current [Deleted At] (Invariant 6) and not in the future.
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: restored_at
+Kind:       Field
+Field of:   the lifecycle record
+Projection: restored_at
 
 #### Restoration Reason
 
 The optional stated reason for the most recent restore — the [Reason] parameter of [Restore], stored under this name.
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: restoration_reason
+Kind:       Field
+Field of:   the lifecycle record
+Projection: restoration_reason
 
 #### Purged By
 
 The opaque reference to the actor who authorized and performed the purge. Set on [Purge], non-whitespace (Invariant 5), immutable.
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: purged_by
+Kind:       Field
+Field of:   the lifecycle record
+Projection: purged_by
 
 #### Purged At
 
 The timestamp of the purge. Set on [Purge]; must be ≥ [Deleted At] (Invariant 6) and not in the future.
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: purged_at
+Kind:       Field
+Field of:   the lifecycle record
+Projection: purged_at
 
 #### Purge Reason
 
 The required stated reason for the purge — the [Reason] parameter of [Purge], stored under this name. Non-whitespace (Invariant 5), immutable. Unlike the deletion and restore reasons, purge's reason is mandatory.
 
-Kind:     Field
-Field of: the lifecycle record
-Projects: purge_reason
+Kind:       Field
+Field of:   the lifecycle record
+Projection: purge_reason
 
 #### Reason
 
@@ -624,7 +624,7 @@ The stated justification an action carries — optional on [Soft Delete] and [Re
 
 Kind:         Parameter
 Parameter of: Soft Delete, Restore, Purge
-Projects:     reason
+Projection:   reason
 
 #### Active
 
@@ -654,64 +654,64 @@ Role:      Outcome
 
 The rejection [Soft Delete], [Restore], or [Purge] returns for a malformed [Record Id], a missing or whitespace-only attribution field ([Deleted By] / [Restored By] / [Purged By]) or [Reason], or a future-dated or out-of-order timestamp.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Already Deleted
 
 The rejection [Soft Delete] returns when the target record is already in [Deleted] state (non-idempotent by design).
 
-Kind:      Member
-Member of: the Soft Delete rejection
-Role:      Outcome
-Projects:  already-deleted
+Kind:       Member
+Member of:  the Soft Delete rejection
+Role:       Outcome
+Projection: already-deleted
 
 #### Already Purged
 
 The rejection [Soft Delete] or [Restore] returns when the target record is already [Purged] — a [Purged] record cannot be re-deleted or restored (Invariant 3).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  already-purged
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: already-purged
 
 #### Storage Failure
 
 The rejection any write action returns when the store write fails after all preconditions pass; the record is left in its prior state (Invariant 7).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Not Known
 
 The rejection [Restore] or [Purge] returns when the [Record Id] references no lifecycle record in the store.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Deleted
 
 The rejection [Restore] or [Purge] returns when the record is [Active] — there is nothing to restore, and a [Purge] requires a prior [Deleted] state (Invariant 4).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-deleted
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-deleted
 
 #### Invalid Query
 
 The rejection [Read] returns for a malformed filter — a null or whitespace-only [Record Id], [Deleted By], or [Purged By]; a [State] outside the three values; a reversed time range; or an unrecognized filter key.
 
-Kind:      Member
-Member of: the Read rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the Read rejection
+Role:       Outcome
+Projection: invalid-query
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

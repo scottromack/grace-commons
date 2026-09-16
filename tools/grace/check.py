@@ -507,7 +507,7 @@ def scan(path: Path) -> list[Finding]:
             continue
         if ln.startswith("## "):
             history = ln.startswith(("## Status", "## Ledger"))
-        if in_fence or history or ln.startswith(("#", "Projects:", "Wire:")) or re.match(r"^\[[^\]]+\]:", ln):
+        if in_fence or history or ln.startswith(("#", "Projection:", "Wire:")) or re.match(r"^\[[^\]]+\]:", ln):
             continue
         for sm in re.finditer(r"(?<!`)`([^`\n]+)`(?!`)", ln):
             if sm.group(1) in names_here:

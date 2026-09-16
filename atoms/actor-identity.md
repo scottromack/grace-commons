@@ -403,41 +403,41 @@ Kind: Operation
 
 The opaque reference to *what* is being attested — the action the [Attestation] binds. The atom does not interpret it; the composing pattern defines what an action is and how to reference it. Set on [Attest], immutable thereafter.
 
-Kind:     Field
-Field of: Attestation
-Projects: action_ref
+Kind:       Field
+Field of:   Attestation
+Projection: action_ref
 
 #### Actor Ref
 
 The opaque reference to *who* is attesting — the actor the [Attestation] binds. The actor registry that holds the actor's public material is a separate concept. Set on [Attest], immutable thereafter.
 
-Kind:     Field
-Field of: Attestation
-Projects: actor_ref
+Kind:       Field
+Field of:   Attestation
+Projection: actor_ref
 
 #### Attestation Id
 
 The opaque, immutable identity of an [Attestation], host-allocated at the I/O seam on [Attest] and never reused. The [Action Ref], [Actor Ref], [Proof], and [Attested At] are properties of the [Attestation], not its identity.
 
-Kind:     Field
-Field of: Attestation
-Projects: attestation_id
+Kind:       Field
+Field of:   Attestation
+Projection: attestation_id
 
 #### Proof
 
 The cryptographic or procedural artifact that binds the [Actor Ref] to the [Action Ref] — a signature, a MAC, a smart-card-bound attestation, a qualified electronic signature. Computed by [Attest] from the [Credential] and the injected cryptographic material, stored on the [Attestation], and the thing [Verify] re-checks. Set on [Attest], immutable thereafter.
 
-Kind:     Field
-Field of: Attestation
-Projects: proof
+Kind:       Field
+Field of:   Attestation
+Projection: proof
 
 #### Attested At
 
 The wall-time the [Attestation] was recorded, stamped from the host-injected clock on [Attest]. Immutable thereafter. The non-repudiation contract binds the actor to the action *at* this time.
 
-Kind:     Field
-Field of: Attestation
-Projects: attested_at
+Kind:       Field
+Field of:   Attestation
+Projection: attested_at
 
 #### Credential
 
@@ -445,7 +445,7 @@ The private material the actor supplies to [Attest] to produce the [Proof]. It i
 
 Kind:         Parameter
 Parameter of: Attest
-Projects:     credential
+Projection:   credential
 
 #### Attested
 
@@ -459,82 +459,82 @@ Role:      Outcome
 
 The outcome [Verify] returns when the stored [Proof] checks out against the recorded [Action Ref] and [Actor Ref] under the registry's current public material. It is the [Verified] half of the non-repudiation contract: the named actor authorized the named action (conditional on credential integrity).
 
-Kind:      Member
-Member of: the Verify outcome
-Role:      Outcome
-Projects:  verified
+Kind:       Member
+Member of:  the Verify outcome
+Role:       Outcome
+Projection: verified
 
 #### Failed Verification
 
 The outcome [Verify] returns when the [Attestation] exists but does not verify, carrying a reason — [Proof Invalid], [Actor Unknown In Registry], or [Registry Unavailable]. Distinct from [Not Known], which is a lookup miss.
 
-Kind:      Member
-Member of: the Verify outcome
-Role:      Outcome
-Projects:  failed-verification
+Kind:       Member
+Member of:  the Verify outcome
+Role:       Outcome
+Projection: failed-verification
 
 #### Not Known
 
 The outcome [Verify] returns when the supplied [Attestation Id] references no recorded [Attestation] — a lookup miss, not a verification failure. A composing pattern treats it as a missing record (requiring re-attestation), not as a denial of authorship.
 
-Kind:      Member
-Member of: the Verify outcome
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the Verify outcome
+Role:       Outcome
+Projection: not-known
 
 #### Proof Invalid
 
 The [Failed Verification] reason returned when the stored [Proof] does not check out against the recorded [Action Ref] and [Actor Ref] under the registry's current public material — for example, after the actor's key was rotated.
 
-Kind:      Member
-Member of: the Failed Verification reason
-Role:      Outcome
-Projects:  proof-invalid
+Kind:       Member
+Member of:  the Failed Verification reason
+Role:       Outcome
+Projection: proof-invalid
 
 #### Actor Unknown In Registry
 
 The [Failed Verification] reason returned when the actor registry cannot return public material for the recorded [Actor Ref] — because the actor has been deleted from the registry. May be permanent.
 
-Kind:      Member
-Member of: the Failed Verification reason
-Role:      Outcome
-Projects:  actor-unknown-in-registry
+Kind:       Member
+Member of:  the Failed Verification reason
+Role:       Outcome
+Projection: actor-unknown-in-registry
 
 #### Registry Unavailable
 
 The [Failed Verification] reason returned when the actor registry is unreachable at verify time — a transient, retryable condition, distinct from [Actor Unknown In Registry].
 
-Kind:      Member
-Member of: the Failed Verification reason
-Role:      Outcome
-Projects:  registry-unavailable
+Kind:       Member
+Member of:  the Failed Verification reason
+Role:       Outcome
+Projection: registry-unavailable
 
 #### Invalid Request
 
 The refusal [Attest] returns when [Action Ref], [Actor Ref], or [Credential] is null or empty. A guard rejection that fails before any store write; no [Attestation] is recorded.
 
-Kind:      Member
-Member of: the Attest rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the Attest rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Invalid Credential
 
 The refusal [Attest] returns when the supplied [Credential] does not validate against the actor registry's public material for the [Actor Ref]. A guard rejection that fails before any store write; no [Attestation] is recorded.
 
-Kind:      Member
-Member of: the Attest rejection
-Role:      Outcome
-Projects:  invalid-credential
+Kind:       Member
+Member of:  the Attest rejection
+Role:       Outcome
+Projection: invalid-credential
 
 #### Storage Failure
 
 The refusal [Attest] returns when the store write fails after the [Credential] validates. No partial [Attestation] is recorded — the caller must treat it as definitive and re-attest with a fresh [Credential].
 
-Kind:      Member
-Member of: the Attest rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the Attest rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

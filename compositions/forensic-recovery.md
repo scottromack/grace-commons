@@ -463,7 +463,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the three lifecycle actions it wraps ([Delete Record], [Restore Record], [Purge Record]) and the emergent forensic read ([Recover History]); the structure that read returns ([Lifecycle History]) with its summary [Overall Verdict] and per-event [Attestation Verification]; and the two verdict values ([History Complete], [History Incomplete]). Its load-bearing guarantee — every lifecycle transition binds to an attributed, sealed, retention-governed Audit Trail event, and the complete ordered history of any record is recoverable from the records alone (the lifecycle-transition ⇒ audit-event binding, Invariant 4) — is a structural property, not a datum. Its emergent state (`record_to_events`) is a single derived index over the Audit Trail substrate, left as a backticked token; the record lifecycle states (Active → Deleted → Purged) are the Soft Delete constituent's, not carded here. The lifecycle audit event types (`record.soft_deleted`, `record.restored`, `record.purged`) and the per-event verification values (`verified`, `failed-verification(reason)`, `not-known`, `unverifiable(payload-not-supplied)`, and the verdict classes `binding-gap`, `attestation-failed`, `seal-failed`, `unsealed`, `out-of-order`, `payload-not-supplied`, `partially-purged-coverage`, `availability`) stay backticked as wire values, as do the read passthrough (`read`), the constituent calls and their outcomes — Soft Delete's `soft_delete` / `restore` / `purge` / `read` (and its `Active` / `Deleted` / `Purged` states and `deleted_by` / `restored_by` / `purged_by` attribution), Audit Trail's `record_action` / `read_record` / `verify_record` and its pass-through sequence-range read — the relayed constituent tokens (`record_id`, `event_id`, `actor_ref`, `credential`, `reason`, `recorded_at`), the generic/relayed rejections (`invalid-request`, `not-known`, `not-deleted`, `already-deleted`, `already-purged`, `orphan-pending`, `recording-failure(intent | outcome(finding))`, `invalid-query`), the composition-introduced output fields left uncarded (`events`, `attempts`, `sequence_position`, `provenance`, `current_state`, `current_summary`, `retention_state`, `unretained`), the deployment configuration knobs (`audit_trail_retention_policy`, `seal_cadence`, `recovery_identity`, `transition_completion_bound`, `outcome_retry_attempts`, `record_serialization`, `compensation_window`, `reconciliation_cadence`, `intent_candidates_cap`, `index_durability`, `permissions_scope_prefix`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the three lifecycle actions it wraps ([Delete Record], [Restore Record], [Purge Record]) and the emergent forensic read ([Recover History]); the structure that read returns ([Lifecycle History]) with its summary [Overall Verdict] and per-event [Attestation Verification]; and the two verdict values ([History Complete], [History Incomplete]). Its load-bearing guarantee — every lifecycle transition binds to an attributed, sealed, retention-governed Audit Trail event, and the complete ordered history of any record is recoverable from the records alone (the lifecycle-transition ⇒ audit-event binding, Invariant 4) — is a structural property, not a datum. Its emergent state (`record_to_events`) is a single derived index over the Audit Trail substrate, left as a backticked token; the record lifecycle states (Active → Deleted → Purged) are the Soft Delete constituent's, not carded here. The lifecycle audit event types (`record.soft_deleted`, `record.restored`, `record.purged`) and the per-event verification values (`verified`, `failed-verification(reason)`, `not-known`, `unverifiable(payload-not-supplied)`, and the verdict classes `binding-gap`, `attestation-failed`, `seal-failed`, `unsealed`, `out-of-order`, `payload-not-supplied`, `partially-purged-coverage`, `availability`) stay backticked as wire values, as do the read passthrough (`read`), the constituent calls and their outcomes — Soft Delete's `soft_delete` / `restore` / `purge` / `read` (and its `Active` / `Deleted` / `Purged` states and `deleted_by` / `restored_by` / `purged_by` attribution), Audit Trail's `record_action` / `read_record` / `verify_record` and its pass-through sequence-range read — the relayed constituent tokens (`record_id`, `event_id`, `actor_ref`, `credential`, `reason`, `recorded_at`), the generic/relayed rejections (`invalid-request`, `not-known`, `not-deleted`, `already-deleted`, `already-purged`, `orphan-pending`, `recording-failure(intent | outcome(finding))`, `invalid-query`), the composition-introduced output fields left uncarded (`events`, `attempts`, `sequence_position`, `provenance`, `current_state`, `current_summary`, `retention_state`, `unretained`), the deployment configuration knobs (`audit_trail_retention_policy`, `seal_cadence`, `recovery_identity`, `transition_completion_bound`, `outcome_retry_attempts`, `record_serialization`, `compensation_window`, `reconciliation_cadence`, `intent_candidates_cap`, `index_durability`, `permissions_scope_prefix`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Delete Record
 
@@ -500,37 +500,37 @@ Role: the reconstructed lifecycle-history structure
 
 The summary field of a [Lifecycle History], computed over the reconciled sequence: [History Complete] when every transition has a binding, the sequence replays as a legal lifecycle path, and every verification passes (or is lawful destruction), else [History Incomplete] naming each class that applies — the failure classes (`binding-gap`, `attestation-failed`, `seal-failed`, `unsealed`, `out-of-order`) and the incomplete-verification classes (`payload-not-supplied`, `partially-purged-coverage`, `availability`).
 
-Kind:      Field
-Field of:  the lifecycle history
-Role:      the summary verdict
-Projects:  overall_verdict
+Kind:       Field
+Field of:   the lifecycle history
+Role:       the summary verdict
+Projection: overall_verdict
 
 #### Attestation Verification
 
 The per-event field of a [Lifecycle History]: the result of re-verifying each transition's Audit Trail seal — `verified`, `failed-verification(reason)` (the substrate's `purged`, `attestation-…`, `seal-…`, or `unsealed`), `not-known`, or `unverifiable(reason)` (this composition's `payload-not-supplied(missing)` when the caller did not supply the event's covering range, or the substrate's `partially-purged-coverage`, `attestation-registry-unavailable`, `seal-mechanism-verification-unavailable`), optionally qualified `(compensation-window)`. For a purged event the substrate's own answer comes first and the caller's map is not consulted.
 
-Kind:      Field
-Field of:  the per-event verification record
-Role:      the per-event seal-verification result
-Projects:  attestation_verification
+Kind:       Field
+Field of:   the per-event verification record
+Role:       the per-event seal-verification result
+Projection: attestation_verification
 
 #### History Complete
 
 The [Overall Verdict] value when every transition in the reconciled sequence has a binding, the sequence is a legal lifecycle path, and every [Attestation Verification] returns verified (or a lawful `failed-verification(purged)`) — the record's full lifecycle is proven from the records alone. A `retention-pending`, `index-gap-repaired` or `payload-purged` outcome is reported beside it and does not block it.
 
-Kind:      Member
-Member of: the overall verdict
-Role:      Verdict
-Projects:  history-complete
+Kind:       Member
+Member of:  the overall verdict
+Role:       Verdict
+Projection: history-complete
 
 #### History Incomplete
 
 The [Overall Verdict] value when at least one class applies (a binding gap, a failed attestation, a seal failure, an unsealed tail event, a sequence that does not replay as a legal lifecycle path, a not-supplied payload, partially-purged seal coverage, or a verifying surface that was unavailable) — the reconstruction is not fully self-proving, and the verdict names why.
 
-Kind:      Member
-Member of: the overall verdict
-Role:      Verdict
-Projects:  history-incomplete
+Kind:       Member
+Member of:  the overall verdict
+Role:       Verdict
+Projection: history-incomplete
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

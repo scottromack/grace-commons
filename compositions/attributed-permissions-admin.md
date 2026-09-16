@@ -820,7 +820,7 @@ These are adjacent patterns, **not** constituents of Attributed Permissions Admi
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind**, the Type it is a **Member of** or **Field of**, the Operation it is a **Parameter of**, its **Role** where the domain assigns one, and one **Projects** line — the concept's single canonical lowering token. The composition's own concepts are the three administrative actions, the attribution query, the orphan surfaces and its own rejections; the evaluation passthrough is Permissions' and is not carded here. The emergent maps, the constituent calls and their answers, the relayed tokens and the deployment knobs stay backticked as wire values.
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind**, the Type it is a **Member of** or **Field of**, the Operation it is a **Parameter of**, its **Role** where the domain assigns one, and one **Projection** line — the concept's single canonical lowering token. The composition's own concepts are the three administrative actions, the attribution query, the orphan surfaces and its own rejections; the evaluation passthrough is Permissions' and is not carded here. The emergent maps, the constituent calls and their answers, the relayed tokens and the deployment knobs stay backticked as wire values.
 
 ### Vocabulary
 
@@ -879,37 +879,37 @@ Role: the append-only orphan record
 
 The composition's rejection when an administrative write fails after its attestation committed, leaving an unmatched attestation. **Its payload carries the position:** pre-grant and pre-revoke mean nothing administrative committed and the caller may retry — must, on the revoke side, since the subject still holds access; `post-grant(grant_id)` and post-revoke mean the constituent write **committed** and its pairing did not, so a retry would issue a second grant beside an unattributed one or meet not-active and leave another orphan. Only the `pre-` positions are reachable where the host supplies the pairing write atomicity.
 
-Kind:      Member
-Member of: the administration rejection
-Role:      Rejection
-Projects:  orphan-attestation
+Kind:       Member
+Member of:  the administration rejection
+Role:       Rejection
+Projection: orphan-attestation
 
 #### Attribution Storage Failure
 
 The composition's rejection wrapping a constituent storage failure at the attestation step, surfaced under a composition-layer name so its origin — the attribution write, the first half of the act — is distinguishable from a caller error and from a failure of the pairing write itself.
 
-Kind:      Member
-Member of: the administration rejection
-Role:      Rejection
-Projects:  attribution-storage-failure
+Kind:       Member
+Member of:  the administration rejection
+Role:       Rejection
+Projection: attribution-storage-failure
 
 #### Attribution Inconsistency
 
 The [Verify Grant Attribution] forensic finding: the grant exists in Permissions and its attribution entry is unpopulated — the partial a host that does not supply the pairing write atomicity leaves, reported by the `post-grant` and post-revoke landings and joined to its orphan log entry by the grant's handle. A distinct condition from a grant that does not exist, never to be silently coerced to it, and never to be answered by retrying the original act.
 
-Kind:      Member
-Member of: the verify result
-Role:      Forensic finding
-Projects:  attribution-inconsistency
+Kind:       Member
+Member of:  the verify result
+Role:       Forensic finding
+Projection: attribution-inconsistency
 
 #### Not Permitted
 
 The [Revoke Permission] answer when the pair holds no active grant: nothing is attested and nothing is written. A first-class *there was nothing to do* result, deliberately not the handle-absent answer, which this composition reserves for a grant handle Permissions does not hold.
 
-Kind:      Member
-Member of: the administration rejection
-Role:      Rejection
-Projects:  not-permitted
+Kind:       Member
+Member of:  the administration rejection
+Role:       Rejection
+Projection: not-permitted
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

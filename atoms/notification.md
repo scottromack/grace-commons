@@ -469,65 +469,65 @@ Kind: Operation
 
 The opaque, immutable identity of a notification — host-allocated at the I/O seam (the injected id), produced by [Create], never reused (Invariant 6). The recipient and payload are properties of the notification, not its identity.
 
-Kind:     Field
-Field of: the notification record
-Projects: notification_id
+Kind:       Field
+Field of:   the notification record
+Projection: notification_id
 
 #### Recipient Ref
 
 The opaque reference to the intended recipient. Set on [Create], immutable. Equality is byte-exact (no normalization); [Pending For] filters on it.
 
-Kind:     Field
-Field of: the notification record
-Projects: recipient_ref
+Kind:       Field
+Field of:   the notification record
+Projection: recipient_ref
 
 #### Payload
 
 The opaque content of the notification. Set on [Create], immutable, stored and returned unchanged — never parsed, validated, or interpreted by the atom.
 
-Kind:     Field
-Field of: the notification record
-Projects: payload
+Kind:       Field
+Field of:   the notification record
+Projection: payload
 
 #### Created At
 
 The wall-time the notification was created, stamped from the injected clock at [Create]. Immutable (Invariant 1). The lower bound for any terminal timestamp (Invariant 8).
 
-Kind:     Field
-Field of: the notification record
-Projects: created_at
+Kind:       Field
+Field of:   the notification record
+Projection: created_at
 
 #### Status
 
 The notification's lifecycle state — [Pending], [Delivered], [Failed], or [Expired]. Set to [Pending] on [Create]; transitions once to a terminal (Invariant 2).
 
-Kind:     Field
-Field of: the notification record
-Projects: status
+Kind:       Field
+Field of:   the notification record
+Projection: status
 
 #### Delivered At
 
 The wall-time delivery was confirmed, stamped at [Deliver]. Present iff status is [Delivered] (Invariants 3 and 4); immutable once set.
 
-Kind:     Field
-Field of: the notification record
-Projects: delivered_at
+Kind:       Field
+Field of:   the notification record
+Projection: delivered_at
 
 #### Failed At
 
 The wall-time the failure was recorded, stamped at [Fail]. Present iff status is [Failed] (Invariants 3 and 4); immutable once set.
 
-Kind:     Field
-Field of: the notification record
-Projects: failed_at
+Kind:       Field
+Field of:   the notification record
+Projection: failed_at
 
 #### Expired At
 
 The wall-time the expiry was recorded, stamped at [Expire]. Present iff status is [Expired] (Invariants 3 and 4); immutable once set.
 
-Kind:     Field
-Field of: the notification record
-Projects: expired_at
+Kind:       Field
+Field of:   the notification record
+Projection: expired_at
 
 #### Pending
 
@@ -567,34 +567,34 @@ The current clock reading every writing action consumes — supplied at the atom
 
 Kind:         Parameter
 Parameter of: Create, Deliver, Fail and Expire
-Projects:     now
+Projection:   now
 
 #### Invalid Request
 
 The refusal [Create] returns when a request field fails its rule — an empty or whitespace-only [Recipient Ref] (Operation 4, String 5), or a string over the deployment's cap (String 6). An empty [Payload] is not a failure: Operation 5 accepts it.
 
-Kind:      Member
-Member of: the Create rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the Create rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Not Known
 
 The refusal [Deliver], [Fail], or [Expire] returns when the [Notification Id] references no notification in the store. Also the [Status Of] outcome for an unknown id.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Pending
 
 The refusal [Deliver], [Fail], or [Expire] returns when the target is not in [Pending] — i.e., already in a terminal state.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-pending
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-pending
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

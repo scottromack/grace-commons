@@ -539,7 +539,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the six custody actions it exposes — the five custody-recording actions ([Originate Custody], [Transfer Custody], [Transform Custody], [Disclose Custody], [Archive Custody]) and the emergent verification ([Verify Custody]); the structure that verification returns ([Custody Proof]) with its custody-continuity replay ([Continuity Check]) and summary [Overall Verdict]; and the two verdict values ([Custody Proof Complete], [Custody Proof Incomplete]). Its load-bearing guarantee — every Provenance custody entry binds to an attributed, sealed, retention-governed Audit Trail event, so records-alone custody proof (continuity + attribution + tamper-evidence + retention) holds from origin to disposition (the custody-event ⇒ audit-event binding, Invariant 4) — is a structural property, not a datum. Its emergent state (`entry_to_event`) is a single derived index over the Audit Trail substrate, left as a backticked token; the chain lifecycle states (`Open` / `Archived`) are the Provenance constituent's, and its rejection taxonomy is entirely relayed (Provenance's `not-known` / `archived` / `already-archived` / `not-current-custodian` / `invalid-ref` / `invalid-genesis-type` / `invalid-descriptor`; the Audit Trail substrate's `invalid-credential` and `invalid-request`, both reachable cleanly at the intent record) or the `recording-failure(intent | outcome)` this layer returns, so none is carded. The custody audit event types — the outcome records (`custody.originated`, `custody.received`, `custody.transferred`, `custody.transformed`, `custody.disclosed`, `custody.archived`) and the intent records that precede them (`custody.originate_intended`, `custody.transfer_intended`, `custody.transform_intended`, `custody.disclose_intended`, `custody.archive_intended`), together with the `intent_event_id` payload token that joins each pair — and the per-entry verification values (`verified`, `failed-verification(reason)`, `unverifiable(reason)` with its `payload-not-supplied` / `availability` / `partially-purged-coverage` reasons, and the continuity/failure classes `continuous`, `gap-detected`, `binding-gap`, `binding-unknown(purged-horizon)`, `entry-payload-mismatch`, `attestation-failed`, `seal-failed`) stay backticked as wire values, as do the read passthrough (`read`), the constituent calls and their outcomes — Provenance's `originate` / `transfer` / `transform` / `disclose` / `archive` / `read`, Audit Trail's `record_action` / `verify_record` — the relayed constituent tokens (`chain_id`, `entry_id`, `event_id`, `artifact_ref`, `custodian_ref`, `from_custodian_ref`, `to_custodian_ref`, `recipient_ref`, `genesis_type`, `transformation_descriptor`, `credential`), the composition output fields left uncarded (`entries`, `chain_state`, `attestation_verification`, `retention_state`, `sequence_number`), the deployment configuration knobs (`audit_trail_retention_policy`, `seal_cadence`, `recovery_identity`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the six custody actions it exposes — the five custody-recording actions ([Originate Custody], [Transfer Custody], [Transform Custody], [Disclose Custody], [Archive Custody]) and the emergent verification ([Verify Custody]); the structure that verification returns ([Custody Proof]) with its custody-continuity replay ([Continuity Check]) and summary [Overall Verdict]; and the two verdict values ([Custody Proof Complete], [Custody Proof Incomplete]). Its load-bearing guarantee — every Provenance custody entry binds to an attributed, sealed, retention-governed Audit Trail event, so records-alone custody proof (continuity + attribution + tamper-evidence + retention) holds from origin to disposition (the custody-event ⇒ audit-event binding, Invariant 4) — is a structural property, not a datum. Its emergent state (`entry_to_event`) is a single derived index over the Audit Trail substrate, left as a backticked token; the chain lifecycle states (`Open` / `Archived`) are the Provenance constituent's, and its rejection taxonomy is entirely relayed (Provenance's `not-known` / `archived` / `already-archived` / `not-current-custodian` / `invalid-ref` / `invalid-genesis-type` / `invalid-descriptor`; the Audit Trail substrate's `invalid-credential` and `invalid-request`, both reachable cleanly at the intent record) or the `recording-failure(intent | outcome)` this layer returns, so none is carded. The custody audit event types — the outcome records (`custody.originated`, `custody.received`, `custody.transferred`, `custody.transformed`, `custody.disclosed`, `custody.archived`) and the intent records that precede them (`custody.originate_intended`, `custody.transfer_intended`, `custody.transform_intended`, `custody.disclose_intended`, `custody.archive_intended`), together with the `intent_event_id` payload token that joins each pair — and the per-entry verification values (`verified`, `failed-verification(reason)`, `unverifiable(reason)` with its `payload-not-supplied` / `availability` / `partially-purged-coverage` reasons, and the continuity/failure classes `continuous`, `gap-detected`, `binding-gap`, `binding-unknown(purged-horizon)`, `entry-payload-mismatch`, `attestation-failed`, `seal-failed`) stay backticked as wire values, as do the read passthrough (`read`), the constituent calls and their outcomes — Provenance's `originate` / `transfer` / `transform` / `disclose` / `archive` / `read`, Audit Trail's `record_action` / `verify_record` — the relayed constituent tokens (`chain_id`, `entry_id`, `event_id`, `artifact_ref`, `custodian_ref`, `from_custodian_ref`, `to_custodian_ref`, `recipient_ref`, `genesis_type`, `transformation_descriptor`, `credential`), the composition output fields left uncarded (`entries`, `chain_state`, `attestation_verification`, `retention_state`, `sequence_number`), the deployment configuration knobs (`audit_trail_retention_policy`, `seal_cadence`, `recovery_identity`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Originate Custody
 
@@ -588,37 +588,37 @@ Role: the records-alone custody proof
 
 The [Custody Proof] field carrying the result of replaying the Provenance entries in order and confirming every transfer's `from_custodian_ref` equals the custodian in effect immediately before it (Provenance Invariant 4, replayed on demand): `continuous`, or `gap-detected` naming the entry and the mismatch.
 
-Kind:      Field
-Field of:  the custody proof
-Role:      the custody-continuity result
-Projects:  continuity_check
+Kind:       Field
+Field of:   the custody proof
+Role:       the custody-continuity result
+Projection: continuity_check
 
 #### Overall Verdict
 
 The [Custody Proof]'s summary field, with three values: [Custody Proof Complete] when continuity holds, every entry is bound, every supplied verification passes (or is lawful destruction), and no entry is recovery-attested; `custody-proof-complete-with-recovered-attestations(entry_ids)` — the same, except the named entries carry recovery attestations in place of the custodian's own, surfaced for the auditor's judgment; else [Custody Proof Incomplete] naming the specific failure, incomplete-input, and standing-coverage classes.
 
-Kind:      Field
-Field of:  the custody proof
-Role:      the summary verdict
-Projects:  overall_verdict
+Kind:       Field
+Field of:   the custody proof
+Role:       the summary verdict
+Projection: overall_verdict
 
 #### Custody Proof Complete
 
 The [Overall Verdict] value when the chain's continuity is unbroken, every entry has its audit-event binding, and every supplied attestation verifies (or is a lawful `failed-verification(purged)`) — the full custody is proven from the records alone.
 
-Kind:      Member
-Member of: the overall verdict
-Role:      Verdict
-Projects:  custody-proof-complete
+Kind:       Member
+Member of:  the overall verdict
+Role:       Verdict
+Projection: custody-proof-complete
 
 #### Custody Proof Incomplete
 
 The [Overall Verdict] value when at least one failure, incomplete-input, or standing-coverage class applies (a continuity gap, a binding gap or duplicate, an entry–payload mismatch, an attribution mismatch, a failed attestation, a seal failure, a not-supplied payload, an availability condition, or partially-purged seal coverage) — the proof is not fully self-proving, and the verdict names why per class.
 
-Kind:      Member
-Member of: the overall verdict
-Role:      Verdict
-Projects:  custody-proof-incomplete
+Kind:       Member
+Member of:  the overall verdict
+Role:       Verdict
+Projection: custody-proof-incomplete
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

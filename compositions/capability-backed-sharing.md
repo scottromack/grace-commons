@@ -326,7 +326,7 @@ These questions arise around this composition but cannot be answered from its re
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the emergent actions it exposes ([Authorize Sharing], [Redeem And Disclose], [Revoke Sharing]) and the two read-only queries ([Sharing Disclosures], [Authorization Provenance]); the Audit Trail event kinds it records — the two that realize the audit-subject asymmetry ([Sharing Authorized], attested under the allocator's credential; [Sharing Disclosed], attested under the service identity, naming no redeemer), the two intent events that carry the authentication precedence ([Sharing Authorization Intended], [Sharing Revocation Intended]), and [Sharing Revoked]; the sharing-descriptor fields it interprets from the capability scope ([Recipient] — the allocator-declared intended recipient, not the bearer; [Disclosed Scope]); and its own rejections ([Invalid Sharing Descriptor], [Not Authorized Sharing]). The audit-subject asymmetry itself is a structural guarantee (Invariant 1), not a cardable datum — there is no redeemer field to carry a term entry. Its emergent state — the `capability_to_sharing` and `disclosure_to_redemption` indices — is a composition-introduced surface no constituent provides, left as backticked store tokens. References to the constituent atoms and their operations — Capability's `allocate` / `redeem` / `revoke`, Selective Disclosure's `record` / `read`, Audit Trail's `record_action` / `verify_record` — the relayed tokens (`capability_token`, `allocator_ref`, `subject_ref`, `authority`, `disclosure_id`), the constituent redeem outcomes (`redeemed`, `invalid(exhausted | expired | revoked | not-known)`) and rejections (`invalid-request`, `unknown-authority-type`, `recording-failure`, `storage-failure`), and the deployment configuration knobs (`sharing_scope_grammar`, `default_capability_ttl`, `default_max_redemptions`) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the emergent actions it exposes ([Authorize Sharing], [Redeem And Disclose], [Revoke Sharing]) and the two read-only queries ([Sharing Disclosures], [Authorization Provenance]); the Audit Trail event kinds it records — the two that realize the audit-subject asymmetry ([Sharing Authorized], attested under the allocator's credential; [Sharing Disclosed], attested under the service identity, naming no redeemer), the two intent events that carry the authentication precedence ([Sharing Authorization Intended], [Sharing Revocation Intended]), and [Sharing Revoked]; the sharing-descriptor fields it interprets from the capability scope ([Recipient] — the allocator-declared intended recipient, not the bearer; [Disclosed Scope]); and its own rejections ([Invalid Sharing Descriptor], [Not Authorized Sharing]). The audit-subject asymmetry itself is a structural guarantee (Invariant 1), not a cardable datum — there is no redeemer field to carry a term entry. Its emergent state — the `capability_to_sharing` and `disclosure_to_redemption` indices — is a composition-introduced surface no constituent provides, left as backticked store tokens. References to the constituent atoms and their operations — Capability's `allocate` / `redeem` / `revoke`, Selective Disclosure's `record` / `read`, Audit Trail's `record_action` / `verify_record` — the relayed tokens (`capability_token`, `allocator_ref`, `subject_ref`, `authority`, `disclosure_id`), the constituent redeem outcomes (`redeemed`, `invalid(exhausted | expired | revoked | not-known)`) and rejections (`invalid-request`, `unknown-authority-type`, `recording-failure`, `storage-failure`), and the deployment configuration knobs (`sharing_scope_grammar`, `default_capability_ttl`, `default_max_redemptions`) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Authorize Sharing
 
@@ -362,91 +362,91 @@ Kind: Operation
 
 The Audit Trail event recorded at [Authorize Sharing], **attested under the allocator's own credential** — the allocator's non-repudiable commitment that they authorized this share (Invariant 3). The authorization half of the audit-subject asymmetry.
 
-Kind:      Member
-Member of: the sharing event kinds
-Role:      Audit event kind (allocator-attested)
-Projects:  sharing.authorized
+Kind:       Member
+Member of:  the sharing event kinds
+Role:       Audit event kind (allocator-attested)
+Projection: sharing.authorized
 
 #### Sharing Disclosed
 
 The Audit Trail event recorded at each [Redeem And Disclose], **attested under the composition's service identity** (the allocator is absent, the bearer has no credential); its `data` names the `allocator_ref` and carries **no redeemer identity** (Invariant 1). The disclosure half of the audit-subject asymmetry.
 
-Kind:      Member
-Member of: the sharing event kinds
-Role:      Audit event kind (service-attested)
-Projects:  sharing.disclosed
+Kind:       Member
+Member of:  the sharing event kinds
+Role:       Audit event kind (service-attested)
+Projection: sharing.disclosed
 
 #### Sharing Authorization Intended
 
 The Audit Trail event [Authorize Sharing] records **before** it allocates, naming the share the invocation is about to authorize. Its write is where the allocator's credential is validated against the actor registry, which makes it the records-alone proof that authentication preceded the allocation (Invariant 6); the [Sharing Authorized] outcome event carries its id back as `intent_event_id`. It deliberately carries **no `capability_token`** — none exists when it is written. An instance with no matching [Sharing Authorized] event names an invocation that committed nothing; that is expected residue, not a fault.
 
-Kind:      Member
-Member of: the sharing event kinds
-Role:      Audit event kind (intent, allocator-attested)
-Projects:  sharing.authorization_intended
+Kind:       Member
+Member of:  the sharing event kinds
+Role:       Audit event kind (intent, allocator-attested)
+Projection: sharing.authorization_intended
 
 #### Sharing Disclosure Intended
 
 The Audit Trail event [Redeem And Disclose] records **before** its domain transaction commits, naming the share the invocation is about to disclose. It is attested under the composition's **service identity** and carries **no redeemer identity** — a redemption presents no credential and names no bearer (Invariant 1), so what this event attests is that *this composition's service was about to disclose*, never *who presented the token*. **It is a recovery marker, not an authentication record**, and Generation acceptance check 5 says so explicitly: joining it into an authentication check would manufacture the redeemer-accountability claim this composition exists to refuse. Its purpose is to be trail-resident, so a disclosure that committed and lost its seal can be reconciled from the Audit Trail rather than from this composition's derived state; the [Sharing Disclosed] outcome event carries its id back as `intent_event_id`. It deliberately carries **no `disclosure_id`** — none exists when it is written. An instance with no matching [Sharing Disclosed] event is a *candidate* unsealed disclosure, resolved against the redemption counter (*Cross-store consistency under partial failure*), not a fault on its face.
 
-Kind:      Member
-Member of: the sharing event kinds
-Role:      Audit event kind (intent, service-attested)
-Projects:  sharing.disclosure_intended
+Kind:       Member
+Member of:  the sharing event kinds
+Role:       Audit event kind (intent, service-attested)
+Projection: sharing.disclosure_intended
 
 #### Sharing Revocation Intended
 
 The Audit Trail event [Revoke Sharing] records **before** it calls `Capability.revoke`, naming the `capability_token` it is about to cancel. Its write is where the revoker's credential is validated, so a live sharing is never cancelled on an unverified claim (Invariant 6); the [Sharing Revoked] outcome event carries its id back as `intent_event_id`. Because it names the token, an instance with no matching [Sharing Revoked] event is triaged directly against that capability's state.
 
-Kind:      Member
-Member of: the sharing event kinds
-Role:      Audit event kind (intent, revoker-attested)
-Projects:  sharing.revocation_intended
+Kind:       Member
+Member of:  the sharing event kinds
+Role:       Audit event kind (intent, revoker-attested)
+Projection: sharing.revocation_intended
 
 #### Sharing Revoked
 
 The Audit Trail event recorded at [Revoke Sharing] after the capability transitions to `Revoked` — **attested under the revoker's own credential** and carrying the `intent_event_id` of its [Sharing Revocation Intended] event. A named, accountable early closure of a sharing window; subsequent [Redeem And Disclose] calls for the token return `invalid(revoked)`.
 
-Kind:      Member
-Member of: the sharing event kinds
-Role:      Audit event kind (revoker-attested)
-Projects:  sharing.revoked
+Kind:       Member
+Member of:  the sharing event kinds
+Role:       Audit event kind (revoker-attested)
+Projection: sharing.revoked
 
 #### Recipient
 
 The sharing descriptor's **allocator-declared intended recipient** — the party the allocator named at allocation time as authorized to receive the share, recorded in every disclosure. Deliberately *not* the bearer who presented the token (unknowable by bearer design); whether the actual bearer was this recipient is the externally-unanswerable disputed-disclosure question.
 
-Kind:      Field
-Field of:  the sharing descriptor
-Role:      the allocator-declared intended recipient
-Projects:  recipient
+Kind:       Field
+Field of:   the sharing descriptor
+Role:       the allocator-declared intended recipient
+Projection: recipient
 
 #### Disclosed Scope
 
 The field subset the capability authorizes for disclosure (the minimum-necessary set), parsed from the capability's immutable scope per `sharing_scope_grammar`. Every disclosure's scope equals it exactly — no widening, no divergence (Invariant 4, scope-bounded disclosure).
 
-Kind:      Field
-Field of:  the sharing descriptor
-Role:      the authorized field subset
-Projects:  disclosed_scope
+Kind:       Field
+Field of:   the sharing descriptor
+Role:       the authorized field subset
+Projection: disclosed_scope
 
 #### Invalid Sharing Descriptor
 
 The composition's own rejection from [Authorize Sharing] — returned when the supplied descriptor does not parse under `sharing_scope_grammar` or leaves a required field (subject, recipient, disclosed scope, authority reference) empty. The share is refused before a capability is allocated.
 
-Kind:      Member
-Member of: the authorize-sharing rejection
-Role:      Rejection
-Projects:  invalid-sharing-descriptor
+Kind:       Member
+Member of:  the authorize-sharing rejection
+Role:       Rejection
+Projection: invalid-sharing-descriptor
 
 #### Not Authorized Sharing
 
 The composition's own rejection from [Redeem And Disclose] — returned when a valid Capability token has no `capability_to_sharing` entry: a foreign capability allocated by some other composition, carrying no sharing descriptor. Nothing is disclosed; this composition discloses only shares it authorized.
 
-Kind:      Member
-Member of: the redeem rejection
-Role:      Rejection
-Projects:  not-authorized-sharing
+Kind:       Member
+Member of:  the redeem rejection
+Role:       Rejection
+Projection: not-authorized-sharing
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

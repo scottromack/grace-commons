@@ -432,41 +432,41 @@ Kind: Operation
 
 The opaque, immutable identity of an [Evidence], host-allocated at the I/O seam on [Seal] and never reused. The [Record Set Ref], [Proof], [Sealed At], and [Anchored At] are properties of the [Evidence], not its identity.
 
-Kind:     Field
-Field of: Evidence
-Projects: evidence_id
+Kind:       Field
+Field of:   Evidence
+Projection: evidence_id
 
 #### Record Set Ref
 
 The opaque reference to *what* the [Evidence] commits to — the record set the [Proof] is computed over. The atom does not interpret it; the host pattern defines what a record set is and how to present it to [Verify] later. Set on [Seal], immutable thereafter.
 
-Kind:     Field
-Field of: Evidence
-Projects: record_set_ref
+Kind:       Field
+Field of:   Evidence
+Projection: record_set_ref
 
 #### Proof
 
 The cryptographic artifact that commits to the record set's content — a hash chain, Merkle root, signed root, RFC 3161 timestamp token, blockchain transaction id, or composite. Computed by [Seal] from the [Mechanism Credential] and the injected cryptographic material, stored on the [Evidence], and the thing [Verify] re-checks. Set on [Seal], immutable thereafter.
 
-Kind:     Field
-Field of: Evidence
-Projects: proof
+Kind:       Field
+Field of:   Evidence
+Projection: proof
 
 #### Sealed At
 
 The wall-time the [Evidence] was recorded, stamped from the host-injected [Now] on [Seal]. Immutable thereafter; best-effort, since clock quality is a deployment concern.
 
-Kind:     Field
-Field of: Evidence
-Projects: sealed_at
+Kind:       Field
+Field of:   Evidence
+Projection: sealed_at
 
 #### Anchored At
 
 The wall-time of an external anchor, present only when the chosen mechanism produced one synchronously at seal time (for example, an RFC 3161 timestamp authority called during [Seal]). Set on [Seal] if produced, immutable thereafter, and absent otherwise. Later, asynchronous anchoring belongs to a separate External Anchoring composition.
 
-Kind:     Field
-Field of: Evidence
-Projects: anchored_at
+Kind:       Field
+Field of:   Evidence
+Projection: anchored_at
 
 #### Mechanism Credential
 
@@ -474,7 +474,7 @@ The opaque material the chosen mechanism supplies to [Seal] to produce the [Proo
 
 Kind:         Parameter
 Parameter of: Seal
-Projects:     mechanism_credential
+Projection:   mechanism_credential
 
 #### Original Record Set
 
@@ -482,7 +482,7 @@ The originating record set the verifier presents to [Verify], re-checked against
 
 Kind:         Parameter
 Parameter of: Verify
-Projects:     original_record_set
+Projection:   original_record_set
 
 #### Now
 
@@ -490,7 +490,7 @@ The current wall-time reading [Seal] stamps [Sealed At] from, supplied to the pu
 
 Kind:         Parameter
 Parameter of: Seal
-Projects:     now
+Projection:   now
 
 #### Sealed
 
@@ -504,82 +504,82 @@ Role:      Outcome
 
 The outcome [Verify] returns when the stored [Proof] checks out against the presented [Original Record Set] under the chosen mechanism's verification function. It is the structural confirmation that the records were not altered after [Sealed At] (conditional on a cryptographically sound mechanism).
 
-Kind:      Member
-Member of: the Verify outcome
-Role:      Outcome
-Projects:  verified
+Kind:       Member
+Member of:  the Verify outcome
+Role:       Outcome
+Projection: verified
 
 #### Failed Verification
 
 The outcome [Verify] returns when the [Evidence] exists but does not verify, carrying a reason — [Proof Invalid], [Record Set Mismatch], or [Mechanism Verification Unavailable]. Distinct from [Not Known], which is a lookup miss.
 
-Kind:      Member
-Member of: the Verify outcome
-Role:      Outcome
-Projects:  failed-verification
+Kind:       Member
+Member of:  the Verify outcome
+Role:       Outcome
+Projection: failed-verification
 
 #### Not Known
 
 The outcome [Verify] returns when the supplied [Evidence Id] references no recorded [Evidence] — a lookup miss, not a verification failure. It is exclusively an [Evidence Id] lookup miss; an absent or wrong record set routes to [Failed Verification] for reason [Record Set Mismatch] instead.
 
-Kind:      Member
-Member of: the Verify outcome
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the Verify outcome
+Role:       Outcome
+Projection: not-known
 
 #### Proof Invalid
 
 The [Failed Verification] reason returned when the mechanism's verification function, run over the presented record set against the stored [Proof], does not check out — the structural signal of tampering.
 
-Kind:      Member
-Member of: the Failed Verification reason
-Role:      Outcome
-Projects:  proof-invalid
+Kind:       Member
+Member of:  the Failed Verification reason
+Role:       Outcome
+Projection: proof-invalid
 
 #### Record Set Mismatch
 
 The [Failed Verification] reason returned when the presented [Original Record Set] does not refer to the record set the [Evidence] was made over — a caller error, structurally distinct from [Proof Invalid] (tampering) and from [Not Known] (lookup miss).
 
-Kind:      Member
-Member of: the Failed Verification reason
-Role:      Outcome
-Projects:  record-set-mismatch
+Kind:       Member
+Member of:  the Failed Verification reason
+Role:       Outcome
+Projection: record-set-mismatch
 
 #### Mechanism Verification Unavailable
 
 The [Failed Verification] reason returned when the mechanism's verification function requires an external service (for example, an RFC 3161 TSA's published certificate chain) that is unavailable at verify time — a transient, retryable condition, distinct from [Proof Invalid] and [Record Set Mismatch].
 
-Kind:      Member
-Member of: the Failed Verification reason
-Role:      Outcome
-Projects:  mechanism-verification-unavailable
+Kind:       Member
+Member of:  the Failed Verification reason
+Role:       Outcome
+Projection: mechanism-verification-unavailable
 
 #### Invalid Request
 
 The refusal [Seal] returns when [Record Set Ref] contains no non-whitespace character, or [Mechanism Credential] is absent entirely. A guard rejection that fails before any store write; no [Evidence] is recorded.
 
-Kind:      Member
-Member of: the Seal rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the Seal rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Mechanism Failure
 
 The refusal [Seal] returns when the mechanism cannot compute a [Proof] against the record set — the underlying records are unreadable, the keying material fails the mechanism's preconditions, or a required synchronous anchor service is unreachable. No [Evidence] is recorded.
 
-Kind:      Member
-Member of: the Seal rejection
-Role:      Outcome
-Projects:  mechanism-failure
+Kind:       Member
+Member of:  the Seal rejection
+Role:       Outcome
+Projection: mechanism-failure
 
 #### Storage Failure
 
 The refusal [Seal] returns when the seal store write fails after the [Proof] is computed. No partial [Evidence] is recorded and the computed [Proof] is discarded — the caller must treat it as definitive.
 
-Kind:      Member
-Member of: the Seal rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the Seal rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

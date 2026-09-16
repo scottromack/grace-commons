@@ -457,7 +457,7 @@ Composition note 5 is `Composes 4` restated as the deployment's obligation, and 
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the retry-safe action-wirings it exposes ([Place Hold], [Confirm], [Release], [Expire]), the [Idempotency Token] it introduces on every call, and the fields of the recorded outcome it caches ([Action Type], [Parameters Digest], [Result]) plus its own [Token Collision], [Outcome Unknown] and [Recording Failure] rejections. It carries one piece of own state — the `token_results` map (classified extraction-pending, the proposed *Idempotency Result Memo* atom) — left as a backticked store token rather than carded as a Type, so its Fields are carded against the plain-noun recorded outcome. References to the constituent atoms and their operations — Provisional Commitment's place_hold/confirm/release/expire, Duplicate Prevention's `check`/`record` — the inherited rejection tokens (resource-unavailable, not-known, not-held, window-elapsed, window-not-elapsed, storage-failure, invalid-request), the entry states and stamps (pending, `recovery`, `pending_at`, `completed_at`), and the deployment configuration knobs (`idempotency_window`, `token_max_length`, `digest_function`, `per_token_serialization`, `reservation_completion_bound`, `token_results_durability`, `duplicate_prevention_store`, `commitment_store_acknowledged_atomic`) all remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the retry-safe action-wirings it exposes ([Place Hold], [Confirm], [Release], [Expire]), the [Idempotency Token] it introduces on every call, and the fields of the recorded outcome it caches ([Action Type], [Parameters Digest], [Result]) plus its own [Token Collision], [Outcome Unknown] and [Recording Failure] rejections. It carries one piece of own state — the `token_results` map (classified extraction-pending, the proposed *Idempotency Result Memo* atom) — left as a backticked store token rather than carded as a Type, so its Fields are carded against the plain-noun recorded outcome. References to the constituent atoms and their operations — Provisional Commitment's place_hold/confirm/release/expire, Duplicate Prevention's `check`/`record` — the inherited rejection tokens (resource-unavailable, not-known, not-held, window-elapsed, window-not-elapsed, storage-failure, invalid-request), the entry states and stamps (pending, `recovery`, `pending_at`, `completed_at`), and the deployment configuration knobs (`idempotency_window`, `token_max_length`, `digest_function`, `per_token_serialization`, `reservation_completion_bound`, `token_results_durability`, `duplicate_prevention_store`, `commitment_store_acknowledged_atomic`) all remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -502,61 +502,61 @@ The caller-supplied key attached to every state-changing call. The composition i
 Kind:         Parameter
 Parameter of: the state-changing actions ([Place Hold], [Confirm], [Release], [Expire])
 Role:         the idempotency key (also the recorded-outcome key and the Duplicate Prevention identity)
-Projects:     idempotency_token
+Projection:   idempotency_token
 
 #### Action Type
 
 The recorded outcome's record of which logical operation the token was bound to — one of place_hold, confirm, release, expire. A retry whose action differs from the recorded one is rejected [Token Collision] (Invariant 4).
 
-Kind:      Field
-Field of:  the recorded outcome
-Role:      the token's bound operation
-Projects:  action_type
+Kind:       Field
+Field of:   the recorded outcome
+Role:       the token's bound operation
+Projection: action_type
 
 #### Parameters Digest
 
 The recorded outcome's collision-resistant digest of the non-token call parameters, computed at the composition's I/O seam and injected. A retry whose digest differs from the recorded one is rejected [Token Collision]; digest-function drift across replicas misclassifies legitimate retries.
 
-Kind:      Field
-Field of:  the recorded outcome
-Role:      the token's bound parameters
-Projects:  parameters_digest
+Kind:       Field
+Field of:   the recorded outcome
+Role:       the token's bound parameters
+Projection: parameters_digest
 
 #### Result
 
 The recorded outcome's copy of the original response — the produced id or ok, or the rejection reason — exactly as returned to the caller on the first call, or the `outcome-unknown(candidates)` the re-entry arm wrote in place of an answer nobody recorded. Every outcome is cached, success or rejection (the cache-the-failure rule).
 
-Kind:      Field
-Field of:  the recorded outcome
-Role:      the replayed response
-Projects:  result
+Kind:       Field
+Field of:   the recorded outcome
+Role:       the replayed response
+Projection: result
 
 #### Token Collision
 
 The composition's own rejection — returned when a token already in the window is reused for a different [Action Type] or with a different [Parameters Digest]. Its structural guarantee is Invariant 4 (token-action binding); no state change occurs.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  token-collision
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: token-collision
 
 #### Outcome Unknown
 
 The composition's own rejection for a token whose earlier invocation may have acted and did not record its answer — a pending entry found under the token's section, or a token Duplicate Prevention remembers and `token_results` does not. For [Place Hold] it carries the candidate Held commitments matching the call's resource and requester, filtered composition-side from Provisional Commitment's exported set; the composition re-delegates nothing (the resolving actions re-run instead, effect-free by Provisional Commitment Invariant 2). Replayed for the token's window when written against a pending entry; uncached when no entry existed.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  outcome-unknown
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: outcome-unknown
 
 #### Recording Failure
 
 The composition's own rejection for a write to `token_results` that did not land, carrying its position and, at the outcome position, the constituent's answer. intent: the pending entry failed — nothing is committed, and the whole action may be retried (a write that landed unacknowledged is found by the retry's pending arm, whose empty-candidates case proceeds as never delegated). `outcome(optional id)` for [Place Hold], `outcome(result)` for the resolving actions: the constituent has answered — the committed id where there is one, else its rejection or ok — and the [Result] could not be recorded by `reservation_completion_bound`; the act must not be re-run under a fresh token, and a same-token retry lands the pending arm.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  recording-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: recording-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a term marker to its term entry heading above (kramdown

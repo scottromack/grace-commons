@@ -1142,7 +1142,7 @@ These are adjacent compositions, **not** constituents of Customer Onboarding:
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind**, the Type it is a **Member of** or **Field of**, the Operation it is a **Parameter of**, its **Role** where the domain assigns one, and one **Projects** line — the concept's single canonical lowering token. Everything else about casing is derived from that token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. The emergent indexes (case_to_monitoring, party_to_case, case_to_retentions, case_to_open_triggers), the `customer-onboarding.*` event classes, the deployment trigger vocabulary, the constituent calls and their outcomes, the relayed constituent tokens and the deployment knobs stay backticked as wire values; the party lifecycle states are [Party Identity](../atoms/party-identity.md)'s and are not carded here.
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind**, the Type it is a **Member of** or **Field of**, the Operation it is a **Parameter of**, its **Role** where the domain assigns one, and one **Projection** line — the concept's single canonical lowering token. Everything else about casing is derived from that token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. The emergent indexes (case_to_monitoring, party_to_case, case_to_retentions, case_to_open_triggers), the `customer-onboarding.*` event classes, the deployment trigger vocabulary, the constituent calls and their outcomes, the relayed constituent tokens and the deployment knobs stay backticked as wire values; the party lifecycle states are [Party Identity](../atoms/party-identity.md)'s and are not carded here.
 
 ### Vocabulary
 
@@ -1206,109 +1206,109 @@ Kind: Operation
 
 The monitoring-schedule datum in each case's entry: the instant by which the party's next periodic review is due, advanced on a state-changing verification pass, a periodic review against an unsuspended party, or a review clearance — stamped on the reinstatement record, once the reinstate has committed — and capped below the current placement's cover so the review that renews the placement always fires before the placement lapses. It deliberately does not roll forward while a party is Suspended. A Verified party with no monitoring entry is a structural finding (Invariant 6.1).
 
-Kind:      Field
-Field of:  the monitoring-schedule entry
-Role:      the next-periodic-review deadline
-Projects:  next_review_due
+Kind:       Field
+Field of:   the monitoring-schedule entry
+Role:       the next-periodic-review deadline
+Projection: next_review_due
 
 #### Not Verified
 
 The load-bearing [Activity Permitted] refusal, parameterized by the party's actual state (`Unverified`, `Suspended` or `Closed`), so an activity system distinguishes *not yet verified* from *under investigation* from *relationship ended* and knows whether to retry, wait or stop. [Trigger Monitoring Review] answers it too, on the adverse pre-check and on the defence-in-depth arm behind it; the gate is the ordinary producer.
 
-Kind:      Member
-Member of: the gate rejection
-Role:      Rejection
-Projects:  not-verified
+Kind:       Member
+Member of:  the gate rejection
+Role:       Rejection
+Projection: not-verified
 
 #### State Unavailable
 
 The [Activity Permitted] fail-closed refusal when the party's state read cannot be answered — an unanswered read at the seam, or a case entry whose party the store no longer answers for. The gate refuses rather than treating an unreadable identity store as `Verified`, because the cheapest-compliant reading — unavailable implies permit — is exactly the before-activity hole the gate exists to close. [Trigger Monitoring Review]'s pre-check mirrors it.
 
-Kind:      Member
-Member of: the gate rejection
-Role:      Rejection
-Projects:  state-unavailable
+Kind:       Member
+Member of:  the gate rejection
+Role:       Rejection
+Projection: state-unavailable
 
 #### No Open Trigger
 
 The [Clear Review] refusal when the case carries no open adverse trigger — there is nothing to clear. Its faithfulness as a *nothing to clear* signal is Invariant 7.
 
-Kind:      Member
-Member of: the clear-review rejection
-Role:      Rejection
-Projects:  no-open-trigger
+Kind:       Member
+Member of:  the clear-review rejection
+Role:       Rejection
+Projection: no-open-trigger
 
 #### Enrollment Failed
 
 The [Initiate Onboarding] refusal wrapping a Party Identity `enroll` failure on the direct path, surfaced under a composition-layer name rather than flattened into a recording failure precisely because it occurs before any case or placement exists — there is no orphan to recover.
 
-Kind:      Member
-Member of: the initiate rejection
-Role:      Rejection
-Projects:  enrollment-failed
+Kind:       Member
+Member of:  the initiate rejection
+Role:       Rejection
+Projection: enrollment-failed
 
 #### Party Not Known
 
 The [Initiate Onboarding] refusal on the external path when the supplied party_id names no party the Party Identity instance holds.
 
-Kind:      Member
-Member of: the initiate rejection
-Role:      Rejection
-Projects:  party-not-known
+Kind:       Member
+Member of:  the initiate rejection
+Role:       Rejection
+Projection: party-not-known
 
 #### Party Not Admissible
 
 The [Initiate Onboarding] refusal on the external path when the named party stands outside `Unverified` — parameterized by the state found. A `Verified` admit would pass the gate with no verification record of this composition's, a `Suspended` admit would open a case with an empty open-trigger set against a suspended party, and a `Closed` party can never reach `Verified` at all, Party Identity's Closed being absorbing. A returning customer whose party record is Closed re-onboards by **fresh enrollment on the direct path, receiving a new party_id**; the prior party record and its case history remain as governed records.
 
-Kind:      Member
-Member of: the initiate rejection
-Role:      Rejection
-Projects:  party-not-admissible
+Kind:       Member
+Member of:  the initiate rejection
+Role:       Rejection
+Projection: party-not-admissible
 
 #### Already Onboarded
 
 The [Initiate Onboarding] refusal when the named party already has an active case — the one-active-case-per-party relation. Re-onboarding an actively governed party would repoint the case index and orphan the live case's monitoring and retention entries. A party whose prior case closed is a `Closed` party and is refused as [Party Not Admissible]; the route back is fresh enrollment under a new party_id, never a second case over the old record.
 
-Kind:      Member
-Member of: the initiate rejection
-Role:      Rejection
-Projects:  already-onboarded
+Kind:       Member
+Member of:  the initiate rejection
+Role:       Rejection
+Projection: already-onboarded
 
 #### Verification Failed
 
 The [Clear Review] refusal when the reinstatement's precondition is unmet — a concurrent suspend re-armed it, or the party was not Suspended. A defence-in-depth code, reachable only where the host has not honored the per-party serialization obligation.
 
-Kind:      Member
-Member of: the clear-review rejection
-Role:      Rejection
-Projects:  verification-failed
+Kind:       Member
+Member of:  the clear-review rejection
+Role:       Rejection
+Projection: verification-failed
 
 #### Not Active
 
 The refusal the three repeatable actions answer for a case whose relationship has ended. Monitoring does not fire against a closed relationship, a closed case takes no further verification, and a second closure has nothing to close; the guard sits before the intent, so a closed case never reaches a constituent and never leaves an intent for an act that could not happen.
 
-Kind:      Member
-Member of: the case-guard rejection
-Role:      Rejection
-Projects:  not-active
+Kind:       Member
+Member of:  the case-guard rejection
+Role:       Rejection
+Projection: not-active
 
 #### Trigger On Suspended Party
 
 The audit event class an adverse trigger records when the party already stands suspended — a real trigger, no new transition. A distinct class from the suspension record so a second adverse alert is not read as a second suspension and an auditor does not miscount transitions; the trigger still enters the open set, and one clearance closes every trigger it names.
 
-Kind:      Member
-Member of: the outcome event classes
-Role:      Audit event
-Projects:  customer-onboarding.trigger-on-suspended-party
+Kind:       Member
+Member of:  the outcome event classes
+Role:       Audit event
+Projection: customer-onboarding.trigger-on-suspended-party
 
 #### Trigger Voided
 
 The audit event class recorded when a trigger landed and its `suspend` was refused, naming the constituent's answer. Without it the landed trigger rebuilds as an open investigation against a party nobody suspended, which [Clear Review] would then *clear* — recording a fresh verification, attempting a reinstate the constituent refuses, and never landing the record whose absence would keep the trigger open forever.
 
-Kind:      Member
-Member of: the outcome event classes
-Role:      Audit event
-Projects:  customer-onboarding.trigger-voided
+Kind:       Member
+Member of:  the outcome event classes
+Role:       Audit event
+Projection: customer-onboarding.trigger-voided
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

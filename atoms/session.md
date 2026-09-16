@@ -596,81 +596,81 @@ Kind: Operation
 
 The opaque, cryptographically random, immutable, system-generated value [Issue] produces — both the [Session]'s record identity and the bearer credential the caller presents to [Validate] and [Revoke]. It is the injected `id_t`; no two sessions share one, and it is not reused after a [Session] lapses or is revoked.
 
-Kind:     Field
-Field of: Session
-Projects: session_token
+Kind:       Field
+Field of:   Session
+Projection: session_token
 
 #### Principal Ref
 
 The opaque reference to the authenticated principal for whom the [Session] is issued. The atom treats it as opaque — it does not validate that the principal exists or was authenticated. Set on [Issue], immutable thereafter; the value [Validate] returns in a [Valid] result.
 
-Kind:     Field
-Field of: Session
-Projects: principal_ref
+Kind:       Field
+Field of:   Session
+Projection: principal_ref
 
 #### Issued By Ref
 
 The opaque reference to the mechanism that issued the [Session] (a Login service, an SSO system, an administrative process). Recorded as an immutable property of the [Session]. Set on [Issue], immutable thereafter.
 
-Kind:     Field
-Field of: Session
-Projects: issued_by_ref
+Kind:       Field
+Field of:   Session
+Projection: issued_by_ref
 
 #### Issued At
 
 The wall-time when [Issue] was called, stamped from the injected [Now]. Immutable thereafter. [Expires At] is computed once as `[Issued At] + [Session Duration]`.
 
-Kind:     Field
-Field of: Session
-Projects: issued_at
+Kind:       Field
+Field of:   Session
+Projection: issued_at
 
 #### Expires At
 
 The time at which this [Session] expires — set on [Issue] as `[Issued At] + [Session Duration]`, never null, and never mutated by any action. It states *when* validity ends; whether the [Session] has lapsed is *derived* from it against the injected [Now], never recorded as a stored status change. It is the sole stored input the expiry derivation needs.
 
-Kind:     Field
-Field of: Session
-Projects: expires_at
+Kind:       Field
+Field of:   Session
+Projection: expires_at
 
 #### Status
 
 The stored status of a [Session]: [Active] or [Revoked]. Set to [Active] on [Issue]; transitions to [Revoked] via [Revoke] and never returns to [Active]. The derived [Expired] is *not* a value of this field — it appears only in the [Effective Status] read projection.
 
-Kind:     Field
-Field of: Session
-Projects: status
+Kind:       Field
+Field of:   Session
+Projection: status
 
 #### Revoked At
 
 The wall-time the [Session]'s [Status] transitioned to [Revoked], stamped from the injected [Now]. Null until revocation; immutable once set.
 
-Kind:     Field
-Field of: Session
-Projects: revoked_at
+Kind:       Field
+Field of:   Session
+Projection: revoked_at
 
 #### Revoked By Ref
 
 The opaque reference to the actor or mechanism that performed the revocation. Required at [Revoke]; null until revocation; immutable once set.
 
-Kind:     Field
-Field of: Session
-Projects: revoked_by_ref
+Kind:       Field
+Field of:   Session
+Projection: revoked_by_ref
 
 #### Revocation Reason
 
 The caller-supplied reason recorded for the revocation (from the [Reason] parameter). Required at [Revoke]; null until revocation; immutable once set.
 
-Kind:     Field
-Field of: Session
-Projects: revocation_reason
+Kind:       Field
+Field of:   Session
+Projection: revocation_reason
 
 #### Effective Status
 
 The status [Read] attaches to each returned [Session] record: [Expired] when `[Status] = [Active] ∧ [Now] ≥ [Expires At]`, otherwise the stored [Status]. It is a pure projection over the record and the injected [Now] — **derived at read time, never stored** — and is what makes [Validate] return [Invalid Expired]. Every liveness query applies it.
 
-Kind:     Field
-Field of: Session
-Projects: effective_status
+Kind:       Field
+Field of:   Session
+Projection: effective_status
 
 #### Session Duration
 
@@ -678,7 +678,7 @@ The duration value [Issue] consumes to compute [Expires At] (`[Issued At] + [Ses
 
 Kind:         Parameter
 Parameter of: Issue
-Projects:     session_duration
+Projection:   session_duration
 
 #### Now
 
@@ -686,7 +686,7 @@ The current clock reading (the pipeline's `clock_t`), pipeline-injected at the I
 
 Kind:         Parameter
 Parameter of: Validate
-Projects:     now
+Projection:   now
 
 #### Reason
 
@@ -694,7 +694,7 @@ The caller-supplied reason string [Revoke] consumes and writes into the [Session
 
 Kind:         Parameter
 Parameter of: Revoke
-Projects:     reason
+Projection:   reason
 
 #### Filter
 
@@ -702,7 +702,7 @@ The selection a caller passes to [Read] to scope which [Session] records are ret
 
 Kind:         Parameter
 Parameter of: Read
-Projects:     filter
+Projection:   filter
 
 #### Active
 
@@ -732,64 +732,64 @@ Role:      Outcome
 
 The [Validate] outcome when the [Session Token] references a known record that is stored-[Active] and `[Now] < [Expires At]`. It carries the [Principal Ref] and [Expires At]. It is the one outcome the conjunctive validity bound (Invariant 3) admits; any single condition failing yields an invalid result instead.
 
-Kind:      Member
-Member of: the validate outcome
-Role:      Outcome
-Projects:  valid
+Kind:       Member
+Member of:  the validate outcome
+Role:       Outcome
+Projection: valid
 
 #### Invalid Expired
 
 The [Validate] outcome when the record is stored-[Active] and `[Now] ≥ [Expires At]` — reached **by derivation, with no write**. Structurally distinct from [Invalid Revoked]; the [Active] guard is checked first so a revoked-and-past-deadline [Session] returns [Invalid Revoked], never this.
 
-Kind:      Member
-Member of: the validate outcome
-Role:      Outcome
-Projects:  expired
+Kind:       Member
+Member of:  the validate outcome
+Role:       Outcome
+Projection: expired
 
 #### Invalid Revoked
 
 The [Validate] outcome when the record's stored [Status] is [Revoked] — regardless of whether [Expires At] is still in the future. Revocation takes precedence over expiry, so this is returned even when the [Session] would also have lapsed. Permanent for a given token (Invariant 4).
 
-Kind:      Member
-Member of: the validate outcome
-Role:      Outcome
-Projects:  revoked
+Kind:       Member
+Member of:  the validate outcome
+Role:       Outcome
+Projection: revoked
 
 #### Not Known
 
 The lookup-miss outcome: the supplied [Session Token] references no record. [Validate] returns it as the structurally-distinct fourth outcome (no [Session] was revoked; no [Session] exists), and [Revoke] returns it as a rejection when its target token is unknown.
 
-Kind:      Member
-Member of: the lookup-miss outcome
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the lookup-miss outcome
+Role:       Outcome
+Projection: not-known
 
 #### Invalid Request
 
 The rejection [Issue] returns when [Principal Ref] or [Issued By Ref] is null or empty, when [Session Duration] is zero or negative, or when the deployment default duration is absent; and [Revoke] returns when [Revoked By Ref] or [Reason] is null or empty.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Already Terminal
 
 The rejection [Revoke] returns when the target [Session]'s stored [Status] is already [Revoked] — a re-revoke. The only stored terminal is [Revoked]; a merely-lapsed [Session] is not terminal and is not rejected here.
 
-Kind:      Member
-Member of: the revoke rejection
-Role:      Outcome
-Projects:  already-terminal
+Kind:       Member
+Member of:  the revoke rejection
+Role:       Outcome
+Projection: already-terminal
 
 #### Storage Failure
 
 The rejection [Issue] or [Revoke] returns when the underlying store write fails. [Issue] leaves no partial record; [Revoke] commits no state change. The caller must treat it as definitive.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

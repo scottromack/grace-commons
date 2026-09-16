@@ -613,111 +613,111 @@ Kind: Operation
 The record this atom defines: one principal's binding to one verifier for one credential type. Carries [Credential Id], [Principal Ref], [Credential Type], [Verifier], [Registered At], [Status], an optional [Expires At], and the terminal fields of whichever write ended it.
 
 Kind: Type
-Projects: status
+Projection: status
 
 #### Credential Id
 
 The opaque, immutable identity of a [Credential], assigned on [Register] from the id material the seam supplies. Never reused, and never the pair — two credentials for one pair are a rotation predecessor and its successor, each standing on its own.
 
-Kind:     Field
-Field of: Credential
-Projects: credential_id
+Kind:       Field
+Field of:   Credential
+Projection: credential_id
 
 #### Principal Ref
 
 The opaque reference naming whose credential this is. Set on [Register], immutable. The atom does not confirm it names a known or proofed party — that is [Party Identity](./party-identity.md)'s.
 
-Kind:     Field
-Field of: Credential
-Projects: principal_ref
+Kind:       Field
+Field of:   Credential
+Projection: principal_ref
 
 #### Credential Type
 
 The label naming the kind of credential — `password`, `totp-secret`, `public-key`, `api-token`, `fido2`. Half of the pair the effective-active bound ranges over, and the selector for the derivation function; a type naming no registered function is refused.
 
-Kind:     Field
-Field of: Credential
-Projects: credential_type
+Kind:       Field
+Field of:   Credential
+Projection: credential_type
 
 #### Verifier
 
 The artifact a one-way derivation function produces from [Credential Material] — a hash, an encoded public key. The only thing this atom stores in place of the secret, and never answered by [Read].
 
-Kind:     Field
-Field of: Credential
-Projects: verifier
+Kind:       Field
+Field of:   Credential
+Projection: verifier
 
 #### Status
 
 The stored status of a [Credential] — [Active], [Rotated] or [Revoked]. [Expired] is not a value of this field; it appears only in the derived [Effective Status].
 
-Kind:     Field
-Field of: Credential
-Projects: status
+Kind:       Field
+Field of:   Credential
+Projection: status
 
 #### Registered At
 
 The instant the credential was recorded, stamped from [Now] on [Register]. Immutable.
 
-Kind:     Field
-Field of: Credential
-Projects: registered_at
+Kind:       Field
+Field of:   Credential
+Projection: registered_at
 
 #### Expires At
 
 The optional instant the window closes, recorded on [Register] from the caller's value or the deployment's default. Immutable. Absent means no deadline, and a credential with no deadline reads live forever. The sole stored input the derived [Effective Status] needs.
 
-Kind:     Field
-Field of: Credential
-Projects: expires_at
+Kind:       Field
+Field of:   Credential
+Projection: expires_at
 
 #### Rotated At
 
 The instant the replacement committed, stamped from [Now] on [Rotate]. Present only in [Rotated]; written once and never rewritten.
 
-Kind:     Field
-Field of: Credential
-Projects: rotated_at
+Kind:       Field
+Field of:   Credential
+Projection: rotated_at
 
 #### Successor Credential Id
 
 The [Credential Id] of the credential that replaced this one. Present only in [Rotated]; written once, because a re-link would silently rewrite the chain an auditor walks.
 
-Kind:     Field
-Field of: Credential
-Projects: successor_credential_id
+Kind:       Field
+Field of:   Credential
+Projection: successor_credential_id
 
 #### Revoked At
 
 The instant the revocation committed, stamped from [Now] on [Revoke]. Present only in [Revoked]; written once.
 
-Kind:     Field
-Field of: Credential
-Projects: revoked_at
+Kind:       Field
+Field of:   Credential
+Projection: revoked_at
 
 #### Revoked By Ref
 
 The opaque reference naming who revoked the credential. Required on [Revoke] and never blank on a [Revoked] credential.
 
-Kind:     Field
-Field of: Credential
-Projects: revoked_by_ref
+Kind:       Field
+Field of:   Credential
+Projection: revoked_by_ref
 
 #### Revocation Reason
 
 The caller-supplied [Reason] for the revocation. Required and never blank — a revocation nobody can explain is a finding rather than a record.
 
-Kind:     Field
-Field of: Credential
-Projects: revocation_reason
+Kind:       Field
+Field of:   Credential
+Projection: revocation_reason
 
 #### Effective Status
 
 The status a [Read] answers: [Expired] where the credential reads lapsed, and the stored [Status] otherwise. A projection over the credential and [Now] — computed at read time, never stored, and the only surface on which [Expired] appears.
 
-Kind:     Field
-Field of: Credential
-Projects: effective_status
+Kind:       Field
+Field of:   Credential
+Projection: effective_status
 
 #### Credential Material
 
@@ -725,7 +725,7 @@ The raw secret the principal supplies to [Register]. Consumed to derive the [Ver
 
 Kind:         Parameter
 Parameter of: Register
-Projects:     credential_material
+Projection:   credential_material
 
 #### Presented Material
 
@@ -733,7 +733,7 @@ The raw secret the principal supplies to [Verify]. Derived and compared against 
 
 Kind:         Parameter
 Parameter of: Verify
-Projects:     presented_material
+Projection:   presented_material
 
 #### Reason
 
@@ -741,7 +741,7 @@ The revocation reason supplied to [Revoke], recorded as [Revocation Reason]. Req
 
 Kind:         Parameter
 Parameter of: Revoke
-Projects:     reason
+Projection:   reason
 
 #### Now
 
@@ -749,7 +749,7 @@ The wall-time reading the host takes at the seam and hands to the transition, as
 
 Kind:         Parameter
 Parameter of: Register
-Projects:     now
+Projection:   now
 
 #### Active
 
@@ -787,73 +787,73 @@ Role:      Outcome
 
 The [Verify] answer when an effective-active credential exists for the pair and the presented material derives to a different verifier. A first-class result of a query, not a rejection.
 
-Kind:      Member
-Member of: the failed-verification reason
-Role:      Outcome
-Projects:  material-mismatch
+Kind:       Member
+Member of:  the failed-verification reason
+Role:       Outcome
+Projection: material-mismatch
 
 #### No Active Credential
 
 The [Verify] answer when the pair has no effective-active credential — because none was registered, because every record is a stored terminal, or because the only active one reads lapsed. The three are deliberately one answer: distinguishing them would let a caller enumerate which principals hold which credential types.
 
-Kind:      Member
-Member of: the failed-verification reason
-Role:      Outcome
-Projects:  no-active-credential
+Kind:       Member
+Member of:  the failed-verification reason
+Role:       Outcome
+Projection: no-active-credential
 
 #### Invalid Request
 
 The refusal returned when a required argument is blank, a [Credential Type] names no derivation function, a supplied [Expires At] does not exceed [Now], or a string input exceeds the deployment's length bound. On a transitioning write it is reached only after every standing check passes.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Duplicate Active Credential
 
 The refusal [Register] returns when the pair already holds an effective-active credential. The caller's move is [Rotate], not a second registration. A lapsed credential does not produce this.
 
-Kind:      Member
-Member of: the Register rejection
-Role:      Outcome
-Projects:  duplicate-active-credential
+Kind:       Member
+Member of:  the Register rejection
+Role:       Outcome
+Projection: duplicate-active-credential
 
 #### Not Known
 
 The refusal a transitioning write returns when the supplied [Credential Id] names no credential. Reached before either standing rejection, so a caller reading [Not Active] or [Already Terminal] knows the id resolved.
 
-Kind:      Member
-Member of: the transitioning-write rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the transitioning-write rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Active
 
 The refusal [Rotate] returns, after [Not Known] is ruled out, when the credential is not effective-active — either a stored terminal, or standing in [Active] and reading lapsed. Two mechanisms, one answer.
 
-Kind:      Member
-Member of: the Rotate rejection
-Role:      Outcome
-Projects:  not-active
+Kind:       Member
+Member of:  the Rotate rejection
+Role:       Outcome
+Projection: not-active
 
 #### Already Terminal
 
 The refusal [Revoke] returns when the credential is not effective-active. The symmetric counterpart to [Not Active], and it shares that answer's two mechanisms — a stored terminal excludes by what it stores, a lapsed credential by what the clock says.
 
-Kind:      Member
-Member of: the Revoke rejection
-Role:      Outcome
-Projects:  already-terminal
+Kind:       Member
+Member of:  the Revoke rejection
+Role:       Outcome
+Projection: already-terminal
 
 #### Storage Failure
 
 The refusal any action returns when the store refuses the write after every precondition passes. No credential is recorded, or the credential remains as the call found it.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

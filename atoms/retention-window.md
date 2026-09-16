@@ -453,81 +453,81 @@ Kind: Operation
 
 The opaque, immutable identity of a retention, host-allocated at the I/O seam on [Place Under Retention] and never reused. The [Record Ref], [Policy Ref], and the derived deadlines are properties of the retention, not its identity.
 
-Kind:     Field
-Field of: Retention Window
-Projects: retention_id
+Kind:       Field
+Field of:   Retention Window
+Projection: retention_id
 
 #### Record Ref
 
 The opaque reference to *what* is being retained — the record the retention covers. The atom does not interpret it; the host defines what counts as a record and how to reference it. Set on [Place Under Retention], immutable thereafter.
 
-Kind:     Field
-Field of: Retention Window
-Projects: record_ref
+Kind:       Field
+Field of:   Retention Window
+Projection: record_ref
 
 #### Policy Ref
 
 The opaque reference to *which* retention rules apply. The policy registry is a separate concept; the atom requires only that the policy expose a [Duration] and a [Max Purge Delay]. Set on [Place Under Retention], immutable thereafter.
 
-Kind:     Field
-Field of: Retention Window
-Projects: policy_ref
+Kind:       Field
+Field of:   Retention Window
+Projection: policy_ref
 
 #### Retained At
 
 The wall-time the retention was placed under retention, stamped from the injected [Now] on [Place Under Retention]. Immutable thereafter. It is the anchor from which [Retention Until] is derived.
 
-Kind:     Field
-Field of: Retention Window
-Projects: retained_at
+Kind:       Field
+Field of:   Retention Window
+Projection: retained_at
 
 #### Retention Until
 
 The earliest time purge is permitted — the end of the retention period, derived once as [Retained At] + [Duration] on [Place Under Retention] and immutable thereafter. The [Purge] guard admits a purge only while [Now] ≥ [Retention Until].
 
-Kind:     Field
-Field of: Retention Window
-Projects: retention_until
+Kind:       Field
+Field of:   Retention Window
+Projection: retention_until
 
 #### Purge Deadline
 
 The latest time the regulator expects purge to occur, derived once as [Retention Until] + [Max Purge Delay] on [Place Under Retention] and immutable thereafter. Operating past it is observable [Overshoot]; the atom observes this bound but does not enforce it.
 
-Kind:     Field
-Field of: Retention Window
-Projects: purge_deadline
+Kind:       Field
+Field of:   Retention Window
+Projection: purge_deadline
 
 #### Purged At
 
 The wall-time the retention was purged, stamped from the injected [Now] on [Purge]. Present only in [Purged]. Its relation to [Purge Deadline] is what makes [Overshoot] computable from the record alone.
 
-Kind:     Field
-Field of: Retention Window
-Projects: purged_at
+Kind:       Field
+Field of:   Retention Window
+Projection: purged_at
 
 #### Purge Eligible
 
 The derived read-surface projection that reads `true` exactly when a retention is still [Retained] *and* its period has elapsed — `state = Retained ∧ [Now] ≥ [Retention Until]`. It is a pure function of the stored record and the injected [Now], computed at read time and **never stored** (Invariant 11). It is the same predicate the [Purge] guard evaluates.
 
-Kind:     Field
-Field of: Retention Window
-Projects: purge_eligible
+Kind:       Field
+Field of:   Retention Window
+Projection: purge_eligible
 
 #### Overshoot
 
 The derived metric, for a [Purged] retention, of [Purged At] − [Purge Deadline] when positive — the amount by which purge ran late. Computable from the records alone; surfaced to compliance dashboards but never stored. It is the data-minimization finding the audit reads from the record itself.
 
-Kind:     Field
-Field of: Retention Window
-Projects: overshoot
+Kind:       Field
+Field of:   Retention Window
+Projection: overshoot
 
 #### Active Overdue
 
 The derived metric, for a still-[Retained] retention, of [Now] − [Purge Deadline] when positive — a record overdue for purge that has not yet been purged. Computable from the record and the injected [Now] alone; surfaced as a derived view, never stored.
 
-Kind:     Field
-Field of: Retention Window
-Projects: active_overdue
+Kind:       Field
+Field of:   Retention Window
+Projection: active_overdue
 
 #### Now
 
@@ -535,7 +535,7 @@ The current wall-clock reading, pipeline-injected at the single I/O seam (the ex
 
 Kind:         Parameter
 Parameter of: Place Under Retention and Purge
-Projects:     now
+Projection:   now
 
 #### Duration
 
@@ -543,7 +543,7 @@ The retention period the policy exposes — the injected scalar from which [Rete
 
 Kind:         Parameter
 Parameter of: Place Under Retention
-Projects:     duration
+Projection:   duration
 
 #### Max Purge Delay
 
@@ -551,7 +551,7 @@ The maximum allowed lag between retention-end and purge the policy exposes — t
 
 Kind:         Parameter
 Parameter of: Place Under Retention
-Projects:     max_purge_delay
+Projection:   max_purge_delay
 
 #### Retained
 
@@ -573,64 +573,64 @@ Role:      Outcome
 
 The refusal [Place Under Retention] returns when [Record Ref] or [Policy Ref] is malformed — neither contains a non-whitespace character. A guard rejection that fails before any store write; no retention is recorded.
 
-Kind:      Member
-Member of: the Place Under Retention rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the Place Under Retention rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Policy Not Found
 
 The refusal [Place Under Retention] returns when [Policy Ref] does not resolve to a known policy in the policy registry. Distinct from [Invalid Policy] (a policy that resolves but is invalid). A guard rejection; no retention is recorded.
 
-Kind:      Member
-Member of: the Place Under Retention rejection
-Role:      Outcome
-Projects:  policy-not-found
+Kind:       Member
+Member of:  the Place Under Retention rejection
+Role:       Outcome
+Projection: policy-not-found
 
 #### Invalid Policy
 
 The refusal [Place Under Retention] returns when the resolved policy is invalid — its [Duration] is not positive or its [Max Purge Delay] is negative. Distinct from [Policy Not Found] (the policy could not be resolved at all). A guard rejection; no retention is recorded.
 
-Kind:      Member
-Member of: the Place Under Retention rejection
-Role:      Outcome
-Projects:  invalid-policy
+Kind:       Member
+Member of:  the Place Under Retention rejection
+Role:       Outcome
+Projection: invalid-policy
 
 #### Not Retained
 
 The refusal [Purge] returns when the [Retention Id] references a retention not currently in [Retained] — it is already [Purged]. An identity/state rejection, checked before the time gate.
 
-Kind:      Member
-Member of: the Purge rejection
-Role:      Outcome
-Projects:  not-retained
+Kind:       Member
+Member of:  the Purge rejection
+Role:       Outcome
+Projection: not-retained
 
 #### Not Known
 
 The refusal [Purge] returns when the supplied [Retention Id] references no recorded retention — a lookup miss. An identity/state rejection, checked before the time gate.
 
-Kind:      Member
-Member of: the Purge rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the Purge rejection
+Role:       Outcome
+Projection: not-known
 
 #### Retention Period Not Elapsed
 
 The refusal [Purge] returns when the eligibility guard finds [Now] < [Retention Until] — the retention period has not yet elapsed. The pure no-early-purge gate (Invariant 7); it writes nothing when it fails.
 
-Kind:      Member
-Member of: the Purge rejection
-Role:      Outcome
-Projects:  retention-period-not-elapsed
+Kind:       Member
+Member of:  the Purge rejection
+Role:       Outcome
+Projection: retention-period-not-elapsed
 
 #### Storage Failure
 
 The refusal either [Place Under Retention] or [Purge] returns when the store write fails after all preconditions pass. For [Place Under Retention] no retention is recorded; for [Purge] the retention remains in [Retained] and the underlying record is not destroyed. The caller must treat it as definitive and retry.
 
-Kind:      Member
-Member of: the Place Under Retention / Purge rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the Place Under Retention / Purge rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

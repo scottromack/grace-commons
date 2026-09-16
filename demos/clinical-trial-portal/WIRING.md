@@ -32,7 +32,7 @@ Reads this assembly needs that **no constituent projects**. Each carries the sam
 
 **Multiplicity: a SET.** One entry per `action_scope`, never one per grant.
 
-**Projects:** [Permissions](../../atoms/permissions.md) `check`, evaluated over the deployment's declared scope set — equivalently, APA's `permitted` passthrough per scope. `check` is set-valued by construction: its Invariant 7 answers Denied **iff no** Active grant matches, so it cannot see multiplicity and neither may this read.
+**Projection:** [Permissions](../../atoms/permissions.md) `check`, evaluated over the deployment's declared scope set — equivalently, APA's `permitted` passthrough per scope. `check` is set-valued by construction: its Invariant 7 answers Denied **iff no** Active grant matches, so it cannot see multiplicity and neither may this read.
 
 **Why it is not a constituent's.** Permissions declares exactly `grant`, `revoke`, `check` and no enumerating read; APA adds `verify_grant_attribution` and `permitted` and no enumerating read either (APA Ledger 2026-09-10-b). Neither is wrong to omit it — an atom answers one pair at a time, and a composition that administers grants need not enumerate access. The enumeration is the *assembly's* need, because the assembly draws a screen.
 
@@ -44,7 +44,7 @@ Reads this assembly needs that **no constituent projects**. Each carries the sam
 
 **Multiplicity: a BAG.** One entry per grant, ordered, never deduplicated.
 
-**Projects:** APA `verify_grant_attribution` per `grant_id`.
+**Projection:** APA `verify_grant_attribution` per `grant_id`.
 
 **Presented as attribution, never as access.** This is the pair of the read above and the reason both must exist separately: the same underlying store answers two different questions with two different multiplicities. The Audit Trail surface is this projection; it must never be deduplicated for tidiness.
 

@@ -436,23 +436,23 @@ Kind: Operation
 One task in the derived state, named by an id as [Personal Todo](../atoms/personal-todo.md)'s identity model declares it. Reconstructed by the replay rather than stored, which is why its identity survives a delete and its undo.
 
 Kind: Type
-Projects: unit
+Projection: unit
 
 #### Snapshot
 
 The unit's full state captured on a delete event — its description, its Personal Todo state and every instant it carries. An audit convenience, readable straight from the log; never a replay input (Event schema 6).
 
-Kind:     Field
-Field of: the delete event
-Projects: snapshot
+Kind:       Field
+Field of:   the delete event
+Projection: snapshot
 
 #### Prior Description
 
 The unit's description before an edit, captured on the edit event. Like [Snapshot], readable from the log and never replayed (Event schema 7).
 
-Kind:     Field
-Field of: the edit event
-Projects: prior_description
+Kind:       Field
+Field of:   the edit event
+Projection: prior_description
 
 #### New Description
 
@@ -460,77 +460,77 @@ The description an [Edit] supplies, recorded on the edit event and applied by th
 
 Kind:         Parameter
 Parameter of: Edit
-Projects:     new_description
+Projection:   new_description
 
 #### No-op Edit
 
 An [Edit] whose [New Description] normalizes equal to the unit's current description. [Personal Todo](../atoms/personal-todo.md) declares it an accepted action that writes nothing, and this composition mirrors it exactly: no append, no [Prior Description], no state change, ok answered, and never an [Undo Target].
 
 Kind: Type
-Projects: no_op_edit
+Projection: no_op_edit
 
 #### Undone Event Id
 
 The event_id an undo event names — the [Undo Target] it took back. Every one of these forms the [Undone Set].
 
-Kind:     Field
-Field of: the undo event
-Projects: undone_event_id
+Kind:       Field
+Field of:   the undo event
+Projection: undone_event_id
 
 #### Undone Event Type
 
 The [Event Type] of the event an undo took back, recorded on the undo event and answered to the caller so a surface can say *what* was undone.
 
-Kind:     Field
-Field of: the undo event
-Projects: undone_event_type
+Kind:       Field
+Field of:   the undo event
+Projection: undone_event_type
 
 #### Undone Set
 
 The undone_event_id of every undo event in the event log instance — what the replay skips by.
 
 Kind: Type
-Projects: undone_set
+Projection: undone_set
 
 #### Undo Target
 
 The most recent forward event whose event_id is not in the [Undone Set]. What an [Undo] takes back, and what [Nothing To Undo] says does not exist.
 
 Kind: Type
-Projects: undo_target
+Projection: undo_target
 
 #### Event Type
 
 Which of the five schemas an event carries: add, edit, complete, delete or undo. The first four are [Forward Event]s; the fifth is not, and is never an [Undo Target].
 
-Kind:     Field
-Field of: the event
-Projects: type
+Kind:       Field
+Field of:   the event
+Projection: type
 
 #### Forward Event
 
 An event carrying add, edit, complete or delete — every event an [Undo] may target, and every event the replay may apply.
 
 Kind: Type
-Projects: forward_event
+Projection: forward_event
 
 #### Nothing To Undo
 
 The refusal [Undo] returns when no [Undo Target] exists — a fresh log, or one where every forward event is already undone.
 
-Kind:      Member
-Member of: the Undo rejection
-Role:      Outcome
-Projects:  nothing-to-undo
+Kind:       Member
+Member of:  the Undo rejection
+Role:       Outcome
+Projection: nothing-to-undo
 
 #### Storage Failure
 
 The refusal any appending action returns when [Event Log](../atoms/event-log.md)'s `append` refuses. The derived state is not recomputed and the action did not happen.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above. -->

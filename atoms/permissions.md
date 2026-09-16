@@ -419,49 +419,49 @@ Kind: Operation
 
 The opaque, immutable identity of a grant, host-allocated at the I/O seam on [Grant] and never reused. The [Subject Ref] and [Action Scope] are properties of the grant, not its identity; the id is the handle [Revoke] uses.
 
-Kind:     Field
-Field of: Permissions
-Projects: grant_id
+Kind:       Field
+Field of:   Permissions
+Projection: grant_id
 
 #### Subject Ref
 
 The opaque reference to *who* holds the grant — the subject the grant binds. The atom does not interpret it; the actor registry is a separate concept. Set on [Grant], immutable thereafter, and matched byte-exactly by [Check].
 
-Kind:     Field
-Field of: Permissions
-Projects: subject_ref
+Kind:       Field
+Field of:   Permissions
+Projection: subject_ref
 
 #### Action Scope
 
 The opaque reference to *what* the grant covers — the scope the grant binds. The composing system defines scope semantics; the atom does exact match on the value (no hierarchy or wildcard). Set on [Grant], immutable thereafter.
 
-Kind:     Field
-Field of: Permissions
-Projects: action_scope
+Kind:       Field
+Field of:   Permissions
+Projection: action_scope
 
 #### Granted At
 
 The wall-time the grant was recorded, stamped from the injected [Now] on [Grant]. Immutable thereafter, and never re-derived from the current clock.
 
-Kind:     Field
-Field of: Permissions
-Projects: granted_at
+Kind:       Field
+Field of:   Permissions
+Projection: granted_at
 
 #### Status
 
 The grant's lifecycle state — [Active] or [Revoked]. Set to [Active] on [Grant]; transitions one-way to [Revoked] on [Revoke].
 
-Kind:     Field
-Field of: Permissions
-Projects: status
+Kind:       Field
+Field of:   Permissions
+Projection: status
 
 #### Revoked At
 
 The wall-time the grant was revoked, stamped from the injected [Now] on [Revoke]. Absent while the grant is [Active]; set once on [Revoke] and never changed after.
 
-Kind:     Field
-Field of: Permissions
-Projects: revoked_at
+Kind:       Field
+Field of:   Permissions
+Projection: revoked_at
 
 #### Now
 
@@ -469,79 +469,79 @@ The current wall-time reading the transitions stamp [Granted At] and [Revoked At
 
 Kind:         Parameter
 Parameter of: Grant and Revoke
-Projects:     now
+Projection:   now
 
 #### Active
 
 The state of a grant that is in force: it contributes to [Check] evaluations. A grant enters [Active] on [Grant] and leaves it only on [Revoke].
 
-Kind:      Member
-Member of: the grant state
-Role:      Outcome
-Projects:  active
+Kind:       Member
+Member of:  the grant state
+Role:       Outcome
+Projection: active
 
 #### Revoked
 
 The state of a grant that has been withdrawn: it no longer contributes to [Check] evaluations. A grant enters [Revoked] on [Revoke]; the transition is terminal — there is no [Revoked] → [Active] path.
 
-Kind:      Member
-Member of: the grant state
-Role:      Outcome
-Projects:  revoked
+Kind:       Member
+Member of:  the grant state
+Role:       Outcome
+Projection: revoked
 
 #### Permitted
 
 The outcome [Check] returns when at least one [Active] grant matches the queried [Subject Ref] and [Action Scope]. A first-class result, not a success-or-reject acknowledgement.
 
-Kind:      Member
-Member of: the Check outcome
-Role:      Outcome
-Projects:  permitted
+Kind:       Member
+Member of:  the Check outcome
+Role:       Outcome
+Projection: permitted
 
 #### Denied
 
 The outcome [Check] returns when no [Active] grant matches the queried pair — denial by absence. A first-class result; empty or malformed inputs also resolve to [Denied], since they match no [Active] grant.
 
-Kind:      Member
-Member of: the Check outcome
-Role:      Outcome
-Projects:  denied
+Kind:       Member
+Member of:  the Check outcome
+Role:       Outcome
+Projection: denied
 
 #### Invalid Request
 
 The refusal [Grant] returns when [Subject Ref] or [Action Scope] does not contain at least one non-whitespace character. A guard rejection that fails before any store write; no grant is recorded.
 
-Kind:      Member
-Member of: the Grant rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the Grant rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Not Known
 
 The refusal [Revoke] returns when the supplied [Grant Id] references no grant the store holds.
 
-Kind:      Member
-Member of: the Revoke rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the Revoke rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Active
 
 The refusal [Revoke] returns when the referenced grant is not in [Active] — it is already [Revoked]. This is what makes revocation terminal and what a serialized second concurrent revoke receives.
 
-Kind:      Member
-Member of: the Revoke rejection
-Role:      Outcome
-Projects:  not-active
+Kind:       Member
+Member of:  the Revoke rejection
+Role:       Outcome
+Projection: not-active
 
 #### Storage Failure
 
 The refusal [Grant] or [Revoke] returns when the store write fails after all preconditions pass. For [Grant], no grant is recorded. For [Revoke], the grant remains [Active] — a security-critical state the caller must retry, never treat as a confirmed revocation.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

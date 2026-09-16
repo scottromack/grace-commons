@@ -486,7 +486,7 @@ An implementation of External Onboarding is accepted if an external auditor can 
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the four onboarding actions it exposes ([Invite], [Onboard], [Decline], [Revoke]) and the four composition-introduced Audit Trail event types that record the arc ([Onboarding Invitation Accepted] — the gate clearing; [Onboarding Completed] — the full-arc completion naming invitation, identity, party, and credential in one entry; [Onboarding Interrupted] — the partial-failure record; [Onboarding Resume Intended] — the record a re-entry writes before it re-runs an interrupted arc). Its load-bearing guarantee — invitation-gates-enrollment: no Party Identity is enrolled through this composition unless an Invitation's Accepted transition precedes it (Invariant 1) — is a structural property, not a datum. The composition owns no cross-atom state (the Audit Trail *is* the map — Composition state), so there is no store to carry a term entry as a Type. The `invitation.*` audit event types (`invitation.initiated`, `invitation.declined`, `invitation.revoked`), the attempt-gate event types (`invitation.initiate-attempt`, `onboarding.accept-attempt`, `invitation.decline-attempt`, `invitation.revoke-attempt`), and the composition's parameterized rejections (`invitation-invalid(already-resolved(state) | not-known | expired)`, `onboarding-indeterminate(candidates)`) stay backticked as wire values, as do the constituent calls and their outcomes — Invitation's `initiate` / `accept` / `decline` / `revoke` (and its `Pending` / `Accepted` / `Declined` / `Revoked` / `Expired` states), Credential's `register`, Party Identity's `enroll` (and its `Unverified` / `Verified` states), Audit Trail's `record_action` — the relayed constituent tokens (`invitation_token`, `accepting_identity_ref`, `party_id`, `credential_id`, `inviter_ref`, `invitee_ref`, `enrolling_actor_ref`, `actor_credential`), the generic/relayed rejections (`invalid-request`, `invalid-credential`, `duplicate-active-credential`, `storage-failure(intent | outcome)`, `recording-failure(step)`, `not-known`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the four onboarding actions it exposes ([Invite], [Onboard], [Decline], [Revoke]) and the four composition-introduced Audit Trail event types that record the arc ([Onboarding Invitation Accepted] — the gate clearing; [Onboarding Completed] — the full-arc completion naming invitation, identity, party, and credential in one entry; [Onboarding Interrupted] — the partial-failure record; [Onboarding Resume Intended] — the record a re-entry writes before it re-runs an interrupted arc). Its load-bearing guarantee — invitation-gates-enrollment: no Party Identity is enrolled through this composition unless an Invitation's Accepted transition precedes it (Invariant 1) — is a structural property, not a datum. The composition owns no cross-atom state (the Audit Trail *is* the map — Composition state), so there is no store to carry a term entry as a Type. The `invitation.*` audit event types (`invitation.initiated`, `invitation.declined`, `invitation.revoked`), the attempt-gate event types (`invitation.initiate-attempt`, `onboarding.accept-attempt`, `invitation.decline-attempt`, `invitation.revoke-attempt`), and the composition's parameterized rejections (`invitation-invalid(already-resolved(state) | not-known | expired)`, `onboarding-indeterminate(candidates)`) stay backticked as wire values, as do the constituent calls and their outcomes — Invitation's `initiate` / `accept` / `decline` / `revoke` (and its `Pending` / `Accepted` / `Declined` / `Revoked` / `Expired` states), Credential's `register`, Party Identity's `enroll` (and its `Unverified` / `Verified` states), Audit Trail's `record_action` — the relayed constituent tokens (`invitation_token`, `accepting_identity_ref`, `party_id`, `credential_id`, `inviter_ref`, `invitee_ref`, `enrolling_actor_ref`, `actor_credential`), the generic/relayed rejections (`invalid-request`, `invalid-credential`, `duplicate-active-credential`, `storage-failure(intent | outcome)`, `recording-failure(step)`, `not-known`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Invite
 
@@ -516,37 +516,37 @@ Kind: Operation
 
 The Audit Trail event [Onboard] records the moment the `Invitation.accept` gate clears — carrying the `invitation_token`, `accepting_identity_ref`, and the `document_type` and `document_ref` the arc enrolls under, which a resume matches the Party Identity store against. An Invitation in Accepted state with no such event is an unresolved interruption (Generation acceptance check 5).
 
-Kind:      Member
-Member of: the onboarding event
-Role:      Audit event
-Projects:  onboarding.invitation-accepted
+Kind:       Member
+Member of:  the onboarding event
+Role:       Audit event
+Projection: onboarding.invitation-accepted
 
 #### Onboarding Completed
 
 The Audit Trail event [Onboard] records on a successful full arc — naming the invitation, the accepting identity, the party record, and the credential in one tamper-evident entry (`{invitation_token, accepting_identity_ref, party_id, credential_id}`). The records-alone answer to *what invitation authorized this party's creation?*
 
-Kind:      Member
-Member of: the onboarding event
-Role:      Audit event
-Projects:  onboarding.completed
+Kind:       Member
+Member of:  the onboarding event
+Role:       Audit event
+Projection: onboarding.completed
 
 #### Onboarding Interrupted
 
 The Audit Trail event [Onboard] writes when a step after the acceptance gate fails (Party Identity enrollment or Credential registration) — naming the stage and reason, so a partially-completed onboarding is detectable and recoverable rather than silent.
 
-Kind:      Member
-Member of: the onboarding event
-Role:      Audit event
-Projects:  onboarding.interrupted
+Kind:       Member
+Member of:  the onboarding event
+Role:       Audit event
+Projection: onboarding.interrupted
 
 #### Onboarding Resume Intended
 
 The Audit Trail event the resume arm of [Onboard] writes before it re-runs an arc that stopped after its gate cleared — naming the stage the records established and the party the resume will continue with, if one — so that a completion reached by re-entry is distinguishable from one reached in a single pass, and a resume that itself died is visible as a plan without an outcome — which the next resume reads as *stage unrecorded* (its `recorded_at` an anchor of R2's window) and, while younger than the bound, as a resume in flight.
 
-Kind:      Member
-Member of: the onboarding event
-Role:      Audit event
-Projects:  onboarding.resume-intended
+Kind:       Member
+Member of:  the onboarding event
+Role:       Audit event
+Projection: onboarding.resume-intended
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

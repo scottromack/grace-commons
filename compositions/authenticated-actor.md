@@ -441,7 +441,7 @@ Composition note 5 is the deployment's one route to a residue-free cascade and i
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the three emergent actions it exposes ([Register Authenticated Actor], [Attest As Actor], [Verify Actor Attestation]) — none belonging to a single constituent — the attest-log fields those actions record ([Outcome], [Observed Status]), and its own rejections ([Namespace Conflict], [Invalid Credential], [Orphan Credential], [Not Bound], [Credential Not Active], [Invalid Attest Credential], [Attest Failed]). Its emergent state — the namespace-binding maps (`principal_to_actor`, `actor_to_principal`) and the `attest_log` — is a composition-introduced surface no constituent provides, left as backticked store tokens rather than carded. References to the constituent atoms and their operations — Credential's `register` / `rotate` / `revoke`, Actor Identity's `attest` / `verify` — the relayed tokens (principal_ref, actor_ref, action_ref, credential_material, attest_credential, credential_type, credential_id, attestation_id), the credential states (`Active` / `Revoked` / `Expired` / `Rotated`), and the inherited rejections (invalid-request, storage-failure — exported at this boundary with its position, `storage-failure(credential | binding)`; `duplicate-active-credential` is consumed by step 3's re-entry arm and not exported) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the three emergent actions it exposes ([Register Authenticated Actor], [Attest As Actor], [Verify Actor Attestation]) — none belonging to a single constituent — the attest-log fields those actions record ([Outcome], [Observed Status]), and its own rejections ([Namespace Conflict], [Invalid Credential], [Orphan Credential], [Not Bound], [Credential Not Active], [Invalid Attest Credential], [Attest Failed]). Its emergent state — the namespace-binding maps (`principal_to_actor`, `actor_to_principal`) and the `attest_log` — is a composition-introduced surface no constituent provides, left as backticked store tokens rather than carded. References to the constituent atoms and their operations — Credential's `register` / `rotate` / `revoke`, Actor Identity's `attest` / `verify` — the relayed tokens (principal_ref, actor_ref, action_ref, credential_material, attest_credential, credential_type, credential_id, attestation_id), the credential states (`Active` / `Revoked` / `Expired` / `Rotated`), and the inherited rejections (invalid-request, storage-failure — exported at this boundary with its position, `storage-failure(credential | binding)`; `duplicate-active-credential` is consumed by step 3's re-entry arm and not exported) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -477,82 +477,82 @@ Kind: Operation
 
 The composition's own rejection from [Register Authenticated Actor] — returned when the principal_ref or the actor_ref is already bound, enforcing the principal ⇔ actor bijection at the boundary (Invariant 3). Positioned: guard (step 2 — nothing is written) or binding (step 4 — the maps' uniqueness constraint refused the write after the credential was registered; the credential exists, unbound, and a re-invocation with an unbound actor_ref adopts it).
 
-Kind:      Member
-Member of: the register rejection
-Role:      Rejection
-Projects:  namespace-conflict
+Kind:       Member
+Member of:  the register rejection
+Role:       Rejection
+Projection: namespace-conflict
 
 #### Invalid Credential
 
 The composition's own rejection from [Register Authenticated Actor]'s re-entry arm — returned when the pair already holds an effective-Active credential and `Credential.verify` does not return `verified` for the presented credential_material: the presenter has not proved possession of the existing credential, so nothing is adopted and nothing is written. Carries existing to say which credential the verification ran against.
 
-Kind:      Member
-Member of: the register rejection
-Role:      Rejection
-Projects:  invalid-credential
+Kind:       Member
+Member of:  the register rejection
+Role:       Rejection
+Projection: invalid-credential
 
 #### Orphan Credential
 
 The composition's own rejection from [Register Authenticated Actor] — returned, post-commit, when the section lease lapsed after the credential was registered and the re-run guard finds principal_ref bound by another invocation. Carries the credential_id this invocation registered: it is bound in no `principal_to_actor` entry (unless the winning binding adopted it), it is the orphaned-credential leg's to surface, and the caller does not re-run the action.
 
-Kind:      Member
-Member of: the register rejection
-Role:      Rejection
-Projects:  orphan-credential
+Kind:       Member
+Member of:  the register rejection
+Role:       Rejection
+Projection: orphan-credential
 
 #### Not Bound
 
 The composition's own rejection from [Attest As Actor] — returned when the principal_ref was never bound through the composition. Structurally distinct from [Credential Not Active]: *never an authenticated actor*, versus *bound but no longer authenticated*.
 
-Kind:      Member
-Member of: the attest rejection
-Role:      Rejection
-Projects:  not-bound
+Kind:       Member
+Member of:  the attest rejection
+Role:       Rejection
+Projection: not-bound
 
 #### Credential Not Active
 
 The composition's load-bearing rejection from [Attest As Actor] — the revocation cascade's observable form: returned when no `Active` credential exists for the bound `(principal_ref, credential_type)` pair (revoked, expired, or rotated without a current successor). Carries the [Observed Status] of the most-recent credential record.
 
-Kind:      Member
-Member of: the attest rejection
-Role:      Rejection
-Projects:  credential-not-active
+Kind:       Member
+Member of:  the attest rejection
+Role:       Rejection
+Projection: credential-not-active
 
 #### Invalid Attest Credential
 
 The composition's own rejection from [Attest As Actor] — the mapping of `Actor Identity.attest`'s invalid-credential: the presented signing material did not validate against the actor registry's public material for the bound actor_ref. Independent of the authentication gate (secret-surface separation, Invariant 2).
 
-Kind:      Member
-Member of: the attest rejection
-Role:      Rejection
-Projects:  invalid-attest-credential
+Kind:       Member
+Member of:  the attest rejection
+Role:       Rejection
+Projection: invalid-attest-credential
 
 #### Attest Failed
 
 The composition's own rejection from [Attest As Actor], positioned. attestation: the mapping of `Actor Identity.attest`'s storage-failure — nothing was recorded, the whole action may be retried. `log(attestation_id)`: the attestation was recorded and the `attest_log` append failed — the caller holds the committed id and must not re-run the action; check 4 surfaces the unlogged attestation.
 
-Kind:      Member
-Member of: the attest rejection
-Role:      Rejection
-Projects:  attest-failed
+Kind:       Member
+Member of:  the attest rejection
+Role:       Rejection
+Projection: attest-failed
 
 #### Outcome
 
 The attest-log entry's classification of an [Attest As Actor] call: `success`, or one of the named rejection reasons ([Not Bound], [Credential Not Active], [Invalid Attest Credential], [Attest Failed] at its attestation position only, invalid-request). Every call appends exactly one entry except the `log` landing of [Attest Failed], which is the one call that commits an attestation and writes no entry (Invariant 4); the log is the composition's records-alone audit surface.
 
-Kind:      Field
-Field of:  the attest-log entry
-Role:      the attempt classification
-Projects:  outcome
+Kind:       Field
+Field of:   the attest-log entry
+Role:       the attempt classification
+Projection: outcome
 
 #### Observed Status
 
 The credential status the attest gate observed when it refused a call — the most-recent credential record's status for the `(principal_ref, credential_type)` pair (`Revoked` | `Expired` | `Rotated`), the absence of any `Active` credential being what closed the gate. Carried inside the [Credential Not Active] outcome for post-hoc forensics.
 
-Kind:      Field
-Field of:  the attest-log entry
-Role:      the gate-closing credential status
-Projects:  observed_status
+Kind:       Field
+Field of:   the attest-log entry
+Role:       the gate-closing credential status
+Projection: observed_status
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a term marker to its term entry heading above (kramdown

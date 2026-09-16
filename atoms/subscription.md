@@ -410,49 +410,49 @@ Kind: Operation
 
 The opaque, immutable identity of a subscription — host-allocated at the I/O seam from ≥128-bit cryptographically-secure random material (see the id entropy declaration), produced by [Subscribe], never reused (Invariant 5). It is the subscription's identity, and — being unpredictable — the bearer capability that gates [Cancel].
 
-Kind:     Field
-Field of: the subscription
-Projects: subscription_id
+Kind:       Field
+Field of:   the subscription
+Projection: subscription_id
 
 #### Subscriber Ref
 
 The opaque reference to the subscribing actor. Set on [Subscribe], immutable (Invariant 1); the actor registry is a separate concept.
 
-Kind:     Field
-Field of: the subscription
-Projects: subscriber_ref
+Kind:       Field
+Field of:   the subscription
+Projection: subscriber_ref
 
 #### Event Scope
 
 The opaque reference to the class of events the subscription covers. Set on [Subscribe], immutable; matched by exact value ([Subscribers For] and [Subscribed] compare on it) — scope hierarchy and wildcards belong to composing patterns.
 
-Kind:     Field
-Field of: the subscription
-Projects: event_scope
+Kind:       Field
+Field of:   the subscription
+Projection: event_scope
 
 #### Subscribed At
 
 The wall-time the subscription was recorded, injected at the seam on [Subscribe], immutable (Invariant 1). Its lower-bound relation to [Cancelled At] is best-effort (Invariant 9).
 
-Kind:     Field
-Field of: the subscription
-Projects: subscribed_at
+Kind:       Field
+Field of:   the subscription
+Projection: subscribed_at
 
 #### Status
 
 The subscription's lifecycle state — active or cancelled (i.e., [Active] or [Cancelled]). Set to active on [Subscribe]; transitions once to cancelled on [Cancel] (Invariant 2).
 
-Kind:     Field
-Field of: the subscription
-Projects: status
+Kind:       Field
+Field of:   the subscription
+Projection: status
 
 #### Cancelled At
 
 The wall-time the subscription was cancelled, injected at the seam on [Cancel]. Absent while [Active]; set once and immutable thereafter; ≥ [Subscribed At] (best-effort, Invariant 9).
 
-Kind:     Field
-Field of: the subscription
-Projects: cancelled_at
+Kind:       Field
+Field of:   the subscription
+Projection: cancelled_at
 
 #### Active
 
@@ -474,46 +474,46 @@ Role:      Outcome
 
 The rejection [Subscribe] returns when [Subscriber Ref] or [Event Scope] is null, undefined, or empty. (The read queries never return it — a bad query is a correct not-subscribed or empty answer.)
 
-Kind:      Member
-Member of: the Subscribe rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the Subscribe rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Already Subscribed
 
 The rejection [Subscribe] returns when an [Active] subscription already exists for the ([Subscriber Ref], [Event Scope]) pair (Invariant 6) — the mechanism that prevents duplicate notifications.
 
-Kind:      Member
-Member of: the Subscribe rejection
-Role:      Outcome
-Projects:  already-subscribed
+Kind:       Member
+Member of:  the Subscribe rejection
+Role:       Outcome
+Projection: already-subscribed
 
 #### Storage Failure
 
 The rejection [Subscribe] or [Cancel] returns when the store write fails; no partial record is written and state is unchanged.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Not Known
 
 The rejection [Cancel] returns when the [Subscription Id] references no subscription.
 
-Kind:      Member
-Member of: the Cancel rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the Cancel rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Active
 
 The rejection [Cancel] returns when the referenced subscription is already [Cancelled] — cancellation is terminal (Invariant 3).
 
-Kind:      Member
-Member of: the Cancel rejection
-Role:      Outcome
-Projects:  not-active
+Kind:       Member
+Member of:  the Cancel rejection
+Role:       Outcome
+Projection: not-active
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

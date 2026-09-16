@@ -443,7 +443,7 @@ These audit questions arise around this composition but cannot be answered from 
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the four actions it exposes — the ledger append ([Record Entry]), the accountable disclosure ([Disclose Subset]), and the two verification queries ([Verify Disclosure] on the recipient side, [Verify Ledger] on the accountability side); the composition-introduced subset-proof artifact ([Verification Bundle]) and the [Confidentiality Preserved] property it carries; the accountability-side binding verdicts ([Bound], [Binding Purged], [Binding Unbindable], [Binding Gap]); the disclosure-side authenticity verdicts ([Authentic], [Altered], [Not In Ledger]); and the composition's own subset-membership rejection ([Unknown Entry]). Its load-bearing guarantees — the disclosure-accountability binding bijection (every disclosure is exactly one immutable ledger event, Invariant 1) and verifiable partial disclosure (Invariant 2) — are structural properties, not data. Its emergent state (`disclosure_to_event`) is a single derived index over the Audit Trail substrate, left as a backticked token; there is no composition-introduced record store to carry a term entry as a Type — a ledger entry *is* an Audit Trail event. The `disclosure-proof` and `accountability-proof` return-structure names, the ledger event types (`ledger.entry`, `ledger.disclose_intended`, `ledger.disclosed`, `ledger.recovery_intended`, `ledger.disclosure_unbindable`), the seam-injected `invocation_id` and the pairing tokens (`intent_event_id`, `intent_event_candidates`, `disclosed_by`, `cascade_recovery`), and the per-verdict reason parameters stay backticked as wire values, as do the read passthrough (`read`), the constituent calls and their outcomes — Audit Trail's `record_action` / `verify_record`, Selective Disclosure's `record` / `read` — the relayed constituent tokens (`entry_id`, `event_id`, `disclosure_id`, `disclosed_entry_ids`, `transaction_data`, `subject_ref`, `recipient`, `scope`, `authority`, `actor_ref`, `credential`, `ledger_seal_reference`), the composition output fields left uncarded (`entries`, `overall_verdict`, `attestation_verification`, `retention_state`, `authenticity`), the generic/relayed rejections (`invalid-request`, `invalid-credential`, `unknown-authority-type`, `recording-failure`, `not-known`, `invalid-query`), the deployment configuration knobs (`ledger_retention_policy`, `seal_cadence`, `tamper_evidence_supports_partial_disclosure`, `disclosure_completion_bound`, `reconciliation_cadence`, `outcome_write_latency`, `outcome_retry_attempts`, `disclosed_entry_ids_cap`, `intent_candidates_cap`, `disclosure_section`, `application_actor_ref`, `application_credential`, `index_durability`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the four actions it exposes — the ledger append ([Record Entry]), the accountable disclosure ([Disclose Subset]), and the two verification queries ([Verify Disclosure] on the recipient side, [Verify Ledger] on the accountability side); the composition-introduced subset-proof artifact ([Verification Bundle]) and the [Confidentiality Preserved] property it carries; the accountability-side binding verdicts ([Bound], [Binding Purged], [Binding Unbindable], [Binding Gap]); the disclosure-side authenticity verdicts ([Authentic], [Altered], [Not In Ledger]); and the composition's own subset-membership rejection ([Unknown Entry]). Its load-bearing guarantees — the disclosure-accountability binding bijection (every disclosure is exactly one immutable ledger event, Invariant 1) and verifiable partial disclosure (Invariant 2) — are structural properties, not data. Its emergent state (`disclosure_to_event`) is a single derived index over the Audit Trail substrate, left as a backticked token; there is no composition-introduced record store to carry a term entry as a Type — a ledger entry *is* an Audit Trail event. The `disclosure-proof` and `accountability-proof` return-structure names, the ledger event types (`ledger.entry`, `ledger.disclose_intended`, `ledger.disclosed`, `ledger.recovery_intended`, `ledger.disclosure_unbindable`), the seam-injected `invocation_id` and the pairing tokens (`intent_event_id`, `intent_event_candidates`, `disclosed_by`, `cascade_recovery`), and the per-verdict reason parameters stay backticked as wire values, as do the read passthrough (`read`), the constituent calls and their outcomes — Audit Trail's `record_action` / `verify_record`, Selective Disclosure's `record` / `read` — the relayed constituent tokens (`entry_id`, `event_id`, `disclosure_id`, `disclosed_entry_ids`, `transaction_data`, `subject_ref`, `recipient`, `scope`, `authority`, `actor_ref`, `credential`, `ledger_seal_reference`), the composition output fields left uncarded (`entries`, `overall_verdict`, `attestation_verification`, `retention_state`, `authenticity`), the generic/relayed rejections (`invalid-request`, `invalid-credential`, `unknown-authority-type`, `recording-failure`, `not-known`, `invalid-query`), the deployment configuration knobs (`ledger_retention_policy`, `seal_cadence`, `tamper_evidence_supports_partial_disclosure`, `disclosure_completion_bound`, `reconciliation_cadence`, `outcome_write_latency`, `outcome_retry_attempts`, `disclosed_entry_ids_cap`, `intent_candidates_cap`, `disclosure_section`, `application_actor_ref`, `application_credential`, `index_durability`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Record Entry
 
@@ -480,82 +480,82 @@ Role: the independently-checkable subset proof
 
 The `disclosure-proof` field asserting that the [Verification Bundle] and disclosed entries reveal nothing about the count, content, or position of undisclosed entries beyond what the seal reference inherently publishes — the structural "the remainder stays undisclosed." Self-reported by the verification routine, its trustworthiness resting on a security review of the mechanism's zero-knowledge-of-complement construction (an externally-clearable check), not on recomputation from the records.
 
-Kind:      Field
-Field of:  the disclosure proof
-Role:      the remainder-stays-hidden assertion
-Projects:  confidentiality_preserved
+Kind:       Field
+Field of:   the disclosure proof
+Role:       the remainder-stays-hidden assertion
+Projection: confidentiality_preserved
 
 #### Bound
 
 The [Verify Ledger] binding verdict when the disclosure resolves to exactly one live, immutable, attributed, sealed ledger event whose `data.disclosure_id` matches — the bijection holds within the retention lifetime.
 
-Kind:      Member
-Member of: the accountability binding
-Role:      Binding verdict
-Projects:  bound
+Kind:       Member
+Member of:  the accountability binding
+Role:       Binding verdict
+Projection: bound
 
 #### Binding Purged
 
 The [Verify Ledger] binding verdict when no live `ledger.disclosed` event names the disclosure but the composition's own index still binds it to an `event_id` whose `Purged` retention record attests the event's honest destruction at its retention end (Invariant 1's retention-horizon arm) — lawful and distinguishable from a gap, not a finding.
 
-Kind:      Member
-Member of: the accountability binding
-Role:      Binding verdict
-Projects:  binding-purged
+Kind:       Member
+Member of:  the accountability binding
+Role:       Binding verdict
+Projection: binding-purged
 
 #### Binding Gap
 
 The [Verify Ledger] binding verdict when no ledger event and no honest-destruction record name the disclosure — a recorded disclosure with no ledger event. Never a steady state under a conforming implementation (Invariant 1's liveness arm); a high-priority finding.
 
-Kind:      Member
-Member of: the accountability binding
-Role:      Binding verdict
-Projects:  binding-gap
+Kind:       Member
+Member of:  the accountability binding
+Role:       Binding verdict
+Projection: binding-gap
 
 #### Binding Unbindable
 
 The [Verify Ledger] binding verdict when no ledger event names the disclosure but a `ledger.disclosure_unbindable` marker does: the outcome write was refused deterministically for a reason no re-attestation cures (a payload the configured cap rejects), so the disclosure is accounted and attested but its ledger event could not land — a deployment-configuration finding with a lawful terminal state, superseded by [Bound] if the event later lands.
 
-Kind:      Member
-Member of: the accountability binding
-Role:      Binding verdict
-Projects:  binding-unbindable
+Kind:       Member
+Member of:  the accountability binding
+Role:       Binding verdict
+Projection: binding-unbindable
 
 #### Authentic
 
 The [Verify Disclosure] per-entry authenticity verdict: the entry is a genuine, unaltered ledger entry covered by the seal.
 
-Kind:      Member
-Member of: the per-entry authenticity
-Role:      Authenticity verdict
-Projects:  authentic
+Kind:       Member
+Member of:  the per-entry authenticity
+Role:       Authenticity verdict
+Projection: authentic
 
 #### Altered
 
 The [Verify Disclosure] per-entry authenticity verdict: the entry does not match what the seal committed to.
 
-Kind:      Member
-Member of: the per-entry authenticity
-Role:      Authenticity verdict
-Projects:  altered
+Kind:       Member
+Member of:  the per-entry authenticity
+Role:       Authenticity verdict
+Projection: altered
 
 #### Not In Ledger
 
 The [Verify Disclosure] per-entry authenticity verdict: the [Verification Bundle] does not place the entry under the seal.
 
-Kind:      Member
-Member of: the per-entry authenticity
-Role:      Authenticity verdict
-Projects:  not-in-ledger
+Kind:       Member
+Member of:  the per-entry authenticity
+Role:       Authenticity verdict
+Projection: not-in-ledger
 
 #### Unknown Entry
 
 The [Disclose Subset] rejection when a named subset id is unknown to the ledger's Event Log, or resolves to a `ledger.disclosed` event rather than a `ledger.entry` transaction — naming every failing id, deterministically.
 
-Kind:      Member
-Member of: the disclose-subset rejection
-Role:      Rejection
-Projects:  unknown-entry
+Kind:       Member
+Member of:  the disclose-subset rejection
+Role:       Rejection
+Projection: unknown-entry
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

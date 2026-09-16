@@ -413,41 +413,41 @@ Kind: Operation
 
 The opaque, immutable identity of a unit, host-allocated at the I/O seam on [Add] and never changed. The unit's [Description] is a property under uniqueness constraint, not its identity — two units with the same [Description] still have different ids.
 
-Kind:     Field
-Field of: Personal Todo
-Projects: id
+Kind:       Field
+Field of:   Personal Todo
+Projection: id
 
 #### Description
 
 The user-supplied text of a unit, normalized (trim + NFC) before it enters state. It is mutable via [Edit] while [Pending], unique across the active set ([Pending] ∪ [Done]), and a property of the unit rather than its identity.
 
-Kind:     Field
-Field of: Personal Todo
-Projects: description
+Kind:       Field
+Field of:   Personal Todo
+Projection: description
 
 #### Added At
 
 The wall-time a unit was created, stamped from the injected [Now] on [Add]. Immutable thereafter.
 
-Kind:     Field
-Field of: Personal Todo
-Projects: added_at
+Kind:       Field
+Field of:   Personal Todo
+Projection: added_at
 
 #### Last Edited At
 
 The wall-time of a unit's most recent [Edit], stamped from the injected [Now]. Absent on a unit that has never been edited.
 
-Kind:     Field
-Field of: Personal Todo
-Projects: last_edited_at
+Kind:       Field
+Field of:   Personal Todo
+Projection: last_edited_at
 
 #### Completed At
 
 The wall-time a unit was marked done, stamped from the injected [Now] on [Complete]. Present only while the unit is [Done].
 
-Kind:     Field
-Field of: Personal Todo
-Projects: completed_at
+Kind:       Field
+Field of:   Personal Todo
+Projection: completed_at
 
 #### New Description
 
@@ -455,7 +455,7 @@ The replacement text [Edit] needs — supplied per call, normalized, and (unless
 
 Kind:         Parameter
 Parameter of: Edit
-Projects:     new_description
+Projection:   new_description
 
 #### Now
 
@@ -463,7 +463,7 @@ The current wall-time reading the transitions stamp timestamps from, supplied to
 
 Kind:         Parameter
 Parameter of: Add
-Projects:     now
+Projection:   now
 
 #### Pending
 
@@ -485,65 +485,65 @@ Role:      Outcome
 
 The refusal [Add] or [Edit] returns when the normalized [Description] is empty or exceeds the length cap. No unit is created or changed.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-description
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-description
 
 #### Duplicate Active
 
 The refusal [Add] or [Edit] returns when the normalized [Description] already belongs to a unit in [Pending] or [Done] (the active set). No unit is created or changed.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  duplicate-active
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: duplicate-active
 
 #### Not Known
 
 The refusal [Edit], [Complete], or [Delete] returns when the supplied [Id] references no unit the system holds.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Pending
 
 The refusal [Complete] returns when the referenced unit is not in [Pending] (it is already [Done]).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-pending
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-pending
 
 #### Not Editable
 
 The refusal [Edit] returns when the referenced unit is not in [Pending] — necessarily [Done], since those are the only two live states.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-editable
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-editable
 
 #### Storage Failure
 
 The refusal any writing action returns when the underlying store write fails after all preconditions pass. The unit is left in its prior state; the caller must retry.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Duplicate Recent
 
 The refusal a **composing pattern** returns when [Duplicate Prevention](./duplicate-prevention.md) reports the [Description] as recently seen — the *"buy milk twice in the same morning"* rejection. It is the composing pattern's outcome and the composing pattern's to pin: this atom's [Add] never raises it, and its signature block does not carry it (Closed vocabulary 21). The term entry is here because a reader of this atom meets the string in a composed deployment, not because this atom owns it.
 
-Kind:      Member
-Member of: the composing pattern's add rejection
-Role:      Outcome
-Projects:  duplicate-recent
-Wire:      pinned
+Kind:       Member
+Member of:  the composing pattern's add rejection
+Role:       Outcome
+Projection: duplicate-recent
+Wire:       pinned
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

@@ -630,241 +630,241 @@ Kind: Operation
 
 The opaque, immutable, system-generated identity of a workflow instance — assigned on [Instantiate], never reused, byte-order sortable for deterministic [History] ordering. It is the instance's identity; the [Declaration], [Current State], and [Transition History] are properties.
 
-Kind:     Field
-Field of: the workflow instance
-Projects: instance_id
+Kind:       Field
+Field of:   the workflow instance
+Projection: instance_id
 
 #### Subject Ref
 
 The optional opaque reference to the entity whose lifecycle the workflow governs (a batch id, document id, work item id). Set on [Instantiate], immutable; the atom does not validate it, and its absence is valid.
 
-Kind:     Field
-Field of: the workflow instance
-Projects: subject_ref
+Kind:       Field
+Field of:   the workflow instance
+Projection: subject_ref
 
 #### Instance Metadata
 
 The optional opaque deployment-context payload supplied at [Instantiate], immutable; recorded as an auditable field, never interpreted.
 
-Kind:     Field
-Field of: the workflow instance
-Projects: instance_metadata
+Kind:       Field
+Field of:   the workflow instance
+Projection: instance_metadata
 
 #### Current State
 
 The instance's current state — a member of the declared [States] (Invariant 2). Set to [Initial State] on [Instantiate]; updated to the fired transition's [To State] on each [Fire]. Always replay-derivable from the [Transition History] (Invariant 7).
 
-Kind:     Field
-Field of: the workflow instance
-Projects: current_state
+Kind:       Field
+Field of:   the workflow instance
+Projection: current_state
 
 #### Transition History
 
 The ordered, append-only sequence of transition history entries for an instance (Invariant 5). Begins empty; each [Fire] appends exactly one entry; never shrinks; total-ordered by [Sequence Number] (Invariant 6).
 
-Kind:     Field
-Field of: the workflow instance
-Projects: transition_history
+Kind:       Field
+Field of:   the workflow instance
+Projection: transition_history
 
 #### Next Sequence Number
 
 The [Sequence Number] the next [Fire] will assign. Begins at 1; increments by one per successful [Fire]. Persistent instance state that must survive restarts, or Invariant 6 breaks.
 
-Kind:     Field
-Field of: the workflow instance
-Projects: next_sequence_number
+Kind:       Field
+Field of:   the workflow instance
+Projection: next_sequence_number
 
 #### Declaration
 
 The immutable map supplied at [Instantiate] that governs an instance — its [States], [Transitions], [Initial State], and [Terminal States]. Every enforcement decision derives from it; it never changes (Invariant 1) and is returned verbatim by [Read Declaration].
 
-Kind:     Field
-Field of: the workflow instance
-Projects: declaration
+Kind:       Field
+Field of:   the workflow instance
+Projection: declaration
 
 #### Instantiated At
 
 The wall-time the instance was created, stamped at [Instantiate] (or caller-supplied; not in the future). The lower bound for every [Fired At] — a transition cannot predate instantiation.
 
-Kind:     Field
-Field of: the workflow instance
-Projects: instantiated_at
+Kind:       Field
+Field of:   the workflow instance
+Projection: instantiated_at
 
 #### States
 
 The non-empty set of named states in a [Declaration]. Each name is non-whitespace and unique within the declaration; [Current State], [Initial State], [From State], and [To State] are all drawn from it.
 
-Kind:     Field
-Field of: the declaration
-Projects: states
+Kind:       Field
+Field of:   the declaration
+Projection: states
 
 #### Transitions
 
 The set of declared transitions in a [Declaration], each a `{from_state, action, to_state, guard?}` tuple. At most one transition per `(from_state, action)` pair (determinism); none may originate from a [Terminal States] member.
 
-Kind:     Field
-Field of: the declaration
-Projects: transitions
+Kind:       Field
+Field of:   the declaration
+Projection: transitions
 
 #### Initial State
 
 The [Declaration]'s starting state — a member of [States], never a [Terminal States] member. It is the instance's [Current State] at [Instantiate] and the replay origin (Invariant 7).
 
-Kind:     Field
-Field of: the declaration
-Projects: initial_state
+Kind:       Field
+Field of:   the declaration
+Projection: initial_state
 
 #### Terminal States
 
 The subset of [States] that is absorbing (Invariant 4): once [Current State] is one of them, no [Fire] succeeds. No declared transition may originate from one (enforced at [Instantiate]).
 
-Kind:     Field
-Field of: the declaration
-Projects: terminal_states
+Kind:       Field
+Field of:   the declaration
+Projection: terminal_states
 
 #### From State
 
 The state a declared transition (and the history entry it produces) departs from — a member of [States]. On a [Fire], it must equal the instance's [Current State].
 
-Kind:     Field
-Field of: a declared transition
-Projects: from_state
+Kind:       Field
+Field of:   a declared transition
+Projection: from_state
 
 #### To State
 
 The state a declared transition (and the history entry it produces) arrives at — a member of [States]. On success it becomes the instance's new [Current State] and the returned new_state.
 
-Kind:     Field
-Field of: a declared transition
-Projects: to_state
+Kind:       Field
+Field of:   a declared transition
+Projection: to_state
 
 #### Action
 
 The named trigger of a declared transition — a non-whitespace string. Supplied on [Fire] to select the unique transition from the [Current State]; recorded on the history entry.
 
-Kind:     Field
-Field of: a declared transition
-Projects: action
+Kind:       Field
+Field of:   a declared transition
+Projection: action
 
 #### Guard
 
 The optional opaque label on a declared transition naming a condition the caller must assert satisfied before the transition fires. The atom gates on it but never evaluates the predicate (Invariant 8); guard evaluation is the caller's obligation.
 
-Kind:     Field
-Field of: a declared transition
-Projects: guard
+Kind:       Field
+Field of:   a declared transition
+Projection: guard
 
 #### Transition Id
 
 The opaque, immutable, system-generated identity of a transition history entry — assigned by [Fire], never reused within the instance.
 
-Kind:     Field
-Field of: the history entry
-Projects: transition_id
+Kind:       Field
+Field of:   the history entry
+Projection: transition_id
 
 #### Sequence Number
 
 The strictly increasing integer assigned to a history entry from [Next Sequence Number] at [Fire]. The clock-independent total-order source for the [Transition History] (Invariant 6); [Fired At] is not.
 
-Kind:     Field
-Field of: the history entry
-Projects: sequence_number
+Kind:       Field
+Field of:   the history entry
+Projection: sequence_number
 
 #### Fired At
 
 The best-effort wall-time a transition was recorded, stamped at [Fire] (or caller-supplied; not in the future; ≥ [Instantiated At]). Not required to be monotonic across entries — [Sequence Number] is the order source.
 
-Kind:     Field
-Field of: the history entry
-Projects: fired_at
+Kind:       Field
+Field of:   the history entry
+Projection: fired_at
 
 #### Actor Ref
 
 The optional opaque reference to the actor who fired a transition, recorded on the history entry (and on the genesis at [Instantiate]). If supplied, non-whitespace; its presence is deployment policy, not an atom mandate (Invariant 9).
 
-Kind:     Field
-Field of: the history entry
-Projects: actor_ref
+Kind:       Field
+Field of:   the history entry
+Projection: actor_ref
 
 #### Guard Satisfied
 
 The caller-asserted flag that a guarded transition's [Guard] condition is met — a [Fire] on a guarded transition fires only if it is `true`, and the history entry then records `guard_satisfied: true` (Invariant 8). Absent for unguarded transitions.
 
-Kind:     Field
-Field of: the history entry
-Projects: guard_satisfied
+Kind:       Field
+Field of:   the history entry
+Projection: guard_satisfied
 
 #### Invalid Declaration
 
 The rejection [Instantiate] returns for any declaration defect — an empty or duplicate-named [States] set, an [Initial State] that is missing or in [Terminal States], a transition referencing an undeclared state or leaving a terminal state, a duplicate `(from_state, action)` pair, or a blank [Action] or [Guard].
 
-Kind:      Member
-Member of: the Instantiate rejection
-Role:      Outcome
-Projects:  invalid-declaration
+Kind:       Member
+Member of:  the Instantiate rejection
+Role:       Outcome
+Projection: invalid-declaration
 
 #### Invalid Request
 
 The rejection an action returns for a malformed argument — a null or whitespace-only [Instance Id] or [Action], a bad [Actor Ref], or an [Instantiated At] / [Fired At] that is in the future or (for [Fired At]) before [Instantiated At].
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Storage Failure
 
 The rejection any write action returns when the store write fails after all preconditions pass; guarantees no partial record and an unchanged [Current State] / [Next Sequence Number] (Invariant 10).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Not Known
 
 The rejection [Fire], [Current], [History], or [Read Declaration] returns when the [Instance Id] references no instance in the store.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Terminal
 
 The rejection [Fire] returns when the instance's [Current State] is a [Terminal States] member — terminal states are absorbing (Invariant 4).
 
-Kind:      Member
-Member of: the Fire rejection
-Role:      Outcome
-Projects:  terminal
+Kind:       Member
+Member of:  the Fire rejection
+Role:       Outcome
+Projection: terminal
 
 #### Invalid Transition
 
 The rejection [Fire] returns when no declared transition matches the [Current State] and the supplied [Action] — only declared transitions fire (Invariant 3).
 
-Kind:      Member
-Member of: the Fire rejection
-Role:      Outcome
-Projects:  invalid-transition
+Kind:       Member
+Member of:  the Fire rejection
+Role:       Outcome
+Projection: invalid-transition
 
 #### Guard Not Satisfied
 
 The rejection [Fire] returns when the matched transition carries a [Guard] but the caller did not assert [Guard Satisfied] = `true` (Invariant 8).
 
-Kind:      Member
-Member of: the Fire rejection
-Role:      Outcome
-Projects:  guard-not-satisfied
+Kind:       Member
+Member of:  the Fire rejection
+Role:       Outcome
+Projection: guard-not-satisfied
 
 #### Invalid Query
 
 The rejection [History] returns for a malformed filter — a null or whitespace-only [Transition Id], [From State], [To State], [Action], or [Actor Ref]; a reversed [Sequence Number] or [Fired At] range; or an unrecognized filter key.
 
-Kind:      Member
-Member of: the History rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the History rejection
+Role:       Outcome
+Projection: invalid-query
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

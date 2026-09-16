@@ -472,7 +472,7 @@ A derived implementation of this composition is *acceptable* — in the regulato
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the five workflow-level actions it exposes ([Start Workflow], [Open Gate], [Decide Gate], [Fire Transition], and the read-only [Read Workflow]); the [Gate Spec] it freezes at start (the map from each guarded transition's guard label to its required approver and scope); the four-scope authorization vocabulary it defines for its Permissions instance ([Workflows Start], [Workflows Open Gate], [Workflows Fire], [Workflows Read]); and its own rejection taxonomy ([Permission Denied], [Recording Failure], and the gate-lifecycle rejections [Not Guarded], [Gate Not Available], [Already Open], [Gate Not Open], and the load-bearing [Gate Not Cleared]). Its load-bearing guarantee — a guarded transition fires only after its bound Approval Step is Approved (Invariant 1) — is a structural property, not a datum. Its emergent state (`workflow_store`, `gate_binding`, `gate_to_assignment`, `transition_to_event`) is a composition-introduced set of maps wiring the five constituent stores, left as backticked store tokens; there is no composition-introduced record store to carry a term entry as a Type. The audit event types it emits (`workflow_started`, `gate_opened`, `gate_decided`, `transition_fired`, `moot_gate_recalled`) stay backticked as wire values, as do the constituent calls and their outcomes — State Machine's `instantiate` / `fire` / `current` / `history` / `read_declaration`, Approval Step's `submit` / `approve` / `reject` / `withdraw` / `read`, Permissions' `permitted` / `grant` / `revoke`, Assignment's `assign` / `recall` / `active_for` / `history_for`, Audit Trail's `record_action` / `verify_record` — the relayed constituent tokens (`instance_id`, `step_id`, `assignment_id`, `transition_id`, `event_id`, `approver_ref`, `submitter_ref`, `subject_ref`, `guard_satisfied`), the constituent states (`Pending` / `Approved` / `Rejected` / `Withdrawn` and the declared workflow states), the inherited/relayed rejections (`invalid-request`, `invalid-declaration`, `invalid-transition`, `terminal`, `not-known`, `not-pending`, `unauthorized`, `invalid-query`), the deployment configuration knobs (`audit_trail_retention_policy`, `application_actor_ref`, `application_credential`), and concrete example ids. Constituent atom names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the five workflow-level actions it exposes ([Start Workflow], [Open Gate], [Decide Gate], [Fire Transition], and the read-only [Read Workflow]); the [Gate Spec] it freezes at start (the map from each guarded transition's guard label to its required approver and scope); the four-scope authorization vocabulary it defines for its Permissions instance ([Workflows Start], [Workflows Open Gate], [Workflows Fire], [Workflows Read]); and its own rejection taxonomy ([Permission Denied], [Recording Failure], and the gate-lifecycle rejections [Not Guarded], [Gate Not Available], [Already Open], [Gate Not Open], and the load-bearing [Gate Not Cleared]). Its load-bearing guarantee — a guarded transition fires only after its bound Approval Step is Approved (Invariant 1) — is a structural property, not a datum. Its emergent state (`workflow_store`, `gate_binding`, `gate_to_assignment`, `transition_to_event`) is a composition-introduced set of maps wiring the five constituent stores, left as backticked store tokens; there is no composition-introduced record store to carry a term entry as a Type. The audit event types it emits (`workflow_started`, `gate_opened`, `gate_decided`, `transition_fired`, `moot_gate_recalled`) stay backticked as wire values, as do the constituent calls and their outcomes — State Machine's `instantiate` / `fire` / `current` / `history` / `read_declaration`, Approval Step's `submit` / `approve` / `reject` / `withdraw` / `read`, Permissions' `permitted` / `grant` / `revoke`, Assignment's `assign` / `recall` / `active_for` / `history_for`, Audit Trail's `record_action` / `verify_record` — the relayed constituent tokens (`instance_id`, `step_id`, `assignment_id`, `transition_id`, `event_id`, `approver_ref`, `submitter_ref`, `subject_ref`, `guard_satisfied`), the constituent states (`Pending` / `Approved` / `Rejected` / `Withdrawn` and the declared workflow states), the inherited/relayed rejections (`invalid-request`, `invalid-declaration`, `invalid-transition`, `terminal`, `not-known`, `not-pending`, `unauthorized`, `invalid-query`), the deployment configuration knobs (`audit_trail_retention_policy`, `application_actor_ref`, `application_credential`), and concrete example ids. Constituent atom names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Start Workflow
 
@@ -508,109 +508,109 @@ Kind: Operation
 
 The map, frozen at [Start Workflow] and immutable thereafter, from each guarded transition's guard label to the `{approver_ref, scope}` naming the approval that gate requires. Structurally validated at start (every guarded transition has an entry; every entry names a real guard label and carries a non-whitespace approver and scope); whether the named approver is the *correct* authority is a deployment policy question the composition records but does not adjudicate.
 
-Kind:      Field
-Field of:  the workflow record
-Role:      the per-gate approval specification
-Projects:  gate_spec
+Kind:       Field
+Field of:   the workflow record
+Role:       the per-gate approval specification
+Projection: gate_spec
 
 #### Workflows Start
 
 The scope permitting [Start Workflow] — instantiate a new workflow run.
 
-Kind:      Member
-Member of: the workflow scope vocabulary
-Role:      Scope
-Projects:  workflows:start
+Kind:       Member
+Member of:  the workflow scope vocabulary
+Role:       Scope
+Projection: workflows:start
 
 #### Workflows Open Gate
 
 The scope permitting [Open Gate] — open an approval gate for a guarded transition.
 
-Kind:      Member
-Member of: the workflow scope vocabulary
-Role:      Scope
-Projects:  workflows:open-gate
+Kind:       Member
+Member of:  the workflow scope vocabulary
+Role:       Scope
+Projection: workflows:open-gate
 
 #### Workflows Fire
 
 The scope permitting [Fire Transition] — advance the workflow through a transition.
 
-Kind:      Member
-Member of: the workflow scope vocabulary
-Role:      Scope
-Projects:  workflows:fire
+Kind:       Member
+Member of:  the workflow scope vocabulary
+Role:       Scope
+Projection: workflows:fire
 
 #### Workflows Read
 
 The scope permitting [Read Workflow] — read workflow records and their composed gate, assignment, and attestation surface.
 
-Kind:      Member
-Member of: the workflow scope vocabulary
-Role:      Scope
-Projects:  workflows:read
+Kind:       Member
+Member of:  the workflow scope vocabulary
+Role:       Scope
+Projection: workflows:read
 
 #### Permission Denied
 
 The composition's rejection when the acting actor lacks the required workflow scope at the Permissions check that opens [Start Workflow], [Open Gate], [Fire Transition], or [Read Workflow]. (Gate decisions are not permission-gated here — Approval Step's own approver and submitter exclusivity is the enforcement.)
 
-Kind:      Member
-Member of: the workflow rejection
-Role:      Rejection
-Projects:  permission-denied
+Kind:       Member
+Member of:  the workflow rejection
+Role:       Rejection
+Projection: permission-denied
 
 #### Recording Failure
 
 The composition's uniform rejection for a constituent `storage-failure` or an Audit Trail `record_action` failure surfaced at the composition boundary. Carries its stage — `recording-failure(pre-commit | post-commit)`: `pre-commit` means nothing committed and the caller retries the whole action; `post-commit` means the load-bearing write committed and the caller must not re-invoke — the implementation lands the owed record (a bounded gap in Invariant 3), inside `workflow_completion_bound` by the invocation and past it by the restart sweep.
 
-Kind:      Member
-Member of: the workflow rejection
-Role:      Rejection
-Projects:  recording-failure
+Kind:       Member
+Member of:  the workflow rejection
+Role:       Rejection
+Projection: recording-failure
 
 #### Not Guarded
 
 The [Open Gate] rejection when the matched transition carries no `guard` label — unguarded transitions are fired directly through [Fire Transition] without opening a gate.
 
-Kind:      Member
-Member of: the open-gate rejection
-Role:      Rejection
-Projects:  not-guarded
+Kind:       Member
+Member of:  the open-gate rejection
+Role:       Rejection
+Projection: not-guarded
 
 #### Gate Not Available
 
 The [Open Gate] rejection when the instance is in a terminal state, so no gate can be opened.
 
-Kind:      Member
-Member of: the open-gate rejection
-Role:      Rejection
-Projects:  gate-not-available
+Kind:       Member
+Member of:  the open-gate rejection
+Role:       Rejection
+Projection: gate-not-available
 
 #### Already Open
 
 The [Open Gate] rejection when a live gate is already bound for the matched transition (`already-open(pending)`, or `already-open(cleared-unconsumed)` for an `Approved` step neither consumed nor mooted) — resolve it via [Decide Gate], or fire the cleared transition, before opening a replacement. An `Approved`-and-mooted step is not live: the key re-binds.
 
-Kind:      Member
-Member of: the open-gate rejection
-Role:      Rejection
-Projects:  already-open
+Kind:       Member
+Member of:  the open-gate rejection
+Role:       Rejection
+Projection: already-open
 
 #### Gate Not Open
 
 The [Decide Gate] rejection when no Approval Step is bound for the matched transition from the current state — call [Open Gate] first.
 
-Kind:      Member
-Member of: the decide-gate rejection
-Role:      Rejection
-Projects:  gate-not-open
+Kind:       Member
+Member of:  the decide-gate rejection
+Role:       Rejection
+Projection: gate-not-open
 
 #### Gate Not Cleared
 
 The load-bearing [Fire Transition] rejection: a guarded transition whose gate has not been opened, whose bound Approval Step is not in Approved (Pending, Rejected, or Withdrawn), or whose approval is already spent — consumed (its one authorized firing has happened, or has committed with its record still landing) or mooted (the workflow left the gate's `from_state` before the approval was fired, and the cascade recorded it) — cannot fire. The structural refusal that makes the gate unbypassable — there is no surface by which the caller can assert the guard themselves.
 
-Kind:      Member
-Member of: the fire-transition rejection
-Role:      Rejection
-Projects:  gate-not-cleared
+Kind:       Member
+Member of:  the fire-transition rejection
+Role:       Rejection
+Projection: gate-not-cleared
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

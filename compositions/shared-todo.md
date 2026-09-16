@@ -355,7 +355,7 @@ Composition note 2 and Composition note 3 are the two constituent assignments th
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the composed action-wirings and derived queries plus the scope vocabulary it defines; references to the constituent atoms ([Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md)) and their operations remain qualified calls to those atoms. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the composed action-wirings and derived queries plus the scope vocabulary it defines; references to the constituent atoms ([Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md)) and their operations remain qualified calls to those atoms. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -427,73 +427,73 @@ Kind: Operation
 
 The scope permitting read of the shared task list (tasks and their assignees). Gates [Visible Tasks] and the other read queries; a list-level grant in the canonical deployment.
 
-Kind:      Member
-Member of: the scope vocabulary
-Role:      Scope
-Projects:  tasks:view
+Kind:       Member
+Member of:  the scope vocabulary
+Role:       Scope
+Projection: tasks:view
 
 #### Tasks Add
 
 The scope permitting [Add Task] (which delegates to Personal Todo's `add`).
 
-Kind:      Member
-Member of: the scope vocabulary
-Role:      Scope
-Projects:  tasks:add
+Kind:       Member
+Member of:  the scope vocabulary
+Role:       Scope
+Projection: tasks:add
 
 #### Tasks Edit
 
 The scope permitting [Edit Task] on any pending task.
 
-Kind:      Member
-Member of: the scope vocabulary
-Role:      Scope
-Projects:  tasks:edit
+Kind:       Member
+Member of:  the scope vocabulary
+Role:       Scope
+Projection: tasks:edit
 
 #### Tasks Complete
 
 The scope permitting [Complete Task] on any task.
 
-Kind:      Member
-Member of: the scope vocabulary
-Role:      Scope
-Projects:  tasks:complete
+Kind:       Member
+Member of:  the scope vocabulary
+Role:       Scope
+Projection: tasks:complete
 
 #### Tasks Delete
 
 The scope permitting [Delete Task] on any task.
 
-Kind:      Member
-Member of: the scope vocabulary
-Role:      Scope
-Projects:  tasks:delete
+Kind:       Member
+Member of:  the scope vocabulary
+Role:       Scope
+Projection: tasks:delete
 
 #### Tasks Assign
 
 The scope permitting [Assign Task] and [Reassign Task].
 
-Kind:      Member
-Member of: the scope vocabulary
-Role:      Scope
-Projects:  tasks:assign
+Kind:       Member
+Member of:  the scope vocabulary
+Role:       Scope
+Projection: tasks:assign
 
 #### Tasks Recall
 
 The scope permitting [Recall Assignment].
 
-Kind:      Member
-Member of: the scope vocabulary
-Role:      Scope
-Projects:  tasks:recall
+Kind:       Member
+Member of:  the scope vocabulary
+Role:       Scope
+Projection: tasks:recall
 
 #### Permission Denied
 
 The composition's own rejection — returned by any composition action when the up-front Permissions check yields `denied`; it short-circuits before any constituent atom is invoked (Invariant 1).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  permission-denied
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: permission-denied
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

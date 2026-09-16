@@ -329,7 +329,7 @@ A derived implementation of this composition is *acceptable* — in the regulato
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the four emergent state-changing actions it exposes ([Reserve], [Confirm Reservation], [Cancel Reservation], [Expire Reservation]) and the read-only query ([Query Reservation]); the binding's tri-state `release` marker, whose `released(…)` value ([Slot Released]) is what makes slot-return exactly-once; and its own pool rejections ([Pool Closed], [Pool Capacity Exceeded]). Its load-bearing guarantee, **allocation coherence** (Invariant 1 — the pool's `allocated` count equals the live-reservation set), is a structural property, not a datum. Its emergent state — the `reservation_to_pool` binding (the composition's reason to exist) and the `token_results` idempotency cache — is a composition-introduced surface left as backticked store tokens. The idempotency surface is inherited verbatim from [Idempotent Reservation](./idempotent-reservation.md) (`idempotency_token`, `parameters_digest`, `action_type`, `result`, `token-collision`) and is referenced, not re-carded, here. References to the constituent atoms and their operations — Provisional Commitment's `place_hold` / `confirm` / `release` / `expire`, Capacity Constraint's `allocate` / `release` / `query`, Duplicate Prevention's `check` / `record`, Event Log's `append`, Actor Identity's attestation — the constituent states (`Held` / `Confirmed` / `Released` / `Expired`), the pool counter (`allocated`, `capacity`), and the inherited/relayed rejections (`invalid-request`, `not-known`, `not-held`, `window-elapsed`, `window-not-elapsed`, `resource-unavailable`, `recording-failure` — the last carrying its position, `intent` or `outcome`, as this composition's own payload) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the four emergent state-changing actions it exposes ([Reserve], [Confirm Reservation], [Cancel Reservation], [Expire Reservation]) and the read-only query ([Query Reservation]); the binding's tri-state `release` marker, whose `released(…)` value ([Slot Released]) is what makes slot-return exactly-once; and its own pool rejections ([Pool Closed], [Pool Capacity Exceeded]). Its load-bearing guarantee, **allocation coherence** (Invariant 1 — the pool's `allocated` count equals the live-reservation set), is a structural property, not a datum. Its emergent state — the `reservation_to_pool` binding (the composition's reason to exist) and the `token_results` idempotency cache — is a composition-introduced surface left as backticked store tokens. The idempotency surface is inherited verbatim from [Idempotent Reservation](./idempotent-reservation.md) (`idempotency_token`, `parameters_digest`, `action_type`, `result`, `token-collision`) and is referenced, not re-carded, here. References to the constituent atoms and their operations — Provisional Commitment's `place_hold` / `confirm` / `release` / `expire`, Capacity Constraint's `allocate` / `release` / `query`, Duplicate Prevention's `check` / `record`, Event Log's `append`, Actor Identity's attestation — the constituent states (`Held` / `Confirmed` / `Released` / `Expired`), the pool counter (`allocated`, `capacity`), and the inherited/relayed rejections (`invalid-request`, `not-known`, `not-held`, `window-elapsed`, `window-not-elapsed`, `resource-unavailable`, `recording-failure` — the last carrying its position, `intent` or `outcome`, as this composition's own payload) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 #### Reserve
 
@@ -365,28 +365,28 @@ Kind: Operation
 
 The `released(release_event_id)` value of each `reservation_to_pool` binding entry's `release` marker, written when the pool `release` returns — preceded by `pending(…)`, written before the pool is touched. Together with the pool reconciliation's arithmetic it is what makes a slot return to the pool **at most once** (Invariant 2) — the reconciliation never releases for a reservation the marker or the journal shows returned, and releases exactly the pool's unlanded returns otherwise.
 
-Kind:      Field
-Field of:  the reservation-to-pool binding entry
-Role:      the slot-return-once guard
-Projects:  release
+Kind:       Field
+Field of:   the reservation-to-pool binding entry
+Role:       the slot-return-once guard
+Projection: release
 
 #### Pool Closed
 
 The composition's own rejection from [Reserve] — returned when the target pool is Closed or Suspended to new reservations. Maps Capacity Constraint's `closed` / `suspended` allocate rejections to one pool-specific code — a deliberate collapse that discards the retryable-once-resumed signal `suspended` carries; a caller who needs the distinction reads the pool's own `query`, while this boundary reports only that no new reservation is admitted now.
 
-Kind:      Member
-Member of: the reserve rejection
-Role:      Rejection
-Projects:  pool-closed
+Kind:       Member
+Member of:  the reserve rejection
+Role:       Rejection
+Projection: pool-closed
 
 #### Pool Capacity Exceeded
 
 The composition's own rejection from [Reserve] — returned when the pool is full: Capacity Constraint's `allocate` refuses past `capacity` (Invariant 4). The observable form of the *no-oversell* guarantee (Invariant 3) at the capacity gate.
 
-Kind:      Member
-Member of: the reserve rejection
-Role:      Rejection
-Projects:  pool-capacity-exceeded
+Kind:       Member
+Member of:  the reserve rejection
+Role:       Rejection
+Projection: pool-capacity-exceeded
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

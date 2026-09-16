@@ -460,89 +460,89 @@ Kind: Operation
 
 The opaque, immutable, system-generated identity of a hold, assigned on [Place], never reused or reassigned within the store instance. A non-empty string sortable in lexicographic byte-order — required for deterministic [Read] ordering. The record, actor, reason, and timestamps are properties of the hold, not its identity.
 
-Kind:     Field
-Field of: the hold record
-Projects: hold_id
+Kind:       Field
+Field of:   the hold record
+Projection: hold_id
 
 #### Record Ref
 
 The opaque reference to the record being held. Set on [Place], immutable, never validated against any storage layer. Multiple holds may name the same [Record Ref]; each is an independent hold.
 
-Kind:     Field
-Field of: the hold record
-Projects: record_ref
+Kind:       Field
+Field of:   the hold record
+Projection: record_ref
 
 #### Placed By
 
 The opaque reference to the actor placing the hold — the attribution anchor for the preservation decision. Set on [Place], immutable; empty or whitespace-only is rejected (Invariant 7).
 
-Kind:     Field
-Field of: the hold record
-Projects: placed_by
+Kind:       Field
+Field of:   the hold record
+Projection: placed_by
 
 #### Hold Reason
 
 The required, non-empty narrative for the hold — written from the [Reason] parameter at [Place]. Set on [Place], immutable (Invariants 1 and 7). Carries the proportionality/scope explanation a court expects.
 
-Kind:     Field
-Field of: the hold record
-Projects: hold_reason
+Kind:       Field
+Field of:   the hold record
+Projection: hold_reason
 
 #### Placed At
 
 The timestamp the hold was placed — supplied or defaulted to the receiving node's wall clock; must not be future. Set on [Place], immutable. The lower bound for [Released At] (Invariant 6) and the ordering key for [Read].
 
-Kind:     Field
-Field of: the hold record
-Projects: placed_at
+Kind:       Field
+Field of:   the hold record
+Projection: placed_at
 
 #### Case Ref
 
 The optional opaque reference to the legal matter, investigation, or audit. Set on [Place] if supplied (then immutable); its absence is valid. A positive [Case Ref] filter excludes holds without one.
 
-Kind:     Field
-Field of: the hold record
-Projects: case_ref
+Kind:       Field
+Field of:   the hold record
+Projection: case_ref
 
 #### State
 
 The hold's lifecycle state — [Active] or [Released]. Set to [Active] on [Place]; transitions once to [Released] via [Release]. Every hold is in exactly one state (Invariant 2).
 
-Kind:     Field
-Field of: the hold record
-Projects: state
+Kind:       Field
+Field of:   the hold record
+Projection: state
 
 #### Released By
 
 The opaque reference to the actor releasing the hold. Set at [Release], immutable; present on [Released] holds only. Non-null required (Invariant 5).
 
-Kind:     Field
-Field of: the hold record
-Projects: released_by
+Kind:       Field
+Field of:   the hold record
+Projection: released_by
 
 #### Release Reason
 
 The required, non-empty reason for the release — written from the [Reason] parameter at [Release]. Set at [Release], immutable; present on [Released] holds only (Invariant 5).
 
-Kind:     Field
-Field of: the hold record
-Projects: release_reason
+Kind:       Field
+Field of:   the hold record
+Projection: release_reason
 
 #### Released At
 
 The timestamp the hold was released — supplied or defaulted to wall clock; must not be future and must be ≥ [Placed At] (Invariant 6). Set at [Release], immutable; present on [Released] holds only.
 
-Kind:     Field
-Field of: the hold record
-Projects: released_at
+Kind:       Field
+Field of:   the hold record
+Projection: released_at
 
 #### Store Name
 
 The identifier of the store instance a hold belongs to. Multiple instances coexist; [Hold Id]s are unique within an instance, while [Record Ref] is host-scoped. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
 
-Kind:     Field
-Field of: the store instance
-Projects: store_name
+Kind:       Field
+Field of:   the store instance
+Projection: store_name
 
 #### Reason
 
@@ -550,7 +550,7 @@ The required, non-empty reason string [Place] and [Release] consume — written 
 
 Kind:         Parameter
 Parameter of: Place
-Projects:     reason
+Projection:   reason
 
 #### Query
 
@@ -558,7 +558,7 @@ The selection [Read] consumes — a filter over [Hold Id], [Record Ref], [Placed
 
 Kind:         Parameter
 Parameter of: Read
-Projects:     query
+Projection:   query
 
 #### Active
 
@@ -580,46 +580,46 @@ Role:      Outcome
 
 The refusal [Place] or [Release] returns when request fields fail — an empty/whitespace [Record Ref], [Placed By], [Reason], [Case Ref], [Released By], or [Hold Id]; a future [Placed At]; or a [Released At] that is future or before [Placed At].
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Not Known
 
 The refusal [Release] returns when the named [Hold Id] references no hold in this store instance — a lookup miss (a common cause is cross-instance referencing).
 
-Kind:      Member
-Member of: the Release rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the Release rejection
+Role:       Outcome
+Projection: not-known
 
 #### Already Released
 
 The refusal [Release] returns when the target is already [Released] — terminal absorption (Invariant 3); a pure guard that writes nothing.
 
-Kind:      Member
-Member of: the Release rejection
-Role:      Outcome
-Projects:  already-released
+Kind:       Member
+Member of:  the Release rejection
+Role:       Outcome
+Projection: already-released
 
 #### Storage Failure
 
 The refusal any writing action returns when a durable write fails after preconditions pass. All-or-none: no partial record is observable, and the prior state is unchanged (Invariant 8).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 #### Invalid Query
 
 The refusal [Read] returns when query parameters are malformed — a null/empty/whitespace filter value, a [State] value outside {[Active], [Released]}, a time range with end before start, or an unrecognized filter key.
 
-Kind:      Member
-Member of: the Read rejection
-Role:      Outcome
-Projects:  invalid-query
+Kind:       Member
+Member of:  the Read rejection
+Role:       Outcome
+Projection: invalid-query
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown

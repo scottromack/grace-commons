@@ -699,201 +699,201 @@ Kind: Operation
 
 The opaque, immutable identity of a pool, host-allocated at the I/O seam on [Declare Pool] and never reused. The declaration metadata, [Capacity], [Allocated], and [State] are properties of the pool, not its identity.
 
-Kind:     Field
-Field of: Pool
-Projects: pool_id
+Kind:       Field
+Field of:   Pool
+Projection: pool_id
 
 #### Capacity
 
 The current declared maximum total allocation a pool admits — a non-negative integer. Set on [Declare Pool], modified only by [Adjust Capacity]. The load-bearing bound: [Allocated] ≤ [Capacity] always holds (Invariant 4).
 
-Kind:     Field
-Field of: Pool
-Projects: capacity
+Kind:       Field
+Field of:   Pool
+Projection: capacity
 
 #### Allocated
 
 The pool's current running total of consumed units — a non-negative integer. Modified only by [Allocate] (increment) and [Release] (decrement); never exceeds [Capacity] (Invariant 4) and never goes below 0 (Invariant 5).
 
-Kind:     Field
-Field of: Pool
-Projects: allocated
+Kind:       Field
+Field of:   Pool
+Projection: allocated
 
 #### Available
 
 The derived headroom, [Capacity] − [Allocated], reported by [Query]. Recomputed from [Capacity] and [Allocated]; not stored independently.
 
-Kind:     Field
-Field of: Pool
-Projects: available
+Kind:       Field
+Field of:   Pool
+Projection: available
 
 #### State
 
 The pool's lifecycle state — one of [Open], [Suspended], [Closed]. Set to [Open] on [Declare Pool]; modified only by [Suspend Pool], [Resume Pool], [Close Pool].
 
-Kind:     Field
-Field of: Pool
-Projects: state
+Kind:       Field
+Field of:   Pool
+Projection: state
 
 #### Declared At
 
 The wall-time a pool was declared, stamped from the seam-injected [Now] on [Declare Pool]. Immutable thereafter.
 
-Kind:     Field
-Field of: Pool
-Projects: declared_at
+Kind:       Field
+Field of:   Pool
+Projection: declared_at
 
 #### Declaring Actor Ref
 
 The opaque reference to the actor that declared the pool. Set on [Declare Pool], immutable thereafter. Attribution only; non-repudiable proof composes with Actor Identity.
 
-Kind:     Field
-Field of: Pool
-Projects: declaring_actor_ref
+Kind:       Field
+Field of:   Pool
+Projection: declaring_actor_ref
 
 #### Declaration Reason
 
 The caller-supplied reason recorded at [Declare Pool]. Immutable thereafter.
 
-Kind:     Field
-Field of: Pool
-Projects: declaration_reason
+Kind:       Field
+Field of:   Pool
+Projection: declaration_reason
 
 #### Allocation Event Id
 
 The opaque, immutable id of an allocation event, host-allocated at the I/O seam on each [Allocate] and individually addressable on the pool's audit log. Composing patterns key against it.
 
-Kind:     Field
-Field of: the allocation event
-Projects: allocation_event_id
+Kind:       Field
+Field of:   the allocation event
+Projection: allocation_event_id
 
 #### Release Event Id
 
 The opaque, immutable id of a release event, host-allocated at the I/O seam on each [Release].
 
-Kind:     Field
-Field of: the release event
-Projects: release_event_id
+Kind:       Field
+Field of:   the release event
+Projection: release_event_id
 
 #### Adjustment Event Id
 
 The opaque, immutable id of a capacity-adjustment event, host-allocated at the I/O seam on each [Adjust Capacity].
 
-Kind:     Field
-Field of: the capacity-adjustment event
-Projects: adjustment_event_id
+Kind:       Field
+Field of:   the capacity-adjustment event
+Projection: adjustment_event_id
 
 #### State Change Id
 
 The opaque, immutable id of a state-change event, host-allocated at the I/O seam on each [Suspend Pool], [Resume Pool], or [Close Pool].
 
-Kind:     Field
-Field of: the state-change event
-Projects: state_change_id
+Kind:       Field
+Field of:   the state-change event
+Projection: state_change_id
 
 #### Count
 
 The positive-integer number of units an [Allocate] or [Release] operates on, recorded on the resulting event. Zero is not a legitimate count.
 
-Kind:     Field
-Field of: the allocation/release event
-Projects: count
+Kind:       Field
+Field of:   the allocation/release event
+Projection: count
 
 #### Allocated Before
 
 The pool's [Allocated] value immediately before an allocation or release event — the before half of the event's symmetric snapshot.
 
-Kind:     Field
-Field of: the allocation/release event
-Projects: allocated_before
+Kind:       Field
+Field of:   the allocation/release event
+Projection: allocated_before
 
 #### Allocated After
 
 The pool's [Allocated] value immediately after an allocation or release event ([Allocated Before] + [Count] for allocate, − [Count] for release) — the witness that lets an auditor verify Invariant 4 or 5 per-event.
 
-Kind:     Field
-Field of: the allocation/release event
-Projects: allocated_after
+Kind:       Field
+Field of:   the allocation/release event
+Projection: allocated_after
 
 #### Prior Capacity
 
 The pool's [Capacity] immediately before a capacity-adjustment event.
 
-Kind:     Field
-Field of: the capacity-adjustment event
-Projects: prior_capacity
+Kind:       Field
+Field of:   the capacity-adjustment event
+Projection: prior_capacity
 
 #### New Capacity
 
 The revised [Capacity] supplied to [Adjust Capacity] and recorded on the adjustment event. Must be non-negative, differ from the current [Capacity], and be ≥ [Allocated].
 
-Kind:     Field
-Field of: the capacity-adjustment event
-Projects: new_capacity
+Kind:       Field
+Field of:   the capacity-adjustment event
+Projection: new_capacity
 
 #### Prior State
 
 The pool's [State] immediately before a state-change event.
 
-Kind:     Field
-Field of: the state-change event
-Projects: prior_state
+Kind:       Field
+Field of:   the state-change event
+Projection: prior_state
 
 #### New State
 
 The pool's [State] immediately after a state-change event.
 
-Kind:     Field
-Field of: the state-change event
-Projects: new_state
+Kind:       Field
+Field of:   the state-change event
+Projection: new_state
 
 #### Recorded At
 
 The wall-time an event was appended to the audit log, stamped from the seam-injected [Now]. Best-effort metadata; insertion order, not timestamp order, is authoritative.
 
-Kind:     Field
-Field of: the audit-log event
-Projects: recorded_at
+Kind:       Field
+Field of:   the audit-log event
+Projection: recorded_at
 
 #### Allocating Actor Ref
 
 The opaque reference to the actor performing an [Allocate], recorded on the allocation event.
 
-Kind:     Field
-Field of: the allocation event
-Projects: allocating_actor_ref
+Kind:       Field
+Field of:   the allocation event
+Projection: allocating_actor_ref
 
 #### Releasing Actor Ref
 
 The opaque reference to the actor performing a [Release], recorded on the release event.
 
-Kind:     Field
-Field of: the release event
-Projects: releasing_actor_ref
+Kind:       Field
+Field of:   the release event
+Projection: releasing_actor_ref
 
 #### Adjusting Actor Ref
 
 The opaque reference to the actor performing an [Adjust Capacity], recorded on the adjustment event.
 
-Kind:     Field
-Field of: the capacity-adjustment event
-Projects: adjusting_actor_ref
+Kind:       Field
+Field of:   the capacity-adjustment event
+Projection: adjusting_actor_ref
 
 #### Acting Actor Ref
 
 The opaque reference to the actor performing a state transition, recorded on the state-change event.
 
-Kind:     Field
-Field of: the state-change event
-Projects: acting_actor_ref
+Kind:       Field
+Field of:   the state-change event
+Projection: acting_actor_ref
 
 #### Reason
 
 The caller-supplied reason string recorded on a capacity-adjustment or state-change event (and, as [Declaration Reason], on the pool). Required on [Declare Pool], [Adjust Capacity], [Suspend Pool], [Resume Pool], [Close Pool]; not required on the routine [Allocate]/[Release].
 
-Kind:     Field
-Field of: the audit-log event
-Projects: reason
+Kind:       Field
+Field of:   the audit-log event
+Projection: reason
 
 #### Now
 
@@ -901,7 +901,7 @@ The current wall-clock reading, pipeline-injected at the single I/O seam (the ex
 
 Kind:         Parameter
 Parameter of: Declare Pool, Allocate, Release, Adjust Capacity, Suspend Pool, Resume Pool, Close Pool
-Projects:     now
+Projection:   now
 
 #### Open
 
@@ -915,100 +915,100 @@ Role:      Outcome
 
 The paused state: new [Allocate] calls are refused regardless of headroom, while [Release] and [Adjust Capacity] remain admitted. Reached by [Suspend Pool]; left by [Resume Pool] (to [Open]) or [Close Pool]. Also the rejection reason [Allocate] returns against a suspended pool — the state's own name projected as the reason's wire form.
 
-Kind:      Member
-Member of: the pool state
-Role:      Outcome
-Projects:  suspended
+Kind:       Member
+Member of:  the pool state
+Role:       Outcome
+Projection: suspended
 
 #### Closed
 
 The terminal state: [Allocate] and [Adjust Capacity] are refused, [Release] still admitted so in-flight allocations unwind. Reached by [Close Pool]; absorbing (Invariant 3). Also the rejection reason [Allocate]/[Adjust Capacity] return against a closed pool — the state's own name projected as the reason's wire form.
 
-Kind:      Member
-Member of: the pool state
-Role:      Outcome
-Projects:  closed
+Kind:       Member
+Member of:  the pool state
+Role:       Outcome
+Projection: closed
 
 #### Over Capacity
 
 The refusal [Allocate] returns when [Allocated] + [Count] > [Capacity] — the allocation would breach the bound. No event is recorded; the pool remains [Open].
 
-Kind:      Member
-Member of: the Allocate rejection
-Role:      Outcome
-Projects:  over-capacity
+Kind:       Member
+Member of:  the Allocate rejection
+Role:       Outcome
+Projection: over-capacity
 
 #### Over Release
 
 The refusal [Release] returns when [Count] > [Allocated] — releasing more than is allocated would drive the running total negative. No event is recorded.
 
-Kind:      Member
-Member of: the Release rejection
-Role:      Outcome
-Projects:  over-release
+Kind:       Member
+Member of:  the Release rejection
+Role:       Outcome
+Projection: over-release
 
 #### Over Allocated
 
 The refusal [Adjust Capacity] returns when [New Capacity] < [Allocated] — the requested bound would put already-allocated units over capacity. No change, no event.
 
-Kind:      Member
-Member of: the Adjust Capacity rejection
-Role:      Outcome
-Projects:  over-allocated
+Kind:       Member
+Member of:  the Adjust Capacity rejection
+Role:       Outcome
+Projection: over-allocated
 
 #### Not Known
 
 The refusal any [Pool Id]-taking action returns when the id references no recorded pool — a lookup miss, checked before every other precondition. After deployment-side purge it also subsumes once-declared-but-purged pools.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  not-known
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: not-known
 
 #### Not Open
 
 The refusal [Suspend Pool] returns when the pool is not in [Open] state (it is already [Suspended]).
 
-Kind:      Member
-Member of: the Suspend Pool rejection
-Role:      Outcome
-Projects:  not-open
+Kind:       Member
+Member of:  the Suspend Pool rejection
+Role:       Outcome
+Projection: not-open
 
 #### Not Suspended
 
 The refusal [Resume Pool] returns when the pool is not in [Suspended] state (it is [Open]).
 
-Kind:      Member
-Member of: the Resume Pool rejection
-Role:      Outcome
-Projects:  not-suspended
+Kind:       Member
+Member of:  the Resume Pool rejection
+Role:       Outcome
+Projection: not-suspended
 
 #### Already Closed
 
 The refusal [Suspend Pool], [Resume Pool], or [Close Pool] returns when the pool is already [Closed] — terminal, no further state transitions.
 
-Kind:      Member
-Member of: the lifecycle-action rejection
-Role:      Outcome
-Projects:  already-closed
+Kind:       Member
+Member of:  the lifecycle-action rejection
+Role:       Outcome
+Projection: already-closed
 
 #### Invalid Request
 
 The refusal any action returns when a required field is malformed — a null/empty/whitespace-only or control/zero-width/bidi-tainted string, a wrong-signed integer, or a no-op [Adjust Capacity] whose [New Capacity] equals the current [Capacity]. A field-format rejection before any arithmetic check or store write.
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  invalid-request
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: invalid-request
 
 #### Storage Failure
 
 The refusal any action returns when the durable write fails after all preconditions pass. All-or-none: no partial record, no audit-log entry, no running-total change (Invariant 14).
 
-Kind:      Member
-Member of: the action rejection
-Role:      Outcome
-Projects:  storage-failure
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: storage-failure
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
