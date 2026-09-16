@@ -39,6 +39,9 @@ The second guarantee is principal binding: the subject passed to `Permissions.pe
 
 ## Composes
 
+- **[Session](../atoms/session.md)** — the session a call presents, validated at the gate.
+- **[Permissions](../atoms/permissions.md)** — the grants and the permission query behind the gate.
+
 ```
 Composes 1: EXACTLY ONE Session instance MUST serve the composition.
 Composes 2: EXACTLY ONE Permissions instance MUST serve the composition.

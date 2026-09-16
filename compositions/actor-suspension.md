@@ -43,7 +43,6 @@ What the composition is *not*: it is not the issuance surface — it revokes gra
 
 ## Composes
 
-- **[Actor Identity](../atoms/actor-identity.md)** — the identity the suspension is attributed to, reached through the substrate.
 - **[Permissions](../atoms/permissions.md)** — the grant surface, enumerated and revoked.
 - **[Session](../atoms/session.md)** — the live-channel surface, enumerated and revoked.
 - **[Credential](../atoms/credential.md)** *(optional)* — the re-authentication surface, enumerated and revoked where composed.
@@ -83,9 +82,9 @@ Composes 30: The composition MUST NOT enumerate one credential PER principal.
 Composes 31: The composition MUST NOT supply the substrate's own recording stamp.
 ```
 
-Term composition: this pattern's wiring of permissions(../atoms/permissions.md), session(../atoms/session.md), credential(../atoms/credential.md) and the audit trail(./audit-trail.md) substrate — the three actions, the actor lifecycle, the two indexes, the mark and the sweep.
+Term composition: this pattern's wiring of [Permissions](../atoms/permissions.md), [Session](../atoms/session.md), [Credential](../atoms/credential.md) and the [Audit Trail](./audit-trail.md) substrate — the three actions, the actor lifecycle, the two indexes, the mark and the sweep.
 
-Term constituents: permissions(../atoms/permissions.md), session(../atoms/session.md), audit trail(./audit-trail.md), and — where the credential arm stands composed — credential(../atoms/credential.md).
+Term constituents: [Permissions](../atoms/permissions.md), [Session](../atoms/session.md), [Audit Trail](./audit-trail.md), and — where the credential arm stands composed — [Credential](../atoms/credential.md).
 
 Term credential arm: revoke_credential_on_suspend standing true with a Credential instance wired — the arm under which the cascade also closes the re-authentication surface.
 
@@ -96,7 +95,7 @@ Term operator: suspended_by_ref — the principal a [Suspend Actor] call names a
 Term resumer: the suspended_by_ref of a [Suspend Actor] call that finds the actor suspending — the principal whose credential the resume record verifies and whom the resumed cascade's constituent revocations name.
 
 WHY:
-Composes 7 through 9 name the substrate relation. audit trail(./audit-trail.md) is a composition, not an atom, so Event Log, Actor Identity, Tamper Evidence and the audit instance's own Retention Window are reached *through* it and this composition holds no instance of any of them. Actor Identity is the one constituent this composition never calls directly: it is the attestation surface, reached inside every record_action, and Composes 23 is the limit that matters — an attestation is immutable, so the suspension attests *over* the registry and changes nothing in it.
+Composes 7 through 9 name the substrate relation. [Audit Trail](./audit-trail.md) is a composition, not an atom, so Event Log, Actor Identity, Tamper Evidence and the audit instance's own Retention Window are reached *through* it and this composition holds no instance of any of them. Actor Identity is the one constituent this composition never calls directly: it is the attestation surface, reached inside every record_action, and Composes 23 is the limit that matters — an attestation is immutable, so the suspension attests *over* the registry and changes nothing in it.
 
 Composes 15 through 24 are the two directions each authorization surface is used in, and the asymmetry is the composition's whole shape: every surface is **read** to build the plan and **written** to close it, and no constituent offers a bulk close. Permissions names per-grant enumerate-then-revoke as the composing system's responsibility and Session supports the same over its principal_ref-queryable store; this composition is that composing system. Composes 21 and Composes 22 are the other half of the honesty: it revokes and never issues, which is exactly why a grant created after the snapshot is outside the guarantee and the issuance gate is a deployment obligation rather than a claim made here.
 
@@ -288,7 +287,7 @@ Term maximal outcome: the largest record the act can write — the sweep's compe
 Term clock offset allowance: clock_offset_allowance — the declared envelope within which a stamp this composition wrote at its seam may be compared with a stamp a constituent wrote at its own.
 
 WHY:
-Capability requirement 12 through 15 are the enumeration's declaring source, and they are the composition's largest audit gap stated as an obligation rather than a claim. This composition enumerates grants by subject_ref, sessions by principal_ref and credentials by Credential's own principal_ref — three namespaces — and the enumeration is complete only where all three coincide with the actor_ref. A deployment satisfies that through authenticated actor(./authenticated-actor.md)'s binding or by convention; whether it actually did is External check 1, because verifying that two opaque namespaces coincide is not a records-alone question at this layer. A divergent namespace under-enumerates *silently*, which is why the knob is a declaration the deployment makes rather than a default the composition assumes.
+Capability requirement 12 through 15 are the enumeration's declaring source, and they are the composition's largest audit gap stated as an obligation rather than a claim. This composition enumerates grants by subject_ref, sessions by principal_ref and credentials by Credential's own principal_ref — three namespaces — and the enumeration is complete only where all three coincide with the actor_ref. A deployment satisfies that through [Authenticated Actor](./authenticated-actor.md)'s binding or by convention; whether it actually did is External check 1, because verifying that two opaque namespaces coincide is not a records-alone question at this layer. A divergent namespace under-enumerates *silently*, which is why the knob is a declaration the deployment makes rather than a default the composition assumes.
 
 Capability requirement 27 is the liveness arithmetic written out rather than abbreviated. An actor orphaned at an instant is invisible to the sweep until the completion bound has passed, the next run is at most a cadence later, and the completing outcome takes a write latency to land — so a window shorter than that sum is a promise the deployment cannot keep, and the rule refuses the instance rather than the finding. *Cadence no longer than the window* was the earlier form and it is satisfied by a deployment that breaches on every orphan: a five-minute bound, a five-minute cadence and a six-minute window pass it and close nothing in time. The hold term needs no fourth knob, because a stalled-but-alive invocation keeps the sweep off an actor for at most its lease and Capability requirement 32 makes the lease the bound, so hold time already sits inside the first term.
 
@@ -550,7 +549,7 @@ Action wiring 89: An admitted reinstatement MUST answer the reinstated outcome's
 
 Term stored active: the status a constituent's own record carries, before any derivation the constituent applies at read time.
 
-Term effective active: Credential's derived active status, cited rather than restated — credential(../atoms/credential.md)'s own reading of a credential that has neither been revoked nor lapsed.
+Term effective active: Credential's derived active status, cited rather than restated — [Credential](../atoms/credential.md)'s own reading of a credential that has neither been revoked nor lapsed.
 
 Term snapshot: the enumerated active set a fresh cascade reads from the constituents at one instant, which becomes the plan.
 
@@ -910,7 +909,7 @@ Non-goal 5 and Non-goal 6 split two questions this composition is often asked an
 
 **Non-goal 7 through 9 are why reinstatement is thin, and the thinness is correct.** A revoked grant is terminal, a revoked session absorbing, a revoked credential terminal; none returns to active. Re-authorizing a reinstated actor means issuing *fresh* access through the issuance layer, whose new records carry their own instants and their own attributions — which is the auditable behaviour. [Reinstate Actor] is the state machine's reverse edge and nothing more: it re-opens the actor to future provisioning and does not reach back into the constituents' terminal records.
 
-**Non-goal 10 and Non-goal 11 name the one constituent this composition cannot ask for a lifecycle.** Actor Identity carries a single attested state and defers actor registration, deactivation and suspension to a forthcoming Actor Registry pattern, so the Active → Suspending → Suspended machine is composition-introduced — this composition cannot read a suspended flag from any constituent, and it owns the index instead. Past the audit horizon that index is the only carrier of the state, which is where Composition state 10 flags it extraction-pending against exactly that forthcoming atom. A deployment that also wants the attestation registry entry deactivated composes the registry pattern, or reaches the attest surface through authenticated actor(./authenticated-actor.md), whose own cascade closes it when the credential is revoked.
+**Non-goal 10 and Non-goal 11 name the one constituent this composition cannot ask for a lifecycle.** Actor Identity carries a single attested state and defers actor registration, deactivation and suspension to a forthcoming Actor Registry pattern, so the Active → Suspending → Suspended machine is composition-introduced — this composition cannot read a suspended flag from any constituent, and it owns the index instead. Past the audit horizon that index is the only carrier of the state, which is where Composition state 10 flags it extraction-pending against exactly that forthcoming atom. A deployment that also wants the attestation registry entry deactivated composes the registry pattern, or reaches the attest surface through [Authenticated Actor](./authenticated-actor.md), whose own cascade closes it when the credential is revoked.
 
 Non-goal 12 is the same shape one layer down: a refusal nobody replays is not this composition's record to own, and the refusal entries are held here under a declared durability obligation until the failed-attempt log pattern takes them.
 
@@ -1031,9 +1030,9 @@ Term value sets: suspend_actor answers the suspension result and refuses invalid
 
 Term terms: composition, constituents, credential arm, service identity, operator, resumer, suspension-state index, high-water mark, suspension log, mirrored log entry, refusal log entry, tail read, audit horizon, aged-out event, rebuild, miss, aged-out entry, aged-out log entry, aged-out actor, aged-out outcome, aged-out open cascade, post-snapshot member, admitted suspension, admitted reinstatement, plan, revoked set, open cascade, seam, transition, unified actor namespace, section, suspension completion bound, completion window, closure floor, access retention floor, planned set cap, maximal outcome, clock offset allowance, blank, boundary predicate, opaque argument, operator reference, resume prefix, completion prefix, intent, outcome, committing call, landed intent, append step, retention step, read-back, owed outcome, stored active, effective active, snapshot, fresh cascade, resume, cascade, benign terminal answer, non-benign refusal, open members, unresolved members, closed plan, recovery marker, enumeration availability, sweep, pre-check, young intent, plan-unavailable marker, accounted cascade, accounted member, escalated finding, orphan, indeterminate committing call, position, not-suspended state, suspension result, suspension record, reinstatement result.
 
-Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. credential(../atoms/credential.md) — the effective-active reading and the per-pair bound.
+Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. [Credential](../atoms/credential.md) — the effective-active reading and the per-pair bound.
 
-Term composing patterns: Actor Registry *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; login(./login.md); authenticated actor(./authenticated-actor.md); multi-party approval(./multi-party-approval.md); permissions(../atoms/permissions.md).
+Term composing patterns: Actor Registry *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; [Login](./login.md); [Authenticated Actor](./authenticated-actor.md); [Multi-Party Approval](./multi-party-approval.md); [Permissions](../atoms/permissions.md).
 
 #### Suspend Actor
 

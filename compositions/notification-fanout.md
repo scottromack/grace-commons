@@ -39,6 +39,9 @@ The composition makes two architectural commitments explicit. First, the subscri
 
 ## Composes
 
+- **[Subscription](../atoms/subscription.md)** — the Active subscriber set, read and never written.
+- **[Notification](../atoms/notification.md)** — the per-recipient delivery record, created once per subscriber.
+
 ```
 Composes 1: EXACTLY ONE Subscription instance MUST serve the composition.
 Composes 2: EXACTLY ONE Notification instance MUST serve the composition.

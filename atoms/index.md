@@ -23,30 +23,31 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_25 compositions (22 regulated) · 27 atoms · 63 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_26 compositions (25 regulated) · 28 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
 | Atom | Domain | Regulated | Security | Composed by |
 |---|---|---|---|---|
-| [Actor Identity](./actor-identity.md) | — | yes (5) | yes | actor-suspension, attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool |
+| [Actor Identity](./actor-identity.md) | — | yes (4) | yes | attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool |
 | [Approval Step](./approval-step.md) | — | yes (2) | — | execute-gated-workflow, multi-party-approval |
-| [Assignment](./assignment.md) | — | yes (2) | — | execute-gated-workflow, multi-party-approval, shared-todo |
+| [Assignment](./assignment.md) | — | yes (3) | — | execute-gated-workflow, multi-party-approval, shared-todo |
 | [Capability](./capability.md) | — | yes (2) | yes | capability-backed-sharing, privileged-access-provisioning |
 | [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md) | — | yes (1) | — | reserve-from-pool |
-| [Observation](./observation.md) | — | — | — | *(none yet)* |
 | [Consent](./consent.md) | — | yes (2) | — | propagate-consent-revocation-downstream, resolve-a-persons-data-rights |
-| [Credential](./credential.md) | — | yes (4) | yes | authenticated-actor, external-onboarding, login, privileged-access-provisioning |
+| [Credential](./credential.md) | — | yes (5) | yes | actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning |
 | [Duplicate Prevention](./duplicate-prevention.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
-| [Event Log](./event-log.md) | — | yes (3) | — | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, undo-history |
+| [Event Log](./event-log.md) | — | yes (4) | — | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, undo-history |
 | [Invitation](./invitation.md) | — | yes (1) | yes | external-onboarding |
+| [lease](./lease.md) | — | yes (1) | — | recoverable-invocation |
 | [Legal Hold](./legal-hold.md) | — | yes (1) | — | defensible-retention |
 | [Medication Order](./medication-order.md) | healthcare | — | — | *(none yet)* |
 | [Message Preference](./message-preference.md) | — | yes (1) | — | preference-aware-notification-fanout |
 | [Notification](./notification.md) | — | yes (2) | — | notification-fanout, preference-aware-notification-fanout |
+| [Observation](./observation.md) | — | — | — | *(none yet)* |
 | [Party Identity](./party-identity.md) | — | yes (2) | yes | customer-onboarding, external-onboarding |
-| [Permissions](./permissions.md) | — | yes (7) | yes | actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-todo |
-| [Personal Todo](./personal-todo.md) | — | — | — | shared-todo, undo-history |
+| [Permissions](./permissions.md) | — | yes (8) | yes | actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-todo |
+| [Personal Todo](./personal-todo.md) | — | yes (2) | — | shared-todo, undo-history |
 | [Provenance](./provenance.md) | — | yes (1) | — | chain-of-custody |
 | [Provisional Commitment](./provisional-commitment.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
 | [Retention Window](./retention-window.md) | — | yes (4) | — | audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream |
@@ -61,21 +62,23 @@ _25 compositions (22 regulated) · 27 atoms · 63 composition→atom edges. Gene
 
 Atoms that a regulated composition (one carrying a `## Generation acceptance` section) composes. Derived, attributed per composer.
 
-- [Actor Identity](./actor-identity.md) — via actor-suspension, attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool
+- [Actor Identity](./actor-identity.md) — via attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool
 - [Approval Step](./approval-step.md) — via execute-gated-workflow, multi-party-approval
-- [Assignment](./assignment.md) — via execute-gated-workflow, multi-party-approval
+- [Assignment](./assignment.md) — via execute-gated-workflow, multi-party-approval, shared-todo
 - [Capability](./capability.md) — via capability-backed-sharing, privileged-access-provisioning
 - [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md) — via reserve-from-pool
 - [Consent](./consent.md) — via propagate-consent-revocation-downstream, resolve-a-persons-data-rights
-- [Credential](./credential.md) — via authenticated-actor, external-onboarding, login, privileged-access-provisioning
+- [Credential](./credential.md) — via actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning
 - [Duplicate Prevention](./duplicate-prevention.md) — via idempotent-reservation, reserve-from-pool
-- [Event Log](./event-log.md) — via audit-trail, preference-aware-notification-fanout, reserve-from-pool
+- [Event Log](./event-log.md) — via audit-trail, preference-aware-notification-fanout, reserve-from-pool, undo-history
 - [Invitation](./invitation.md) — via external-onboarding
+- [lease](./lease.md) — via recoverable-invocation
 - [Legal Hold](./legal-hold.md) — via defensible-retention
 - [Message Preference](./message-preference.md) — via preference-aware-notification-fanout
 - [Notification](./notification.md) — via notification-fanout, preference-aware-notification-fanout
 - [Party Identity](./party-identity.md) — via customer-onboarding, external-onboarding
-- [Permissions](./permissions.md) — via actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization
+- [Permissions](./permissions.md) — via actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-todo
+- [Personal Todo](./personal-todo.md) — via shared-todo, undo-history
 - [Provenance](./provenance.md) — via chain-of-custody
 - [Provisional Commitment](./provisional-commitment.md) — via idempotent-reservation, reserve-from-pool
 - [Retention Window](./retention-window.md) — via audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream
@@ -118,29 +121,29 @@ The union of standards each atom's composers carry, attributed per composer in t
 - **FINRA**: [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md)
 - **FRCP 37(e)**: [Consent](./consent.md), [Legal Hold](./legal-hold.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Soft Delete](./soft-delete.md)
 - **FinCEN**: [Party Identity](./party-identity.md), [Retention Window](./retention-window.md)
-- **GDPR**: [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Invitation](./invitation.md), [Legal Hold](./legal-hold.md), [Message Preference](./message-preference.md), [Notification](./notification.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [Subscription](./subscription.md), [Tamper Evidence](./tamper-evidence.md)
-- **HIPAA**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Invitation](./invitation.md), [Legal Hold](./legal-hold.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
+- **GDPR**: [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Invitation](./invitation.md), [lease](./lease.md), [Legal Hold](./legal-hold.md), [Message Preference](./message-preference.md), [Notification](./notification.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [Subscription](./subscription.md), [Tamper Evidence](./tamper-evidence.md)
+- **HIPAA**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Invitation](./invitation.md), [lease](./lease.md), [Legal Hold](./legal-hold.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
 - **ISO 15489**: [Legal Hold](./legal-hold.md), [Retention Window](./retention-window.md), [Soft Delete](./soft-delete.md)
-- **ISO 27001**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Event Log](./event-log.md), [Permissions](./permissions.md), [Personal Todo](./personal-todo.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
-- **NIST 800-207**: [Actor Identity](./actor-identity.md), [Permissions](./permissions.md), [Session](./session.md)
-- **NIST 800-53**: [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Credential](./credential.md), [Permissions](./permissions.md), [Session](./session.md)
+- **ISO 27001**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Event Log](./event-log.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
+- **NIST 800-207**: [Credential](./credential.md), [Permissions](./permissions.md), [Session](./session.md)
+- **NIST 800-53**: [Capability](./capability.md), [Credential](./credential.md), [Permissions](./permissions.md), [Session](./session.md)
 - **NIST 800-57**: [Actor Identity](./actor-identity.md), [Credential](./credential.md)
 - **NIST 800-63**: [Actor Identity](./actor-identity.md), [Credential](./credential.md), [Invitation](./invitation.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Session](./session.md)
-- **NIST 800-92**: [Event Log](./event-log.md), [Personal Todo](./personal-todo.md), [State Machine](./state-machine.md)
-- **OWASP ASVS**: [Actor Identity](./actor-identity.md), [Credential](./credential.md), [Permissions](./permissions.md), [Session](./session.md)
-- **PCI DSS**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
+- **NIST 800-92**: [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
+- **OWASP ASVS**: [Credential](./credential.md), [Permissions](./permissions.md), [Session](./session.md)
+- **PCI DSS**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [lease](./lease.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
 - **SCIM**: [Credential](./credential.md), [Invitation](./invitation.md), [Party Identity](./party-identity.md)
-- **SEC 17a-4**: [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Consent](./consent.md), [Event Log](./event-log.md), [Legal Hold](./legal-hold.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [Tamper Evidence](./tamper-evidence.md)
+- **SEC 17a-4**: [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Event Log](./event-log.md), [Legal Hold](./legal-hold.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [Tamper Evidence](./tamper-evidence.md)
 - **SOC 2**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Credential](./credential.md), [Event Log](./event-log.md), [Invitation](./invitation.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md)
-- **SOX**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Legal Hold](./legal-hold.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
-- **eIDAS**: [Actor Identity](./actor-identity.md), [Credential](./credential.md), [Event Log](./event-log.md), [Permissions](./permissions.md), [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md)
+- **SOX**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [lease](./lease.md), [Legal Hold](./legal-hold.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
+- **eIDAS**: [Actor Identity](./actor-identity.md), [Credential](./credential.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md)
 
 ## Lens — uncomposed
 
 Atoms no composition yet composes. The overlays say nothing about them — an honest gap, not a claim of non-regulation.
 
-- [Observation](./observation.md)
 - [Medication Order](./medication-order.md)
+- [Observation](./observation.md)
 
 ---
 

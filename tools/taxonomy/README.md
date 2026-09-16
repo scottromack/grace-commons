@@ -28,7 +28,8 @@ derive — so it is the one axis a human curates, gated by the EOS freestanding 
 
 ## Signals
 
-- **Composes** — `- **[Atom](../atoms/<name>.md)** — role.` bullets in `## Composes`.
+- **Composes** — `- **[Atom](../atoms/<name>.md)** — role.` list items in `## Composes`, and nothing else under that heading: a `Term` line there links the same atoms in prose and is not an edge. `lint.py`'s `F-composes-list` gates a composition whose section lists none.
+- **invariants** — the distinct invariant numbers a spec declares, from bold `Invariant N —` headings and `Invariant N.M` rule labels; a tombstoned invariant is not counted.
 - **regulated** — a composition is regulated iff it carries a `## Generation acceptance` section.
 - **standards** — normalized families matched in the composition's `## Standards[ references]` section.
 - **security** — an overlay (not a domain): an atom carries it iff it derives an

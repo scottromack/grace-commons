@@ -24,9 +24,9 @@ pattern count hides.
 | Atom | Fan-in | Composed by |
 |---|---|---|
 | [Permissions](./atoms/permissions.html) | 8 | actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-todo |
-| [Actor Identity](./atoms/actor-identity.html) | 5 | actor-suspension, attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool |
+| [Credential](./atoms/credential.html) | 5 | actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning |
 | [Event Log](./atoms/event-log.html) | 5 | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, undo-history |
-| [Credential](./atoms/credential.html) | 4 | authenticated-actor, external-onboarding, login, privileged-access-provisioning |
+| [Actor Identity](./atoms/actor-identity.html) | 4 | attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool |
 | [Retention Window](./atoms/retention-window.html) | 4 | audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream |
 | [Session](./atoms/session.html) | 4 | actor-suspension, login, privileged-access-provisioning, session-gated-authorization |
 | [Assignment](./atoms/assignment.html) | 3 | execute-gated-workflow, multi-party-approval, shared-todo |
@@ -118,13 +118,13 @@ flowchart LR
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
 flowchart LR
   subgraph ATOMS[Atoms]
-    a_actor_identity["Actor Identity · 5"]
+    a_actor_identity["Actor Identity · 4"]
     a_approval_step["Approval Step · 2"]
     a_assignment["Assignment · 3"]
     a_capability["Capability · 2"]
     a_capacity_constraint_enforcement["Capacity Constraint Enforcement · 1"]
     a_consent["Consent · 2"]
-    a_credential["Credential · 4"]
+    a_credential["Credential · 5"]
     a_duplicate_prevention["Duplicate Prevention · 2"]
     a_event_log["Event Log · 5"]
     a_invitation["Invitation · 1"]
@@ -175,9 +175,9 @@ flowchart LR
     c_shared_todo["Shared Todo"]
     c_undo_history["Undo History"]
   end
-  c_actor_suspension --> a_actor_identity
   c_actor_suspension --> a_permissions
   c_actor_suspension --> a_session
+  c_actor_suspension --> a_credential
   c_attributed_permissions_admin --> a_permissions
   c_attributed_permissions_admin --> a_actor_identity
   c_audit_trail --> a_event_log
@@ -262,7 +262,7 @@ flowchart LR
   class a_actor_identity,a_approval_step,a_assignment,a_capability,a_capacity_constraint_enforcement,a_consent,a_credential,a_duplicate_prevention,a_event_log,a_invitation,a_lease,a_legal_hold,a_medication_order,a_message_preference,a_notification,a_observation,a_party_identity,a_permissions,a_personal_todo,a_provenance,a_provisional_commitment,a_retention_window,a_selective_disclosure,a_session,a_soft_delete,a_state_machine,a_subscription,a_tamper_evidence atom;
   class a_actor_identity,a_capability,a_credential,a_invitation,a_party_identity,a_permissions,a_session atomSec;
   class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_forensic_recovery,c_idempotent_reservation,c_immutable_transaction_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_todo,c_undo_history comp;
-  class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_forensic_recovery,c_idempotent_reservation,c_immutable_transaction_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization compReg;
+  class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_forensic_recovery,c_idempotent_reservation,c_immutable_transaction_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_todo,c_undo_history compReg;
 ```
 
 </details>

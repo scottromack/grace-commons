@@ -27,6 +27,10 @@ the three-pass review otherwise has to catch by eye —
                               fresh-reader Pass-2 work (paraphrased names defeat a regex).
                               A range, `Event Log Invariant 1 through 7`, is read to its
                               last number.
+  F. Stripped link          — a link written `name(path.md)`, brackets stripped.
+                              F-stripped-link.
+  F. Composes list          — a composition's Composes section lists its linked
+                              constituents. F-composes-list.
   F. Range form             — every run of labels, in every Markdown file, is
                               written `Family N through M`: no dash, no repeated or
                               plural family, no *to*, and the last number follows the
@@ -167,6 +171,15 @@ from pathlib import Path
 
 PATTERN_DIRS = ("atoms", "compositions")
 INVARIANT_HEADER = re.compile(r"^\s*-?\s*\*\*Invariant\s+(\d+)\s+[—-]", re.M)
+# a migrated spec states an invariant as rules labelled `Invariant N.M`, and
+# some carry no bold bullet heading above them (council read 93)
+INVARIANT_RULE = re.compile(r"^\s*Invariant\s+(\d+)(?:\.\d+)?[a-z]?:", re.M)
+
+
+def invariant_numbers(text: str) -> set[int]:
+    """The invariants a spec declares: bold bullet headings and rule labels."""
+    return {int(n) for n in INVARIANT_HEADER.findall(text)} | \
+        {int(n) for n in INVARIANT_RULE.findall(text)}
 # markdown links to a relative path ending in .md/.tla/.als/.cfg (opt. #anchor).
 # Model extensions are included so a renamed .tla/.als leaving a spec→model link
 # dangling is caught — the original .md-only form missed it (debt #14 lint gap).
@@ -278,7 +291,7 @@ def load_patterns(root: Path) -> dict[Path, Pattern]:
             out[md] = Pattern(
                 path=md,
                 text=text,
-                invariant_count=len(INVARIANT_HEADER.findall(text)),
+                invariant_count=len(invariant_numbers(text)),
                 grounded=bool(STATUS_GROUNDED.search(text)),
             )
     return out
@@ -521,7 +534,7 @@ def check_rests_on_refs(patterns: dict[Path, Pattern], md_files: list[Path]) -> 
         m = H1_TITLE.search(p.text)
         if not m or not p.invariant_count:
             continue
-        live = [int(n) for n in INVARIANT_HEADER.findall(p.text)]
+        live = sorted(invariant_numbers(p.text))
         reserved = live + [int(n) for n in TOMBSTONED_INV.findall(p.text)]
         name = TRAILING_PAREN.sub("", m.group(1).strip()).strip()
         if name and reserved:
@@ -2776,6 +2789,66 @@ def check_range_form(root: Path) -> list[Finding]:
 
 
 # --------------------------------------------------------------------------- #
+# F-stripped-link / F-composes-list — the links the generated views read
+# --------------------------------------------------------------------------- #
+# A link whose brackets were stripped and whose text was lower-cased —
+# `permissions(../atoms/permissions.md)` — renders as its own source. Seven
+# migrated compositions carried 144 of them (council read 93), written by the
+# migration's casing pass. And a composition's constituents are the linked
+# bullets under its `## Composes` heading (spec-format.md §Composes), which is
+# what tools/taxonomy reads for the catalogue, the graph and the pattern data:
+# seven migrated compositions had dropped the list, and the generated views went
+# three commits stale before anyone regenerated them.
+STRIPPED_LINK = re.compile(
+    r"(?<![\[\]\w`/])[A-Za-z][A-Za-z' -]*\((?:\.\./)*(?:atoms/|compositions/|\./)"
+    r"[a-z0-9-]+\.md(?:#[^)]*)?\)")
+COMPOSES_BULLET = re.compile(
+    r"^\s*-\s+\*{0,2}\[[^\]]+\]\((?:\.\./atoms/(?:[a-z-]+/)?|\./)[a-z0-9-]+\.md\)", re.M)
+
+
+def check_stripped_links(root: Path) -> list[Finding]:
+    out: list[Finding] = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in RANGE_EXCLUDED_DIRS]
+        for fn in filenames:
+            if not fn.endswith(".md"):
+                continue
+            md = Path(dirpath) / fn
+            try:
+                lines = md.read_text(encoding="utf-8").splitlines()
+            except OSError:
+                continue
+            in_fence = False
+            for i, raw in enumerate(lines, start=1):
+                if raw.lstrip().startswith("```"):
+                    in_fence = not in_fence
+                    continue
+                if in_fence:
+                    continue
+                for m in STRIPPED_LINK.finditer(CODE_SPAN.sub("", raw)):
+                    out.append(Finding(md, i, "F-stripped-link",
+                        f"'{m.group(0)}' is a link with its brackets stripped; write "
+                        f"`[Title](path)`"))
+    return out
+
+
+def check_composes_list(patterns: dict[Path, Pattern]) -> list[Finding]:
+    out: list[Finding] = []
+    for p in patterns.values():
+        if p.path.parent.name != "compositions":
+            continue
+        m = re.search(r"(?ms)^## Composes\b[^\n]*\n(.*?)(?=^## |\Z)", p.text)
+        if not m:
+            continue  # H-heading owns a missing section
+        if not COMPOSES_BULLET.search(m.group(1)):
+            out.append(Finding(p.path, line_of(p.text, m.start()), "F-composes-list",
+                "the Composes section lists no linked constituent — "
+                "`- **[Name](path)** — role.` (spec-format.md §Composes); the "
+                "generated catalogue, graph and pattern data read this list"))
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Driver
 # --------------------------------------------------------------------------- #
 
@@ -2835,6 +2908,8 @@ def main(argv: list[str]) -> int:
     findings += check_heading_standard(root, patterns)
     findings += check_section_classification(root)
     findings += check_range_form(root)
+    findings += check_stripped_links(root)
+    findings += check_composes_list(patterns)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
     for f in findings:

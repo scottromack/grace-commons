@@ -219,6 +219,7 @@ COND_ENGLISH = re.compile(r"^IF .*?\b(is not|is no|are not|does not|do not|is a|
 ARITH = re.compile(r"[+×−]|\s-\s")
 MARKER = re.compile(r"\[([^\]\[]+)\]")
 MD_LINK = re.compile(r"\[([^\]\[]+)\]\(([^)\s]*)\)")
+STRIPPED_LINK = re.compile(r"(?<![\[\]\w`/])[A-Za-z][A-Za-z' -]*\((?:\.\./)*(?:atoms/|compositions/|\./)[a-z0-9-]+\.md(?:#[^)]*)?\)")
 LINK_LINE = re.compile(r"(?m)^\[([^\]]+)\]:\s*\S")
 CODE_SPAN = re.compile(r"`[^`]*`")
 SIGNATURE = re.compile(r"^[a-z_][a-z0-9_]*\(")
@@ -605,6 +606,9 @@ def scan(path: Path) -> list[Finding]:
         # inside a fence a link does not render, so it reads as a marker
         for lk in MD_LINK.finditer(r.text):
             add(r.line, "F-bracket", f"{r.label}: '[{lk.group(1)}]({lk.group(2)})' is a link in a rule; "
+                f"name the specification alone (Surface 29)")
+        for lk in STRIPPED_LINK.finditer(CODE_SPAN.sub("", r.text)):
+            add(r.line, "F-bracket", f"{r.label}: '{lk.group(0)}' is a link with its brackets stripped; "
                 f"name the specification alone (Surface 29)")
         # a marker lands on the name's term entry through a link line (Surface 26)
         for mk in MARKER.findall(MD_LINK.sub("", body)):

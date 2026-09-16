@@ -37,6 +37,13 @@ from reverse_index import build_index  # noqa: E402  (same directory)
 # Mirrors tools/linter/lint.py's conventions so the two tools cannot disagree
 # about what counts as an invariant header or a status token.
 INVARIANT_HEADER = re.compile(r"^\s*-?\s*\*\*Invariant\s+(\d+)\s+[—-]", re.M)
+INVARIANT_RULE = re.compile(r"^\s*Invariant\s+(\d+)(?:\.\d+)?[a-z]?:", re.M)
+
+
+def invariant_count(text):
+    """Bold bullet headings and `Invariant N.M` rule labels — lint.py's
+    invariant_numbers, mirrored."""
+    return len(set(INVARIANT_HEADER.findall(text)) | set(INVARIANT_RULE.findall(text)))
 STATUS_SECTION = re.compile(r"^## Status\s*\.?\s*$", re.M)
 LEADING_TOKEN = re.compile(r"`([^`]+)`")
 
@@ -114,7 +121,7 @@ def main():
             "title": frontmatter_title(text, a), "kind": "atom",
             "status": status_token(text),
             "grounded": bool(re.match(r"grounded", status_token(text) or "")),
-            "invariants": len(set(INVARIANT_HEADER.findall(text))),
+            "invariants": invariant_count(text),
             "models": models_of(p),
             "composed_by": e["composed_by"], "domain": e["domain"],
             "regulated_by": e["overlays"]["regulated_by"],
@@ -129,7 +136,7 @@ def main():
             "title": frontmatter_title(text, c["name"]), "kind": "composition",
             "status": status_token(text),
             "grounded": bool(re.match(r"grounded", status_token(text) or "")),
-            "invariants": len(set(INVARIANT_HEADER.findall(text))),
+            "invariants": invariant_count(text),
             "models": models_of(p),
             "composes": c["atoms"], "substrates": subs,
             "regulated": c["regulated"], "standards": c["standards"],

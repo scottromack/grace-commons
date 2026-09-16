@@ -39,6 +39,10 @@ This composition does not implement multi-factor authentication (MFA — requiri
 
 ## Composes
 
+- **[Credential](../atoms/credential.md)** — the verification surface.
+- **[Session](../atoms/session.md)** — the time-bounded session record.
+- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate.
+
 ```
 Composes 1: EXACTLY ONE Credential instance MUST serve the composition.
 Composes 2: EXACTLY ONE Session instance MUST serve the composition.
@@ -59,14 +63,14 @@ Composes 16: The composition MUST select an event in the composition's own code.
 Composes 17: The composition MUST NOT query the substrate by a payload predicate.
 ```
 
-Term composition: this pattern's wiring of credential(../atoms/credential.md), session(../atoms/session.md) and the audit trail(./audit-trail.md) substrate — the issuance gate, the revocation cascade, the two maps and the sweep.
+Term composition: this pattern's wiring of [Credential](../atoms/credential.md), [Session](../atoms/session.md) and the [Audit Trail](./audit-trail.md) substrate — the issuance gate, the revocation cascade, the two maps and the sweep.
 
-Term constituents: credential(../atoms/credential.md), session(../atoms/session.md), audit trail(./audit-trail.md).
+Term constituents: [Credential](../atoms/credential.md), [Session](../atoms/session.md), [Audit Trail](./audit-trail.md).
 
 Term service identity: the composition's own registered actor and credential — a service identity; the attested emitter of every audit event this composition writes.
 
 WHY:
-Composes 6 and Composes 7 are the corpus's first migrated use of a **composition as a constituent**. audit trail(./audit-trail.md) is a substrate, not an atom, so Event Log, Actor Identity, Retention Window and Tamper Evidence are reached *through* it and this composition holds no instance of any of them — which `execution-contract.md` §Substrate composition invocation is what makes legitimate rather than a topology accident.
+Composes 6 and Composes 7 are the corpus's first migrated use of a **composition as a constituent**. [Audit Trail](./audit-trail.md) is a substrate, not an atom, so Event Log, Actor Identity, Retention Window and Tamper Evidence are reached *through* it and this composition holds no instance of any of them — which `execution-contract.md` §Substrate composition invocation is what makes legitimate rather than a topology accident.
 
 Composes 12 through 14 are the attestation decision and it is forced rather than chosen. Login's callers are end principals whose presented material is the very thing under test — a failed login's principal has no attestable credential at all — so the only honest attestation surface for every event this composition writes is its own registered identity, with the human parties carried as data.
 
@@ -102,7 +106,7 @@ Term login-family events: the substrate's login_succeeded, login_map_write_failu
 **Contract classification: two derived indexes and one extraction-pending element** ([`execution-contract.md`](../execution-contract.md) §Composition state).
 
 - The two **maps** are a *derived index*, and the pairing fact lives in a constituent: every issued session's `(credential_id, session_token)` pair is immutable audit content, written into the login_succeeded event's data and, on the map-write failure arm, into a login_map_write_failure event. *Rebuild procedure:* enumerate the substrate through the declared read, select the login-family events, and group each data's session_token by its credential_id. **Bound on the rebuild's totality, stated rather than assumed:** the traversal reads event payloads the substrate destroys at its retention horizon, so the rebuild is total only within that horizon — and the readers need it total for one session lifetime, not for the life of the credential, which the WHY below works out. A login_map_write_failure event names a pair the live map lacks, so the rebuild reconstructs exactly the backfill Invariant 2.4's remediation prescribes — rebuild-on-miss **is** the remediation path.
-- The **login event log** is *extraction-pending, against event log(../atoms/event-log.md)*, with a durability obligation now rather than later. The Contract's record-coordination rule says a composition that must record that its own calls occurred composes Event Log rather than growing a bespoke store, and that is the extraction pending here: a second Event Log instance for the login-attempt journal, at which point the entries become that instance's events and the classification question dissolves.
+- The **login event log** is *extraction-pending, against [Event Log](../atoms/event-log.md)*, with a durability obligation now rather than later. The Contract's record-coordination rule says a composition that must record that its own calls occurred composes Event Log rather than growing a bespoke store, and that is the extraction pending here: a second Event Log instance for the login-attempt journal, at which point the entries become that instance's events and the classification question dissolves.
 
 WHY:
 The maps' rebuild is bounded by the substrate's horizon, and **the bound is comfortably longer than anything that reads it** — which is the finding rather than a reason to skip stating it. The traversal reads login_succeeded payloads, which the substrate destroys entirely at the horizon, `action_ref` included. What matters is which pairs a reader actually needs: the cascade skips every non-Active session, so the only pairs whose recovery can change an outcome are those whose sessions are still Active, and an Active session is by construction within its own duration. The rebuild therefore has to remain valid for **one session lifetime**, not for the life of the credential or the trail — hours or days against an audit horizon of years.
@@ -143,7 +147,7 @@ Term issuer refs: the issued_by_ref values the deployment's calling layers pass 
 Term login completion bound: the deployment's declared maximum duration between a session issuing and the login event log entry landing — also the bound between a cascade's initiation and its completion.
 
 WHY:
-The clock reading serves exactly one purpose at this layer: stamping the login event log entry, one reading per invocation whichever arm writes it. **No guard here is time-gated.** Input validation, the verify gate and the cascade's active check are state- and outcome-valued; session expiry is session(../atoms/session.md)'s own temporal rule evaluated against the reading injected at *that* constituent's seam. Two seams, two readings, never claimed equal.
+The clock reading serves exactly one purpose at this layer: stamping the login event log entry, one reading per invocation whichever arm writes it. **No guard here is time-gated.** Input validation, the verify gate and the cascade's active check are state- and outcome-valued; session expiry is [Session](../atoms/session.md)'s own temporal rule evaluated against the reading injected at *that* constituent's seam. Two seams, two readings, never claimed equal.
 
 Capability requirement 14 is the one a deployment can set wrong in both directions. The sweep examines only sessions older than the bound, because a younger one may belong to a login still in flight and revoking it would hand that login a dead token to return; set too short it kills live logins, set too long it delays the sweep's closure of a genuine crash. The deployment picks it from its own latency envelope and states it.
 
@@ -168,7 +172,7 @@ Term blank: a value that is absent, empty, or carries only whitespace — what t
 Term opaque argument: principal_ref | credential_type | session_token | credential_id.
 
 WHY:
-Primitive policy 8 and Primitive policy 9 inherit credential(../atoms/credential.md)'s consumed-never-stored discipline and restate it here only because this composition **holds** the material briefly on its way to `verify`. The constituent's guarantee is about the constituent's store; this rule is about the composition's own hands.
+Primitive policy 8 and Primitive policy 9 inherit [Credential](../atoms/credential.md)'s consumed-never-stored discipline and restate it here only because this composition **holds** the material briefly on its way to `verify`. The constituent's guarantee is about the constituent's store; this rule is about the composition's own hands.
 
 ### Audit arm
 
@@ -254,7 +258,7 @@ Action wiring 10 and Action wiring 11 are the map's subordination stated as rule
 
 Action wiring 18 is why the cascade cannot silently shrink. Reading the map alone would miss exactly the pairs Action wiring 10's arm produced; reading the events alone would be slower and no more complete. The union is the gate input, and a lost map entry can never shrink it.
 
-Action wiring 21 skips rather than revokes, and the reason is derivation rather than error avoidance. A lapsed session reads invalid by session(../atoms/session.md)'s derived-expiry projection — there is no expire action, no expiry write and no stored expired state anywhere — so a revoke over it would in fact commit and would record a revocation of something already dead.
+Action wiring 21 skips rather than revokes, and the reason is derivation rather than error avoidance. A lapsed session reads invalid by [Session](../atoms/session.md)'s derived-expiry projection — there is no expire action, no expiry write and no stored expired state anywhere — so a revoke over it would in fact commit and would record a revocation of something already dead.
 
 ### Wiring decision
 
@@ -266,7 +270,7 @@ Wiring decision 4: The composition MUST NOT read a cascade as complete for a ses
 ```
 
 WHY:
-The cascade is the composition's reason to exist and its direction is the opposite of authenticated actor(./authenticated-actor.md)'s over the same credential(../atoms/credential.md) constituent. There, revocation closes a surface *forward* by gating each new attestation, because an attestation is an immutable past act with nothing to revoke. Here revocation reaches *backward* into live grants, because a session is a live grant and killing it is both possible and required. Same atom, same event, two cascades — and which one a composition owes is decided by whether the thing downstream is a record or a grant.
+The cascade is the composition's reason to exist and its direction is the opposite of [Authenticated Actor](./authenticated-actor.md)'s over the same [Credential](../atoms/credential.md) constituent. There, revocation closes a surface *forward* by gating each new attestation, because an attestation is an immutable past act with nothing to revoke. Here revocation reaches *backward* into live grants, because a session is a live grant and killing it is both possible and required. Same atom, same event, two cascades — and which one a composition owes is decided by whether the thing downstream is a record or a grant.
 
 Wiring decision 3 keeps the two surfaces apart. This composition provides the downstream cascade and never the credential revocation itself, which belongs to the identity-management surface and arrives here as a call.
 
@@ -412,7 +416,7 @@ External check 2: An auditor needing the issuer refs confirmed MUST read the dep
 External check 3: An auditor needing the login completion bound confirmed MUST read the deployment's own declaration (Capability requirement 14).
 External check 4: An auditor needing the service identity's provisioning confirmed MUST read the substrate's actor registry (Capability requirement 8).
 External check 5: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 5).
-External check 6: An auditor needing the substrate's own guarantee confirmed MUST read audit trail(./audit-trail.md)'s own acceptance (Composes 6).
+External check 6: An auditor needing the substrate's own guarantee confirmed MUST read Audit Trail's own acceptance (Composes 6).
 ```
 
 WHY:
@@ -420,7 +424,7 @@ Check 5.2 is the sweep's own comparison written as an auditor's, and the pair wi
 
 Check 2.3 and Check 3.3 are the two an auditor cannot reach from the others. Check 2.3 is the map-degradation exit: `Action wiring 11` records the failure and nothing else says when the record stops mattering, which is either a backfilled pair or a session that has died. Check 3.3 is the reconstruction claim rather than a coverage claim — the log alone is short by exactly the sessions `Invariant 4.2` names as the sweep's, so the pair of surfaces is what makes a principal's history answerable from records with no external source.
 
-External check 6 is the corpus's first check that sends an auditor to a **composition's** acceptance rather than an atom's. audit trail(./audit-trail.md) is a substrate here, so its own guarantees are inherited by reference under `execution-contract.md` §Conformance and are not re-verified at this layer — the auditor reads its acceptance, not this one's.
+External check 6 is the corpus's first check that sends an auditor to a **composition's** acceptance rather than an atom's. [Audit Trail](./audit-trail.md) is a substrate here, so its own guarantees are inherited by reference under `execution-contract.md` §Conformance and are not re-verified at this layer — the auditor reads its acceptance, not this one's.
 
 ---
 
@@ -432,7 +436,7 @@ Non-goal 2: The composition MUST NOT rotate a credential.
 Deleted: Non-goal 3. Wiring decision 3 owns it.
 Non-goal 4: The composition MUST NOT offer Session's validate.
 Non-goal 5: The composition MUST NOT authorize an action.
-Non-goal 6: A deployment needing an authorized action MUST compose permissions(../atoms/permissions.md).
+Non-goal 6: A deployment needing an authorized action MUST compose Permissions.
 Non-goal 7: The composition MUST NOT bound a principal_ref's concurrent sessions.
 Non-goal 8: The composition MUST NOT renew a session.
 Non-goal 9: The composition MUST NOT bind a session to a device.
@@ -446,7 +450,7 @@ Deleted: Non-goal 14. Invariant 2.2 owns it.
 WHY:
 Non-goal 12 and Non-goal 13 are one boundary seen from both sides. A session outside the declared issuers is another surface's business, and a sweep that adopted one would be claiming authority over a grant it never issued; a sweep that revoked one would be destroying it.
 
-Non-goal 4 is why this composition's surface is narrower than it looks. Callers validate sessions by calling session(../atoms/session.md) directly; re-exposing `validate` here would put a read with no composition semantics on the boundary and invite a caller to believe the composition had added something to it.
+Non-goal 4 is why this composition's surface is narrower than it looks. Callers validate sessions by calling [Session](../atoms/session.md) directly; re-exposing `validate` here would put a read with no composition semantics on the boundary and invite a caller to believe the composition had added something to it.
 
 Non-goal 10 and Non-goal 11 are the two a regulated reader expects and does not get. Rate limiting and a second factor are real obligations and neither is this wiring's: both belong to the calling layer or to a composing pattern, and absorbing either would make the gate's meaning depend on a policy the composition cannot state.
 
@@ -626,7 +630,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-26 — Invariant 2 promises less than it did.** *Chose:* cascade completeness is claimed only for verifies that committed after the revocation, with the in-flight window named and a second cascade prescribed after quiescence. *Over:* single-cascade sufficiency. *Because:* a login whose verify committed before the revocation can land its session after the cascade's snapshot, and no single cascade can see it. The headline guarantee is narrower and true.
 
 - **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Audit arm`, `Action wiring`, `Wiring decision`, `Reconciliation` as the surfaces, the six invariant numbers unchanged, and an acceptance section distributed from the checks the prose already named. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. **No preservation claim was collapsed** — this is the first composition of the epoch carrying none, because every invariant here already emerges and the constituents' guarantees were carried as citations rather than as invariants of their own. The three tombstones it does carry are re-homings inside the spec rather than collapses: `Invariant 4.1` to `Composition state 10`, `Non-goal 3` to `Wiring decision 3`, `Non-goal 14` to `Invariant 2.2`.
-- **2026-09-14 — `Reconciliation` reaches recurrence in consecutive migrations, and the decision not to merge it with `Eviction` holds.** *Chose:* to take `Reconciliation` for the issuance-reconciliation sweep. *Over:* minting a third name, or folding it into `Composition state`. *Because:* authenticated actor(./authenticated-actor.md) minted it one migration earlier for the orphaned-credential leg, and this sweep is the same family rather than the same shape: both run outside any invocation, both report or close rather than serve a caller, both owe an age edge. idempotent reservation(./idempotent-reservation.md)'s `Eviction` shares the *shape* and remains separate for the reason council read 61 stated — it evicts where these report, and the difference decides whether a liveness bound is owed. Two consecutive specs is Principle 2's recurrence bar met for `Reconciliation`; `Eviction` stays at one and stays flagged (council read 62).
-- **2026-09-14 — The first composition to name a composition as a constituent.** *Chose:* `Composes 6` and `Composes 7`, citing `execution-contract.md` §Substrate composition invocation, with `External check 6` sending an auditor to audit trail(./audit-trail.md)'s own acceptance rather than re-verifying it here. *Over:* listing Event Log, Actor Identity, Retention Window and Tamper Evidence as this composition's constituents, which is what the atom-only reading of `Composes` would have produced. *Because:* the substrate's guarantees are inherited by reference — that is the point of naming a substrate — and re-listing its constituents would have claimed instances this composition does not hold. The corpus composes compositions and this is the first migrated spec where the rule surface has to say so.
+- **2026-09-14 — `Reconciliation` reaches recurrence in consecutive migrations, and the decision not to merge it with `Eviction` holds.** *Chose:* to take `Reconciliation` for the issuance-reconciliation sweep. *Over:* minting a third name, or folding it into `Composition state`. *Because:* [Authenticated Actor](./authenticated-actor.md) minted it one migration earlier for the orphaned-credential leg, and this sweep is the same family rather than the same shape: both run outside any invocation, both report or close rather than serve a caller, both owe an age edge. [Idempotent Reservation](./idempotent-reservation.md)'s `Eviction` shares the *shape* and remains separate for the reason council read 61 stated — it evicts where these report, and the difference decides whether a liveness bound is owed. Two consecutive specs is Principle 2's recurrence bar met for `Reconciliation`; `Eviction` stays at one and stays flagged (council read 62).
+- **2026-09-14 — The first composition to name a composition as a constituent.** *Chose:* `Composes 6` and `Composes 7`, citing `execution-contract.md` §Substrate composition invocation, with `External check 6` sending an auditor to [Audit Trail](./audit-trail.md)'s own acceptance rather than re-verifying it here. *Over:* listing Event Log, Actor Identity, Retention Window and Tamper Evidence as this composition's constituents, which is what the atom-only reading of `Composes` would have produced. *Because:* the substrate's guarantees are inherited by reference — that is the point of naming a substrate — and re-listing its constituents would have claimed instances this composition does not hold. The corpus composes compositions and this is the first migrated spec where the rule surface has to say so.
 
 NOTE: End of Login.

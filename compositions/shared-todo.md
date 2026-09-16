@@ -43,6 +43,10 @@ This is a composition, not a new primitive. Personal Todo, Permissions, and Assi
 
 ## Composes
 
+- **[Personal Todo](../atoms/personal-todo.md)** — the task lifecycle and its invariants.
+- **[Permissions](../atoms/permissions.md)** — the authorization surface every state-changing action checks.
+- **[Assignment](../atoms/assignment.md)** — the responsibility binding that names who is accountable for a task.
+
 ```
 Composes 1: EXACTLY ONE Personal Todo instance MUST serve the composition.
 Composes 2: EXACTLY ONE Permissions instance MUST serve the composition.

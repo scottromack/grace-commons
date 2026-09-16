@@ -37,6 +37,9 @@ from lint import (  # noqa: E402
     check_migration_seam,
     check_heading_standard,
     check_range_form,
+    check_stripped_links,
+    check_composes_list,
+    invariant_numbers,
     Pattern,
     check_atomicity_over_audit,
     check_rebuild_bound,
@@ -1183,6 +1186,7 @@ def check_bracket_synthetic(problems: list[str]) -> int:
         ("a link in a condition", "Operation 1: IF [Permissions](./permissions.md) EXISTS THEN [Read] MUST read the store.\n"),
         ("a link under a WHEN", "Operation 1: WHEN [Permissions](./permissions.md) EXISTS:\n    Operation 1a: [Read] MUST read the store.\n"),
         ("a marker with no link line", "Operation 1: [Purge] MUST read the store.\n"),
+        ("a stripped link in a rule", "Operation 1: A deployment MUST compose permissions(./permissions.md).\n"),
     ]
     for name, rules in silent:
         got = run(rules)
@@ -1247,6 +1251,52 @@ def check_code_span_synthetic(problems: list[str]) -> int:
         if not want <= set(have):
             problems.append(f"bare-name reader: the grammar's {what} lost {sorted(want - set(have))}")
     return len(silent) + len(firing) + readers
+
+
+def check_generated_views_synthetic(problems: list[str]) -> int:
+    """The links the generated views read (council read 93). F-stripped-link
+    fires on a bracket-stripped link and is silent on a link and a code span;
+    F-composes-list fires on a Composes section with no linked list; the
+    taxonomy reader counts list items only, once each; a migrated spec's
+    invariants are counted from rule labels. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "taxonomy"))
+    from reverse_index import parse_composition  # noqa: E402
+    n = 0
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "a.md").write_text(
+            "Wiring of permissions(../atoms/permissions.md) here.\n"
+            "A [Permissions](../atoms/permissions.md) link and `x(./y.md)` code.\n", encoding="utf-8")
+        lines = {f.line for f in check_stripped_links(root)}
+        n += 2
+        if lines != {1}:
+            problems.append(f"F-stripped-link: fired on lines {sorted(lines)}, wanted [1]")
+    listed = ("# X\n\n## Composes\n\n- **[Permissions](../atoms/permissions.md)** — the grants.\n"
+              "- **[Session](../atoms/session.md)** *(optional)* — the sessions.\n\n"
+              "Term composition: wiring of [Permissions](../atoms/permissions.md) — the gate.\n\n## Next\n")
+    bare = "# X\n\n## Composes\n\n```\nComposes 1: EXACTLY ONE Session instance MUST serve.\n```\n\n## Next\n"
+    with tempfile.TemporaryDirectory() as d:
+        comp = Path(d) / "compositions"
+        comp.mkdir()
+        pats = {}
+        for name, text in (("listed", listed), ("bare", bare)):
+            f = comp / f"{name}.md"
+            f.write_text(text, encoding="utf-8")
+            pats[f] = Pattern(path=f, text=text, invariant_count=0, grounded=False)
+        got = {f.path.stem for f in check_composes_list(pats)}
+        n += 2
+        if got != {"bare"}:
+            problems.append(f"F-composes-list: fired on {sorted(got)}, wanted ['bare']")
+        atoms = parse_composition(comp / "listed.md")["atoms"]
+        n += 1
+        if atoms != ["permissions", "session"]:
+            problems.append(f"taxonomy reader: read {atoms}, wanted the two list items once each")
+    n += 1
+    rules = "- **Invariant 1 — A.**\n```\nInvariant 1.1: x.\nInvariant 2.1: y.\nDeleted: Invariant 3. Gone.\n```\n"
+    if invariant_numbers(rules) != {1, 2}:
+        problems.append(f"invariant_numbers: read {sorted(invariant_numbers(rules))}, wanted [1, 2]")
+    return n
 
 
 def main(argv: list[str]) -> int:
@@ -1379,6 +1429,15 @@ def main(argv: list[str]) -> int:
               "its block live; the retired shape, a missing period, a missing close and "
               "a missing label fire) \u2713")
 
+    view_problems: list[str] = []
+    n_view = check_generated_views_synthetic(view_problems)
+    failures.extend(view_problems)
+    if not view_problems:
+        print(f"F-stripped-link / F-composes-list / taxonomy reader: {n_view} synthetic fixtures hold "
+              "(a stripped link fires, a link and a code span silent; a Composes section with no "
+              "list fires; list items read once each, a Term line not; invariants read from rule "
+              "labels, a tombstone not) \u2713")
+
     span_problems: list[str] = []
     n_span = check_code_span_synthetic(span_problems)
     failures.extend(span_problems)
@@ -1394,7 +1453,7 @@ def main(argv: list[str]) -> int:
     if not bracket_problems:
         print(f"F-bracket: {n_bracket} synthetic fixtures hold (a linked marker and a bare "
               "specification name silent; a link in a rule, in a condition and under a WHEN, "
-              "and a marker with no link line fire) \u2713")
+              "a marker with no link line and a stripped link fire) \u2713")
 
     fence_problems: list[str] = []
     n_fence = check_fence_form_synthetic(fence_problems)

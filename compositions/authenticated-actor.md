@@ -43,6 +43,9 @@ This is a composition, not a new primitive. Credential and Actor Identity are un
 
 ## Composes
 
+- **[Credential](../atoms/credential.md)** — the authentication surface, and the constituent the gate reads.
+- **[Actor Identity](../atoms/actor-identity.md)** — the attestation surface.
+
 ```
 Composes 1: EXACTLY ONE Credential instance MUST serve the composition.
 Composes 2: EXACTLY ONE Actor Identity instance MUST serve the composition.
@@ -56,12 +59,12 @@ Composes 9: The composition MUST key the gate on the principal_ref AND the crede
 Composes 10: The composition MUST NOT key the gate on a credential_id.
 ```
 
-Term composition: this pattern's wiring of credential(../atoms/credential.md) and actor identity(../atoms/actor-identity.md) — the namespace binding, the cascade gate and the three actions below.
+Term composition: this pattern's wiring of [Credential](../atoms/credential.md) and [Actor Identity](../atoms/actor-identity.md) — the namespace binding, the cascade gate and the three actions below.
 
-Term constituents: credential(../atoms/credential.md), actor identity(../atoms/actor-identity.md).
+Term constituents: [Credential](../atoms/credential.md), [Actor Identity](../atoms/actor-identity.md).
 
 WHY:
-Composes 5 is the decision that makes the gate affordable. Calling `Credential.verify` at every attestation would require re-presenting the login secret on every signature; the gate instead reads Credential's declared `read` surface for the pair's effective-status projection, exactly as login(./login.md)'s own step 3 reads the store directly.
+Composes 5 is the decision that makes the gate affordable. Calling `Credential.verify` at every attestation would require re-presenting the login secret on every signature; the gate instead reads Credential's declared `read` surface for the pair's effective-status projection, exactly as [Login](./login.md)'s own step 3 reads the store directly.
 
 Composes 9 and Composes 10 are why a rotation keeps the surface open and a revocation closes it. Keying on the pair means a rotation's successor credential answers the gate (Credential Invariant 6); keying on a fixed credential_id would have closed the surface on every rotation, which is the identity-management surface's business and not this composition's.
 
@@ -95,15 +98,15 @@ Term attest log: the composition's own append-only record of every [Attest As Ac
 
 Term bijection: the principal binding and the inverse together, unique on both keys — what neither constituent provides.
 
-**Contract classification: extraction-pending, two elements** ([`execution-contract.md`](../execution-contract.md) §Composition state). The extraction rule is unconditional — *composition state that carries truth not reconstructible from constituent stores is a not-yet-extracted atom* — and it reaches both, because credential(../atoms/credential.md) keys on principal_ref, actor identity(../atoms/actor-identity.md) keys on actor_ref, and neither relates the two.
+**Contract classification: extraction-pending, two elements** ([`execution-contract.md`](../execution-contract.md) §Composition state). The extraction rule is unconditional — *composition state that carries truth not reconstructible from constituent stores is a not-yet-extracted atom* — and it reaches both, because [Credential](../atoms/credential.md) keys on principal_ref, [Actor Identity](../atoms/actor-identity.md) keys on actor_ref, and neither relates the two.
 
 - The **bijection** is one element, not two — two directions of one truth, with a uniqueness constraint per side. Proposed atom: a **Namespace Binding** — immutable, bijective, unique on both keys, no lifecycle beyond *bound*. Any pattern joining constituents that key on different opaque namespaces needs it.
-- The **attest log** is the second, and its atom is named as a question because the corpus is split: login(./login.md) holds a sibling `login_event_log`, and notification fanout(./notification-fanout.md) routes the identical concept *out* to event log(../atoms/event-log.md). Three compositions, two answers. Proposed atom: an **Attempt Log** *if* the divergence from Event Log is real, and nothing at all if it is Event Log wired with a composition-supplied entry schema.
+- The **attest log** is the second, and its atom is named as a question because the corpus is split: [Login](./login.md) holds a sibling `login_event_log`, and [Notification Fanout](./notification-fanout.md) routes the identical concept *out* to [Event Log](../atoms/event-log.md). Three compositions, two answers. Proposed atom: an **Attempt Log** *if* the divergence from Event Log is real, and nothing at all if it is Event Log wired with a composition-supplied entry schema.
 
 WHY:
 Naming a proposal is what the rule asks for and is not the extraction: *the flag is what keeps the debt visible — an unflagged truth-bearing composition store is a conformance finding; a flagged one is recorded debt riding the extraction's schedule.* Both are opened as roadmap proposals.
 
-Composition state 3 through 5 are why the bijection holds under concurrency. The guard at registration is a look; the *write* is what makes it true against a registration of the same actor_ref under a different principal, which one principal's section does not exclude. credential(../atoms/credential.md)'s own constraint is per `(principal_ref, credential_type)` and says nothing about actor_ref — the bijection's uniqueness is this composition's, declared here.
+Composition state 3 through 5 are why the bijection holds under concurrency. The guard at registration is a look; the *write* is what makes it true against a registration of the same actor_ref under a different principal, which one principal's section does not exclude. [Credential](../atoms/credential.md)'s own constraint is per `(principal_ref, credential_type)` and says nothing about actor_ref — the bijection's uniqueness is this composition's, declared here.
 
 Composition state 10 is what keeps the admitted gap honest. No leg writes the attest log, so an entry has exactly one writer and a missing entry is a finding rather than a race.
 
@@ -130,7 +133,7 @@ Term section: the host-supplied mutual exclusion keyed by principal_ref — a se
 Term clock offset allowance: clock_offset_allowance — the declared bound on disagreement between this composition's seam, Credential's and Actor Identity's — a clock offset allowance.
 
 WHY:
-Capability requirement 3 is the one neither constituent grants. credential(../atoms/credential.md) serializes its own writes per record and its uniqueness constraint is a storage constraint on `register`, not a lock a composer can hold; actor identity(../atoms/actor-identity.md) serializes nothing across calls. A section spanning a call into each is the deployment's, and a deployment supplying none has no conforming gate.
+Capability requirement 3 is the one neither constituent grants. [Credential](../atoms/credential.md) serializes its own writes per record and its uniqueness constraint is a storage constraint on `register`, not a lock a composer can hold; [Actor Identity](../atoms/actor-identity.md) serializes nothing across calls. A section spanning a call into each is the deployment's, and a deployment supplying none has no conforming gate.
 
 Capability requirement 6 is the lease's two-sided exactness. No shorter than the holding action's bound, or a conforming invocation is evicted mid-section; no longer, or a stalled-but-alive holder blocks the principal's other invocations past the bound. The expiry is the invocation's terminus: a lapsed holder makes no further write until it re-takes the section and re-runs the pre-check that precedes the write.
 
@@ -158,9 +161,9 @@ Term blank: a value that is absent, empty, or carries only whitespace — what t
 Term opaque argument: principal_ref | actor_ref | credential_type | action_ref | attestation_id.
 
 WHY:
-Primitive policy 12 is a refusal to duplicate a constituent's judgment. actor identity(../atoms/actor-identity.md)'s `attest` and `verify` surface a registry-unknown actor_ref through their own outcomes, so a composition-layer existence check would be a second opinion with no store behind it.
+Primitive policy 12 is a refusal to duplicate a constituent's judgment. [Actor Identity](../atoms/actor-identity.md)'s `attest` and `verify` surface a registry-unknown actor_ref through their own outcomes, so a composition-layer existence check would be a second opinion with no store behind it.
 
-Primitive policy 8 through 10 inherit credential(../atoms/credential.md)'s opaque-principal_ref discipline rather than inventing one. A deployment wanting normalization wires it at the calling layer, before the composition is invoked.
+Primitive policy 8 through 10 inherit [Credential](../atoms/credential.md)'s opaque-principal_ref discipline rather than inventing one. A deployment wanting normalization wires it at the calling layer, before the composition is invoked.
 
 ### Action wiring
 
@@ -230,7 +233,7 @@ Action wiring 5 through 8 are the re-entry arm, and possession is what makes it 
 
 Action wiring 10 through 13 carry the retry bit in the rejection's own position. guard and credential mean nothing committed and the whole action may be retried; binding means the credential **exists** and a retry re-enters through the arm rather than registering a second one; orphan-credential means another invocation bound this principal while the section lapsed, so the caller does not re-run at all and the named credential is the reconciliation leg's to surface.
 
-Action wiring 25 is the same discipline one action over. attestation means nothing committed; `log` means the attestation committed and carries its id, so the caller holds a valid attestation and must not re-run — a re-run would produce a second, equally valid one, because actor identity(../atoms/actor-identity.md) records a fresh attestation per call and nothing keys one to the invocation that produced it.
+Action wiring 25 is the same discipline one action over. attestation means nothing committed; `log` means the attestation committed and carries its id, so the caller holds a valid attestation and must not re-run — a re-run would produce a second, equally valid one, because [Actor Identity](../atoms/actor-identity.md) records a fresh attestation per call and nothing keys one to the invocation that produced it.
 
 ### Wiring decision
 
@@ -243,7 +246,7 @@ Wiring decision 5: The composition MUST NOT ask Actor Identity to refuse a revok
 ```
 
 WHY:
-The cascade is forward closure, and the two refusals are why it has to live here. actor identity(../atoms/actor-identity.md) validates an attestation credential against the actor registry's public material and has no knowledge of credential(../atoms/credential.md) at all — it structurally cannot see a revocation, so the gate cannot live inside it (Wiring decision 5). And a revoke-the-set cascade of the kind login(./login.md) runs over sessions has nothing to revoke: an attestation is an immutable record of a past act, not a live grant, so closing the surface forward is the only cascade available (Wiring decision 4).
+The cascade is forward closure, and the two refusals are why it has to live here. [Actor Identity](../atoms/actor-identity.md) validates an attestation credential against the actor registry's public material and has no knowledge of [Credential](../atoms/credential.md) at all — it structurally cannot see a revocation, so the gate cannot live inside it (Wiring decision 5). And a revoke-the-set cascade of the kind [Login](./login.md) runs over sessions has nothing to revoke: an attestation is an immutable record of a past act, not a live grant, so closing the surface forward is the only cascade available (Wiring decision 4).
 
 ### Housekeeping
 
@@ -274,7 +277,7 @@ Each emerges from the composition; none belongs to one constituent. Each carries
   Invariant 1.2: The gate read MUST precede the attestation write inside one held section.
   Invariant 1.3: A revoked gating credential MUST close the principal's attest surface for EVERY later call.
   ```
-  WHY: rests on credential(../atoms/credential.md)'s revocation-absorbing terminal, which is what makes *every later call* true rather than merely likely, and on actor identity(../atoms/actor-identity.md)'s attestation immutability, which is what makes closure forward-only. The one declared residue is Concurrency 3.
+  WHY: rests on [Credential](../atoms/credential.md)'s revocation-absorbing terminal, which is what makes *every later call* true rather than merely likely, and on [Actor Identity](../atoms/actor-identity.md)'s attestation immutability, which is what makes closure forward-only. The one declared residue is Concurrency 3.
 - **Invariant 2 — Secret-surface separation.**
   ```
   Invariant 2.1: The composition MUST NOT pass the credential_material to Actor Identity's attest.
@@ -367,7 +370,7 @@ External check 5: An auditor needing a constituent's own guarantee confirmed MUS
 ```
 
 WHY:
-Check 2.2 and Check 2.3 are the residue made auditable, and the pair matters more than either alone. The two instants come from two seams — the attestation's from actor identity(../atoms/actor-identity.md), the revocation's from credential(../atoms/credential.md) — so a comparison inside the allowance plus the bound decides nothing and narrows to the residue Concurrency 3 declares; outside it, the gate let through what it should have closed. An auditor with only one of the two rules would either file against every conforming deployment or against none.
+Check 2.2 and Check 2.3 are the residue made auditable, and the pair matters more than either alone. The two instants come from two seams — the attestation's from [Actor Identity](../atoms/actor-identity.md), the revocation's from [Credential](../atoms/credential.md) — so a comparison inside the allowance plus the bound decides nothing and narrows to the residue Concurrency 3 declares; outside it, the gate let through what it should have closed. An auditor with only one of the two rules would either file against every conforming deployment or against none.
 
 External check 1 is the one a deployment can fail while every record looks correct. The composition never routes Credential material into `attest`, which is structural and checkable from the wiring; whether the deployment *provisioned* two genuinely distinct secrets is not in any store here, and a deployment declaring anything other than enforced separation forfeits Invariant 2 while leaving the attest log unchanged.
 
@@ -379,13 +382,13 @@ External check 1 is the one a deployment can fail while every record looks corre
 Non-goal 1: The composition MUST NOT confirm the two secret surfaces cryptographically distinct.
 Non-goal 2: The composition MUST NOT confirm an actor_ref provisioned in the actor registry.
 Non-goal 3: The composition MUST NOT invalidate an attestation for a credential later found compromised.
-Non-goal 4: The composition MUST NOT compose audit trail(./audit-trail.md).
+Non-goal 4: The composition MUST NOT compose Audit Trail.
 Non-goal 5: The composition MUST NOT revoke a credential.
 Non-goal 6: The composition MUST NOT rotate a credential.
 Non-goal 7: The composition MUST NOT close an attestation already recorded.
 Non-goal 8: The composition MUST NOT register an actor_ref.
 Non-goal 9: The composition MUST NOT authorize an action.
-Non-goal 10: A deployment needing an authorized action MUST compose permissions(../atoms/permissions.md).
+Non-goal 10: A deployment needing an authorized action MUST compose Permissions.
 Non-goal 11: The composition MUST NOT rebind a bound principal_ref.
 Non-goal 12: The composition MUST NOT record a verification read.
 Non-goal 13: The composition MUST NOT resolve an attestation carrying an actor_ref the inverse map does not carry.
@@ -395,7 +398,7 @@ Non-goal 14: The composition MUST NOT wrap the credential write AND the binding 
 WHY:
 Non-goal 3 and Non-goal 7 are the cascade's shape stated as refusals. An attestation is an immutable record that a bound actor signed something at an instant when its credential was effective-active; a credential later found compromised changes what that record *means* to an investigator and changes nothing about the record. Forward closure is the only cascade an immutable record admits.
 
-Non-goal 4 is a deliberate omission with a substitute named: the attestations **are** the regulated record here, and the tamper-evident external-auditor surface is the attestation store itself rather than a separate substrate. That is the one place this composition diverges from login(./login.md)'s shape, which pairs its own log with an Audit Trail.
+Non-goal 4 is a deliberate omission with a substitute named: the attestations **are** the regulated record here, and the tamper-evident external-auditor surface is the attestation store itself rather than a separate substrate. That is the one place this composition diverges from [Login](./login.md)'s shape, which pairs its own log with an Audit Trail.
 
 Non-goal 14 is why the orphan exists at all. Two stores, no distributed transaction, so the writes are ordered — the credential first, irreversibly, then the binding — and the reachable partial is a registered credential bound to nothing. The retry bit in the rejection's position is what lets a re-invocation reach the step that failed, and the reconciliation leg is what surfaces the ones that never came back.
 
@@ -609,10 +612,10 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-08-30 — The gate runs under the composition's own section and names its residue; the orphan re-enters instead of dying; every exported code carries its position.** *Chose:* `principal_section` declared as an instance capability requirement with lease semantics, under which the status read and the attestation write run, with an externally-issued `Credential.revoke` stated as **not** serialized and the one-attestation residue it can produce declared, bounded by `attest_completion_bound`, and made findable by a credential_id on every `attest_log` entry; a composition-introduced storage-level uniqueness constraint on both binding maps re-checked at step 4; a re-entry arm on `duplicate-active-credential` that binds the existing effective-Active credential only after `Credential.verify` proves the presenter holds it (`invalid-credential(existing)` otherwise), so a re-invocation after a binding-position failure reaches the step that failed without becoming a way to claim another principal's credential; `orphan-credential(credential_id)` for the post-commit guard re-run; the lease measured from the section take as one interval with each completion bound; check 2 sizing the residue on the attestation's `attested_at` against `revoked_at` within `clock_offset_allowance + attest_completion_bound`; a report-only orphaned-credential leg on `reconciliation_cadence` and at restart, filtered by unbound credential_id and gating pair, bounded below by `registration_completion_bound`, declared horizon-less, promising no closure window, and carried as check 6; `storage-failure(credential | binding)`, `namespace-conflict(guard | binding)`, and `attest-failed(attestation | log(attestation_id))` on the signatures; clock_offset_allowance on every cross-seam comparison, with check 2 reporting candidates inside the window. *Over:* a "record lock `Credential.revoke` must acquire" attributed to Credential Invariant 2, which declares a uniqueness constraint and no lock; a re-entry arm that adopted an existing credential on the presenter's say-so; a namespace guard offered as a serialization; an orphan "surfaced as a finding" by no leg and repaired by no action; a bare token on both sides of the credential commit and no arm at all after the attestation commit; a breach example that ordered two seams' stamps as if they were one clock. *Because:* an invariant is only as sound as the capability it rests on, and a lock nobody declared is ambient authority; a re-invocation that dies at `duplicate-active-credential` cannot repair the failure it was retried for; a caller who cannot tell credential from binding registers twice; a binding nobody proved possession for is an authority-bearing transition resting on an unauthenticated principal; and a stamp from another seam narrows a decision, never makes one (the frozen rules of 2026-08-30 — *Capability provenance*, *A composition's own rejection arm carries the retry bit*, *A stamp from another seam never decides a write alone*, *A compensator is exclusive* — with *A reconciliation is bounded at both ends* and *Recovery commits under a declared service identity*, frozen 2026-08-29, and §*Authentication precedence*, frozen 2026-08-27).
 
-- **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except one invariant the Execution Contract already owns.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Action wiring`, `Wiring decision`, `Concurrency` and `Reconciliation` as the surfaces, the four surviving invariant numbers unchanged, and the acceptance section's own two tiers carried across. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. `Reconciliation` is the one family minted, for the orphaned-credential leg — a second instance of the shape idempotent reservation(./idempotent-reservation.md) minted `Eviction` for, a leg running outside an invocation, and the two are deliberately **not** merged: one evicts and one reports, one takes a section and one refuses to, and calling them one family would bury the difference that decides whether either owes a liveness bound. Two names at one spec each, both flagged, both waiting (council read 61).
+- **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except one invariant the Execution Contract already owns.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Action wiring`, `Wiring decision`, `Concurrency` and `Reconciliation` as the surfaces, the four surviving invariant numbers unchanged, and the acceptance section's own two tiers carried across. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. `Reconciliation` is the one family minted, for the orphaned-credential leg — a second instance of the shape [Idempotent Reservation](./idempotent-reservation.md) minted `Eviction` for, a leg running outside an invocation, and the two are deliberately **not** merged: one evicts and one reports, one takes a section and one refuses to, and calling them one family would bury the difference that decides whether either owes a liveness bound. Two names at one spec each, both flagged, both waiting (council read 61).
 - **2026-09-14 — The fourth preservation-claim collapse, and the cheapest.** *Chose:* `Composes 4`, with `Invariant 5 — Constituent invariants preserved` tombstoned to it. *Over:* keeping it. *Because:* council read 53's ruling at its fourth seam. This spec spent **one** rule covering both constituents where the other three spent one per atom, so one tombstone closes what took two or three elsewhere — and the reason is visible in the document: every other invariant carries a `Rests on:` clause naming the constituent guarantees it leans on, which is provenance done properly at the invariant level. The blanket was the single place that discipline lapsed into a restatement. What it carried beyond the blanket survives as `Composes 5` through `Composes 10`: the refusals (no verify at the gate, no rotate, no revoke, no registry write) and the gate's key, none of which either atom guarantees about a caller.
 - **2026-09-14 — Both extraction-pending elements were classified before the rewrite began.** *Chose:* to declare the classification against the prose spec at council read 59 and carry it into the rules here unchanged. *Over:* discovering it during the migration, which is when every other composition's state question surfaced. *Because:* the classification does not depend on the language — `execution-contract.md` §Composition state turns on whether the truth is reconstructible from constituent stores, which is a fact about the wiring — and settling it first made the `Composition state` family write itself. That order is worth keeping: classify, then migrate.
 
-- **2026-09-14 — `Reconciliation` re-cut as `Housekeeping`, on a discriminator the first cut got wrong.** *Chose:* the family renamed, with the seven rules and every citation of them moving with it. *Over:* keeping the name and letting `Reconciliation` reach three specs. *Because:* the entry above split this leg from idempotent reservation(./idempotent-reservation.md)'s on *one evicts and one reports*, and the drift pass `GRACE-lang.md` Standard label 7 requires found that axis predicts the liveness bound on **two of four** legs — this leg reports and owes none, Eviction takes a section and writes and owes none, and the verb decides neither. What survives every member is whether anything **awaits** the leg's output: login(./login.md)'s and defensible retention(./defensible-retention.md)'s sweeps discharge a promise inside a declared window and owe a bound; this leg and idempotent reservation's evict or report with nobody waiting and owe none. Two families of two, cut on the guarantee rather than on the verb (council read 64).
+- **2026-09-14 — `Reconciliation` re-cut as `Housekeeping`, on a discriminator the first cut got wrong.** *Chose:* the family renamed, with the seven rules and every citation of them moving with it. *Over:* keeping the name and letting `Reconciliation` reach three specs. *Because:* the entry above split this leg from [Idempotent Reservation](./idempotent-reservation.md)'s on *one evicts and one reports*, and the drift pass `GRACE-lang.md` Standard label 7 requires found that axis predicts the liveness bound on **two of four** legs — this leg reports and owes none, Eviction takes a section and writes and owes none, and the verb decides neither. What survives every member is whether anything **awaits** the leg's output: [Login](./login.md)'s and [Defensible Retention](./defensible-retention.md)'s sweeps discharge a promise inside a declared window and owe a bound; this leg and idempotent reservation's evict or report with nobody waiting and owe none. Two families of two, cut on the guarantee rather than on the verb (council read 64).
 
 NOTE: End of Authenticated Actor.

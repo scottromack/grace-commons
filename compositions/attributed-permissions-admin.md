@@ -73,9 +73,9 @@ Composes 23: The composition MUST mint one attestation PER administered grant.
 Composes 24: The composition MUST NOT share one attestation across two administered grants.
 ```
 
-Term composition: this pattern's wiring of permissions(../atoms/permissions.md) and actor identity(../atoms/actor-identity.md) — the three administrative actions, the attribution query, the evaluation passthrough, the two pairing maps, the orphan log and the report-only leg.
+Term composition: this pattern's wiring of [Permissions](../atoms/permissions.md) and [Actor Identity](../atoms/actor-identity.md) — the three administrative actions, the attribution query, the evaluation passthrough, the two pairing maps, the orphan log and the report-only leg.
 
-Term constituents: permissions(../atoms/permissions.md), actor identity(../atoms/actor-identity.md).
+Term constituents: [Permissions](../atoms/permissions.md), [Actor Identity](../atoms/actor-identity.md).
 
 Term administered grant: a grant this composition's own surface issued or revoked, as against one a direct store write produced.
 
@@ -843,7 +843,7 @@ Term terms: composition, constituents, administered grant, administrative act, g
 
 Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Composition state — the derived-index and extraction-pending classifications. `execution-contract.md` §Logic confinement — the seam.
 
-Term composing patterns: Binding Registry *(forthcoming)*; Delegation *(forthcoming)*; Compromise Disclosure *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Scope Registry *(forthcoming)*; event log(../atoms/event-log.md); tamper evidence(../atoms/tamper-evidence.md); retention window(../atoms/retention-window.md); idempotent reservation(./idempotent-reservation.md); multi-party approval(./multi-party-approval.md).
+Term composing patterns: Binding Registry *(forthcoming)*; Delegation *(forthcoming)*; Compromise Disclosure *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Scope Registry *(forthcoming)*; [Event Log](../atoms/event-log.md); [Tamper Evidence](../atoms/tamper-evidence.md); [Retention Window](../atoms/retention-window.md); [Idempotent Reservation](./idempotent-reservation.md); [Multi-Party Approval](./multi-party-approval.md).
 
 #### Issue Grant
 

@@ -1,7 +1,6 @@
 {
  "actor-identity": {
   "composed_by": [
-   "actor-suspension",
    "attributed-permissions-admin",
    "audit-trail",
    "authenticated-actor",
@@ -17,7 +16,6 @@
    "twins": 0
   },
   "regulated_by": [
-   "actor-suspension",
    "attributed-permissions-admin",
    "audit-trail",
    "authenticated-actor",
@@ -33,12 +31,9 @@
    "GDPR",
    "HIPAA",
    "ISO 27001",
-   "NIST 800-207",
-   "NIST 800-53",
    "NIST 800-57",
    "NIST 800-63",
    "NIST 800-92",
-   "OWASP ASVS",
    "PCI DSS",
    "SEC 17a-4",
    "SOC 2",
@@ -50,9 +45,9 @@
  },
  "actor-suspension": {
   "composes": [
-   "actor-identity",
    "permissions",
-   "session"
+   "session",
+   "credential"
   ],
   "grounded": false,
   "invariants": 5,
@@ -128,7 +123,8 @@
   },
   "regulated_by": [
    "execute-gated-workflow",
-   "multi-party-approval"
+   "multi-party-approval",
+   "shared-todo"
   ],
   "security": false,
   "standards": [
@@ -157,16 +153,11 @@
   },
   "regulated": true,
   "standards": [
-   "21 CFR Part 11",
    "GDPR",
    "HIPAA",
    "ISO 27001",
-   "NIST 800-207",
-   "NIST 800-53",
-   "NIST 800-63",
    "PCI DSS",
-   "SOX",
-   "eIDAS"
+   "SOX"
   ],
   "status": "partially resolved",
   "substrates": [],
@@ -230,7 +221,7 @@
    "actor-identity"
   ],
   "grounded": false,
-  "invariants": 5,
+  "invariants": 4,
   "kind": "composition",
   "models": {
    "als": false,
@@ -417,6 +408,7 @@
  },
  "credential": {
   "composed_by": [
+   "actor-suspension",
    "authenticated-actor",
    "external-onboarding",
    "login",
@@ -432,6 +424,7 @@
    "twins": 2
   },
   "regulated_by": [
+   "actor-suspension",
    "authenticated-actor",
    "external-onboarding",
    "login",
@@ -443,12 +436,14 @@
    "GDPR",
    "HIPAA",
    "ISO 27001",
+   "NIST 800-207",
    "NIST 800-53",
    "NIST 800-57",
    "NIST 800-63",
    "OWASP ASVS",
    "PCI DSS",
    "SCIM",
+   "SEC 17a-4",
    "SOC 2",
    "SOX",
    "eIDAS"
@@ -522,7 +517,7 @@
   ],
   "domain": null,
   "grounded": true,
-  "invariants": 4,
+  "invariants": 3,
   "kind": "atom",
   "models": {
    "als": false,
@@ -564,7 +559,8 @@
   "regulated_by": [
    "audit-trail",
    "preference-aware-notification-fanout",
-   "reserve-from-pool"
+   "reserve-from-pool",
+   "undo-history"
   ],
   "security": false,
   "standards": [
@@ -680,7 +676,7 @@
    "duplicate-prevention"
   ],
   "grounded": false,
-  "invariants": 8,
+  "invariants": 6,
   "kind": "composition",
   "models": {
    "als": false,
@@ -733,7 +729,7 @@
   ],
   "domain": null,
   "grounded": true,
-  "invariants": 12,
+  "invariants": 11,
   "kind": "atom",
   "models": {
    "als": false,
@@ -938,7 +934,7 @@
    "notification"
   ],
   "grounded": false,
-  "invariants": 8,
+  "invariants": 6,
   "kind": "composition",
   "models": {
    "als": false,
@@ -975,7 +971,7 @@
   ],
   "domain": null,
   "grounded": true,
-  "invariants": 11,
+  "invariants": 9,
   "kind": "atom",
   "models": {
    "als": false,
@@ -1028,7 +1024,8 @@
    "multi-party-approval",
    "privileged-access-provisioning",
    "propagate-consent-revocation-downstream",
-   "session-gated-authorization"
+   "session-gated-authorization",
+   "shared-todo"
   ],
   "security": true,
   "standards": [
@@ -1043,8 +1040,7 @@
    "PCI DSS",
    "SEC 17a-4",
    "SOC 2",
-   "SOX",
-   "eIDAS"
+   "SOX"
   ],
   "status": "grounded on Final Critique 4 \u2014 2026-06-18",
   "title": "Permissions"
@@ -1063,12 +1059,12 @@
    "tla": false,
    "twins": 0
   },
-  "regulated_by": [],
-  "security": false,
-  "standards": [
-   "ISO 27001",
-   "NIST 800-92"
+  "regulated_by": [
+   "shared-todo",
+   "undo-history"
   ],
+  "security": false,
+  "standards": [],
   "status": "grounded on Final Critique 4 \u2014 2026-06-18",
   "title": "Personal Todo"
  },
@@ -1186,7 +1182,7 @@
   ],
   "domain": null,
   "grounded": true,
-  "invariants": 10,
+  "invariants": 8,
   "kind": "atom",
   "models": {
    "als": false,
@@ -1217,8 +1213,8 @@
   "kind": "composition",
   "models": {
    "als": false,
-   "tla": false,
-   "twins": 0
+   "tla": true,
+   "twins": 10
   },
   "regulated": true,
   "standards": [
@@ -1438,14 +1434,14 @@
    "assignment"
   ],
   "grounded": true,
-  "invariants": 8,
+  "invariants": 5,
   "kind": "composition",
   "models": {
    "als": false,
    "tla": true,
    "twins": 1
   },
-  "regulated": false,
+  "regulated": true,
   "standards": [],
   "status": "grounded on Final Critique 6 \u2014 2026-08-26",
   "substrates": [],
@@ -1585,11 +1581,8 @@
    "tla": true,
    "twins": 1
   },
-  "regulated": false,
-  "standards": [
-   "ISO 27001",
-   "NIST 800-92"
-  ],
+  "regulated": true,
+  "standards": [],
   "status": "grounded on Final Critique 6 \u2014 2026-08-26",
   "substrates": [],
   "title": "Undo History"

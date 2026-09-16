@@ -39,6 +39,9 @@ The composition is event-sourced: the state is defined by replaying the log rath
 
 ## Composes
 
+- **[Personal Todo](../atoms/personal-todo.md)** — the state machine the replayed state takes the shape of.
+- **[Event Log](../atoms/event-log.md)** — the durable, append-only record of every action, one instance per Personal Todo.
+
 ```
 Composes 1: EXACTLY ONE Personal Todo shape MUST serve the composition.
 Composes 2: EXACTLY ONE Event Log instance MUST serve the composition.
