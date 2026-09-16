@@ -163,10 +163,10 @@ read(query)
 ```
 
 ```
-Operation 1: IF subject_ref NOT EXISTS THEN [Record] MUST answer invalid-observation.
-Operation 2: IF recorded_by NOT EXISTS THEN [Record] MUST answer invalid-observation.
-Operation 3: IF observation_type NOT EXISTS THEN [Record] MUST answer invalid-observation.
-Operation 4: IF unit NOT EXISTS THEN [Record] MUST answer invalid-observation.
+Operation 1: IF subject_ref EQUALS blank THEN [Record] MUST answer invalid-observation.
+Operation 2: IF recorded_by EQUALS blank THEN [Record] MUST answer invalid-observation.
+Operation 3: IF observation_type EQUALS blank THEN [Record] MUST answer invalid-observation.
+Operation 4: IF unit EQUALS blank THEN [Record] MUST answer invalid-observation.
 Operation 5: IF the observation_type carries no value constraint THEN a content-checking action MUST answer invalid-observation.
 Operation 6: IF value fails the observation_type's value constraint THEN a content-checking action MUST answer invalid-observation.
 Operation 7: IF the resolved recorded_at EXCEEDS the future bound THEN [Record] MUST answer invalid-observation.
@@ -178,9 +178,9 @@ Operation 12: A chain action MUST answer not-known ONLY IF the observation_id na
 Operation 13: IF the observation stands in retracted THEN a chain action MUST answer already-retracted.
 Operation 14: IF the observation stands in amended THEN [Amend] MUST answer already-amended.
 Operation 15: A chain action MUST answer a state rejection ONLY IF the observation_id names an observation.
-Operation 16: IF amended_by NOT EXISTS THEN [Amend] MUST answer invalid-request.
-Operation 17: IF reason NOT EXISTS THEN a chain action MUST answer invalid-request.
-Operation 18: IF retracted_by NOT EXISTS THEN [Retract] MUST answer invalid-request.
+Operation 16: IF amended_by EQUALS blank THEN [Amend] MUST answer invalid-request.
+Operation 17: IF reason EQUALS blank THEN a chain action MUST answer invalid-request.
+Operation 18: IF retracted_by EQUALS blank THEN [Retract] MUST answer invalid-request.
 Operation 19: A chain action MUST answer invalid-request ONLY IF EVERY state check passes.
 Operation 20: [Amend] MUST answer invalid-observation ONLY IF EVERY request check passes.
 Operation 21: [Amend] MUST NOT accept a subject_ref.
@@ -209,9 +209,9 @@ Operation 43: An admitted read MUST order two observations sharing a recorded_at
 Operation 44: An admitted read MUST answer EVERY observation matching the supplied filters.
 Operation 45: An admitted read MUST NOT answer an observation failing a supplied filter.
 Operation 46: IF no observation matches THEN an admitted read MUST answer an empty observation sequence.
-Operation 47: IF a filter's axis NOT EXISTS in the filter axes THEN [Read] MUST answer invalid-query.
-Operation 48: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer invalid-query.
-Operation 49: IF a state filter's value NOT EXISTS in the states THEN [Read] MUST answer invalid-query.
+Operation 47: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
+Operation 48: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
+Operation 49: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
 Operation 50: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 51: [Read] MUST NOT write.
 Deleted: Operation 52. Capability requirement 1 owns it.
@@ -507,7 +507,6 @@ String 7: The deployment MUST canonicalize an opaque reference.
 
 Term string input: a reference, observation_type, unit, reason OR a filter's value — every caller-supplied string this atom accepts.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 A whitespace-only observer reference, reason or type is blank and refused exactly as an empty one is (String 5). The alternative — accepting a space as an observer identity — produces a record that satisfies a presence check and attributes nothing, which is the failure the attribution invariants exist to prevent.

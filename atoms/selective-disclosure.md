@@ -137,15 +137,15 @@ read(filters)
 ```
 
 ```
-Operation 1: IF subject_ref NOT EXISTS THEN [Record] MUST answer invalid-request.
-Operation 2: IF recipient NOT EXISTS THEN [Record] MUST answer invalid-request.
-Operation 3: IF scope NOT EXISTS THEN [Record] MUST answer invalid-request.
-Operation 4: IF authority NOT EXISTS THEN [Record] MUST answer invalid-request.
-Operation 5: IF authority_type NOT EXISTS THEN [Record] MUST answer invalid-request.
-Operation 6: IF authority_reference NOT EXISTS THEN [Record] MUST answer invalid-request.
+Operation 1: IF subject_ref EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 2: IF recipient EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 3: IF scope EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 4: IF authority EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 5: IF authority_type EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 6: IF authority_reference EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 7: IF the resolved disclosed_at EXCEEDS now THEN [Record] MUST answer invalid-request.
 Operation 8: [Record] MUST answer unknown-authority-type ONLY IF EVERY field-level precondition passes.
-Operation 9: IF authority_type NOT EXISTS in the authority types THEN [Record] MUST answer unknown-authority-type.
+Operation 9: IF authority_type IS NOT IN the authority types THEN [Record] MUST answer unknown-authority-type.
 Operation 10: An admitted record MUST record EXACTLY ONE disclosure record.
 Operation 11: An admitted record MUST take the disclosure record's disclosure_id from the injected disclosure_id.
 Operation 12: An admitted record MUST stamp the disclosure record's disclosed_at from the resolved disclosed_at.
@@ -158,9 +158,9 @@ Operation 18: An admitted read MUST answer the matching disclosure records in di
 Operation 19: An admitted read MUST order two disclosure records sharing a disclosed_at by disclosure_id ascending.
 Operation 20: IF no disclosure record matches THEN an admitted read MUST answer an empty record sequence.
 Operation 21: An admitted read carrying no filter MUST answer EVERY disclosure record in the store instance.
-Operation 22: IF a filter's axis NOT EXISTS in the filter axes THEN [Read] MUST answer invalid-query.
-Operation 23: IF a disclosure_id, subject_ref OR recipient filter's value NOT EXISTS THEN [Read] MUST answer invalid-query.
-Operation 24: IF an authority_type filter's value NOT EXISTS in the authority types THEN [Read] MUST answer invalid-query.
+Operation 22: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
+Operation 23: IF a disclosure_id, subject_ref OR recipient filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
+Operation 24: IF an authority_type filter's value IS NOT IN the authority types THEN [Read] MUST answer invalid-query.
 Operation 25: IF a disclosed_at range's before precedes the range's after THEN [Read] MUST answer invalid-query.
 Operation 26: An admitted read MUST match a disclosed_at range as a closed interval.
 Operation 27: An admitted read MUST answer EVERY disclosure record matching the supplied filters.
@@ -270,7 +270,7 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 
 ### Rejection paths
 
-`record("", "Northgate Research Institute", "medical-record:summary", {type: consent, reference: "consent-3301"})` → invalid-request. A blank subject_ref NOT EXISTS (Operation 1, String 5).
+`record("", "Northgate Research Institute", "medical-record:summary", {type: consent, reference: "consent-3301"})` → invalid-request. An empty subject_ref EQUALS blank (Operation 1, String 5).
 
 `record("patient-88213", "Northgate", "summary", {type: "legitimate-interest", reference: "policy-7"})` → unknown-authority-type. The value stands outside the three (Operation 9). The same call with a blank scope answers invalid-request instead — the field-level checks complete first, so the caller learns the blank field before the bad type (Operation 8).
 
@@ -395,7 +395,6 @@ String 7: The deployment MUST canonicalize an opaque reference.
 
 Term string input: subject_ref, recipient, scope, authority_reference OR a filter's value — every caller-supplied string this atom accepts.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness means callers own canonicalization (String 1, String 7): two subject references differing only in case are two subjects to this atom, and a [Read] filtered on one will not answer the other's records. In a store whose purpose is completeness, that is the failure mode worth naming — an Article 15 answer that is short by the records filed under a differently-cased reference is wrong in the one direction the regulation punishes.

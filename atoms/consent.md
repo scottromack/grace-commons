@@ -63,7 +63,6 @@ Term purpose: the opaque value naming the processing purpose the agreement cover
 
 Term granted_by: the opaque reference naming the actor that recorded the subject's affirmative signal — a [Granted By].
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Identity by subject and purpose would be the natural-looking choice and it is wrong here: the atom deliberately admits several records over one pair, because re-consent after expiry is a new agreement and not an edit of the old one, and a regulator asking *what did this person agree to, and when* needs both rows (Identity 6, Non-goal 12). The id is the only identity anchor.
@@ -155,26 +154,26 @@ read(query)
 Operation 1: [Grant] MUST record EXACTLY ONE consent record per successful call.
 Operation 2: [Grant] MUST stand the consent record in granted.
 Operation 3: [Grant] MUST answer the consent_id.
-Operation 4: IF subject_ref NOT EXISTS THEN [Grant] MUST answer invalid-request.
-Operation 5: IF purpose NOT EXISTS THEN [Grant] MUST answer invalid-request.
-Operation 6: IF granted_by NOT EXISTS THEN [Grant] MUST answer invalid-request.
+Operation 4: IF subject_ref EQUALS blank THEN [Grant] MUST answer invalid-request.
+Operation 5: IF purpose EQUALS blank THEN [Grant] MUST answer invalid-request.
+Operation 6: IF granted_by EQUALS blank THEN [Grant] MUST answer invalid-request.
 Operation 7: [Grant] MAY record an expires_at ONLY IF expires_at EXCEEDS now.
 Operation 8: IF now EXCEEDS expires_at THEN [Grant] MUST answer invalid-request.
-Operation 9: IF expires_at = now THEN [Grant] MUST answer invalid-request.
+Operation 9: IF expires_at EQUALS now THEN [Grant] MUST answer invalid-request.
 Operation 10: [Grant] MUST stamp granted_at from the injected now.
 Operation 11: [Grant] MUST record metadata the call supplied.
 Operation 12: [Grant] MUST NOT interpret metadata.
 Operation 13: IF the store refuses the write THEN [Grant] MUST answer storage-failure.
 Operation 14: [Grant] MUST answer storage-failure ONLY IF EVERY grant guard passes.
-Operation 15: IF consent_id NOT EXISTS THEN [Revoke] MUST answer invalid-request.
+Operation 15: IF consent_id EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 16: IF the consent_id names no consent record THEN [Revoke] MUST answer not-known.
-Operation 17: [Revoke] MUST answer not-known ONLY IF consent_id EXISTS.
+Operation 17: [Revoke] MUST answer not-known ONLY IF consent_id DOES NOT EQUAL blank.
 Operation 18: IF the consent record stands in revoked THEN [Revoke] MUST answer already-revoked.
 Operation 19: IF the consent record stands in expired THEN [Revoke] MUST answer already-expired.
 Operation 20: [Revoke] MUST resolve revoked_at from the call.
 Operation 21: [Revoke] MUST resolve revoked_at from the injected now ONLY IF the call supplied a blank revoked_at.
-Operation 22: IF the consent record stands in granted AND revoked_by NOT EXISTS THEN [Revoke] MUST answer invalid-request.
-Operation 23: IF the consent record stands in granted AND reason NOT EXISTS THEN [Revoke] MUST answer invalid-request.
+Operation 22: IF the consent record stands in granted AND revoked_by EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 23: IF the consent record stands in granted AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 24: IF the consent record stands in granted AND the resolved revoked_at EXCEEDS now THEN [Revoke] MUST answer invalid-request.
 Operation 25: IF the consent record stands in granted AND granted_at EXCEEDS the resolved revoked_at THEN [Revoke] MUST answer invalid-request.
 Operation 26: [Revoke] MUST stand the consent record in revoked.
@@ -195,9 +194,9 @@ Operation 40: IF no candidate record EXISTS THEN [Check] MUST answer not-known.
 Operation 41: IF the candidate record is withdrawn THEN [Check] MUST answer revoked.
 Operation 42: IF the candidate record is elapsed THEN [Check] MUST answer expired.
 Operation 43: [Check] MUST answer expired ONLY IF the candidate record is not withdrawn.
-Operation 44: [Check] MUST answer granted ONLY IF the candidate record EXISTS AND the candidate record is not withdrawn AND the candidate record is not elapsed.
+Operation 44: [Check] MUST answer granted ONLY IF a candidate record EXISTS AND the candidate record is not withdrawn AND the candidate record is not elapsed.
 Operation 45: [Check] MUST evaluate the candidate record alone.
-Operation 46: IF at_time EXISTS THEN [Check] MUST NOT evaluate a consent record against now.
+Operation 46: IF at_time DOES NOT EQUAL blank THEN [Check] MUST NOT evaluate a consent record against now.
 Operation 47: [Read] MUST answer EVERY consent record the query matches.
 Operation 48: [Read] MUST order the answer by granted_at ascending.
 Operation 49: [Read] MUST NOT write.
@@ -208,8 +207,8 @@ Operation 53: [Read] MUST answer EVERY consent record for a query carrying no fi
 Operation 54: [Read] MUST NOT answer two consent records for a query carrying a consent_id filter.
 Operation 55: IF the query carries a filter key outside the supported filter axes THEN [Read] MUST answer invalid-query.
 Operation 56: [Read] MUST NOT ignore a filter key outside the supported filter axes.
-Operation 57: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer invalid-query.
-Operation 58: IF a state filter's value NOT EXISTS in state THEN [Read] MUST answer invalid-query.
+Operation 57: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
+Operation 58: IF a state filter's value IS NOT IN state THEN [Read] MUST answer invalid-query.
 Operation 59: IF a time range's end precedes the time range's start THEN [Read] MUST answer invalid-query.
 Operation 60: [Read] MUST exclude a consent record carrying no value for a time range's field.
 Deleted: Operation 61. Capability requirement 1 owns it.

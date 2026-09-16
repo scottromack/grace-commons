@@ -120,19 +120,19 @@ Operation 3: [Add] MUST answer id.
 Operation 4: IF the normalized description matches a unit in the active set THEN [Add] MUST answer duplicate-active.
 Operation 5: IF the store refuses the write THEN [Add] MUST answer storage-failure.
 Operation 6: [Add] MUST NOT record a unit on storage-failure.
-Operation 7: IF the id NOT EXISTS THEN [Edit] MUST answer not-known.
+Operation 7: IF no unit EXISTS for the id THEN [Edit] MUST answer not-known.
 Operation 8: IF the unit stands in done THEN [Edit] MUST answer not-editable.
 Operation 9: IF the unit stands in pending AND the normalized new_description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
 Operation 9a: IF the unit stands in pending AND the normalized new_description fails the description policy THEN [Edit] MUST answer invalid-description.
-Operation 10: IF the unit stands in pending AND the normalized new_description = the unit's description THEN [Edit] MUST answer ok.
+Operation 10: IF the unit stands in pending AND the normalized new_description EQUALS the unit's description THEN [Edit] MUST answer ok.
 Operation 11: [Edit] MUST NOT write for a new_description equal to the unit's description.
 Operation 12: [Edit] MUST NOT stamp last_edited_at for a new_description equal to the unit's description.
 Operation 13: [Edit] MUST replace the unit's description.
 Operation 14: [Edit] MUST leave the unit standing in pending.
-Operation 15: IF the id NOT EXISTS THEN [Complete] MUST answer not-known.
+Operation 15: IF no unit EXISTS for the id THEN [Complete] MUST answer not-known.
 Operation 16: IF the unit stands in done THEN [Complete] MUST answer not-pending.
 Operation 17: [Complete] MUST stand the unit in done.
-Operation 18: IF the id NOT EXISTS THEN [Delete] MUST answer not-known.
+Operation 18: IF no unit EXISTS for the id THEN [Delete] MUST answer not-known.
 Operation 19: [Delete] MUST take a pending unit out of the list.
 Operation 20: [Delete] MUST take a done unit out of the list.
 Operation 21: IF the store refuses the write THEN [Edit] MUST answer storage-failure.
@@ -173,11 +173,11 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
   ```
 - **Invariant 2 — Add-then-Pending persistence.**
   ```
-  Invariant 2.1: A recorded unit MUST stand in pending ONLY IF [Complete] NOT EXISTS AND [Delete] NOT EXISTS for the unit.
+  Invariant 2.1: A recorded unit MUST stand in pending ONLY IF no [Complete] EXISTS for the unit AND no [Delete] EXISTS for the unit.
   ```
 - **Invariant 3 — Complete-then-Done persistence.**
   ```
-  Invariant 3.1: A completed unit MUST stand in done ONLY IF [Delete] NOT EXISTS for the unit.
+  Invariant 3.1: A completed unit MUST stand in done ONLY IF no [Delete] EXISTS for the unit.
   ```
 - **Invariant 4 — Delete is terminal.**
   ```
@@ -195,9 +195,9 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
   ```
 - **Invariant 7 — Timestamp monotonicity.**
   ```
-  Invariant 7.1: IF last_edited_at EXISTS THEN added_at MUST NOT EXCEED last_edited_at.
-  Invariant 7.2: IF completed_at EXISTS THEN added_at MUST NOT EXCEED completed_at.
-  Invariant 7.3: IF last_edited_at EXISTS AND completed_at EXISTS THEN last_edited_at MUST NOT EXCEED completed_at.
+  Invariant 7.1: IF last_edited_at DOES NOT EQUAL blank THEN added_at MUST NOT EXCEED last_edited_at.
+  Invariant 7.2: IF completed_at DOES NOT EQUAL blank THEN added_at MUST NOT EXCEED completed_at.
+  Invariant 7.3: IF last_edited_at DOES NOT EQUAL blank AND completed_at DOES NOT EQUAL blank THEN last_edited_at MUST NOT EXCEED completed_at.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Capability requirement 2 through 3).
 - **Invariant 8 — Id stability.**

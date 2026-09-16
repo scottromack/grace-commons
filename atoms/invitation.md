@@ -160,11 +160,11 @@ read(filter)
 ```
 
 ```
-Operation 1: IF inviter_ref NOT EXISTS THEN [Initiate] MUST answer invalid-request.
-Operation 2: IF context NOT EXISTS THEN [Initiate] MUST answer invalid-request.
+Operation 1: IF inviter_ref EQUALS blank THEN [Initiate] MUST answer invalid-request.
+Operation 2: IF context EQUALS blank THEN [Initiate] MUST answer invalid-request.
 Operation 3: IF the ttl falls outside the ttl bounds THEN [Initiate] MUST answer invalid-request.
-Operation 4: IF ttl NOT EXISTS THEN [Initiate] MUST read the default ttl as the ttl.
-Operation 5: IF the default ttl NOT EXISTS THEN [Initiate] MUST answer invalid-request.
+Operation 4: IF ttl EQUALS blank THEN [Initiate] MUST read the default ttl as the ttl.
+Operation 5: IF the default ttl EQUALS blank THEN [Initiate] MUST answer invalid-request.
 Operation 6: [Initiate] MUST NOT answer invalid-request on an absent invitee_ref.
 Operation 7: [Initiate] MUST NOT answer not-known.
 Operation 8: An admitted initiate MUST assign a fresh invitation_token.
@@ -182,9 +182,9 @@ Operation 19: A resolving write MUST answer already-resolved ONLY IF the invitat
 Operation 20: IF the invitation reads lapsed THEN a resolving write MUST answer expired.
 Operation 21: A resolving write MUST answer expired ONLY IF the invitation stands in pending.
 Operation 22: A refused resolving write MUST NOT record a field.
-Operation 23: IF accepting_identity_ref NOT EXISTS THEN [Accept] MUST answer invalid-request.
-Operation 24: IF revoked_by_ref NOT EXISTS THEN [Revoke] MUST answer invalid-request.
-Operation 25: IF reason NOT EXISTS THEN [Revoke] MUST answer invalid-request.
+Operation 23: IF accepting_identity_ref EQUALS blank THEN [Accept] MUST answer invalid-request.
+Operation 24: IF revoked_by_ref EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 25: IF reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 26: A resolving write MUST answer invalid-request ONLY IF EVERY status check passes.
 Operation 27: [Decline] MUST NOT accept an acting reference.
 Operation 28: An admitted accept MUST stand the invitation in accepted.
@@ -472,7 +472,6 @@ String 6: The atom MUST read an absent string input as blank.
 
 Term string input: a reference, context OR reason — every caller-supplied string this atom accepts.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness is sharper here than in most atoms because the invitation_token is a bearer credential: a lookup that trimmed or case-folded would make a family of near-miss tokens resolve to a real invitation, which is a guessing surface rather than a convenience. Canonicalization, where a deployment wants it, happens before the call (Capability requirement 8, Identity 9).

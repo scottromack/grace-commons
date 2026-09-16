@@ -324,7 +324,6 @@ Primitive policy 21: The composition MUST NOT digest the revoked set.
 Primitive policy 22: The composition MUST carry the revoked set on an outcome in full.
 ```
 
-Term blank: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
 

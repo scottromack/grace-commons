@@ -151,22 +151,22 @@ read_declaration(instance_id)
 
 ```
 Operation 1: [Instantiate] MUST answer invalid-request ONLY IF the declaration is well-formed.
-Operation 2: IF a supplied actor_ref NOT EXISTS THEN an action MUST answer invalid-request.
+Operation 2: IF a supplied actor_ref EQUALS blank THEN an action MUST answer invalid-request.
 Operation 3: IF the resolved instantiated_at EXCEEDS now THEN [Instantiate] MUST answer invalid-request.
 Operation 4: An admitted instantiate MUST record EXACTLY ONE instance.
 Operation 5: An admitted instantiate MUST stand the instance in the initial state.
 Operation 6: An admitted instantiate MUST set next_sequence_number to one.
 Operation 7: An admitted instantiate MUST record an empty transition history.
 Operation 8: An admitted instantiate MUST answer the instance_id.
-Operation 9: IF instance_id NOT EXISTS THEN an addressed action MUST answer invalid-request.
-Operation 10: IF action NOT EXISTS THEN [Fire] MUST answer invalid-request.
+Operation 9: IF instance_id EQUALS blank THEN an addressed action MUST answer invalid-request.
+Operation 10: IF action EQUALS blank THEN [Fire] MUST answer invalid-request.
 Operation 11: IF the instance_id names no instance THEN an addressed action MUST answer not-known.
-Operation 12: An addressed action MUST answer not-known ONLY IF instance_id EXISTS.
-Operation 13: IF the current state EXISTS in the terminal states THEN [Fire] MUST answer terminal.
+Operation 12: An addressed action MUST answer not-known ONLY IF instance_id DOES NOT EQUAL blank.
+Operation 13: IF the current state IS IN the terminal states THEN [Fire] MUST answer terminal.
 Operation 14: [Fire] MUST answer terminal ONLY IF the instance_id names an instance.
 Operation 15: IF no declared transition matches the current state and action THEN [Fire] MUST answer invalid-transition.
-Operation 16: [Fire] MUST answer invalid-transition ONLY IF the current state NOT EXISTS in the terminal states.
-Operation 17: IF the matched transition carries a guard AND guard_satisfied NOT EXISTS THEN [Fire] MUST answer guard-not-satisfied.
+Operation 16: [Fire] MUST answer invalid-transition ONLY IF the current state IS NOT IN the terminal states.
+Operation 17: IF the matched transition carries a guard AND guard_satisfied EQUALS blank THEN [Fire] MUST answer guard-not-satisfied.
 Operation 18: [Fire] MUST answer guard-not-satisfied ONLY IF a declared transition matches.
 Operation 19: IF the resolved fired_at EXCEEDS now THEN [Fire] MUST answer invalid-request.
 Operation 20: IF the resolved fired_at precedes the instance's instantiated_at THEN [Fire] MUST answer invalid-request.
@@ -192,8 +192,8 @@ Operation 39: An admitted history MUST answer the matching history entries in se
 Operation 40: An admitted history MUST answer EVERY history entry matching the supplied filters.
 Operation 41: An admitted history MUST NOT answer a history entry failing a supplied filter.
 Operation 42: IF no history entry matches THEN an admitted history MUST answer an empty entry sequence.
-Operation 43: IF a filter's axis NOT EXISTS in the filter axes THEN [History] MUST answer invalid-query.
-Operation 44: IF a string filter's value NOT EXISTS THEN [History] MUST answer invalid-query.
+Operation 43: IF a filter's axis IS NOT IN the filter axes THEN [History] MUST answer invalid-query.
+Operation 44: IF a string filter's value EQUALS blank THEN [History] MUST answer invalid-query.
 Operation 45: IF a range filter's end precedes the range's start THEN [History] MUST answer invalid-query.
 Operation 46: [History] MUST answer invalid-query ONLY IF the instance_id names an instance.
 Operation 47: [Read Declaration] MUST answer the instance's declaration.
@@ -337,16 +337,16 @@ Declaration 2: The atom MUST NOT change a recorded declaration.
 Declaration 3: The atom MUST NOT offer a declaration edit surface.
 Declaration 4: EVERY enforcement decision MUST rest on the instance's declaration.
 Declaration 5: IF states carries no member THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 6: IF a state name NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 6: IF a state name EQUALS blank THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 7: IF two state names in states match THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 8: IF the initial state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 9: IF the initial state EXISTS in the terminal states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 10: IF a declared transition's from_state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 11: IF a declared transition's to_state NOT EXISTS in states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 12: IF a declared transition's from_state EXISTS in the terminal states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 8: IF the initial state IS NOT IN states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 9: IF the initial state IS IN the terminal states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 10: IF a declared transition's from_state IS NOT IN states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 11: IF a declared transition's to_state IS NOT IN states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 12: IF a declared transition's from_state IS IN the terminal states THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 13: IF two declared transitions share one from_state and one action THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 14: IF a declared transition's action NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 15: IF a supplied guard NOT EXISTS THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 14: IF a declared transition's action EQUALS blank THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 15: IF a supplied guard EQUALS blank THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 16: The terminal states MAY carry no member.
 Declaration 17: A declared transition MAY carry no guard.
 ```
@@ -543,7 +543,6 @@ String 7: The deployment MUST canonicalize an opaque reference.
 
 Term string input: instance_id, action, actor_ref, subject_ref, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness reaches further here than in most atoms, because state names and action names are caller-supplied strings that the declaration and every later [Fire] must agree on. A declaration naming `Tested` and a fire naming `tested` are two different tokens, the match fails, and the answer is invalid-transition — correct, and mystifying to a caller who believes they are the same state. Canonicalization is the deployment's (String 7).

@@ -126,12 +126,12 @@ subscribers_for(event_scope)
 Operation 1: [Subscribe] MUST record EXACTLY ONE subscription per successful call.
 Operation 2: [Subscribe] MUST stand the subscription in active.
 Operation 3: [Subscribe] MUST answer subscription_id.
-Operation 4: IF subscriber_ref is blank THEN [Subscribe] MUST answer invalid-request.
-Operation 5: IF event_scope is blank THEN [Subscribe] MUST answer invalid-request.
+Operation 4: IF subscriber_ref EQUALS blank THEN [Subscribe] MUST answer invalid-request.
+Operation 5: IF event_scope EQUALS blank THEN [Subscribe] MUST answer invalid-request.
 Operation 6: IF an active subscription EXISTS for the pair THEN [Subscribe] MUST answer already-subscribed.
 Operation 7: The atom MUST NOT interpret subscriber_ref beyond the presence check.
 Operation 8: The atom MUST NOT interpret event_scope beyond the presence check.
-Operation 9: IF the subscription_id NOT EXISTS THEN [Cancel] MUST answer not-known.
+Operation 9: IF no subscription EXISTS for the subscription_id THEN [Cancel] MUST answer not-known.
 Operation 10: IF the subscription stands in cancelled THEN [Cancel] MUST answer not-active.
 Operation 11: [Cancel] MUST stand the subscription in cancelled.
 Operation 12: [Cancel] MUST accept the subscription_id as the whole authorization.
@@ -216,11 +216,11 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
 - **Invariant 8 — Absence means not-subscribed.**
   ```
   Invariant 8.1: [Subscribed] MUST answer not-subscribed ONLY IF no active subscription matches the pair.
-  Invariant 8.2: [Subscribers For] MUST NOT answer a subscriber_ref whose subscription for the scope NOT EXISTS in the active set.
+  Invariant 8.2: [Subscribers For] MUST NOT answer a subscriber_ref whose subscription for the scope IS NOT IN the active set.
   ```
 - **Invariant 9 — Timestamp ordering.**
   ```
-  Invariant 9.1: IF cancelled_at EXISTS THEN subscribed_at MUST NOT EXCEED cancelled_at.
+  Invariant 9.1: IF cancelled_at DOES NOT EQUAL blank THEN subscribed_at MUST NOT EXCEED cancelled_at.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2).
 

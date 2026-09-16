@@ -154,10 +154,10 @@ read(chain_id, query)
 ```
 
 ```
-Operation 1: IF artifact_ref NOT EXISTS THEN [Originate] MUST answer invalid-ref.
-Operation 2: IF custodian_ref NOT EXISTS THEN [Originate] MUST answer invalid-ref.
-Operation 3: IF genesis_type NOT EXISTS in the genesis types THEN [Originate] MUST answer invalid-genesis-type.
-Operation 4: [Originate] MUST answer invalid-genesis-type ONLY IF artifact_ref EXISTS AND custodian_ref EXISTS.
+Operation 1: IF artifact_ref EQUALS blank THEN [Originate] MUST answer invalid-ref.
+Operation 2: IF custodian_ref EQUALS blank THEN [Originate] MUST answer invalid-ref.
+Operation 3: IF genesis_type IS NOT IN the genesis types THEN [Originate] MUST answer invalid-genesis-type.
+Operation 4: [Originate] MUST answer invalid-genesis-type ONLY IF artifact_ref DOES NOT EQUAL blank AND custodian_ref DOES NOT EQUAL blank.
 Operation 5: An admitted originate MUST record EXACTLY ONE chain.
 Operation 6: An admitted originate MUST append the genesis entry.
 Operation 7: An admitted originate MUST set the genesis entry's event_type to the call's genesis_type.
@@ -170,17 +170,17 @@ Operation 13: IF the chain stands in archived THEN [Transform] MUST answer archi
 Operation 14: IF the chain stands in archived THEN [Disclose] MUST answer archived.
 Operation 15: IF the chain stands in archived THEN [Archive] MUST answer already-archived.
 Operation 16: A chain-state rejection MUST answer ONLY IF the chain_id names a chain.
-Operation 17: IF to_custodian_ref NOT EXISTS THEN [Transfer] MUST answer invalid-ref.
+Operation 17: IF to_custodian_ref EQUALS blank THEN [Transfer] MUST answer invalid-ref.
 Operation 18: [Transfer] MUST NOT accept a from_custodian_ref from the caller.
 Operation 19: An admitted transfer MUST read from_custodian_ref from the current custodian.
 Operation 20: An admitted transfer MUST append a transferred entry.
 Operation 21: An admitted transfer MUST set the current custodian to to_custodian_ref.
 Operation 22: [Transfer] MUST NOT guard a call on the caller's custodian_ref.
-Operation 23: IF custodian_ref NOT EXISTS THEN a custodian-guarded action MUST answer invalid-ref.
-Operation 24: IF transformation_descriptor NOT EXISTS THEN [Transform] MUST answer invalid-descriptor.
-Operation 25: IF recipient_ref NOT EXISTS THEN [Disclose] MUST answer invalid-ref.
-Operation 26: IF custodian_ref != the current custodian THEN a custodian-guarded action MUST answer not-current-custodian.
-Operation 27: A custodian-guarded action MUST answer not-current-custodian ONLY IF EVERY supplied reference EXISTS.
+Operation 23: IF custodian_ref EQUALS blank THEN a custodian-guarded action MUST answer invalid-ref.
+Operation 24: IF transformation_descriptor EQUALS blank THEN [Transform] MUST answer invalid-descriptor.
+Operation 25: IF recipient_ref EQUALS blank THEN [Disclose] MUST answer invalid-ref.
+Operation 26: IF custodian_ref DOES NOT EQUAL the current custodian THEN a custodian-guarded action MUST answer not-current-custodian.
+Operation 27: A custodian-guarded action MUST answer not-current-custodian ONLY IF EVERY supplied reference DOES NOT EQUAL blank.
 Operation 28: An admitted transform MUST append a transformed entry.
 Operation 29: An admitted disclose MUST append a disclosed entry.
 Operation 30: An admitted archive MUST append an archived entry.
@@ -202,7 +202,7 @@ Operation 45: An action MUST answer storage-failure ONLY IF EVERY precondition p
 Operation 46: [Read] MUST answer the chain's entries in sequence_number ascending order.
 Operation 47: [Read] MUST answer an empty entry sequence for a well-formed query no entry matches.
 Operation 48: IF a query range's end precedes the range's start THEN [Read] MUST answer invalid-query.
-Operation 49: IF a query's event_type NOT EXISTS in the event types THEN [Read] MUST answer invalid-query.
+Operation 49: IF a query's event_type IS NOT IN the event types THEN [Read] MUST answer invalid-query.
 Operation 50: [Read] MUST NOT write.
 Operation 51: [Read] MUST NOT answer storage-failure.
 Operation 52: IF the store refuses a read THEN [Read] MUST NOT answer a partial entry sequence.
@@ -364,7 +364,7 @@ The same call against the chain while it stood open, after custody had moved to 
 
 `originate("sample-77", "lab-2", genesis_type: imported)` → invalid-genesis-type. `imported` stands outside the genesis types (Operation 3).
 
-`transform("chain-0107", "forensic-lab-12", "   ")` → invalid-descriptor. A whitespace-only descriptor NOT EXISTS (Operation 24, String 5).
+`transform("chain-0107", "forensic-lab-12", "   ")` → invalid-descriptor. A whitespace-only descriptor EQUALS blank (Operation 24, String 5).
 
 `archive("chain-0041", "pharm-hosp-9")` against the archived chain → already-archived — a distinct reason from the writer actions' archived, so a retrying archiver learns the work is done rather than refused (Operation 15).
 
@@ -527,7 +527,6 @@ Term string input: artifact_ref, custodian_ref, to_custodian_ref, recipient_ref,
 
 Term reference: artifact_ref, custodian_ref, to_custodian_ref OR recipient_ref — every string input naming a party or an artifact.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 Term maximum length: the deployment's cap per string input.
 

@@ -121,7 +121,7 @@ Operation 5: IF action_scope is empty THEN [Grant] MUST answer invalid-request.
 Operation 6: [Grant] MUST NOT refuse a pair an active grant already covers.
 Operation 7: IF the store refuses the write THEN [Grant] MUST answer storage-failure.
 Operation 8: [Grant] MUST NOT record a partial grant.
-Operation 9: IF the grant_id NOT EXISTS THEN [Revoke] MUST answer not-known.
+Operation 9: IF no grant EXISTS for the grant_id THEN [Revoke] MUST answer not-known.
 Operation 10: IF the grant stands in revoked THEN [Revoke] MUST answer not-active.
 Operation 11: [Revoke] MUST stand the grant in revoked.
 Operation 12: [Revoke] MUST commit the active-to-revoked move as one write.
@@ -203,7 +203,7 @@ The two storage failures are not the same failure. A failed [Grant] leaves a rec
   ```
 - **Invariant 9 — Timestamp ordering.**
   ```
-  Invariant 9.1: IF revoked_at EXISTS THEN granted_at MUST NOT EXCEED revoked_at.
+  Invariant 9.1: IF revoked_at DOES NOT EQUAL blank THEN granted_at MUST NOT EXCEED revoked_at.
   Invariant 9.2: A grant MUST stand in force at an instant ONLY IF the grant is live at the instant.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2 through 3).
@@ -263,7 +263,7 @@ Check 1.1: An auditor MUST read EVERY grant's grant_id, subject_ref, action_scop
 Check 1.2: An auditor MUST read revoked_at on EVERY revoked grant (State 3).
 Check 2.1: An auditor MUST reconstruct the grant set in force at a past instant from granted_at and revoked_at (Invariant 9.2).
 Check 3.1: An auditor MUST find denied for a pair no active grant matches (Operation 18).
-Check 3.2: An auditor MUST find no permitted answer whose matching active grant NOT EXISTS (Invariant 7.1).
+Check 3.2: An auditor MUST find no permitted answer for which no matching active grant EXISTS (Invariant 7.1).
 Check 4.1: An auditor MUST find no grant whose status moved out of revoked (Invariant 2.2, Invariant 3.1).
 Check 5.1: An auditor MUST find the grant set never shrinking across two readings (Invariant 10.1, Invariant 10.2).
 Check 6.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).

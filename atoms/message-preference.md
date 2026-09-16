@@ -59,7 +59,6 @@ Term preference_id: the opaque value naming one preference record — a [Prefere
 
 Term principal_ref: the opaque reference naming the principal whose preferences the record holds — a [Principal Ref]; compared by exact equality.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Identity by principal alone would collapse a principal's update history into one mutable row, which is exactly the audit story the atom exists to keep: three updates are three records, three ids, three independently queryable rows. Identity by principal and timestamp would entangle identity with the clock, on an axis at-most-one already polices (Identity 6, Identity 7, Invariant 3.1). *Principal* rather than *recipient* or *subscriber* because a preference record is held against an identity, not against having been the target of anything.
@@ -164,12 +163,12 @@ read(preference_id)
 Operation 1: [Set] MUST record EXACTLY ONE preference record per successful call.
 Operation 2: [Set] MUST stand the new preference record in active.
 Operation 3: [Set] MUST answer the preference_id.
-Operation 4: IF principal_ref NOT EXISTS THEN [Set] MUST answer invalid-request.
-Operation 5: IF no preference field EXISTS in the call THEN [Set] MUST answer invalid-request.
+Operation 4: IF principal_ref EQUALS blank THEN [Set] MUST answer invalid-request.
+Operation 5: IF EVERY preference field EQUALS blank THEN [Set] MUST answer invalid-request.
 Operation 6: [Set] MUST read an empty channel_preferences map as an omitted preference field.
 Operation 7: [Set] MUST NOT record an empty channel_preferences map.
-Operation 8: IF a channel_preferences key NOT EXISTS in the injected declared channel set THEN [Set] MUST answer undeclared-channel.
-Operation 9: [Set] MUST answer undeclared-channel ONLY IF principal_ref EXISTS AND a preference field EXISTS in the call.
+Operation 8: IF a channel_preferences key IS NOT IN the injected declared channel set THEN [Set] MUST answer undeclared-channel.
+Operation 9: [Set] MUST answer undeclared-channel ONLY IF principal_ref DOES NOT EQUAL blank AND a preference field DOES NOT EQUAL blank.
 Operation 10: [Set] MUST NOT interpret a preference field.
 Operation 11: [Set] MUST NOT interpret metadata.
 Operation 12: [Set] MUST NOT read metadata as a preference field.
@@ -177,14 +176,14 @@ Operation 13: [Set] MUST NOT compare the preference fields of two preference rec
 Operation 14: IF a preference record currently in effect EXISTS for the principal_ref THEN [Set] MUST stand the prior preference record in deleted.
 Operation 15: [Set] MUST commit the new preference record and the supersession in one operation.
 Operation 16: IF the store refuses the write THEN [Set] MUST answer storage-failure.
-Operation 17: IF the preference_id NOT EXISTS THEN [Suspend] MUST answer not-known.
+Operation 17: IF no preference record EXISTS for the preference_id THEN [Suspend] MUST answer not-known.
 Operation 18: IF the preference record stands in suspended THEN [Suspend] MUST answer not-active.
 Operation 19: IF the preference record stands in deleted THEN [Suspend] MUST answer not-active.
 Operation 20: [Suspend] MUST stand the preference record in suspended.
 Operation 21: [Suspend] MUST NOT change a preference field.
 Operation 22: [Suspend] MUST accept the preference_id as the whole authorization.
 Operation 23: IF the store refuses the write THEN [Suspend] MUST answer storage-failure.
-Operation 24: IF the preference_id NOT EXISTS THEN [Delete] MUST answer not-known.
+Operation 24: IF no preference record EXISTS for the preference_id THEN [Delete] MUST answer not-known.
 Operation 25: IF the preference record stands in deleted THEN [Delete] MUST answer already-deleted.
 Operation 26: [Delete] MUST stand the preference record in deleted.
 Operation 27: [Delete] MUST NOT remove the preference record from the store.
@@ -318,9 +317,9 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   ```
 - **Temporal property — Timestamp ordering.**
   ```
-  Temporal property 1: IF suspended_at EXISTS THEN set_at MUST NOT EXCEED suspended_at.
-  Temporal property 2: IF deleted_at EXISTS THEN set_at MUST NOT EXCEED deleted_at.
-  Temporal property 3: IF suspended_at EXISTS AND deleted_at EXISTS THEN suspended_at MUST NOT EXCEED deleted_at.
+  Temporal property 1: IF suspended_at DOES NOT EQUAL blank THEN set_at MUST NOT EXCEED suspended_at.
+  Temporal property 2: IF deleted_at DOES NOT EQUAL blank THEN set_at MUST NOT EXCEED deleted_at.
+  Temporal property 3: IF suspended_at DOES NOT EQUAL blank AND deleted_at DOES NOT EQUAL blank THEN suspended_at MUST NOT EXCEED deleted_at.
   Temporal property 4: A supersession gap MUST NOT EXCEED the supersession gap bound.
   Temporal property 5: The implementation MUST own the clock monotonicity Temporal property 1 rests on.
   ```
@@ -550,7 +549,7 @@ Re-creation 3: The retired preference_id MUST NOT return.
 Resumption 1: A composing pattern MUST read a suspended preference record's values through [Current For].
 Resumption 2: A composing pattern MUST replay the values through a fresh [Set] call.
 Resumption 3: [Set] MUST validate a replayed channel_preferences key against the injected declared channel set.
-Resumption 4: IF a replayed channel name NOT EXISTS in the injected declared channel set THEN a composing pattern MUST drop the channel name.
+Resumption 4: IF a replayed channel name IS NOT IN the injected declared channel set THEN a composing pattern MUST drop the channel name.
 ```
 
 ### Supersession atomicity

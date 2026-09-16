@@ -147,7 +147,6 @@ Primitive policy 6: The composition MUST call Duplicate Prevention's check ONLY 
 Primitive policy 7: The composition MUST NOT store an entry for a malformed idempotency_token.
 ```
 
-Term blank: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 WHY:
 Primitive policy 7 is the first of the three things this composition does not cache, and the reason is the same each time: it did not act and holds no entry to cache against. A malformed token is not a token, so there is nothing to key an entry by.
@@ -195,7 +194,7 @@ Action wiring 13: The composition MUST write a pending entry for a fresh request
 Action wiring 14: IF the pending write fails THEN the composition MUST answer recording-failure naming the intent.
 Deleted: Action wiring 15. Composition state 4 owns it.
 Deleted: Action wiring 16. Composition state 5 owns it.
-Action wiring 17: The composition MUST retry the result write ONLY IF the result write NOT EXISTS AND the reservation completion bound NOT EXISTS as elapsed.
+Action wiring 17: The composition MUST retry the result write WITHIN the reservation completion bound ONLY IF no result write EXISTS.
 Action wiring 18: IF the reservation completion bound elapses THEN the composition MUST answer recording-failure naming the outcome.
 Action wiring 19: A recording-failure naming the outcome MUST carry the constituent's answer.
 Action wiring 20: The composition MUST call Duplicate Prevention's record ONLY AFTER the result lands.
@@ -416,8 +415,8 @@ Indeterminate outcome 1: A pending entry MUST stand as an act that may have happ
 Indeterminate outcome 2: The composition MUST NOT delegate again for a pending entry.
 Indeterminate outcome 3: The composition MUST compute the candidates from Provisional Commitment's held commitments.
 Indeterminate outcome 4: The composition MUST keep a held commitment whose resource AND requester equal the call's in the candidates.
-Indeterminate outcome 5: IF the candidates NOT EXISTS THEN the composition MUST proceed as a fresh request's delegation.
-Indeterminate outcome 6: IF the candidates EXISTS THEN the composition MUST overwrite the pending entry with outcome-unknown naming the candidates.
+Indeterminate outcome 5: IF the candidates EQUALS blank THEN the composition MUST proceed as a fresh request's delegation.
+Indeterminate outcome 6: IF the candidates DOES NOT EQUAL blank THEN the composition MUST overwrite the pending entry with outcome-unknown naming the candidates.
 Indeterminate outcome 7: An outcome-unknown answer MUST carry the candidates.
 Indeterminate outcome 8: The composition MUST mark a recovered entry.
 Indeterminate outcome 9: A resolving action MUST run again for a pending entry.

@@ -162,9 +162,9 @@ expire(id)
 ```
 
 ```
-Operation 1: IF resource NOT EXISTS THEN [Place Hold] MUST answer invalid-request.
-Operation 2: IF requester NOT EXISTS THEN [Place Hold] MUST answer invalid-request.
-Operation 3: IF duration NOT EXISTS THEN [Place Hold] MUST answer invalid-request.
+Operation 1: IF resource EQUALS blank THEN [Place Hold] MUST answer invalid-request.
+Operation 2: IF requester EQUALS blank THEN [Place Hold] MUST answer invalid-request.
+Operation 3: IF duration EQUALS blank THEN [Place Hold] MUST answer invalid-request.
 Operation 4: IF the duration falls outside the duration bounds THEN [Place Hold] MUST answer invalid-request.
 Operation 5: IF the registry refuses the resource THEN [Place Hold] MUST answer resource-unavailable.
 Operation 6: [Place Hold] MUST answer resource-unavailable ONLY IF EVERY well-formedness check passes.
@@ -463,10 +463,9 @@ String 6: The atom MUST read an absent string input as blank.
 
 Term string input: resource OR requester — every caller-supplied string this atom accepts.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
-This family was missing from a draft of this migration, and its absence was invisible rather than benign: Operation 1 and Operation 2 read `NOT EXISTS` on caller-supplied strings, so without String 5 and String 6 a whitespace-only resource had no declared reading at all and two implementations could disagree about whether it is a hold (council read 38). The blank declaration is the corpus's, word for word across eleven specs, which is the point — the reading is shared and nobody owns it, and the *absence-as-nonexistence* watch entry counts it.
+This family was missing from a draft of this migration, and its absence was invisible rather than benign: Operation 1 and Operation 2 test caller-supplied strings against blank, so without String 5 and String 6 a whitespace-only resource had no declared reading at all and two implementations could disagree about whether it is a hold (council read 38). The reading of blank is shared, which is why the grammar owns it since GRACE-lang v0.52 rather than eleven specs repeating it word for word.
 
 Byte-exactness matters here for the same reason it does wherever an identifier comes from outside: resource and requester are the caller's references, not values this atom issued, so `Room-14` and `room-14` are two resources and a deployment that means them as one canonicalizes before calling (Capability requirement 9, Identity 9).
 

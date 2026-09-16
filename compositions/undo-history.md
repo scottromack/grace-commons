@@ -81,7 +81,7 @@ The composition's one state is the derived state the replay builds from the log,
 Replay 1: The replay MUST read EVERY event of the event log instance in sequence_number order.
 Replay 2: The replay MUST build the undone set from EVERY undo event.
 Replay 3: The replay MUST skip an undo event.
-Replay 4: The replay MUST skip an event whose event_id EXISTS in the undone set.
+Replay 4: The replay MUST skip an event whose event_id IS IN the undone set.
 Replay 5: The replay MUST apply a surviving event to the derived state under construction.
 Replay 6: The replay MUST introduce a unit at the add event's id in pending.
 Replay 7: The replay MUST record the add event's recorded_at as the unit's added_at.
@@ -99,7 +99,7 @@ Replay 17: An auditor MUST NOT read a materialized derived state in preference t
 
 Term replay: the named rebuild procedure Replay 1 through 13 state — the composition's only route from the event log instance to the derived state.
 
-Term surviving event: a forward event whose event_id NOT EXISTS in the undone set.
+Term surviving event: a forward event whose event_id IS NOT IN the undone set.
 
 WHY:
 Replay 5 rests on something worth stating: a surviving event was recorded only because its action succeeded, so Personal Todo's preconditions held when it was written and hold again at every replay step. The replay never has to validate — it is re-running a history that was valid when it happened. Event Log Invariant 5 is what bounds the replay to exactly that set.
@@ -164,7 +164,7 @@ Term no-op edit: an [Edit] whose normalized new description equals the unit's cu
 
 Term undone set: the undone_event_id of every undo event in the event log instance.
 
-Term undo target: the most recent forward event whose event_id NOT EXISTS in the undone set.
+Term undo target: the most recent forward event whose event_id IS NOT IN the undone set.
 
 Term admitted add: an [Add] call whose preconditions pass and whose append commits.
 

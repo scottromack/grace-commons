@@ -156,7 +156,7 @@ read(query)
 Term verification result: verification_id and an optional state_change_id — what verify answers.
 
 ```
-Operation 1: IF a required string input NOT EXISTS THEN an action MUST answer invalid-request.
+Operation 1: IF a required string input EQUALS blank THEN an action MUST answer invalid-request.
 Operation 2: IF the date_of_birth parses as no calendar date THEN [Enroll] MUST answer invalid-request.
 Operation 3: IF the date_of_birth EXCEEDS now THEN [Enroll] MUST answer invalid-request.
 Operation 4: An admitted enroll MUST assign a fresh party_id.
@@ -165,13 +165,13 @@ Operation 6: An admitted enroll MUST record now as enrolled_at.
 Operation 7: An admitted enroll MUST stand the party in unverified.
 Operation 8: An admitted enroll MUST answer the party_id.
 Operation 9: [Enroll] MUST NOT answer not-known.
-Operation 10: IF party_id NOT EXISTS THEN a party action MUST answer invalid-request.
+Operation 10: IF party_id EQUALS blank THEN a party action MUST answer invalid-request.
 Operation 11: IF the party_id names no party THEN a party action MUST answer not-known.
-Operation 12: A party action MUST answer not-known ONLY IF party_id EXISTS.
+Operation 12: A party action MUST answer not-known ONLY IF party_id DOES NOT EQUAL blank.
 Operation 13: IF the party stands in closed THEN a party action MUST answer already-closed.
 Operation 14: IF the party stands in unverified THEN [Suspend] MUST answer not-verifiable.
 Operation 15: IF the party stands in suspended THEN [Suspend] MUST answer already-suspended.
-Operation 16: IF the party NOT EXISTS in suspended THEN [Reinstate] MUST answer not-suspended.
+Operation 16: IF the party's state DOES NOT EQUAL suspended THEN [Reinstate] MUST answer not-suspended.
 Operation 17: A party action MUST answer a state rejection ONLY IF the party_id names a party.
 Operation 18: IF no fresh verification EXISTS THEN [Reinstate] MUST answer no-passed-verification-since-suspend.
 Operation 19: [Reinstate] MUST answer no-passed-verification-since-suspend ONLY IF the party stands in suspended.
@@ -180,7 +180,7 @@ Operation 21: IF the verification_result differs from passed AND the verificatio
 Operation 22: An admitted verify MUST append a verification event carrying a fresh verification_id.
 Operation 23: An admitted verify MUST record verifying_actor_ref, verification_method, verification_result and evidence_ref on the verification event.
 Operation 24: An admitted verify MUST record now as the verification event's verified_at.
-Operation 25: IF the party stands in unverified AND the verification_result = passed THEN an admitted verify MUST stand the party in verified.
+Operation 25: IF the party stands in unverified AND the verification_result EQUALS passed THEN an admitted verify MUST stand the party in verified.
 Operation 26: An admitted verify MUST NOT change the party's state outside the unverified-to-verified transition.
 Operation 27: An admitted verify MUST answer the verification_id.
 Operation 28: An admitted verify driving a transition MUST answer the state_change_id.
@@ -231,7 +231,7 @@ Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operat
 
 Term required string input: name, document_type, document_ref, verification_method, evidence_ref, reason, an acting reference OR party_id — every string an action refuses when blank.
 
-Term fresh verification: a verification event carrying `verification_result = passed` that follows the party's most recent suspend in insertion order, or that follows the enrollment where no suspend EXISTS.
+Term fresh verification: a verification event whose verification_result EQUALS passed that follows the party's most recent suspend in insertion order, or that follows the enrollment where no suspend EXISTS.
 
 Term evidence reference: document_ref OR evidence_ref — every pointer this atom records into the composing document store.
 
@@ -508,7 +508,6 @@ Term string input: a required string input, date_of_birth OR a filter value — 
 
 Term length bound: the maximum length the deployment declares for a string input.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 The blank rule earns its keep on reason more than anywhere else. A suspension, a reinstatement and a closure each require a stated basis, and a whitespace placeholder would satisfy a naive presence check while leaving the audit surface exactly as empty as no reason at all. Storing a name as supplied — no normalization, no transliteration — is the other half: the enrollment record says what was presented, and how a deployment matches or displays it is the deployment's (Capability requirement 6).

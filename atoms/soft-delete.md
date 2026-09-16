@@ -142,9 +142,9 @@ read(query)
 ```
 
 ```
-Operation 1: IF record_id NOT EXISTS THEN a transitioning action MUST answer invalid-request.
-Operation 2: IF the acting reference NOT EXISTS THEN a transitioning action MUST answer invalid-request.
-Operation 3: IF reason NOT EXISTS THEN [Purge] MUST answer invalid-request.
+Operation 1: IF record_id EQUALS blank THEN a transitioning action MUST answer invalid-request.
+Operation 2: IF the acting reference EQUALS blank THEN a transitioning action MUST answer invalid-request.
+Operation 3: IF reason EQUALS blank THEN [Purge] MUST answer invalid-request.
 Operation 4: IF the record_id names no lifecycle record THEN [Restore] MUST answer not-known.
 Operation 5: IF the record_id names no lifecycle record THEN [Purge] MUST answer not-known.
 Operation 6: [Soft Delete] MUST NOT answer not-known.
@@ -154,8 +154,8 @@ Operation 9: IF the lifecycle record stands in deleted THEN [Soft Delete] MUST a
 Operation 10: IF the lifecycle record stands in purged THEN [Soft Delete] MUST answer already-purged.
 Operation 11: IF the lifecycle record stands in purged THEN [Restore] MUST answer already-purged.
 Operation 12: IF the lifecycle record stands in active THEN [Restore] MUST answer not-deleted.
-Operation 13: IF the lifecycle record NOT EXISTS in deleted THEN [Purge] MUST answer not-deleted.
-Operation 14: A transitioning action MUST answer a state rejection ONLY IF record_id EXISTS.
+Operation 13: IF the lifecycle record's state DOES NOT EQUAL deleted THEN [Purge] MUST answer not-deleted.
+Operation 14: A transitioning action MUST answer a state rejection ONLY IF record_id DOES NOT EQUAL blank.
 Operation 15: A transitioning action MUST answer invalid-request on an attribution fault ONLY IF EVERY state check passes.
 Operation 16: IF the resolved transition instant EXCEEDS now THEN a transitioning action MUST answer invalid-request.
 Operation 17: IF the resolved restored_at precedes the lifecycle record's deleted_at THEN [Restore] MUST answer invalid-request.
@@ -182,9 +182,9 @@ Operation 37: An admitted read MUST NOT answer a lifecycle record failing a supp
 Operation 38: An admitted read MUST NOT answer a host record carrying no lifecycle record.
 Operation 39: IF no lifecycle record matches THEN an admitted read MUST answer an empty record sequence.
 Operation 40: An admitted read MUST match an instant-range filter against ONLY the lifecycle records carrying the filter's field.
-Operation 41: IF a filter's axis NOT EXISTS in the filter axes THEN [Read] MUST answer invalid-query.
-Operation 42: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer invalid-query.
-Operation 43: IF a state filter's value NOT EXISTS in the states THEN [Read] MUST answer invalid-query.
+Operation 41: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
+Operation 42: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
+Operation 43: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
 Operation 44: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 45: [Read] MUST NOT write.
 Deleted: Operation 46. Capability requirement 1 owns it.
@@ -455,7 +455,6 @@ String 7: The deployment MUST canonicalize an opaque reference.
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness costs more here than in most atoms, because record_id is the *caller's* identifier rather than one this atom issued (Identity 2). A host that supplies `Post-8821` on delete and `post-8821` on purge has two lifecycle records, and the purge answers not-known on a record that visibly exists. Canonicalization is the deployment's (String 7, Identity 9).

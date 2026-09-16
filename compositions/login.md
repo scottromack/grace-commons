@@ -167,7 +167,6 @@ Primitive policy 8: The composition MUST NOT persist a presented_material.
 Primitive policy 9: The composition MUST NOT answer a presented_material.
 ```
 
-Term blank: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 Term opaque argument: principal_ref | credential_type | session_token | credential_id.
 

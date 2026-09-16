@@ -156,7 +156,6 @@ Primitive policy 11: The composition MUST NOT interpret an action_ref.
 Primitive policy 12: The composition MUST NOT confirm an actor_ref in the actor registry.
 ```
 
-Term blank: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 Term opaque argument: principal_ref | actor_ref | credential_type | action_ref | attestation_id.
 

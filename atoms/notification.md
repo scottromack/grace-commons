@@ -132,7 +132,7 @@ Operation 4: IF recipient_ref is empty THEN [Create] MUST answer invalid-request
 Operation 5: [Create] MUST accept an empty payload.
 Operation 6: The atom MUST NOT read a payload.
 Operation 7: IF the store refuses the write THEN [Create] MUST answer storage-failure.
-Operation 8: IF the notification_id NOT EXISTS THEN a terminal transition MUST answer not-known.
+Operation 8: IF no notification EXISTS for the notification_id THEN a terminal transition MUST answer not-known.
 Operation 9: IF the notification stands in a terminal status THEN a terminal transition MUST answer not-pending.
 Operation 10: [Deliver] MUST stand the notification in delivered.
 Operation 11: [Fail] MUST stand the notification in failed.
@@ -144,7 +144,7 @@ Operation 14b: A composing pattern MUST own the delivery window an expiry answer
 Operation 15: IF the store refuses the write THEN a terminal transition MUST answer storage-failure.
 Operation 16: A refused call MUST leave the notification as the call found the notification.
 Operation 17: [Status Of] MUST answer the notification's stored fields.
-Operation 18: IF the notification_id NOT EXISTS THEN [Status Of] MUST answer not-known.
+Operation 18: IF no notification EXISTS for the notification_id THEN [Status Of] MUST answer not-known.
 Operation 19: [Pending For] MUST answer the notification_id of EVERY pending notification carrying the recipient_ref.
 Operation 20: [Pending For] MUST NOT answer a terminal notification's notification_id.
 Operation 21: [Pending For] MUST NOT order the answer.
@@ -224,9 +224,9 @@ The three terminal transitions share one precondition pair — known, and pendin
   ```
 - **Invariant 8 — Timestamp ordering.**
   ```
-  Invariant 8.1: IF delivered_at EXISTS THEN created_at MUST NOT EXCEED delivered_at.
-  Invariant 8.2: IF failed_at EXISTS THEN created_at MUST NOT EXCEED failed_at.
-  Invariant 8.3: IF expired_at EXISTS THEN created_at MUST NOT EXCEED expired_at.
+  Invariant 8.1: IF delivered_at DOES NOT EQUAL blank THEN created_at MUST NOT EXCEED delivered_at.
+  Invariant 8.2: IF failed_at DOES NOT EQUAL blank THEN created_at MUST NOT EXCEED failed_at.
+  Invariant 8.3: IF expired_at DOES NOT EQUAL blank THEN created_at MUST NOT EXCEED expired_at.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2).
 - **Invariant 9 — Notification durability.**

@@ -1131,6 +1131,53 @@ def check_signature_form_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing) + 2
 
 
+def check_condition_form_synthetic(problems: list[str]) -> int:
+    """D-condition-form (tools/grace/check.py) — one condition operator, one
+    sense, at GRACE-lang v0.52 (council read 99). The admitted forms stay
+    silent; each retired spelling fires. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.52 (2026-09-16).\n\n"
+            "Term record verbs: answer, read.\n\n## Structure\n\n### Operations\n\n"
+            "```\nrelease(hold_id, reason)\n  answers released\n  refuses invalid-request | not-known\n```\n\n")
+    def run(rule: str, decl: str = ""):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rule + "\nOperation 9: [Release] MUST read the store.\n```\n"
+                         + (decl and "\n" + decl + "\n"), encoding="utf-8")
+            return [x for x in scan(f) if x.code == "D-condition-form"]
+    silent = [
+        ("a thing's absence", "Operation 1: IF no hold EXISTS for the hold_id THEN [Release] MUST answer not-known.", ""),
+        ("a thing's presence", "Operation 1: IF an active hold EXISTS for the hold_id THEN [Release] MUST read the store.", ""),
+        ("a missing value", "Operation 1: IF reason EQUALS blank THEN [Release] MUST answer invalid-request.", ""),
+        ("a value that differs", "Operation 1: IF reason DOES NOT EQUAL blank THEN [Release] MUST read the store.", ""),
+        ("membership", "Operation 1: IF the hold's state IS NOT IN the active states THEN [Release] MUST answer not-known.", ""),
+        ("a quoted retired form", "Operation 1: IF reason EQUALS blank THEN [Release] MUST answer invalid-request, never `reason NOT EXISTS`.", ""),
+        ("a value set", "Operation 1: [Release] MUST read the store.", "Term value sets: state = active | released."),
+    ]
+    firing = [
+        ("NOT EXISTS on a value", "Operation 1: IF reason NOT EXISTS THEN [Release] MUST answer invalid-request.", ""),
+        ("NOT EXISTS on a thing", "Operation 1: IF the hold NOT EXISTS THEN [Release] MUST answer not-known.", ""),
+        ("EXISTS in a set", "Operation 1: IF the state NOT EXISTS in the active states THEN [Release] MUST answer not-known.", ""),
+        ("an input tested with EXISTS", "Operation 1: [Release] MUST answer not-known ONLY IF hold_id EXISTS.", ""),
+        ("is blank in a condition", "Operation 1: IF reason is blank THEN [Release] MUST answer invalid-request.", ""),
+        ("= in a condition", "Operation 1: IF reason = blank THEN [Release] MUST answer invalid-request.", ""),
+        ("!= in a condition", "Operation 1: IF reason != blank THEN [Release] MUST read the store.", ""),
+        ("= in a write", "Operation 1: [Release] MUST read the store with cause = released.", ""),
+        ("!= in a declaration", "Operation 1: [Release] MUST read the store.", "Term live: a hold whose state != released."),
+    ]
+    for name, rule, decl in silent:
+        got = run(rule, decl)
+        if got:
+            problems.append(f"D-condition-form: fired on {name}: {got[0].message}")
+    for name, rule, decl in firing:
+        if not run(rule, decl):
+            problems.append(f"D-condition-form: {name} did not fire")
+    return len(silent) + len(firing)
+
+
 def check_fence_form_synthetic(problems: list[str]) -> int:
     """D-fence-form and Surface 19 after the fence kinds merged (council read 90).
     A bare fence of rules, a Ledger-shaped block, another language's code and a
@@ -1609,6 +1656,16 @@ def main(argv: list[str]) -> int:
               "call silent, and a value sets line naming no signed action; the arrow, a `?`, a braced record, the `rejected(…)` wrapper, "
               "a nested arm, two codes with no bar, a missing answers line, a missing blank "
               "line, a split header and a value sets line restating a signature fire) \u2713")
+
+    cond_problems: list[str] = []
+    n_cond = check_condition_form_synthetic(cond_problems)
+    failures.extend(cond_problems)
+    if not cond_problems:
+        print(f"D-condition-form: {n_cond} synthetic fixtures hold (a thing's absence and "
+              "presence, a missing value, a differing value, membership, a quoted retired form "
+              "and a value set silent; NOT EXISTS on a value and on a thing, `is blank`, EXISTS in a set, an "
+              "input tested with EXISTS, = and != in a condition, = in a write and != in a "
+              "declaration fire) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)

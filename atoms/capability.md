@@ -158,14 +158,14 @@ Term redemption failure: exhausted | expired | revoked | not-known — the reaso
 Operation 1: [Allocate] MUST record EXACTLY ONE capability per successful call.
 Operation 2: [Allocate] MUST stand the capability in allocated.
 Operation 3: [Allocate] MUST answer the capability_token.
-Operation 4: IF allocator_ref NOT EXISTS THEN [Allocate] MUST answer invalid-request.
-Operation 5: IF scope NOT EXISTS THEN [Allocate] MUST answer invalid-request.
-Operation 6: IF max_redemptions NOT EXISTS THEN [Allocate] MUST apply the single-use default.
+Operation 4: IF allocator_ref EQUALS blank THEN [Allocate] MUST answer invalid-request.
+Operation 5: IF scope EQUALS blank THEN [Allocate] MUST answer invalid-request.
+Operation 6: IF max_redemptions EQUALS blank THEN [Allocate] MUST apply the single-use default.
 Operation 7: [Allocate] MUST accept a max_redemptions ONLY IF the max_redemptions EXCEEDS zero.
 Operation 8: IF zero EXCEEDS max_redemptions THEN [Allocate] MUST answer invalid-request.
-Operation 9: IF max_redemptions = zero THEN [Allocate] MUST answer invalid-request.
-Operation 10: IF ttl NOT EXISTS THEN [Allocate] MUST apply the default capability ttl.
-Operation 11: IF the default capability ttl NOT EXISTS THEN [Allocate] MUST answer invalid-request.
+Operation 9: IF max_redemptions EQUALS zero THEN [Allocate] MUST answer invalid-request.
+Operation 10: IF ttl EQUALS blank THEN [Allocate] MUST apply the default capability ttl.
+Operation 11: IF the default capability ttl EQUALS blank THEN [Allocate] MUST answer invalid-request.
 Operation 12: [Allocate] MUST accept a ttl ONLY IF the ttl EXCEEDS the zero duration.
 Operation 13: IF the ttl NOT EXCEEDS the zero duration THEN [Allocate] MUST answer invalid-request.
 Operation 14: [Allocate] MUST stamp allocated_at from the injected now.
@@ -193,8 +193,8 @@ Operation 35: IF the capability_token names no capability THEN [Revoke] MUST ans
 Operation 36: IF the capability stands in redeemed THEN [Revoke] MUST answer already-terminal.
 Operation 37: IF the capability stands in revoked THEN [Revoke] MUST answer already-terminal.
 Operation 38: IF the capability is lapsed THEN [Revoke] MUST answer already-terminal.
-Operation 39: IF the capability is revocable AND revoked_by_ref NOT EXISTS THEN [Revoke] MUST answer invalid-request.
-Operation 40: IF the capability is revocable AND reason NOT EXISTS THEN [Revoke] MUST answer invalid-request.
+Operation 39: IF the capability is revocable AND revoked_by_ref EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 40: IF the capability is revocable AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 41: [Revoke] MUST stand the capability in revoked.
 Operation 42: [Revoke] MUST stamp revoked_at from the injected now.
 Operation 43: [Revoke] MUST record revoked_by_ref on the capability.
@@ -541,7 +541,6 @@ String 7: IF a string input EXCEEDS the maximum length THEN the action MUST answ
 String 8: The deployment MUST canonicalize an opaque reference.
 ```
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness means two allocator_ref values differing only in normalization form are two distinct allocators here, and the audit queries that range over the field inherit that — so canonicalization is the deployment's, before the call (String 1, String 8).

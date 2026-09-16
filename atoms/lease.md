@@ -72,10 +72,10 @@ Operation 5: The host MUST NOT extend a waiter's bound.
 Operation 6: [Try Take] MUST NOT wait.
 Operation 7: [Try Take] MUST answer EXACTLY ONE OF taken(expires_at), held.
 Operation 8: [Remaining] MUST answer the remaining term of the asking holder.
-Operation 9: IF the asking party != the holder THEN [Remaining] MUST answer none.
+Operation 9: IF the asking party DOES NOT EQUAL the holder THEN [Remaining] MUST answer none.
 Operation 10: A caller MUST NOT compute the remaining term from a remembered expires_at and the caller's own reading.
 Operation 11: [Release] MUST end the asking holder's grant.
-Operation 12: IF the asking party != the holder THEN [Release] MUST answer not-held.
+Operation 12: IF the asking party DOES NOT EQUAL the holder THEN [Release] MUST answer not-held.
 Operation 13: [Release] MUST NOT reach another holder's grant.
 Operation 14: An implementer MUST NOT treat not-held as a failure.
 ```

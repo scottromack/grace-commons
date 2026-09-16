@@ -114,7 +114,7 @@ Operation 2: [Seal] MUST record EXACTLY ONE evidence per successful call.
 Operation 3: [Seal] MUST stamp sealed_at from the injected now.
 Operation 4: IF the mechanism anchors at seal time THEN [Seal] MUST carry anchored_at into the evidence.
 Operation 5: [Seal] MUST consume the mechanism_credential.
-Operation 6: IF record_set_ref is blank THEN [Seal] MUST answer invalid-request.
+Operation 6: IF record_set_ref EQUALS blank THEN [Seal] MUST answer invalid-request.
 Operation 7: IF the mechanism_credential is absent THEN [Seal] MUST answer invalid-request.
 Operation 8: [Seal] MUST accept an empty mechanism_credential for an unkeyed mechanism.
 Operation 9: IF the mechanism cannot compute the proof THEN [Seal] MUST answer mechanism-failure.
@@ -123,11 +123,11 @@ Operation 11: [Seal] MUST discard the proof on storage-failure.
 Operation 12: [Seal] MUST NOT alter a recorded evidence.
 Operation 13: [Verify] MUST take the original_record_set.
 Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
-Operation 15: IF the evidence NOT EXISTS THEN [Verify] MUST answer not-known.
-Operation 16: IF the evidence EXISTS AND record set match = no THEN [Verify] MUST answer record-set-mismatch.
-Operation 17: IF record set match = yes AND seal check = unavailable THEN [Verify] MUST answer mechanism-verification-unavailable.
-Operation 18: IF record set match = yes AND seal check = failed THEN [Verify] MUST answer proof-invalid.
-Operation 19: [Verify] MUST answer verified ONLY IF seal check = held.
+Operation 15: IF no evidence EXISTS for the evidence_id THEN [Verify] MUST answer not-known.
+Operation 16: IF evidence EXISTS for the evidence_id AND record set match EQUALS no THEN [Verify] MUST answer record-set-mismatch.
+Operation 17: IF record set match EQUALS yes AND seal check EQUALS unavailable THEN [Verify] MUST answer mechanism-verification-unavailable.
+Operation 18: IF record set match EQUALS yes AND seal check EQUALS failed THEN [Verify] MUST answer proof-invalid.
+Operation 19: [Verify] MUST answer verified ONLY IF seal check EQUALS held.
 Operation 20: [Verify] MUST NOT write.
 Deleted: Operation 21. Capability requirement 1 owns it.
 Operation 22: The host MUST supply the cryptographic material at the atom's seam.

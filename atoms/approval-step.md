@@ -159,28 +159,28 @@ read(query)
 ```
 
 ```
-Operation 1: IF subject_ref NOT EXISTS THEN [Submit] MUST answer invalid-request.
-Operation 2: IF approver_ref NOT EXISTS THEN [Submit] MUST answer invalid-request.
-Operation 3: IF submitter_ref NOT EXISTS THEN [Submit] MUST answer invalid-request.
-Operation 4: IF scope NOT EXISTS THEN [Submit] MUST answer invalid-request.
-Operation 5: IF a supplied reason NOT EXISTS THEN [Submit] MUST answer invalid-request.
+Operation 1: IF subject_ref EQUALS blank THEN [Submit] MUST answer invalid-request.
+Operation 2: IF approver_ref EQUALS blank THEN [Submit] MUST answer invalid-request.
+Operation 3: IF submitter_ref EQUALS blank THEN [Submit] MUST answer invalid-request.
+Operation 4: IF scope EQUALS blank THEN [Submit] MUST answer invalid-request.
+Operation 5: IF a supplied reason EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 6: IF the resolved submitted_at EXCEEDS now THEN [Submit] MUST answer invalid-request.
 Operation 7: An admitted submit MUST record EXACTLY ONE step.
 Operation 8: An admitted submit MUST stand the step in pending.
 Operation 9: An admitted submit MUST answer the step_id.
-Operation 10: IF step_id NOT EXISTS THEN a resolving action MUST answer invalid-request.
+Operation 10: IF step_id EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 11: IF the step_id names no step THEN a resolving action MUST answer not-known.
-Operation 12: A resolving action MUST answer not-known ONLY IF step_id EXISTS.
+Operation 12: A resolving action MUST answer not-known ONLY IF step_id DOES NOT EQUAL blank.
 Operation 13: IF the step stands in a terminal state THEN a resolving action MUST answer not-pending.
 Operation 14: A resolving action MUST answer not-pending ONLY IF the step_id names a step.
-Operation 15: IF the deciding reference NOT EXISTS THEN a resolving action MUST answer invalid-request.
-Operation 16: IF reason NOT EXISTS THEN [Reject] MUST answer invalid-request.
-Operation 17: IF reason NOT EXISTS THEN [Withdraw] MUST answer invalid-request.
+Operation 15: IF the deciding reference EQUALS blank THEN a resolving action MUST answer invalid-request.
+Operation 16: IF reason EQUALS blank THEN [Reject] MUST answer invalid-request.
+Operation 17: IF reason EQUALS blank THEN [Withdraw] MUST answer invalid-request.
 Operation 18: IF the resolved decision instant EXCEEDS now THEN a resolving action MUST answer invalid-request.
 Operation 19: IF the resolved decision instant precedes the step's submitted_at THEN a resolving action MUST answer invalid-request.
 Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step stands in pending.
-Operation 21: IF decided_by != approver_ref THEN a deciding action MUST answer unauthorized.
-Operation 22: IF withdrawn_by != submitter_ref THEN [Withdraw] MUST answer unauthorized.
+Operation 21: IF decided_by DOES NOT EQUAL approver_ref THEN a deciding action MUST answer unauthorized.
+Operation 22: IF withdrawn_by DOES NOT EQUAL submitter_ref THEN [Withdraw] MUST answer unauthorized.
 Operation 23: A resolving action MUST answer unauthorized ONLY IF EVERY attribution check passes.
 Operation 24: An admitted approve MUST stand the step in approved.
 Operation 25: An admitted reject MUST stand the step in rejected.
@@ -202,9 +202,9 @@ Operation 40: An admitted read MUST answer EVERY step matching the supplied filt
 Operation 41: An admitted read MUST NOT answer a step failing a supplied filter.
 Operation 42: IF no step matches THEN an admitted read MUST answer an empty step sequence.
 Operation 43: An admitted read MUST match an instant-range filter against ONLY the steps carrying the filter's field.
-Operation 44: IF a filter's axis NOT EXISTS in the filter axes THEN [Read] MUST answer invalid-query.
-Operation 45: IF a reference filter's value NOT EXISTS THEN [Read] MUST answer invalid-query.
-Operation 46: IF a state filter's value NOT EXISTS in the states THEN [Read] MUST answer invalid-query.
+Operation 44: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
+Operation 45: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
+Operation 46: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
 Operation 47: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 48: [Read] MUST NOT write.
 Deleted: Operation 49. Capability requirement 1 owns it.
@@ -505,7 +505,6 @@ String 7: The deployment MUST canonicalize an opaque reference.
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 The cost of byte-exactness lands hardest on the exclusivity guards. An approver whose reference is stored one way and supplied another gets unauthorized on their own step — correct by Identity 10, and indistinguishable to them from being the wrong actor. A deployment that does not canonicalize will discover this as an approver who cannot approve.

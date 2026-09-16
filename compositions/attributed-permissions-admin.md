@@ -251,7 +251,6 @@ Primitive policy 16: The composition MUST read a constituent's invalid-request a
 Primitive policy 17: The composition MUST NOT query Permissions BEFORE a revocation's attestation.
 ```
 
-Term blank: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
 
@@ -381,11 +380,11 @@ Action wiring 52: A caller MUST NOT read a revoked count as the terminal conditi
 Action wiring 53: The composition MUST NOT claim an atomicity across the enumerated set.
 Action wiring 54: A post-enumeration grant MUST stand outside the invocation.
 Action wiring 55: The composition MUST read the grant through Permissions' declared read at [Verify Grant Attribution].
-Action wiring 56: IF the grant NOT EXISTS THEN [Verify Grant Attribution] MUST answer not-known.
+Action wiring 56: IF no grant EXISTS for the grant_id THEN [Verify Grant Attribution] MUST answer not-known.
 Action wiring 57: The composition MUST read the grant attribution entry at [Verify Grant Attribution].
-Action wiring 58: IF the grant attribution entry NOT EXISTS THEN [Verify Grant Attribution] MUST answer attribution-inconsistency.
+Action wiring 58: IF no grant attribution entry EXISTS for the grant_id THEN [Verify Grant Attribution] MUST answer attribution-inconsistency.
 Action wiring 59: [Verify Grant Attribution] MUST read the revocation attribution entry ONLY IF the grant stands revoked.
-Action wiring 60: IF the revocation attribution entry NOT EXISTS over a revoked grant THEN [Verify Grant Attribution] MUST answer attribution-inconsistency.
+Action wiring 60: IF no revocation attribution entry EXISTS for a revoked grant THEN [Verify Grant Attribution] MUST answer attribution-inconsistency.
 Action wiring 61: The composition MUST call Actor Identity's verify PER named attestation at [Verify Grant Attribution].
 Action wiring 62: IF Actor Identity answers not-known THEN [Verify Grant Attribution] MUST read the purge record.
 Action wiring 63: IF the purge record names the attestation THEN [Verify Grant Attribution] MUST answer not-applicable carrying purged.

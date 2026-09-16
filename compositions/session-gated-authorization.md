@@ -120,9 +120,8 @@ Action wiring 14: [Check Permitted] MUST NOT read a validate answer a prior call
 Action wiring 15: [Check Permitted] MUST NOT write.
 ```
 
-Term boundary predicate: the composition's own argument check — an argument NOT EXISTS, is blank OR EXCEEDS the length bound.
+Term boundary predicate: the composition's own argument check — an argument EQUALS blank OR EXCEEDS the length bound.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 Term length bound: the cap a deployment pins for an opaque argument — a [Length Bound]; the value is the deployment's, the existence is this composition's contract.
 

@@ -123,20 +123,20 @@ purge(retention_id)
 Operation 1: [Place Under Retention] MUST record EXACTLY ONE retention per successful call.
 Operation 2: [Place Under Retention] MUST stand the retention in retained.
 Operation 3: [Place Under Retention] MUST answer retention_id.
-Operation 4: IF record_ref is blank THEN [Place Under Retention] MUST answer invalid-request.
-Operation 5: IF policy_ref is blank THEN [Place Under Retention] MUST answer invalid-request.
-Operation 6: IF the policy_ref NOT EXISTS in the registry THEN [Place Under Retention] MUST answer policy-not-found.
+Operation 4: IF record_ref EQUALS blank THEN [Place Under Retention] MUST answer invalid-request.
+Operation 5: IF policy_ref EQUALS blank THEN [Place Under Retention] MUST answer invalid-request.
+Operation 6: IF no policy EXISTS for the policy_ref in the registry THEN [Place Under Retention] MUST answer policy-not-found.
 Operation 7: IF the policy's duration is not positive THEN [Place Under Retention] MUST answer invalid-policy.
-Operation 7a: IF the policy's duration = degenerate duration THEN [Place Under Retention] MUST answer invalid-policy.
+Operation 7a: IF the policy's duration EQUALS degenerate duration THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 8: IF the policy's max_purge_delay is negative THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 9: IF the retention store refuses the write THEN [Place Under Retention] MUST answer storage-failure.
 Operation 10: [Place Under Retention] MUST NOT record a partial retention.
 Operation 11: [Place Under Retention] MUST NOT read the host's record store.
 Operation 12: [Purge] MUST stand the retention in purged.
 Operation 13: [Purge] MUST stamp purged_at from the injected now.
-Operation 14: IF the retention_id NOT EXISTS THEN [Purge] MUST answer not-known.
+Operation 14: IF no retention EXISTS for the retention_id THEN [Purge] MUST answer not-known.
 Operation 15: IF the retention stands in purged THEN [Purge] MUST answer not-retained.
-Operation 16: IF purge eligible = no THEN [Purge] MUST answer retention-period-not-elapsed.
+Operation 16: IF purge eligible EQUALS no THEN [Purge] MUST answer retention-period-not-elapsed.
 Operation 17: [Purge] MUST NOT write on retention-period-not-elapsed.
 Operation 18: [Purge] MUST NOT refuse a call past purge_deadline.
 Operation 19: IF the retention store refuses the write THEN [Purge] MUST answer storage-failure.
@@ -179,7 +179,7 @@ The refusal order is carried by each rule's own condition rather than by the ord
   ```
 - **Invariant 2 — Retain-then-Retained persistence.**
   ```
-  Invariant 2.1: A recorded retention MUST stand in retained ONLY IF [Purge] NOT EXISTS for the retention.
+  Invariant 2.1: A recorded retention MUST stand in retained ONLY IF no [Purge] EXISTS for the retention.
   ```
 - **Invariant 3 — Terminal absorption.**
   ```
@@ -204,7 +204,7 @@ The refusal order is carried by each rule's own condition rather than by the ord
   ```
 - **Invariant 7 — No early purge.**
   ```
-  Invariant 7.1: IF purge eligible = no THEN a retention MUST NOT stand in purged.
+  Invariant 7.1: IF purge eligible EQUALS no THEN a retention MUST NOT stand in purged.
   ```
   WHY: this is the regulator's structural guarantee that an obligation cannot be silently shortened, and it is gated per retention_id — a retention's own retention_until and nothing else (Simultaneous retention 1 through 4).
 - **Invariant 8 — Purge timestamp consistency.**

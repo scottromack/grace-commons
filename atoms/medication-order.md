@@ -182,33 +182,33 @@ read(query)
 ```
 
 ```
-Operation 1: IF a required string input NOT EXISTS THEN an action MUST answer a blank-input rejection.
+Operation 1: IF a required string input EQUALS blank THEN an action MUST answer a blank-input rejection.
 Operation 2: IF the dose NOT EXCEEDS zero THEN [Order] MUST answer invalid-order.
 Operation 3: IF a supplied ordered_at EXCEEDS the future bound THEN [Order] MUST answer invalid-order.
-Operation 4: IF ordered_at NOT EXISTS THEN [Order] MUST record now as ordered_at.
+Operation 4: IF ordered_at EQUALS blank THEN [Order] MUST record now as ordered_at.
 Operation 5: An admitted order MUST assign a fresh order_id.
 Operation 6: An admitted order MUST record EVERY supplied core field.
 Operation 7: An admitted order MUST stand the order in ordered.
 Operation 8: An admitted order MUST answer the order_id.
 Operation 9: [Order] MUST NOT answer not-known.
-Operation 10: IF order_id NOT EXISTS THEN an order action MUST answer a blank-input rejection.
+Operation 10: IF order_id EQUALS blank THEN an order action MUST answer a blank-input rejection.
 Operation 11: IF the order_id names no order THEN an order action MUST answer not-known.
-Operation 12: An order action MUST answer not-known ONLY IF order_id EXISTS.
+Operation 12: An order action MUST answer not-known ONLY IF order_id DOES NOT EQUAL blank.
 Operation 13: IF the order stands in on-hold THEN a held-refusing action MUST answer on-hold.
 Operation 14: IF the order stands in an inactive state THEN a state-changing action MUST answer the inactive state's rejection.
 Operation 15: A state-changing action MUST answer an inactive-state rejection ONLY IF the order stands outside on-hold.
-Operation 16: IF the order NOT EXISTS in ordered THEN [Verify] MUST answer not-in-ordered-state.
-Operation 17: IF the order NOT EXISTS in a pre-dispensing state THEN [Amend] MUST answer already-dispensed.
-Operation 18: IF the order NOT EXISTS in a pre-dispensing state THEN [Cancel] MUST answer already-dispensed.
-Operation 19: IF the order NOT EXISTS in verified THEN [Dispense] MUST answer not-verified.
+Operation 16: IF the order's state DOES NOT EQUAL ordered THEN [Verify] MUST answer not-in-ordered-state.
+Operation 17: IF the order's state IS NOT IN the pre-dispensing states THEN [Amend] MUST answer already-dispensed.
+Operation 18: IF the order's state IS NOT IN the pre-dispensing states THEN [Cancel] MUST answer already-dispensed.
+Operation 19: IF the order's state DOES NOT EQUAL verified THEN [Dispense] MUST answer not-verified.
 Operation 20: IF the order stands in dispensed THEN [Dispense] MUST answer already-dispensed.
-Operation 21: IF the order NOT EXISTS in dispensed THEN [Administer] MUST answer not-dispensed.
+Operation 21: IF the order's state DOES NOT EQUAL dispensed THEN [Administer] MUST answer not-dispensed.
 Operation 22: IF the order stands in administered THEN [Administer] MUST answer already-administered.
-Operation 23: IF the order NOT EXISTS in administered THEN [Complete] MUST answer not-administered.
-Operation 24: IF the order NOT EXISTS in a post-dispensing state THEN [Discontinue] MUST answer not-dispensed.
-Operation 25: IF the order NOT EXISTS in an actionable state THEN [Hold] MUST answer the order's state rejection.
+Operation 23: IF the order's state DOES NOT EQUAL administered THEN [Complete] MUST answer not-administered.
+Operation 24: IF the order's state IS NOT IN the post-dispensing states THEN [Discontinue] MUST answer not-dispensed.
+Operation 25: IF the order's state IS NOT IN the actionable states THEN [Hold] MUST answer the order's state rejection.
 Operation 26: IF the order stands in on-hold THEN [Hold] MUST answer already-on-hold.
-Operation 27: IF the order NOT EXISTS in on-hold THEN [Reinstate] MUST answer not-on-hold.
+Operation 27: IF the order's state DOES NOT EQUAL on-hold THEN [Reinstate] MUST answer not-on-hold.
 Operation 28: A state-changing action MUST answer a blank-input rejection on a field fault ONLY IF EVERY state check passes.
 Operation 29: IF EVERY supplied dosing parameter matches the order's dosing parameter THEN [Amend] MUST answer invalid-request.
 Operation 30: [Amend] MUST NOT accept a medication_ref.
@@ -345,7 +345,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   WHY: by construction rather than by guard — [Amend] takes none of the three (Operation 30 through 32), so divergence is unrepresentable. amended_by records who made the correction; prescribing authorship stays with the original prescriber, which is why prescriber_ref is inherited rather than replaced.
 - **Invariant 3 — Amendment is pre-dispensing only.**
   ```
-  Invariant 3.1: [Amend] MUST answer a rejection ONLY IF the order NOT EXISTS in a pre-dispensing state.
+  Invariant 3.1: [Amend] MUST answer a rejection ONLY IF the order's state IS NOT IN the pre-dispensing states.
   ```
   WHY: one of the two rules that carry this atom's domain. An order that has crossed the dispensing edge is corrected by discontinuing and re-ordering, because the medication is in someone else's custody and a record that edited itself would describe a bottle that does not exist.
 - **Invariant 4 — Amendment chains are linear.**
@@ -359,8 +359,8 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   ```
 - **Invariant 6 — Cancel is pre-dispensing; discontinue is post-dispensing.**
   ```
-  Invariant 6.1: [Cancel] MUST answer a rejection ONLY IF the order NOT EXISTS in a pre-dispensing state.
-  Invariant 6.2: [Discontinue] MUST answer a rejection ONLY IF the order NOT EXISTS in a post-dispensing state.
+  Invariant 6.1: [Cancel] MUST answer a rejection ONLY IF the order's state IS NOT IN the pre-dispensing states.
+  Invariant 6.2: [Discontinue] MUST answer a rejection ONLY IF the order's state IS NOT IN the post-dispensing states.
   ```
   WHY: the second rule carrying the domain, and the reason the two terminals are named differently rather than folded into one *stopped*. A cancelled order means the medication never reached the patient; a discontinued one means it was dispensed or administered and then stopped. Those are different facts for pharmacy accounting, for DEA controlled-substance reconciliation and for an adverse-event investigation, and a single terminal would make them indistinguishable in exactly the record an investigator reads.
 - **Invariant 7 — A terminal state is absorbing.**
@@ -598,7 +598,6 @@ String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer 
 
 Term string input: a required string input OR a filter value — every caller-supplied string this atom accepts.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 Term length bound: the maximum length the deployment declares for a string input.
 

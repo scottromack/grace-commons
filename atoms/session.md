@@ -181,9 +181,9 @@ Term validation failure: expired | revoked | not-known — the reasons [Validate
 Operation 1: [Issue] MUST record EXACTLY ONE session per successful call.
 Operation 2: [Issue] MUST stand the session in active.
 Operation 3: [Issue] MUST answer the session_token.
-Operation 4: IF principal_ref NOT EXISTS THEN [Issue] MUST answer invalid-request.
-Operation 5: IF issued_by_ref NOT EXISTS THEN [Issue] MUST answer invalid-request.
-Operation 6: IF session_duration NOT EXISTS THEN [Issue] MUST apply the default session duration.
+Operation 4: IF principal_ref EQUALS blank THEN [Issue] MUST answer invalid-request.
+Operation 5: IF issued_by_ref EQUALS blank THEN [Issue] MUST answer invalid-request.
+Operation 6: IF session_duration EQUALS blank THEN [Issue] MUST apply the default session duration.
 Operation 7: [Issue] MUST accept a session_duration ONLY IF the session_duration EXCEEDS the zero duration.
 Operation 8: IF the session_duration NOT EXCEEDS the zero duration THEN [Issue] MUST answer invalid-request.
 Operation 9: [Issue] MUST stamp issued_at from the injected now.
@@ -202,8 +202,8 @@ Operation 21: [Validate] MUST NOT refuse a call.
 Operation 22: IF the session_token names no session THEN [Revoke] MUST answer not-known.
 Operation 23: IF the session stands in revoked THEN [Revoke] MUST answer already-terminal.
 Operation 24: [Revoke] MUST answer already-terminal ONLY IF the session stands in revoked.
-Operation 25: IF the session stands in active AND revoked_by_ref NOT EXISTS THEN [Revoke] MUST answer invalid-request.
-Operation 26: IF the session stands in active AND reason NOT EXISTS THEN [Revoke] MUST answer invalid-request.
+Operation 25: IF the session stands in active AND revoked_by_ref EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 26: IF the session stands in active AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 27: [Revoke] MUST accept a lapsed session.
 Operation 28: [Revoke] MUST stand the session in revoked.
 Operation 29: [Revoke] MUST stamp revoked_at from the injected now.
@@ -225,7 +225,7 @@ Deleted: Operation 44. `execution-contract.md` §Logic confinement owns it.
 Operation 45: The atom MUST NOT offer an expire action.
 Operation 46: The atom MUST NOT offer an extend action.
 Operation 47: The atom MUST NOT offer an un-revoke action.
-Operation 48: IF the default session duration NOT EXISTS THEN [Issue] MUST answer invalid-request.
+Operation 48: IF the default session duration EQUALS blank THEN [Issue] MUST answer invalid-request.
 Operation 49: The transition MUST NOT generate the session_token's random material.
 ```
 
@@ -501,7 +501,6 @@ Term invalid answer: [Validate]'s answer standing in expired, revoked OR not-kno
 
 Term authentication credential: the material a principal presents to prove identity, as [Credential](./credential.md) declares it; distinct from the session_token, which is the bearer credential this atom's own [Validate] accepts (Identity 2).
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness means callers own canonicalization: two references differing only in case or normalization form are two distinct principals to this atom, and nothing here will reconcile them (String 1, String 8).
@@ -522,7 +521,7 @@ The format is the deployment's (Capability requirement 5, Non-goal 16), but one 
 
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-Composition note 2: IF the verified answer NOT EXISTS THEN a composing pattern MUST NOT call [Issue].
+Composition note 2: IF no verified answer EXISTS THEN a composing pattern MUST NOT call [Issue].
 Composition note 3: A composing pattern MUST own the attribution of an issuance.
 Composition note 4: IF [Validate] gives an invalid answer THEN a composing pattern MUST NOT call Permissions.
 Composition note 5: A composing pattern MUST own the renewal policy.

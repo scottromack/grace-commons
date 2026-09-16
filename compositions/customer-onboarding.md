@@ -320,7 +320,6 @@ Primitive policy 20: The composition MUST carry an open-trigger set exceeding th
 Primitive policy 21: The boundary predicate MUST refuse a blank retention_policy_ref.
 ```
 
-Term blank: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
 
@@ -464,7 +463,7 @@ Action wiring 1: [Initiate Onboarding] MUST answer invalid-request for a call ca
 Action wiring 2: [Initiate Onboarding] MUST answer invalid-request for a call carrying no party_id AND no enrollment fields.
 Action wiring 3: [Initiate Onboarding] MUST answer invalid-request for an unset monitoring interval.
 Action wiring 4: An external path call MUST read the party through Party Identity's declared read.
-Action wiring 5: IF the party NOT EXISTS THEN [Initiate Onboarding] MUST answer party-not-known.
+Action wiring 5: IF no party EXISTS for the party_id THEN [Initiate Onboarding] MUST answer party-not-known.
 Action wiring 6: IF the party's state stands outside the admissible states THEN [Initiate Onboarding] MUST answer party-not-admissible carrying the state.
 Action wiring 7: IF an active case EXISTS for the party THEN [Initiate Onboarding] MUST answer already-onboarded.
 Action wiring 8: An admitted initiation MUST record an initiation intent.
@@ -481,7 +480,7 @@ Action wiring 18: IF Retention Window answers storage-failure for a direct path 
 Action wiring 19: An admitted initiation MUST record an initiated outcome carrying the case_id, the party_id, the enrollment_path, the current placement, the opened_at AND the next review due.
 Action wiring 20: An admitted initiation MUST answer the case_id.
 Action wiring 21: The composition MUST read the case-to-monitoring index at [Record Verification].
-Action wiring 22: IF the case NOT EXISTS THEN [Record Verification] MUST answer not-known.
+Action wiring 22: IF no case EXISTS for the case_id THEN [Record Verification] MUST answer not-known.
 Action wiring 23: IF the case stands inactive THEN [Record Verification] MUST answer not-active.
 Action wiring 24: An admitted verification MUST record a verification intent.
 Action wiring 25: An admitted verification MUST call Party Identity's verify with the party_id, the verifying_actor_ref, the method, the verification_result AND the evidence_ref.
@@ -497,7 +496,7 @@ Action wiring 34: IF the verification recorded record fails THEN [Record Verific
 Action wiring 35: An admitted verification MUST answer recorded.
 Action wiring 36: A reader MUST NOT read recorded as a verified state.
 Action wiring 37: The composition MUST read the case-to-monitoring index at [Trigger Monitoring Review].
-Action wiring 38: IF the case NOT EXISTS THEN [Trigger Monitoring Review] MUST answer not-known.
+Action wiring 38: IF no case EXISTS for the case_id THEN [Trigger Monitoring Review] MUST answer not-known.
 Action wiring 39: IF the case stands inactive THEN [Trigger Monitoring Review] MUST answer not-active.
 Action wiring 40: The composition MUST read the party through Party Identity's declared read at [Trigger Monitoring Review].
 Action wiring 41: IF the read stands unanswered THEN [Trigger Monitoring Review] MUST answer state-unavailable.
@@ -542,7 +541,7 @@ Action wiring 79: An admitted trigger MUST answer recorded.
 ```
 ```
 Action wiring 80: The composition MUST read the case-to-monitoring index at [Clear Review].
-Action wiring 81: IF the case NOT EXISTS THEN [Clear Review] MUST answer not-known.
+Action wiring 81: IF no case EXISTS for the case_id THEN [Clear Review] MUST answer not-known.
 Action wiring 82: IF the open-trigger set stands empty THEN [Clear Review] MUST answer no-open-trigger.
 Action wiring 83: An admitted clearance MUST record a clearance intent carrying the open-trigger set.
 Action wiring 84: An admitted clearance MUST call Party Identity's verify with the party_id, the verifying_actor_ref, the method, passed AND the evidence_ref.
@@ -574,7 +573,7 @@ Action wiring 109: A scoped retry MUST NOT cross a process boundary.
 Action wiring 110: A lost invocation's recovery MUST stand as a fresh [Clear Review].
 Action wiring 111: An admitted clearance MUST answer cleared.
 Action wiring 112: The composition MUST read the case-to-monitoring index at [Close Party].
-Action wiring 113: IF the case NOT EXISTS THEN [Close Party] MUST answer not-known.
+Action wiring 113: IF no case EXISTS for the case_id THEN [Close Party] MUST answer not-known.
 Action wiring 114: IF the case stands inactive THEN [Close Party] MUST answer not-active.
 Action wiring 115: An admitted closure MUST record a closure intent.
 Action wiring 116: An admitted closure MUST call Party Identity's close with the party_id, the closing_actor_ref AND the reason.
@@ -596,10 +595,10 @@ Action wiring 131: An admitted closure MUST empty the open-trigger set ONLY AFTE
 Action wiring 132: An admitted closure MUST answer closed.
 Action wiring 133: A caller MUST NOT retry a committing call across an invocation.
 Action wiring 134: The composition MUST read the party-to-case index at [Activity Permitted].
-Action wiring 135: IF the party NOT EXISTS in the party-to-case index THEN [Activity Permitted] MUST answer not-known.
+Action wiring 135: IF no entry EXISTS for the party_id in the party-to-case index THEN [Activity Permitted] MUST answer not-known.
 Action wiring 136: The composition MUST read the party through Party Identity's declared read at [Activity Permitted].
-Action wiring 137: IF the party's state = verified THEN [Activity Permitted] MUST answer permitted.
-Action wiring 138: IF the party's state != verified THEN [Activity Permitted] MUST answer not-verified carrying the state.
+Action wiring 137: IF the party's state EQUALS verified THEN [Activity Permitted] MUST answer permitted.
+Action wiring 138: IF the party's state DOES NOT EQUAL verified THEN [Activity Permitted] MUST answer not-verified carrying the state.
 Action wiring 139: IF the read stands unanswered THEN [Activity Permitted] MUST answer state-unavailable.
 Action wiring 140: IF the read answers no party THEN [Activity Permitted] MUST answer state-unavailable.
 Action wiring 141: [Activity Permitted] MUST NOT answer permitted for an unanswered read.
@@ -631,7 +630,7 @@ Term transitioning verification: an admitted verification Party Identity answere
 
 Term adverse trigger: an admitted trigger whose trigger_type belongs to the adverse trigger types.
 
-Term periodic trigger: an admitted trigger whose trigger_type = the periodic trigger type.
+Term periodic trigger: an admitted trigger whose trigger_type EQUALS the periodic trigger type.
 
 Term suspending trigger: an adverse trigger whose suspend Party Identity admitted.
 
@@ -722,8 +721,8 @@ Reconciliation 3: The reconciliation MUST select an open marker over an open-end
 Reconciliation 4: The reconciliation MUST NOT examine a young marker.
 Reconciliation 5: The reconciliation MUST NOT examine an aged-out event.
 Reconciliation 6: The reconciliation MUST resolve an open marker against the constituents' declared reads.
-Reconciliation 7: IF an open marker's committing call NOT EXISTS THEN the reconciliation MUST close the marker.
-Reconciliation 8: IF an open marker's committing call EXISTS THEN the reconciliation MUST emit the owed outcome.
+Reconciliation 7: IF no committing call EXISTS for the open marker THEN the reconciliation MUST close the marker.
+Reconciliation 8: IF a committing call EXISTS for the open marker THEN the reconciliation MUST emit the owed outcome.
 Reconciliation 9: The reconciliation MUST emit a recovery outcome ONLY AFTER the landed recovery intent.
 Reconciliation 10: The reconciliation MUST record a recovery intent ONLY AFTER the outcome traversal.
 Reconciliation 11: The reconciliation MUST attest a recovery record under the service identity.

@@ -130,20 +130,20 @@ history_for(task_ref)
 Operation 1: [Assign] MUST record EXACTLY ONE assignment per successful call.
 Operation 2: [Assign] MUST stand the assignment in active.
 Operation 3: [Assign] MUST answer assignment_id.
-Operation 4: IF task_ref is blank THEN [Assign] MUST answer invalid-request.
-Operation 5: IF assignee_ref is blank THEN [Assign] MUST answer invalid-request.
+Operation 4: IF task_ref EQUALS blank THEN [Assign] MUST answer invalid-request.
+Operation 5: IF assignee_ref EQUALS blank THEN [Assign] MUST answer invalid-request.
 Operation 6: IF an active assignment EXISTS for the task_ref THEN [Assign] MUST answer already-assigned.
 Operation 7: IF the store refuses the write THEN [Assign] MUST answer storage-failure.
-Operation 8: IF the assignment_id NOT EXISTS THEN [Recall] MUST answer not-known.
+Operation 8: IF no assignment EXISTS for the assignment_id THEN [Recall] MUST answer not-known.
 Operation 9: IF the assignment stands in recalled THEN [Recall] MUST answer not-active.
 Operation 10: IF the assignment stands in transferred THEN [Recall] MUST answer not-active.
 Operation 11: [Recall] MUST stand the assignment in recalled.
 Operation 12: [Recall] MUST leave the task_ref with no active assignment.
 Operation 13: IF the store refuses the write THEN [Recall] MUST answer storage-failure.
-Operation 14: IF the assignment_id NOT EXISTS THEN [Reassign] MUST answer not-known.
+Operation 14: IF no assignment EXISTS for the assignment_id THEN [Reassign] MUST answer not-known.
 Operation 15: IF the assignment stands in recalled THEN [Reassign] MUST answer not-active.
 Operation 16: IF the assignment stands in transferred THEN [Reassign] MUST answer not-active.
-Operation 17: IF new_assignee_ref is blank THEN [Reassign] MUST answer invalid-request.
+Operation 17: IF new_assignee_ref EQUALS blank THEN [Reassign] MUST answer invalid-request.
 Operation 18: [Reassign] MUST stand the old assignment in transferred.
 Operation 19: [Reassign] MUST record EXACTLY ONE active assignment for the task_ref.
 Operation 20: [Reassign] MUST commit the two writes together.
@@ -221,12 +221,12 @@ Reassign is one commit and not a recall followed by an assign, which is the whol
   Invariant 7.1: A task_ref MUST carry EXACTLY ONE active assignment once [Reassign] lands.
   Invariant 7.2: The reassigned assignment MUST stand in transferred once [Reassign] lands.
   Invariant 7.3: A reader MUST NOT observe two active assignments for one task_ref.
-  Invariant 7.4: A reader MUST NOT observe the task_ref unassigned once the first write lands AND the second write NOT EXISTS.
+  Invariant 7.4: A reader MUST NOT observe the task_ref unassigned once the first write lands AND no second write EXISTS.
   ```
 - **Invariant 8 — Timestamp ordering.**
   ```
-  Invariant 8.1: IF recalled_at EXISTS THEN assigned_at MUST NOT EXCEED recalled_at.
-  Invariant 8.2: IF transferred_at EXISTS THEN assigned_at MUST NOT EXCEED transferred_at.
+  Invariant 8.1: IF recalled_at DOES NOT EQUAL blank THEN assigned_at MUST NOT EXCEED recalled_at.
+  Invariant 8.2: IF transferred_at DOES NOT EQUAL blank THEN assigned_at MUST NOT EXCEED transferred_at.
   Invariant 8.3: The atom MUST stamp EVERY timestamp once.
   ```
   WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (Capability requirement 2 through 3).

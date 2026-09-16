@@ -194,12 +194,12 @@ Operation 3: [Declare Pool] MUST set allocated to zero.
 Operation 4: [Declare Pool] MUST set capacity to the supplied capacity.
 Operation 5: [Declare Pool] MUST stamp declared_at from the injected now.
 Operation 6: [Declare Pool] MUST answer the pool_id.
-Operation 7: IF capacity NOT EXISTS in the whole counts THEN [Declare Pool] MUST answer invalid-request.
+Operation 7: IF capacity IS NOT IN the whole counts THEN [Declare Pool] MUST answer invalid-request.
 Operation 8: IF the pool_id names no pool THEN an addressed action MUST answer not-known.
 Operation 9: An addressed action MUST answer not-known ONLY IF the pool_id names no pool.
 Operation 10: IF the pool stands in suspended THEN [Allocate] MUST answer suspended.
 Operation 11: IF the pool stands in closed THEN [Allocate] MUST answer closed.
-Operation 12: IF count NOT EXISTS in the positive counts THEN [Allocate] MUST answer invalid-request.
+Operation 12: IF count IS NOT IN the positive counts THEN [Allocate] MUST answer invalid-request.
 Operation 13: IF the requested total EXCEEDS capacity THEN [Allocate] MUST answer over-capacity.
 Operation 14: [Allocate] MUST answer over-capacity ONLY IF the pool stands in open.
 Operation 15: [Allocate] MUST raise allocated to the requested total.
@@ -208,7 +208,7 @@ Operation 17: [Allocate] MUST answer the allocation event id.
 Operation 18: [Allocate] MUST NOT change capacity.
 Operation 19: [Allocate] MUST NOT change the pool's state.
 Operation 20: [Release] MUST admit a call in EVERY pool state.
-Operation 21: IF count NOT EXISTS in the positive counts THEN [Release] MUST answer invalid-request.
+Operation 21: IF count IS NOT IN the positive counts THEN [Release] MUST answer invalid-request.
 Operation 22: IF count EXCEEDS allocated THEN [Release] MUST answer over-release.
 Operation 23: [Release] MUST lower allocated to the released total.
 Operation 24: [Release] MUST append a release event.
@@ -217,8 +217,8 @@ Operation 26: [Release] MUST NOT change capacity.
 Operation 27: [Release] MUST NOT change the pool's state.
 Operation 28: [Release] MUST NOT match a count against a prior allocation's count.
 Operation 29: IF the pool stands in closed THEN [Adjust Capacity] MUST answer closed.
-Operation 30: IF new_capacity NOT EXISTS in the whole counts THEN [Adjust Capacity] MUST answer invalid-request.
-Operation 31: IF new_capacity = capacity THEN [Adjust Capacity] MUST answer invalid-request.
+Operation 30: IF new_capacity IS NOT IN the whole counts THEN [Adjust Capacity] MUST answer invalid-request.
+Operation 31: IF new_capacity EQUALS capacity THEN [Adjust Capacity] MUST answer invalid-request.
 Operation 32: IF allocated EXCEEDS new_capacity THEN [Adjust Capacity] MUST answer over-allocated.
 Operation 33: [Adjust Capacity] MUST set capacity to new_capacity.
 Operation 34: [Adjust Capacity] MUST append an adjustment event.
@@ -558,7 +558,7 @@ The guard reads allocated and the write changes it; two concurrent allocates aga
 
 ```
 String 1: EVERY required string field MUST carry a codepoint outside the whitespace category.
-String 2: IF a required string field NOT EXISTS THEN the action MUST answer invalid-request.
+String 2: IF a required string field EQUALS blank THEN the action MUST answer invalid-request.
 String 3: The deployment MUST set a maximum length for an actor reference.
 String 4: A reason MUST NOT EXCEED the reason cap.
 String 5: IF a string field EXCEEDS the field's maximum length THEN the action MUST answer invalid-request.

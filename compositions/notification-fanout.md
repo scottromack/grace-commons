@@ -107,7 +107,7 @@ Capability requirement 6 and Capability requirement 7 are the two halves of the 
 
 ```
 Primitive policy 1: [Fanout] MUST answer invalid-request for a blank event_scope.
-Primitive policy 2: [Fanout] MUST answer invalid-request for a payload that NOT EXISTS.
+Primitive policy 2: [Fanout] MUST answer invalid-request for a payload that EQUALS blank.
 Primitive policy 3: The composition MUST take the fanout id ONLY AFTER the arguments clear the boundary predicate.
 Primitive policy 4: [Fanout] MUST NOT call a constituent for an argument the boundary predicate refuses.
 Primitive policy 5: The composition MUST compare an event_scope byte-exact.
@@ -115,7 +115,6 @@ Primitive policy 6: [Fanout] MUST NOT normalize an event_scope.
 Primitive policy 7: [Fanout] MUST NOT bound a payload's length.
 ```
 
-Term blank: a value that is absent, empty, or carries only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 WHY:
 invalid-request here is the composition's own and nothing is inherited. The check is *consistent* with both constituents' postures — [Notification](../atoms/notification.md)'s `create` refuses a payload that does not exist, and [Subscription](../atoms/subscription.md)'s write surface refuses a blank event_scope — but this composition never calls `subscribe`, so no constituent contract governs the check and no constituent is consulted when it fires (Ledger 2026-08-27-k: the provenance is stated once, here).

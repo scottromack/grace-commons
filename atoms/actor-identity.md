@@ -117,20 +117,20 @@ Operation 2: [Attest] MUST record EXACTLY ONE attestation per successful call.
 Operation 3: [Attest] MUST stamp attested_at from the injected now.
 Operation 4: [Attest] MUST answer attestation_id.
 Operation 5: [Attest] MUST consume the credential.
-Operation 6: IF action_ref is blank THEN [Attest] MUST answer invalid-request.
-Operation 7: IF actor_ref is blank THEN [Attest] MUST answer invalid-request.
-Operation 8: IF the credential is blank THEN [Attest] MUST answer invalid-request.
+Operation 6: IF action_ref EQUALS blank THEN [Attest] MUST answer invalid-request.
+Operation 7: IF actor_ref EQUALS blank THEN [Attest] MUST answer invalid-request.
+Operation 8: IF the credential EQUALS blank THEN [Attest] MUST answer invalid-request.
 Operation 9: IF the credential fails against the actor's public material THEN [Attest] MUST answer invalid-credential.
 Operation 10: IF the attestation store refuses the write THEN [Attest] MUST answer storage-failure.
 Operation 11: [Attest] MUST NOT record a partial attestation.
 Operation 12: [Attest] MUST NOT alter a recorded attestation.
 Operation 13: [Attest] MUST NOT read the action's content.
 Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
-Operation 15: IF the attestation NOT EXISTS THEN [Verify] MUST answer not-known.
-Operation 16: IF the attestation EXISTS AND registry answer = unknown-actor THEN [Verify] MUST answer actor-unknown-in-registry.
-Operation 17: IF the attestation EXISTS AND registry answer = unreachable THEN [Verify] MUST answer registry-unavailable.
-Operation 18: IF registry answer = material AND proof check = failed THEN [Verify] MUST answer proof-invalid.
-Operation 19: [Verify] MUST answer verified ONLY IF proof check = held.
+Operation 15: IF no attestation EXISTS for the attestation_id THEN [Verify] MUST answer not-known.
+Operation 16: IF an attestation EXISTS for the attestation_id AND registry answer EQUALS unknown-actor THEN [Verify] MUST answer actor-unknown-in-registry.
+Operation 17: IF an attestation EXISTS for the attestation_id AND registry answer EQUALS unreachable THEN [Verify] MUST answer registry-unavailable.
+Operation 18: IF registry answer EQUALS material AND proof check EQUALS failed THEN [Verify] MUST answer proof-invalid.
+Operation 19: [Verify] MUST answer verified ONLY IF proof check EQUALS held.
 Operation 20: [Verify] MUST NOT write.
 Operation 21: [Verify] MUST read the actor registry's public material for the actor_ref.
 Deleted: Operation 22. Capability requirement 1 owns it.

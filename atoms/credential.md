@@ -170,9 +170,9 @@ read(filter)
 Term verification failure: material-mismatch | no-active-credential — the reasons [Verify] gives for a failed verification.
 
 ```
-Operation 1: IF principal_ref NOT EXISTS THEN [Register] MUST answer invalid-request.
-Operation 2: IF credential_material NOT EXISTS THEN [Register] MUST answer invalid-request.
-Operation 3: IF credential_type NOT EXISTS THEN [Register] MUST answer invalid-request.
+Operation 1: IF principal_ref EQUALS blank THEN [Register] MUST answer invalid-request.
+Operation 2: IF credential_material EQUALS blank THEN [Register] MUST answer invalid-request.
+Operation 3: IF credential_type EQUALS blank THEN [Register] MUST answer invalid-request.
 Operation 4: IF the credential_type names no derivation function THEN [Register] MUST answer invalid-request.
 Operation 5: IF a supplied expires_at NOT EXCEEDS now THEN [Register] MUST answer invalid-request.
 Operation 6: IF an effective-active credential EXISTS for the pair THEN [Register] MUST answer duplicate-active-credential.
@@ -182,7 +182,7 @@ Operation 9: An admitted register MUST assign a fresh credential_id.
 Operation 10: An admitted register MUST record principal_ref and credential_type.
 Operation 11: An admitted register MUST record the derived verifier.
 Operation 12: An admitted register MUST record a supplied expires_at.
-Operation 13: IF expires_at NOT EXISTS THEN an admitted register MUST record the default expires_at.
+Operation 13: IF expires_at EQUALS blank THEN an admitted register MUST record the default expires_at.
 Operation 14: An admitted register MUST record now as registered_at.
 Operation 15: An admitted register MUST stand the credential in active.
 Operation 16: An admitted register MUST answer the credential_id.
@@ -197,12 +197,12 @@ Operation 24: A proceeding verify MUST compare a verifier in constant time.
 Operation 25: [Verify] MUST NOT retain presented_material.
 Operation 26: [Verify] MUST NOT record a field.
 Operation 27: IF the credential_id names no credential THEN a transitioning write MUST answer not-known.
-Operation 28: IF the credential NOT EXISTS as an effective-active credential THEN [Rotate] MUST answer not-active.
-Operation 29: IF the credential NOT EXISTS as an effective-active credential THEN [Revoke] MUST answer already-terminal.
+Operation 28: IF no effective-active credential EXISTS for the credential_id THEN [Rotate] MUST answer not-active.
+Operation 29: IF no effective-active credential EXISTS for the credential_id THEN [Revoke] MUST answer already-terminal.
 Operation 30: A transitioning write MUST answer a standing rejection ONLY IF the credential_id names a credential.
-Operation 31: IF new_credential_material NOT EXISTS THEN [Rotate] MUST answer invalid-request.
-Operation 32: IF revoked_by_ref NOT EXISTS THEN [Revoke] MUST answer invalid-request.
-Operation 33: IF reason NOT EXISTS THEN [Revoke] MUST answer invalid-request.
+Operation 31: IF new_credential_material EQUALS blank THEN [Rotate] MUST answer invalid-request.
+Operation 32: IF revoked_by_ref EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 33: IF reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 34: A transitioning write MUST answer invalid-request ONLY IF EVERY standing check passes.
 Operation 35: An admitted rotate MUST record a successor credential carrying the prior credential's pair.
 Operation 36: An admitted rotate MUST stand the successor credential in active.
@@ -243,9 +243,9 @@ Term well-formedness check: Operation 1, Operation 2, Operation 3, Operation 4 a
 
 Term window reading: live | lapsed — how an active credential's window reads against now.
 
-Term live: the window reading of an active credential whose expires_at NOT EXISTS, OR whose expires_at exceeds now.
+Term live: the window reading of an active credential whose expires_at EQUALS blank, OR whose expires_at exceeds now.
 
-Term lapsed: the window reading of an active credential whose expires_at EXISTS and does not exceed now; the boundary instant — expires_at equal to now — reads lapsed.
+Term lapsed: the window reading of an active credential whose expires_at DOES NOT EQUAL blank and does not exceed now; the boundary instant — expires_at equal to now — reads lapsed.
 
 Term effective-active credential: a credential standing in active that reads live — what every bound, guard and lookup in this atom means by *the active credential*.
 
@@ -521,7 +521,6 @@ Term string input: a reference, credential_type OR reason — every caller-suppl
 
 Term length bound: the maximum length the deployment declares for a string input.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
 Byte-exactness bites hardest on credential_type, because that string is half the key Invariant 2.1 ranges over: under a folding comparison `password` and `Password ` would be one type, and under a byte-exact one they are two, so a principal could hold two effective-active credentials that no invariant catches. Identity 11 is what closes it — a type naming no derivation function is refused, so the near-duplicate never reaches the store. Material is exempt from the length bound only insofar as a derivation function declares its own (Capability requirement 14).

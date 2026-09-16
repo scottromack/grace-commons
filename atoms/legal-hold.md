@@ -44,7 +44,6 @@ Term hold: one recorded preservation obligation over one record — the record t
 
 Term hold_id: the opaque value naming one hold — a [Hold Id]; not blank, and sortable so [Read] can order deterministically.
 
-Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses.
 
 Term record_ref: the opaque reference naming what is preserved — a [Record Ref]; the host owns whether the record exists.
 
@@ -126,19 +125,19 @@ read(query)
 Operation 1: [Place] MUST record EXACTLY ONE hold per successful call.
 Operation 2: [Place] MUST stand the hold in active.
 Operation 3: [Place] MUST answer hold_id.
-Operation 4: IF record_ref is blank THEN [Place] MUST answer invalid-request.
-Operation 5: IF placed_by is blank THEN [Place] MUST answer invalid-request.
-Operation 6: IF hold_reason is blank THEN [Place] MUST answer invalid-request.
-Operation 7: IF a supplied case_ref is blank THEN [Place] MUST answer invalid-request.
+Operation 4: IF record_ref EQUALS blank THEN [Place] MUST answer invalid-request.
+Operation 5: IF placed_by EQUALS blank THEN [Place] MUST answer invalid-request.
+Operation 6: IF hold_reason EQUALS blank THEN [Place] MUST answer invalid-request.
+Operation 7: IF a supplied case_ref EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 8: IF a supplied placed_at EXCEEDS now THEN [Place] MUST answer invalid-request.
 Operation 9: IF the caller supplies no placed_at THEN [Place] MUST stamp placed_at from the injected now.
 Operation 10: [Place] MUST accept a placed_at below now.
 Operation 11: IF the store refuses the write THEN [Place] MUST answer storage-failure.
-Operation 12: IF hold_id is blank THEN [Release] MUST answer invalid-request.
-Operation 13: IF the hold NOT EXISTS THEN [Release] MUST answer not-known.
+Operation 12: IF hold_id EQUALS blank THEN [Release] MUST answer invalid-request.
+Operation 13: IF no hold EXISTS for the hold_id THEN [Release] MUST answer not-known.
 Operation 14: IF the hold stands in released THEN [Release] MUST answer already-released.
-Operation 15: IF released_by is blank THEN [Release] MUST answer invalid-request.
-Operation 16: IF release_reason is blank THEN [Release] MUST answer invalid-request.
+Operation 15: IF released_by EQUALS blank THEN [Release] MUST answer invalid-request.
+Operation 16: IF release_reason EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 17: IF the resolved released_at falls below the hold's placed_at THEN [Release] MUST answer invalid-request.
 Operation 18: IF a supplied released_at EXCEEDS now THEN [Release] MUST answer invalid-request.
 Operation 18a: IF the caller supplies no released_at THEN [Release] MUST stamp released_at from the injected now.
@@ -152,7 +151,7 @@ Operation 25: [Read] MUST order two holds sharing a placed_at by hold_id, rising
 Operation 26: [Read] MUST accept a filter on EVERY admitted axis.
 Operation 26a: [Read] MUST accept a query combining admitted axes.
 Operation 27: IF the query carries an axis outside the admitted axes THEN [Read] MUST answer invalid-query.
-Operation 28: IF a filter value is blank THEN [Read] MUST answer invalid-query.
+Operation 28: IF a filter value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 29: IF a hold state filter value falls outside the hold state set THEN [Read] MUST answer invalid-query.
 Operation 30: IF a range's end falls below the range's start THEN [Read] MUST answer invalid-query.
 Operation 31: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
@@ -253,7 +252,7 @@ Instance 3: The atom MUST NOT reach across store instances.
 Instance 4: The deployment MUST route a call to one store instance.
 Instance 5: [Read] MUST answer the store_name the read was routed to.
 Instance 6: A composing pattern MUST match the answered store_name against the record's own store instance.
-Instance 7: IF the answered store_name != the record's store instance THEN a composing pattern MUST NOT read an empty answer as unheld.
+Instance 7: IF the answered store_name DOES NOT EQUAL the record's store instance THEN a composing pattern MUST NOT read an empty answer as unheld.
 ```
 
 Term store instance: one named hold store — a [Store Name] identifies it; a deployment runs one per organization, jurisdiction or business unit.

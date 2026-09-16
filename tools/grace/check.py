@@ -127,15 +127,15 @@ def unreserved_capitals(text: str) -> tuple[list[str], list[str]]:
     return shaped, other
 
 
-# a `>=` spelled as a two-arm disjunction: "<X> EXCEEDS <Y> OR <X> = <Y>", the
-# same operand pair in both arms. The condition operator set carries EXCEEDS and
-# `=` and nothing between them (`Term condition operator`). Counting this by
-# hand mis-measured it twice: a loose "EXCEEDS ... OR ... =" match also catches
-# "X EXCEEDS Y OR Y = none", which is two propositions and not a comparison at
-# all (council read 31).
+# a `>=` spelled as a two-arm disjunction: "<X> EXCEEDS <Y> OR <X> EQUALS <Y>",
+# the same operand pair in both arms. The condition operator set carries EXCEEDS
+# and EQUALS and nothing between them (`Term condition operator`). Counting this
+# by hand mis-measured it twice: a loose "EXCEEDS ... OR ... EQUALS" match also
+# catches "X EXCEEDS Y OR Y EQUALS none", which is two propositions and not a
+# comparison at all (council read 31).
 GE_DISJUNCTION = re.compile(
     r"(?P<x1>[A-Za-z_][\w'’ ]*?)\s+EXCEEDS\s+(?P<y1>[A-Za-z_][\w'’ ]*?)"
-    r"\s+OR\s+(?P<x2>[A-Za-z_][\w'’ ]*?)\s*=\s*(?P<y2>[A-Za-z_][\w'’ ]*)")
+    r"\s+OR\s+(?P<x2>[A-Za-z_][\w'’ ]*?)\s+EQUALS\s+(?P<y2>[A-Za-z_][\w'’ ]*)")
 
 
 def _ge_operand(s: str) -> str:
@@ -153,15 +153,46 @@ def ge_disjunction(line: str) -> tuple[str, str] | None:
     return None
 
 
-# A reservation rule -- "... MUST answer <outcome> ONLY IF <id> EXISTS" -- reads
-# `EXISTS` in the argument-presence sense, so it is only meaningful beside a rule
+# A reservation rule -- "... MUST answer <outcome> ONLY IF <id> DOES NOT EQUAL
+# blank" (written "<id> EXISTS" before v0.52) -- is only meaningful beside a rule
 # routing a blank <id> somewhere. Without that partner the blank case has no legal
 # answer at all: the reservation forbids the miss answer and every other arm is
 # gated behind checks a blank id cannot reach. Five atoms carry the spelling; one
 # carried it unpartnered (council read 36).
 RESERVE_EXISTS = re.compile(
-    r"MUST answer [a-z-]+ ONLY IF (?:the )?([a-z_]+) EXISTS\b")
-BLANK_GUARD = re.compile(r"IF (?:the )?([a-z_]+) NOT EXISTS THEN")
+    r"MUST answer [a-z-]+ ONLY IF (?:the )?([a-z_]+) DOES NOT EQUAL blank\b")
+BLANK_GUARD = re.compile(r"IF (?:the )?([a-z_]+) EQUALS blank THEN")
+
+
+# One condition operator, one sense (GRACE-lang v0.52, Earned vocabulary 6
+# through 12): a thing's absence is `no thing EXISTS`, a missing value is
+# `EQUALS blank`, membership is `IS IN`, and `=` stays in value sets. Before
+# v0.52 `step_id NOT EXISTS` (the caller sent nothing) and `the assignment_id
+# NOT EXISTS` (no record carries the id) differed by an article (council read 99).
+RETIRED_CONDITION = (
+    (re.compile(r"\bNOT EXISTS\b"), "`NOT EXISTS`; a thing's absence is `no thing EXISTS` "
+     "and a missing value is `EQUALS blank` (Earned vocabulary 6, Earned vocabulary 7)"),
+    (re.compile(r"\bEXISTS in\b"), "`EXISTS in`; membership is `IS IN` (Earned vocabulary 9)"),
+    (re.compile(r"(?<![!<>=])!="), "`!=`; write DOES NOT EQUAL (Earned vocabulary 12)"),
+    (re.compile(r"\b(?:is|are) blank\b"), "`is blank`; a missing value is `EQUALS blank` "
+     "(Earned vocabulary 7)"),
+)
+RULE_EQUALS = re.compile(r"(?<![!<>=])=(?!=)")
+VALUE_EXISTS = re.compile(r"(?:^|\b(?:IF|WHEN|AND|OR|ONLY IF) )(?:(?:the|a|an|no|EVERY) )?([a-z_][a-z0-9_]*) EXISTS\b")
+
+
+def condition_form(text: str, inputs: set[str], in_rule: bool) -> list[str]:
+    """Why a rule or declaration leaves the condition operators, if it does."""
+    bare = CODE_SPAN.sub(" ", text)
+    out = [f"a retired form, {why}" for rx, why in RETIRED_CONDITION if rx.search(bare)]
+    if in_rule and RULE_EQUALS.search(bare):
+        out.append("`=` in a rule; a test is EQUALS and a write is `field set to value` "
+                   "(Earned vocabulary 11, Earned vocabulary 12)")
+    for m in VALUE_EXISTS.finditer(bare):
+        if m.group(1) in inputs:
+            out.append(f"`{m.group(1)}` is an input, a value, tested with EXISTS; "
+                       f"write `{m.group(1)} EQUALS blank` (Earned vocabulary 8)")
+    return out
 
 
 def unpartnered_reservations(text: str) -> list[tuple[str, str]]:
@@ -201,7 +232,7 @@ PRONOUN = re.compile(r"\b(it|its|itself|they|their|them|he|she|his|her)\b")
 # rule (council read 24).
 DEMONSTRATIVE = re.compile(r"\b(these|those)\b")
 # Two detectors ported from Kimi's sweep parser (council read 24). A comparison
-# written in English rather than through EXCEEDS, =, !=, EXISTS or NOT EXISTS is
+# written in English rather than through EXCEEDS, EQUALS, DOES NOT EQUAL, EXISTS or IS IN is
 # one the normalizer cannot read; most route through an admitted operator, and
 # the ones that cannot are the pressure §18 counts.
 COMPARATOR = re.compile(r"\b(past|longer than|shorter than|more than|fewer than|greater than|less than|short of|at most|at least|no longer|no earlier|no later|advance past)\b", re.I)
@@ -428,6 +459,19 @@ def scan(path: Path) -> list[Finding]:
         elif not TERM_DECL_STRICT.match(ln):
             add(k, "D-decl-form", f"not the declaration form `Term name: definition.` — a bare name, one space after the colon, a closing period: {ln.strip()[:70]}")
 
+    # D-condition-form on declarations: a declaration may carry a condition
+    # (Term live, Term lapsed) and the value-set form's `=`, and nothing retired
+    sig_inputs = {x.removeprefix("optional ") for ln in lines for sm in [SIG_HEAD.match(ln)]
+                  if sm for x in (sm.group(2) or "").split(", ") if x}
+    history = False
+    for k, ln in enumerate(lines, start=1):
+        if ln.startswith("## "):
+            history = ln.startswith(("## Status", "## Ledger"))
+        if history or not TERM_DECL.match(ln):
+            continue
+        for why in condition_form(ln, sig_inputs, False):
+            add(k, "D-condition-form", f"{why}: {ln.strip()[:60]}")
+
     # D-code-span: a declared name is written bare (Surface 30)
     names_here = declared_names(text)
     in_fence = history = False
@@ -627,6 +671,8 @@ def scan(path: Path) -> list[Finding]:
                 f"{r.label}: {', '.join(caps_other)} in capitals is not a reserved token — a proper "
                 f"noun or acronym in a rule is spelled out, because Casing 6 reads the capital "
                 f"tier as reserved (ruled at council read 85)")
+        for why in condition_form(body, sig_inputs, True):
+            add(r.line, "D-condition-form", f"{r.label}: {why}")
         if body.startswith("WHEN "):
             if not body.endswith(":"):
                 add(r.line, "R-when-colon", f"{r.label}: WHEN condition must end with a colon")
@@ -680,7 +726,7 @@ def scan(path: Path) -> list[Finding]:
         if COND_ENGLISH.match(body):
             add(r.line, "W-condition-operator",
                 f"{r.label}: an English comparison in a condition — the operators are "
-                f"=, !=, EXISTS, NOT EXISTS, EXCEEDS (Earned vocabulary)")
+                f"EQUALS, DOES NOT EQUAL, EXISTS, IS IN, IS NOT IN, EXCEEDS (Earned vocabulary)")
         cm = COMPARATOR.search(stmt) or COMPARATOR.search(cond)
         if cm:
             add(r.line, "W-comparator",
@@ -689,14 +735,14 @@ def scan(path: Path) -> list[Finding]:
         rm = RESERVE_EXISTS.search(stmt)
         if rm and rm.group(1) not in blank_guarded:
             add(r.line, "V-unpartnered-reservation",
-                f"{r.label}: reserves an answer to '{rm.group(1)} EXISTS' and no rule "
+                f"{r.label}: reserves an answer to '{rm.group(1)} DOES NOT EQUAL blank' and no rule "
                 f"routes a blank {rm.group(1)} — the blank case has no legal answer "
                 f"(Hard invariant 16)")
         ge = ge_disjunction(r.text)
         if ge:
             add(r.line, "W-ge-disjunction",
                 f"{r.label}: '{ge[0]} >= {ge[1]}' spelled as a two-arm disjunction — "
-                f"the condition operators carry EXCEEDS and = and nothing between "
+                f"the condition operators carry EXCEEDS and EQUALS and nothing between "
                 f"them (§18 watch list)")
         sm = SOFT_MODAL.search(stmt) or SOFT_MODAL.search(cond)
         if sm:

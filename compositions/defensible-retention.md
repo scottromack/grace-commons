@@ -243,7 +243,6 @@ Primitive policy 21: A truncated hold id list MUST carry the list's true count.
 Primitive policy 22: The composition MUST NOT read a truncated hold id list as an empty hold check result.
 ```
 
-Term blank: a value that is absent, empty, or carrying only whitespace — what the boundary predicate refuses; a blank argument NOT EXISTS.
 
 Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
 
@@ -349,7 +348,7 @@ Action wiring 19: An admitted hold placement MUST answer the hold_id.
 Action wiring 20: IF Legal Hold answers invalid-request THEN [Place Hold] MUST answer invalid-request.
 Action wiring 21: IF Legal Hold answers storage-failure THEN [Place Hold] MUST answer storage-failure.
 Action wiring 22: The composition MUST NOT record a hold release intent BEFORE reading the hold through Legal Hold's read.
-Action wiring 23: IF the hold NOT EXISTS THEN [Release Hold] MUST answer not-known.
+Action wiring 23: IF no hold EXISTS for the hold_id THEN [Release Hold] MUST answer not-known.
 Action wiring 24: IF the hold stands released THEN [Release Hold] MUST answer already-released.
 Action wiring 25: An admitted hold release MUST call Legal Hold's release with the hold_id, the released_by, the reason AND the released_at.
 Action wiring 26: An admitted hold release MUST record a hold released outcome carrying the hold_id, the reason AND the released_at.
@@ -371,16 +370,16 @@ Action wiring 41: [Purge Eligible] MUST NOT write.
 Action wiring 42: [Purge Eligible] MUST NOT refuse a call.
 Action wiring 43: A reader MUST NOT read [Purge Eligible]'s answer as a sibling statement.
 Action wiring 44: The composition MUST NOT answer not-known for a purge BEFORE rebuilding the retention-to-record index.
-Action wiring 45: IF the retention_id NOT EXISTS in the retention-to-record index THEN [Purge Record] MUST answer not-known.
+Action wiring 45: IF no entry EXISTS for the retention_id in the retention-to-record index THEN [Purge Record] MUST answer not-known.
 Action wiring 47: IF the sibling set carries a retention outside elapsed retention THEN [Purge Record] MUST answer under-active-retention.
 Action wiring 48: A purge MUST call Legal Hold's read with the record_ref AND the active state.
 Action wiring 49: A purge MUST call Legal Hold's read whatever the named retention's eligibility.
 Action wiring 50: IF Legal Hold refuses the read THEN [Purge Record] MUST answer hold-check-unavailable.
-Action wiring 52: IF the hold check result stands non-empty AND the hold check mode = strict THEN a purge MUST record a purge blocked gate record carrying the hold check result.
-Action wiring 53: IF the hold check result stands non-empty AND the hold check mode = strict THEN a purge MUST answer under-legal-hold carrying the hold ids AND the count.
-Action wiring 54: IF the hold check result stands non-empty AND the hold check mode = strict THEN a purge MUST NOT call Retention Window's purge.
-Action wiring 55: IF the hold check result stands non-empty AND the hold check mode = advisory THEN a purge MUST record the hold override.
-Action wiring 56: IF the hold check result stands non-empty AND the hold check mode = advisory THEN a purge MUST NOT record a purge blocked gate record.
+Action wiring 52: IF the hold check result stands non-empty AND the hold check mode EQUALS strict THEN a purge MUST record a purge blocked gate record carrying the hold check result.
+Action wiring 53: IF the hold check result stands non-empty AND the hold check mode EQUALS strict THEN a purge MUST answer under-legal-hold carrying the hold ids AND the count.
+Action wiring 54: IF the hold check result stands non-empty AND the hold check mode EQUALS strict THEN a purge MUST NOT call Retention Window's purge.
+Action wiring 55: IF the hold check result stands non-empty AND the hold check mode EQUALS advisory THEN a purge MUST record the hold override.
+Action wiring 56: IF the hold check result stands non-empty AND the hold check mode EQUALS advisory THEN a purge MUST NOT record a purge blocked gate record.
 Action wiring 57: IF the named retention stands outside elapsed retention THEN a purge MUST answer not-eligible.
 Action wiring 58: An admitted purge MUST call Retention Window's purge with the retention_id.
 Action wiring 59: An admitted purge MUST call Retention Window's purge PER sibling set member.
@@ -533,10 +532,10 @@ Each emerges from the composition; none belongs to one constituent.
 
 - **Invariant 1 — Hold-blocks-purge.**
   ```
-  Invariant 1.1: IF an active hold covers the record AND the hold check mode = strict THEN the composition MUST NOT call Retention Window's purge.
-  Invariant 1.2: IF an active hold covers the record AND the hold check mode = strict THEN a purge MUST answer EXACTLY ONE OF under-legal-hold, recording-failure, invalid-credential, invalid-request.
+  Invariant 1.1: IF an active hold covers the record AND the hold check mode EQUALS strict THEN the composition MUST NOT call Retention Window's purge.
+  Invariant 1.2: IF an active hold covers the record AND the hold check mode EQUALS strict THEN a purge MUST answer EXACTLY ONE OF under-legal-hold, recording-failure, invalid-credential, invalid-request.
   Invariant 1.3: The composition MUST NOT read an unreadable hold store as an empty hold check result.
-  Invariant 1.4: IF an active hold covers the record AND the hold check mode = strict THEN the record MUST NOT stand destroyed through the composition.
+  Invariant 1.4: IF an active hold covers the record AND the hold check mode EQUALS strict THEN the record MUST NOT stand destroyed through the composition.
   ```
   WHY: this is the composition's defining emergent claim and neither constituent can carry it — [Legal Hold](../atoms/legal-hold.md) intercepts no purge and [Retention Window](../atoms/retention-window.md) consults no hold store. Invariant 1.2 enumerates every answer a blocked purge can give rather than the one a reader expects: the gate record is itself a substrate write, so its own arms are live, and each of the three lands the refusal without reaching a destruction. Invariant 1.3 is the cheapest-compliant reading closed — *unreadable therefore zero* is exactly the spoliation hole the gate exists to fill.
 - **Invariant 2 — Retention coverage.**
@@ -587,7 +586,7 @@ Each emerges from the composition; none belongs to one constituent.
   Invariant 7.1: IF an active hold covers the record THEN a release MUST NOT make the record purge-eligible.
   Invariant 7.2: [Purge Eligible] MUST answer a record carrying an active hold as hold-blocked.
   Invariant 7.3: [Purge Eligible] MUST answer a record carrying the unavailable sentinel as hold-blocked.
-  Invariant 7.4: IF an active hold covers the record AND the hold check mode = strict THEN a purge MUST answer under-legal-hold.
+  Invariant 7.4: IF an active hold covers the record AND the hold check mode EQUALS strict THEN a purge MUST answer under-legal-hold.
   ```
   WHY: Legal Hold Invariant 4 gives the constituent half — concurrent holds are independent, and a release reaches no other hold. What this invariant adds is the aggregate consequence over the record, including the sentinel's reading: a hold count that could not be taken is hold-blocked, never zero, so the degraded answer and the refusal agree.
 - **Invariant 8 — Defensible destruction.**
