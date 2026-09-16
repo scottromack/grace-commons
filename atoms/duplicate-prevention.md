@@ -54,15 +54,15 @@ State 2: The host MUST derive under guard from the elapsed term at the moment a 
 State 3: The atom MUST NOT hold state beyond the recorded set.
 ```
 
-Term recorded set: the identities under guard, each held with the identity's `recorded_at` — the [Recorded Set].
+Term recorded set: the identities under guard, each held with the identity's recorded_at — the [Recorded Set].
 
-Term recorded_at: the instant an identity was placed under guard, stamped from the injected `now` — a [Recorded At].
+Term recorded_at: the instant an identity was placed under guard, stamped from the injected now — a [Recorded At].
 
 Term window duration: the length a containing pattern chooses for a guard — a [Window Duration]; the value the elapsed term is measured against. The [Window] the length sizes is the interval, and carries no separate name in a rule.
 
 Term elapsed term: `now − recorded_at`.
 
-Term under guard: an identity in the recorded set whose elapsed term is less than `window duration` — the state [Check] answers `seen` for.
+Term under guard: an identity in the recorded set whose elapsed term is less than window duration — the state [Check] answers seen for.
 
 WHY:
 One set and one stamp per entry are the whole of the atom's storage, and *under guard* is derived at the moment of the question rather than stored. That is what lets a host implement the atom over a store offering nothing but a key with an expiry (State 2).
@@ -105,12 +105,12 @@ The case space, and the rule that owns each case:
 
 | Call | Identity under guard? | Answer | Effect on the recorded set |
 |---|---|---|---|
-| [Record] | no | `ok` | enters under guard, `recorded_at` from the injected `now` (Operation 1, Operation 2) |
-| [Record] | yes | `ok` | unchanged — the original `recorded_at` stands (Invariant 2.1, Invariant 2.2) |
+| [Record] | no | ok | enters under guard, recorded_at from the injected now (Operation 1, Operation 2) |
+| [Record] | yes | ok | unchanged — the original recorded_at stands (Invariant 2.1, Invariant 2.2) |
 | [Check] | yes | [Seen] | none — the call reads (Operation 6, Invariant 3.1) |
 | [Check] | no | [Not Seen] | none — the call reads (Operation 7, Invariant 3.1) |
 
-A failed store write sits outside the table: [Record] still answers `ok`, and the guard is missed rather than refused (Record failure 1 through 3).
+A failed store write sits outside the table: [Record] still answers ok, and the guard is missed rather than refused (Record failure 1 through 3).
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
@@ -121,7 +121,7 @@ Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinemen
 Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
 WHY:
-Both calls are total. The containing pattern has already acted when it records — the item is already removed, the charge already made — so a refusal would have nothing to roll back, and a failed write is a liveness miss rather than a safety violation (Operation 4, Record failure 1 through 3). [Check] reads and nothing else, which is what makes asking twice safe (Invariant 3.1). The clock is read once, at the seam, and handed in: a transition reading a clock of the transition's own would answer two ways for one input (`execution-contract.md` §Logic confinement). What a `seen` answer means — reject, absorb, replay a cached result — is the containing pattern's to decide, and the atom is useful across four domains because the atom never decides it (Operation 12).
+Both calls are total. The containing pattern has already acted when it records — the item is already removed, the charge already made — so a refusal would have nothing to roll back, and a failed write is a liveness miss rather than a safety violation (Operation 4, Record failure 1 through 3). [Check] reads and nothing else, which is what makes asking twice safe (Invariant 3.1). The clock is read once, at the seam, and handed in: a transition reading a clock of the transition's own would answer two ways for one input (`execution-contract.md` §Logic confinement). What a seen answer means — reject, absorb, replay a cached result — is the containing pattern's to decide, and the atom is useful across four domains because the atom never decides it (Operation 12).
 
 ### Invariants
 
@@ -132,7 +132,7 @@ Both calls are total. The containing pattern has already acted when it records �
   Invariant 2.3: [Record] MUST open a fresh guard for an identity that is not under guard.
   Deleted: Invariant 1. Operation 6 and Operation 7 own it.
   ```
-  WHY: the deleted invariant claimed EVERY identity in the recorded set stands under guard, unconditionally, and a WHY beside it narrowed the claim to an eager host — a rule whose scope lived on a surface Surface 15 tells the parser to ignore and Surface 9 lets a writer delete. The atom sells behaviour rather than storage, which the rules already say in both directions: Operation 6 answers `seen` for an identity under guard and Operation 7 answers `not-seen` for one that is not, so nothing remained for the invariant to own. Restating it as the answer claim — *EVERY identity the check answers seen for MUST stand under guard* — was considered and refused: that is Operation 7's contrapositive, one proposition under a second label, which is the defect rather than the cure (Authority 3, council read 52).
+  WHY: the deleted invariant claimed EVERY identity in the recorded set stands under guard, unconditionally, and a WHY beside it narrowed the claim to an eager host — a rule whose scope lived on a surface Surface 15 tells the parser to ignore and Surface 9 lets a writer delete. The atom sells behaviour rather than storage, which the rules already say in both directions: Operation 6 answers seen for an identity under guard and Operation 7 answers not-seen for one that is not, so nothing remained for the invariant to own. Restating it as the answer claim — *EVERY identity the check answers seen for MUST stand under guard* — was considered and refused: that is Operation 7's contrapositive, one proposition under a second label, which is the defect rather than the cure (Authority 3, council read 52).
   WHY: the clock starts at the first sighting and runs out at a fixed instant, so a flurry of repeats cannot hold an identity blocked past the term the containing pattern asked for. An expired entry a host has not yet dropped is not under guard, and a record against it opens a new guard rather than reviving the old one (Invariant 2.3).
 - **Invariant 3 — Idempotency of check.**
   ```
@@ -144,7 +144,7 @@ Both calls are total. The containing pattern has already acted when it records �
   Invariant 4.1: The host MUST drop an identity that is not under guard from the recorded set.
   Deleted: Invariant 4.2. Operation 7 owns it.
   ```
-  WHY: both rules stated the comparison in raw operators — `EXCEEDS window duration` — where the spec already declares `under guard` as *elapsed term less than window duration* and Operation 6 and Operation 7 route through it. The two spellings disagree at exactly one instant: at `elapsed term = window duration` an identity is not under guard, so the then-standing window-monotonicity invariant required it out of the recorded set while the old Invariant 4.1 obliged no host to drop it. Routing through the declared term closes the boundary with no new operator, which is the cure the `≥` docket row asks whether the grammar needs — and one site fewer that it does (council read 51).
+  WHY: both rules stated the comparison in raw operators — `EXCEEDS window duration` — where the spec already declares under guard as *elapsed term less than window duration* and Operation 6 and Operation 7 route through it. The two spellings disagree at exactly one instant: at `elapsed term = window duration` an identity is not under guard, so the then-standing window-monotonicity invariant required it out of the recorded set while the old Invariant 4.1 obliged no host to drop it. Routing through the declared term closes the boundary with no new operator, which is the cure the `≥` docket row asks whether the grammar needs — and one site fewer that it does (council read 51).
 
 ## Examples
 
@@ -206,7 +206,7 @@ External check 6: An auditor needing the clock's honesty confirmed MUST read the
 WHY:
 The three checks worth the section are `Check 1.2`, `Check 1.3` and `Check 2.1`, because they are what a composing pattern's own guarantee rests on and none of them was testable before. Idempotent Reservation's exactly-once claim holds only if a repeat record does not move the stamp — that is the whole of the window's monotonicity, it clears from two readings of one entry, and it was asserted by an invariant nothing audited.
 
-`Check 3.4` is the one a reader does not expect and the one that proves the atom sells behaviour rather than storage. A lazy host still holding an expired entry must answer `not-seen` for it, so an auditor who finds the entry present and the answer `not-seen` has confirmed conformance rather than found a leak — and an auditor told only to compare the set against the window would report the opposite.
+`Check 3.4` is the one a reader does not expect and the one that proves the atom sells behaviour rather than storage. A lazy host still holding an expired entry must answer not-seen for it, so an auditor who finds the entry present and the answer not-seen has confirmed conformance rather than found a leak — and an auditor told only to compare the set against the window would report the opposite.
 
 The external set is short and each member is a value the records cannot carry. The window duration and the matching rule belong to the containing pattern by construction (`Non-goal 8`); a guard missed by a failed write leaves no trace at all, which is `Record failure 2` stated from the auditor's side; and the unavailability policy is a deployment's declared posture rather than an observation.
 
@@ -281,7 +281,7 @@ Record failure 4: A deployment whose duplicate prevention is safety-critical MUS
 ```
 
 WHY:
-A failed write leaves the identity unguarded, and checks during the term that should have been covered answer `not-seen` — duplicates get through, which is the liveness side of the contract. Nothing false is asserted, and there is nothing to roll back, because the containing pattern acted before the call (Operation 4).
+A failed write leaves the identity unguarded, and checks during the term that should have been covered answer not-seen — duplicates get through, which is the liveness side of the contract. Nothing false is asserted, and there is nothing to roll back, because the containing pattern acted before the call (Operation 4).
 
 ## Composition notes
 
@@ -295,19 +295,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host (also: a host, a lazy host); the transition; a containing pattern (also: the containing pattern, a pattern); a business caller; an implementation (also: a fail-open implementation, a fail-closed implementation); the deployment (also: a deployment); an identity; a guarded entry; an entry; a check; an auditor.
 
-Term records: `recorded set` — the identities under guard, one `recorded_at` per entry.
+Term records: recorded set — the identities under guard, one recorded_at per entry.
 
 Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, require, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct, find.
 
 Term value sets: check answers seen | not-seen. record answers ok. store policy = fail-open | fail-closed.
 
-Term bounds: `window duration` (the length a containing pattern chooses for a guard; `window` is the lowering token the [Window Duration] term entry carries).
+Term bounds: window duration (the length a containing pattern chooses for a guard; window is the lowering token the [Window Duration] term entry carries).
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `under guard` — recorded, and the guard's term not yet elapsed.
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); under guard — recorded, and the guard's term not yet elapsed.
 
-Term terms: `identity`, `matching rule`, `recorded set`, `recorded_at`, `window duration`, `elapsed term`, `under guard`, `now`, `transition`, `seam`, `business caller`.
+Term terms: identity, matching rule, recorded set, recorded_at, window duration, elapsed term, under guard, now, transition, seam, business caller.
 
 #### Identity
 

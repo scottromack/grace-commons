@@ -54,7 +54,7 @@ Term transition: the atom's evaluation of one call against the hold store, as `e
 
 Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, and never supplied by the business caller — `placed_at` and `released_at` are the caller's claims about when an obligation began and ended, judged against `now` and stored as claims (Operation 38 through 41).
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, and never supplied by the business caller — placed_at and released_at are the caller's claims about when an obligation began and ended, judged against now and stored as claims (Operation 38 through 41).
 
 WHY:
 Two authorities can demand preservation of one document — a plaintiff's litigation hold and a regulator's investigative demand — and they end on different days. Merging them into one obligation would release the record the moment the first ends, which is the spoliation the atom exists to foreclose (Identity 7, Identity 8, Invariant 4.1). The id sorts because [Read]'s order is part of the contract, not a convenience (Identity 6, Operation 18).
@@ -73,7 +73,7 @@ Deleted: State 6. Invariant 3.2 owns the absent re-activation.
 Deleted: State 9. Non-goal 9 owns the case lifecycle.
 ```
 
-Term hold state: `active` | `released` — the obligation in effect, or documented as ended.
+Term hold state: active | released — the obligation in effect, or documented as ended.
 
 Term placed_by: the opaque reference naming who placed the hold — a [Placed By]; the attribution anchor for the preservation decision.
 
@@ -170,32 +170,32 @@ Operation 41: The atom MUST judge a supplied released_at against the injected no
 
 Term query: what a read asks for — a [Query]; any combination of the admitted axes, and a query carrying none matches every hold.
 
-Term admitted axis: `hold_id` | `record_ref` | `placed_by` | `case_ref` | `hold state` | a `placed_at` range | a `released_at` range — the filter axes [Read] accepts, and no others.
+Term admitted axis: hold_id | record_ref | placed_by | case_ref | hold state | a placed_at range | a released_at range — the filter axes [Read] accepts, and no others.
 
 Term resolved released_at: the released_at the release records — the caller's value where one is supplied, the injected now otherwise.
 
-Term held at an instant: `placed_at` at or before the instant, and the hold either standing active or carrying a `released_at` after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
+Term held at an instant: placed_at at or before the instant, and the hold either standing active or carrying a released_at after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the hold store |
 |---|---|---|---|
-| [Place] | refs and reason present, `placed_at` not future, store accepts | `hold_id` | one hold lands in [Active] (Operation 1, Operation 2) |
-| [Place] | blank `record_ref`, `placed_by`, reason, or supplied `case_ref` | [Invalid Request] | none (Operation 4 through 7) |
-| [Place] | supplied `placed_at` in the future | [Invalid Request] | none (Operation 8) |
-| [Place] | supplied `placed_at` in the past | `hold_id` | one hold lands, back-dated as supplied (Operation 10) |
-| [Release] | hold active, attribution present, time in range | `released` | [Active] → [Released], release fields stamped (Operation 19, State 4) |
-| [Release] | blank `hold_id` | [Invalid Request] | none — the caller passed nothing, not a missing hold (Operation 12) |
+| [Place] | refs and reason present, placed_at not future, store accepts | hold_id | one hold lands in [Active] (Operation 1, Operation 2) |
+| [Place] | blank record_ref, placed_by, reason, or supplied case_ref | [Invalid Request] | none (Operation 4 through 7) |
+| [Place] | supplied placed_at in the future | [Invalid Request] | none (Operation 8) |
+| [Place] | supplied placed_at in the past | hold_id | one hold lands, back-dated as supplied (Operation 10) |
+| [Release] | hold active, attribution present, time in range | released | [Active] → [Released], release fields stamped (Operation 19, State 4) |
+| [Release] | blank hold_id | [Invalid Request] | none — the caller passed nothing, not a missing hold (Operation 12) |
 | [Release] | id names nothing | [Not Known] | none (Operation 13) |
 | [Release] | hold already released | [Already Released] | none (Operation 14) |
-| [Release] | resolved `released_at` before `placed_at`, or supplied one in the future | [Invalid Request] | none (Operation 17, Operation 18) |
+| [Release] | resolved released_at before placed_at, or supplied one in the future | [Invalid Request] | none (Operation 17, Operation 18) |
 | either write | store refuses | [Storage Failure] | none — a release leaves the hold [Active] (Operation 11, Operation 21, Operation 22) |
 | [Read] | well-formed query | the matching holds, ordered | none — the call reads (Operation 23, Operation 34) |
 | [Read] | unknown axis, blank value, bad state, inverted range | [Invalid Query] | none — rejected rather than silently ignored (Operation 27 through 30) |
 | [Read] | well-formed query matching nothing | empty sequence | none (Operation 31) |
 
 WHY:
-A blank `hold_id` is refused before the store is consulted, because *you passed garbage* and *no such hold* are different facts and a caller acts on them differently (Operation 12, Operation 13). An unrecognized filter axis is refused rather than ignored: a silently dropped filter returns a result set wider than the caller asked for, and in this atom a wider set means *this record is not held* answered from an incomplete read (Operation 27). Back-dating a placement is accepted on purpose — an obligation recognized late is still an obligation, and the record should say when it was recognized rather than pretend (Operation 10, Backdating 1 through 3).
+A blank hold_id is refused before the store is consulted, because *you passed garbage* and *no such hold* are different facts and a caller acts on them differently (Operation 12, Operation 13). An unrecognized filter axis is refused rather than ignored: a silently dropped filter returns a result set wider than the caller asked for, and in this atom a wider set means *this record is not held* answered from an incomplete read (Operation 27). Back-dating a placement is accepted on purpose — an obligation recognized late is still an obligation, and the record should say when it was recognized rather than pretend (Operation 10, Backdating 1 through 3).
 
 ### Invariants
 
@@ -266,15 +266,15 @@ See Flow section. A complete hold arc is walked there: placement by counsel, sec
 
 ### Rejection path — release attempted twice
 
-After hold-001 is [Released], counsel's paralegal system retries: `release("hold-001", released_by: "system_retry", reason: "automated retry")` → `already-released`. The hold record is unchanged. The paralegal system detects the rejection and suppresses the retry.
+After hold-001 is [Released], counsel's paralegal system retries: `release("hold-001", released_by: "system_retry", reason: "automated retry")` → already-released. The hold record is unchanged. The paralegal system detects the rejection and suppresses the retry.
 
 ### Rejection path — place with empty reason
 
-`place(record_ref: "doc-0099", placed_by: "compliance_chen", reason: "   ")` → `invalid-request`. Whitespace-only reason is treated as empty. No hold is created.
+`place(record_ref: "doc-0099", placed_by: "compliance_chen", reason: "   ")` → invalid-request. Whitespace-only reason is treated as empty. No hold is created.
 
 ### Rejection path — release with future timestamp
 
-`release("hold-007", released_by: "counsel_kim", reason: "case closed", released_at: "2027-01-01T00:00:00Z")` → `invalid-request`. A release documented as occurring in the future is not operationally meaningful; the atom records the present obligation, not a future intent.
+`release("hold-007", released_by: "counsel_kim", reason: "case closed", released_at: "2027-01-01T00:00:00Z")` → invalid-request. A release documented as occurring in the future is not operationally meaningful; the atom records the present obligation, not a future intent.
 
 ### Regulated adversarial scenarios
 
@@ -425,19 +425,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an auditor; the store; a hold; a release; a placement; a query.
 
-Term records: `hold` — one preservation obligation, carrying `hold_id`, `record_ref`, `placed_by`, `hold_reason`, `placed_at`, a hold state and, where they exist, `case_ref`, `released_by`, `release_reason` and `released_at`.
+Term records: hold — one preservation obligation, carrying hold_id, record_ref, placed_by, hold_reason, placed_at, a hold state and, where they exist, case_ref, released_by, release_reason and released_at.
 
 Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, leave, read, order, write, change, rest, shrink, find, serialize, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, exceed, fall.
 
-Term value sets: place answers hold_id and refuses invalid-request | storage-failure. release answers released and refuses invalid-request | not-known | already-released | storage-failure. read answers the matching holds, ordered and refuses invalid-query. `hold state` = active | released.
+Term value sets: place answers hold_id and refuses invalid-request | storage-failure. release answers released and refuses invalid-request | not-known | already-released | storage-failure. read answers the matching holds, ordered and refuses invalid-query. hold state = active | released.
 
 Term bounds: empty.
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: `store instance`, `hold`, `hold_id`, `record_ref`, `seam`, `transition`, `business caller`, `now`, `hold state`, `placed_by`, `hold_reason`, `placed_at`, `case_ref`, `released_by`, `release_reason`, `released_at`, `query`, `resolved released_at`.
+Term terms: store instance, hold, hold_id, record_ref, seam, transition, business caller, now, hold state, placed_by, hold_reason, placed_at, case_ref, released_by, release_reason, released_at, query, resolved released_at.
 
 #### Place
 

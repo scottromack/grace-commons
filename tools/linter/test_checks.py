@@ -1194,6 +1194,61 @@ def check_bracket_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing)
 
 
+def check_code_span_synthetic(problems: list[str]) -> int:
+    """D-code-span and the bare-name readers (council read 92). A name written
+    bare, a code spelling, a file name, a wire token on a Projects line and a
+    name quoted inside the Ledger stay silent; a declared Term name, a value-set
+    member, a signature arm and an input in backticks fire. The grammar's
+    category set, reserved tokens and standard families still read with their
+    names bare. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan, VOCABULARY_CATEGORIES, reserved_capitals  # noqa: E402
+    from cites import STANDARD_FAMILIES  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.51 (2026-09-16).\n\n"
+            "Term record verbs: read.\n\nTerm position: intent | outcome — the record a write lands.\n\n"
+            "Term fence margin: the headroom a fence keeps.\n\n## Structure\n\n### Operations\n\n"
+            "```\nplace(item_ref, optional reason)\n  answers ok\n  refuses not-known | recording-failure(position)\n```\n\n"
+            "```\nOperation 1: [Place] MUST read the store.\n```\n\n")
+    def run(body: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + body + "\n[Place]: #place\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == "D-code-span"]
+    silent = [
+        ("a name written bare", "A write lands intent, then the fence margin holds.\n"),
+        ("a code spelling", "The payload names `audit.compensation` and `max(a, b)`.\n"),
+        ("a file name", "See `execution-contract.md`.\n"),
+        ("a Projects line", "Projects:  `not-known`\n"),
+        ("the Ledger", "## Ledger\n\n- `intent` stays quoted in history.\n"),
+    ]
+    firing = [
+        ("a Term name", "The `fence margin` holds.\n"),
+        ("a value-set member", "A write lands `outcome`.\n"),
+        ("a signature arm", "The call answers `not-known`.\n"),
+        ("a signature input", "A blank `item_ref` is refused.\n"),
+    ]
+    for name, body in silent:
+        got = run(body)
+        if got:
+            problems.append(f"D-code-span: fired on {name}: {got[0].message}")
+    for name, body in firing:
+        if not run(body):
+            problems.append(f"D-code-span: {name} did not fire")
+    readers = 0
+    for want, have, what in (
+        ({"actors", "records", "record verbs", "value sets", "terms", "qualifiers"},
+         VOCABULARY_CATEGORIES, "category set"),
+        ({"MUST", "NOT", "MAY", "EVERY", "EXISTS", "IF", "WHEN"}, reserved_capitals()[0], "reserved tokens"),
+        ({"Identity", "Invariant", "External check", "Housekeeping"}, STANDARD_FAMILIES, "standard families"),
+    ):
+        readers += 1
+        if not want <= set(have):
+            problems.append(f"bare-name reader: the grammar's {what} lost {sorted(want - set(have))}")
+    return len(silent) + len(firing) + readers
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path(__file__).resolve().parents[2]
     patterns = load_patterns(root)
@@ -1323,6 +1378,15 @@ def main(argv: list[str]) -> int:
         print("D-tombstone-form: 5 synthetic fixtures hold (a tombstone written first keeps "
               "its block live; the retired shape, a missing period, a missing close and "
               "a missing label fire) \u2713")
+
+    span_problems: list[str] = []
+    n_span = check_code_span_synthetic(span_problems)
+    failures.extend(span_problems)
+    if not span_problems:
+        print(f"D-code-span: {n_span} synthetic fixtures hold (a bare name, a code spelling, a file "
+              "name, a Projects line and the Ledger silent; a Term name, a value-set member, a "
+              "signature arm and an input in backticks fire; the grammar's category set, reserved "
+              "tokens and standard families read bare) \u2713")
 
     bracket_problems: list[str] = []
     n_bracket = check_bracket_synthetic(bracket_problems)

@@ -44,7 +44,7 @@ LABEL = re.compile(
 TERM_DECL = re.compile(r"^\s*Term ([^:`]+?): (.*)$")
 FENCE = re.compile(r"^\s*```(\w*)")
 REGISTER = re.compile(r"\*\*Council read (?P<n>\d+) — \w+ on (?P<spec>[^,]+),")
-MIGRATED = re.compile(r"^Term qualifiers:[^\n]*`migrated`", re.M)
+MIGRATED = re.compile(r"^Term qualifiers:[^\n]*\bmigrated\b", re.M)
 NAME_NUM = re.compile(r"( step [\d½]+(?:\.\d+[a-z]?)?| \d+(?:\.\d+)?[a-z]?)$")
 # the last number of a range citation, `Operation 3 through 7` (Hard invariant 29)
 RANGE_END = re.compile(r" through ([\d½]+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
@@ -252,7 +252,28 @@ def standard_families(grammar_path=None):
             "cites.py: GRACE-lang.md carries no `Term standard label family` "
             "line; the standard set has no authority to derive from "
             "(GRACE-lang Standard label 1)")
-    return set(re.findall(r"`([^`]+)`", m.group(1)))
+    return set(_family_glosses(m.group(1)))
+
+
+def _family_glosses(body: str) -> dict[str, str]:
+    """`Name (gloss) | Name (gloss)` — the family line's value set, its names bare
+    since v0.51. The `|` inside a gloss's parentheses is not a separator."""
+    out: dict[str, str] = {}
+    depth, cur, parts = 0, "", []
+    for ch in body.strip().rstrip("."):
+        depth += ch == "("
+        depth -= ch == ")"
+        if ch == "|" and depth == 0:
+            parts.append(cur)
+            cur = ""
+        else:
+            cur += ch
+    parts.append(cur)
+    for part in parts:
+        pm = re.match(r"^\s*`?([^`(]+?)`?\s*\((.*)\)\s*$", part, re.S)
+        if pm:
+            out[pm.group(1).strip()] = pm.group(2)
+    return out
 
 
 STANDARD_FAMILIES = standard_families()
@@ -278,7 +299,7 @@ def standard_glosses(grammar_path=None) -> dict[str, str]:
     m = _FAMILY_LINE.search(g.read_text(encoding="utf-8"))
     if not m:
         raise SystemExit("cites.py: GRACE-lang.md carries no `Term standard label family` line")
-    return {f: gl for f, gl in re.findall(r"`([^`]+)` \(([^)]*)\)", m.group(1))}
+    return _family_glosses(m.group(1))
 
 
 def _content(s: str) -> set[str]:

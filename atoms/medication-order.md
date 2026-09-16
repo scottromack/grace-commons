@@ -63,15 +63,15 @@ Term order: the record this atom holds — one prescription's whole life, from p
 
 Term order_id: the opaque value naming one order — an [Order Id]; assigned from the id material the seam supplies, unique within one store instance.
 
-Term store instance: one named order store a call is routed to, named by a `store_name`; `order_id` uniqueness ranges over one instance, and a `patient_ref` may appear in several.
+Term store instance: one named order store a call is routed to, named by a store_name; order_id uniqueness ranges over one instance, and a patient_ref may appear in several.
 
-Term core field: `patient_ref` | `prescriber_ref` | `medication_ref` | `dose` | `dose_unit` | `route` | `frequency` | `duration` | `clinical_evidence_ref` | `ordered_at` — what an order carries from placement and never changes.
+Term core field: patient_ref | prescriber_ref | medication_ref | dose | dose_unit | route | frequency | duration | clinical_evidence_ref | ordered_at — what an order carries from placement and never changes.
 
-Term dosing parameter: `dose` | `dose_unit` | `route` | `frequency` | `duration` — the core fields an amendment may correct on a successor.
+Term dosing parameter: dose | dose_unit | route | frequency | duration — the core fields an amendment may correct on a successor.
 
-Term attribution reference: `prescriber_ref`, `amended_by`, `verifier_ref`, `held_by`, `reinstated_by`, `dispenser_ref`, `administerer_ref`, `completed_by`, `cancelled_by` OR `discontinued_by` — the reference each action records for who acted.
+Term attribution reference: prescriber_ref, amended_by, verifier_ref, held_by, reinstated_by, dispenser_ref, administerer_ref, completed_by, cancelled_by OR discontinued_by — the reference each action records for who acted.
 
-Term reference: `order_id`, `patient_ref`, `medication_ref`, `clinical_evidence_ref`, an attribution reference, `predecessor_id` OR `successor_id` — every opaque reference this atom records.
+Term reference: order_id, patient_ref, medication_ref, clinical_evidence_ref, an attribution reference, predecessor_id OR successor_id — every opaque reference this atom records.
 
 Term seam: the atom's I/O boundary as `execution-contract.md` Logic confinement declares it; the host injects the clock reading, the id material and the clock_offset_allowance here.
 
@@ -80,9 +80,9 @@ Term transition: the atom's evaluation of one call against the order store, as `
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
-Identity 11 and Identity 13 are the atom's sharpest refusal, and the one a clinical reader expects to find broken. This spec never reads what a `medication_ref` *means* — not its schedule, not its interactions, not its formulary status — which is why it can be one atom rather than a pharmacopoeia. What it guarantees is that the reference recorded at placement is the reference on every record downstream, and Invariant 2.1 makes changing it structurally impossible rather than merely refused: [Amend] does not take a `medication_ref` at all.
+Identity 11 and Identity 13 are the atom's sharpest refusal, and the one a clinical reader expects to find broken. This spec never reads what a medication_ref *means* — not its schedule, not its interactions, not its formulary status — which is why it can be one atom rather than a pharmacopoeia. What it guarantees is that the reference recorded at placement is the reference on every record downstream, and Invariant 2.1 makes changing it structurally impossible rather than merely refused: [Amend] does not take a medication_ref at all.
 
-Identity 15 is the store-instance boundary stated as a refusal. Instances exist per health system, facility, department or care team, and an `order_id` means nothing outside the one it was assigned in; a `patient_ref` is the thing that spans them, which is why it is not this atom's identity (Identity 7).
+Identity 15 is the store-instance boundary stated as a refusal. Instances exist per health system, facility, department or care team, and an order_id means nothing outside the one it was assigned in; a patient_ref is the thing that spans them, which is why it is not this atom's identity (Identity 7).
 
 ### State
 
@@ -131,7 +131,7 @@ Capability requirement 14: The deployment MUST own the clock's monotonicity.
 WHY:
 Capability requirement 5 through 8 are the concurrency contract stated as the section it needs, not as an ambient hope. Two systems verifying one order, or a dispense racing a concurrent verification, resolve by serialization rather than by this atom detecting the race — and the section must be *taken before the state check*, because a check evaluated outside it reads a state another caller is already leaving.
 
-Capability requirement 3 and Capability requirement 4 are one value declared and then injected. The future-dated refusal on a supplied `ordered_at` compares a caller's stamp against this node's reading, and those are two clocks; without a declared margin the refusal rests on their agreement, which is not something either side can promise (Decisions, 2026-08-30).
+Capability requirement 3 and Capability requirement 4 are one value declared and then injected. The future-dated refusal on a supplied ordered_at compares a caller's stamp against this node's reading, and those are two clocks; without a declared margin the refusal rests on their agreement, which is not something either side can promise (Decisions, 2026-08-30).
 
 ### Operations
 
@@ -263,37 +263,37 @@ Deleted: Operation 78. `execution-contract.md` §Logic confinement owns it.
 Deleted: Operation 79. `execution-contract.md` §Logic confinement owns it.
 ```
 
-Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by `order_id`, including a refused one.
+Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by order_id, including a refused one.
 
 Term state-changing action: an order action that would change the order's state — every order action.
 
 Term held-refusing action: an order action beside [Reinstate] — every action an on-hold order refuses.
 
-Term state: `ordered` | `verified` | `amended` | `on-hold` | `dispensed` | `administered` | `completed` | `cancelled` | `discontinued`.
+Term state: ordered | verified | amended | on-hold | dispensed | administered | completed | cancelled | discontinued.
 
-Term terminal state: `completed` | `cancelled` | `discontinued`.
+Term terminal state: completed | cancelled | discontinued.
 
-Term inactive state: `amended` | `completed` | `cancelled` | `discontinued` — every state that admits no further transition.
+Term inactive state: amended | completed | cancelled | discontinued — every state that admits no further transition.
 
-Term pre-dispensing state: `ordered` | `verified`.
+Term pre-dispensing state: ordered | verified.
 
-Term post-dispensing state: `dispensed` | `administered`.
+Term post-dispensing state: dispensed | administered.
 
 Term actionable state: a pre-dispensing state OR a post-dispensing state — every state a hold may suspend.
 
-Term inactive state's rejection: `already-amended` for amended, `already-completed` for completed, `already-cancelled` for cancelled, `already-discontinued` for discontinued.
+Term inactive state's rejection: already-amended for amended, already-completed for completed, already-cancelled for cancelled, already-discontinued for discontinued.
 
 Term state check: Operation 11, Operation 13, Operation 14 and Operation 15 through 26 — every check an order action makes on the order's own standing before reading the call's remaining arguments.
 
-Term blank-input rejection: `invalid-order` for [Order], `invalid-request` for an order action.
+Term blank-input rejection: invalid-order for [Order], invalid-request for an order action.
 
-Term field fault: a blank required string input beside `order_id`, a non-positive `dose`, a non-positive `quantity`, a supplied `ordered_at` exceeding the future bound, OR an [Amend] whose supplied dosing parameters all match the original.
+Term field fault: a blank required string input beside order_id, a non-positive dose, a non-positive quantity, a supplied ordered_at exceeding the future bound, OR an [Amend] whose supplied dosing parameters all match the original.
 
-Term required string input: `patient_ref`, `prescriber_ref`, `medication_ref`, `dose_unit`, `route`, `frequency`, a supplied `clinical_evidence_ref`, a supplied `lot_number`, `reason`, an attribution reference OR `order_id` — every string an action refuses when blank.
+Term required string input: patient_ref, prescriber_ref, medication_ref, dose_unit, route, frequency, a supplied clinical_evidence_ref, a supplied lot_number, reason, an attribution reference OR order_id — every string an action refuses when blank.
 
-Term future bound: `now` raised by the `clock_offset_allowance`.
+Term future bound: now raised by the clock_offset_allowance.
 
-Term query axes: `order_id`, `patient_ref`, `medication_ref`, `prescriber_ref`, `state` and a range over `ordered_at` — every filter axis [Read] admits.
+Term query axes: order_id, patient_ref, medication_ref, prescriber_ref, state and a range over ordered_at — every filter axis [Read] admits.
 
 Term field group: the fields one transition writes, carried on the order from that transition onward.
 
@@ -320,17 +320,17 @@ Term admitted discontinue: a [Discontinue] call that passes every precondition a
 Term admitted read: a [Read] call that answers.
 
 WHY:
-Operation 12, Operation 15, Operation 28 and Operation 63 are the rejection priority, written as guards rather than as an order (GRACE-lang Timing 13): [Not Known] before the on-hold rejection before an inactive-state rejection before a state-specific one before [Invalid Request] before [Storage Failure]. The placement of `on-hold` second is the reason the family exists — a held order refuses everything but [Reinstate], and a caller must learn that the order is held rather than learn something about the state underneath the hold.
+Operation 12, Operation 15, Operation 28 and Operation 63 are the rejection priority, written as guards rather than as an order (GRACE-lang Timing 13): [Not Known] before the on-hold rejection before an inactive-state rejection before a state-specific one before [Invalid Request] before [Storage Failure]. The placement of on-hold second is the reason the family exists — a held order refuses everything but [Reinstate], and a caller must learn that the order is held rather than learn something about the state underneath the hold.
 
-Operation 17 and Operation 18 are the atom's clinical boundary, and they are one proposition wearing two rejections. Both refuse across the dispensing edge and both answer `already-dispensed`, because the fact that ends the conversation is the same: the medication has left the pharmacy. What differs is the remedy — [Amend] gives way to a fresh order, [Cancel] gives way to [Discontinue] — and the mirror rule answers [Not Dispensed] when [Discontinue] is called on the near side.
+Operation 17 and Operation 18 are the atom's clinical boundary, and they are one proposition wearing two rejections. Both refuse across the dispensing edge and both answer already-dispensed, because the fact that ends the conversation is the same: the medication has left the pharmacy. What differs is the remedy — [Amend] gives way to a fresh order, [Cancel] gives way to [Discontinue] — and the mirror rule answers [Not Dispensed] when [Discontinue] is called on the near side.
 
 Operation 30 through 32 make a class of error unrepresentable rather than refused. An amendment cannot change the drug, the patient or the prescriber, and the mechanism is that [Amend] has no parameter for any of them; a caller who needs a different medication cancels and re-orders. That is Invariant 2.1 by construction, which is a stronger guarantee than a runtime check and is why no rule refuses it.
 
-Operation 50 is the same move on [Reinstate]. The action takes no target state, so a hold can only resume where it paused, and deviation from `prior_state` is structurally impossible rather than guarded.
+Operation 50 is the same move on [Reinstate]. The action takes no target state, so a hold can only resume where it paused, and deviation from prior_state is structurally impossible rather than guarded.
 
 Operation 69 and Operation 70 are the two absences a clinical reader arrives expecting. A second dose against one order and a refill against one prescription are both real, both common, and both outside this record — the first is a dose-event pattern composing on top, the second is a new order or a layer above. Modelling either here would put a regimen's bookkeeping inside the prescription primitive.
 
-Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the `now` declaration cites it rather than restating it.
+Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the now declaration cites it rather than restating it.
 
 ### Invariants
 
@@ -342,7 +342,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   ```
   Invariant 2.1: EVERY successor order MUST carry the original's patient_ref, prescriber_ref and medication_ref.
   ```
-  WHY: by construction rather than by guard — [Amend] takes none of the three (Operation 30 through 32), so divergence is unrepresentable. `amended_by` records who made the correction; prescribing authorship stays with the original prescriber, which is why `prescriber_ref` is inherited rather than replaced.
+  WHY: by construction rather than by guard — [Amend] takes none of the three (Operation 30 through 32), so divergence is unrepresentable. amended_by records who made the correction; prescribing authorship stays with the original prescriber, which is why prescriber_ref is inherited rather than replaced.
 - **Invariant 3 — Amendment is pre-dispensing only.**
   ```
   Invariant 3.1: [Amend] MUST answer a rejection ONLY IF the order NOT EXISTS in a pre-dispensing state.
@@ -402,7 +402,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   Invariant 14.2: A storage-failure rejection MUST leave no partial record in the store.
   Invariant 14.3: The implementation MUST NOT repair a partial record.
   ```
-  WHY: Invariant 14.3 is a rejected remedy stated as a rule, and it was reached the hard way (Decisions, 2026-08-30). A crash-recovery scan that repairs dangling amendments is not an acceptable substitute for a transaction: between the crash and the repair the partial record is visible, which is the state Invariant 14.2 says never exists. And one of [Amend]'s two dangling shapes cannot be repaired at all — a successor written without the original's `successor_id` can be relinked, but an original marked `amended` whose successor never landed has nowhere to get the successor's dosing parameters, `amended_by` and `amendment_reason` from, and un-marking it would rewrite a write-once field.
+  WHY: Invariant 14.3 is a rejected remedy stated as a rule, and it was reached the hard way (Decisions, 2026-08-30). A crash-recovery scan that repairs dangling amendments is not an acceptable substitute for a transaction: between the crash and the repair the partial record is visible, which is the state Invariant 14.2 says never exists. And one of [Amend]'s two dangling shapes cannot be repaired at all — a successor written without the original's successor_id can be relinked, but an original marked amended whose successor never landed has nowhere to get the successor's dosing parameters, amended_by and amendment_reason from, and un-marking it would rewrite a write-once field.
 
 ---
 
@@ -418,20 +418,20 @@ The dose is wrong. `amend(ord_a1, dr_osei, dose: 20, reason: "titration per 2026
 
 ### Hold and reinstate
 
-`hold(ord_a1, rn_patel, "NPO for surgery 06:00")` → held, recording `prior_state: dispensed`. Every action but [Reinstate] now answers `on-hold`. `reinstate(ord_a1, rn_patel)` → reinstated, recording [Reinstated By] and [Reinstated At] and returning the order to dispensed — the action takes no target state, so it cannot return it anywhere else.
+`hold(ord_a1, rn_patel, "NPO for surgery 06:00")` → held, recording `prior_state: dispensed`. Every action but [Reinstate] now answers on-hold. `reinstate(ord_a1, rn_patel)` → reinstated, recording [Reinstated By] and [Reinstated At] and returning the order to dispensed — the action takes no target state, so it cannot return it anywhere else.
 
 ### The dispensing edge, from both sides
 
-`amend(ord_disp, …)` on a dispensed order → `already-dispensed`; the remedy is [Discontinue] and a fresh order. `cancel(ord_disp, …)` → `already-dispensed`; the remedy is [Discontinue]. And from the near side, `discontinue(ord_new, …)` on an order still standing in ordered → `not-dispensed`; the remedy is [Cancel]. Three refusals, one edge, and the edge is where the medication left the pharmacy.
+`amend(ord_disp, …)` on a dispensed order → already-dispensed; the remedy is [Discontinue] and a fresh order. `cancel(ord_disp, …)` → already-dispensed; the remedy is [Discontinue]. And from the near side, `discontinue(ord_new, …)` on an order still standing in ordered → not-dispensed; the remedy is [Cancel]. Three refusals, one edge, and the edge is where the medication left the pharmacy.
 
 ### Rejection paths
 
-`dispense(ord_new, …)` before verification → `not-verified` — nothing is released on a prescription no pharmacist has read. `amend(ord_held, …)` → the [On Hold Rejection], not `already-dispensed`: the hold is reported first, because the caller must resolve the hold before learning anything about what is underneath it. `amend(ord_a1, dr_osei, dose: 10, reason: "…")` where the dose already is 10 → `invalid-request` — an amendment that changes nothing is not an amendment. `cancel(ord_a1, "  ", reason: "…")` on an already-cancelled order → `already-cancelled`, not `invalid-request`: the state checks run first (Operation 28).
+`dispense(ord_new, …)` before verification → not-verified — nothing is released on a prescription no pharmacist has read. `amend(ord_held, …)` → the [On Hold Rejection], not already-dispensed: the hold is reported first, because the caller must resolve the hold before learning anything about what is underneath it. `amend(ord_a1, dr_osei, dose: 10, reason: "…")` where the dose already is 10 → invalid-request — an amendment that changes nothing is not an amendment. `cancel(ord_a1, "  ", reason: "…")` on an already-cancelled order → already-cancelled, not invalid-request: the state checks run first (Operation 28).
 
 ### Regulated adversarial scenarios
 
 - **DEA controlled-substance audit.** *Account for every unit of this schedule II drug.* Filter by [Medication Ref] and read each order's terminal: a cancelled order means nothing was released, a discontinued one means something was and the course stopped, a completed one means the full course was given. Invariant 6.1 and Invariant 6.2 are what make that distinction structural rather than a matter of how the reason was worded.
-- **Wrong-medication dispute.** *The patient received the wrong drug.* `medication_ref` is fixed at placement and inherited unchanged by every successor (Invariant 2.1), and [Amend] cannot take one, so no order in the chain can name a drug the prescriber did not order. The dispute resolves to whether the right order was acted on, not to whether the record was edited.
+- **Wrong-medication dispute.** *The patient received the wrong drug.* medication_ref is fixed at placement and inherited unchanged by every successor (Invariant 2.1), and [Amend] cannot take one, so no order in the chain can name a drug the prescriber did not order. The dispute resolves to whether the right order was acted on, not to whether the record was edited.
 - **Diversion investigation.** *Who touched this medication?* Every transition records its actor — the [Administerer Ref] on the dose, the [Dispenser Ref] on the release — no attribution may be blank (Invariant 10.1), and no record is removed (Invariant 14.1). The chain from prescriber to whoever closed the order is on one record, under one [Patient Ref]; what the atom cannot prove is that the store was not rewritten underneath it, which is [Tamper Evidence](./tamper-evidence.md)'s (External check 4).
 
 ---
@@ -487,7 +487,7 @@ External check 8: A deployment needing an attribution reference bound to an acto
 WHY:
 External check 4 is the boundary that most looks like this atom's central claim and is not it. Immutability here is a property of the specified surface: no action changes a core field, and no action removes a record. It is not a cryptographic guarantee, and a store administrator with write access can rewrite anything. The DEA's non-alteration requirement is met at the layer [Tamper Evidence](./tamper-evidence.md) provides, and saying so is the difference between a gap and a disclosed boundary.
 
-External check 5 follows from Identity 13. This atom never reads what a `medication_ref` means, so it cannot know that an order is for a scheduled substance, and every obligation that attaches to one — registration, two-factor prescribing, refill limits, quantity caps — is outside it. An atom that knew would need a pharmacopoeia inside it and would stop being one atom.
+External check 5 follows from Identity 13. This atom never reads what a medication_ref means, so it cannot know that an order is for a scheduled substance, and every obligation that attaches to one — registration, two-factor prescribing, refill limits, quantity caps — is outside it. An atom that knew would need a pharmacopoeia inside it and would stop being one atom.
 
 ---
 
@@ -524,9 +524,9 @@ Non-goal 25: A deployment needing a verifiable time anchor MUST compose a truste
 WHY:
 Non-goal 4 through 7 are the refusal a clinical reader least expects and the one that keeps this atom small. Nothing here knows whether 10 mg is a reasonable dose, whether the drug interacts with another on the patient's list, or whether the patient is allergic to it. Every one of those is a judgment about a medication this atom holds only as an opaque reference, and building any of them in would require the atom to know what the drug *is*.
 
-Non-goal 10 is worth stating because a clinical system usually has that state. An order placed by mistake — wrong patient, duplicate submission, system glitch — is cancelled with a reason that says so, and the `cancellation_reason` carries the difference between a clinical decision and a clerical one. A separate state would split the pre-dispensing terminal in two and make every downstream count ask which of the two it meant.
+Non-goal 10 is worth stating because a clinical system usually has that state. An order placed by mistake — wrong patient, duplicate submission, system glitch — is cancelled with a reason that says so, and the cancellation_reason carries the difference between a clinical decision and a clerical one. A separate state would split the pre-dispensing terminal in two and make every downstream count ask which of the two it meant.
 
-Non-goal 24 is the honest limit. An open-ended order — one placed with no `duration` — stands active until someone completes or discontinues it, and nothing here makes that happen.
+Non-goal 24 is the honest limit. An open-ended order — one placed with no duration — stands active until someone completes or discontinues it, and nothing here makes that happen.
 
 ---
 
@@ -543,7 +543,7 @@ Atomic writes 5: A refused amend MUST leave the original in the original's pre-c
 ```
 
 WHY:
-Atomic writes 4 names the store the transaction spans, and the words are load-bearing. [Amend] writes two records — a successor, and the original's transition to amended — and a crash between them leaves one of two shapes. A successor with no back-link can be relinked; an original marked amended whose successor never landed cannot be, because the successor's dosing parameters, `amended_by` and `amendment_reason` exist nowhere in the store to recover, and un-marking the original would rewrite a write-once field. That is why Invariant 14.3 forbids the repair rather than offering it as an alternative.
+Atomic writes 4 names the store the transaction spans, and the words are load-bearing. [Amend] writes two records — a successor, and the original's transition to amended — and a crash between them leaves one of two shapes. A successor with no back-link can be relinked; an original marked amended whose successor never landed cannot be, because the successor's dosing parameters, amended_by and amendment_reason exist nowhere in the store to recover, and un-marking the original would rewrite a write-once field. That is why Invariant 14.3 forbids the repair rather than offering it as an alternative.
 
 ### Clock semantics
 
@@ -559,7 +559,7 @@ Deleted: Clock semantics 8. Non-goal 25 owns it.
 ```
 
 WHY:
-Clock semantics 4 and Clock semantics 5 are asymmetric on purpose, and the asymmetry is clinical. A prescription cannot be dated in the future — there is no such thing as having prescribed something tomorrow — so `ordered_at` is bounded above. A dispense, an administration or a completion may legitimately be recorded late, because the event happened at the bedside or the counter and the record catches up; bounding those would refuse correct documentation. Both directions are backdatable, which is a real limit and the reason the `ordered_at` bound runs against a declared allowance rather than against a bare comparison of two clocks (Capability requirement 3).
+Clock semantics 4 and Clock semantics 5 are asymmetric on purpose, and the asymmetry is clinical. A prescription cannot be dated in the future — there is no such thing as having prescribed something tomorrow — so ordered_at is bounded above. A dispense, an administration or a completion may legitimately be recorded late, because the event happened at the bedside or the counter and the record catches up; bounding those would refuse correct documentation. Both directions are backdatable, which is a real limit and the reason the ordered_at bound runs against a declared allowance rather than against a bare comparison of two clocks (Capability requirement 3).
 
 ### Concurrency
 
@@ -582,7 +582,7 @@ Indeterminate outcome 3: A caller MUST retry a lost [Amend] ONLY IF the original
 ```
 
 WHY:
-Every order action but [Amend] is self-detecting under a lost answer: a second verify against an order that verified answers `not-in-ordered-state`, a second dispense answers `already-dispensed`. [Amend] is the exception and the dangerous one, because on an original still standing in ordered a blind retry succeeds and creates a *second successor* — which Invariant 4.1 forbids the store to hold and which a caller has just caused. Indeterminate outcome 3 is the re-entry arm: read the original first, and retry only where it is still amendable.
+Every order action but [Amend] is self-detecting under a lost answer: a second verify against an order that verified answers not-in-ordered-state, a second dispense answers already-dispensed. [Amend] is the exception and the dangerous one, because on an original still standing in ordered a blind retry succeeds and creates a *second successor* — which Invariant 4.1 forbids the store to hold and which a caller has just caused. Indeterminate outcome 3 is the re-entry arm: read the original first, and retry only where it is still amendable.
 
 ### String policy
 
@@ -600,10 +600,10 @@ Term string input: a required string input OR a filter value — every caller-su
 
 Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
-Term length bound: the maximum length the deployment declares for a `string input`.
+Term length bound: the maximum length the deployment declares for a string input.
 
 WHY:
-Blankness carries more weight here than in most atoms because two whole invariant families rest on it. A whitespace-only `dispenser_ref` would satisfy a naive presence check and leave a dispensing event with nobody's name on it; a whitespace-only `discontinuation_reason` would leave a stopped controlled substance with no stated basis. Invariant 10.1 and Invariant 11.1 are stated over what the *order carries* for that reason — the guarantee has to hold of the record an investigator reads.
+Blankness carries more weight here than in most atoms because two whole invariant families rest on it. A whitespace-only dispenser_ref would satisfy a naive presence check and leave a dispensing event with nobody's name on it; a whitespace-only discontinuation_reason would leave a stopped controlled substance with no stated basis. Invariant 10.1 and Invariant 11.1 are stated over what the *order carries* for that reason — the guarantee has to hold of the record an investigator reads.
 
 ---
 
@@ -639,35 +639,35 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the deployment; the implementation; the store; the store instance; the seam; the transition; a composing pattern; a caller; a prescriber; a pharmacist; a dispenser; an auditor; a regulator; an investigator; an order; a successor order; an original; an amended order; an on-hold order; a verified order; a dispensed order; an administered order; a completed order; a cancelled order; a discontinued order; a reinstated order; an action; an order action; a state-changing action; a held-refusing action; a losing order action; a refused action; a refused amend; a rejection; an opaque reference; a string input; a filter; a filter axis; a filter value; a field group; the store instance's order count.
 
-Term records: `order` — one prescription's whole life, carrying `order_id`, `patient_ref`, `prescriber_ref`, `medication_ref`, `dose`, `dose_unit`, `route`, `frequency`, `ordered_at`, a `state`, and — where a transition wrote them — `duration`, `clinical_evidence_ref`, `verifier_ref`, `verified_at`, `predecessor_id`, `successor_id`, `amended_by`, `amendment_reason`, `prior_state`, `held_by`, `hold_reason`, `held_at`, `reinstated_by`, `reinstated_at`, `dispenser_ref`, `quantity`, `lot_number`, `dispensed_at`, `administerer_ref`, `administered_at`, `completed_by`, `completed_at`, `cancelled_by`, `cancellation_reason`, `cancelled_at`, `discontinued_by`, `discontinuation_reason` and `discontinued_at`.
+Term records: order — one prescription's whole life, carrying order_id, patient_ref, prescriber_ref, medication_ref, dose, dose_unit, route, frequency, ordered_at, a state, and — where a transition wrote them — duration, clinical_evidence_ref, verifier_ref, verified_at, predecessor_id, successor_id, amended_by, amendment_reason, prior_state, held_by, hold_reason, held_at, reinstated_by, reinstated_at, dispenser_ref, quantity, lot_number, dispensed_at, administerer_ref, administered_at, completed_by, completed_at, cancelled_by, cancellation_reason, cancelled_at, discontinued_by, discontinuation_reason and discontinued_at.
 
 Term record verbs: identify, assign, generate, change, share, reuse, carry, stand, read, answer, record, replace, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, acknowledge, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, serialize, evaluate, block, place, cancel, exceed, retry, model, remove, release, amend, append, map, advise.
 
-Term value sets: order answers order_id and refuses invalid-order | storage-failure. amend answers new_order_id and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-dispensed | invalid-request | storage-failure. verify answers verified and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-in-ordered-state | invalid-request | storage-failure. hold answers held and refuses not-known | already-on-hold | already-amended | already-cancelled | already-discontinued | already-completed | invalid-request | storage-failure. reinstate answers reinstated and refuses not-known | not-on-hold | invalid-request | storage-failure. dispense answers dispensed and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-verified | already-dispensed | invalid-request | storage-failure. administer answers administered and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | already-administered | invalid-request | storage-failure. complete answers completed and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-administered | invalid-request | storage-failure. cancel answers cancelled and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | already-dispensed | invalid-request | storage-failure. discontinue answers discontinued and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | invalid-request | storage-failure. read answers the matching orders and refuses invalid-query. `state` = ordered | verified | amended | on-hold | dispensed | administered | completed | cancelled | discontinued. `terminal state` = completed | cancelled | discontinued. `inactive state` = amended | completed | cancelled | discontinued. `pre-dispensing state` = ordered | verified. `post-dispensing state` = dispensed | administered. `core field` = patient_ref | prescriber_ref | medication_ref | dose | dose_unit | route | frequency | duration | clinical_evidence_ref | ordered_at. `dosing parameter` = dose | dose_unit | route | frequency | duration. `blank-input rejection` = invalid-order | invalid-request.
+Term value sets: order answers order_id and refuses invalid-order | storage-failure. amend answers new_order_id and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-dispensed | invalid-request | storage-failure. verify answers verified and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-in-ordered-state | invalid-request | storage-failure. hold answers held and refuses not-known | already-on-hold | already-amended | already-cancelled | already-discontinued | already-completed | invalid-request | storage-failure. reinstate answers reinstated and refuses not-known | not-on-hold | invalid-request | storage-failure. dispense answers dispensed and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-verified | already-dispensed | invalid-request | storage-failure. administer answers administered and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | already-administered | invalid-request | storage-failure. complete answers completed and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-administered | invalid-request | storage-failure. cancel answers cancelled and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | already-dispensed | invalid-request | storage-failure. discontinue answers discontinued and refuses not-known | on-hold | already-amended | already-cancelled | already-discontinued | already-completed | not-dispensed | invalid-request | storage-failure. read answers the matching orders and refuses invalid-query. state = ordered | verified | amended | on-hold | dispensed | administered | completed | cancelled | discontinued. terminal state = completed | cancelled | discontinued. inactive state = amended | completed | cancelled | discontinued. pre-dispensing state = ordered | verified. post-dispensing state = dispensed | administered. core field = patient_ref | prescriber_ref | medication_ref | dose | dose_unit | route | frequency | duration | clinical_evidence_ref | ordered_at. dosing parameter = dose | dose_unit | route | frequency | duration. blank-input rejection = invalid-order | invalid-request.
 
-Term bounds: `future bound`, `length bound`, `clock_offset_allowance`.
+Term bounds: future bound, length bound, clock_offset_allowance.
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
+Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: `order`, `order_id`, `store instance`, `core field`, `dosing parameter`, `attribution reference`, `reference`, `seam`, `transition`, `now`, `order action`, `state-changing action`, `held-refusing action`, `state`, `terminal state`, `inactive state`, `pre-dispensing state`, `post-dispensing state`, `actionable state`, `inactive state's rejection`, `state check`, `blank-input rejection`, `field fault`, `required string input`, `future bound`, `clock_offset_allowance`, `event instant`, `query axes`, `field group`, `reason field`, `admitted order`, `admitted amend`, `admitted verify`, `admitted hold`, `admitted reinstate`, `admitted dispense`, `admitted administer`, `admitted complete`, `admitted cancel`, `admitted discontinue`, `admitted read`, `string input`, `blank`, `length bound`, `resolved dispensed_at`, `resolved administered_at`, `resolved completed_at`.
+Term terms: order, order_id, store instance, core field, dosing parameter, attribution reference, reference, seam, transition, now, order action, state-changing action, held-refusing action, state, terminal state, inactive state, pre-dispensing state, post-dispensing state, actionable state, `inactive state's rejection`, state check, blank-input rejection, field fault, required string input, future bound, clock_offset_allowance, event instant, query axes, field group, reason field, admitted order, admitted amend, admitted verify, admitted hold, admitted reinstate, admitted dispense, admitted administer, admitted complete, admitted cancel, admitted discontinue, admitted read, string input, blank, length bound, resolved dispensed_at, resolved administered_at, resolved completed_at.
 
 Term cited: `execution-contract.md` Logic confinement — the seam and the transition.
 
 Term composing pattern: [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Retention Window](./retention-window.md), [Legal Hold](./legal-hold.md), [Duplicate Prevention](./duplicate-prevention.md), a dose-event pattern, a decision-support pattern, a trusted timestamping pattern, a formulary.
 
-Term event instant: `dispensed_at` | `administered_at` | `completed_at` — every instant a caller may supply for something that happened away from the call.
+Term event instant: dispensed_at | administered_at | completed_at — every instant a caller may supply for something that happened away from the call.
 
-Term resolved dispensed_at: the `dispensed_at` the order carries — the supplied value where one exists, and `now` otherwise.
+Term resolved dispensed_at: the dispensed_at the order carries — the supplied value where one exists, and now otherwise.
 
-Term resolved administered_at: the `administered_at` the order carries — the supplied value where one exists, and `now` otherwise.
+Term resolved administered_at: the administered_at the order carries — the supplied value where one exists, and now otherwise.
 
-Term resolved completed_at: the `completed_at` the order carries — the supplied value where one exists, and `now` otherwise.
+Term resolved completed_at: the completed_at the order carries — the supplied value where one exists, and now otherwise.
 
 Term clock_offset_allowance: the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
 
-Term reason field: `amendment_reason` | `hold_reason` | `cancellation_reason` | `discontinuation_reason` — every field recording why an action was taken.
+Term reason field: amendment_reason | hold_reason | cancellation_reason | discontinuation_reason — every field recording why an action was taken.
 
 #### Order
 
@@ -1267,7 +1267,7 @@ Projects:  invalid-query
 ## Standards references
 
 - **HL7 FHIR (MedicationRequest / MedicationDispense / MedicationAdministration)** — the interoperability decomposition this atom deliberately does not follow. FHIR splits the lifecycle across three resources so independently operated systems can own separate pieces; this atom keeps one auditable chain inside a deployment, and the case for splitting arrives when a second pattern needs generic material-issuance semantics independent of a prescription.
-- **DEA controlled-substance requirements (21 CFR Part 1300 et seq.)** — the attribution chain and the cancel/discontinue boundary are what a reconciliation reads. What attaches to a *scheduled* substance — registration, EPCS two-factor prescribing, refill limits, quantity caps — is outside this atom, because `medication_ref` is opaque to it (Identity 13, Non-goal 17).
+- **DEA controlled-substance requirements (21 CFR Part 1300 et seq.)** — the attribution chain and the cancel/discontinue boundary are what a reconciliation reads. What attaches to a *scheduled* substance — registration, EPCS two-factor prescribing, refill limits, quantity caps — is outside this atom, because medication_ref is opaque to it (Identity 13, Non-goal 17).
 - **DEA EPCS non-alteration requirements** — met at the layer [Tamper Evidence](./tamper-evidence.md) provides. This atom's immutability is a property of its specified surface, not a cryptographic guarantee against a store administrator (External check 4).
 - **HIPAA (45 CFR 164.312)** — the audit-controls requirement applies to the composing [Event Log](./event-log.md) and [Audit Trail](../compositions/audit-trail.md) instances rather than to the order record; retention under HIPAA and state law is [Retention Window](./retention-window.md)'s (Non-goal 22).
 - **ISMP and Joint Commission medication-management standards** — the verification-gates-dispensing sequence and the requirement that every step be attributed are the structural correlates. What a pharmacist should look *for* at verification is clinical practice, not this atom's (Non-goal 4 through 7).
@@ -1302,6 +1302,6 @@ Directional changes only — the turns a future reader must know the pattern too
   What does not strip is the *graph*. Nine states in this topology, with the amendment boundary and the cancel/discontinue split landing on exactly the dispensing edge, is not derivable from neutral primitives — a generic state machine plus a supplied graph is just this atom with the domain moved into a parameter, and the parameter would carry every clinical judgment the graph encodes. The domain hides in the shape, not in the words and not in the rules. The formal layer corroborates: this is the only atom in the migrated set carrying both an Alloy model and a TLA model, and the Alloy model exists because the *structure* needed checking rather than the timing.
 
   Three specimens now, three hiding places: [Observation](./observation.md) hid nothing and was renamed; [Party Identity](./party-identity.md) hid it in the field schema and kept both name and no tag; this one hides it in the graph and keeps the tag. The test's site-census grows by one per specimen, which is the argument for running it on every atom rather than on the ones that look domain-shaped.
-- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity of the atom's own store as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section — taken before the state check, released on return or death — with a stalled or re-issued invocation re-reading under the section and landing an existing rejection; a re-entry arm for a caller whose [Amend] lost its response, retrying only where the original is still amendable; and a deployment-declared `clock_offset_allowance` under which the future-dated check on a supplied [Ordered At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction; a caller left to retry [Amend] blind, which on an original still [Ordered] creates a second successor; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 14.2 says never exists, could relink one dangling shape but not the other — the successor's dosing parameters, [Amended By] and its amendment reason are nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an amendment the caller's retry could already have landed, branching a chain Invariant 4.1 keeps linear; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page.
+- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity of the atom's own store as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section — taken before the state check, released on return or death — with a stalled or re-issued invocation re-reading under the section and landing an existing rejection; a re-entry arm for a caller whose [Amend] lost its response, retrying only where the original is still amendable; and a deployment-declared clock_offset_allowance under which the future-dated check on a supplied [Ordered At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction; a caller left to retry [Amend] blind, which on an original still [Ordered] creates a second successor; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 14.2 says never exists, could relink one dangling shape but not the other — the successor's dosing parameters, [Amended By] and its amendment reason are nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an amendment the caller's retry could already have landed, branching a chain Invariant 4.1 keeps linear; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page.
 
 NOTE: End of Medication Order.

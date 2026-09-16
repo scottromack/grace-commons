@@ -79,7 +79,7 @@ Term anchored_at: the time an external anchor recorded at seal time — an [Anch
 
 Term mechanism_credential: the material the mechanism consumes to produce the proof — a [Mechanism Credential]; keying material for a keyed mechanism, and an empty value — present, carrying nothing — for an unkeyed one. Absent is not empty: Operation 7 refuses the argument that was never supplied, Operation 8 accepts the one supplied with no content.
 
-Term evidence field: `evidence_id` | `record_set_ref` | `proof` | `sealed_at` | `anchored_at`.
+Term evidence field: evidence_id | record_set_ref | proof | sealed_at | anchored_at.
 
 WHY:
 One state, no transitions out, no deletion and no revocation: an evidence that could be withdrawn would prove nothing, since the party who wanted the records rewritten is the party who would withdraw it (State 2, State 6, State 7, Invariant 9.1). The credential is consumed and never stored — key storage, rotation and recovery are a separate concept, and an atom that kept the key would be the weakest place in the deployment to keep it (State 5).
@@ -104,9 +104,9 @@ verify(evidence_id, original_record_set)
   answers verified | failed-verification(verification failure) | not-known
 ```
 
-Term mechanism failure reason: `unreadable-records` | `keying-precondition` | `anchor-unreachable` — the reasons [Seal] gives for a mechanism failure.
+Term mechanism failure reason: unreadable-records | keying-precondition | anchor-unreachable — the reasons [Seal] gives for a mechanism failure.
 
-Term verification failure: `proof-invalid` | `record-set-mismatch` | `mechanism-verification-unavailable` — the reasons [Verify] gives for a failed verification.
+Term verification failure: proof-invalid | record-set-mismatch | mechanism-verification-unavailable — the reasons [Verify] gives for a failed verification.
 
 ```
 Operation 1: [Seal] MUST compute the proof over the record set from the mechanism_credential.
@@ -139,9 +139,9 @@ Operation 25: The business caller MUST NOT supply sealed_at.
 Operation 26: The implementation MUST own the mechanism.
 ```
 
-Term record set match: `yes` | `no` — the host's answer, injected at the seam, to whether the presented original_record_set is the record set the evidence's record_set_ref names. The atom cannot judge it: record_set_ref is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (council read 13).
+Term record set match: yes | no — the host's answer, injected at the seam, to whether the presented original_record_set is the record set the evidence's record_set_ref names. The atom cannot judge it: record_set_ref is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (council read 13).
 
-Term seal check: `held` | `failed` | `unavailable` — the mechanism's verification function, run over the presented record set against the recorded proof. Named for the seal because [Actor Identity](./actor-identity.md) declares its own `proof check` over an attestation, and [Audit Trail](../compositions/audit-trail.md) wires both: one name for two judgments is a collision a composition cannot resolve (council read 13).
+Term seal check: held | failed | unavailable — the mechanism's verification function, run over the presented record set against the recorded proof. Named for the seal because [Actor Identity](./actor-identity.md) declares its own proof check over an attestation, and [Audit Trail](../compositions/audit-trail.md) wires both: one name for two judgments is a collision a composition cannot resolve (council read 13).
 
 Term original_record_set: the record set a verifier presents at [Verify] — an [Original Record Set]; the proof commits to content, so the verifier holds the content.
 
@@ -151,7 +151,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the seal store |
 |---|---|---|---|
-| [Seal] | credential and reference well-formed, mechanism computes, store accepts | `evidence_id` | one evidence lands in [Sealed] (Operation 1, Operation 2) |
+| [Seal] | credential and reference well-formed, mechanism computes, store accepts | evidence_id | one evidence lands in [Sealed] (Operation 1, Operation 2) |
 | [Seal] | blank reference, or absent credential | [Invalid Request] | none (Operation 6, Operation 7) |
 | [Seal] | mechanism cannot compute the proof | [Mechanism Failure] | none (Operation 9) |
 | [Seal] | store refuses the write | [Storage Failure] | none — the proof is discarded (Operation 10, Operation 11) |
@@ -162,7 +162,7 @@ The case space, and the rule that owns each case:
 | [Verify] | right records, proof holds | [Verified] | none (Operation 19) |
 
 WHY:
-The four verify outcomes are kept apart by their conditions rather than by the order the rules are written in (`GRACE-lang.md` Hard invariant 15): `not-known` is an id miss and nothing else; `record-set-mismatch` is a caller holding the wrong records; `mechanism-verification-unavailable` is transient and worth retrying; `proof-invalid` is the structural signal of tampering, and a deployment that collapses it into any of the other three has lost the only alarm this atom raises (Operation 15 through 19). [Verify] needs the records because the proof commits to content — the asymmetry from [Actor Identity](./actor-identity.md), whose verification needs only the attestation and the registry (Operation 13, Invariant 4.1).
+The four verify outcomes are kept apart by their conditions rather than by the order the rules are written in (`GRACE-lang.md` Hard invariant 15): not-known is an id miss and nothing else; record-set-mismatch is a caller holding the wrong records; mechanism-verification-unavailable is transient and worth retrying; proof-invalid is the structural signal of tampering, and a deployment that collapses it into any of the other three has lost the only alarm this atom raises (Operation 15 through 19). [Verify] needs the records because the proof commits to content — the asymmetry from [Actor Identity](./actor-identity.md), whose verification needs only the attestation and the registry (Operation 13, Invariant 4.1).
 
 ### Invariants
 
@@ -238,7 +238,7 @@ A law firm timestamps an executed contract via a qualified Time-Stamp Authority 
 
 ### Payments — PAN-handling audit under PCI DSS
 
-A payment processor seals each day's cardholder-data access log: `seal(pan_access_log_2026-05-10, processor_key) → evidence_p41`. The mechanism is an HMAC-SHA-256 chain — each entry's MAC (Message Authentication Code) includes the previous entry's MAC and the entry's content. PCI DSS (Payment Card Industry Data Security Standard — the card networks' mandatory security rules for cardholder data; here applied to PAN, the Primary Account Number) Requirement 10.5 mandates audit-log integrity; the seal is the structural form. A QSA's (Qualified Security Assessor — a PCI-certified auditor) annual assessment runs `verify` over the prior year's daily logs; any tampering — whether to hide a cardholder-data exfiltration or to forge access for a fraudulent dispute — is detected from the logs themselves.
+A payment processor seals each day's cardholder-data access log: `seal(pan_access_log_2026-05-10, processor_key) → evidence_p41`. The mechanism is an HMAC-SHA-256 chain — each entry's MAC (Message Authentication Code) includes the previous entry's MAC and the entry's content. PCI DSS (Payment Card Industry Data Security Standard — the card networks' mandatory security rules for cardholder data; here applied to PAN, the Primary Account Number) Requirement 10.5 mandates audit-log integrity; the seal is the structural form. A QSA's (Qualified Security Assessor — a PCI-certified auditor) annual assessment runs verify over the prior year's daily logs; any tampering — whether to hide a cardholder-data exfiltration or to forge access for a fraudulent dispute — is detected from the logs themselves.
 
 The mechanic is identical across all five. What differs: the mechanism family (hash chain, Merkle tree, qualified timestamp), the frequency of sealing (per-commit, per-amendment, per-document, per-day), the anchoring story (none, RFC 3161 TSA, blockchain), and the composing patterns active around it (Actor Identity for authored seals, Trusted Timestamping for qualified anchors, External Anchoring for tamper-proof reach).
 
@@ -258,7 +258,7 @@ verify(evidence_id: "evidence_a91", original_record_set: journal_2026-05-10_back
 → verified
 ```
 
-`verified` confirms the backup matches what was sealed; `proof-invalid` on the altered version confirms the alteration occurred after [Sealed At]. The forensic window is bounded by the two seal timestamps.
+verified confirms the backup matches what was sealed; proof-invalid on the altered version confirms the alteration occurred after [Sealed At]. The forensic window is bounded by the two seal timestamps.
 
 **Wrong record set presented — [Record Set Mismatch].** A verifier accidentally presents the wrong day's journal to a seal:
 
@@ -267,7 +267,7 @@ verify(evidence_id: "evidence_a91", original_record_set: journal_2026-05-11)
 → failed-verification(record-set-mismatch)
 ```
 
-The presented record set does not match the [Record Set Ref] the [Evidence] was made over. This is not a tampering signal — it is a caller error, structurally distinguishable from `proof-invalid`.
+The presented record set does not match the [Record Set Ref] the [Evidence] was made over. This is not a tampering signal — it is a caller error, structurally distinguishable from proof-invalid.
 
 ### Regulated adversarial scenarios
 
@@ -363,7 +363,7 @@ Retention coupling 3: A deployment MUST NOT read a seal over destroyed records a
 ```
 
 WHY:
-Tamper-evidence outlives the records only as far as the records are retained. Once [Retention Window](./retention-window.md) purges them, verification has nothing to re-present and answers `record-set-mismatch`, or the host's lookup answers nothing at all — a seal in that state is structurally meaningless and should leave in step with what it sealed.
+Tamper-evidence outlives the records only as far as the records are retained. Once [Retention Window](./retention-window.md) purges them, verification has nothing to re-present and answers record-set-mismatch, or the host's lookup answers nothing at all — a seal in that state is structurally meaningless and should leave in step with what it sealed.
 
 ### Verification caching
 
@@ -396,19 +396,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an adversary; the mechanism; the seal store; an evidence; a seal; a verification.
 
-Term records: `evidence` — one commitment, carrying `evidence_id`, `record_set_ref`, `proof`, `sealed_at` and, where the mechanism anchors, `anchored_at`.
+Term records: evidence — one commitment, carrying evidence_id, record_set_ref, proof, sealed_at and, where the mechanism anchors, anchored_at.
 
 Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, make, cache, declare, renumber, add.
 
-Term value sets: seal answers evidence_id and refuses invalid-request | mechanism-failure(mechanism failure reason) | storage-failure. verify answers verified | failed-verification(verification failure) | not-known. `record set match` = yes | no. `seal check` = held | failed | unavailable. `evidence field` = evidence_id | record_set_ref | proof | sealed_at | anchored_at. evidence state = sealed.
+Term value sets: seal answers evidence_id and refuses invalid-request | mechanism-failure(mechanism failure reason) | storage-failure. verify answers verified | failed-verification(verification failure) | not-known. record set match = yes | no. seal check = held | failed | unavailable. evidence field = evidence_id | record_set_ref | proof | sealed_at | anchored_at. evidence state = sealed.
 
 Term bounds: empty.
 
 Term cadences: empty — a seal cadence is the composing pattern's (Composition note 1).
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `sound` — a mechanism with no known practical collision or forgery attack.
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); sound — a mechanism with no known practical collision or forgery attack.
 
-Term terms: `now`, `evidence`, `evidence_id`, `record_set_ref`, `seam`, `transition`, `business caller`, `sealed`, `proof`, `sealed_at`, `anchored_at`, `mechanism_credential`, `evidence field`, `record set match`, `seal check`, `original_record_set`, `mechanism failure reason`, `verification failure`.
+Term terms: now, evidence, evidence_id, record_set_ref, seam, transition, business caller, sealed, proof, sealed_at, anchored_at, mechanism_credential, evidence field, record set match, seal check, original_record_set, mechanism failure reason, verification failure.
 
 #### Evidence
 
@@ -630,7 +630,7 @@ Tamper Evidence is a foundational compliance primitive with deep cryptographic a
 It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the freestanding-atom posture; the discipline of composing external anchoring, actor attribution, time-anchor, and mechanism-registry concepts as separate atoms.
-- **Eiffel's design-by-contract** — preconditions on `seal`; named rejection and verification reasons.
+- **Eiffel's design-by-contract** — preconditions on seal; named rejection and verification reasons.
 - **Cryptographic hash-function literature** (Merkle's tree commitments, the Merkle-Damgård construction, the SHA family) — the foundational mechanism for tamper-evident commitments.
 - **Tamper-evident logging literature** (Schneier and Kelsey, *Secure Audit Logs to Support Computer Forensics*, 1999) — the formal framing of hash-chain audit logs as forensically-useful primitives.
 

@@ -55,9 +55,9 @@ Term event log instance: the one [Event Log](../atoms/event-log.md) instance the
 
 Term derived state: the Personal Todo shape the replay produces — a derived index by construction, regenerable from the event log instance and never a second truth.
 
-Term unit: one task in the derived state, named by an `id` as [Personal Todo](../atoms/personal-todo.md)'s identity model declares it.
+Term unit: one task in the derived state, named by an id as [Personal Todo](../atoms/personal-todo.md)'s identity model declares it.
 
-Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects a new unit's `id` here.
+Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects a new unit's id here.
 
 WHY:
 Composes 4 and Composes 5 are the whole composition stated twice, from the storage side and from the call side. The log is the truth and the state is a projection, so an undo is a re-derivation rather than a reversal — and the constituent is never asked to move a unit from done back to pending, which is a transition Personal Todo's own spec forbids. The composition operates one level down, at the log, where the atom only ever sees forward valid actions during replay.
@@ -96,7 +96,7 @@ Replay 17: An auditor MUST NOT read a materialized derived state in preference t
 
 Term replay: the named rebuild procedure Replay 1 through 13 state — the composition's only route from the event log instance to the derived state.
 
-Term surviving event: a forward event whose `event_id` NOT EXISTS in the undone set.
+Term surviving event: a forward event whose event_id NOT EXISTS in the undone set.
 
 WHY:
 Replay 5 rests on something worth stating: a surviving event was recorded only because its action succeeded, so Personal Todo's preconditions held when it was written and hold again at every replay step. The replay never has to validate — it is re-running a history that was valid when it happened. Event Log Invariant 5 is what bounds the replay to exactly that set.
@@ -159,9 +159,9 @@ Term forward action: [Add] | [Edit] | [Complete] | [Delete] — every action app
 
 Term no-op edit: an [Edit] whose normalized new description equals the unit's current description — an accepted write of nothing, as [Personal Todo](../atoms/personal-todo.md) declares it.
 
-Term undone set: the `undone_event_id` of every undo event in the event log instance.
+Term undone set: the undone_event_id of every undo event in the event log instance.
 
-Term undo target: the most recent forward event whose `event_id` NOT EXISTS in the undone set.
+Term undo target: the most recent forward event whose event_id NOT EXISTS in the undone set.
 
 Term admitted add: an [Add] call whose preconditions pass and whose append commits.
 
@@ -176,7 +176,7 @@ Term admitted undo: an [Undo] call whose undo target exists and whose append com
 Term admitted action: an admitted add, an admitted edit, an admitted complete, an admitted delete OR an admitted undo.
 
 WHY:
-Action wiring 4 through 7 are the order the whole composition rests on: validate, append, then recompute. A state recomputed before the append would expose a change the log does not carry, and a `storage-failure` after a recompute would leave the derived state ahead of its own truth. The action did not happen unless the append landed.
+Action wiring 4 through 7 are the order the whole composition rests on: validate, append, then recompute. A state recomputed before the append would expose a change the log does not carry, and a storage-failure after a recompute would leave the derived state ahead of its own truth. The action did not happen unless the append landed.
 
 Action wiring 11 through 14 mirror the constituent exactly rather than improving on it. [Personal Todo](../atoms/personal-todo.md) declares a normalized-equal edit an accepted no-op that writes nothing, so this composition appends nothing — which means a no-op edit is never an [Undo] target and [Storage Failure] is not among its answers, because there is no append to fail.
 
@@ -193,11 +193,11 @@ Wiring decision 5: The composition MUST NOT call Personal Todo's add to restore 
 ```
 
 WHY:
-The principle: when a user undoes a delete, the unit must come back at its original `id` with its original `added_at`, its `last_edited_at` where it had one, and its state intact — not as a fresh unit with a new id and reset instants. That identity preservation is what users mean by undo and what makes this composition useful under an audit trail.
+The principle: when a user undoes a delete, the unit must come back at its original id with its original `added_at`, its `last_edited_at` where it had one, and its state intact — not as a fresh unit with a new id and reset instants. That identity preservation is what users mean by undo and what makes this composition useful under an audit trail.
 
 The likely objection: *could the delete save a snapshot and the undo restore from it?* Per-action snapshots — the Memento shape — restore the state and produce a new copy of the unit. A fresh add against Personal Todo issues a new id, resets the instants and loses the unit's history.
 
-The mechanism: the original `add` event is still in the log. Undoing the delete appends a compensating event and re-replays, skipping the delete — so the unit is reconstructed from its own `add`, at its own id, with its own instants. Personal Todo's delete is terminal and irreversible; this composition does not overturn that, it operates at the log level where the delete simply never happened.
+The mechanism: the original add event is still in the log. Undoing the delete appends a compensating event and re-replays, skipping the delete — so the unit is reconstructed from its own add, at its own id, with its own instants. Personal Todo's delete is terminal and irreversible; this composition does not overturn that, it operates at the log level where the delete simply never happened.
 
 The result: Invariant 6.1 falls out of the replay rather than being designed in as a special case. The atoms are unchanged; the composition is entirely in the wiring.
 
@@ -222,9 +222,9 @@ Event schema 7: The replay MUST NOT read a prior description.
 Event schema 8: The composition MUST NOT answer Event Log's invalid-payload to a caller.
 ```
 
-Term event type: `add` | `edit` | `complete` | `delete` | `undo`.
+Term event type: add | edit | complete | delete | undo.
 
-Term forward event: an event carrying `add`, `edit`, `complete` OR `delete` — every event an [Undo] may target.
+Term forward event: an event carrying add, edit, complete OR delete — every event an [Undo] may target.
 
 Term snapshot: the unit's full state at a delete — its description, its Personal Todo state and every instant it carries.
 
@@ -268,12 +268,12 @@ Each of these emerges from the composition. None belongs to a single constituent
   Invariant 5.2: The composition MUST NOT remove an event.
   Invariant 5.3: The composition MUST NOT rewrite an event.
   ```
-  WHY: [Event Log](../atoms/event-log.md)'s `Composition note 5` obliges a composing pattern to cite its invariants by number, because `Composition note 4` freezes those numbers against the citations. This composition rests on six of the seven, each named in the qualified form because this spec carries an Invariant 1 through 7 of its own, so the unqualified form is wrong for every one of the six: Event Log Invariant 1 (append-only) and Event Log Invariant 2 (event immutability), which Invariant 5.2 and Invariant 5.3 mirror from this side; Event Log Invariant 3 (total order) and Event Log Invariant 4 (sequence-number monotonicity), without which Replay 1's *in sequence_number order* names nothing; Event Log Invariant 5 (read consistency), which bounds the replay's input to exactly the landed events; and Event Log Invariant 6 (no id reuse), which is what lets an `undone_event_id` name one event for the life of the log (Invariant 3.1, Check 3.3). It does not rest on Event Log Invariant 7: `recorded_at` is an annotation this composition never orders by.
+  WHY: [Event Log](../atoms/event-log.md)'s `Composition note 5` obliges a composing pattern to cite its invariants by number, because `Composition note 4` freezes those numbers against the citations. This composition rests on six of the seven, each named in the qualified form because this spec carries an Invariant 1 through 7 of its own, so the unqualified form is wrong for every one of the six: Event Log Invariant 1 (append-only) and Event Log Invariant 2 (event immutability), which Invariant 5.2 and Invariant 5.3 mirror from this side; Event Log Invariant 3 (total order) and Event Log Invariant 4 (sequence-number monotonicity), without which Replay 1's *in sequence_number order* names nothing; Event Log Invariant 5 (read consistency), which bounds the replay's input to exactly the landed events; and Event Log Invariant 6 (no id reuse), which is what lets an undone_event_id name one event for the life of the log (Invariant 3.1, Check 3.3). It does not rest on Event Log Invariant 7: recorded_at is an annotation this composition never orders by.
 - **Invariant 6 — Identity is preserved across a delete and its undo.**
   ```
   Invariant 6.1: An undone delete's unit MUST carry the unit's original id, instants and Personal Todo state.
   ```
-  WHY: Personal Todo alone cannot do this — its delete is terminal and a fresh add produces a new id. Composed with Event Log it comes back, because the original `add` event is still there to replay.
+  WHY: Personal Todo alone cannot do this — its delete is terminal and a fresh add produces a new id. Composed with Event Log it comes back, because the original add event is still there to replay.
 - **Invariant 7 — Prior states are reachable by undoing.**
   ```
   Invariant 7.1: A finite sequence of [Undo] calls MUST walk the derived state back through the surviving event sequence.
@@ -288,11 +288,11 @@ Each of these emerges from the composition. None belongs to a single constituent
 
 ### Walkthrough
 
-`add("buy milk")` → `u1`, appending `{add, id: u1}`. `complete(u1)` → ok, appending `{complete, id: u1}`; the replay now shows `u1` done. `undo()` → `complete`, appending `{undo, undone_event_id: <the complete>}`; the replay skips the complete and `u1` is pending again — and Personal Todo was never asked to move a done unit back to pending, because the replay simply never applies the complete.
+`add("buy milk")` → `u1`, appending `{add, id: u1}`. `complete(u1)` → ok, appending `{complete, id: u1}`; the replay now shows `u1` done. `undo()` → complete, appending `{undo, undone_event_id: <the complete>}`; the replay skips the complete and `u1` is pending again — and Personal Todo was never asked to move a done unit back to pending, because the replay simply never applies the complete.
 
 ### Identity across a delete and its undo
 
-`add("call the vet")` → `u2` at `added_at: 09:14`. `edit(u2, "call the vet about Rosie")` → ok. `delete(u2)` → ok, the delete event carrying `u2`'s snapshot. `undo()` → `delete`; the replay skips the delete and re-derives `u2` from its own add and edit events — same `id`, same `added_at: 09:14`, the edited description, pending. The snapshot on the delete event was never read (Event schema 6); it is there for a reader of the log, not for the replay.
+`add("call the vet")` → `u2` at `added_at: 09:14`. `edit(u2, "call the vet about Rosie")` → ok. `delete(u2)` → ok, the delete event carrying `u2`'s snapshot. `undo()` → delete; the replay skips the delete and re-derives `u2` from its own add and edit events — same id, same `added_at: 09:14`, the edited description, pending. The snapshot on the delete event was never read (Event schema 6); it is there for a reader of the log, not for the replay.
 
 ### Audit as a side effect
 
@@ -300,7 +300,7 @@ Each of these emerges from the composition. None belongs to a single constituent
 
 ### Rejection paths
 
-`add("")` → `invalid-description`, refused against Personal Todo's own precondition before anything is appended. `complete(u_unknown)` → `not-known`. `complete(u1)` where `u1` is already done → `not-pending`. `undo()` on a fresh log → `nothing-to-undo` — no forward event exists to target. `edit(u2, "call the vet about Rosie")` where that is already the description → `ok`, and nothing is appended (Action wiring 11), so the edit is not an undo target and `storage-failure` is not among its possible answers.
+`add("")` → invalid-description, refused against Personal Todo's own precondition before anything is appended. `complete(u_unknown)` → not-known. `complete(u1)` where `u1` is already done → not-pending. `undo()` on a fresh log → nothing-to-undo — no forward event exists to target. `edit(u2, "call the vet about Rosie")` where that is already the description → ok, and nothing is appended (Action wiring 11), so the edit is not an undo target and storage-failure is not among its possible answers.
 
 ---
 
@@ -376,49 +376,49 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the composition; the deployment; the implementation; the seam; a caller; a user; an auditor; a reader; the replay; an event; a forward event; an undo event; a surviving event; a unit; an action; a forward action; a refused action; an admitted action; a no-op edit; the derived state; the event log instance; the undone set; the undo target; a snapshot; a query.
 
-Term records: `event` — one appended record in the event log instance, carrying `event_id`, `recorded_at`, a `type` and the type's own fields.
+Term records: event — one appended record in the event log instance, carrying event_id, recorded_at, a type and the type's own fields.
 
 Term record verbs: serve, derive, store, call, change, replace, append, assign, read, skip, apply, introduce, remove, move, record, answer, validate, refuse, recompute, capture, restore, preserve, hold, carry, stand, commit, leave, name, mirror, bound, compose, wire, decide, define, guarantee, confirm, reach, walk, target, generate, materialize, rebuild, equal, follow, reverse, surface, claim, build, produce, rewrite, find, run, reconstruct, offer, undo, reapply.
 
-Term value sets: add answers id and refuses invalid-description | duplicate-active | storage-failure. edit answers ok and refuses not-known | not-editable | invalid-description | duplicate-active | storage-failure. complete answers ok and refuses not-known | not-pending | storage-failure. delete answers ok and refuses not-known | storage-failure. undo answers undone_event_type and refuses nothing-to-undo | storage-failure. read_history answers the matching events and refuses invalid-query. `event type` = add | edit | complete | delete | undo. `forward event` = add | edit | complete | delete.
+Term value sets: add answers id and refuses invalid-description | duplicate-active | storage-failure. edit answers ok and refuses not-known | not-editable | invalid-description | duplicate-active | storage-failure. complete answers ok and refuses not-known | not-pending | storage-failure. delete answers ok and refuses not-known | storage-failure. undo answers undone_event_type and refuses nothing-to-undo | storage-failure. read_history answers the matching events and refuses invalid-query. event type = add | edit | complete | delete | undo. forward event = add | edit | complete | delete.
 
 Term bounds: empty.
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: `composition`, `event log instance`, `derived state`, `unit`, `seam`, `event type`, `forward event`, `snapshot`, `forward action`, `no-op edit`, `undone set`, `undo target`, `replay`, `surviving event`, `admitted add`, `admitted edit`, `admitted complete`, `admitted delete`, `admitted undo`, `admitted action`.
+Term terms: composition, event log instance, derived state, unit, seam, event type, forward event, snapshot, forward action, no-op edit, undone set, undo target, replay, surviving event, admitted add, admitted edit, admitted complete, admitted delete, admitted undo, admitted action.
 
 Term cited: `execution-contract.md` §Logic confinement — the seam. `execution-contract.md` §Composition state — the derived index and its rebuild obligations.
 
 #### Add
 
-The action that records a new [Unit]. Validates against [Personal Todo](../atoms/personal-todo.md)'s own `add` precondition and against the derived state, takes the new `id` from the seam, appends an `add` event, and answers the id.
+The action that records a new [Unit]. Validates against [Personal Todo](../atoms/personal-todo.md)'s own add precondition and against the derived state, takes the new id from the seam, appends an add event, and answers the id.
 
 Kind: Operation
 
 #### Edit
 
-The action that changes a [Unit]'s description. Validates against Personal Todo's `edit` precondition, captures the [Prior Description], appends an `edit` event, and answers `ok`. A [No-op Edit] appends nothing and answers `ok` anyway, mirroring the constituent.
+The action that changes a [Unit]'s description. Validates against Personal Todo's edit precondition, captures the [Prior Description], appends an edit event, and answers ok. A [No-op Edit] appends nothing and answers ok anyway, mirroring the constituent.
 
 Kind: Operation
 
 #### Complete
 
-The action that moves a [Unit] to done. Validates against Personal Todo's `complete` precondition, appends a `complete` event, answers `ok`.
+The action that moves a [Unit] to done. Validates against Personal Todo's complete precondition, appends a complete event, answers ok.
 
 Kind: Operation
 
 #### Delete
 
-The action that removes a [Unit] from the derived state. Appends a `delete` event carrying the unit's [Snapshot] — which the replay never reads, and which an undo therefore never restores from.
+The action that removes a [Unit] from the derived state. Appends a delete event carrying the unit's [Snapshot] — which the replay never reads, and which an undo therefore never restores from.
 
 Kind: Operation
 
 #### Undo
 
-The action that takes back the last thing the user did. Finds the [Undo Target], appends an `undo` event naming it, re-derives the state with that event skipped, and answers the undone event's type. It reverses by re-derivation, never by a reversing call to the constituent.
+The action that takes back the last thing the user did. Finds the [Undo Target], appends an undo event naming it, re-derives the state with that event skipped, and answers the undone event's type. It reverses by re-derivation, never by a reversing call to the constituent.
 
 Kind: Operation
 
@@ -430,14 +430,14 @@ Kind: Operation
 
 #### Unit
 
-One task in the derived state, named by an `id` as [Personal Todo](../atoms/personal-todo.md)'s identity model declares it. Reconstructed by the replay rather than stored, which is why its identity survives a delete and its undo.
+One task in the derived state, named by an id as [Personal Todo](../atoms/personal-todo.md)'s identity model declares it. Reconstructed by the replay rather than stored, which is why its identity survives a delete and its undo.
 
 Kind: Type
 Projects: unit
 
 #### Snapshot
 
-The unit's full state captured on a `delete` event — its description, its Personal Todo state and every instant it carries. An audit convenience, readable straight from the log; never a replay input (Event schema 6).
+The unit's full state captured on a delete event — its description, its Personal Todo state and every instant it carries. An audit convenience, readable straight from the log; never a replay input (Event schema 6).
 
 Kind:     Field
 Field of: the delete event
@@ -445,7 +445,7 @@ Projects: snapshot
 
 #### Prior Description
 
-The unit's description before an `edit`, captured on the edit event. Like [Snapshot], readable from the log and never replayed (Event schema 7).
+The unit's description before an edit, captured on the edit event. Like [Snapshot], readable from the log and never replayed (Event schema 7).
 
 Kind:     Field
 Field of: the edit event
@@ -461,14 +461,14 @@ Projects:     new_description
 
 #### No-op Edit
 
-An [Edit] whose [New Description] normalizes equal to the unit's current description. [Personal Todo](../atoms/personal-todo.md) declares it an accepted action that writes nothing, and this composition mirrors it exactly: no append, no [Prior Description], no state change, `ok` answered, and never an [Undo Target].
+An [Edit] whose [New Description] normalizes equal to the unit's current description. [Personal Todo](../atoms/personal-todo.md) declares it an accepted action that writes nothing, and this composition mirrors it exactly: no append, no [Prior Description], no state change, ok answered, and never an [Undo Target].
 
 Kind: Type
 Projects: no_op_edit
 
 #### Undone Event Id
 
-The `event_id` an `undo` event names — the [Undo Target] it took back. Every one of these forms the [Undone Set].
+The event_id an undo event names — the [Undo Target] it took back. Every one of these forms the [Undone Set].
 
 Kind:     Field
 Field of: the undo event
@@ -484,21 +484,21 @@ Projects: undone_event_type
 
 #### Undone Set
 
-The `undone_event_id` of every undo event in the event log instance — what the replay skips by.
+The undone_event_id of every undo event in the event log instance — what the replay skips by.
 
 Kind: Type
 Projects: undone_set
 
 #### Undo Target
 
-The most recent forward event whose `event_id` is not in the [Undone Set]. What an [Undo] takes back, and what [Nothing To Undo] says does not exist.
+The most recent forward event whose event_id is not in the [Undone Set]. What an [Undo] takes back, and what [Nothing To Undo] says does not exist.
 
 Kind: Type
 Projects: undo_target
 
 #### Event Type
 
-Which of the five schemas an event carries: `add`, `edit`, `complete`, `delete` or `undo`. The first four are [Forward Event]s; the fifth is not, and is never an [Undo Target].
+Which of the five schemas an event carries: add, edit, complete, delete or undo. The first four are [Forward Event]s; the fifth is not, and is never an [Undo Target].
 
 Kind:     Field
 Field of: the event
@@ -506,7 +506,7 @@ Projects: type
 
 #### Forward Event
 
-An event carrying `add`, `edit`, `complete` or `delete` — every event an [Undo] may target, and every event the replay may apply.
+An event carrying add, edit, complete or delete — every event an [Undo] may target, and every event the replay may apply.
 
 Kind: Type
 Projects: forward_event

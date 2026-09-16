@@ -66,7 +66,7 @@ State 9: The atom MUST NOT offer a done-to-pending transition.
 State 10: The atom MUST NOT hold a deleted unit.
 ```
 
-Term unit state: `pending` | `done` — recorded and unfinished, or finished and unremoved.
+Term unit state: pending | done — recorded and unfinished, or finished and unremoved.
 
 Term added_at: the instant the unit was recorded — an [Added At].
 
@@ -150,20 +150,20 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the list |
 |---|---|---|---|
-| [Add] | description valid, no active match, store accepts | `id` | one unit lands in [Pending] (Operation 1, Operation 2) |
+| [Add] | description valid, no active match, store accepts | id | one unit lands in [Pending] (Operation 1, Operation 2) |
 | [Add] | description empty or over the cap | [Invalid Description] | none (Description 4, Description 5) |
 | [Add] | description matches a live unit | [Duplicate Active] | none (Operation 4) |
-| [Edit] | valid, different, no active match, store accepts | `ok` | description and `last_edited_at` change (Operation 13, State 6) |
-| [Edit] | same normalized text | `ok` | none — no write, no stamp (Operation 10 through 12) |
+| [Edit] | valid, different, no active match, store accepts | ok | description and last_edited_at change (Operation 13, State 6) |
+| [Edit] | same normalized text | ok | none — no write, no stamp (Operation 10 through 12) |
 | [Edit] | unit is done | [Not Editable] | none (Operation 8) |
-| [Complete] | unit is pending | `ok` | [Pending] → [Done], `completed_at` stamped (Operation 17, State 7) |
+| [Complete] | unit is pending | ok | [Pending] → [Done], completed_at stamped (Operation 17, State 7) |
 | [Complete] | unit is done | [Not Pending] | none (Operation 16) |
-| [Delete] | unit is pending or done | `ok` | the unit leaves; the id is retired (Operation 19, Operation 20, Identity 5) |
+| [Delete] | unit is pending or done | ok | the unit leaves; the id is retired (Operation 19, Operation 20, Identity 5) |
 | any | id names nothing | [Not Known] | none (Operation 7, Operation 15, Operation 18) |
 | any writing call | store refuses | [Storage Failure] | none (Operation 5, Operation 21 through 24) |
 
 WHY:
-The no-op edit is a real accepted case that writes nothing, which is why it cannot answer `storage-failure` — a person retyping the same words has changed nothing and should not see a failure from a store that was never asked (Operation 10 through 12). Uniqueness ranges over pending and done together: a finished *buy milk* still blocks a second one, because a list showing the same text twice is confusing whichever column it sits in (Operation 4, Invariant 6.1).
+The no-op edit is a real accepted case that writes nothing, which is why it cannot answer storage-failure — a person retyping the same words has changed nothing and should not see a failure from a store that was never asked (Operation 10 through 12). Uniqueness ranges over pending and done together: a finished *buy milk* still blocks a second one, because a list showing the same text twice is confusing whichever column it sits in (Operation 4, Invariant 6.1).
 
 ### Invariants
 
@@ -295,9 +295,9 @@ External check 3: An auditor needing a second client's calls accounted for MUST 
 ```
 
 WHY:
-`Check 4.1` through `Check 4.3` are the three that have to be read as the invariants state them rather than as a chain. Each is conditional on the field existing — a pending unit carries no `completed_at` and an unedited one carries no `last_edited_at` — so an auditor comparing three timestamps as `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a list with nothing wrong with it. The invariants were written as three conditionals for exactly that reason and the checks keep the shape.
+`Check 4.1` through `Check 4.3` are the three that have to be read as the invariants state them rather than as a chain. Each is conditional on the field existing — a pending unit carries no completed_at and an unedited one carries no last_edited_at — so an auditor comparing three timestamps as `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a list with nothing wrong with it. The invariants were written as three conditionals for exactly that reason and the checks keep the shape.
 
-`Check 3.4` is the one a reader would not think to run. An edit whose normalized description equals the unit's current description answers `ok` and writes **nothing** — no description change and no stamp — so the auditable evidence of a correct no-op is the *absence* of a `last_edited_at` movement, which is the only check here whose passing condition is that nothing happened.
+`Check 3.4` is the one a reader would not think to run. An edit whose normalized description equals the unit's current description answers ok and writes **nothing** — no description change and no stamp — so the auditable evidence of a correct no-op is the *absence* of a last_edited_at movement, which is the only check here whose passing condition is that nothing happened.
 
 The external set is three lines because this atom assumes almost nothing it cannot show. What it does assume is the two things no records can carry: that the clock moves forward, which every timestamp check above is best-effort under, and that each transition is atomic, without which `Invariant 1.1` is reachable-false — a crash mid-write leaving a unit in neither state. Both are named here rather than left to a reader to notice they were never proved.
 
@@ -323,7 +323,7 @@ Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted t
 ```
 
 WHY:
-Each of these is a field somebody will want to add here and each is a pattern: priority and ordering, due dates, dependencies and recurrence compose *(all forthcoming)*, and the moment one of them lands inside this atom the atom stops being the thing every larger system contains (Non-goal 9 through 12). Deletion keeps no memory by design, which is what makes the recency behaviour a composition rather than a mode (Non-goal 4, Non-goal 5). Only `last_edited_at` survives an edit — prior text is gone, and a system that needs the trail composes a history pattern (Non-goal 13).
+Each of these is a field somebody will want to add here and each is a pattern: priority and ordering, due dates, dependencies and recurrence compose *(all forthcoming)*, and the moment one of them lands inside this atom the atom stops being the thing every larger system contains (Non-goal 9 through 12). Deletion keeps no memory by design, which is what makes the recency behaviour a composition rather than a mode (Non-goal 4, Non-goal 5). Only last_edited_at survives an edit — prior text is gone, and a system that needs the trail composes a history pattern (Non-goal 13).
 
 Where the atom breaks down: any system with more than one actor; a system where *finished* is not binary; a system where the description is not a property worth constraining; a host that cannot make a transition atomic.
 
@@ -371,19 +371,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a person; a unit; a call; the store; the list; an auditor.
 
-Term records: `unit` — one thing to do, carrying `id`, `description`, `added_at`, a unit state and, once they land, `last_edited_at` and `completed_at`.
+Term records: unit — one thing to do, carrying id, description, added_at, a unit state and, once they land, last_edited_at and completed_at.
 
 Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find.
 
-Term value sets: add answers id and refuses invalid-description | duplicate-active | storage-failure. edit answers ok and refuses not-known | not-editable | invalid-description | duplicate-active | storage-failure. complete answers ok and refuses not-known | not-pending | storage-failure. delete answers ok and refuses not-known | storage-failure. `unit state` = pending | done.
+Term value sets: add answers id and refuses invalid-description | duplicate-active | storage-failure. edit answers ok and refuses not-known | not-editable | invalid-description | duplicate-active | storage-failure. complete answers ok and refuses not-known | not-pending | storage-failure. delete answers ok and refuses not-known | storage-failure. unit state = pending | done.
 
-Term bounds: `description cap` (the bound on a normalized description's length).
+Term bounds: description cap (the bound on a normalized description's length).
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: `now`, `unit`, `id`, `seam`, `transition`, `business caller`, `description`, `description cap`, `unit state`, `added_at`, `last_edited_at`, `completed_at`, `active set`, `new_description`.
+Term terms: now, unit, id, seam, transition, business caller, description, description cap, unit state, added_at, last_edited_at, completed_at, active set, new_description.
 
 #### Add
 
@@ -578,11 +578,11 @@ Wire:      pinned
 Personal Todo is a primitive, not a regulated business pattern. It has no direct ISO / IEEE / regulatory anchor. It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the conception of a "concept" as a composable, behavioral, freestanding unit of software design. The discipline of *not* absorbing concepts that belong to other concepts.
-- **Eiffel's design-by-contract** — preconditions on `add`, `edit`, `complete`, `delete`.
+- **Eiffel's design-by-contract** — preconditions on add, edit, complete, delete.
 - **Linear temporal logic** — Add-then-Pending and Complete-then-Done expressed as `until` properties.
 - **Unicode Standard Annex #15** — NFC normalization for the description policy.
 
-A formal-methods version of a similar concept exists in [concept-catalog](https://github.com/dpapathanasiou/concept-catalog/blob/main/concepts/todo.als), expressed in Alloy 6. The Alloy version uses fully opaque Task atoms (`var sig Task {}`) with no description, no identity-by-content, no edit, and no duplicate prevention; its operational principles cover `add`, `complete`, and `delete` over those atoms. Personal Todo is *informed by* that structure but is a distinct concept: it adds an `id`-as-identity model with description as a mutable property under uniqueness constraint, an `edit` action, timestamps, normalized comparison rules, and explicit Behavior / Feedback / Examples coverage. Recency-based duplicate prevention, initially absorbed into the spec on the first iteration, was extracted to a separate freestanding concept ([Duplicate Prevention](./duplicate-prevention.md)).
+A formal-methods version of a similar concept exists in [concept-catalog](https://github.com/dpapathanasiou/concept-catalog/blob/main/concepts/todo.als), expressed in Alloy 6. The Alloy version uses fully opaque Task atoms (`var sig Task {}`) with no description, no identity-by-content, no edit, and no duplicate prevention; its operational principles cover add, complete, and delete over those atoms. Personal Todo is *informed by* that structure but is a distinct concept: it adds an id-as-identity model with description as a mutable property under uniqueness constraint, an edit action, timestamps, normalized comparison rules, and explicit Behavior / Feedback / Examples coverage. Recency-based duplicate prevention, initially absorbed into the spec on the first iteration, was extracted to a separate freestanding concept ([Duplicate Prevention](./duplicate-prevention.md)).
 
 ---
 
@@ -606,6 +606,6 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the four actions as a signature block, the description policy as its own rule family, the eight invariant numbers unchanged, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan, and this atom is the corpus's simplest shape — the one a reader meets first.
 
-- **2026-09-14 — The atom gained an acceptance surface, kept deliberately plain.** *Chose:* fourteen `Check` rules and three `External check` rules, each one reading of the list against one rule. *Over:* a richer section. *Because:* presence became mandatory on 2026-09-14, and this atom is the reference implementation's first worked example, so its section teaches the shape more than it audits a risk. Two things it does carry are not decoration: the three timestamp checks keep the invariants' conditional form rather than chaining them, since an auditor comparing `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a correct list; and `Check 3.4`'s passing condition is that **nothing happened** — a no-op edit answers `ok` and writes nothing, so the evidence of conformance is a stamp that did not move (council read 65).
+- **2026-09-14 — The atom gained an acceptance surface, kept deliberately plain.** *Chose:* fourteen `Check` rules and three `External check` rules, each one reading of the list against one rule. *Over:* a richer section. *Because:* presence became mandatory on 2026-09-14, and this atom is the reference implementation's first worked example, so its section teaches the shape more than it audits a risk. Two things it does carry are not decoration: the three timestamp checks keep the invariants' conditional form rather than chaining them, since an auditor comparing `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a correct list; and `Check 3.4`'s passing condition is that **nothing happened** — a no-op edit answers ok and writes nothing, so the evidence of conformance is a stamp that did not move (council read 65).
 
 NOTE: End of Personal Todo.

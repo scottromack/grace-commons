@@ -49,7 +49,9 @@ def vocabulary_categories(grammar_path=None):
         raise SystemExit(
             "check.py: GRACE-lang.md carries no `Term category` line; the "
             "category set has no authority to derive from (Closed vocabulary 2)")
-    names = re.findall(r"`([^`]+)`", m.group(1))
+    # a value set: members separated by `|`, bare since v0.51 (a backtick quotes
+    # literal text and never marks a name)
+    names = [x.strip().strip("`") for x in m.group(1).strip().rstrip(".").split("|")]
     # a Terms line names its category in the plural; the value set names it singular
     plural = {"actor": "actors", "record": "records", "record verb": "record verbs",
               "value set": "value sets", "bound": "bounds", "cadence": "cadences",
@@ -80,8 +82,8 @@ _RESERVED_SOURCES = ("reserved token", "quantifier", "modal", "condition operato
 def reserved_capitals(grammar_path=None):
     """(reserved, grammar-shaped) upper-case words, both derived from GRACE-lang.md.
 
-    reserved: every upper-case word inside a code span on the declarations that
-    enumerate the reserved tokens. grammar-shaped: the upper-case words of the
+    reserved: every upper-case word on the declarations that enumerate the
+    reserved tokens (bare since v0.51; a code span still counts). grammar-shaped: the upper-case words of the
     provisional forms and of the watch list (§18) — forms the grammar has named
     and not admitted, so one in a rule is a finding and never a proper noun.
     """
@@ -93,8 +95,7 @@ def reserved_capitals(grammar_path=None):
         if not m:
             raise SystemExit(f"check.py: GRACE-lang.md carries no `Term {name}` line; "
                              "the reserved tokens have no authority to derive from (Casing 2)")
-        for span in re.findall(r"`([^`]+)`", m.group(1)):
-            reserved.update(re.findall(r"\b[A-Z]{2,}\b", span))
+        reserved.update(re.findall(r"\b[A-Z]{2,}\b", m.group(1)))
     shaped: set[str] = set()
     for line in re.findall(r"^PROVISIONAL: (.*)$", g, re.M):
         shaped.update(re.findall(r"\b[A-Z]{2,}\b", line))
@@ -178,7 +179,7 @@ LABEL = re.compile(r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d�
 LABEL_PARTS = re.compile(r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 PREFIX = re.compile(r"^(WHY|NOTE|UX|PROVISIONAL):")
 FENCE = re.compile(r"^(\s*)```(\w*)\s*$")
-MIGRATED = re.compile(r"^Term qualifiers:[^\n]*`migrated`", re.M)
+MIGRATED = re.compile(r"^Term qualifiers:[^\n]*\bmigrated\b", re.M)
 TERM_DECL = re.compile(r"^\s*Term ([^:`]+?): (.*)$")
 # The one declaration form (GRACE-lang Closed vocabulary 10, v0.45), read strictly:
 # the name runs to the first colon, bare; one space; the definition ends with a period.
@@ -367,6 +368,38 @@ def declared_terms(text: str) -> dict[str, int]:
     return out
 
 
+
+# A code span quotes literal text and never marks a name (GRACE-lang v0.51,
+# Surface 30). The names a spec declares, read without the backticks that used
+# to mark them: its Term names, its signatures' names, the members either side
+# of a `|` in a declaration, and the entries of its vocabulary lines.
+_NAME_SHAPE = re.compile(r"[a-z][a-z0-9_]*(?:[ -][a-z0-9_]+)*|[A-Z]{2,}(?: [A-Z]{2,})*")
+# record verbs are English verbs; a backticked `revoke` quotes an action's spelling
+_LIST_CATEGORIES = {"actors", "records", "bounds", "cadences", "terms", "cited"}
+
+
+def declared_names(text: str) -> set[str]:
+    names = set(declared_terms(text))
+    for line in text.split("\n"):
+        sm = SIG_HEAD.match(line)
+        if sm:
+            names.add(sm.group(1))
+            names.update(x.removeprefix("optional ") for x in (sm.group(2) or "").split(", ") if x)
+        if line.startswith(("  answers ", "  refuses ")):
+            body = line[len("  answers "):]
+            names.update(a.strip() for a in re.sub(r"\([^)]*\)", " ", body).split("|"))
+            for pay in re.findall(r"\(([^)]*)\)", body):
+                names.update(x.strip() for x in pay.split(","))
+        m = TERM_DECL.match(line)
+        if not m:
+            continue
+        body = CODE_SPAN.sub(" ", m.group(2))
+        for run in re.findall(r"[^|—;:(),.]+(?:\|[^|—;:(),.]+)+", body):
+            names.update(x.strip() for x in run.split("|"))
+        if m.group(1) in _LIST_CATEGORIES:
+            names.update(x.strip() for x in re.split(r",|;| and ", body.split(" — ")[0].rstrip(".")))
+    return {n for n in names if _NAME_SHAPE.fullmatch(n)}
+
 def scan(path: Path) -> list[Finding]:
     text = path.read_text(encoding="utf-8")
     blank_guarded = set(BLANK_GUARD.findall(text))
@@ -393,6 +426,22 @@ def scan(path: Path) -> list[Finding]:
             add(k, "D-decl-form", "a declaration in the retired `Terms ›` form; write `Term name: definition.` (GRACE-lang v0.45)")
         elif not TERM_DECL_STRICT.match(ln):
             add(k, "D-decl-form", f"not the declaration form `Term name: definition.` — a bare name, one space after the colon, a closing period: {ln.strip()[:70]}")
+
+    # D-code-span: a declared name is written bare (Surface 30)
+    names_here = declared_names(text)
+    in_fence = history = False
+    for k, ln in enumerate(lines, start=1):
+        if FENCE.match(ln):
+            in_fence = not in_fence
+            continue
+        if ln.startswith("## "):
+            history = ln.startswith(("## Status", "## Ledger"))
+        if in_fence or history or ln.startswith(("#", "Projects:", "Wire:")) or re.match(r"^\[[^\]]+\]:", ln):
+            continue
+        for sm in re.finditer(r"(?<!`)`([^`\n]+)`(?!`)", ln):
+            if sm.group(1) in names_here:
+                add(k, "D-code-span", f"`{sm.group(1)}` is a name this spec declares; a code span "
+                    f"quotes literal text, so write the name bare (Surface 30)")
 
     ctx = {"h2": "", "h3": "", "h4": "", "bullet": "", "italic": "", "inv": None, "step": None}
 
@@ -731,11 +780,18 @@ def scan(path: Path) -> list[Finding]:
         for span in re.findall(r"`([^`]+)`", line):
             if DECL_TOKEN.fullmatch(span):
                 universe.add(span)
+    # a declared name is written bare since v0.51, so every declaration's words
+    # and every name-shaped word in the prose are names too
+    in_fence = False
     for line in lines:
+        if FENCE.match(line):
+            in_fence = not in_fence
+            continue
         m = TERM_DECL.match(line)
-        if m and m.group(1) in CATEGORIES:
-            universe.update(x for span in re.findall(r"`([^`]+)`", m.group(2))
-                            for x in DECL_TOKEN.findall(span))
+        if m:
+            universe.update(DECL_TOKEN.findall(m.group(2)))
+        elif not in_fence:
+            universe.update(t for t in DECL_TOKEN.findall(line) if "_" in t)
         sm = SIG_HEAD.match(line)
         if sm:
             universe.add(sm.group(1))
@@ -745,7 +801,9 @@ def scan(path: Path) -> list[Finding]:
     for name, k in decls.items():
         body = TERM_DECL.match(lines[k - 1]).group(2)
         bare = CODE_SPAN.sub(" ", body)
-        if MODAL.search(bare):
+        # the grammar declares the modals as names (Term modal) and writes them
+        # bare since v0.51, so in the grammar a modal in a definition is a name
+        if MODAL.search(bare) and "modal" not in decls:
             add(k, "D-decl-modal",
                 f"`Term {name}` carries a modal — a definition is not a rule "
                 f"(Closed vocabulary 12, Closed vocabulary 14)")

@@ -89,7 +89,7 @@ Primitive policy 9: [Check Permitted] MUST NOT call a constituent for an argumen
 ```
 
 WHY:
-`invalid-request` is composition-introduced: neither wired constituent operation declares it, and Primitive policy 9 is why neither is consulted when it fires. That matters for a reason the outcome set makes plain — [Permissions](../atoms/permissions.md) answers an empty `subject_ref` or `action_scope` with `denied` under its own default-deny posture, so a composition that let a malformed argument through would report *the answer is no* where the truth is *the request was not well-formed enough to ask*. Primitive policy 2 through 4 keep the three outcome classes distinct, which is Invariant 3's discipline applied to inputs rather than to answers.
+invalid-request is composition-introduced: neither wired constituent operation declares it, and Primitive policy 9 is why neither is consulted when it fires. That matters for a reason the outcome set makes plain — [Permissions](../atoms/permissions.md) answers an empty `subject_ref` or action_scope with denied under its own default-deny posture, so a composition that let a malformed argument through would report *the answer is no* where the truth is *the request was not well-formed enough to ask*. Primitive policy 2 through 4 keep the three outcome classes distinct, which is Invariant 3's discipline applied to inputs rather than to answers.
 
 ### Action wiring
 
@@ -158,7 +158,7 @@ The decision the composition exists to make: the session gates the permission ch
   Deleted: Invariant 1.3. Session Composition note 4 owns it.
   Deleted: Invariant 1.4. Session Composition note 4 owns it.
   ```
-  WHY: [Session](../atoms/session.md)'s `Composition note 4` already forbids a composing pattern to call Permissions on an invalid answer, and `Composes 7` cites it — so the three deleted rules, which enumerated that prohibition over `expired`, `revoked` and `not-known`, restated a rule this spec cites rather than owns (Authority 6). Invariant 1.1 is not that rule. `Composition note 4` fires on an invalid answer *given*; Invariant 1.1 fires on no valid answer *given*, which also covers the call that never asked. The two do not normalize identically (Authority 4), and the gap between them is exactly what this composition adds: Session forbids acting on a bad answer, and the closure forbids acting on no answer at all. A deployment that skipped `validate` entirely would satisfy `Composition note 4` and breach Invariant 1.1.
+  WHY: [Session](../atoms/session.md)'s `Composition note 4` already forbids a composing pattern to call Permissions on an invalid answer, and `Composes 7` cites it — so the three deleted rules, which enumerated that prohibition over `expired`, revoked and not-known, restated a rule this spec cites rather than owns (Authority 6). Invariant 1.1 is not that rule. `Composition note 4` fires on an invalid answer *given*; Invariant 1.1 fires on no valid answer *given*, which also covers the call that never asked. The two do not normalize identically (Authority 4), and the gap between them is exactly what this composition adds: Session forbids acting on a bad answer, and the closure forbids acting on no answer at all. A deployment that skipped `validate` entirely would satisfy `Composition note 4` and breach Invariant 1.1.
 - **Invariant 2 — Principal binding.**
   ```
   Invariant 2.1: EVERY subject_ref Permissions' permitted receives MUST equal the valid answer's principal_ref.
@@ -171,7 +171,7 @@ The decision the composition exists to make: the session gates the permission ch
   Invariant 3.2: A session-invalid answer MUST NOT follow an admitted gate.
   Invariant 3.3: The composition MUST NOT answer denied for a session Session's validate gave an invalid answer for.
   ```
-  WHY: `denied` means the gate cleared and the answer is no; `session-invalid` means the gate did not clear and Permissions was never asked. A caller that collapses them reads an authentication failure as an authorization decision, and an auditor that collapses them cannot tell a revoked session from a missing grant.
+  WHY: denied means the gate cleared and the answer is no; session-invalid means the gate did not clear and Permissions was never asked. A caller that collapses them reads an authentication failure as an authorization decision, and an auditor that collapses them cannot tell a revoked session from a missing grant.
 - **Invariant 4 — Default deny.**
   ```
   Invariant 4.1: An admitted gate MUST answer denied for a pair no active grant covers.
@@ -246,7 +246,7 @@ check_permitted(
 ) → invalid-request
 ```
 
-The token fails the Primitive-policies predicate (whitespace-only counts as absent). Neither `Session.validate` nor `Permissions.permitted` is consulted. The outcome is not `denied` (no permission was evaluated) and not `session-invalid` (no session was consulted) — the three classes stay distinct.
+The token fails the Primitive-policies predicate (whitespace-only counts as absent). Neither `Session.validate` nor `Permissions.permitted` is consulted. The outcome is not denied (no permission was evaluated) and not session-invalid (no session was consulted) — the three classes stay distinct.
 
 ### Valid session, permission denied
 
@@ -265,7 +265,7 @@ Internally: `Session.validate("tok_abc123") → valid(principal_ref: "usr_42", .
 
 **Regulator audit.** An auditor queries whether the system enforces access control at session-expiry boundaries — specifically, whether an expired session is permitted to evaluate any authorization query. By Invariant 1, any [Check Permitted] call with an expired session token returns `session-invalid(expired)` before Permissions is consulted. The session expiry state is verifiable from Session's own records; the composition's invariant is derivable from the action wiring alone, without inspecting runtime logs. If Audit Trail is composed in as a substrate, the individual [Check Permitted] records confirm the rejected outcome directly.
 
-**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revoked at time T; (b) any [Check Permitted] call after T with that session token returned `session-invalid(revoked)`, not `permitted` or `denied`. Session's state records the revocation timestamp. The composition's Invariant 1 establishes that Permissions was never reached after revocation. If Audit Trail is composed in, the dispute is answerable from records alone. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that an invalid session cannot produce a `permitted` or `denied` result.
+**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revoked at time T; (b) any [Check Permitted] call after T with that session token returned `session-invalid(revoked)`, not permitted or denied. Session's state records the revocation timestamp. The composition's Invariant 1 establishes that Permissions was never reached after revocation. If Audit Trail is composed in, the dispute is answerable from records alone. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that an invalid session cannot produce a permitted or denied result.
 
 **Breach forensics.** An investigator determines that a session token was stolen and seeks to establish what permissions were exercised under it before revocation. This composition does not maintain an authorization event log; forensic coverage of individual [Check Permitted] calls requires [Audit Trail](./audit-trail.md) composed in as a substrate (see *Composition notes*). Without Audit Trail, the investigator can establish from Session's state that the session was active for a given window and was eventually revoked, and from Permissions' state what grants the principal held during that window — but cannot enumerate individual [Check Permitted] calls or their outcomes from the composition's own state. This is a known scope limitation that composition with Audit Trail resolves.
 
@@ -342,7 +342,7 @@ Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound 
 ```
 
 WHY:
-The gate is point-in-time at the instant `Session.validate` runs. A revocation landing after that instant and before Permissions answers leaves a call that clears the gate and returns `permitted` or `denied` on a session that is revoked by the time the caller reads the answer. This is stated rather than cured: curing it would need a lock across two atoms that declare no such surface, and the honest bound is the session's own duration (Concurrency 3).
+The gate is point-in-time at the instant `Session.validate` runs. A revocation landing after that instant and before Permissions answers leaves a call that clears the gate and returns permitted or denied on a session that is revoked by the time the caller reads the answer. This is stated rather than cured: curing it would need a lock across two atoms that declare no such surface, and the honest bound is the session's own duration (Concurrency 3).
 
 ---
 
@@ -364,31 +364,31 @@ WHY:
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a minimal, stateless composition — a gate — so its own concepts are just the single action it exposes ([Check Permitted]) and its two own rejections ([Session Invalid], the gate refusal; [Invalid Request], the boundary refusal — composition-introduced, since neither wired constituent operation can produce it). It introduces **no cross-atom state** and no new data, so there is nothing else to carry a term entry: the emergent guarantees it owns — the session-gates-authorization ordering (Invariant 1) and the principal binding (Invariant 2) — are structural properties, not data. References to the constituent atoms and their operations — Session's `validate` / `revoke`, Permissions' `permitted` — and the relayed outcomes (`permitted`, `denied`) and the `invalid(...)` reasons (`expired` / `revoked` / `not-known`) Session returns, remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projects** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a minimal, stateless composition — a gate — so its own concepts are just the single action it exposes ([Check Permitted]) and its two own rejections ([Session Invalid], the gate refusal; [Invalid Request], the boundary refusal — composition-introduced, since neither wired constituent operation can produce it). It introduces **no cross-atom state** and no new data, so there is nothing else to carry a term entry: the emergent guarantees it owns — the session-gates-authorization ordering (Invariant 1) and the principal binding (Invariant 2) — are structural properties, not data. References to the constituent atoms and their operations — Session's `validate` / `revoke`, Permissions' permitted — and the relayed outcomes (permitted, denied) and the `invalid(...)` reasons (`expired` / revoked / not-known) Session returns, remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: `composition`, `constituents`, `boundary predicate`, `blank`, `length bound`, `valid answer`, `invalid answer`, `admitted gate`.
+Term terms: composition, constituents, boundary predicate, blank, length bound, valid answer, invalid answer, admitted gate.
 
 Term record verbs: validate, call, answer, accept, read, write, store, derive, evaluate, compare, trim, normalize, equal, stand, follow, reach, find, name, own, discharge, obey, change, replace, hold, serve, compose, declare, pin, bound, issue, terminate, grant, revoke, expand, match, aggregate, distinguish, record, detect, claim, query, receive, cover, case-fold.
 
 Term actors: the composition; the constituents; a deployment; an auditor; a caller; a principal; a session; a grant; an argument; an answer.
 
-Term value sets: check_permitted answers permitted | denied and refuses invalid-request | session-invalid(validation failure). `invalid answer` reasons = expired | revoked | not-known.
+Term value sets: check_permitted answers permitted | denied and refuses invalid-request | session-invalid(validation failure). invalid answer reasons = expired | revoked | not-known.
 
-Term cited: `execution-contract.md` §Composition state — the no-stored-state classification. [Session](../atoms/session.md) `Composition note 4` — the gate obligation. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding; `validation failure`: Session.
+Term cited: `execution-contract.md` §Composition state — the no-stored-state classification. [Session](../atoms/session.md) `Composition note 4` — the gate obligation. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding; validation failure: Session.
 
 #### Check Permitted
 
-The composition's single action: it validates the presented session and, only if valid, evaluates whether the session's own principal holds the requested permission — `Session.validate` before `Permissions.permitted`, always with the session-extracted `principal_ref` (Invariant 1 through 2). Returns `permitted` or `denied` (Permissions' result, passed through unmodified), or [Session Invalid] when the gate does not clear, or [Invalid Request] for inputs failing the boundary predicate.
+The composition's single action: it validates the presented session and, only if valid, evaluates whether the session's own principal holds the requested permission — `Session.validate` before `Permissions.permitted`, always with the session-extracted `principal_ref` (Invariant 1 through 2). Returns permitted or denied (Permissions' result, passed through unmodified), or [Session Invalid] when the gate does not clear, or [Invalid Request] for inputs failing the boundary predicate.
 
 Kind: Operation
 
 #### Session Invalid
 
-The composition's own gate rejection from [Check Permitted] — returned when `Session.validate` does not return `valid`: the session is `expired`, `revoked`, or `not-known`. It terminates the call **before Permissions is consulted** (Invariant 1), and is structurally distinct from a `denied` result (which means the gate cleared and the permission was evaluated — Invariant 3). Carries the reason.
+The composition's own gate rejection from [Check Permitted] — returned when `Session.validate` does not return `valid`: the session is `expired`, revoked, or not-known. It terminates the call **before Permissions is consulted** (Invariant 1), and is structurally distinct from a denied result (which means the gate cleared and the permission was evaluated — Invariant 3). Carries the reason.
 
 Kind:      Member
 Member of: the check-permitted rejection
@@ -397,7 +397,7 @@ Projects:  session-invalid
 
 #### Invalid Request
 
-The composition's own boundary rejection from [Check Permitted] — returned when `session_token` or `action_scope` fails the Primitive-policies predicate (null, empty, whitespace-only, or over the deployment-pinned length cap). Composition-introduced: neither wired constituent operation produces it, and neither constituent is consulted when it fires.
+The composition's own boundary rejection from [Check Permitted] — returned when session_token or action_scope fails the Primitive-policies predicate (null, empty, whitespace-only, or over the deployment-pinned length cap). Composition-introduced: neither wired constituent operation produces it, and neither constituent is consulted when it fires.
 
 Kind:      Member
 Member of: the check-permitted rejection

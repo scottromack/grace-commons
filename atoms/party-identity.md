@@ -70,13 +70,13 @@ Term verification event: the record of one identity check — its method, result
 
 Term state change event: the record of one transition — the prior state, the new state, the acting reference, the instant and, where the action carries one, the reason — appended to a party and never changed.
 
-Term identifier: `party_id`, `verification_id` OR `state_change_id` — every opaque name this atom assigns.
+Term identifier: party_id, verification_id OR state_change_id — every opaque name this atom assigns.
 
-Term enrollment field: `name` | `date_of_birth` | `document_type` | `document_ref` | `enrolled_at` | `enrolling_actor_ref` — what a party carries from enrollment and never changes.
+Term enrollment field: name | date_of_birth | document_type | document_ref | enrolled_at | enrolling_actor_ref — what a party carries from enrollment and never changes.
 
-Term acting reference: `enrolling_actor_ref`, `verifying_actor_ref`, `suspending_actor_ref`, `reinstating_actor_ref` OR `closing_actor_ref` — the reference an action records for who acted.
+Term acting reference: enrolling_actor_ref, verifying_actor_ref, suspending_actor_ref, reinstating_actor_ref OR closing_actor_ref — the reference an action records for who acted.
 
-Term reference: an identifier, an acting reference, `document_ref` OR `evidence_ref` — every opaque reference this atom records.
+Term reference: an identifier, an acting reference, document_ref OR evidence_ref — every opaque reference this atom records.
 
 Term store instance: one named party store a call is routed to; identifier uniqueness ranges over one instance.
 
@@ -153,7 +153,7 @@ read(query)
   refuses invalid-query
 ```
 
-Term verification result: `verification_id` and an optional `state_change_id` — what `verify` answers.
+Term verification result: verification_id and an optional state_change_id — what verify answers.
 
 ```
 Operation 1: IF a required string input NOT EXISTS THEN an action MUST answer invalid-request.
@@ -217,29 +217,29 @@ Deleted: Operation 58. `execution-contract.md` §Logic confinement owns it.
 Operation 59: The atom MUST NOT accept a caller-supplied instant.
 ```
 
-Term party action: [Verify] | [Suspend] | [Reinstate] | [Close] — every action naming a party by `party_id`, including a refused one.
+Term party action: [Verify] | [Suspend] | [Reinstate] | [Close] — every action naming a party by party_id, including a refused one.
 
 Term transitioning action: a party action that changes the party's state — an admitted suspend, an admitted reinstate, an admitted close, OR an admitted verify driving the unverified-to-verified transition.
 
-Term reasoned action: an admitted suspend, an admitted reinstate OR an admitted close — every transitioning action that carries a caller-supplied `reason`.
+Term reasoned action: an admitted suspend, an admitted reinstate OR an admitted close — every transitioning action that carries a caller-supplied reason.
 
-Term state: `unverified` | `verified` | `suspended` | `closed`.
+Term state: unverified | verified | suspended | closed.
 
-Term state rejection: `already-closed` | `not-verifiable` | `already-suspended` | `not-suspended`.
+Term state rejection: already-closed | not-verifiable | already-suspended | not-suspended.
 
 Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operation 16 and Operation 18 — every check a party action makes on the party's own standing before reading the call's remaining arguments.
 
-Term required string input: `name`, `document_type`, `document_ref`, `verification_method`, `evidence_ref`, `reason`, an acting reference OR `party_id` — every string an action refuses when blank.
+Term required string input: name, document_type, document_ref, verification_method, evidence_ref, reason, an acting reference OR party_id — every string an action refuses when blank.
 
 Term fresh verification: a verification event carrying `verification_result = passed` that follows the party's most recent suspend in insertion order, or that follows the enrollment where no suspend EXISTS.
 
-Term evidence reference: `document_ref` OR `evidence_ref` — every pointer this atom records into the composing document store.
+Term evidence reference: document_ref OR evidence_ref — every pointer this atom records into the composing document store.
 
-Term custody field: `party_id` | `enrolled_at` | `enrolling_actor_ref` — the fields an erasure scrub leaves, so the chain of custody outlives the personal data.
+Term custody field: party_id | enrolled_at | enrolling_actor_ref — the fields an erasure scrub leaves, so the chain of custody outlives the personal data.
 
 Term insertion order: the order a store instance appended its records; authoritative for this atom, where a recorded instant is advisory.
 
-Term query axes: `party_id`, `state` and a range over `enrolled_at` — every filter axis [Read] admits.
+Term query axes: party_id, state and a range over enrolled_at — every filter axis [Read] admits.
 
 Term admitted enroll: an [Enroll] call that passes every precondition and whose store write commits.
 
@@ -254,11 +254,11 @@ Term admitted close: a [Close] call that passes every precondition and whose sto
 Term admitted read: a [Read] call that answers.
 
 WHY:
-Operation 10 and Operation 12 split one answer that most atoms leave joined, and the split is worth its cost. A blank `party_id` is the caller sending garbage; a well-formed `party_id` naming nothing is a reference to a party that is not there. The first is [Invalid Request] and is decided before the store is consulted at all; the second is [Not Known]. A caller that cannot tell them apart cannot tell a bug in its own code from a party that was never enrolled.
+Operation 10 and Operation 12 split one answer that most atoms leave joined, and the split is worth its cost. A blank party_id is the caller sending garbage; a well-formed party_id naming nothing is a reference to a party that is not there. The first is [Invalid Request] and is decided before the store is consulted at all; the second is [Not Known]. A caller that cannot tell them apart cannot tell a bug in its own code from a party that was never enrolled.
 
-Operation 18 is the atom's central guarantee, and `fresh verification` is what makes it one rule rather than a paragraph. A suspension is revoked trust in the prior verification, so restoring trust needs evidence recorded *since* it — not a flag toggle, and not the passed verification that preceded the suspension. Operation 19 places it after the state checks, so a caller reinstating a closed party reads [Already Closed] rather than learning it lacks fresh evidence, and one reinstating a party that was never suspended reads [Not Suspended].
+Operation 18 is the atom's central guarantee, and fresh verification is what makes it one rule rather than a paragraph. A suspension is revoked trust in the prior verification, so restoring trust needs evidence recorded *since* it — not a flag toggle, and not the passed verification that preceded the suspension. Operation 19 places it after the state checks, so a caller reinstating a closed party reads [Already Closed] rather than learning it lacks fresh evidence, and one reinstating a party that was never suspended reads [Not Suspended].
 
-Operation 20 is why `invalid-request` appears twice in the priority order at two different heights. The `party_id` check runs first, because a malformed reference is not a claim about any party; every other field check runs last, after the state checks, because a caller suspending a closed party should learn the party is closed rather than be sent to fix a reason that would not have helped.
+Operation 20 is why invalid-request appears twice in the priority order at two different heights. The party_id check runs first, because a malformed reference is not a claim about any party; every other field check runs last, after the state checks, because a caller suspending a closed party should learn the party is closed rather than be sent to fix a reason that would not have helped.
 
 Operation 26 is the rule the transition table hides. A passed verification against a *suspended* party is recorded and does not reinstate: evidence gathered during an investigation must not implicitly clear the suspension, because the decision to restore trust is a separate act with its own actor and its own reason (Operation 35).
 
@@ -301,7 +301,7 @@ Operation 59 is this atom's one departure from its siblings on instants. [Approv
   ```
   Invariant 7.1: An action MUST NOT change an enrollment field.
   ```
-  WHY: the enrollment record is the auditable original — what was known and checked at onboarding — and a later truth does not overwrite it. A legal name change or a renewed document is an event that layers on top through a composing pattern (Non-goal 4). The one authorized exception is field-level scrubbing under an erasure obligation, which is a composing pattern's act and not an action here (External check 3); `party_id`, `enrolled_at` and `enrolling_actor_ref` survive a scrub so the chain of custody outlives the personal data.
+  WHY: the enrollment record is the auditable original — what was known and checked at onboarding — and a later truth does not overwrite it. A legal name change or a renewed document is an event that layers on top through a composing pattern (Non-goal 4). The one authorized exception is field-level scrubbing under an erasure obligation, which is a composing pattern's act and not an action here (External check 3); party_id, enrolled_at and enrolling_actor_ref survive a scrub so the chain of custody outlives the personal data.
 - **Invariant 8 — No transition is silent.**
   ```
   Invariant 8.1: EVERY transitioning action MUST append a state change event.
@@ -314,7 +314,7 @@ Operation 59 is this atom's one departure from its siblings on instants. [Approv
   Invariant 11.1: An action MUST commit EVERY record the action writes in one transition.
   Invariant 11.2: A storage-failure rejection MUST leave no record of the action in the store.
   ```
-  WHY: the verify-driven transition is where this bites. One call writes a verification event and a state change event, and a store that landed the first without the second would leave a party carrying the evidence for a standing it does not hold — which is Invariant 4.1 satisfied in the store and violated in fact. Invariant 11.2 is the other direction: a refusal leaves nothing, so a caller reading `storage-failure` knows the store is as the call found it.
+  WHY: the verify-driven transition is where this bites. One call writes a verification event and a state change event, and a store that landed the first without the second would leave a party carrying the evidence for a standing it does not hold — which is Invariant 4.1 satisfied in the store and violated in fact. Invariant 11.2 is the other direction: a refusal leaves nothing, so a caller reading storage-failure knows the store is as the call found it.
 
 ### Ordering
 
@@ -344,7 +344,7 @@ This family exists because two orders are available and only one of them is soun
 
 ### Sanctions match, suspension, and the evidence to come back
 
-A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanctions-screen match pending review")` → `chg_s31`, standing suspended. A fresh document review runs during the investigation: `verify(party_pk3, analyst_a2, "manual-document-review", passed, ev_c44)` → `(ver_v96)` — recorded, and the party stays suspended, because evidence gathered during an investigation does not clear it. Then `reinstate(party_pk3, compliance_c4, "match resolved as false positive")` → `chg_s37`, standing verified. Had the reinstate been attempted before `ver_v96`, it would have answered `no-passed-verification-since-suspend`.
+A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanctions-screen match pending review")` → `chg_s31`, standing suspended. A fresh document review runs during the investigation: `verify(party_pk3, analyst_a2, "manual-document-review", passed, ev_c44)` → `(ver_v96)` — recorded, and the party stays suspended, because evidence gathered during an investigation does not clear it. Then `reinstate(party_pk3, compliance_c4, "match resolved as false positive")` → `chg_s37`, standing verified. Had the reinstate been attempted before `ver_v96`, it would have answered no-passed-verification-since-suspend.
 
 ### Enrollment in error
 
@@ -352,13 +352,13 @@ A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanct
 
 ### Rejection paths
 
-`suspend(party_qh9, ...)` on the unverified party → `not-verifiable` — there is no verified standing to suspend. `reinstate(party_pk3, ...)` while verified → `not-suspended`. `verify(party_closed, ...)` → `already-closed`. `suspend("", ...)` → `invalid-request`, decided before the store is consulted; `suspend(party_unknown, ...)` → `not-known`, decided after. `close(party_zz1, officer_o7, "  ")` on the already-closed party → `already-closed`, not `invalid-request`: the state checks run first (Operation 20).
+`suspend(party_qh9, ...)` on the unverified party → not-verifiable — there is no verified standing to suspend. `reinstate(party_pk3, ...)` while verified → not-suspended. `verify(party_closed, ...)` → already-closed. `suspend("", ...)` → invalid-request, decided before the store is consulted; `suspend(party_unknown, ...)` → not-known, decided after. `close(party_zz1, officer_o7, "  ")` on the already-closed party → already-closed, not invalid-request: the state checks run first (Operation 20).
 
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** *Show me every party you treat as verified, and the evidence.* Filter to `state = verified`; each record answers with its full verification event list and state change log, and Invariant 4.1 is what makes a passed check after the most recent suspend present on every one of them — structurally, rather than by policy.
 - **Investigation of a reinstatement.** *Who restored this party, on what basis?* The state change log carries the reinstatement's actor, instant and reason; the verification event list carries the check that made it admissible. The two are separate records because they answer separate questions — what evidence arrived, and who decided it was enough.
-- **Breach investigation.** *Which parties were enrolled in this window?* The `enrolled_at` range filter answers it, and Ordering 5 says what that answer is worth: instants are advisory, so a reconstruction that must be defensible uses insertion order and the composing trusted timestamping pattern for wall-time bounds.
+- **Breach investigation.** *Which parties were enrolled in this window?* The enrolled_at range filter answers it, and Ordering 5 says what that answer is worth: instants are advisory, so a reconstruction that must be defensible uses insertion order and the composing trusted timestamping pattern for wall-time bounds.
 
 ---
 
@@ -410,7 +410,7 @@ External check 8: A deployment needing an answer observed MUST read the composin
 WHY:
 External check 1 is the boundary a regulator's question runs straight into. This atom records that a check was performed, by whom, how, and what it found — and it cannot tell whether the check was actually run, whether the sanctions database was actually queried, or whether an actor simply wrote `passed`. Invariant 4.1 guarantees that a verified party has evidence *on record*; it guarantees nothing about what produced that record. Saying so is the difference between a gap and a disclosed boundary.
 
-External check 3 follows from Invariant 7.1 and is the one an erasure obligation collides with. Nothing here scrubs a name, and a deployment under GDPR Article 17 needs something that does; the composing pattern removes the identifiable fields and records the removal as an attributed event, leaving `party_id`, `enrolled_at` and `enrolling_actor_ref` so the chain of custody survives the data.
+External check 3 follows from Invariant 7.1 and is the one an erasure obligation collides with. Nothing here scrubs a name, and a deployment under GDPR Article 17 needs something that does; the composing pattern removes the identifiable fields and records the removal as an attributed event, leaving party_id, enrolled_at and enrolling_actor_ref so the chain of custody survives the data.
 
 ---
 
@@ -490,7 +490,7 @@ Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading 
 ```
 
 WHY:
-Invariant 11.1 is store-side and the caller's knowledge is weaker. A transport failure after the store committed leaves the caller unable to tell *refused, nothing written* from *succeeded, answer lost* — and the two have opposite remedies. Every party action is safe to re-read first because the state checks make a repeat self-detecting: a second suspend answers `already-suspended`. [Enroll] is the one that is not, because it creates rather than transitions, so a blind retry produces a second party that this atom will never resolve against the first (Identity 16).
+Invariant 11.1 is store-side and the caller's knowledge is weaker. A transport failure after the store committed leaves the caller unable to tell *refused, nothing written* from *succeeded, answer lost* — and the two have opposite remedies. Every party action is safe to re-read first because the state checks make a repeat self-detecting: a second suspend answers already-suspended. [Enroll] is the one that is not, because it creates rather than transitions, so a blind retry produces a second party that this atom will never resolve against the first (Identity 16).
 
 ### String policy
 
@@ -504,14 +504,14 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
 ```
 
-Term string input: a required string input, `date_of_birth` OR a filter value — every caller-supplied string this atom accepts.
+Term string input: a required string input, date_of_birth OR a filter value — every caller-supplied string this atom accepts.
 
-Term length bound: the maximum length the deployment declares for a `string input`.
+Term length bound: the maximum length the deployment declares for a string input.
 
 Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
-The blank rule earns its keep on `reason` more than anywhere else. A suspension, a reinstatement and a closure each require a stated basis, and a whitespace placeholder would satisfy a naive presence check while leaving the audit surface exactly as empty as no reason at all. Storing a name as supplied — no normalization, no transliteration — is the other half: the enrollment record says what was presented, and how a deployment matches or displays it is the deployment's (Capability requirement 6).
+The blank rule earns its keep on reason more than anywhere else. A suspension, a reinstatement and a closure each require a stated basis, and a whitespace placeholder would satisfy a naive presence check while leaving the audit surface exactly as empty as no reason at all. Storing a name as supplied — no normalization, no transliteration — is the other half: the enrollment record says what was presented, and how a deployment matches or displays it is the deployment's (Capability requirement 6).
 
 ---
 
@@ -533,7 +533,7 @@ Composition note 12: A composing Event Log MUST append an event on EVERY refused
 ```
 
 WHY:
-Composition note 5 is why every transitioning action answers its `state_change_id` directly rather than leaving the caller to find it. An attestation binds to a specific suspension, not to *the most recent suspension at the time I looked* — and a follow-up query to discover the id opens exactly the window an attestation exists to close.
+Composition note 5 is why every transitioning action answers its state_change_id directly rather than leaving the caller to find it. An attestation binds to a specific suspension, not to *the most recent suspension at the time I looked* — and a follow-up query to discover the id opens exactly the window an attestation exists to close.
 
 Composition note 8 and Composition note 10 divide one obligation two patterns keep reaching for. [Retention Window](./retention-window.md) owns *when* a record may be destroyed and performs no field-level scrubbing; the erasure pattern owns the scrub and must leave the three fields that carry the chain of custody. A deployment that lets either do the other's half ends with either a record it cannot lawfully keep or an audit trail it cannot read.
 
@@ -547,19 +547,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the deployment; the implementation; the store; the store instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a losing party action; a refused action; an identifier; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; the store instance's party count; a party's verification event list length; a party's state change log length.
 
-Term records: `party` — one external party, carrying `party_id`, `name`, `date_of_birth`, `document_type`, `document_ref`, `enrolled_at`, `enrolling_actor_ref`, a `state`, a state change log and a verification event list. `verification event` — one identity check, carrying `verification_id`, `verifying_actor_ref`, `verification_method`, `verification_result`, `evidence_ref` and `verified_at`. `state change event` — one transition, carrying `state_change_id`, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a `reason`.
+Term records: party — one external party, carrying party_id, name, date_of_birth, document_type, document_ref, enrolled_at, enrolling_actor_ref, a state, a state change log and a verification event list. verification event — one identity check, carrying verification_id, verifying_actor_ref, verification_method, verification_result, evidence_ref and verified_at. state change event — one transition, carrying state_change_id, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a reason.
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, acknowledge, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, serialize, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
 
-Term value sets: enroll answers party_id and refuses invalid-request | storage-failure. verify answers verification result and refuses not-known | already-closed | invalid-request | storage-failure. suspend answers state_change_id and refuses not-known | already-closed | not-verifiable | already-suspended | invalid-request | storage-failure. reinstate answers state_change_id and refuses not-known | already-closed | not-suspended | no-passed-verification-since-suspend | invalid-request | storage-failure. close answers state_change_id and refuses not-known | already-closed | invalid-request | storage-failure. read answers the matching parties and refuses invalid-query. `state` = unverified | verified | suspended | closed. `verification_result` = passed | failed. `state rejection` = already-closed | not-verifiable | already-suspended | not-suspended. `enrollment field` = name | date_of_birth | document_type | document_ref | enrolled_at | enrolling_actor_ref.
+Term value sets: enroll answers party_id and refuses invalid-request | storage-failure. verify answers verification result and refuses not-known | already-closed | invalid-request | storage-failure. suspend answers state_change_id and refuses not-known | already-closed | not-verifiable | already-suspended | invalid-request | storage-failure. reinstate answers state_change_id and refuses not-known | already-closed | not-suspended | no-passed-verification-since-suspend | invalid-request | storage-failure. close answers state_change_id and refuses not-known | already-closed | invalid-request | storage-failure. read answers the matching parties and refuses invalid-query. state = unverified | verified | suspended | closed. verification_result = passed | failed. state rejection = already-closed | not-verifiable | already-suspended | not-suspended. enrollment field = name | date_of_birth | document_type | document_ref | enrolled_at | enrolling_actor_ref.
 
-Term bounds: `length bound`.
+Term bounds: length bound.
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-13).
+Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: `party`, `party_id`, `verification event`, `state change event`, `identifier`, `enrollment field`, `acting reference`, `reference`, `store instance`, `seam`, `transition`, `now`, `party action`, `transitioning action`, `state`, `state rejection`, `state check`, `required string input`, `fresh verification`, `insertion order`, `length bound`, `reasoned action`, `custody field`, `evidence reference`, `query axes`, `admitted enroll`, `admitted verify`, `admitted suspend`, `admitted reinstate`, `admitted close`, `admitted read`, `string input`, `blank`, `verification result`.
+Term terms: party, party_id, verification event, state change event, identifier, enrollment field, acting reference, reference, store instance, seam, transition, now, party action, transitioning action, state, state rejection, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
 
 Term cited: `execution-contract.md` §Logic confinement — the seam and the transition.
 
@@ -720,7 +720,7 @@ Projects: verification_method
 
 #### Verification Result
 
-What the check found: `passed` or `failed`, and nothing else. A `passed` result against an [Unverified] party drives the transition to [Verified]; against a [Suspended] party it is recorded and lifts nothing.
+What the check found: `passed` or failed, and nothing else. A `passed` result against an [Unverified] party drives the transition to [Verified]; against a [Suspended] party it is recorded and lifts nothing.
 
 Kind:     Field
 Field of: Verification Event
@@ -831,7 +831,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date or exceeds [Now], a [Verification Result] is neither `passed` nor `failed`, or a string input exceeds the deployment's length bound. A blank [Party Id] earns it before the store is consulted; every other field fault earns it after every state check passes.
+The refusal returned when a required string input is blank, a [Date Of Birth] parses as no calendar date or exceeds [Now], a [Verification Result] is neither `passed` nor failed, or a string input exceeds the deployment's length bound. A blank [Party Id] earns it before the store is consulted; every other field fault earns it after every state check passes.
 
 Kind:      Member
 Member of: the action rejection
@@ -996,9 +996,9 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/party-identity.md`.
 
-- **2026-09-13 — The EOS strip test: no domain tag, no rename, and the coupling is in the attributes rather than the name.** *Chose:* leave the atom untagged and unrenamed, and record where the domain actually touches it. *Over:* a `domain:` tag, or a reframe of the kind [Observation](./observation.md) took. *Because:* the test asks whether stripping the domain leaves a freestanding neutral primitive, and here it does. Every invariant is neutral — records are never removed, a terminal absorbs, events are append-only and immutable, a standing rests on recorded evidence since the last revocation. None of them is derivable only from banking or healthcare; the same shape governs a licence, an accreditation, a calibration status. The *name* is already the stripped form: `party` is legal and commercial vocabulary rather than one industry's, which is why the atom is not called Customer Identity or Patient Identity. What is domain-flavoured is the enrollment attribute set — `name`, `date_of_birth`, `document_type`, `document_ref` — which is natural-person identity-document vocabulary, and the atom already treats two of the four as opaque strings it never interprets. The honest boundary is that this atom is a neutral standing-and-evidence primitive carrying one concrete attribute schema, and the question of whether that schema should be an opaque attribute bag belongs on the docket rather than in a rename.
+- **2026-09-13 — The EOS strip test: no domain tag, no rename, and the coupling is in the attributes rather than the name.** *Chose:* leave the atom untagged and unrenamed, and record where the domain actually touches it. *Over:* a `domain:` tag, or a reframe of the kind [Observation](./observation.md) took. *Because:* the test asks whether stripping the domain leaves a freestanding neutral primitive, and here it does. Every invariant is neutral — records are never removed, a terminal absorbs, events are append-only and immutable, a standing rests on recorded evidence since the last revocation. None of them is derivable only from banking or healthcare; the same shape governs a licence, an accreditation, a calibration status. The *name* is already the stripped form: party is legal and commercial vocabulary rather than one industry's, which is why the atom is not called Customer Identity or Patient Identity. What is domain-flavoured is the enrollment attribute set — name, date_of_birth, document_type, document_ref — which is natural-person identity-document vocabulary, and the atom already treats two of the four as opaque strings it never interprets. The honest boundary is that this atom is a neutral standing-and-evidence primitive carrying one concrete attribute schema, and the question of whether that schema should be an opaque attribute bag belongs on the docket rather than in a rename.
 - **2026-09-13 — Insertion order is authoritative and a recorded instant is advisory, stated as its own rule family.** *Chose:* an `Ordering` family, with Ordering 4 and Ordering 5 forbidding a reading or a reconstruction from turning on an instant. *Over:* the prose's paragraph saying the same thing beside the state machine. *Because:* Operation 18's *most recent suspend* is the atom's central guarantee and it is decidable two ways, one of which is unsound — under clock skew a later event can carry an earlier instant, and two readers would then disagree about whether a party may be reinstated. A rule family is what makes the sound reading the one a generator implements.
 - **2026-09-13 — Invariant 9 and Invariant 10 are tombstoned; Identity owns identifier stability and uniqueness.** *Chose:* Identity 6 through 9 as the single owners. *Over:* keeping the invariants, which restated them. *Because:* Authority 3. Checked before removing: the corpus cites Party Identity Invariants 1, 4, 5 and 11 — from [Customer Onboarding](../compositions/customer-onboarding.md) and the coverage matrix — and cites neither 9 nor 10, so the tombstones break no citation.
-- **2026-09-13 — `no-passed-verification-since-suspend` stays a purpose-built rejection arm.** *Chose:* the arm the prose already carried. *Over:* folding it into `not-suspended` or `invalid-request`, which is what the corpus's closed answer set usually pressures a rare condition into. *Because:* this one is not rare and not adjacent to anything — it is the atom's central guarantee failing, and a caller receiving it knows exactly what to do next, which is to record a check. It is worth naming as the corpus's counter-example: the docket row on answers charged to the nearest arm is about conditions that could not justify the cost of their own name, and this is what paying that cost looks like.
+- **2026-09-13 — no-passed-verification-since-suspend stays a purpose-built rejection arm.** *Chose:* the arm the prose already carried. *Over:* folding it into not-suspended or invalid-request, which is what the corpus's closed answer set usually pressures a rare condition into. *Because:* this one is not rare and not adjacent to anything — it is the atom's central guarantee failing, and a caller receiving it knows exactly what to do next, which is to record a check. It is worth naming as the corpus's counter-example: the docket row on answers charged to the nearest arm is about conditions that could not justify the cost of their own name, and this is what paying that cost looks like.
 
 NOTE: End of Party Identity.

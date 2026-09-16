@@ -80,7 +80,7 @@ State 8: The atom MUST NOT hold an event.
 State 9: The atom MUST NOT hold a delivery.
 ```
 
-Term status: `active` | `cancelled` — in force, or withdrawn and terminal.
+Term status: active | cancelled — in force, or withdrawn and terminal.
 
 Term subscribed_at: the instant the subscription was recorded — a [Subscribed At].
 
@@ -153,7 +153,7 @@ Deleted: Operation 27. `execution-contract.md` §Logic confinement owns it.
 Deleted: Operation 28. `execution-contract.md` §Logic confinement owns it.
 ```
 
-Term pair: one `subscriber_ref` with one `event_scope` — what at-most-one ranges over.
+Term pair: one subscriber_ref with one event_scope — what at-most-one ranges over.
 
 Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
@@ -163,16 +163,16 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the store |
 |---|---|---|---|
-| [Subscribe] | refs present, no live subscription for the pair, store accepts | `subscription_id` | one subscription lands in [Active] (Operation 1, Operation 2) |
-| [Subscribe] | blank `subscriber_ref` or `event_scope` | [Invalid Request] | none (Operation 4, Operation 5) |
+| [Subscribe] | refs present, no live subscription for the pair, store accepts | subscription_id | one subscription lands in [Active] (Operation 1, Operation 2) |
+| [Subscribe] | blank subscriber_ref or event_scope | [Invalid Request] | none (Operation 4, Operation 5) |
 | [Subscribe] | the pair already has a live subscription | [Already Subscribed] | none (Operation 6) |
-| [Cancel] | id names a live subscription | `ok` | [Active] → [Cancelled], `cancelled_at` stamped (Operation 11, State 5) |
+| [Cancel] | id names a live subscription | ok | [Active] → [Cancelled], cancelled_at stamped (Operation 11, State 5) |
 | [Cancel] | id names a cancelled subscription | [Not Active] | none (Operation 10) |
 | [Cancel] | id names nothing | [Not Known] | none (Operation 9) |
 | either write | store refuses | [Storage Failure] | none (Operation 13 through 15) |
-| [Subscribed] | a live subscription matches the pair | `subscribed` | none — the call reads (Operation 17, Operation 24) |
-| [Subscribed] | nothing matches, blank arguments included | `not-subscribed` | none (Operation 18, Invariant 8.1) |
-| [Subscribers For] | live subscriptions match the scope | their `subscriber_ref`s, unordered | none (Operation 19, Operation 23) |
+| [Subscribed] | a live subscription matches the pair | subscribed | none — the call reads (Operation 17, Operation 24) |
+| [Subscribed] | nothing matches, blank arguments included | not-subscribed | none (Operation 18, Invariant 8.1) |
+| [Subscribers For] | live subscriptions match the scope | their subscriber_ref values, unordered | none (Operation 19, Operation 23) |
 | [Subscribers For] | scope never subscribed, or all cancelled | empty list | none — the two cases read alike (Operation 22) |
 
 WHY:
@@ -242,7 +242,7 @@ An administrator issues subscriptions for each compliance officer: `subscribe(of
 
 ### Rejection path
 
-A developer attempts to subscribe twice to the same scope: `subscribe(dev_d, task:assigned:dev_d) → sub_42`. Then `subscribe(dev_d, task:assigned:dev_d)` → `already-subscribed`. The second call does not create a second subscription. To refresh the subscription, the developer first calls `cancel(sub_42)`, then `subscribe(dev_d, task:assigned:dev_d) → sub_97`. The cancellation of sub_42 remains in the subscription store; sub_97 is the new active record.
+A developer attempts to subscribe twice to the same scope: `subscribe(dev_d, task:assigned:dev_d) → sub_42`. Then `subscribe(dev_d, task:assigned:dev_d)` → already-subscribed. The second call does not create a second subscription. To refresh the subscription, the developer first calls `cancel(sub_42)`, then `subscribe(dev_d, task:assigned:dev_d) → sub_97`. The cancellation of sub_42 remains in the subscription store; sub_97 is the new active record.
 
 ### Regulated adversarial scenarios
 
@@ -368,19 +368,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an actor; a subscriber; an auditor; the store; a subscription; a status; a crash.
 
-Term records: `subscription` — one standing interest, carrying `subscription_id`, `subscriber_ref`, `event_scope`, `subscribed_at`, `status` and, once withdrawn, `cancelled_at`.
+Term records: subscription — one standing interest, carrying subscription_id, subscriber_ref, event_scope, subscribed_at, status and, once withdrawn, cancelled_at.
 
 Term record verbs: make, discharge, recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, leave, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, exceed.
 
-Term value sets: subscribe answers subscription_id and refuses invalid-request | already-subscribed | storage-failure. cancel answers ok and refuses not-known | not-active | storage-failure. subscribed answers subscribed | not-subscribed. subscribers_for answers a list of subscriber_ref, empty where nothing matches. `status` = active | cancelled.
+Term value sets: subscribe answers subscription_id and refuses invalid-request | already-subscribed | storage-failure. cancel answers ok and refuses not-known | not-active | storage-failure. subscribed answers subscribed | not-subscribed. subscribers_for answers a list of subscriber_ref, empty where nothing matches. status = active | cancelled.
 
-Term bounds: `id entropy` (the random material a subscription_id is drawn from).
+Term bounds: id entropy (the random material a subscription_id is drawn from).
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: `now`, `subscription`, `subscription_id`, `subscriber_ref`, `event_scope`, `seam`, `transition`, `id entropy`, `status`, `subscribed_at`, `cancelled_at`, `pair`, `business caller`.
+Term terms: now, subscription, subscription_id, subscriber_ref, event_scope, seam, transition, id entropy, status, subscribed_at, cancelled_at, pair, business caller.
 
 #### Subscribe
 
@@ -390,13 +390,13 @@ Kind: Operation
 
 #### Cancel
 
-The behavior that withdraws a subscription, moving it [Active] → [Cancelled] (terminal) and stamping [Cancelled At]. Knowledge of the [Subscription Id] is itself the capability. Returns `ok`, or a rejection ([Not Known], [Not Active], [Storage Failure]).
+The behavior that withdraws a subscription, moving it [Active] → [Cancelled] (terminal) and stamping [Cancelled At]. Knowledge of the [Subscription Id] is itself the capability. Returns ok, or a rejection ([Not Known], [Not Active], [Storage Failure]).
 
 Kind: Operation
 
 #### Subscribed
 
-The read-only point query — returns `subscribed` if any [Active] subscription matches the ([Subscriber Ref], [Event Scope]) pair, else `not-subscribed`. Both are first-class outcomes; no rejection is defined (Invariant 8).
+The read-only point query — returns subscribed if any [Active] subscription matches the ([Subscriber Ref], [Event Scope]) pair, else not-subscribed. Both are first-class outcomes; no rejection is defined (Invariant 8).
 
 Kind: Operation
 
@@ -408,7 +408,7 @@ Kind: Operation
 
 #### Subscription Id
 
-The opaque, immutable identity of a subscription — host-allocated at the I/O seam from ≥128-bit cryptographically-secure random material (see the `id entropy` declaration), produced by [Subscribe], never reused (Invariant 5). It is the subscription's identity, and — being unpredictable — the bearer capability that gates [Cancel].
+The opaque, immutable identity of a subscription — host-allocated at the I/O seam from ≥128-bit cryptographically-secure random material (see the id entropy declaration), produced by [Subscribe], never reused (Invariant 5). It is the subscription's identity, and — being unpredictable — the bearer capability that gates [Cancel].
 
 Kind:     Field
 Field of: the subscription
@@ -440,7 +440,7 @@ Projects: subscribed_at
 
 #### Status
 
-The subscription's lifecycle state — `active` or `cancelled` (i.e., [Active] or [Cancelled]). Set to `active` on [Subscribe]; transitions once to `cancelled` on [Cancel] (Invariant 2).
+The subscription's lifecycle state — active or cancelled (i.e., [Active] or [Cancelled]). Set to active on [Subscribe]; transitions once to cancelled on [Cancel] (Invariant 2).
 
 Kind:     Field
 Field of: the subscription
@@ -472,7 +472,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The rejection [Subscribe] returns when [Subscriber Ref] or [Event Scope] is null, undefined, or empty. (The read queries never return it — a bad query is a correct `not-subscribed` or empty answer.)
+The rejection [Subscribe] returns when [Subscriber Ref] or [Event Scope] is null, undefined, or empty. (The read queries never return it — a bad query is a correct not-subscribed or empty answer.)
 
 Kind:      Member
 Member of: the Subscribe rejection

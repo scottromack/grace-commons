@@ -52,7 +52,7 @@ Term transition: the atom's evaluation of one call against the log, as `executio
 Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
 
 WHY:
-Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is `sequence_number`'s alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
+Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is sequence_number's alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
 
 ### State
 
@@ -84,10 +84,10 @@ Term durability mechanism: a write-ahead log, or another mechanism making a comm
 
 Term landed: an event a successful [Append] wrote; a consumed sequence_number under which nothing was written is not landed.
 
-Term event field: `event_id` | `sequence_number` | `recorded_at` | `data`.
+Term event field: event_id | sequence_number | recorded_at | data.
 
 WHY:
-A volatile instance that restarts `next_sequence_number` at one has broken Invariant 4 for the life of the instance while every individual append looks correct — which is why durability of that one datum is stated here and not left to a deployment note (State 7). There is no delete and no edit, and their absence is a rule rather than an omission, because *the log only grows* is the property every composing pattern rests on (State 8, State 9).
+A volatile instance that restarts next_sequence_number at one has broken Invariant 4 for the life of the instance while every individual append looks correct — which is why durability of that one datum is stated here and not left to a deployment note (State 7). There is no delete and no edit, and their absence is a rule rather than an omission, because *the log only grows* is the property every composing pattern rests on (State 8, State 9).
 
 ### Capability requirement
 
@@ -142,7 +142,7 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the log |
 |---|---|---|---|
-| [Append] | data within the cap, store accepts | `event_id` | one event lands at the tail, `next_sequence_number` rises (Operation 1, Operation 3, State 6) |
+| [Append] | data within the cap, store accepts | event_id | one event lands at the tail, next_sequence_number rises (Operation 1, Operation 3, State 6) |
 | [Append] | data over the cap | [Invalid Payload] | none — the precondition failed before the write (Operation 5) |
 | [Append] | store refuses the write | [Storage Failure] | nothing lands; a sequence_number may be consumed (Operation 9, Sequence gap 1) |
 | [Read] | query well-formed, events match | the events, ascending | none — the call reads (Operation 13, Operation 17) |
@@ -150,7 +150,7 @@ The case space, and the rule that owns each case:
 | [Read] | query malformed | [Invalid Query] | none (Operation 15) |
 
 WHY:
-An append refuses for one reason before the write and one reason at it, and for nothing else: no contention arm, no ordering arm, no retry semantics (Operation 7, Operation 8). Serialization is the load-bearing precondition under Invariant 3 and Invariant 4 — neither holds without it, and it is the host's to supply, not the atom's to enforce (Operation 12). `storage-failure` is definitive on purpose: a caller that treats it as *maybe* writes the event twice (Operation 10, Operation 11).
+An append refuses for one reason before the write and one reason at it, and for nothing else: no contention arm, no ordering arm, no retry semantics (Operation 7, Operation 8). Serialization is the load-bearing precondition under Invariant 3 and Invariant 4 — neither holds without it, and it is the host's to supply, not the atom's to enforce (Operation 12). storage-failure is definitive on purpose: a caller that treats it as *maybe* writes the event twice (Operation 10, Operation 11).
 
 ### Invariants
 
@@ -188,7 +188,7 @@ An append refuses for one reason before the write and one reason at it, and for 
   Invariant 7.1: IF the clock is non-decreasing THEN recorded_at MUST NOT fall in append order.
   Invariant 7.2: sequence_number IS AUTHORITATIVE FOR the log's order.
   ```
-  WHY: under an unreliable or adversarial clock `recorded_at` is an annotation that may lie, and nothing in the atom rests on it — which is the whole reason the two data are separate (Invariant 7.2).
+  WHY: under an unreliable or adversarial clock recorded_at is an annotation that may lie, and nothing in the atom rests on it — which is the whole reason the two data are separate (Invariant 7.2).
 
 Append-only and event immutability together give the *immutable journal* property, the one that tells an Event Log from a mutable record set. Total order and monotonicity give *replay*. Read consistency gives *durable visibility*. No id reuse forecloses identity collisions across time.
 
@@ -218,11 +218,11 @@ The mechanic is identical across all four. What differs: payload schema, query p
 
 A single sequence exercising all three rejection reasons:
 
-- `append(65_000_bytes_of_data)` → rejected `invalid-payload` (payload exceeds the default 64 KB cap; configurable per instance).
+- `append(65_000_bytes_of_data)` → rejected invalid-payload (payload exceeds the default 64 KB cap; configurable per instance).
 - `append({type: "deposit", amount: 500})` → accepted; returns `event_id e1` with `sequence_number 1`.
-- `read({sequence_range: [-1, 5]})` → rejected `invalid-query` (negative sequence number is not a well-formed range parameter).
+- `read({sequence_range: [-1, 5]})` → rejected invalid-query (negative sequence number is not a well-formed range parameter).
 - `read({sequence_range: [1, 1]})` → returns `[e1]`; `sequence_number 1` matches, ordered ascending.
-- Underlying store becomes temporarily unavailable. `append({type: "withdrawal", amount: 100})` → rejected `storage-failure`; event does not land; caller must treat the rejection as definitive. A sequence number may have been consumed; subsequent successful appends receive a strictly higher number, producing a gap in the dense sequence (see Edge cases — *Sequence-number gaps on storage failure*).
+- Underlying store becomes temporarily unavailable. `append({type: "withdrawal", amount: 100})` → rejected storage-failure; event does not land; caller must treat the rejection as definitive. A sequence number may have been consumed; subsequent successful appends receive a strictly higher number, producing a gap in the dense sequence (see Edge cases — *Sequence-number gaps on storage failure*).
 - Store recovers. `append({type: "withdrawal", amount: 100})` → accepted; returns `event_id e2` with a sequence number strictly greater than 1.
 
 All three rejection reasons ([Invalid Payload], [Invalid Query], [Storage Failure]) exercised in one thread.
@@ -267,7 +267,7 @@ External check 6: An auditor needing the payload cap confirmed MUST read the dep
 ```
 
 WHY:
-`Check 2.4`, `Check 5.1` and `Check 5.2` are the three that stop an auditor filing against a correct log, and each of them is a place where the obvious reading is wrong. A gap in the sequence numbers is not a lost event — `Sequence gap 1` permits an implementation to consume a number on a failed write, so an auditor counting rows against numbers reports a defect the atom has none of. A `recorded_at` that falls is a clock fault and never an ordering fault, because `sequence_number` **is authoritative** for the order and `recorded_at` is an annotation this atom rests nothing on.
+`Check 2.4`, `Check 5.1` and `Check 5.2` are the three that stop an auditor filing against a correct log, and each of them is a place where the obvious reading is wrong. A gap in the sequence numbers is not a lost event — `Sequence gap 1` permits an implementation to consume a number on a failed write, so an auditor counting rows against numbers reports a defect the atom has none of. A recorded_at that falls is a clock fault and never an ordering fault, because sequence_number **is authoritative** for the order and recorded_at is an annotation this atom rests nothing on.
 
 The external set is where the real limit sits, and it is larger than a reader expects from a log. **Append-only is not tamper-evidence.** Every check above passes over a log an adversary with store access rewrote, because the atom compares the log against itself; detecting that the store was rewritten is [Tamper Evidence](./tamper-evidence.md)'s and is named here rather than implied. The same holds for who wrote an event and for whether the instance survived a restart at all — `External check 1` is the one a deployment loses silently, since a volatile instance satisfies every conformance check above and loses the journal the composing patterns replay.
 
@@ -356,19 +356,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation (also: a durable implementation); the deployment; the store; an event; a read; an append; an auditor.
 
-Term records: `event` — one recorded fact, carrying `event_id`, `sequence_number`, `recorded_at` and `data`; the log carries `log_name` and `next_sequence_number`.
+Term records: event — one recorded fact, carrying event_id, sequence_number, recorded_at and data; the log carries log_name and next_sequence_number.
 
 Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match, find.
 
-Term value sets: append answers event_id and refuses invalid-payload | storage-failure. read answers events and refuses invalid-query. `event field` = event_id | sequence_number | recorded_at | data.
+Term value sets: append answers event_id and refuses invalid-payload | storage-failure. read answers events and refuses invalid-query. event field = event_id | sequence_number | recorded_at | data.
 
-Term bounds: `payload cap` (the per-instance bound on data's size).
+Term bounds: payload cap (the per-instance bound on data's size).
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `landed` — written by a successful append.
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed — written by a successful append.
 
-Term terms: `durability mechanism`, `event_id`, `seam`, `transition`, `business caller`, `event`, `sequence_number`, `recorded_at`, `data`, `log_name`, `next_sequence_number`, `landed`, `event field`, `query`, `payload cap`.
+Term terms: durability mechanism, event_id, seam, transition, business caller, event, sequence_number, recorded_at, data, log_name, next_sequence_number, landed, event field, query, payload cap.
 
 #### Event Log
 

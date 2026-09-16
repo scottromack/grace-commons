@@ -40,7 +40,7 @@ State 2: The host MUST derive free from a passed instant at the moment a questio
 State 3: The host MUST NOT store a transition for a passed instant.
 ```
 
-Term lease state: `free` | `held` — held by one holder until one instant.
+Term lease state: free | held — held by one holder until one instant.
 
 Term question: a [Take], a [Try Take], a [Remaining] or a [Release] call, and a waiter's standing waiting term — the occasions State 2 derives at.
 
@@ -91,7 +91,7 @@ Term asking party: the party naming itself as holder in a [Remaining] or [Releas
 Term the holder: the party the host holds the key for.
 
 WHY:
-A key frees by release or by the current holder's instant passing. The bound is fixed at arrival and never extended: a second waiter admitted while a first still holds fails on its own bound rather than waiting out the first's whole term, so a pattern that reasons about how long a take can block is entitled to that number and no other (Operation 3 through 5). [Try Take] exists for a caller with other work to do. [Remaining] is a host query and never a clock read by the caller: a caller that subtracts its own reading from a remembered `expires_at` has introduced a second clock and lost the property the atom exists to provide, since the two are minted at different seams (Operation 10). `not-held` covers a party whose term has passed and whose key another holder now holds; callers normally discard the answer, and it is declared because an implementer who treats it as a failure will retry it (Operation 14).
+A key frees by release or by the current holder's instant passing. The bound is fixed at arrival and never extended: a second waiter admitted while a first still holds fails on its own bound rather than waiting out the first's whole term, so a pattern that reasons about how long a take can block is entitled to that number and no other (Operation 3 through 5). [Try Take] exists for a caller with other work to do. [Remaining] is a host query and never a clock read by the caller: a caller that subtracts its own reading from a remembered expires_at has introduced a second clock and lost the property the atom exists to provide, since the two are minted at different seams (Operation 10). not-held covers a party whose term has passed and whose key another holder now holds; callers normally discard the answer, and it is declared because an implementer who treats it as a failure will retry it (Operation 14).
 
 ### Invariants
 
@@ -154,13 +154,13 @@ Term allowance: the declared cross-seam allowance between the granting host's cl
 Term fenced party: the third party a fence is handed to.
 
 WHY:
-`expires_at` is the point of the atom ([Expires At]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. The ceiling is a ceiling and not an equation: a holder may hand over an earlier instant and keep more margin, never a later one (Fence 5, Check 6.1). Two fenced parties are two seams with two allowances, which is what makes minting each fence separately more than bookkeeping (Fence 8). Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
+expires_at is the point of the atom ([Expires At]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. The ceiling is a ceiling and not an equation: a holder may hand over an earlier instant and keep more margin, never a later one (Fence 5, Check 6.1). Two fenced parties are two seams with two allowances, which is what makes minting each fence separately more than bookkeeping (Fence 8). Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
 
 ## Examples
 
-**A section around a write.** A process takes the key for the act it is about to change, receives `expires_at`, does its work, and releases on return. A second process arriving mid-way waits at most the first's remaining term and then either takes the key or is told `unavailable` — and in neither case does it write.
+**A section around a write.** A process takes the key for the act it is about to change, receives expires_at, does its work, and releases on return. A second process arriving mid-way waits at most the first's remaining term and then either takes the key or is told unavailable — and in neither case does it write.
 
-**A fence carried to a store.** The same process passes `expires_at` less the allowance into the store call as a deadline. The process pauses for longer than anyone budgeted; its term passes; the key goes to the next holder. The paused process wakes and issues its write anyway — and the store refuses it, because the deadline it was given has passed on the store's own clock. The next holder's read is therefore complete: nothing of the previous holder's can still land.
+**A fence carried to a store.** The same process passes expires_at less the allowance into the store call as a deadline. The process pauses for longer than anyone budgeted; its term passes; the key goes to the next holder. The paused process wakes and issues its write anyway — and the store refuses it, because the deadline it was given has passed on the store's own clock. The next holder's read is therefore complete: nothing of the previous holder's can still land.
 
 **A holder that dies.** A process takes the key and is killed. Nothing is notified. The key stays held until the instant passes, and the next take waits exactly that long. This is the case that motivates Invariant 3: a host that released the key on the death would hand it over while the dead process's last write was still in flight.
 
@@ -206,7 +206,7 @@ Non-goal 11: A pattern that needs the term to cover the pattern's work MUST stat
 ```
 
 WHY:
-The atom does not detect death and no implementation may pretend to (Invariant 3.1, Invariant 3.2). Reentrancy is a caller error, not a supported nesting (Non-goal 1, Non-goal 2). A lease serializes access to a key and nothing more (Non-goal 5 through 7). `expires_at` is on the granting host's clock (Fence 1); comparing it against any other clock is the cross-seam case Invariant 6 governs.
+The atom does not detect death and no implementation may pretend to (Invariant 3.1, Invariant 3.2). Reentrancy is a caller error, not a supported nesting (Non-goal 1, Non-goal 2). A lease serializes access to a key and nothing more (Non-goal 5 through 7). expires_at is on the granting host's clock (Fence 1); comparing it against any other clock is the cross-seam case Invariant 6 governs.
 
 ## Composition notes
 
@@ -235,15 +235,15 @@ Term records: empty — the atom writes nothing.
 
 Term record verbs: identify, compare, normalize, hold, derive, store, wait, succeed, answer, extend, compute, end, reach, treat, return, pass, refuse, judge, mint, apply, stand, report, equal, take, offer, admit, carry, make, roll, isolate, write, record, choose, state, check, name, supply, share, own, invent, confirm, fail.
 
-Term value sets: `lease state` = free | held. grant terminus = release | instant. take answers expires_at | unavailable. try_take answers taken(expires_at) | held. remaining answers duration | none. release answers released | not-held.
+Term value sets: lease state = free | held. grant terminus = release | instant. take answers expires_at | unavailable. try_take answers taken(expires_at) | held. remaining answers duration | none. release answers released | not-held.
 
-Term bounds: `duration` (the term a take asks for); the allowance; the fence ceiling.
+Term bounds: duration (the term a take asks for); the allowance; the fence ceiling.
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11).
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Term terms: `key`, `holder`, `lease state`, `question`, `waiting term`, `remaining term`, `arrival term`, `asking party`, `the holder`, `fence`, `fence ceiling`, `effect instant`, `allowance`, `fenced party`, `fence margin`, and `expires_at` ([Expires At]).
+Term terms: key, holder, lease state, question, waiting term, remaining term, arrival term, asking party, the holder, fence, fence ceiling, effect instant, allowance, fenced party, fence margin, and expires_at ([Expires At]).
 
 #### Lease
 
@@ -265,25 +265,25 @@ Kind: Parameter
 
 #### Take
 
-The blocking acquisition. Waits at most the arrival term and answers `unavailable` if that term elapses without the key freeing.
+The blocking acquisition. Waits at most the arrival term and answers unavailable if that term elapses without the key freeing.
 
 Kind: Operation
 
 #### Try Take
 
-The non-blocking acquisition. Answers `taken(expires_at)` or `held`, immediately.
+The non-blocking acquisition. Answers `taken(expires_at)` or held, immediately.
 
 Kind: Operation
 
 #### Remaining
 
-The host query for how much of the asking holder's term is left, or `none` if the asking party is not the holder. Never a clock read by the caller.
+The host query for how much of the asking holder's term is left, or none if the asking party is not the holder. Never a clock read by the caller.
 
 Kind: Operation
 
 #### Release
 
-Ends the asking party's grant, or answers `not-held` if it has none. Never reaches another holder's grant.
+Ends the asking party's grant, or answers not-held if it has none. Never reaches another holder's grant.
 
 Kind: Operation
 
@@ -295,7 +295,7 @@ Kind: Field
 
 #### Fence
 
-An instant no later than `expires_at` less the allowance, handed to a third party as a deadline: refuse this holder's work if the work would take effect after this instant. Judged on the third party's clock.
+An instant no later than expires_at less the allowance, handed to a third party as a deadline: refuse this holder's work if the work would take effect after this instant. Judged on the third party's clock.
 
 Kind: Type
 
@@ -334,7 +334,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-11 — Rewritten in GRACE lang v0.33; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the operations as a signature block, rationale under `WHY:`, terms declared where they are used, the invariant numbers and the Ledger unchanged. *Over:* the prose draft. *Because:* the migration plan — atoms first, since they declare the vocabulary compositions cite.
 
-- **2026-09-10 — Extracted because the obligation kept propagating, not because the shape repeated.** *Chose:* one atom covering the grant and the terminus-as-fence together. *Over:* leaving the prose in the patterns that use it, and over splitting the section from the fence into two concepts. *Because:* four consecutive review rounds on one composition showed a flat defect density — one foundational finding per nineteen kilobytes of body — with most new defects being an obligation added in one place and not carried to the others. Lease semantics were the largest single source of such obligations, reaching into fences, timing, expiry, `remaining`, and worked examples. Splitting the grant from the fence would have preserved exactly the propagation the extraction exists to remove: a fence *is* a terminus handed to another party, and stating it twice is how the two got out of step.
+- **2026-09-10 — Extracted because the obligation kept propagating, not because the shape repeated.** *Chose:* one atom covering the grant and the terminus-as-fence together. *Over:* leaving the prose in the patterns that use it, and over splitting the section from the fence into two concepts. *Because:* four consecutive review rounds on one composition showed a flat defect density — one foundational finding per nineteen kilobytes of body — with most new defects being an obligation added in one place and not carried to the others. Lease semantics were the largest single source of such obligations, reaching into fences, timing, expiry, remaining, and worked examples. Splitting the grant from the fence would have preserved exactly the propagation the extraction exists to remove: a fence *is* a terminus handed to another party, and stating it twice is how the two got out of step.
 
 - **2026-09-10 — The terminus is an instant, and death is not observable.** *Chose:* a grant that ends only at its instant or at its holder's release. *Over:* a host that frees a key when it believes the holder is gone, which is what one of the composing descriptions admitted. *Because:* a formal model of a composing pattern rejects the release-on-death variant — a holder that dies with a write in flight frees the key, the next holder reads before that write is visible, and two writers land for one key. The rule is stated here once so that a pattern citing this atom inherits the argument rather than restating it.
 

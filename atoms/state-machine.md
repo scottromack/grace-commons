@@ -70,7 +70,7 @@ Term instance: one workflow instance — one declaration, one current state and 
 
 Term instance_id: the opaque value naming one instance — an [Instance Id]; host-allocated at the seam.
 
-Term history entry: one recorded transition on one instance, carrying `transition_id`, `sequence_number`, `from_state`, `to_state`, `action`, `fired_at` and, where supplied, `actor_ref` and `guard_satisfied`.
+Term history entry: one recorded transition on one instance, carrying transition_id, sequence_number, from_state, to_state, action, fired_at and, where supplied, actor_ref and guard_satisfied.
 
 Term transition_id: the opaque value naming one history entry — a [Transition Id]; host-allocated at the seam.
 
@@ -78,13 +78,13 @@ Term subject_ref: the opaque reference naming the entity whose lifecycle the ins
 
 Term instance_metadata: the opaque payload the caller supplies at [Instantiate] for deployment context — an [Instance Metadata]; recorded, never interpreted.
 
-Term store instance: one named workflow store a call is routed to; `instance_id` uniqueness ranges over one instance.
+Term store instance: one named workflow store a call is routed to; instance_id uniqueness ranges over one instance.
 
 Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the instance_id and the transition_id here.
 
 Term transition: the atom's evaluation of one call against the workflow store, as `execution-contract.md` §Logic confinement declares it.
 
-Term declared transition: one `from_state`, `action`, `to_state` and optional `guard` in the declaration — a move the instance may make. Distinct from the transition above, which is the atom's evaluation of a call.
+Term declared transition: one from_state, action, to_state and optional guard in the declaration — a move the instance may make. Distinct from the transition above, which is the atom's evaluation of a call.
 
 WHY:
 The corpus's word *transition* carries two senses here and the atom cannot avoid either: the execution contract's transition (one evaluation of one call) and the state machine's declared transition (one edge in the declaration). Both are declared, and every rule names which.
@@ -227,9 +227,9 @@ Term fired_at: the instant a declared transition fired — a [Fired At]; a best-
 
 Term instantiated_at: the instant an instance was created — an [Instantiated At].
 
-Term resolved fired_at: the `fired_at` the history entry carries — the supplied value where one exists, and `now` otherwise.
+Term resolved fired_at: the fired_at the history entry carries — the supplied value where one exists, and now otherwise.
 
-Term resolved instantiated_at: the `instantiated_at` the instance carries — the supplied value where one exists, and `now` otherwise.
+Term resolved instantiated_at: the instantiated_at the instance carries — the supplied value where one exists, and now otherwise.
 
 Term actor_ref: the opaque reference naming who fired a declared transition — an [Actor Ref]; optional, and recorded where supplied.
 
@@ -239,7 +239,7 @@ Term guard_satisfied: the caller's assertion that a guard holds — a [Guard Sat
 
 Term matched transition: the one declared transition whose from_state is the current state and whose action is the call's action (Declaration 13).
 
-Term filter axes: `transition_id` | `sequence_number` | `from_state` | `to_state` | `action` | `actor_ref` | `fired_at` — the seven axes [History] accepts, and no others.
+Term filter axes: transition_id | sequence_number | from_state | to_state | action | actor_ref | fired_at — the seven axes [History] accepts, and no others.
 
 Term admitted instantiate: an [Instantiate] call whose declaration, actor_ref and resolved instantiated_at the guards all admit.
 
@@ -249,25 +249,25 @@ Term admitted history: a [History] call whose instance_id names an instance and 
 
 | # | Condition | [Fire] answers |
 |---|---|---|
-| 1 | instance_id or action is blank | `invalid-request` |
-| 2 | both are well-formed, the instance_id names no instance | `not-known` |
-| 3 | the instance exists, the current state is terminal | `terminal` |
-| 4 | the current state is not terminal, no declared transition matches | `invalid-transition` |
-| 5 | a declared transition matches, it carries a guard, the caller asserts none | `guard-not-satisfied` |
-| 6 | the gate clears, actor_ref is blank or the resolved fired_at is out of bounds | `invalid-request` |
-| 7 | every precondition passes, the store refuses the write | `storage-failure` |
-| 8 | every precondition passes, the store accepts the write | `new_state` |
+| 1 | instance_id or action is blank | invalid-request |
+| 2 | both are well-formed, the instance_id names no instance | not-known |
+| 3 | the instance exists, the current state is terminal | terminal |
+| 4 | the current state is not terminal, no declared transition matches | invalid-transition |
+| 5 | a declared transition matches, it carries a guard, the caller asserts none | guard-not-satisfied |
+| 6 | the gate clears, actor_ref is blank or the resolved fired_at is out of bounds | invalid-request |
+| 7 | every precondition passes, the store refuses the write | storage-failure |
+| 8 | every precondition passes, the store accepts the write | new_state |
 
-NOTE: watch condition negation — `invalid-request` occupies two rows of one precedence chain (row 1 and row 6), so the answer alone does not say which guard refused. Audit Trail's 2026-08-30-a open line is the same shape with a worse consequence, its row 6 landing after a commitment.
+NOTE: watch condition negation — invalid-request occupies two rows of one precedence chain (row 1 and row 6), so the answer alone does not say which guard refused. Audit Trail's 2026-08-30-a open line is the same shape with a worse consequence, its row 6 landing after a commitment.
 
 WHY:
-The precedence chain is the atom's most load-bearing ordering and every step earns its place. Argument well-formedness precedes the store lookup (row 1) so a malformed call never costs a read. `not-known` precedes `terminal` (row 2) because a state answer about an instance that does not exist would be an invention. `terminal` precedes `invalid-transition` (row 3) because an absorbed instance rejects *every* action, and telling a caller their action was undeclared when the instance would refuse any action sends them to fix the wrong thing. `invalid-transition` precedes `guard-not-satisfied` (row 4) because a guard belongs to a declared transition, and an undeclared move has no guard to be unsatisfied about.
+The precedence chain is the atom's most load-bearing ordering and every step earns its place. Argument well-formedness precedes the store lookup (row 1) so a malformed call never costs a read. not-known precedes terminal (row 2) because a state answer about an instance that does not exist would be an invention. terminal precedes invalid-transition (row 3) because an absorbed instance rejects *every* action, and telling a caller their action was undeclared when the instance would refuse any action sends them to fix the wrong thing. invalid-transition precedes guard-not-satisfied (row 4) because a guard belongs to a declared transition, and an undeclared move has no guard to be unsatisfied about.
 
-Row 6 is the one that surprises, and it is deliberate: attribution and temporal checks run *after* the gate. The alternative — checking `fired_at` before the guard — would tell a caller their timestamp is wrong on a transition they were never allowed to make, which leaks the declaration's shape to a caller the declaration refuses.
+Row 6 is the one that surprises, and it is deliberate: attribution and temporal checks run *after* the gate. The alternative — checking fired_at before the guard — would tell a caller their timestamp is wrong on a transition they were never allowed to make, which leaks the declaration's shape to a caller the declaration refuses.
 
 Operation 20 states the within-instance temporal bound as a precedence rather than as a comparison, which is why no rule here spells `≥` as a two-arm disjunction. A transition cannot be recorded as firing before the instance existed; a transition firing *at* the instant of instantiation is legal, and `precedes` says exactly that in one arm.
 
-Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inherits: `fired_at` is best-effort and `sequence_number` is the order. Under a skewing clock a later history entry may legitimately carry an earlier `fired_at`, and no invariant here is at risk from it.
+Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inherits: fired_at is best-effort and sequence_number is the order. Under a skewing clock a later history entry may legitimately carry an earlier fired_at, and no invariant here is at risk from it.
 
 ### Invariants
 
@@ -321,7 +321,7 @@ Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inh
   ```
   Invariant 9.1: A recorded actor_ref MUST carry a non-whitespace character.
   ```
-  WHY: the entry is complete for forensic replay whether or not `actor_ref` was supplied. Attribution is deployment policy here, not an atom-level mandate — which is exactly the gap [Actor Identity](./actor-identity.md) closes where a regulator needs the actor bound rather than named.
+  WHY: the entry is complete for forensic replay whether or not actor_ref was supplied. Attribution is deployment policy here, not an atom-level mandate — which is exactly the gap [Actor Identity](./actor-identity.md) closes where a regulator needs the actor bound rather than named.
 - **Invariant 10 — Store durability.**
   ```
   Invariant 10.1: The atom MUST NOT remove an instance from the store.
@@ -351,18 +351,18 @@ Declaration 16: The terminal states MAY carry no member.
 Declaration 17: A declared transition MAY carry no guard.
 ```
 
-Term declaration: the immutable map governing one instance — a [Declaration]; carries `states`, the declared transitions, the initial state and the terminal states.
+Term declaration: the immutable map governing one instance — a [Declaration]; carries states, the declared transitions, the initial state and the terminal states.
 
 Term states: the named states one declaration admits — a [States]; every state name the instance may stand in.
 
-Term initial state: the state an instance stands in at [Instantiate] — an [Initial State]; a member of `states` and never a terminal state.
+Term initial state: the state an instance stands in at [Instantiate] — an [Initial State]; a member of states and never a terminal state.
 
-Term terminal states: the absorbing members of `states` — a [Terminal States]; possibly none.
+Term terminal states: the absorbing members of states — a [Terminal States]; possibly none.
 
 Term well-formed declaration: a declaration Declaration 5 through 15 all admit.
 
 WHY:
-Declaration 13 is the determinism constraint and the load-bearing one: at most one declared transition per `from_state` and `action` pair means a [Fire] either matches exactly one edge or none, and the atom never chooses between two. Without it *fire the approve action* would be ambiguous in a declaration that named two approve edges, and an implementation would have to invent a tiebreak the spec does not have.
+Declaration 13 is the determinism constraint and the load-bearing one: at most one declared transition per from_state and action pair means a [Fire] either matches exactly one edge or none, and the atom never chooses between two. Without it *fire the approve action* would be ambiguous in a declaration that named two approve edges, and an implementation would have to invent a tiebreak the spec does not have.
 
 Declaration 9 and Declaration 12 are the same claim from two directions, and neither is redundant. Declaration 9 refuses an instance born absorbed — an instance whose initial state is terminal accepts nothing and exists only to be stuck. Declaration 12 refuses an edge *out of* a terminal state, which is what makes Invariant 4's absorption structural rather than merely enforced at [Fire]: a conforming declaration cannot even describe the move.
 
@@ -376,39 +376,39 @@ A quality system instantiates a batch-release workflow. The declaration names `s
 
 `fire("wf_01HQ…", "test", actor_ref: "lab-tech-r.chen")` → `tested`. One history entry lands at `sequence_number: 1` carrying `from_state: sampled`, `to_state: tested` (Operation 21 through 28).
 
-`fire("wf_01HQ…", "qualify", actor_ref: "qa-lead-m.ross")` → `guard-not-satisfied`. The declared transition carries the `qa_signoff` guard and the call asserted nothing (Operation 17). The same call with `guard_satisfied: true` → `qualified`, and the entry records the assertion (Operation 29).
+`fire("wf_01HQ…", "qualify", actor_ref: "qa-lead-m.ross")` → guard-not-satisfied. The declared transition carries the `qa_signoff` guard and the call asserted nothing (Operation 17). The same call with `guard_satisfied: true` → `qualified`, and the entry records the assertion (Operation 29).
 
 `fire("wf_01HQ…", "release", guard_satisfied: true, actor_ref: "qa-lead-m.ross")` → `released`. The instance now stands in a terminal state.
 
 ### The audit question
 
-An inspector asks whether the batch moved only through the approved sequence. `read_declaration("wf_01HQ…")` answers the map as supplied, unchanged since instantiation (Invariant 1.2). `history("wf_01HQ…")` answers three entries in `sequence_number` order. Every entry's `from_state`, `action` and `to_state` triple appears in the declaration (Invariant 3.1), and replaying them from `sampled` arrives at `released`, which is what `current("wf_01HQ…")` answers (Invariant 7.3). The declaration bounds what *could* have happened and the history says what *did*; neither alone answers the inspector.
+An inspector asks whether the batch moved only through the approved sequence. `read_declaration("wf_01HQ…")` answers the map as supplied, unchanged since instantiation (Invariant 1.2). `history("wf_01HQ…")` answers three entries in sequence_number order. Every entry's from_state, action and to_state triple appears in the declaration (Invariant 3.1), and replaying them from `sampled` arrives at `released`, which is what `current("wf_01HQ…")` answers (Invariant 7.3). The declaration bounds what *could* have happened and the history says what *did*; neither alone answers the inspector.
 
 ### Rejection paths
 
-`fire("wf_01HQ…", "test")` against the released instance → `terminal`. Not `invalid-transition`, even though no `test` edge leaves `released` — an absorbed instance refuses every action, and saying so sends the caller to the right problem (Operation 13, Operation 16).
+`fire("wf_01HQ…", "test")` against the released instance → terminal. Not invalid-transition, even though no `test` edge leaves `released` — an absorbed instance refuses every action, and saying so sends the caller to the right problem (Operation 13, Operation 16).
 
-`fire("wf_01HQ…", "expedite")` against a live instance in `tested` → `invalid-transition`. No declared transition matches, and there is no wildcard (Operation 15, Operation 32).
+`fire("wf_01HQ…", "expedite")` against a live instance in `tested` → invalid-transition. No declared transition matches, and there is no wildcard (Operation 15, Operation 32).
 
-`fire("wf_99999", "test")` → `not-known`. `fire("", "test")` → `invalid-request`, refused before any store lookup (Operation 9, Operation 12).
+`fire("wf_99999", "test")` → not-known. `fire("", "test")` → invalid-request, refused before any store lookup (Operation 9, Operation 12).
 
-`instantiate(declaration)` where two declared transitions both leave `tested` on `qualify` → `invalid-declaration`. The determinism constraint refuses the ambiguity at birth rather than inventing a tiebreak at fire time (Declaration 13).
+`instantiate(declaration)` where two declared transitions both leave `tested` on `qualify` → invalid-declaration. The determinism constraint refuses the ambiguity at birth rather than inventing a tiebreak at fire time (Declaration 13).
 
-`instantiate(declaration)` where `initial state: released` and `released` is terminal → `invalid-declaration`. An instance born absorbed accepts nothing (Declaration 9).
+`instantiate(declaration)` where `initial state: released` and `released` is terminal → invalid-declaration. An instance born absorbed accepts nothing (Declaration 9).
 
-`instantiate(declaration)` carrying an edge out of `released` → `invalid-declaration` (Declaration 12).
+`instantiate(declaration)` carrying an edge out of `released` → invalid-declaration (Declaration 12).
 
-`fire("wf_01HQ…", "test", fired_at: "2020-01-01")` against an instance instantiated in 2026 → `invalid-request`. A transition cannot fire before the instance existed (Operation 20).
+`fire("wf_01HQ…", "test", fired_at: "2020-01-01")` against an instance instantiated in 2026 → invalid-request. A transition cannot fire before the instance existed (Operation 20).
 
 ### Multi-instance independence
 
-Two batches run the same declaration as two instances. Firing `test` on one moves one current state; the other is untouched, carries its own history and its own `next_sequence_number`. The declaration is a value each instance holds, not a shared object (Non-goal 8).
+Two batches run the same declaration as two instances. Firing `test` on one moves one current state; the other is untouched, carries its own history and its own next_sequence_number. The declaration is a value each instance holds, not a shared object (Non-goal 8).
 
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** An FDA inspector auditing under 21 CFR Part 11 and ISO 9001 §8.5.1 asks the system to prove the batch moved only through approved states. Check 2.1 and Check 6.1 are the structural answer: every history entry matches a declared transition, and the declaration is the one supplied at instantiation. What the atom cannot answer is whether the `qa_signoff` guard was truly satisfied — `guard_satisfied: true` attests an assertion (Invariant 8.3), and the evidence lives in the composing [Approval Step](./approval-step.md) record.
-- **Disputed transition.** An external party claims the workflow skipped a required state. The history is gap-free by `sequence_number` (Invariant 6.2) and replays to the current state (Invariant 7.3), so a skipped state would have to appear as a declared transition that jumps it — which the declaration either names or does not. The claim resolves against the declaration, not against testimony.
-- **Breach investigation.** An investigator reconstructing an anomaly window filters the history by `fired_at` range and finds the entries generously bracketed. Because `sequence_number` is dense and is the order source (Invariant 6.2, Operation 55), the investigator confirms the window's completeness against an unfiltered read rather than trusting the wall-time filter — a clock-skewed entry can fall outside the bracket and cannot fall out of the sequence.
+- **Disputed transition.** An external party claims the workflow skipped a required state. The history is gap-free by sequence_number (Invariant 6.2) and replays to the current state (Invariant 7.3), so a skipped state would have to appear as a declared transition that jumps it — which the declaration either names or does not. The claim resolves against the declaration, not against testimony.
+- **Breach investigation.** An investigator reconstructing an anomaly window filters the history by fired_at range and finds the entries generously bracketed. Because sequence_number is dense and is the order source (Invariant 6.2, Operation 55), the investigator confirms the window's completeness against an unfiltered read rather than trusting the wall-time filter — a clock-skewed entry can fall outside the bracket and cannot fall out of the sequence.
 
 ---
 
@@ -517,7 +517,7 @@ Deleted: Clock semantics 5. Non-goal 22 owns it.
 ```
 
 WHY:
-Clock semantics 4 is the rule that looks like a gap and is a commitment. Wall-time monotonicity across history entries is deliberately *not* enforced: under a skewing or resynchronized clock a later transition can legitimately carry an earlier `fired_at`, and an atom that refused it would reject correct history to protect an annotation. `sequence_number` is the order (Invariant 6.3, Operation 55), so nothing is lost. A backdated `fired_at` is accepted within the instance's own lifetime — documenting a transition recognized late is valid — and the only temporal bounds are the two that are structural: not after `now`, and not before the instance existed (Operation 19, Operation 20).
+Clock semantics 4 is the rule that looks like a gap and is a commitment. Wall-time monotonicity across history entries is deliberately *not* enforced: under a skewing or resynchronized clock a later transition can legitimately carry an earlier fired_at, and an atom that refused it would reject correct history to protect an annotation. sequence_number is the order (Invariant 6.3, Operation 55), so nothing is lost. A backdated fired_at is accepted within the instance's own lifetime — documenting a transition recognized late is valid — and the only temporal bounds are the two that are structural: not after now, and not before the instance existed (Operation 19, Operation 20).
 
 ### Concurrency
 
@@ -527,7 +527,7 @@ Concurrency 2: A serialized [Fire] MUST read the current state the prior [Fire] 
 ```
 
 WHY:
-Unlike [Selective Disclosure](./selective-disclosure.md), whose concurrent records contend over nothing, two fires against one instance contend over the current state itself — the second call's matched transition depends on where the first left the instance. So the second may succeed, may answer `invalid-transition`, or may answer `terminal`, and which of the three is a fact about the declaration rather than a race. Serialization is what makes the outcome a fact at all.
+Unlike [Selective Disclosure](./selective-disclosure.md), whose concurrent records contend over nothing, two fires against one instance contend over the current state itself — the second call's matched transition depends on where the first left the instance. So the second may succeed, may answer invalid-transition, or may answer terminal, and which of the three is a fact about the declaration rather than a race. Serialization is what makes the outcome a fact at all.
 
 ### String policy
 
@@ -541,12 +541,12 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Term string input: `instance_id`, `action`, `actor_ref`, `subject_ref`, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
+Term string input: instance_id, action, actor_ref, subject_ref, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
 Term blank: a value that is absent, empty, or carries only whitespace — what every presence check in this atom refuses; a blank argument NOT EXISTS.
 
 WHY:
-Byte-exactness reaches further here than in most atoms, because state names and action names are caller-supplied strings that the declaration and every later [Fire] must agree on. A declaration naming `Tested` and a fire naming `tested` are two different tokens, the match fails, and the answer is `invalid-transition` — correct, and mystifying to a caller who believes they are the same state. Canonicalization is the deployment's (String 7).
+Byte-exactness reaches further here than in most atoms, because state names and action names are caller-supplied strings that the declaration and every later [Fire] must agree on. A declaration naming `Tested` and a fire naming `tested` are two different tokens, the match fails, and the answer is invalid-transition — correct, and mystifying to a caller who believes they are the same state. Canonicalization is the deployment's (String 7).
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
@@ -568,9 +568,9 @@ Composition note 10: A composing pattern reading the workflow store MUST NOT wri
 ```
 
 WHY:
-[Execute Gated Workflow](../compositions/execute-gated-workflow.md) (`grounded` 2026-06-04) is the composition this atom exists inside, and it is where the guard evaluation this atom refuses re-converges: it reads a bound [Approval Step](./approval-step.md)'s state and asserts `guard_satisfied` only where that step stands approved (Composition note 2, Composition note 3). The wiring is State Machine plus Approval Step plus [Permissions](./permissions.md) plus Assignment plus an [Audit Trail](../compositions/audit-trail.md) substrate, and the emergent guarantee is one neither constituent holds alone — a transition that fired carries both the declared-machine proof and the approval evidence behind its gate.
+[Execute Gated Workflow](../compositions/execute-gated-workflow.md) (`grounded` 2026-06-04) is the composition this atom exists inside, and it is where the guard evaluation this atom refuses re-converges: it reads a bound [Approval Step](./approval-step.md)'s state and asserts guard_satisfied only where that step stands approved (Composition note 2, Composition note 3). The wiring is State Machine plus Approval Step plus [Permissions](./permissions.md) plus Assignment plus an [Audit Trail](../compositions/audit-trail.md) substrate, and the emergent guarantee is one neither constituent holds alone — a transition that fired carries both the declared-machine proof and the approval evidence behind its gate.
 
-[Approval Step](./approval-step.md) is the fixed-state sibling and the clearest way to see what this atom trades away: its states are known to an evaluator who has read only the spec, and this atom's are known only to one who has read the instance. [Actor Identity](./actor-identity.md) makes `actor_ref` survive an authorship challenge under 21 CFR Part 11 and SOX (Sarbanes-Oxley Act) §404; [Tamper Evidence](./tamper-evidence.md) seals the history for court admissibility; [Retention Window](./retention-window.md) bounds how long instances are kept under GDPR (General Data Protection Regulation) Article 17, HIPAA (Health Insurance Portability and Accountability Act) §164.530(j) and FRCP (Federal Rules of Civil Procedure) Rule 37(e); [Audit Trail](../compositions/audit-trail.md) is the regulated-evidence layer each admitted fire lands in.
+[Approval Step](./approval-step.md) is the fixed-state sibling and the clearest way to see what this atom trades away: its states are known to an evaluator who has read only the spec, and this atom's are known only to one who has read the instance. [Actor Identity](./actor-identity.md) makes actor_ref survive an authorship challenge under 21 CFR Part 11 and SOX (Sarbanes-Oxley Act) §404; [Tamper Evidence](./tamper-evidence.md) seals the history for court admissibility; [Retention Window](./retention-window.md) bounds how long instances are kept under GDPR (General Data Protection Regulation) Article 17, HIPAA (Health Insurance Portability and Accountability Act) §164.530(j) and FRCP (Federal Rules of Civil Procedure) Rule 37(e); [Audit Trail](../compositions/audit-trail.md) is the regulated-evidence layer each admitted fire lands in.
 
 [Event Log](./event-log.md) is the structural cousin this atom deliberately does not name as a constituent: the transition history is append-only and totally ordered by a sequence number with best-effort wall time, which is an event log's shape, and the load-bearing concept here is the validity gate an event log has no notion of. Where a deployment wants both, that layering belongs to Execute Gated Workflow.
 
@@ -584,7 +584,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the store; an instance; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a rejection; a crash; a reader; a state name; a string input; an opaque reference; the store instance's instance count; the instance's history entry count; the instance's admitted fire count.
 
-Term records: `instance` — one workflow instance, carrying `instance_id`, a declaration, a current state, a transition history, `next_sequence_number` and, where supplied, `subject_ref` and `instance_metadata`. `history entry` — one recorded transition, carrying `transition_id`, `sequence_number`, `from_state`, `to_state`, `action`, `fired_at` and, where supplied, `actor_ref` and `guard_satisfied`.
+Term records: instance — one workflow instance, carrying instance_id, a declaration, a current state, a transition history, next_sequence_number and, where supplied, subject_ref and instance_metadata. history entry — one recorded transition, carrying transition_id, sequence_number, from_state, to_state, action, fired_at and, where supplied, actor_ref and guard_satisfied.
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, commit, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, observe, resolve, complete, serve, serialize, shrink, fall, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, survive, canonicalize.
 
@@ -594,9 +594,9 @@ Term bounds: empty.
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-12).
+Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: `instance`, `instance_id`, `history entry`, `transition_id`, `subject_ref`, `instance_metadata`, `store instance`, `seam`, `transition`, `declared transition`, `declaration`, `states`, `initial state`, `terminal states`, `well-formed declaration`, `now`, `business caller`, `addressed action`, `writing action`, `reading action`, `current state`, `next_sequence_number`, `sequence_number`, `fired_at`, `instantiated_at`, `resolved fired_at`, `resolved instantiated_at`, `actor_ref`, `guard`, `guard_satisfied`, `matched transition`, `filter axes`, `admitted instantiate`, `admitted fire`, `admitted history`, `string input`, `blank`, `uncommitted crash`, `dangling transition`.
+Term terms: instance, instance_id, history entry, transition_id, subject_ref, instance_metadata, store instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, business caller, addressed action, writing action, reading action, current state, next_sequence_number, sequence_number, fired_at, instantiated_at, resolved fired_at, resolved instantiated_at, actor_ref, guard, guard_satisfied, matched transition, filter axes, admitted instantiate, admitted fire, admitted history, string input, blank, uncommitted crash, dangling transition.
 
 #### Instantiate
 
@@ -734,7 +734,7 @@ Projects: from_state
 
 #### To State
 
-The state a declared transition (and the history entry it produces) arrives at — a member of [States]. On success it becomes the instance's new [Current State] and the returned `new_state`.
+The state a declared transition (and the history entry it produces) arrives at — a member of [States]. On success it becomes the instance's new [Current State] and the returned new_state.
 
 Kind:     Field
 Field of: a declared transition
@@ -942,7 +942,7 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/state-machine.md`.
 
-- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariant 1 through 10 keeping their numbers, the declaration's ten well-formedness checks raised to a `Declaration 1 through 17` family of their own, every success effect conditioned on a declared `admitted instantiate`, `admitted fire` or `admitted history` (Hard invariant 16), [Fire]'s seven-step rejection precedence kept beside the rules as an eight-row case space with the ordering carried by `ONLY IF` guards rather than by a prose *rejection priority* line repeated in two sections, the six acceptance areas opened into `Check 1.1 through 8.2` with three `External check`s for what the store cannot answer, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 21` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`), the Composition notes prose raised to `Composition note 1 through 10`. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into state-machine` found nothing in the corpus citing this atom by label. 78.8 KB → 67.0 KB.
+- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariant 1 through 10 keeping their numbers, the declaration's ten well-formedness checks raised to a `Declaration 1 through 17` family of their own, every success effect conditioned on a declared admitted instantiate, admitted fire or admitted history (Hard invariant 16), [Fire]'s seven-step rejection precedence kept beside the rules as an eight-row case space with the ordering carried by `ONLY IF` guards rather than by a prose *rejection priority* line repeated in two sections, the six acceptance areas opened into `Check 1.1 through 8.2` with three `External check`s for what the store cannot answer, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 21` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`), the Composition notes prose raised to `Composition note 1 through 10`. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into state-machine` found nothing in the corpus citing this atom by label. 78.8 KB → 67.0 KB.
 
 - **2026-09-12 — The within-instance temporal bound is a precedence, not a `≥`.** *Chose:* `Operation 20` — *IF the resolved fired_at precedes the instance's instantiated_at THEN [Fire] MUST answer invalid-request*. *Over:* `IF fired_at EXCEEDS instantiated_at OR fired_at = instantiated_at`, the two-arm spelling the condition operator set forces on a `≥`. *Because:* that spelling is a watched class at five sites across two specs (council read 29), and this atom would have been the third. A bound that admits its own boundary is a *precedes* prohibition in one arm — the boundary case (a transition firing at the instant of instantiation) is legal, and one arm says so. The class may still earn an operator; it does not need this atom's vote.
 

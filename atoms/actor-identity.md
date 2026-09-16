@@ -84,7 +84,7 @@ Term public material: what the actor registry holds for an actor_ref and a verif
 
 Term durability mechanism: a write-ahead log, or another mechanism making a committed write survive a crash.
 
-Term attestation field: `attestation_id` | `action_ref` | `actor_ref` | `proof` | `attested_at`.
+Term attestation field: attestation_id | action_ref | actor_ref | proof | attested_at.
 
 WHY:
 One state and no way out: an attestation that could be revoked would prove nothing, because the party who wanted the attribution undone is the party who would revoke it. Reinterpretation under a compromised credential is real and is a Compromise Disclosure pattern's *(forthcoming)* — it writes new records rather than editing old ones (State 2, State 5, Non-goal 9). The credential is consumed and never stored: an atom holding actors' private material would be the highest-value target in the deployment (State 4).
@@ -109,7 +109,7 @@ verify(attestation_id)
   answers verified | failed-verification(verification failure) | not-known
 ```
 
-Term verification failure: `proof-invalid` | `actor-unknown-in-registry` | `registry-unavailable` — the reasons [Verify] gives for a failed verification.
+Term verification failure: proof-invalid | actor-unknown-in-registry | registry-unavailable — the reasons [Verify] gives for a failed verification.
 
 ```
 Operation 1: [Attest] MUST compute the proof over the action_ref and the actor_ref from the credential.
@@ -140,9 +140,9 @@ Operation 25: The transition MUST NOT mint entropy.
 Operation 26: The business caller MUST NOT supply attested_at.
 ```
 
-Term registry answer: `material` | `unknown-actor` | `unreachable` — what the actor registry gives a verifier for an actor_ref.
+Term registry answer: material | unknown-actor | unreachable — what the actor registry gives a verifier for an actor_ref.
 
-Term proof check: `held` | `failed` — the recorded proof run against the recorded action_ref and actor_ref under the registry's current public material.
+Term proof check: held | failed — the recorded proof run against the recorded action_ref and actor_ref under the registry's current public material.
 
 Term verification set: the attestation's own fields together with the registry's public material for the actor_ref — and, where the credential mechanism embeds it, the revocation status the proof carries (Revocation status 1, Revocation status 2); everything [Verify] is allowed to read, and nothing else.
 
@@ -150,8 +150,8 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the attestation store |
 |---|---|---|---|
-| [Attest] | refs and credential present, credential validates, store accepts | `attestation_id` | one attestation lands in [Attested] (Operation 1, Operation 2) |
-| [Attest] | blank `action_ref`, `actor_ref` or credential | [Invalid Request] | none (Operation 6 through 8) |
+| [Attest] | refs and credential present, credential validates, store accepts | attestation_id | one attestation lands in [Attested] (Operation 1, Operation 2) |
+| [Attest] | blank action_ref, actor_ref or credential | [Invalid Request] | none (Operation 6 through 8) |
 | [Attest] | credential fails against the actor's public material | [Invalid Credential] | none (Operation 9) |
 | [Attest] | store refuses the write | [Storage Failure] | none — no partial record (Operation 10, Operation 11) |
 | [Verify] | no attestation under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
@@ -161,7 +161,7 @@ The case space, and the rule that owns each case:
 | [Verify] | material in hand, proof holds | [Verified] | none (Operation 19) |
 
 WHY:
-The four verify outcomes are kept apart by their conditions, not by the order the rules sit in (`GRACE-lang.md` Hard invariant 15): `not-known` is an id miss; `actor-unknown-in-registry` is missing actor material and may be permanent; `registry-unavailable` is transient and worth retrying; `proof-invalid` is a proof that exists and fails — after a key rotation, or under forgery. A deployment that collapses these into a boolean has thrown away the difference between *we cannot check right now* and *this does not check out* (Operation 15 through 19). Verification reads the registry's view, which is why a rotation can turn a verified attestation into a failing one unless the registry keeps historical material — the registry's property, not the atom's (Non-goal 3, Registry view 1 through 3).
+The four verify outcomes are kept apart by their conditions, not by the order the rules sit in (`GRACE-lang.md` Hard invariant 15): not-known is an id miss; actor-unknown-in-registry is missing actor material and may be permanent; registry-unavailable is transient and worth retrying; proof-invalid is a proof that exists and fails — after a key rotation, or under forgery. A deployment that collapses these into a boolean has thrown away the difference between *we cannot check right now* and *this does not check out* (Operation 15 through 19). Verification reads the registry's view, which is why a rotation can turn a verified attestation into a failing one unless the registry keeps historical material — the registry's property, not the atom's (Non-goal 3, Registry view 1 through 3).
 
 ### Invariants
 
@@ -220,19 +220,19 @@ The same atom, five regulated domains, identical mechanic.
 
 ### Banking — wire transfer authorization
 
-A teller initiates a $50,000 wire. Bank policy requires supervisor approval for wires over $10,000. The supervisor reviews and attests — `attest(wire_w91, supervisor_s12, supervisor_credential) → attestation_a44`. The attestation is stored alongside the wire record. Six months later, an internal auditor reviewing the day's high-value wires queries `verify(a44)` and receives `verified` — confirming supervisor s12 authorized wire w91 at the recorded time, without trusting the teller's account of the conversation that preceded it.
+A teller initiates a $50,000 wire. Bank policy requires supervisor approval for wires over $10,000. The supervisor reviews and attests — `attest(wire_w91, supervisor_s12, supervisor_credential) → attestation_a44`. The attestation is stored alongside the wire record. Six months later, an internal auditor reviewing the day's high-value wires queries `verify(a44)` and receives verified — confirming supervisor s12 authorized wire w91 at the recorded time, without trusting the teller's account of the conversation that preceded it.
 
 ### Healthcare — electronic prescription for a controlled substance
 
-A physician writes a Schedule II prescription. DEA (US Drug Enforcement Administration) Electronic Prescriptions for Controlled Substances (EPCS) regulations require two-factor cryptographic attestation. The physician's EHR (Electronic Health Record — the digital patient chart system) computes `attest(rx_r37, dr_park, dr_park_credential)` using the physician's smart-card-bound credential and a second factor. The prescription transmits to the pharmacy with `attestation_a91`. The pharmacy calls `verify(a91)` before dispensing; `verified` → fill. Two years later, during a DEA audit, the same verification proves Dr. Park authorized that specific prescription on that specific date.
+A physician writes a Schedule II prescription. DEA (US Drug Enforcement Administration) Electronic Prescriptions for Controlled Substances (EPCS) regulations require two-factor cryptographic attestation. The physician's EHR (Electronic Health Record — the digital patient chart system) computes `attest(rx_r37, dr_park, dr_park_credential)` using the physician's smart-card-bound credential and a second factor. The prescription transmits to the pharmacy with `attestation_a91`. The pharmacy calls `verify(a91)` before dispensing; verified → fill. Two years later, during a DEA audit, the same verification proves Dr. Park authorized that specific prescription on that specific date.
 
 ### Payments — chip-and-PIN transaction
 
-A cardholder taps a chip card at a terminal and enters their PIN. The card produces a cryptographic attestation: `attest(transaction_t883, card_c41, card_credential)`. The terminal forwards the attestation with the transaction. The issuer calls `verify` before authorizing the charge. Months later, the cardholder disputes the charge as unauthorized; the issuer produces `attestation` and re-verifies. `verified` → the card was physically present and the correct PIN was entered, shifting liability to the cardholder per scheme rules. `failed-verification` → the dispute is upheld.
+A cardholder taps a chip card at a terminal and enters their PIN. The card produces a cryptographic attestation: `attest(transaction_t883, card_c41, card_credential)`. The terminal forwards the attestation with the transaction. The issuer calls verify before authorizing the charge. Months later, the cardholder disputes the charge as unauthorized; the issuer produces attestation and re-verifies. verified → the card was physically present and the correct PIN was entered, shifting liability to the cardholder per scheme rules. failed-verification → the dispute is upheld.
 
 ### Legal — qualified electronic signature on a contract
 
-Two parties sign a contract via a qualified electronic signature service. Each invokes `attest(contract_c12, party_ref, qualified_signature_credential)` using credentials issued by a qualified trust service provider. Two attestations are stored alongside the contract. Any future party — opposing counsel, mediator, court — invokes `verify` on either attestation. Under eIDAS Regulation (Electronic Identification, Authentication and Trust Services — the EU regulation governing electronic signatures and identity), qualified electronic signatures carry the same legal effect as handwritten signatures, and the verification result is admissible evidence of authorship.
+Two parties sign a contract via a qualified electronic signature service. Each invokes `attest(contract_c12, party_ref, qualified_signature_credential)` using credentials issued by a qualified trust service provider. Two attestations are stored alongside the contract. Any future party — opposing counsel, mediator, court — invokes verify on either attestation. Under eIDAS Regulation (Electronic Identification, Authentication and Trust Services — the EU regulation governing electronic signatures and identity), qualified electronic signatures carry the same legal effect as handwritten signatures, and the verification result is admissible evidence of authorship.
 
 ### Source control — signed commits in regulated software
 
@@ -244,9 +244,9 @@ The mechanic is identical across all five. What differs: the credential mechanis
 
 **[Verify] → [Failed Verification] ([Proof Invalid]):** An auditor reviewing a batch of wire authorizations calls `verify(attestation_a17)`. The actor's key has been rotated since the [Attestation] was recorded, and the registry's current public material for `actor_ref: supervisor_s12` no longer matches the stored [Proof]. The atom returns `failed-verification(proof-invalid)`. The auditor notes the failure; the composing audit workflow escalates for manual review. The [Attestation] record is unchanged — Invariant 1 prevents modification; the failure is a verification-time result, not a record defect.
 
-**[Verify] → [Not Known]:** A composing pattern references an [Attestation Id] that was never written (a partial-failure scenario where [Attest] returned [Storage Failure] and the composing pattern cached the id before confirming success). `verify(attestation_a_unknown)` returns `not-known` — the id is not in the attestation store. This is structurally distinct from [Failed Verification]: the id does not reference any [Attestation]. The composing pattern must treat [Not Known] as a missing record (requiring re-attestation) rather than a verification failure.
+**[Verify] → [Not Known]:** A composing pattern references an [Attestation Id] that was never written (a partial-failure scenario where [Attest] returned [Storage Failure] and the composing pattern cached the id before confirming success). `verify(attestation_a_unknown)` returns not-known — the id is not in the attestation store. This is structurally distinct from [Failed Verification]: the id does not reference any [Attestation]. The composing pattern must treat [Not Known] as a missing record (requiring re-attestation) rather than a verification failure.
 
-**[Attest] → [Invalid Credential]:** A supervisor approves a high-value wire using a [Credential] that was rotated out earlier that day. `attest(wire_w55, supervisor_s12, rotated_credential)` → the [Credential] fails to validate against the registry's current public material for `supervisor_s12`; the atom returns `invalid-credential`. No [Attestation] is recorded — [Invalid Credential] is a guard rejection that fails before any store write (see Decision points); the composing workflow prompts re-attestation with the current [Credential].
+**[Attest] → [Invalid Credential]:** A supervisor approves a high-value wire using a [Credential] that was rotated out earlier that day. `attest(wire_w55, supervisor_s12, rotated_credential)` → the [Credential] fails to validate against the registry's current public material for `supervisor_s12`; the atom returns invalid-credential. No [Attestation] is recorded — [Invalid Credential] is a guard rejection that fails before any store write (see Decision points); the composing workflow prompts re-attestation with the current [Credential].
 
 ### Regulated adversarial scenarios
 
@@ -334,7 +334,7 @@ Registry view 3: A deployment whose old attestations must keep verifying MUST re
 ```
 
 WHY:
-Audit Trail's long-lived attestations are the case: an attestation made years ago verifies under the key of its day, and a registry that keeps only current material silently converts every one of them into `proof-invalid` — indistinguishable, to a reader, from tampering (Registry view 3).
+Audit Trail's long-lived attestations are the case: an attestation made years ago verifies under the key of its day, and a registry that keeps only current material silently converts every one of them into proof-invalid — indistinguishable, to a reader, from tampering (Registry view 3).
 
 ### Verification caching
 
@@ -367,19 +367,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment (also: a high-assurance deployment); a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an actor; the actor registry; the attestation store; a credential mechanism (also: a mechanism); an attestation; a rotation; a proof.
 
-Term records: `attestation` — one binding, carrying `attestation_id`, `action_ref`, `actor_ref`, `proof` and `attested_at`.
+Term records: attestation — one binding, carrying attestation_id, action_ref, actor_ref, proof and attested_at.
 
 Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, agree, fail.
 
-Term value sets: attest answers attestation_id and refuses invalid-request | invalid-credential | storage-failure. verify answers verified | failed-verification(verification failure) | not-known. `registry answer` = material | unknown-actor | unreachable. `proof check` = held | failed. `attestation field` = attestation_id | action_ref | actor_ref | proof | attested_at.
+Term value sets: attest answers attestation_id and refuses invalid-request | invalid-credential | storage-failure. verify answers verified | failed-verification(verification failure) | not-known. registry answer = material | unknown-actor | unreachable. proof check = held | failed. attestation field = attestation_id | action_ref | actor_ref | proof | attested_at.
 
 Term bounds: empty.
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12); `uncompromised` — a credential no disclosure names as compromised at or before the instant in question.
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12); uncompromised — a credential no disclosure names as compromised at or before the instant in question.
 
-Term terms: `now`, `verification set`, `durability mechanism`, `attestation`, `attestation_id`, `action_ref`, `actor_ref`, `seam`, `transition`, `business caller`, `attested`, `proof`, `attested_at`, `credential`, `public material`, `attestation field`, `registry answer`, `proof check`, `verification failure`.
+Term terms: now, verification set, durability mechanism, attestation, attestation_id, action_ref, actor_ref, seam, transition, business caller, attested, proof, attested_at, credential, public material, attestation field, registry answer, proof check, verification failure.
 
 #### Attestation
 
@@ -581,7 +581,7 @@ Actor Identity is a foundational compliance primitive with deep regulatory ancho
 It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the freestanding-atom posture; the discipline of composing authentication, authorization, registry, witness, and compromise concepts as separate atoms.
-- **Eiffel's design-by-contract** — preconditions on `attest`; named rejection and verification reasons.
+- **Eiffel's design-by-contract** — preconditions on attest; named rejection and verification reasons.
 - **Public-key cryptography literature** (Diffie-Hellman, RSA — Rivest-Shamir-Adleman, ECDSA — Elliptic Curve Digital Signature Algorithm, EdDSA — Edwards-curve Digital Signature Algorithm; standard digital-signature schemes) — the foundational mechanism for verifiable proofs of authorship.
 - **Non-repudiation literature in computer security** (Zhou and Gollmann, ISO/IEC 13888) — the formal framing of non-repudiation services as distinct from authentication.
 

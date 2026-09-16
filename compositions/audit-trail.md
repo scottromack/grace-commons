@@ -69,7 +69,7 @@ Term retention store: the composition's Retention Window instance.
 
 Term seal store: the composition's Tamper Evidence instance.
 
-Term surviving fields: an attestation's `attestation_id`, `action_ref`, `actor_ref` and `attested_at` — Actor Identity's five-field record less the `proof`.
+Term surviving fields: an attestation's attestation_id, action_ref, actor_ref and attested_at — Actor Identity's five-field record less the proof.
 
 ---
 
@@ -77,7 +77,7 @@ Term surviving fields: an attestation's `attestation_id`, `action_ref`, `actor_r
 
 ### Composition state
 
-Eight elements, each carrying the Contract classification of [`execution-contract.md`](../execution-contract.md) §Composition state. Five are wholly derived indexes — `event_to_retention`, `event_to_sequence`, `sealed_through`, `compensated_attestations`, `reported_beyond_horizon`. Two split — `event_to_attestation` is derived for live events and extraction-pending for purged ones; `seal_coverage` is derived over ranges and carries one extraction-pending per-entry set. One is wholly extraction-pending — `erasure_outcomes`.
+Eight elements, each carrying the Contract classification of [`execution-contract.md`](../execution-contract.md) §Composition state. Five are wholly derived indexes — event_to_retention, event_to_sequence, sealed_through, compensated_attestations, reported_beyond_horizon. Two split — event_to_attestation is derived for live events and extraction-pending for purged ones; seal_coverage is derived over ranges and carries one extraction-pending per-entry set. One is wholly extraction-pending — erasure_outcomes.
 
 Term derived index: an element regenerated from the constituent stores by the element's rebuild procedure.
 
@@ -87,9 +87,9 @@ Term rebuild-on-miss: a read of a derived index that runs the element's rebuild 
 
 Term retention_state: the state of the event's retention record — `Retained` | `Purged`; absent where no retention record exists.
 
-Term live: an event whose `retention_state` != `Purged`.
+Term live: an event whose retention_state != `Purged`.
 
-Term purged: an event whose `retention_state` = `Purged`.
+Term purged: an event whose retention_state = `Purged`.
 
 ```
 Composition state 1: EVERY derived index MUST sit outside every action's atomicity surface.
@@ -101,14 +101,14 @@ Composition state 6: The composition MUST NOT modify an inserted entry of an ins
 Composition state 7: The composition MUST NOT remove an inserted member of a closed-state marker.
 ```
 
-Term insert-only map: `event_to_attestation`, `event_to_retention`, `event_to_sequence`, and the ranges of `seal_coverage`; a `purged_events` set is written by the cascade and is not part of the range.
+Term insert-only map: event_to_attestation, event_to_retention, event_to_sequence, and the ranges of seal_coverage; a purged_events set is written by the cascade and is not part of the range.
 
-Term closed-state marker: `compensated_attestations` and `reported_beyond_horizon`.
+Term closed-state marker: compensated_attestations and reported_beyond_horizon.
 
 WHY:
 An index entry is evidence that the truth-bearing writes committed, never a peer write the compensation protocol has to handle. Both sides of every derived mapping are immutable constituent content, so each rebuild is total over what the constituent stores still hold.
 
-- **`event_to_attestation`** — map from `event_id` to the `attestation_id` Actor Identity produced at record time; the auditor's traversal from an event to its attribution. The classification splits by retention state, because the rebuild's source does not survive the cascade.
+- **event_to_attestation** — map from event_id to the attestation_id Actor Identity produced at record time; the auditor's traversal from an event to its attribution. The classification splits by retention state, because the rebuild's source does not survive the cascade.
   ```
   event_to_attestation 1: [Record Action] step 5 MUST populate event_to_attestation with the event's event_id → attestation_id.
   event_to_attestation 2: WHEN retention_state != Purged:
@@ -119,14 +119,14 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
       event_to_attestation 3b: The destruction record MUST carry the pair (event_id, attestation_id).
       event_to_attestation 3c: The pair MUST carry the durability obligation of Durability 6.
   ```
-  WHY: [Record Action] step 3 writes `attestation_id` into the appended payload, so the live binding is immutable Event Log content. The cascade destroys the payload's recoverability, so for a purged event the binding is destroyed with the thing that carried it, and only a record written before the delegation can carry it ([Purge Event] step 2).
-- **`event_to_retention`** — map from `event_id` to the `retention_id` Retention Window produced at record time; the policy the event is held under.
+  WHY: [Record Action] step 3 writes attestation_id into the appended payload, so the live binding is immutable Event Log content. The cascade destroys the payload's recoverability, so for a purged event the binding is destroyed with the thing that carried it, and only a record written before the delegation can carry it ([Purge Event] step 2).
+- **event_to_retention** — map from event_id to the retention_id Retention Window produced at record time; the policy the event is held under.
   ```
   event_to_retention 1: [Record Action] step 5 MUST populate event_to_retention with the event's event_id → retention_id.
   event_to_retention 2: The composition MUST classify event_to_retention as derived index.
   event_to_retention 3: The rebuild MUST enumerate the retention store and re-key each retention record by the record's record_ref.
   ```
-- **`event_to_sequence`** — map from `event_id` to the `sequence_number` Event Log assigned at append; the index that makes id-addressed reads possible.
+- **event_to_sequence** — map from event_id to the sequence_number Event Log assigned at append; the index that makes id-addressed reads possible.
   ```
   event_to_sequence 1: [Record Action] step 5 MUST populate event_to_sequence with the event's event_id → sequence_number.
   event_to_sequence 2: The composition MUST classify event_to_sequence as derived index.
@@ -136,8 +136,8 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   event_to_sequence 6: The composition MUST NOT ask EventLog.read to select on event_id.
   event_to_sequence 7: The composition MUST NOT ask EventLog.read for a payload predicate.
   ```
-  WHY: Event Log declares no read-by-id surface — `read` takes a sequence-number range, a wall-time range or a payload predicate, and routes lookup by payload field to a Reverse Index pattern *(forthcoming)*. Event Log's Outputs declare that every returned event carries its `event_id`, `sequence_number`, `recorded_at` and `data`, so both sides of the map are immutable Event Log content and the rebuild is total; the relation `event_id` ↔ `sequence_number` is one-to-one and mandatory on both sides at quiescence (Event Log Invariants 2, 3 and 6), and a lost entry is a rebuild trigger, never a relation violation.
-- **`seal_coverage`** — for each `evidence_id` in the seal store, the contiguous sequence-number range the seal commits to as [Seal Now] cut it, plus a per-entry `purged_events` set the cascade writes; what tells the verifier which record set to present.
+  WHY: Event Log declares no read-by-id surface — read takes a sequence-number range, a wall-time range or a payload predicate, and routes lookup by payload field to a Reverse Index pattern *(forthcoming)*. Event Log's Outputs declare that every returned event carries its event_id, sequence_number, recorded_at and data, so both sides of the map are immutable Event Log content and the rebuild is total; the relation event_id ↔ sequence_number is one-to-one and mandatory on both sides at quiescence (Event Log Invariants 2, 3 and 6), and a lost entry is a rebuild trigger, never a relation violation.
+- **seal_coverage** — for each evidence_id in the seal store, the contiguous sequence-number range the seal commits to as [Seal Now] cut it, plus a per-entry purged_events set the cascade writes; what tells the verifier which record set to present.
   ```
   seal_coverage 1: [Seal Now] MUST populate seal_coverage with evidence_id → the sealed slice.
   seal_coverage 2: The composition MUST classify the ranges of seal_coverage as derived index.
@@ -152,12 +152,12 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   seal_coverage 11: The cascade MUST NOT flag a whole seal_coverage entry as purged.
   seal_coverage 12: purged_events MUST carry the durability obligation of Durability 6.
   ```
-  Term purged_events: the set of `sequence_number`s within one seal's range whose content the cascade has had destroyed.
+  Term purged_events: the set of sequence_number values within one seal's range whose content the cascade has had destroyed.
 
-  Term covering seal: the `evidence_id` whose `seal_coverage` range contains the event's `sequence_number`.
+  Term covering seal: the evidence_id whose seal_coverage range contains the event's sequence_number.
 
-  WHY: `event_id` carries no ordering, so a range of ids is not an interval. Nothing but [Seal Now] writes a coverage entry, so a hole or an overlap is not a state this composition reaches. A seal covering a thousand events is very often partly purged and partly live — a policy selector gives two events in one range two retention periods — and a whole-entry flag would report a live event as destroyed. No constituent store says *this member was later destroyed*, so no rebuild regenerates the set.
-- **`erasure_outcomes`** — for each event over which [Purge Event] step 3 has issued its delegation, the outcome the configured `erasure_mechanism` reported: `destroyed` or `destruction-failed(reason)`.
+  WHY: event_id carries no ordering, so a range of ids is not an interval. Nothing but [Seal Now] writes a coverage entry, so a hole or an overlap is not a state this composition reaches. A seal covering a thousand events is very often partly purged and partly live — a policy selector gives two events in one range two retention periods — and a whole-entry flag would report a live event as destroyed. No constituent store says *this member was later destroyed*, so no rebuild regenerates the set.
+- **erasure_outcomes** — for each event over which [Purge Event] step 3 has issued its delegation, the outcome the configured `erasure_mechanism` reported: destroyed or `destruction-failed(reason)`.
   ```
   erasure_outcomes 1: The cascade MUST record the mechanism's reported outcome in erasure_outcomes for EVERY delegation [Purge Event] step 3 issues.
   erasure_outcomes 2: erasure_outcomes MUST address an outcome per event_id.
@@ -166,20 +166,20 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   erasure_outcomes 5: erasure_outcomes MUST carry the durability obligation of Durability 6.
   erasure_outcomes 6: A destruction-failed record MUST NOT close an entry.
   ```
-  Term closed entry: an `erasure_outcomes` entry among whose records a `destroyed` outcome exists.
+  Term closed entry: an erasure_outcomes entry among whose records a destroyed outcome exists.
 
-  Term open entry: an `erasure_outcomes` entry that is not a closed entry; open for re-driving.
+  Term open entry: an erasure_outcomes entry that is not a closed entry; open for re-driving.
 
-  WHY: no constituent witnessed the mechanism's report. A lost outcome is not safely re-derivable — re-driving over already-destroyed content may only answer *target already unreadable in a way it cannot confirm* — so losing a `destroyed` outcome can leave a completed cascade permanently unclosable. Four surfaces read the element: First half 3, purge_event step 4.1, Invariant 8.3 and Check 5.8.
-- **`sealed_through`** — the most recent `sequence_number` any seal covers.
+  WHY: no constituent witnessed the mechanism's report. A lost outcome is not safely re-derivable — re-driving over already-destroyed content may only answer *target already unreadable in a way it cannot confirm* — so losing a destroyed outcome can leave a completed cascade permanently unclosable. Four surfaces read the element: First half 3, purge_event step 4.1, Invariant 8.3 and Check 5.8.
+- **sealed_through** — the most recent sequence_number any seal covers.
   ```
   sealed_through 1: The composition MUST classify sealed_through as derived index.
   sealed_through 2: The rebuild MUST compute sealed_through from the rebuilt ranges of seal_coverage.
   ```
-  Term sealed_through: the maximum `sequence_number` over all `seal_coverage` ranges; zero for an empty seal store.
+  Term sealed_through: the maximum sequence_number over all seal_coverage ranges; zero for an empty seal store.
 
-  Term unsealed tail: the events whose `sequence_number` EXCEEDS `sealed_through`.
-- **`compensated_attestations`** — the set of `attestation_id`s for which an `audit.compensation` event has been recorded; the closed-state marker for orphan reconciliation.
+  Term unsealed tail: the events whose sequence_number EXCEEDS sealed_through.
+- **compensated_attestations** — the set of attestation_id values for which an `audit.compensation` event has been recorded; the closed-state marker for orphan reconciliation.
   ```
   compensated_attestations 1: The composition MUST classify compensated_attestations as derived index.
   compensated_attestations 2: The rebuild MUST keep, from the full enumeration, EVERY event whose action_ref = audit.compensation AND whose payload subject = attestation, and take the attestation_id each payload names.
@@ -188,10 +188,10 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   compensated_attestations 5: A deployment composing Reverse Index MAY filter through Reverse Index as an instance optimization.
   compensated_attestations 6: The rebuild MUST cover the audit.compensation events live in the log.
   ```
-  Term reconciled: an orphan whose `attestation_id` is a member of `compensated_attestations`.
+  Term reconciled: an orphan whose attestation_id is a member of compensated_attestations.
 
-  WHY: the orphan never goes away — Actor Identity Invariant 9 forecloses deletion — so the store cannot carry the closure; the marker does. Without the subject filter a rebuild would read an `event_id` where it expected an `attestation_id`. Compensation events are themselves purged in time, so the rebuilt set covers the compensations still live (compensated_attestations 6); the residual — a second compensation for an orphan compensated a retention period earlier — is a duplicate, never a false record. The rebuild is trustworthy because the reserved namespace (Primitive policy 8) means the set is read from records only the composition's own reconciliation path could have written.
-- **`reported_beyond_horizon`** — the set of `attestation_id`s for which the scan's second half has recorded a *beyond the horizon* finding; the closed-state marker for that report.
+  WHY: the orphan never goes away — Actor Identity Invariant 9 forecloses deletion — so the store cannot carry the closure; the marker does. Without the subject filter a rebuild would read an event_id where it expected an attestation_id. Compensation events are themselves purged in time, so the rebuilt set covers the compensations still live (compensated_attestations 6); the residual — a second compensation for an orphan compensated a retention period earlier — is a duplicate, never a false record. The rebuild is trustworthy because the reserved namespace (Primitive policy 8) means the set is read from records only the composition's own reconciliation path could have written.
+- **reported_beyond_horizon** — the set of attestation_id values for which the scan's second half has recorded a *beyond the horizon* finding; the closed-state marker for that report.
   ```
   reported_beyond_horizon 1: The composition MUST classify reported_beyond_horizon as derived index.
   reported_beyond_horizon 2: The rebuild MUST keep, from the full enumeration, EVERY event whose action_ref = audit.reconciliation AND whose payload subject = attestation AND whose payload disposition = beyond-horizon, and take the attestation_id each names.
@@ -207,18 +207,18 @@ Capability requirement 2: The deployment MUST alert on invalid-query from a comp
 Capability requirement 3: The composition MUST NOT surface invalid-query from a composition-built query as an outcome of any action.
 ```
 
-Term open-upper-bound read: `EventLog.read` over a sequence-number range beginning at a given `sequence_number` with no upper bound.
+Term open-upper-bound read: `EventLog.read` over a sequence-number range beginning at a given sequence_number with no upper bound.
 
 Term full enumeration: the open-upper-bound read beginning at sequence 1.
 
 Term composition-built query: the open-upper-bound read, and the singleton range read of event_to_sequence 5 — queries the composition builds from its own indexes, which no caller input reaches.
 
 WHY:
-Eight procedures issue the read and none has a substitute — [Seal Now]'s head read, [Record Action] step 5's read-back, the rebuilds of `event_to_sequence`, `event_to_attestation`'s live entries and `compensated_attestations`, the scan's binding set and third half, and the auditor's own enumeration at Check 2 — and the last is why the requirement is a deployment obligation: an instance that cannot serve it cannot be audited for orphan-freedom at all. No caller input reaches any of these queries (Capability requirement 3).
+Eight procedures issue the read and none has a substitute — [Seal Now]'s head read, [Record Action] step 5's read-back, the rebuilds of event_to_sequence, event_to_attestation's live entries and compensated_attestations, the scan's binding set and third half, and the auditor's own enumeration at Check 2 — and the last is why the requirement is a deployment obligation: an instance that cannot serve it cannot be audited for orphan-freedom at all. No caller input reaches any of these queries (Capability requirement 3).
 
 Seventeen knobs and one instance capability requirement, the per-act section. Each knob carries a type, a default and a setting rule; every default of *none* is deployment-required, and §*Instance start* is the one owner of what an instance refuses to start without.
 
-- **`retention_policy`** — a Retention Window `policy_ref`, or a policy selector `(action_ref, actor_ref, data) → policy_ref` for content-derived rules. *Default:* none.
+- **retention_policy** — a Retention Window policy_ref, or a policy selector `(action_ref, actor_ref, data) → policy_ref` for content-derived rules. *Default:* none.
   ```
   retention_policy 1: The deployment MUST set retention_policy to the reconciled policy for the record class.
   retention_policy 2: [Record Action] step 4 MUST place the retention under the resolved policy.
@@ -228,15 +228,15 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   ```
   Term reconciled policy: the longest applicable retention across every regulation in force, the strictest data-minimization posture, and any conflicting destruction rules reconciled — produced by a Policy Reconciliation pattern *(forthcoming)*.
 
-  Term resolved policy: `retention_policy` where the knob is a `policy_ref`; the `policy_ref` the selector returns where the knob is a selector.
+  Term resolved policy: retention_policy where the knob is a policy_ref; the policy_ref the selector returns where the knob is a selector.
 
   WHY: a retention period is a legal obligation, and a composition that picked one would assert a legal conclusion it cannot make; a Policy Reconciliation pattern *(forthcoming)* produces the reconciled value across every regulation in force. The attestation's lifetime rides the event's retention and the two are destroyed in one cascade, so the *Composes* declaration of one Retention Window instance is literally accurate.
-- **`seal_cadence`** — `per-event` | `interval-based` | `on-demand`; an interval-based cadence carries an events arm (every N events), a time arm (every T seconds), or both. *Default:* none.
+- **seal_cadence** — `per-event` | interval-based | on-demand; an interval-based cadence carries an events arm (every N events), a time arm (every T seconds), or both. *Default:* none.
   ```
   seal_cadence 1: The deployment MUST set seal_cadence from the forensic window the deployment's regime tolerates.
   seal_cadence 2: A deployment whose auditor requires a bounded per-event tampering window MUST set per-event.
   ```
-  Term time arm: the every-T-seconds arm of an interval-based `seal_cadence`.
+  Term time arm: the every-T-seconds arm of an interval-based seal_cadence.
 
   WHY: the cadence bounds the forensic window for any detected tampering; tighter cadence narrows the window at the cost of seal-store growth and verify-time work, and a coarse cadence strands more live seal-mates at every purge (Edge cases).
 - **`seal_mechanism`** — a Tamper Evidence mechanism reference: hash chain, Merkle tree, RFC 3161-anchored timestamp. *Default:* none.
@@ -250,7 +250,7 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   ```
   Term chained mechanism: a mechanism under which each seal commits to its predecessor.
 
-  Term verify-time presentation: the payloads of every event in the covering seal's range, byte-exact, in ascending `sequence_number` order — no re-serialization, key reordering or encoding fixup.
+  Term verify-time presentation: the payloads of every event in the covering seal's range, byte-exact, in ascending sequence_number order — no re-serialization, key reordering or encoding fixup.
 
   WHY: Tamper Evidence is mechanism-neutral (its Invariant 8) and records the choice outside itself, so the knob declares the wired choice and configures nothing; every disagreement but a refused credential is invisible by opacity, which is why seal_mechanism 5 is audited outside the records (External check 4). Nothing in the seal store says which rendering a seal committed to, so a mechanism that hashed a different order or a re-serialized form would fail every conforming presentation with nothing in the trail saying why; Tamper Evidence's *Record-set definition* edge case routes the agreement to the host, and this composition is the host.
 - **`mechanism_credential`** — opaque credential material passed to `TamperEvidence.seal` on every seal, whatever the cadence: a signing key for a keyed mechanism, a TSA client credential for an anchored one. *Default:* empty (unkeyed).
@@ -264,10 +264,10 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   mechanism_credential 7: A deployment requiring non-repudiation of the seal MUST set a credential whose nature supplies non-repudiation.
   mechanism_credential 8: IF mechanism_credential NOT EXISTS THEN the composition MUST pass an empty credential.
   ```
-  Term mechanism class: `unkeyed` | `keyed` | `anchored`.
+  Term mechanism class: unkeyed | keyed | anchored.
 
   WHY: a bare hash chain needs no credential and Tamper Evidence permits an empty one, so the precondition check lives in the constituent, not here. Non-repudiation depends on the credential, not on this composition's surface.
-- **`unsealed_tail_mode`** — `strict` | `lenient`: what [Verify Record] returns for an event in the unsealed tail. *Default:* `strict`.
+- **unsealed_tail_mode** — strict | lenient: what [Verify Record] returns for an event in the unsealed tail. *Default:* strict.
   ```
   unsealed_tail_mode 1: A deployment MAY set lenient ONLY IF independently trusted substrate EXISTS AND standing false negative EXISTS.
   unsealed_tail_mode 2: A regulated deployment MUST NOT set lenient.
@@ -276,9 +276,9 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   ```
   Term independently trusted substrate: a log substrate trusted apart from this composition's seals — WORM storage, an external replica.
 
-  Term standing false negative: a `strict` tail that would answer `failed-verification(unsealed)` for the whole of a coarse cadence interval.
+  Term standing false negative: a strict tail that would answer `failed-verification(unsealed)` for the whole of a coarse cadence interval.
 
-  WHY: `strict` is the fail-closed value — integrity is unverified until a seal covers the event, and defaulting the other way would let a deployment report unverified events as `verified` by omission. Regulated deployments keep `strict`.
+  WHY: strict is the fail-closed value — integrity is unverified until a seal covers the event, and defaulting the other way would let a deployment report unverified events as `verified` by omission. Regulated deployments keep strict.
 - **`erasure_mechanism`** — a reference to the deployment's composed content-destruction mechanism, invoked at [Purge Event] step 3. *Default:* none.
   ```
   erasure_mechanism 1: The deployment MUST wire a shredding-class erasure mechanism.
@@ -295,20 +295,20 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
 
   Term tombstone-by-mutation: overwriting, blanking or truncating a stored field in place.
 
-  Term Event Log's data field: the whole constructed object `{action_ref, actor_ref, attestation_id, data}` [Record Action] step 3 appends; the caller-supplied `data` is one member inside it.
+  Term Event Log's data field: the whole constructed object `{action_ref, actor_ref, attestation_id, data}` [Record Action] step 3 appends; the caller-supplied data is one member inside it.
 
-  WHY: the name `data` does double duty. The mechanism takes the outer object, so the payload's copies of `action_ref`, `actor_ref` and `attestation_id` go with it, which is why the purged-event answers read the attestation store; the *who / what / when* outlives the purge, the payload and the binding's verifiability do not. There is no safe default: defaulting to *no destruction* would leave *Purged* over readable content, the gap Invariant 8 forecloses. A mechanism that only reported *I was called* would make success undecidable (erasure_mechanism 7), and an outcome not traceable to its event could close nothing (erasure_mechanism 8). The class boundary is argued at Boundary one.
-- **`compensation_window`** — the duration within which the liveness arms of Invariants 1, 2 and 8 close: an orphan attestation, an unretained event or a half-completed cascade is surfaced and reconciled inside it. *Default:* none.
+  WHY: the name data does double duty. The mechanism takes the outer object, so the payload's copies of action_ref, actor_ref and attestation_id go with it, which is why the purged-event answers read the attestation store; the *who / what / when* outlives the purge, the payload and the binding's verifiability do not. There is no safe default: defaulting to *no destruction* would leave *Purged* over readable content, the gap Invariant 8 forecloses. A mechanism that only reported *I was called* would make success undecidable (erasure_mechanism 7), and an outcome not traceable to its event could close nothing (erasure_mechanism 8). The class boundary is argued at Boundary one.
+- **compensation_window** — the duration within which the liveness arms of Invariants 1, 2 and 8 close: an orphan attestation, an unretained event or a half-completed cascade is surfaced and reconciled inside it. *Default:* none.
   ```
   compensation_window 1: The deployment MUST set compensation_window from the tightest reconciliation deadline the deployment's regime imposes.
   compensation_window 2: The composition MUST measure compensation_window from the finding's creation.
   compensation_window 3: The composition MUST NOT measure compensation_window from the finding's detection.
   compensation_window 4: An auditor MUST read the quiescence condition of Check 2 from compensation_window.
   ```
-  Term finding's creation: the orphan attestation's `attested_at`; the unretained event's `recorded_at`; the half-completed cascade's `purged_at`.
+  Term finding's creation: the orphan attestation's attested_at; the unretained event's recorded_at; the half-completed cascade's purged_at.
 
   WHY: the window is the deployment's declared tolerance for a surfaced finding standing open — a regulatory judgment about its own regime. An orphan created at `t` is invisible to the scan until `t + bound + allowance`, the next run is at most one cadence later, and the closure lands one latency after that (Instance start 16); a cadence no longer than the window is satisfied by a deployment that breaches on every orphan.
-- **`reconciliation_cadence`** — how often the reconciliation scan runs. *Default:* the time arm of `seal_cadence` where that cadence carries one; none otherwise.
+- **reconciliation_cadence** — how often the reconciliation scan runs. *Default:* the time arm of seal_cadence where that cadence carries one; none otherwise.
   ```
   reconciliation_cadence 1: The reconciliation scan MUST run PER reconciliation_cadence.
   reconciliation_cadence 2: The reconciliation scan MUST run at restart.
@@ -317,21 +317,21 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   reconciliation_cadence 5: reconciliation_cadence MUST govern all three halves of the scan.
   ```
   WHY: an events-only cadence yields no duration — a rate in appends says nothing about how long a finding may stand, and a quiet write period would stretch the interval without bound while the window kept running — so events-only, per-event and on-demand cadences are deployment-required. The time arm is the safe derived default because it is the rate at which the deployment has already declared it wants the audit surface brought up to date. A deployment tightens the cadence where purge volume would otherwise leave many unreconciled entries per sweep.
-- **`reconciliation_operator`** — an `actor_ref`: the deployment's maintenance actor authorized to record under the reserved `audit.*` namespace; the discriminator [Record Action] step 1's namespace gate turns on. *Default:* none.
+- **reconciliation_operator** — an actor_ref: the deployment's maintenance actor authorized to record under the reserved `audit.*` namespace; the discriminator [Record Action] step 1's namespace gate turns on. *Default:* none.
   ```
   reconciliation_operator 1: The deployment MUST provision reconciliation_operator as an actor in the wired attestation store with usable credential material.
   reconciliation_operator 2: [Record Action] step 1 MUST decide the reconciliation path by actor_ref = reconciliation_operator, byte-identity.
   ```
-  WHY: without a declared discriminator the gate is undecidable — *external caller* names no observable property of a call — so an implementer could refuse `audit.*` from everyone (the liveness arms never close) or accept it from everyone (the closure marker is forgeable). Knowing the operator's `actor_ref` admits a caller past step 1 only; step 2's `attest` still demands the credential, so an `audit.*` event cannot exist in the log unless attested under the operator identity (Check 7).
-- **`reconciliation_operator_credential`** — opaque credential material for the actor `reconciliation_operator` names. *Default:* none.
+  WHY: without a declared discriminator the gate is undecidable — *external caller* names no observable property of a call — so an implementer could refuse `audit.*` from everyone (the liveness arms never close) or accept it from everyone (the closure marker is forgeable). Knowing the operator's actor_ref admits a caller past step 1 only; step 2's attest still demands the credential, so an `audit.*` event cannot exist in the log unless attested under the operator identity (Check 7).
+- **`reconciliation_operator_credential`** — opaque credential material for the actor reconciliation_operator names. *Default:* none.
   ```
   reconciliation_operator_credential 1: The scan MUST hand reconciliation_operator_credential to ActorIdentity.attest on EVERY reconciliation-path write.
   reconciliation_operator_credential 2: The composition MUST NOT inspect reconciliation_operator_credential.
   reconciliation_operator_credential 3: The composition MUST NOT log reconciliation_operator_credential.
   reconciliation_operator_credential 4: The composition MUST NOT write reconciliation_operator_credential into a payload.
   ```
-  WHY: an `actor_ref` without credential material in hand is an identity the scan cannot attest under; storage and rotation are Credential management's business.
-- **`payload_cap`** — the byte ceiling [Record Action] step 1 checks the full constructed payload against. *Default:* none.
+  WHY: an actor_ref without credential material in hand is an identity the scan cannot attest under; storage and rotation are Credential management's business.
+- **payload_cap** — the byte ceiling [Record Action] step 1 checks the full constructed payload against. *Default:* none.
   ```
   payload_cap 1: The deployment MUST set payload_cap to the wired Event Log instance's own configured cap.
   payload_cap 2: [Record Action] step 1 MUST measure the serialized envelope against payload_cap.
@@ -340,8 +340,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   ```
   Term serialized envelope: the byte length of Event Log's data field exactly as handed to `EventLog.append`, in the encoding the wired instance sizes it in, framing and field names included.
 
-  WHY: the cap is per-instance configuration the wired instance may have changed from the atom's 64 KB default, so the composition can neither derive nor assume one. Summing the members under-counts by the serialization's structure, and under-counting is the direction that strands a committed attestation. Reaching `invalid-payload` at step 3 after step 1 passed means the two caps disagree.
-- **`reference_length_cap`** — a byte length, applied independently to `action_ref` and `actor_ref` at [Record Action] step 1. *Default:* 1 KB each.
+  WHY: the cap is per-instance configuration the wired instance may have changed from the atom's 64 KB default, so the composition can neither derive nor assume one. Summing the members under-counts by the serialization's structure, and under-counting is the direction that strands a committed attestation. Reaching invalid-payload at step 3 after step 1 passed means the two caps disagree.
+- **reference_length_cap** — a byte length, applied independently to action_ref and actor_ref at [Record Action] step 1. *Default:* 1 KB each.
   ```
   reference_length_cap 1: [Record Action] step 1 MUST apply reference_length_cap to action_ref and to actor_ref independently.
   reference_length_cap 2: reference_length_cap MUST NOT EXCEED reference headroom.
@@ -351,38 +351,38 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Term reference headroom: `payload_cap − attestation_id_width − the largest data the deployment intends to accept`.
 
   WHY: a ceiling, not a semantic choice: it exists so a caller cannot push the constructed payload past the cap through the reference fields alone. A deployment lowers it where it wants the rejection to arrive at the reference, and raises it only where a genuine scheme exceeds 1 KB.
-- **`attestation_id_width`** — the width of the `attestation_id` the configured Actor Identity instance allocates. *Default:* none.
+- **attestation_id_width** — the width of the attestation_id the configured Actor Identity instance allocates. *Default:* none.
   ```
   attestation_id_width 1: The deployment MUST set attestation_id_width to the maximum width the wired Actor Identity instance allocates.
   attestation_id_width 2: [Record Action] step 1 MUST size the payload with attestation_id_width.
   ```
   WHY: Actor Identity declares the id opaque, host-allocated and of no fixed width. An under-declared width makes step 1's check optimistic and reopens the path where an oversized payload strands a committed attestation.
-- **`record_action_completion_bound`** — the longest a [Record Action] may take between its first committed write (step 2's attestation, stamped `attested_at` at Actor Identity's seam) and its last (step 5's index writes). *Default:* none.
+- **record_action_completion_bound** — the longest a [Record Action] may take between its first committed write (step 2's attestation, stamped attested_at at Actor Identity's seam) and its last (step 5's index writes). *Default:* none.
   ```
   record_action_completion_bound 1: The deployment MUST set record_action_completion_bound from the observed worst-case latency of [Record Action] steps 2–5 with headroom, constituent round-trips included.
   ```
-  WHY: a write issued inside the bound must also have landed inside it. The bound does three jobs, each stated where it happens: the lower edge of the scan's second and third halves (`record_edge`), the per-act lease length for a record action (Per-act section 9a), and the invocation's terminus (record_action step 7.6).
-- **`purge_completion_bound`** — the longest a [Purge Event] may take between step 1's transition (stamped `purged_at` at Retention Window's seam) and step 3's outcome record. *Default:* none.
+  WHY: a write issued inside the bound must also have landed inside it. The bound does three jobs, each stated where it happens: the lower edge of the scan's second and third halves (record_edge), the per-act lease length for a record action (Per-act section 9a), and the invocation's terminus (record_action step 7.6).
+- **purge_completion_bound** — the longest a [Purge Event] may take between step 1's transition (stamped purged_at at Retention Window's seam) and step 3's outcome record. *Default:* none.
   ```
   purge_completion_bound 1: The deployment MUST set purge_completion_bound from the observed worst-case latency of [Purge Event] steps 2–3 with headroom, the erasure mechanism's round-trip included.
   ```
-  WHY: the lower edge of the scan's first half (`purge_edge`), the lease length for a cascade's section, and the cascade's terminus, on the record action's terms.
-- **`compensation_closure_latency`** — the deployment's disclosed bound on one whole closure landing, from the moment a scan half takes an act's section to the moment the closure's last record has landed. *Default:* none.
+  WHY: the lower edge of the scan's first half (purge_edge), the lease length for a cascade's section, and the cascade's terminus, on the record action's terms.
+- **compensation_closure_latency** — the deployment's disclosed bound on one whole closure landing, from the moment a scan half takes an act's section to the moment the closure's last record has landed. *Default:* none.
   ```
   compensation_closure_latency 1: The deployment MUST declare compensation_closure_latency as the bound on one whole closure.
   ```
   Term whole closure: for the second and third halves, the `audit.reconciliation` intent, the compensating act and the `audit.compensation` record — three writes, each an attest-append-place across three stores or a retention placement; for the first half, a re-driven cascade, the erasure mechanism's round-trip included.
 
   WHY: declared rather than observed so that the start check can read it; the fourth term of the inequality.
-- **`clock_offset_allowance`** — the most the composition's seam clock and any constituent's seam clock may differ. *Default:* none.
+- **clock_offset_allowance** — the most the composition's seam clock and any constituent's seam clock may differ. *Default:* none.
   ```
   clock_offset_allowance 1: The deployment MUST set clock_offset_allowance from the deployment's clock discipline.
   clock_offset_allowance 2: The scan MUST widen EVERY comparison of now with a constituent-stamped time by clock_offset_allowance.
   clock_offset_allowance 3: The scan MUST NOT decide a write by a cross-seam comparison alone.
   clock_offset_allowance 4: A cross-seam comparison MUST exclude a record from the pass and nothing more.
   ```
-  WHY: the scan reads `now` once per run at its own seam and compares it to `attested_at` (Actor Identity), `recorded_at` (Event Log) and `purged_at` (Retention Window), each written at another seam; every such comparison widens the completion bound by the allowance, and the write is decided by the half's own predicate read under the section.
-- **Per-act section** — an instance capability requirement, not a knob: a per-key critical section the host supplies, keyed by an act's id — the `attestation_id` [Record Action] step 2 returns for a record action, the `event_id` for a cascade. *Default:* none.
+  WHY: the scan reads now once per run at its own seam and compares it to attested_at (Actor Identity), recorded_at (Event Log) and purged_at (Retention Window), each written at another seam; every such comparison widens the completion bound by the allowance, and the write is decided by the half's own predicate read under the section.
+- **Per-act section** — an instance capability requirement, not a knob: a per-key critical section the host supplies, keyed by an act's id — the attestation_id [Record Action] step 2 returns for a record action, the event_id for a cascade. *Default:* none.
   ```
   Per-act section 1: The host MUST supply a per-key critical section keyed by the act's id.
   Per-act section 2: The host MUST release the section on the holder's return.
@@ -403,11 +403,11 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Per-act section 11: A writer without the section MUST NOT read a pre-check BEFORE re-taking the section.
   Per-act section 12: A writer MUST re-read the pre-check under the re-taken section.
   ```
-  Term section_kind: `lease` | `death-detected` — a lease where the host times the section; death-detected where the host's own section contract releases a section its holder's process no longer holds.
+  Term section_kind: lease | death-detected — a lease where the host times the section; death-detected where the host's own section contract releases a section its holder's process no longer holds.
 
-  Term act's completion bound: `record_action_completion_bound` for a record action; `purge_completion_bound` for a cascade.
+  Term act's completion bound: record_action_completion_bound for a record action; purge_completion_bound for a cascade.
 
-  Term lease: `live` | `expired`.
+  Term lease: live | expired.
 
   Term holder: the party the section is held by; a record action's invocation, a cascade, or a scan half.
 
@@ -417,11 +417,11 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
 
   Term truth-bearing write: a write to a constituent store — steps 2–4 of a record action, steps 1–3 of a cascade; the index writes of step 5 are not truth-bearing.
 
-  Term proceed as landed: the outcome or placement step runs the step's pre-check under the section — `event_to_retention` at [Record Action] step 4, the destruction record and `erasure_outcomes` at [Purge Event] steps 2–3 — and, where the record already exists because a leg landed it after the invocation lost the section, adopts the record as the invocation's own and continues.
+  Term proceed as landed: the outcome or placement step runs the step's pre-check under the section — event_to_retention at [Record Action] step 4, the destruction record and erasure_outcomes at [Purge Event] steps 2–3 — and, where the record already exists because a leg landed it after the invocation lost the section, adopts the record as the invocation's own and continues.
 
-  Term pre-check: the read a writer makes under the section before writing — `compensated_attestations`, `reported_beyond_horizon`, `event_to_retention`, or the first half's predicate.
+  Term pre-check: the read a writer makes under the section before writing — compensated_attestations, reported_beyond_horizon, event_to_retention, or the first half's predicate.
 
-  WHY: one-writer-per-act rests on the section. A held section is a live invocation inside its bound, and the age edge already keeps a leg off work that young, so a leg skips rather than waits. A record action's key is the `attestation_id` because no `event_id` exists before step 3, and a section that began there would leave the append outside it. Where the section is a lease, expiry is the terminus (record_action step 7.6, purge_event 7); where it is not, the terminus is the pre-check-and-adopt of step 4 or steps 2–3.
+  WHY: one-writer-per-act rests on the section. A held section is a live invocation inside its bound, and the age edge already keeps a leg off work that young, so a leg skips rather than waits. A record action's key is the attestation_id because no event_id exists before step 3, and a section that began there would leave the append outside it. Where the section is a lease, expiry is the terminus (record_action step 7.6, purge_event 7); where it is not, the terminus is the pre-check-and-adopt of step 4 or steps 2–3.
 
 ### Primitive policy
 
@@ -458,16 +458,16 @@ Primitive policy 27: The caller MUST present a non-empty original_event_payload.
 Primitive policy 28: The composition MUST NOT canonicalize original_event_payload.
 ```
 
-Term malformed reference: an `action_ref` or `actor_ref` that is empty, all whitespace, or over `reference_length_cap`.
+Term malformed reference: an action_ref or actor_ref that is empty, all whitespace, or over reference_length_cap.
 
 Term full constructed payload: Event Log's data field — `{action_ref, actor_ref, attestation_id, data}` — the exact object [Record Action] step 3 hands to `EventLog.append`.
 
-Term reserved namespace: every `action_ref` whose bytes begin with `audit.`; `Audit.` is a different reference and is not reserved.
+Term reserved namespace: every action_ref whose bytes begin with `audit.`; `Audit.` is a different reference and is not reserved.
 
-Term reconciliation path: the scan's own writes — `audit.reconciliation` and `audit.compensation` records — identified by `actor_ref` = `reconciliation_operator`.
+Term reconciliation path: the scan's own writes — `audit.reconciliation` and `audit.compensation` records — identified by actor_ref = reconciliation_operator.
 
 WHY:
-Byte-identity is what makes Invariant 1's `action_ref`-match check mechanical; Actor Identity applies the same non-empty minimum at `attest`, and validating here first makes the rejection clean rather than post-attestation. The namespace is reserved because two composition-owned surfaces read inside payloads written under it — `compensated_attestations`' rebuild and, through it, Invariant 1's closure — and a caller able to write under it could close a finding the composition never compensated; the reservation makes those records evidence rather than assertion. The one payload the composition reads inside is one it wrote itself under a reference it owns (Primitive policy 20), so a caller's `data` stays opaque throughout, with the selector seam as the named exception (Primitive policy 17). `credential` never enters the payload, so it cannot contribute to the cap check. Empty `data` is Event Log's rule — rejecting meaningless events is the composing pattern's job — and a richer payload schema is a Schema Evolution pattern *(forthcoming)*. `event_id` carries no ordering (Event Log's Identity model), which is why coverage ranges over `sequence_number` and an id-addressed read goes through `event_to_sequence`. An empty presentation surfaces from Tamper Evidence as `failed-verification(seal-record-set-mismatch)`, never as the composition's own `not-known`; a layer that quietly canonicalized the presentation would manufacture agreement the seal never certified. Deployments wanting normalization wire it at the calling layer.
+Byte-identity is what makes Invariant 1's action_ref-match check mechanical; Actor Identity applies the same non-empty minimum at attest, and validating here first makes the rejection clean rather than post-attestation. The namespace is reserved because two composition-owned surfaces read inside payloads written under it — compensated_attestations' rebuild and, through it, Invariant 1's closure — and a caller able to write under it could close a finding the composition never compensated; the reservation makes those records evidence rather than assertion. The one payload the composition reads inside is one it wrote itself under a reference it owns (Primitive policy 20), so a caller's data stays opaque throughout, with the selector seam as the named exception (Primitive policy 17). credential never enters the payload, so it cannot contribute to the cap check. Empty data is Event Log's rule — rejecting meaningless events is the composing pattern's job — and a richer payload schema is a Schema Evolution pattern *(forthcoming)*. event_id carries no ordering (Event Log's Identity model), which is why coverage ranges over sequence_number and an id-addressed read goes through event_to_sequence. An empty presentation surfaces from Tamper Evidence as `failed-verification(seal-record-set-mismatch)`, never as the composition's own not-known; a layer that quietly canonicalized the presentation would manufacture agreement the seal never certified. Deployments wanting normalization wire it at the calling layer.
 
 ### Action wiring
 
@@ -481,7 +481,7 @@ Action wiring 4: A deployment needing a query by payload field MUST compose Reve
 ```
 
 WHY:
-Both range shapes are declared query shapes on Event Log's `read`. Every event referencing action X, every event by actor Y, every event carrying a business id inside `data` — Event Log's own *Reverse lookup / indexing* edge case routes these to Reverse Index *(forthcoming)*, and this composition does not absorb it. The one payload-field lookup this composition owns — `event_id` to `sequence_number` — it owns because it maintains `event_to_sequence` for exactly that purpose.
+Both range shapes are declared query shapes on Event Log's read. Every event referencing action X, every event by actor Y, every event carrying a business id inside data — Event Log's own *Reverse lookup / indexing* edge case routes these to Reverse Index *(forthcoming)*, and this composition does not absorb it. The one payload-field lookup this composition owns — event_id to sequence_number — it owns because it maintains event_to_sequence for exactly that purpose.
 
 ---
 
@@ -513,9 +513,9 @@ Steps:
        record_action step 1.4b: [Record Action] step 1 MUST land invalid-request for an audit.compensation payload carrying no id for the subject.
    record_action step 1.5: [Record Action] step 1 MUST NOT validate the shape of a payload written outside the reserved namespace.
    ```
-   Term subject-kind discriminator: the payload field `subject` = `attestation` | `event`; with `subject = attestation` the payload carries the orphan's `attestation_id`, with `subject = event` the `event_id` whose retention was placed.
+   Term subject-kind discriminator: the payload field subject = attestation | event; with `subject = attestation` the payload carries the orphan's attestation_id, with `subject = event` the event_id whose retention was placed.
 
-   WHY: the size check sits ahead of step 2 so an oversized payload can never strand a committed, immutable attestation. The namespace check has an external side — any call whose `actor_ref` is not the operator's, there being no other marker of origin — and an internal side, record_action step 1.4's payload requirement; a caller supplying the operator's `actor_ref` without the credential passes here and is refused at step 2 with nothing recorded. This is the one place the composition validates a payload's shape, and only of payloads it wrote itself.
+   WHY: the size check sits ahead of step 2 so an oversized payload can never strand a committed, immutable attestation. The namespace check has an external side — any call whose actor_ref is not the operator's, there being no other marker of origin — and an internal side, record_action step 1.4's payload requirement; a caller supplying the operator's actor_ref without the credential passes here and is refused at step 2 with nothing recorded. This is the one place the composition validates a payload's shape, and only of payloads it wrote itself.
 2. **Attest.**
    ```
    record_action step 2.1: [Record Action] step 2 MUST call ActorIdentity.attest(action_ref, actor_ref, credential) → attestation_id.
@@ -527,7 +527,7 @@ Steps:
    record_action step 2.7: [Record Action] MUST hold the section through step 5.
    record_action step 2.8: [Record Action] MUST release the section on return.
    ```
-   WHY: in all three refusal arms no attestation exists — Actor Identity's `storage-failure` guarantees no partial record. The key is the act's own, minted at its first write.
+   WHY: in all three refusal arms no attestation exists — Actor Identity's storage-failure guarantees no partial record. The key is the act's own, minted at its first write.
 3. **Append.**
    ```
    record_action step 3.1: [Record Action] step 3 MUST call EventLog.append with the full constructed payload → event_id.
@@ -535,7 +535,7 @@ Steps:
    record_action step 3.3: [Record Action] step 3 MUST land storage-failure as [Recording Failure].
    record_action step 3.4: [Record Action] step 3 MUST land invalid-payload as invalid-request.
    ```
-   WHY: Event Log stamps `recorded_at` at its own seam from the host-injected clock, and that stamp is the audit event's timestamp wherever it is read back; a business event-time lives inside the opaque `data`. `invalid-payload` is reachable — `data` is caller-supplied and Event Log enforces a cap — which is why step 1 sizes first; reaching the arm after step 1 passed means `payload_cap` and the wired instance's cap disagree, a deployment fault (payload_cap 4), not a caller rejection.
+   WHY: Event Log stamps recorded_at at its own seam from the host-injected clock, and that stamp is the audit event's timestamp wherever it is read back; a business event-time lives inside the opaque data. invalid-payload is reachable — data is caller-supplied and Event Log enforces a cap — which is why step 1 sizes first; reaching the arm after step 1 passed means payload_cap and the wired instance's cap disagree, a deployment fault (payload_cap 4), not a caller rejection.
 4. **Place under retention.**
    ```
    record_action step 4.1: [Record Action] step 4 MUST NOT place a retention BEFORE re-reading event_to_retention for the event_id under the section.
@@ -547,7 +547,7 @@ Steps:
    record_action step 4.7: The deployment MUST alert on invalid-policy and policy-not-found as a deployment fault.
    record_action step 4.8: [Record Action] step 4 MUST land storage-failure as [Recording Failure].
    ```
-   WHY: the third half takes the same section — on the event's payload `attestation_id` — before it pre-checks `event_to_retention` and places, and examines no event younger than `record_edge`, so this placement and the leg's are never both made for one event (Concurrency 6, Third half 4). Where the lease has expired before this step issues, the event is the third half's from here on and a later placement is the leg's. The policy reference came from Configuration, not the caller, so `invalid-policy` and `policy-not-found` are deployment faults surfaced on the caller's arm.
+   WHY: the third half takes the same section — on the event's payload attestation_id — before it pre-checks event_to_retention and places, and examines no event younger than record_edge, so this placement and the leg's are never both made for one event (Concurrency 6, Third half 4). Where the lease has expired before this step issues, the event is the third half's from here on and a later placement is the leg's. The policy reference came from Configuration, not the caller, so invalid-policy and policy-not-found are deployment faults surfaced on the caller's arm.
 5. **Record the indexes.**
    ```
    record_action step 5.1: [Record Action] step 5 MUST record event_to_attestation, event_to_retention and event_to_sequence for the event.
@@ -563,7 +563,7 @@ Steps:
    ```
    Term read-back: the open-upper-bound read over the new tail through `EventLog.read`.
 
-   Term high-water mark: the greater of `sealed_through` and the highest `sequence_number` this instance has itself recorded into `event_to_sequence`.
+   Term high-water mark: the greater of sealed_through and the highest sequence_number this instance has itself recorded into event_to_sequence.
 
    WHY: concurrent record actions interleave, so the event may sit behind several others by the time the read issues; the open upper bound keeps that from being a miss, and a stale mark or a lagging replica falls back to the total rebuild rather than a wrong number. The read-back uses only Event Log's declared Q surface; no Event Log invariant obliges an instance to surface the value at the append seam.
 6. **Seal under per-event cadence.**
@@ -591,15 +591,15 @@ Steps:
    record_action step 7.7: An invocation past step 4 at the bound MUST complete step 5 and return event_id.
    record_action step 7.8: The invocation MUST NOT write a compensation for the partial state the invocation left.
    ```
-   Term step-3 storage failure: `EventLog.append` answering `storage-failure` with step 2's attestation committed.
+   Term step-3 storage failure: `EventLog.append` answering storage-failure with step 2's attestation committed.
 
-   Term step-4 storage failure: `RetentionWindow.place_under_retention` answering `storage-failure` with step 3's append committed.
+   Term step-4 storage failure: `RetentionWindow.place_under_retention` answering storage-failure with step 3's append committed.
 
    Term mid-record expiry: the lease expiring while the invocation is between step 2 and step 4 inclusive, no store having refused.
 
-   Term non-storage refusal: `invalid-payload` at step 3; `invalid-request`, `invalid-policy` or `policy-not-found` at step 4.
+   Term non-storage refusal: invalid-payload at step 3; invalid-request, invalid-policy or policy-not-found at step 4.
 
-   WHY: step 3 failing after step 2 leaves an orphan attestation, closed by Invariant 1's liveness arm and found by the binding-set half; step 4 failing after step 3 leaves an unretained event, closed by Invariant 2's arm and found by the third half. The two are not interchangeable, and which one the operator is looking at is read off the step. record_action step 7.5's refusals leave the same partial state but are input or deployment faults, and collapsing them into `recording-failure` would misname the cause. record_action step 7.6b names `step-3` or `step-4`, never `step-5`; a later success is the leg's. On a death-detected host the terminus is step 4's pre-check-and-adopt (Per-act section 10).
+   WHY: step 3 failing after step 2 leaves an orphan attestation, closed by Invariant 1's liveness arm and found by the binding-set half; step 4 failing after step 3 leaves an unretained event, closed by Invariant 2's arm and found by the third half. The two are not interchangeable, and which one the operator is looking at is read off the step. record_action step 7.5's refusals leave the same partial state but are input or deployment faults, and collapsing them into recording-failure would misname the cause. record_action step 7.6b names step-3 or step-4, never `step-5`; a later success is the leg's. On a death-detected host the terminus is step 4's pre-check-and-adopt (Per-act section 10).
 
 ---
 
@@ -628,12 +628,12 @@ seal_now 11: IF [Seal Now] rejects THEN the next cadence firing MUST re-seal the
 seal_now 12: The composition MUST NOT expose a re-sealing surface.
 ```
 
-Term slice: the sequence-number range from `sealed_through + 1` to `tail`, inclusive.
+Term slice: the sequence-number range from `sealed_through + 1` to tail, inclusive.
 
-Term tail: the highest `sequence_number` the open-upper-bound read beginning at `sealed_through + 1` returns; the empty result of that read is the empty-tail condition.
+Term tail: the highest sequence_number the open-upper-bound read beginning at `sealed_through + 1` returns; the empty result of that read is the empty-tail condition.
 
 WHY:
-The obvious alternative, *the log's `next_sequence_number` minus one*, reads an internal state field the atom exposes on no declared surface: it counts allocations rather than successful appends (Event Log's storage-failure gap), and Event Log's Invariant 5 was re-scoped off it for that reason. The three failure arms name three different things an operator has to fix. `mechanism-failure(reason)` carries two worlds on one arm — transient outage (signing hardware down, TSA unreachable, HSM session lost), which the next firing may clear, and standing misconfiguration (keying material that fails the running mechanism's preconditions), which every firing reproduces until Configuration changes — and the reason is what tells them apart. `invalid-request` is reserved by that atom for a record-set reference with no non-whitespace character or a credential absent entirely; neither comes from a caller, so the arm means a defect in the composition's own construction or a plumbing fault, standing rather than transient, a page for a human. `recording-failure` means the mechanism computed a proof and the seal store refused to persist it, with no partial evidence record written. Under every arm the events stay in the tail and `unsealed_tail_mode` governs what [Verify Record] says about them; a tail that stops draining is the alarm TV names. Re-sealing a partly-purged seal's survivors and rotating a seal onto a fresh mechanism belong to Seal Lifecycle *(forthcoming)*, with the supersession bookkeeping both require.
+The obvious alternative, *the log's next_sequence_number minus one*, reads an internal state field the atom exposes on no declared surface: it counts allocations rather than successful appends (Event Log's storage-failure gap), and Event Log's Invariant 5 was re-scoped off it for that reason. The three failure arms name three different things an operator has to fix. `mechanism-failure(reason)` carries two worlds on one arm — transient outage (signing hardware down, TSA unreachable, HSM session lost), which the next firing may clear, and standing misconfiguration (keying material that fails the running mechanism's preconditions), which every firing reproduces until Configuration changes — and the reason is what tells them apart. invalid-request is reserved by that atom for a record-set reference with no non-whitespace character or a credential absent entirely; neither comes from a caller, so the arm means a defect in the composition's own construction or a plumbing fault, standing rather than transient, a page for a human. recording-failure means the mechanism computed a proof and the seal store refused to persist it, with no partial evidence record written. Under every arm the events stay in the tail and unsealed_tail_mode governs what [Verify Record] says about them; a tail that stops draining is the alarm TV names. Re-sealing a partly-purged seal's survivors and rotating a seal onto a fresh mechanism belong to Seal Lifecycle *(forthcoming)*, with the supersession bookkeeping both require.
 
 ---
 
@@ -663,14 +663,14 @@ Steps:
    ```
    read_record step 2.1: [Read Record] step 2 MUST read the event per event_to_sequence 4 and event_to_sequence 5.
    ```
-   WHY: `invalid-query` is unreachable by construction — the composition builds the query from its own index over a value Event Log itself assigned — so an implementation that observes it has a defective index, a deployment fault to alert on; that is why `read_record` carries a `not-known` arm and no rejection arm.
-3. **Decide `not-known`.**
+   WHY: invalid-query is unreachable by construction — the composition builds the query from its own index over a value Event Log itself assigned — so an implementation that observes it has a defective index, a deployment fault to alert on; that is why read_record carries a not-known arm and no rejection arm.
+3. **Decide not-known.**
    ```
    read_record step 3.1: IF retention record NOT EXISTS AND log entry NOT EXISTS THEN [Read Record] step 3 MUST land not-known.
    read_record step 3.2: [Read Record] MUST NOT land not-known for an event_id with a log entry.
    read_record step 3.3: The deployment MUST alert on a retention record whose event_id resolves to no log entry as a deployment fault.
    ```
-   WHY: the conjunction is the definition of a fabricated id — no constituent has heard of it. The fourth cell of the two-by-two, a retention over a log-absent id, is unreachable by construction: step 4 places a retention only after step 3's append committed, a committed event never leaves the log, and the cascade transitions a retention without removing the entry. [Verify Record] step 2 and [Purge Event]'s `not-known` arm read the same two-by-two.
+   WHY: the conjunction is the definition of a fabricated id — no constituent has heard of it. The fourth cell of the two-by-two, a retention over a log-absent id, is unreachable by construction: step 4 places a retention only after step 3's append committed, a committed event never leaves the log, and the cascade transitions a retention without removing the entry. [Verify Record] step 2 and [Purge Event]'s not-known arm read the same two-by-two.
 4. **Assemble the [Audit Record].**
    ```
    read_record step 4.1: [Read Record] step 4 MUST assemble and return the audit record.
@@ -683,15 +683,15 @@ Steps:
        read_record step 4.4d: IF pair NOT EXISTS THEN [Read Record] step 4 MUST return the audit record with attribution not-recoverable, the retention record in Purged with purged_at, the coverage status, sequence_number and recorded_at.
        read_record step 4.4e: IF pair NOT EXISTS THEN [Read Record] step 4 MUST NOT land not-known.
    ```
-   Term audit record: the join of the event's `action_ref`, `actor_ref`, `sequence_number`, `recorded_at` and `data` where the content is still present; the `attestation_id` from `event_to_attestation`; the retention record's `retention_id`, policy reference, state, `retention_until`, `purge_deadline` and `purged_at` where set; and the coverage status.
+   Term audit record: the join of the event's action_ref, actor_ref, sequence_number, recorded_at and data where the content is still present; the attestation_id from event_to_attestation; the retention record's retention_id, policy reference, state, retention_until, purge_deadline and purged_at where set; and the coverage status.
 
-   Term coverage status: `covered` (the covering `evidence_id` with the seal's full sequence-number range, `sealed_at`, and `anchored_at` where the mechanism anchors) | `unsealed tail` (`sequence_number` EXCEEDS `sealed_through`) | `records-purged` (the event's own `sequence_number` is a member of the covering seal's `purged_events`) | `partially purged` (the event's `sequence_number` is not a member while another member's is).
+   Term coverage status: covered (the covering evidence_id with the seal's full sequence-number range, sealed_at, and anchored_at where the mechanism anchors) | unsealed tail (sequence_number EXCEEDS sealed_through) | records-purged (the event's own sequence_number is a member of the covering seal's purged_events) | partially purged (the event's sequence_number is not a member while another member's is).
 
    Term pair: the destruction record's `(event_id, attestation_id)`, captured at [Purge Event] step 2.
 
-   Term who / what / when: the attestation's `actor_ref`, `action_ref` and `attested_at`.
+   Term who / what / when: the attestation's actor_ref, action_ref and attested_at.
 
-   WHY: returning the range is what makes [Verify Record]'s asymmetry usable (Invariant 7): the composition tells the caller what to present, and presenting exactly that is the whole of the caller's obligation. `partially purged` is the honest signal that [Verify Record] answers `unverifiable(partially-purged-coverage)`, standing, since there is no re-sealing surface. For a purged event the surviving carrier is the pair, and Actor Identity's Outputs — each attestation carries its own `attestation_id` among its fields — make an enumeration re-keyed on that id an id-addressed lookup built from nothing the atom does not declare, the mirror of `event_to_sequence`'s argument, landing differently because Event Log's `read` takes a query. read_record step 4.4d is the conformance failure Check 7.6 names, reported on the record: lawful destruction is never reported as absence. For a live event both sources carry the same `action_ref` and `actor_ref`, and reading either is correct.
+   WHY: returning the range is what makes [Verify Record]'s asymmetry usable (Invariant 7): the composition tells the caller what to present, and presenting exactly that is the whole of the caller's obligation. partially purged is the honest signal that [Verify Record] answers `unverifiable(partially-purged-coverage)`, standing, since there is no re-sealing surface. For a purged event the surviving carrier is the pair, and Actor Identity's Outputs — each attestation carries its own attestation_id among its fields — make an enumeration re-keyed on that id an id-addressed lookup built from nothing the atom does not declare, the mirror of event_to_sequence's argument, landing differently because Event Log's read takes a query. read_record step 4.4d is the conformance failure Check 7.6 names, reported on the record: lawful destruction is never reported as absence. For a live event both sources carry the same action_ref and actor_ref, and reading either is correct.
 5. **Orphan window.**
    ```
    read_record step 5.1: IF log entry EXISTS AND retention record NOT EXISTS THEN [Read Record] step 5 MUST return the audit record with retention status unresolved (compensation window).
@@ -709,7 +709,7 @@ verify_record(event_id, original_event_payload)
   answers outcome | not-known
 ```
 
-`outcome` is `verified` | `failed-verification(reason)` | `unverifiable(reason)`, each of which may additionally carry the qualifier `(compensation-window)`.
+outcome is `verified` | `failed-verification(reason)` | `unverifiable(reason)`, each of which may additionally carry the qualifier `(compensation-window)`.
 
 ```
 verify_record 1: The qualifier (compensation-window) MUST ride a separate channel beside the outcome.
@@ -718,7 +718,7 @@ verify_record 3: The composition MUST NOT promote the qualifier to an outcome.
 verify_record 4: not-known MUST NOT carry the qualifier.
 ```
 
-WHY: step 2 can establish that the event is inside Invariant 2's compensation window, and that fact is orthogonal to every integrity finding the remaining steps produce, so all three combinations are reachable and meaningful — `verified (compensation-window)`, `failed-verification(seal-proof-invalid) (compensation-window)`, `unverifiable(attestation-registry-unavailable) (compensation-window)`. Folding it into a reason would accuse a record with nothing wrong with its integrity; promoting it would suppress the integrity answer the caller asked for. `not-known` presupposes no log entry, so it never carries the qualifier.
+WHY: step 2 can establish that the event is inside Invariant 2's compensation window, and that fact is orthogonal to every integrity finding the remaining steps produce, so all three combinations are reachable and meaningful — `verified (compensation-window)`, `failed-verification(seal-proof-invalid) (compensation-window)`, `unverifiable(attestation-registry-unavailable) (compensation-window)`. Folding it into a reason would accuse a record with nothing wrong with its integrity; promoting it would suppress the integrity answer the caller asked for. not-known presupposes no log entry, so it never carries the qualifier.
 
 Steps:
 
@@ -728,7 +728,7 @@ Steps:
    verify_record step 1.2: IF retention_state = Purged THEN [Verify Record] step 1 MUST land failed-verification(purged).
    verify_record step 1.3: [Verify Record] MUST NOT run step 3 for a purged event.
    ```
-   WHY: under a shredding-class mechanism the log entry is still there, so `not-known` was never the risk; what the cascade destroys is the payload and the `proof`, and every downstream check is payload-dependent — step 3 would re-check a `proof` the cascade destroyed and could only answer a non-`verified` arm. Reading the retention first answers out of the record the composition still has, and keeps it from reporting its own lawful destruction as an attestation failure.
+   WHY: under a shredding-class mechanism the log entry is still there, so not-known was never the risk; what the cascade destroys is the payload and the proof, and every downstream check is payload-dependent — step 3 would re-check a proof the cascade destroyed and could only answer a non-`verified` arm. Reading the retention first answers out of the record the composition still has, and keeps it from reporting its own lawful destruction as an attestation failure.
 2. **Log presence.**
    ```
    verify_record step 2.1: [Verify Record] step 2 MUST read the event per event_to_sequence 4 and event_to_sequence 5.
@@ -747,7 +747,7 @@ Steps:
    verify_record step 3.7: IF step 3 routes registry-unavailable THEN [Verify Record] MUST NOT run steps 4 and 5.
    verify_record step 3.8: [Verify Record] MAY run steps 4 and 5 ONLY IF step 3 landed verified.
    ```
-   WHY: `registry-unavailable` is a reason under Actor Identity's `failed-verification(...)` arm and is re-levelled, because *the registry was unreachable* is not a finding about the record; Actor Identity's `not-known` is an arm — the `attestation_id` does not resolve — and the event exists, so it is a broken link inside a known record, never the composition's own `not-known`. A record whose attribution has failed gains nothing from a subordinate finding against its seal; where verification could not be performed at all, no integrity claim is made either way, which is what makes step 6's answer *unknown* rather than *bad*.
+   WHY: registry-unavailable is a reason under Actor Identity's `failed-verification(...)` arm and is re-levelled, because *the registry was unreachable* is not a finding about the record; Actor Identity's not-known is an arm — the attestation_id does not resolve — and the event exists, so it is a broken link inside a known record, never the composition's own not-known. A record whose attribution has failed gains nothing from a subordinate finding against its seal; where verification could not be performed at all, no integrity claim is made either way, which is what makes step 6's answer *unknown* rather than *bad*.
 4. **Locate the covering seal.**
    ```
    verify_record step 4.1: [Verify Record] step 4 MUST locate the covering seal.
@@ -758,9 +758,9 @@ Steps:
        verify_record step 4.5a: [Verify Record] step 4 MUST treat coverage as satisfied.
        verify_record step 4.5b: [Verify Record] MUST skip step 5 and proceed to step 6.
    ```
-   Term partly-purged coverage: a covering seal whose `purged_events` is non-empty and does not contain the event's own `sequence_number`.
+   Term partly-purged coverage: a covering seal whose purged_events is non-empty and does not contain the event's own sequence_number.
 
-   WHY: Invariant 3 guarantees at most one covering seal. Under partly-purged coverage the record set cannot be re-presented, and nothing is known to be wrong with the event, so `failed-verification(seal-record-set-mismatch)` would be the composition manufacturing a finding out of its own lawful work; the answer stands for the rest of those events' retained lifetimes, and the remedy is Seal Lifecycle *(forthcoming)*. The `lenient` path reaches `verified` on the attestation check plus Event Log's per-event immutability, which is what the deployment declared.
+   WHY: Invariant 3 guarantees at most one covering seal. Under partly-purged coverage the record set cannot be re-presented, and nothing is known to be wrong with the event, so `failed-verification(seal-record-set-mismatch)` would be the composition manufacturing a finding out of its own lawful work; the answer stands for the rest of those events' retained lifetimes, and the remedy is Seal Lifecycle *(forthcoming)*. The lenient path reaches `verified` on the attestation check plus Event Log's per-event immutability, which is what the deployment declared.
 5. **Seal.**
    ```
    verify_record step 5.1: [Verify Record] step 5 MUST call TamperEvidence.verify(evidence_id, original_event_payload).
@@ -774,7 +774,7 @@ Steps:
    verify_record step 6.1: [Verify Record] step 6 MUST land unverifiable(attestation-registry-unavailable) for registry-unavailable.
    verify_record step 6.2: [Verify Record] step 6 MUST land unverifiable(seal-mechanism-verification-unavailable) for mechanism-verification-unavailable.
    ```
-   WHY: a transient outage is *verification could not be performed*, emphatically not *this record failed*; retrying when the surface returns is the correct response. Step 4's `partially-purged-coverage` is the third reason on this arm and the one that is not transient; all three share the arm because they are the same kind of answer.
+   WHY: a transient outage is *verification could not be performed*, emphatically not *this record failed*; retrying when the surface returns is the correct response. Step 4's partially-purged-coverage is the third reason on this arm and the one that is not transient; all three share the arm because they are the same kind of answer.
 7. **Verified.**
    Term standing finding: a `failed-verification(reason)` or `unverifiable(reason)` outcome one of steps 1–6 landed.
    ```
@@ -801,7 +801,7 @@ purge_eligible 6: [Purge Eligible] MUST NOT filter by legal hold.
 ```
 
 WHY:
-Eligibility is derived at read time and never stored (Retention Window Invariant 11), so the eligibility clock is that instance's injected `now`, one reading per call. The projection and the purge are two readings at two moments — Retention Window's Invariant 8 single-reading discipline is scoped within its own Purge action — and the gap is harmless because eligibility is monotone in `now`: an event on the list cannot become ineligible before the cascade reaches it, and the residual disagreement is the benign one Retention Window's *Clock semantics* edge case names. The composition's own `now` governs `seal_cadence` and the scan's edges, nothing else. A pure projection over the retention store with no caller input has nothing to refuse. The list means *retention has elapsed*, which is true of a held record; a hold is refused at [Purge Event]'s gate, not filtered ahead of it.
+Eligibility is derived at read time and never stored (Retention Window Invariant 11), so the eligibility clock is that instance's injected now, one reading per call. The projection and the purge are two readings at two moments — Retention Window's Invariant 8 single-reading discipline is scoped within its own Purge action — and the gap is harmless because eligibility is monotone in now: an event on the list cannot become ineligible before the cascade reaches it, and the residual disagreement is the benign one Retention Window's *Clock semantics* edge case names. The composition's own now governs seal_cadence and the scan's edges, nothing else. A pure projection over the retention store with no caller input has nothing to refuse. The list means *retention has elapsed*, which is true of a held record; a hold is refused at [Purge Event]'s gate, not filtered ahead of it.
 
 ---
 
@@ -813,7 +813,7 @@ purge_event(event_id)
   refuses not-known | not-eligible | retention-unresolved | cascade-failure(step) | under-legal-hold
 ```
 
-For any event whose retention has elapsed, the composition coordinates a cascade across the four stores. The arms: `not-known` for an id no constituent knows; [Not Eligible] when Retention Window refuses because the period has not elapsed; [Retention Unresolved] when the id resolves to a log entry but to no retention record; [Cascade Failure] carrying the step; and, where a Legal Hold is composed, [Under Legal Hold].
+For any event whose retention has elapsed, the composition coordinates a cascade across the four stores. The arms: not-known for an id no constituent knows; [Not Eligible] when Retention Window refuses because the period has not elapsed; [Retention Unresolved] when the id resolves to a log entry but to no retention record; [Cascade Failure] carrying the step; and, where a Legal Hold is composed, [Under Legal Hold].
 
 ```
 purge_event 1: IF retention record NOT EXISTS AND log entry NOT EXISTS THEN [Purge Event] MUST land not-known.
@@ -836,7 +836,7 @@ purge_event 7: WHEN mid-cascade expiry EXISTS:
     purge_event 7c: The reconciliation scan MUST re-drive the cascade.
 ```
 
-Term Legal Hold: `composed` | `absent` — whether the deployment composes the [Legal Hold](../atoms/legal-hold.md) pattern over this instance.
+Term Legal Hold: composed | absent — whether the deployment composes the [Legal Hold](../atoms/legal-hold.md) pattern over this instance.
 
 Term hold: a Legal Hold preservation order over the record.
 
@@ -845,7 +845,7 @@ Term mid-cascade expiry: the lease expiring after step 1 has committed and befor
 Term cascade-failure(step-3): a delegation not issued, an outcome not recorded, or a reported `destruction-failed(reason)` — three failures leaving one world, retention *Purged* over readable content.
 
 WHY:
-`seal` is named separately from `step-1` because the surface that refused is the seal mechanism or seal store, and the remedy is [Seal Now]'s three-way diagnosis rather than a retention retry; under both, nothing changed anywhere and the ordinary sweep re-offers the event. `step-2` and `step-3` are the dangerous half: the record says the content was lawfully destroyed while the evidence is missing or the content is still readable, and the state is invisible to [Purge Eligible], whose projection is false for a *Purged* retention — so the sweep never re-offers it and the reconciliation scan is the retry trigger, at restart and on `reconciliation_cadence`, the entry standing as a surfaced alert bounded by `compensation_window`. Absorbing either into a bare `ok` would hide the gap this composition exists to make unhideable; collapsing the two would tell an operator to retry when the retry path is a scan, or to run a scan when a retry would do. † The hold arm is conditional because a composition that declared it unconditionally would promise a hold check it does not perform; [Legal Hold](../atoms/legal-hold.md) owns the gate and this composition names where it lands — a preservation order, so a partial cascade under a hold would be the exact destruction the order forbids.
+seal is named separately from step-1 because the surface that refused is the seal mechanism or seal store, and the remedy is [Seal Now]'s three-way diagnosis rather than a retention retry; under both, nothing changed anywhere and the ordinary sweep re-offers the event. step-2 and step-3 are the dangerous half: the record says the content was lawfully destroyed while the evidence is missing or the content is still readable, and the state is invisible to [Purge Eligible], whose projection is false for a *Purged* retention — so the sweep never re-offers it and the reconciliation scan is the retry trigger, at restart and on reconciliation_cadence, the entry standing as a surfaced alert bounded by compensation_window. Absorbing either into a bare ok would hide the gap this composition exists to make unhideable; collapsing the two would tell an operator to retry when the retry path is a scan, or to run a scan when a retry would do. † The hold arm is conditional because a composition that declared it unconditionally would promise a hold check it does not perform; [Legal Hold](../atoms/legal-hold.md) owns the gate and this composition names where it lands — a preservation order, so a partial cascade under a hold would be the exact destruction the order forbids.
 
 Steps:
 
@@ -857,7 +857,7 @@ Steps:
    purge_event step 0.4: IF [Seal Now] rejects THEN [Purge Event] MUST land cascade-failure(seal).
    purge_event step 0.5: IF the covering seal EXISTS THEN [Purge Event] step 0 MUST NOT invoke [Seal Now].
    ```
-   WHY: step 2's destruction record lives on a covering `seal_coverage` entry, and an event with no covering entry has nowhere to record that it was destroyed — the cascade would move the retention to *Purged* and then produce `cascade-failure(step-2)` by construction on every tail purge. Under per-event cadence the step is almost always a no-op, reachable only where the record-time seal failed and the tail has not drained.
+   WHY: step 2's destruction record lives on a covering seal_coverage entry, and an event with no covering entry has nowhere to record that it was destroyed — the cascade would move the retention to *Purged* and then produce `cascade-failure(step-2)` by construction on every tail purge. Under per-event cadence the step is almost always a no-op, reachable only where the record-time seal failed and the tail has not drained.
 
    **Step 0½ — retention must be resolved before the cascade proper begins.**
    ```
@@ -867,7 +867,7 @@ Steps:
    purge_event step 0½.4: A retention-unresolved refusal MUST leave step 0's seal standing.
    purge_event step 0½.5: The composition MUST NOT invent a retention in order to expire an event.
    ```
-   WHY: a half-step because it is a second precondition, not a store-touching step. `RetentionWindow.purge` takes a `retention_id` and there is none; the remedy is the third half's placement, after which the event is purgeable, or not, on the same terms as every other. A tail event that got sealed is in a state the composition wanted regardless. The check sits after step 0 because step 0's resolution is what establishes that a log entry exists — the antecedent that distinguishes `retention-unresolved` from `not-known`.
+   WHY: a half-step because it is a second precondition, not a store-touching step. `RetentionWindow.purge` takes a retention_id and there is none; the remedy is the third half's placement, after which the event is purgeable, or not, on the same terms as every other. A tail event that got sealed is in a state the composition wanted regardless. The check sits after step 0 because step 0's resolution is what establishes that a log entry exists — the antecedent that distinguishes retention-unresolved from not-known.
 1. **Purge the retention.**
    ```
    purge_event step 1.1: [Purge Event] step 1 MUST call RetentionWindow.purge(retention_id).
@@ -876,7 +876,7 @@ Steps:
    purge_event step 1.4: IF step 1 lands not-retained THEN the cascade MUST resume from step 2.
    purge_event step 1.5: [Purge Event] step 1 MUST land storage-failure as cascade-failure(step-1).
    ```
-   WHY: the one constituent with a purge surface, and even it deletes no record — `purge` is a state transition, the record survives in *Purged* with `purged_at`, and that surviving record is the evidence the destruction was lawful. purge_event step 1.4 is what makes a re-driven or retried cascade idempotent.
+   WHY: the one constituent with a purge surface, and even it deletes no record — purge is a state transition, the record survives in *Purged* with purged_at, and that surviving record is the evidence the destruction was lawful. purge_event step 1.4 is what makes a re-driven or retried cascade idempotent.
 2. **Write the destruction record, before anything is destroyed.**
    ```
    purge_event step 2.1: [Purge Event] step 2 MUST write the destruction record in one durable write.
@@ -899,13 +899,13 @@ Steps:
    purge_event step 3.9: The composition MUST NOT repair a partly-purged seal.
    purge_event step 3.10: A partly-purged seal MUST remain the one seal over the seal's range.
    ```
-   WHY: what is destroyed is exact, and the exactness is the point — the surviving fields stay readable, so the *who / what / when* outlives the purge, read through the pair from here on. In the execution contract's vocabulary this step is a mechanism-capability invocation ([`execution-contract.md`](../execution-contract.md) §Substrate composition invocation): the capability is declared, the consuming surface is composition-introduced, the invocation is logic-confinement-clean, and the construct carries a named exit — Erasure Tombstone *(forthcoming)*. Swallowing a negative outcome would produce the state Invariant 8 forecloses with the composition's own records agreeing; the scan re-drives a `destruction-failed` entry every cycle until `destroyed` lands, the loop whose terminus Ledger line 2026-08-30-d names. The survivors verify as `unverifiable(partially-purged-coverage)` from here on.
+   WHY: what is destroyed is exact, and the exactness is the point — the surviving fields stay readable, so the *who / what / when* outlives the purge, read through the pair from here on. In the execution contract's vocabulary this step is a mechanism-capability invocation ([`execution-contract.md`](../execution-contract.md) §Substrate composition invocation): the capability is declared, the consuming surface is composition-introduced, the invocation is logic-confinement-clean, and the construct carries a named exit — Erasure Tombstone *(forthcoming)*. Swallowing a negative outcome would produce the state Invariant 8 forecloses with the composition's own records agreeing; the scan re-drives a destruction-failed entry every cycle until destroyed lands, the loop whose terminus Ledger line 2026-08-30-d names. The survivors verify as `unverifiable(partially-purged-coverage)` from here on.
 4. **What survives a completed cascade.**
    ```
    purge_event step 4.1: A completed cascade MUST leave standing the retention record in Purged with purged_at, the seal record with the event's sequence_number in purged_events, the destruction record's pair, the destroyed outcome in erasure_outcomes, and the attestation's surviving fields.
    purge_event step 4.2: The delegation MUST cover the event and the attestation in one cascade under one retention_id.
    ```
-   Term completed cascade: a cascade whose step 3 recorded a `destroyed` outcome.
+   Term completed cascade: a cascade whose step 3 recorded a destroyed outcome.
 
    WHY: the retention record proves the destruction was lawful; the seal record proves a record set existed and which members were destroyed; the pair is the traversal the payload can no longer supply; the outcome record proves the delegation completed, which is what the scan tests; the surviving fields are the *who / what / when*. Once Erasure Tombstone lands, the tombstone naming what was destroyed and under whose authority joins the set.
 
@@ -913,16 +913,16 @@ Steps:
 
 *The cascade-on-purge rule.*
 
-The composition's load-bearing wiring decision: when an event's retention elapses, the composition first ensures the event is covered by a seal (purge_event step 0.1 through 0.5), then purges the one record it is permitted to purge — the Retention Window record (purge_event step 1.1) — writes a destruction record adding the event's sequence number to the covering seal's `purged_events` set and capturing the event's `(event_id, attestation_id)` binding before it is destroyed (purge_event step 2.1 through 2.4), and delegates destruction of Event Log's `data` field and the attestation's `proof` to the deployment's shredding-class erasure mechanism (purge_event step 3.1 through 3.4). It coordinates the cascade and records the outcome; it destroys nothing itself (purge_event step 3.2), disposes of no seal (Composes 16), and re-seals nothing (seal_now 12).
+The composition's load-bearing wiring decision: when an event's retention elapses, the composition first ensures the event is covered by a seal (purge_event step 0.1 through 0.5), then purges the one record it is permitted to purge — the Retention Window record (purge_event step 1.1) — writes a destruction record adding the event's sequence number to the covering seal's purged_events set and capturing the event's `(event_id, attestation_id)` binding before it is destroyed (purge_event step 2.1 through 2.4), and delegates destruction of Event Log's data field and the attestation's proof to the deployment's shredding-class erasure mechanism (purge_event step 3.1 through 3.4). It coordinates the cascade and records the outcome; it destroys nothing itself (purge_event step 3.2), disposes of no seal (Composes 16), and re-seals nothing (seal_now 12).
 
 WHY:
 *Principle.* When a regulated record reaches the end of its lifetime, all four stores must reach a coherent end state together: no retained event without attribution or integrity coverage, and no destroyed event leaving a dangling attestation or a live content claim on a seal. Coordinating that across four independent stores is work no constituent can do — each knows only its own record — so it belongs at the composition layer, with the honest record of what the coordination achieved.
 
 *Likely objection.* Why not have the composition delete the content directly? It knows which event, which attestation and which seal are involved, and a cascade that ends in a delegation looks like one that does not finish.
 
-*Mechanism that resolves it.* Two of the four constituents forbid it in their own invariant text, and a composition that overrode them would be silently substituting weaker atoms. Event Log declares only `append` and `read`, holds Invariant 1 (append-only), and routes true deletion to a composing pattern in its *Right-to-be-forgotten erasure* edge case. Actor Identity's Invariant 9 states that an attestation is never deleted by the atom and that cascading deletion under a retention policy is the composing pattern's responsibility. So the destruction surface is named where the atoms say it belongs — an Erasure Tombstone *(forthcoming)* composing pattern, or cryptographic shredding at the storage layer, declared per deployment — and this composition wires the coordination around it.
+*Mechanism that resolves it.* Two of the four constituents forbid it in their own invariant text, and a composition that overrode them would be silently substituting weaker atoms. Event Log declares only append and read, holds Invariant 1 (append-only), and routes true deletion to a composing pattern in its *Right-to-be-forgotten erasure* edge case. Actor Identity's Invariant 9 states that an attestation is never deleted by the atom and that cascading deletion under a retention policy is the composing pattern's responsibility. So the destruction surface is named where the atoms say it belongs — an Erasure Tombstone *(forthcoming)* composing pattern, or cryptographic shredding at the storage layer, declared per deployment — and this composition wires the coordination around it.
 
-*Result.* Four constituent invariants hold verbatim over their instances — Event Log's 1 and 2, Actor Identity's 9 and 1 — which is what makes Invariant 5 a literal claim; a lawfully destroyed event still answers `failed-verification(purged)` from its *Purged* record, still leaves a seal whose `purged_events` names it, and still distinguishes lawful destruction from a missing record (Invariant 8).
+*Result.* Four constituent invariants hold verbatim over their instances — Event Log's 1 and 2, Actor Identity's 9 and 1 — which is what makes Invariant 5 a literal claim; a lawfully destroyed event still answers `failed-verification(purged)` from its *Purged* record, still leaves a seal whose purged_events names it, and still distinguishes lawful destruction from a missing record (Invariant 8).
 
 #### Boundary one — only shredding-class mechanisms conform
 
@@ -937,10 +937,10 @@ Boundary one 5: The composition MUST bound a divergence by compensation_window.
 Boundary one 6: The first half MUST re-drive a divergence on EVERY run.
 ```
 
-Term divergence: a retention in *Purged* over content still readable — `cascade-failure(step-3)`; a `destruction-failed` outcome in `erasure_outcomes`.
+Term divergence: a retention in *Purged* over content still readable — `cascade-failure(step-3)`; a destruction-failed outcome in erasure_outcomes.
 
 WHY:
-A conforming mechanism destroys the key material under which the content was stored and leaves every stored field as written, which is why Event Log Invariant 2 and Actor Identity Invariant 1 — immutability claims over stored fields, neither claiming readability — survive the cascade verbatim; tombstone-by-mutation breaks exactly those two (erasure_mechanism 2). Erasure Tombstone records destruction as a new write-once record and never mutates the record it describes. One constituent prescription is declined by name: Retention Window's *Divergence between retention state and underlying record* edge case has `purge` return `storage-failure` when destruction cannot be confirmed. This composition cannot take it — the destruction record must be written after the transition and before the delegation (Boundary one 1, purge_event step 2.4), and the destruction is performed by a mechanism `RetentionWindow.purge` has no view of — so the divergence is recorded, surfaced, bounded and re-driven rather than prevented (Boundary one 3 through 6), the trade that buys the durable pre-destruction record. The terminus of Boundary one 6's loop is the open question Ledger line 2026-08-30-d names.
+A conforming mechanism destroys the key material under which the content was stored and leaves every stored field as written, which is why Event Log Invariant 2 and Actor Identity Invariant 1 — immutability claims over stored fields, neither claiming readability — survive the cascade verbatim; tombstone-by-mutation breaks exactly those two (erasure_mechanism 2). Erasure Tombstone records destruction as a new write-once record and never mutates the record it describes. One constituent prescription is declined by name: Retention Window's *Divergence between retention state and underlying record* edge case has purge return storage-failure when destruction cannot be confirmed. This composition cannot take it — the destruction record must be written after the transition and before the delegation (Boundary one 1, purge_event step 2.4), and the destruction is performed by a mechanism `RetentionWindow.purge` has no view of — so the divergence is recorded, surfaced, bounded and re-driven rather than prevented (Boundary one 3 through 6), the trade that buys the durable pre-destruction record. The terminus of Boundary one 6's loop is the open question Ledger line 2026-08-30-d names.
 
 #### Boundary two — the composition disposes of no seal and writes no replacement
 
@@ -988,7 +988,7 @@ Term record_edge: `record_action_completion_bound + clock_offset_allowance`.
 
 Term purge_edge: `purge_completion_bound + clock_offset_allowance`.
 
-Term horizon: the retention period `retention_policy` gives an `audit.compensation` event.
+Term horizon: the retention period retention_policy gives an `audit.compensation` event.
 
 Term purge age: `now − purged_at`.
 
@@ -997,7 +997,7 @@ Term attestation age: `now − attested_at`.
 Term event age: `now − recorded_at`.
 
 WHY:
-The halves share a trigger (reconciliation_cadence 1, reconciliation_cadence 2), a surfacing discipline (Reconciliation 2, Reconciliation 3), a deadline measured from the finding's creation (compensation_window 2, Reconciliation 4), and two edges. Below, each half examines nothing younger than its completion bound widened by the allowance, because each stamp was written at a constituent's seam and the scan's `now` is read once at its own (Reconciliation 5, clock_offset_allowance 2); the comparison only excludes a record from the pass (clock_offset_allowance 4). Above, the horizon is the point past which the compensation event a half would look for has been lawfully purged, and there the half reports rather than repairs.
+The halves share a trigger (reconciliation_cadence 1, reconciliation_cadence 2), a surfacing discipline (Reconciliation 2, Reconciliation 3), a deadline measured from the finding's creation (compensation_window 2, Reconciliation 4), and two edges. Below, each half examines nothing younger than its completion bound widened by the allowance, because each stamp was written at a constituent's seam and the scan's now is read once at its own (Reconciliation 5, clock_offset_allowance 2); the comparison only excludes a record from the pass (clock_offset_allowance 4). Above, the horizon is the point past which the compensation event a half would look for has been lawfully purged, and there the half reports rather than repairs.
 
 *First half — the half-completed cascade.*
 
@@ -1012,7 +1012,7 @@ First half 7: The first half MUST NOT write BEFORE re-reading the predicate unde
 First half 8: The first half MUST re-drive EVERY examined open entry on EVERY run.
 ```
 
-WHY: a crash between the cascade's steps is reachable, and the state is invisible to [Purge Eligible], whose projection is false for a *Purged* retention — the retry can never be driven from the eligible list. A cascade still inside its bound is in flight, not half-completed (First half 2). Presence of an outcome record is not the test (First half 4): an entry carrying `destruction-failed` is a retention saying *lawfully destroyed* over readable content, and a predicate that accepted any outcome would close it on the evidence of its own failure. Two scan runs, or a run and a cascade short of its bound, never both drive one entry (First half 6, First half 7).
+WHY: a crash between the cascade's steps is reachable, and the state is invisible to [Purge Eligible], whose projection is false for a *Purged* retention — the retry can never be driven from the eligible list. A cascade still inside its bound is in flight, not half-completed (First half 2). Presence of an outcome record is not the test (First half 4): an entry carrying destruction-failed is a retention saying *lawfully destroyed* over readable content, and a predicate that accepted any outcome would close it on the evidence of its own failure. Two scan runs, or a run and a cascade short of its bound, never both drive one entry (First half 6, First half 7).
 
 *Second half — the orphan-attestation predicate.*
 
@@ -1032,11 +1032,11 @@ Second half 12: A writer other than the scan MUST NOT write an orphan's compensa
 Second half 13: The second half MUST write EXACTLY ONE compensation per orphan.
 ```
 
-Term binding set: the union of the `attestation_id`s carried in live event payloads, from the full enumeration, and the `attestation_id`s in destruction records.
+Term binding set: the union of the attestation_id values carried in live event payloads, from the full enumeration, and the attestation_id values in destruction records.
 
-Term orphan: an attestation in the store whose `attestation_id` is in neither enumeration of the binding set.
+Term orphan: an attestation in the store whose attestation_id is in neither enumeration of the binding set.
 
-WHY: *an attestation with no event* is not a fact any single store holds, so the set needs both enumerations: the first alone would report every lawfully purged event's attestation as an orphan the day its payload was shredded, the second alone would see nothing but purges — Check 7's live/purged split read in the other direction. An attestation younger than `record_edge` may be a [Record Action] between steps 2 and 3, and a compensation for it would be a false record the seal then protects (Second half 3). Past the horizon the compensation, had it been written, has been purged out of the rebuild, so the half reports once (Second half 4 through 7). The orphan is permanent, so without Second half 9 a scan would compensate it every cadence forever; the pair under the section is what makes it a decision rather than a race (Concurrency 9). The invocation writes nothing (record_action step 7.8), so a stalled invocation waking after the scan has nothing left to write.
+WHY: *an attestation with no event* is not a fact any single store holds, so the set needs both enumerations: the first alone would report every lawfully purged event's attestation as an orphan the day its payload was shredded, the second alone would see nothing but purges — Check 7's live/purged split read in the other direction. An attestation younger than record_edge may be a [Record Action] between steps 2 and 3, and a compensation for it would be a false record the seal then protects (Second half 3). Past the horizon the compensation, had it been written, has been purged out of the rebuild, so the half reports once (Second half 4 through 7). The orphan is permanent, so without Second half 9 a scan would compensate it every cadence forever; the pair under the section is what makes it a decision rather than a race (Concurrency 9). The invocation writes nothing (record_action step 7.8), so a stalled invocation waking after the scan has nothing left to write.
 
 *Third half — the unretained-event predicate.*
 
@@ -1057,9 +1057,9 @@ Third half 13: The next run MUST NOT record an owed compensation BEFORE confirmi
 Third half 14: The third half MUST NOT treat an intent past the horizon as a finding.
 ```
 
-Term true miss: a miss of `event_to_retention` that survives the rebuild.
+Term true miss: a miss of event_to_retention that survives the rebuild.
 
-Term owed narration: an `audit.reconciliation` intent older than `record_action_completion_bound`, inside the horizon, whose subject has no matching `audit.compensation` record — both read composition-side out of the full enumeration filtered on the two reserved references.
+Term owed narration: an `audit.reconciliation` intent older than record_action_completion_bound, inside the horizon, whose subject has no matching `audit.compensation` record — both read composition-side out of the full enumeration filtered on the two reserved references.
 
 WHY: the state step 4 leaves when it fails after step 3 is durable and invisible to every other surface — [Purge Eligible] enumerates retentions, the first half *Purged* retentions, the second half attestations, and an unretained event's attestation is perfectly bound. A scan that read a lost index entry as *no retention exists* would place a second retention over an event that already had one, which Retention Window's Invariant 5 records as new and which falsifies Invariant 2's *exactly one* (Third half 3). Intent before act lets the trail show the repair was the scan's; placement before compensation keeps the compensation truthful (Third half 8, Third half 9). A crash between the two leaves the gap closed but unrecorded, and the intent record is its detector (Third half 12, Third half 13) — what can be delayed is the narration, never a false closure and never an unclosed gap. Check 2's retention side is this half run from outside.
 
@@ -1077,7 +1077,7 @@ Compensation 8: The composition MUST place a reconciliation-path event under ret
 ```
 
 WHY:
-The findings and the compensating writes are audit events — attested, sequenced, retention-governed and sealed like the events they are about — so *what did this system do about the gap it found?* has a first-class answer from the same traversal. One record per finding keeps any findings set inside `payload_cap`. The reserved namespace (Primitive policy 8, Primitive policy 9) is the difference between a marker that is evidence of a compensation and one that is anybody's claim. The scan is an ordinary caller of [Record Action] (Compensation 5); `execution-contract.md` has a composition record a multi-step sequence by composing Event Log, never by growing a second store, and this composition *is* an Event Log composition (Compensation 6, Compensation 7).
+The findings and the compensating writes are audit events — attested, sequenced, retention-governed and sealed like the events they are about — so *what did this system do about the gap it found?* has a first-class answer from the same traversal. One record per finding keeps any findings set inside payload_cap. The reserved namespace (Primitive policy 8, Primitive policy 9) is the difference between a marker that is evidence of a compensation and one that is anybody's claim. The scan is an ordinary caller of [Record Action] (Compensation 5); `execution-contract.md` has a composition record a multi-step sequence by composing Event Log, never by growing a second store, and this composition *is* an Event Log composition (Compensation 6, Compensation 7).
 
 
 ### Instance start
@@ -1111,7 +1111,7 @@ Instance start 6 applies where reconciliation_cadence 3 leaves the cadence unset
 
 ## Composition-level invariants
 
-These invariants emerge from the composition; none belongs to a single constituent atom. Each carries a *Rests on:* line naming the wiring that establishes it and the constituent invariants it stands on. Per [`spec-format.md`](../spec-format.md) §Structural-relation invariant templates, the composition's three structural relations are: event ↔ attestation, one-to-one, mandatory on both sides at quiescence (Invariant 1, in the orphan-freedom template's safety-plus-liveness form); event ↔ retention, one-to-one, mandatory on both sides at quiescence, the retention governing the event's attestation jointly (Invariant 2); seal → events, one-to-many, optional on the event side while the event is in the unsealed tail and mandatory once `sequence_number` ≤ `sealed_through` (Invariant 3) — a composed Seal Lifecycle *(forthcoming)* would make it many-to-one and own the *which seal is current* bookkeeping that reading requires. The inverse directions are read through the derived indexes; a lost index entry is a rebuild trigger, never a relation violation.
+These invariants emerge from the composition; none belongs to a single constituent atom. Each carries a *Rests on:* line naming the wiring that establishes it and the constituent invariants it stands on. Per [`spec-format.md`](../spec-format.md) §Structural-relation invariant templates, the composition's three structural relations are: event ↔ attestation, one-to-one, mandatory on both sides at quiescence (Invariant 1, in the orphan-freedom template's safety-plus-liveness form); event ↔ retention, one-to-one, mandatory on both sides at quiescence, the retention governing the event's attestation jointly (Invariant 2); seal → events, one-to-many, optional on the event side while the event is in the unsealed tail and mandatory once sequence_number ≤ sealed_through (Invariant 3) — a composed Seal Lifecycle *(forthcoming)* would make it many-to-one and own the *which seal is current* bookkeeping that reading requires. The inverse directions are read through the derived indexes; a lost index entry is a rebuild trigger, never a relation violation.
 
 ```
 Composition-level invariant 1: WHEN store outage EXISTS:
@@ -1123,7 +1123,7 @@ Term store outage: a constituent store unreachable.
 
 Term compliance alert: a finding surfaced on the deployment's alerting surface, never silently carried.
 
-Term quiescence: no [Record Action] in flight, `compensation_window` elapsed, constituent stores reachable.
+Term quiescence: no [Record Action] in flight, compensation_window elapsed, constituent stores reachable.
 
 Term recorded through [Record Action]: the quantifier of Invariants 1, 2 and 8 — this composition declares exactly one way in, and an event written around it is not one these invariants cover (Non-goal 2).
 
@@ -1148,9 +1148,9 @@ WHY: reconciliation is itself a [Record Action] against the attestation, log and
   Invariant 1.9: The scan's next run MUST retry EVERY orphan not yet reconciled.
   Invariant 1.10: The composition MUST NOT condition convergence on a compensating write succeeding.
   ```
-  *Rests on:* [Record Action] steps 2, 3 and 5; the liveness arm on [Record Action] itself — the compensating record is written through it under `audit.compensation` and the finding under `audit.reconciliation` (Compensation 1 through 5), with the observable closure on `compensated_attestations` pre-checked under the per-`attestation_id` section (Second half 9, Concurrency 9); Actor Identity Invariants 1 (attestation immutability), 2 (action binding), 3 (actor binding) and 9 (attestation durability — why the closure needs a marker at all, since the orphan it forecloses deleting is permanent); Event Log Invariants 1 (append-only) and 2 (event immutability).
+  *Rests on:* [Record Action] steps 2, 3 and 5; the liveness arm on [Record Action] itself — the compensating record is written through it under `audit.compensation` and the finding under `audit.reconciliation` (Compensation 1 through 5), with the observable closure on compensated_attestations pre-checked under the per-attestation_id section (Second half 9, Concurrency 9); Actor Identity Invariants 1 (attestation immutability), 2 (action binding), 3 (actor binding) and 9 (attestation durability — why the closure needs a marker at all, since the orphan it forecloses deleting is permanent); Event Log Invariants 1 (append-only) and 2 (event immutability).
 
-  WHY: the reverse partial is reachable and durable, since synchronous rollback is unavailable, so the honest claim is a surfaced transient under compensation, never a quiet inconsistency. *Reconciled* is membership in `compensated_attestations` because nothing about the attestation itself ever changes to say *dealt with*; the marker is not forgeable (Primitive policy 8, reconciliation_operator 2, Check 7). A compensation is an ordinary [Record Action] and can itself fail at step 3, leaving a new orphan; the chain terminates the way retries terminate, each orphan bounded from its own creation, no link unsurfaced (Invariant 1.8). The clause compares differently by retention state because the cascade destroys one side of the comparison and not the other.
+  WHY: the reverse partial is reachable and durable, since synchronous rollback is unavailable, so the honest claim is a surfaced transient under compensation, never a quiet inconsistency. *Reconciled* is membership in compensated_attestations because nothing about the attestation itself ever changes to say *dealt with*; the marker is not forgeable (Primitive policy 8, reconciliation_operator 2, Check 7). A compensation is an ordinary [Record Action] and can itself fail at step 3, leaving a new orphan; the chain terminates the way retries terminate, each orphan bounded from its own creation, no link unsurfaced (Invariant 1.8). The clause compares differently by retention state because the cascade destroys one side of the comparison and not the other.
 
 - **Invariant 2 — Retention coverage (safety + liveness at quiescence).**
   ```
@@ -1160,9 +1160,9 @@ WHY: reconciliation is itself a [Record Action] against the attestation, log and
   Invariant 2.4: WHEN quiescence EXISTS:
       Invariant 2.4a: For EVERY event_id recorded through [Record Action], event_to_retention's entry MUST reference EXACTLY ONE recorded retention of either retention_state.
   ```
-  *Rests on:* [Record Action] steps 3, 4 and 5; the liveness arm on [Record Action] itself (Compensation 1 through 5); the composition's own `event_to_retention` pre-check under the per-act section and below `record_edge` (Third half 2 through 7, Concurrency 6), which supplies the idempotence Retention Window's Invariant 5 nowhere declares; the third half as the arm's detector (Third half 1); [Purge Event] step 0½ as the arm that keeps the cascade out of the window (purge_event step 0½.2); Retention Window Invariants 1 (membership exclusivity), 5 (`record_ref` and `policy_ref` immutability, and the new-retention-on-re-retention-under-a-different-policy rule that makes the pre-check necessary) and 10 (retention store durability); Event Log Invariant 1.
+  *Rests on:* [Record Action] steps 3, 4 and 5; the liveness arm on [Record Action] itself (Compensation 1 through 5); the composition's own event_to_retention pre-check under the per-act section and below record_edge (Third half 2 through 7, Concurrency 6), which supplies the idempotence Retention Window's Invariant 5 nowhere declares; the third half as the arm's detector (Third half 1); [Purge Event] step 0½ as the arm that keeps the cascade out of the window (purge_event step 0½.2); Retention Window Invariants 1 (membership exclusivity), 5 (record_ref and policy_ref immutability, and the new-retention-on-re-retention-under-a-different-policy rule that makes the pre-check necessary) and 10 (retention store durability); Event Log Invariant 1.
 
-  WHY: a failure between step 3 and step 4 is reachable because an appended event cannot be withdrawn; it is surfaced as `recording-failure(step-4)` and reconciled by placing the missing retention. Retention Window's Invariant 5 says re-retaining under a different policy produces a new retention with a new id and declares nothing about the same policy, so `place_under_retention` is nowhere idempotent on `record_ref`, and a path that re-placed on every pass would accumulate retentions governing one event — falsifying *exactly one* in the direction the atom cannot refuse. Without the third half this arm would have a compensation and no detector.
+  WHY: a failure between step 3 and step 4 is reachable because an appended event cannot be withdrawn; it is surfaced as `recording-failure(step-4)` and reconciled by placing the missing retention. Retention Window's Invariant 5 says re-retaining under a different policy produces a new retention with a new id and declares nothing about the same policy, so place_under_retention is nowhere idempotent on record_ref, and a path that re-placed on every pass would accumulate retentions governing one event — falsifying *exactly one* in the direction the atom cannot refuse. Without the third half this arm would have a compensation and no detector.
 
 - **Invariant 3 — Integrity coverage (modulo unsealed tail).**
   ```
@@ -1171,7 +1171,7 @@ WHY: reconciliation is itself a [Record Action] against the attestation, log and
   ```
   *Rests on:* [Seal Now] (and [Record Action] step 6 under per-event cadence), with [Purge Event] step 0 keeping it true of every purged event by construction; Tamper Evidence Invariants 1 (evidence immutability), 3 (record-set binding) and 9 (seal store durability, why a seal outlives the records it committed to); Event Log Invariants 3 (total order) and 4 (sequence-number monotonicity), without which a contiguous range is not a well-defined cover.
 
-  WHY: the claim is exact because there is exactly one way a coverage entry gets written — [Seal Now] cuts the slice and advances `sealed_through` past it, so slices are contiguous, disjoint and strictly advancing (seal_coverage 7, seal_coverage 8). *At most one* follows from disjointness and *at least one* from the bound; the claim is over seals, full stop, with no second class of seal to quantify around. What a purged event loses is verifiability, not coverage, and [Verify Record] reports that honestly. The claim is unconditional rather than modulo a seal lifetime because seals are retained indefinitely (retention_policy 5); Erasure Tombstone composed for seal disposal and Seal Lifecycle composed for re-sealing would each put it modulo their own bookkeeping, and both are named and out of scope. The unsealed tail is a bounded gap the cadence shrinks and `unsealed_tail_mode` names what a verifier makes of it.
+  WHY: the claim is exact because there is exactly one way a coverage entry gets written — [Seal Now] cuts the slice and advances sealed_through past it, so slices are contiguous, disjoint and strictly advancing (seal_coverage 7, seal_coverage 8). *At most one* follows from disjointness and *at least one* from the bound; the claim is over seals, full stop, with no second class of seal to quantify around. What a purged event loses is verifiability, not coverage, and [Verify Record] reports that honestly. The claim is unconditional rather than modulo a seal lifetime because seals are retained indefinitely (retention_policy 5); Erasure Tombstone composed for seal disposal and Seal Lifecycle composed for re-sealing would each put it modulo their own bookkeeping, and both are named and out of scope. The unsealed tail is a bounded gap the cadence shrinks and unsealed_tail_mode names what a verifier makes of it.
 
 - **Invariant 4 — Cascade coordination on purge.**
   ```
@@ -1182,7 +1182,7 @@ WHY: reconciliation is itself a [Record Action] against the attestation, log and
   ```
   *Rests on:* [Purge Event] steps 0–4, defended by the cascade-on-purge rule; Retention Window Invariants 3 (terminal absorption), 7 (no early purge) and 8 (purge timestamp consistency); Tamper Evidence Invariant 1; Event Log Invariant 1 and Actor Identity Invariant 9, which are what make the delegation necessary rather than optional.
 
-  WHY: the invariant is over the coordination, not over a destruction this composition performs: no retained event is left without attestation or integrity coverage, and no purged event leaves a dangling attestation reference or a live seal content claim. The retention transition and the delegated destruction are each un-withdrawable, so no atomic set spans them (§*Durability boundaries*); the coordination is ordered writes plus compensation — a partial state surfaces as `cascade-failure(step)` and the scan re-drives it — and a `destruction-failed` outcome leaves the coordination incomplete, re-driven each cycle until it completes (Boundary one 6).
+  WHY: the invariant is over the coordination, not over a destruction this composition performs: no retained event is left without attestation or integrity coverage, and no purged event leaves a dangling attestation reference or a live seal content claim. The retention transition and the delegated destruction are each un-withdrawable, so no atomic set spans them (§*Durability boundaries*); the coordination is ordered writes plus compensation — a partial state surfaces as `cascade-failure(step)` and the scan re-drives it — and a destruction-failed outcome leaves the coordination incomplete, re-driven each cycle until it completes (Boundary one 6).
 
 - **Invariant 5 — Constituent invariants preserved.**
   ```
@@ -1202,7 +1202,7 @@ WHY: reconciliation is itself a [Record Action] against the attestation, log and
   ```
   Term verification surface outage: the actor registry or the seal mechanism unreachable.
 
-  *Rests on:* [Read Record] and [Verify Record]; for a purged event the *who / what / when* half of the join on the pair captured at [Purge Event] step 2 and the surviving fields it names (read_record step 4.4), the only route left once Event Log's `data` field is unreadable; Actor Identity Invariants 1 and 9 (without which the record would not still be there to read), 6 (self-containment) and 7 (verification consistency under fixed registry state); Tamper Evidence Invariants 4 (verification self-containment given the originating records) and 7 (verification consistency under a fixed record set); Invariant 1 through 3 above for the completeness of what is joined.
+  *Rests on:* [Read Record] and [Verify Record]; for a purged event the *who / what / when* half of the join on the pair captured at [Purge Event] step 2 and the surviving fields it names (read_record step 4.4), the only route left once Event Log's data field is unreadable; Actor Identity Invariants 1 and 9 (without which the record would not still be there to read), 6 (self-containment) and 7 (verification consistency under fixed registry state); Tamper Evidence Invariants 4 (verification self-containment given the originating records) and 7 (verification consistency under a fixed record set); Invariant 1 through 3 above for the completeness of what is joined.
 
   WHY: an investigator reconstructs the full history from records alone. The hedge *where content is still present* is the cascade's, not a softening: completability is a claim about the record set, not the content. The availability condition is the reason the [Unverifiable] arm exists — when the registry or the mechanism cannot be reached the honest answer is that verification could not be performed — and determinism is claimed over the outcomes reachable with the surfaces up. The first three outcomes may carry the `(compensation-window)` qualifier on the separate channel.
 
@@ -1225,11 +1225,11 @@ WHY: reconciliation is itself a [Record Action] against the attestation, log and
   Invariant 8.4: [Verify Record] MUST NOT read purged off the absence of content.
   Invariant 8.5: The composition MUST reserve not-known for an event_id no constituent has heard of.
   ```
-  Term event standing: `retained` | `lawfully destroyed`.
+  Term event standing: retained | lawfully destroyed.
 
   *Rests on:* [Purge Event] steps 0, 1, 2 and 4 and [Verify Record] steps 1–2; [Read Record] step 5 and [Verify Record] step 2 for the compensation-window reading (read_record step 5.1, verify_record step 2.3); the liveness arm — that the compensation-window state is bounded and closes — on [Record Action], through which the scan records its findings and the compensating placement (Compensation 1 through 5); Retention Window Invariants 1 (membership exclusivity), 3 (terminal absorption) and 10 (retention store durability); Tamper Evidence Invariant 1; Invariant 2 above for the window it is conditioned on and Invariant 4 for the coordination that produces the surviving records.
 
-  WHY: *missing without record* does not occur through this composition. The fourth record is why the foreclosed state stays foreclosed, and the mechanism is the scan: a `destruction-failed` delegation leaves *Purged* over readable content, and First half 4's predicate re-drives it every cycle — foreclosed because the scan retries, not because failure was assumed away. Every purged event has a covering entry by construction (purge_event step 0.3). Without the quiescence qualifier this invariant would contradict Invariant 2's liveness arm; inside the window the event is verifiable but not yet retention-covered, a bounded finding, not a third steady state. Reading `purged` off the record rather than off the absence of content is what makes the distinction survive every conforming erasure mechanism.
+  WHY: *missing without record* does not occur through this composition. The fourth record is why the foreclosed state stays foreclosed, and the mechanism is the scan: a destruction-failed delegation leaves *Purged* over readable content, and First half 4's predicate re-drives it every cycle — foreclosed because the scan retries, not because failure was assumed away. Every purged event has a covering entry by construction (purge_event step 0.3). Without the quiescence qualifier this invariant would contradict Invariant 2's liveness arm; inside the window the event is verifiable but not yet retention-covered, a bounded finding, not a third steady state. Reading purged off the record rather than off the absence of content is what makes the distinction survive every conforming erasure mechanism.
 
 Attribution coverage and retention coverage together give the complete-record property; integrity coverage modulo unsealed tail names the cadence trade-off honestly; cascade coordination on purge prevents dangling state across the four stores without pretending to a destruction surface two constituents forbid; honest representation of destruction is what distinguishes a *complete* audit trail from a *suspicious* one.
 
@@ -1239,42 +1239,42 @@ Attribution coverage and retention coverage together give the complete-record pr
 
 ### Walkthrough
 
-A regulated bank deploys the composition as the canonical audit trail for its core ledger: `retention_policy = sox_7_year`; `seal_cadence = every 1000 events or 60 seconds, whichever first`; `seal_mechanism = SHA-256 hash chain, chain tail anchored synchronously at seal time to an RFC 3161 TSA`, linked across seals; `erasure_mechanism = per-event content-key shredding at the storage layer`; `compensation_window = 24 hours`; `record_action_completion_bound = 30 seconds`; `purge_completion_bound = 5 minutes`; `compensation_closure_latency = 15 seconds`; `clock_offset_allowance = 2 seconds`; `reconciliation_cadence = 60 seconds` (the derived default — the time arm of its interval cadence; the thousand-event arm is not a duration); `payload_cap = 64 KB`, matching the wired Event Log instance. Instance start 16 holds with room to spare: `closure_sum` is 5 minutes + 2 seconds + 60 seconds + 15 seconds, against 24 hours.
+A regulated bank deploys the composition as the canonical audit trail for its core ledger: `retention_policy = sox_7_year`; `seal_cadence = every 1000 events or 60 seconds, whichever first`; `seal_mechanism = SHA-256 hash chain, chain tail anchored synchronously at seal time to an RFC 3161 TSA`, linked across seals; `erasure_mechanism = per-event content-key shredding at the storage layer`; `compensation_window = 24 hours`; `record_action_completion_bound = 30 seconds`; `purge_completion_bound = 5 minutes`; `compensation_closure_latency = 15 seconds`; `clock_offset_allowance = 2 seconds`; `reconciliation_cadence = 60 seconds` (the derived default — the time arm of its interval cadence; the thousand-event arm is not a duration); `payload_cap = 64 KB`, matching the wired Event Log instance. Instance start 16 holds with room to spare: closure_sum is 5 minutes + 2 seconds + 60 seconds + 15 seconds, against 24 hours.
 
 1. **A wire-transfer authorization arrives.** `record_action(wire_w91, supervisor_s12, supervisor_credential, {amount: 50000, counterparty: ...})`. Actor Identity → `attestation_a44`; Event Log → `event_e9301`; Retention Window → `retention_r9301` with `retention_until = 2033-05-10`; the event lands in the unsealed tail. Returns `event_e9301`.
-2. **The cadence fires.** The thousand-event arm trips first: [Seal Now] runs over the slice `[8302 .. 9301]`, whose last member is `e9301`. The chain tail is anchored to the TSA synchronously, within the seal call — which is what entitles the record to carry `anchored_at` at all; batched anchoring after the fact is a separate External Anchoring pattern — and `evidence_s127` is recorded with `anchored_at = 2026-05-10T14:33:00Z`. The `seal_coverage` entry for `s127` is `[8302 .. 9301]`; `sealed_through` advances to 9301.
-3. **Six years later, a SOX §404 audit.** *Show me the supervisor authorization on wire w91, and prove it hasn't been altered.* `read_record(e9301)` returns the [Audit Record] in one shot: action `wire_w91`, actor `supervisor_s12`, attestation `a44`, retention `r9301` in *Retained*, and coverage `s127` over `[8302 .. 9301]` — the instruction for the next call. This deployment runs interval cadence, so the auditor pulls all thousand payloads for that range — through Event Log's range read where the log is online, from the archive otherwise — and calls `verify_record(e9301, payloads_8302_through_9301)`. Retention reads *Retained* (no `purged` short-circuit), the event is present, the attestation verifies against `s12`'s public material, `s127` is the covering seal, the presented range passes through to `TamperEvidence.verify`. Returns `verified`. Under a per-event cadence the same call would carry `e9301`'s single payload; the argument is the same argument, only its extent moves.
-4. **Seven years and one month later.** [Purge Eligible] runs nightly and `e9301` is on the list. `purge_event(e9301)`: step 0 is a no-op — `9301 ≤ sealed_through`, so `s127` covers it. `RetentionWindow.purge(r9301)` moves the retention to *Purged* with `purged_at = 2033-06-14`; `9301` joins `s127`'s `purged_events` — just that one number, since the other 999 members are under their own retentions — and the same write captures the pair `(e9301, a44)` before anything is destroyed. Destruction of Event Log's `data` field for `e9301` and of `a44`'s `proof` goes to the content-key shredder, which reports `destroyed`; the cascade completes. Had it reported `destruction-failed(...)`, the cascade would have rejected `cascade-failure(step-3)` and the 60-second scan would have re-driven the entry each cycle until a `destroyed` outcome landed, `r9301` standing as a surfaced alert meanwhile. The Event Log entry's and the attestation's stored fields are byte-for-byte what they were; the key is gone, so the payload and the proof no longer read, while `a44`'s `action_ref`, `actor_ref` and `attested_at` still do. `verify_record(e9301, ...)` now returns `failed-verification(purged)`, read off `r9301` before any `ActorIdentity.verify` call. No re-seal follows: `s127` stays the one seal over `[8302 .. 9301]`, and its 999 survivors answer `unverifiable(partially-purged-coverage)` for the rest of their retained lifetimes — unknown, not bad. A bank that could not accept that composes Seal Lifecycle *(forthcoming)*, at the cost of a mechanism round-trip per purge and a pattern to wire.
-5. **A subsequent regulator inquiry.** *What happened to wire w91?* The retention store holds `r9301` in *Purged* with `purged_at` inside the lawful window; the seal store retains `s127` indefinitely, now carrying `9301` in `purged_events` and still the cover for its other members; the attestation store retains `a44` with its surviving fields readable. `read_record(e9301)` sees *Purged*, takes `(e9301, a44)` out of the destruction record, and reads the *who / what / when* off `a44` — so the answer is not merely *something was destroyed* but *`supervisor_s12`'s authorization of `wire_w91`, attested at that moment, was destroyed lawfully on 2033-06-14*.
+2. **The cadence fires.** The thousand-event arm trips first: [Seal Now] runs over the slice `[8302 .. 9301]`, whose last member is `e9301`. The chain tail is anchored to the TSA synchronously, within the seal call — which is what entitles the record to carry anchored_at at all; batched anchoring after the fact is a separate External Anchoring pattern — and `evidence_s127` is recorded with `anchored_at = 2026-05-10T14:33:00Z`. The seal_coverage entry for `s127` is `[8302 .. 9301]`; sealed_through advances to 9301.
+3. **Six years later, a SOX §404 audit.** *Show me the supervisor authorization on wire w91, and prove it hasn't been altered.* `read_record(e9301)` returns the [Audit Record] in one shot: action `wire_w91`, actor `supervisor_s12`, attestation `a44`, retention `r9301` in *Retained*, and coverage `s127` over `[8302 .. 9301]` — the instruction for the next call. This deployment runs interval cadence, so the auditor pulls all thousand payloads for that range — through Event Log's range read where the log is online, from the archive otherwise — and calls `verify_record(e9301, payloads_8302_through_9301)`. Retention reads *Retained* (no purged short-circuit), the event is present, the attestation verifies against `s12`'s public material, `s127` is the covering seal, the presented range passes through to `TamperEvidence.verify`. Returns `verified`. Under a per-event cadence the same call would carry `e9301`'s single payload; the argument is the same argument, only its extent moves.
+4. **Seven years and one month later.** [Purge Eligible] runs nightly and `e9301` is on the list. `purge_event(e9301)`: step 0 is a no-op — `9301 ≤ sealed_through`, so `s127` covers it. `RetentionWindow.purge(r9301)` moves the retention to *Purged* with `purged_at = 2033-06-14`; `9301` joins `s127`'s purged_events — just that one number, since the other 999 members are under their own retentions — and the same write captures the pair `(e9301, a44)` before anything is destroyed. Destruction of Event Log's data field for `e9301` and of `a44`'s proof goes to the content-key shredder, which reports destroyed; the cascade completes. Had it reported `destruction-failed(...)`, the cascade would have rejected `cascade-failure(step-3)` and the 60-second scan would have re-driven the entry each cycle until a destroyed outcome landed, `r9301` standing as a surfaced alert meanwhile. The Event Log entry's and the attestation's stored fields are byte-for-byte what they were; the key is gone, so the payload and the proof no longer read, while `a44`'s action_ref, actor_ref and attested_at still do. `verify_record(e9301, ...)` now returns `failed-verification(purged)`, read off `r9301` before any `ActorIdentity.verify` call. No re-seal follows: `s127` stays the one seal over `[8302 .. 9301]`, and its 999 survivors answer `unverifiable(partially-purged-coverage)` for the rest of their retained lifetimes — unknown, not bad. A bank that could not accept that composes Seal Lifecycle *(forthcoming)*, at the cost of a mechanism round-trip per purge and a pattern to wire.
+5. **A subsequent regulator inquiry.** *What happened to wire w91?* The retention store holds `r9301` in *Purged* with purged_at inside the lawful window; the seal store retains `s127` indefinitely, now carrying `9301` in purged_events and still the cover for its other members; the attestation store retains `a44` with its surviving fields readable. `read_record(e9301)` sees *Purged*, takes `(e9301, a44)` out of the destruction record, and reads the *who / what / when* off `a44` — so the answer is not merely *something was destroyed* but *`supervisor_s12`'s authorization of `wire_w91`, attested at that moment, was destroyed lawfully on 2033-06-14*.
 
 ### Walkthrough — rejection paths
 
-**Orphan attestation — `attest` succeeds, `append` fails.** `record_action(wire_w92, supervisor_s12, supervisor_credential, {amount: 75000, ...})`.
+**Orphan attestation — attest succeeds, append fails.** `record_action(wire_w92, supervisor_s12, supervisor_credential, {amount: 75000, ...})`.
 
 1. Step 1 passes: both references are far inside the 1 KB cap and the full constructed payload is about 2 KB against the 64 KB cap. Nothing is recorded yet.
 2. Step 2: `ActorIdentity.attest(...)` → `attestation_a45`, committed and immutable.
-3. Step 3: `EventLog.append({...})` — the store is mid-failover and returns `storage-failure`. Per Event Log's contract that is definitive: `event_e9302` does not exist and never will.
-4. The composition returns `recording-failure(step-3)` and, in the same outcome, surfaces `a45` as an orphan; it writes nothing further, releases its section on `a45`, and yields. Once `a45`'s `attested_at` is older than 30 + 2 seconds, the scan takes the section on `a45`, records an `audit.reconciliation` finding naming it, then a compensating record naming `a45` as unbound — through [Record Action] under `audit.compensation`, attributed to the bank's operator identity, raised as a high-priority compliance finding. The scan found `a45` by the binding-set test — in the attestation store, in no live payload, in no destruction record — and, finding it absent from `compensated_attestations`, wrote the one compensation; the next scan leaves it alone.
+3. Step 3: `EventLog.append({...})` — the store is mid-failover and returns storage-failure. Per Event Log's contract that is definitive: `event_e9302` does not exist and never will.
+4. The composition returns `recording-failure(step-3)` and, in the same outcome, surfaces `a45` as an orphan; it writes nothing further, releases its section on `a45`, and yields. Once `a45`'s attested_at is older than 30 + 2 seconds, the scan takes the section on `a45`, records an `audit.reconciliation` finding naming it, then a compensating record naming `a45` as unbound — through [Record Action] under `audit.compensation`, attributed to the bank's operator identity, raised as a high-priority compliance finding. The scan found `a45` by the binding-set test — in the attestation store, in no live payload, in no destruction record — and, finding it absent from compensated_attestations, wrote the one compensation; the next scan leaves it alone.
 5. The caller retries after the store recovers and gets a fresh `attestation_a46` and `event_e9303`. `a45` remains in the store forever as a surfaced, reconciled orphan — the honest record of what happened rather than a defect to be hidden.
 
-Had `data` been 80 KB, the rejection would have arrived at step 1 as `invalid-request` with nothing recorded — no attestation to orphan; that is why the size check sits where it does.
+Had data been 80 KB, the rejection would have arrived at step 1 as invalid-request with nothing recorded — no attestation to orphan; that is why the size check sits where it does.
 
-**`not-eligible` — a purge attempted before the window elapses.** In 2030 a records-management job misconfigured with a five-year policy calls `purge_event(e9301)`.
+**not-eligible — a purge attempted before the window elapses.** In 2030 a records-management job misconfigured with a five-year policy calls `purge_event(e9301)`.
 
 1. The composition resolves `r9301` and calls `RetentionWindow.purge(r9301)`.
-2. Retention Window evaluates its no-early-purge guard against its own `now`: `2030-06-14 < 2033-05-10`. It refuses with `retention-period-not-elapsed`, writing nothing (Retention Window Invariant 7).
-3. The composition returns `not-eligible`. No cascade step runs: nothing joins `s127`'s `purged_events`, no delegation is issued, `r9301` stays *Retained*, and `verify_record(e9301, ...)` still returns `verified`.
+2. Retention Window evaluates its no-early-purge guard against its own now: `2030-06-14 < 2033-05-10`. It refuses with retention-period-not-elapsed, writing nothing (Retention Window Invariant 7).
+3. The composition returns not-eligible. No cascade step runs: nothing joins `s127`'s purged_events, no delegation is issued, `r9301` stays *Retained*, and `verify_record(e9301, ...)` still returns `verified`.
 4. The gate is structural: the composition does not evaluate eligibility itself, and the atom's guard is a precondition on its own state.
 
 ### Selected rejection and outcome runs
 
 Selected, not exhaustive; each makes a distinction the composition is built on legible.
 
-**`unverifiable(attestation-registry-unavailable)`.** During the same audit, `verify_record(e9308, payloads_9302_through_10301)`: retention *Retained*, log entry present, `ActorIdentity.verify(a51)` — and the registry is unreachable behind a network partition. Step 3 does not prefix `registry-unavailable`; it routes it to step 6, which returns `unverifiable(attestation-registry-unavailable)`. Steps 4 and 5 do not run, so no integrity claim is made either way. The auditor records the outage, not a finding, and retries when the registry returns.
+**`unverifiable(attestation-registry-unavailable)`.** During the same audit, `verify_record(e9308, payloads_9302_through_10301)`: retention *Retained*, log entry present, `ActorIdentity.verify(a51)` — and the registry is unreachable behind a network partition. Step 3 does not prefix registry-unavailable; it routes it to step 6, which returns `unverifiable(attestation-registry-unavailable)`. Steps 4 and 5 do not run, so no integrity claim is made either way. The auditor records the outage, not a finding, and retries when the registry returns.
 
-**A `lenient`-mode tail verify.** A second deployment — an internal operations trail over a WORM substrate, `seal_cadence = every 6 hours`, `unsealed_tail_mode = lenient` — records `e440` at 09:12 and verifies it at 09:20. `read_record(e440)` reports *unsealed tail* (`440 > sealed_through = 431`). `verify_record(e440, e440_payload)`: retention *Retained*, log entry present, attestation verifies; step 4 finds no covering seal and, under `lenient`, treats coverage as satisfied, skips step 5, finds no availability failure at step 6, and returns `verified` at step 7. The same call against the bank's `strict` instance returns `failed-verification(unsealed)` — same records, different declared posture, visible in Configuration.
+**A lenient-mode tail verify.** A second deployment — an internal operations trail over a WORM substrate, `seal_cadence = every 6 hours`, `unsealed_tail_mode = lenient` — records `e440` at 09:12 and verifies it at 09:20. `read_record(e440)` reports *unsealed tail* (`440 > sealed_through = 431`). `verify_record(e440, e440_payload)`: retention *Retained*, log entry present, attestation verifies; step 4 finds no covering seal and, under lenient, treats coverage as satisfied, skips step 5, finds no availability failure at step 6, and returns `verified` at step 7. The same call against the bank's strict instance returns `failed-verification(unsealed)` — same records, different declared posture, visible in Configuration.
 
-**`invalid-credential` — rejected before anything is written.** A terminated supervisor's smart card: `record_action(wire_w95, supervisor_s12, revoked_credential, {...})`. Step 1 passes; step 2's `attest` refuses `invalid-credential`; the composition propagates it and stops. No attestation, no event, no retention, no seal attempt, no orphan. The log carries no trace of the attempt — the scope line of Failed attribution 1; a deployment that must audit the attempt composes a Failed-Attempt Log *(forthcoming)*.
+**invalid-credential — rejected before anything is written.** A terminated supervisor's smart card: `record_action(wire_w95, supervisor_s12, revoked_credential, {...})`. Step 1 passes; step 2's attest refuses invalid-credential; the composition propagates it and stops. No attestation, no event, no retention, no seal attempt, no orphan. The log carries no trace of the attempt — the scope line of Failed attribution 1; a deployment that must audit the attempt composes a Failed-Attempt Log *(forthcoming)*.
 
 ### Regulated deployments
 
@@ -1292,9 +1292,9 @@ Selected, not exhaustive; each makes a distinction the composition is built on l
 
 **Regulator audit — "show me the complete, verifiable history of action X over the retention horizon."** *Every event referencing action X* is a query by payload field, so the enumeration is a composed Reverse Index *(forthcoming)*, not a passthrough (Action wiring 3, Action wiring 4); a sequence-number or wall-time window would pass straight through. From there the composition answers per event: `verified` for each retained event, the *Purged* retention record for each destroyed one. Invariants 1, 2, 3 and 8 are the structural answer, from the records, without source code or runbooks.
 
-**Disputed action — "I didn't do that."** The investigator retrieves the event and calls [Verify Record]. If `verified`, the attestation binds the named actor to the named action at `attested_at` (Actor Identity's non-repudiation contract, through Invariant 5); the actor cannot plausibly deny it without claiming credential compromise, which a Compromise Disclosure pattern *(forthcoming)* handles by new records, never by mutating the trail.
+**Disputed action — "I didn't do that."** The investigator retrieves the event and calls [Verify Record]. If `verified`, the attestation binds the named actor to the named action at attested_at (Actor Identity's non-repudiation contract, through Invariant 5); the actor cannot plausibly deny it without claiming credential compromise, which a Compromise Disclosure pattern *(forthcoming)* handles by new records, never by mutating the trail.
 
-**Breach forensics — "when was the trail compromised?"** The responder walks every seal in `sealed_at` order — one seal per range, never a replacement — running [Verify Record] against representative events in each range. The most recent seal that returns `verified` end-to-end and the next that returns `failed-verification(seal-proof-invalid)` bound the forensic window, provided the mechanism is chained across seals (seal_mechanism 2); under independent per-range seals a failed seal narrows the tampering only to its own range, and the responder gets a set of compromised ranges rather than a window — which of the two the mechanism is, the deployment declares, since mechanism opacity hides it (Tamper Evidence Invariant 8). An `unverifiable(...)` result bounds nothing: under the availability reasons the responder retries; under `partially-purged-coverage` the responder steps over the seal to the nearest presentable one, which widens the window rather than falsifying it. Where seals carry `anchored_at` from a TSA outside the adversary's reach, the upper bound on the time of tampering is independently established.
+**Breach forensics — "when was the trail compromised?"** The responder walks every seal in sealed_at order — one seal per range, never a replacement — running [Verify Record] against representative events in each range. The most recent seal that returns `verified` end-to-end and the next that returns `failed-verification(seal-proof-invalid)` bound the forensic window, provided the mechanism is chained across seals (seal_mechanism 2); under independent per-range seals a failed seal narrows the tampering only to its own range, and the responder gets a set of compromised ranges rather than a window — which of the two the mechanism is, the deployment declares, since mechanism opacity hides it (Tamper Evidence Invariant 8). An `unverifiable(...)` result bounds nothing: under the availability reasons the responder retries; under partially-purged-coverage the responder steps over the seal to the nearest presentable one, which widens the window rather than falsifying it. Where seals carry anchored_at from a TSA outside the adversary's reach, the upper bound on the time of tampering is independently established.
 
 ---
 
@@ -1357,12 +1357,12 @@ Term audit edge: `compensation_window + clock_offset_allowance` — the auditor'
 
 Term residual finding: an unreconciled finding older than the audit edge — the conformance failure Check 2 reports.
 
-Term seal stamps: `sealed_at`, and `anchored_at` where the mechanism anchors.
+Term seal stamps: sealed_at, and anchored_at where the mechanism anchors.
 
-Term extraction-pending fact: `purged_events`, `event_to_attestation`'s purged entries, and `erasure_outcomes`.
+Term extraction-pending fact: purged_events, event_to_attestation's purged entries, and erasure_outcomes.
 
 WHY:
-Check 2 reads quiescence off a declared number, not the spec's confidence; its retention side is the third half run from outside (Check 2.9), and its orphan side is audited against a marker because Actor Identity Invariant 9 makes *no orphans remain* unreachable — what a conforming instance reaches is *every orphan compensated* (Check 2.10 through 2.12). Event Log carries no acceptance bar, so its seven invariants are verified directly (Check 3). Check 4 clears as a window only under a chained mechanism, which opacity keeps out of the records (Check 4.4). Check 5 reads records, not the absence of content, and mere presence of an outcome record would clear the state Invariant 8 forbids (Check 5.9). Check 6's third reason is the sharpest, because the composition's own cascade created the condition. Check 7.3 is what makes `compensated_attestations` unforgeable; the three extraction-pending facts are verified by Check 5 instead (Check 7.8). Check 8's full list: Legal Hold, Defensible Retention, and *(forthcoming)* Trusted Timestamping, Storage Tier, Compromise Disclosure, Erasure Coordination, Policy Reconciliation, Mechanism Registry, Reverse Index, Legacy Import, Failed-Attempt Log, Schema Evolution, Erasure Tombstone, Seal Lifecycle, and the declared erasure mechanism; the four Check 8.2 names change what the other checks mean.
+Check 2 reads quiescence off a declared number, not the spec's confidence; its retention side is the third half run from outside (Check 2.9), and its orphan side is audited against a marker because Actor Identity Invariant 9 makes *no orphans remain* unreachable — what a conforming instance reaches is *every orphan compensated* (Check 2.10 through 2.12). Event Log carries no acceptance bar, so its seven invariants are verified directly (Check 3). Check 4 clears as a window only under a chained mechanism, which opacity keeps out of the records (Check 4.4). Check 5 reads records, not the absence of content, and mere presence of an outcome record would clear the state Invariant 8 forbids (Check 5.9). Check 6's third reason is the sharpest, because the composition's own cascade created the condition. Check 7.3 is what makes compensated_attestations unforgeable; the three extraction-pending facts are verified by Check 5 instead (Check 7.8). Check 8's full list: Legal Hold, Defensible Retention, and *(forthcoming)* Trusted Timestamping, Storage Tier, Compromise Disclosure, Erasure Coordination, Policy Reconciliation, Mechanism Registry, Reverse Index, Legacy Import, Failed-Attempt Log, Schema Evolution, Erasure Tombstone, Seal Lifecycle, and the declared erasure mechanism; the four Check 8.2 names change what the other checks mean.
 
 ### External checks
 
@@ -1441,7 +1441,7 @@ Concurrency 9: The scan MUST serialize an orphan's compensation per attestation_
 Concurrency 10: [Read Record] and [Purge Eligible] MUST NOT take a serialization lock.
 ```
 
-WHY: two sealings reading the same `sealed_through` would produce two `evidence_id`s over one range, violating Invariant 3, and Tamper Evidence will not stop them — one seal per record set per cadence is the composing pattern's job (Concurrency 1). The cascade and its second step contend on different resources: the cascade on `event_id` — the per-act section for a cascade, its lease `purge_completion_bound` long — while the step-2 write contends on the covering seal's entry, shared by every member of the range, where a read-modify-write under the race silently loses a membership no rebuild brings back; the per-`event_id` lock alone is the natural mistake (Concurrency 2, Concurrency 3). The record action's section exists from the act's first write, which a per-`event_id` key could not; step 6 is the read-seal-advance sequence Concurrency 1 governs (Concurrency 6). An orphan has no `event_id` to lock; unserialized, a restart scan and a cadence scan both read *absent* and both record — duplicates are not false, but they make *once, or looping?* a question answered by reading timestamps (Concurrency 9).
+WHY: two sealings reading the same sealed_through would produce two evidence_id values over one range, violating Invariant 3, and Tamper Evidence will not stop them — one seal per record set per cadence is the composing pattern's job (Concurrency 1). The cascade and its second step contend on different resources: the cascade on event_id — the per-act section for a cascade, its lease purge_completion_bound long — while the step-2 write contends on the covering seal's entry, shared by every member of the range, where a read-modify-write under the race silently loses a membership no rebuild brings back; the per-event_id lock alone is the natural mistake (Concurrency 2, Concurrency 3). The record action's section exists from the act's first write, which a per-event_id key could not; step 6 is the read-seal-advance sequence Concurrency 1 governs (Concurrency 6). An orphan has no event_id to lock; unserialized, a restart scan and a cadence scan both read *absent* and both record — duplicates are not false, but they make *once, or looping?* a question answered by reading timestamps (Concurrency 9).
 
 ### Clock source for cadence and purge
 
@@ -1454,7 +1454,7 @@ Clock source 4: The deployment MUST supply a monotonically non-decreasing clock.
 
 Term invocation: a [Record Action] or a [Purge Event] between the invocation's first write and the invocation's return.
 
-WHY: the orchestration transition is a pure function of injected `now` (`execution-contract.md` §Logic Confinement). An invocation's terminus at the completion bound is the expiry of a lease the host times, and on a death-detected host it is *proceed as landed*, which needs no reading. Purge eligibility is not evaluated here (purge_eligible 1 through 4). Clock skew across nodes can cause non-deterministic eligibility and inconsistent cadence firing; the deployer configures the source — system clock, GPS-disciplined, NTP-synchronized cluster — and owns monotonicity, or composes a Trusted Timestamping pattern *(forthcoming)* whose anchored time serves as the authoritative source.
+WHY: the orchestration transition is a pure function of injected now (`execution-contract.md` §Logic Confinement). An invocation's terminus at the completion bound is the expiry of a lease the host times, and on a death-detected host it is *proceed as landed*, which needs no reading. Purge eligibility is not evaluated here (purge_eligible 1 through 4). Clock skew across nodes can cause non-deterministic eligibility and inconsistent cadence firing; the deployer configures the source — system clock, GPS-disciplined, NTP-synchronized cluster — and owns monotonicity, or composes a Trusted Timestamping pattern *(forthcoming)* whose anchored time serves as the authoritative source.
 
 ### Cross-store consistency under failure
 
@@ -1464,7 +1464,7 @@ Cross-store 2: The composition MUST NOT require a rollback of a committed consti
 Cross-store 3: The implementation MUST own how the implementation's own process survives the gap between two commits.
 ```
 
-WHY: if `EventLog.append` succeeds and `place_under_retention` fails, the composition is in a state Invariant 2's safety arm forbids at quiescence, and append-only forecloses withdrawing the event; the attestation and the append are each un-withdrawable, so *all succeed or none* is not a state the constituents can offer (§*Durability boundaries*). The failure is surfaced as `recording-failure(step)`, recorded as a compliance finding, and reconciled within `compensation_window`; the finding and the compensating write are audit events through [Record Action] (Compensation 1 through 8), never an operational log. The scan's three predicates are all stated (FH, SH, TH); the cascade's own half-completed state needs the first half because it is invisible to [Purge Eligible].
+WHY: if `EventLog.append` succeeds and place_under_retention fails, the composition is in a state Invariant 2's safety arm forbids at quiescence, and append-only forecloses withdrawing the event; the attestation and the append are each un-withdrawable, so *all succeed or none* is not a state the constituents can offer (§*Durability boundaries*). The failure is surfaced as `recording-failure(step)`, recorded as a compliance finding, and reconciled within compensation_window; the finding and the compensating write are audit events through [Record Action] (Compensation 1 through 8), never an operational log. The scan's three predicates are all stated (FH, SH, TH); the cascade's own half-completed state needs the first half because it is invisible to [Purge Eligible].
 
 ### Durability across crashes
 
@@ -1480,11 +1480,11 @@ Durability 6: The deployment MUST persist purged_events membership, the pair and
 Durability 7: The implementation MUST own the transactional boundary for the truth-bearing writes.
 ```
 
-WHY: `event_to_retention`'s rebuild-on-miss is load-bearing because Invariant 2's placement pre-checks it (Durability 2); `event_to_sequence`'s is the hottest, because every id-addressed action resolves through it (Durability 3). `compensated_attestations` is safe in the direction that matters — nothing enters the set except a compensation that was recorded (Durability 4). The membership and the pair are unreproducible because the cascade destroys the payload the rebuild would read; `erasure_outcomes` because re-driving over destroyed content need not answer `destroyed` again (Durability 6). `event_to_attestation` is a discardable index for a live event and durable truth for a purged one, and an implementation that treats the map uniformly gets one half wrong. Until Erasure Tombstone lands, the deployment owns persisting all three.
+WHY: event_to_retention's rebuild-on-miss is load-bearing because Invariant 2's placement pre-checks it (Durability 2); event_to_sequence's is the hottest, because every id-addressed action resolves through it (Durability 3). compensated_attestations is safe in the direction that matters — nothing enters the set except a compensation that was recorded (Durability 4). The membership and the pair are unreproducible because the cascade destroys the payload the rebuild would read; erasure_outcomes because re-driving over destroyed content need not answer destroyed again (Durability 6). event_to_attestation is a discardable index for a live event and durable truth for a purged one, and an implementation that treats the map uniformly gets one half wrong. Until Erasure Tombstone lands, the deployment owns persisting all three.
 
 ### Partial attestation on step failure
 
-The state, the surfacing and the closure are owned where they happen: the invocation surfaces the orphan in `recording-failure(step-3)` and writes no compensation (record_action step 7.2, record_action step 7.8); the scan is the one writer of the compensating record (Second half 12), finds the orphan by the binding set (Second half 1, Second half 2), examines nothing younger than `record_edge` (Second half 3), and pre-checks `compensated_attestations` (Second half 9); reconciled has the observable form the term `reconciled` names; the compensating record is an audit event (Compensation 4). High-assurance deployments treat any orphan not in the set, past the window, as a gap in the audit surface and alert.
+The state, the surfacing and the closure are owned where they happen: the invocation surfaces the orphan in `recording-failure(step-3)` and writes no compensation (record_action step 7.2, record_action step 7.8); the scan is the one writer of the compensating record (Second half 12), finds the orphan by the binding set (Second half 1, Second half 2), examines nothing younger than record_edge (Second half 3), and pre-checks compensated_attestations (Second half 9); reconciled has the observable form the term reconciled names; the compensating record is an audit event (Compensation 4). High-assurance deployments treat any orphan not in the set, past the window, as a gap in the audit surface and alert.
 
 ### Verification of the unsealed tail
 
@@ -1494,13 +1494,13 @@ Unsealed tail 2: The deployment MUST read a [Mechanism Failure] with a precondit
 Unsealed tail 3: The deployment MUST read a [Seal Now] invalid-request as a standing defect.
 ```
 
-WHY: two things put an event in the tail — the cadence has not fired, or a seal attempt failed — and a tail that stops draining is an operational alarm, not a silent gap. [Nothing To Seal] is not an alarm. An outage reason is transient and the next firing may clear it; a preconditions reason (wrong-shape keying material, which Tamper Evidence routes here rather than to `invalid-request`) reproduces every firing until Configuration changes; [Recording Failure] means the store refused and the next firing re-seals the same slice. A preconditions reason or `invalid-request` is a page for a human, not something to wait out.
+WHY: two things put an event in the tail — the cadence has not fired, or a seal attempt failed — and a tail that stops draining is an operational alarm, not a silent gap. [Nothing To Seal] is not an alarm. An outage reason is transient and the next firing may clear it; a preconditions reason (wrong-shape keying material, which Tamper Evidence routes here rather than to invalid-request) reproduces every firing until Configuration changes; [Recording Failure] means the store refused and the next firing re-seals the same slice. A preconditions reason or invalid-request is a page for a human, not something to wait out.
 
 ---
 
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind** — Type, Operation, Member, Field or Parameter — with the Type it is a Member of, its Role, and one **Projects** line for every pinned or wire Member, the single canonical lowering token every target casing is derived from by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs). This is a composition, so its concepts are the composed action-wirings, the consolidated read, the derived read over eligible events, the [Audit Record], and its own outcomes and rejections. Backticked rather than carded, because they are reasons or qualifiers under inherited tokens rather than outcomes of their own: `unsealed` and `purged` under `failed-verification(...)`, `partially-purged-coverage` under `unverifiable(...)`, the `(compensation-window)` qualifier, and the reserved references `audit.compensation` and `audit.reconciliation`. The erasure mechanism's two outcome values belong to the deployment-declared mechanism and stay uncarded on the same terms as the constituent tokens; the derived indexes store no truth the constituent stores do not, and the three extraction-pending facts will be carded on Erasure Tombstone's own page when it lands. Constituent operations, inherited outcome tokens, constituent id tokens, the seventeen knobs and the per-act section stay backticked. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind** — Type, Operation, Member, Field or Parameter — with the Type it is a Member of, its Role, and one **Projects** line for every pinned or wire Member, the single canonical lowering token every target casing is derived from by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs). This is a composition, so its concepts are the composed action-wirings, the consolidated read, the derived read over eligible events, the [Audit Record], and its own outcomes and rejections. Backticked rather than carded, because they are reasons or qualifiers under inherited tokens rather than outcomes of their own: `unsealed` and purged under `failed-verification(...)`, partially-purged-coverage under `unverifiable(...)`, the `(compensation-window)` qualifier, and the reserved references `audit.compensation` and `audit.reconciliation`. The erasure mechanism's two outcome values belong to the deployment-declared mechanism and stay uncarded on the same terms as the constituent tokens; the derived indexes store no truth the constituent stores do not, and the three extraction-pending facts will be carded on Erasure Tombstone's own page when it lands. Constituent operations, inherited outcome tokens, constituent id tokens, the seventeen knobs and the per-act section stay backticked. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -1508,55 +1508,55 @@ Term actors: the composition; the deployment; the host; the implementation; the 
 
 Term composing patterns: (named, never constituents) Erasure Tombstone, Seal Lifecycle, Reverse Index, Legal Hold, Defensible Retention, Legacy Import, Policy Reconciliation, Mechanism Registry, Storage Tier, Trusted Timestamping, Compromise Disclosure, Erasure Coordination, Failed-Attempt Log, Schema Evolution, Audit Federation.
 
-Term records: the audit event (Event Log's data field); the attestation; the retention record; the seal (evidence record); the destruction record; the `audit.reconciliation` record; the `audit.compensation` record; the beyond-horizon report; the outcome record; the [Audit Record]; the derived indexes — `event_to_attestation`, `event_to_retention`, `event_to_sequence`, `seal_coverage`, `sealed_through`, `compensated_attestations`, `reported_beyond_horizon`; `erasure_outcomes`.
+Term records: the audit event (Event Log's data field); the attestation; the retention record; the seal (evidence record); the destruction record; the `audit.reconciliation` record; the `audit.compensation` record; the beyond-horizon report; the outcome record; the [Audit Record]; the derived indexes — event_to_attestation, event_to_retention, event_to_sequence, seal_coverage, sealed_through, compensated_attestations, reported_beyond_horizon; erasure_outcomes.
 
 Term record verbs: serve, call, read, delete, evaluate, write, dispose, seal, expose, alert, surface, retry, sit, consult, treat, claim, modify, remove, populate, classify, take, re-key, resolve, ask, key, overlap, carry, flag, record, address, land, close, compute, keep, filter, cover, set, place, hold, retain, select, declare, pass, inspect, log, wire, rewrite, leave, report, name, evidence, measure, run, govern, provision, decide, hand, apply, size, widen, exclude, supply, release, skip, block, issue, implement, complete, re-read, start, contain, validate, normalize, compare, consume, store, count, yield, present, canonicalize, return, adopt, guess, fall, depend, defer, invoke, advance, re-seal, change, produce, verify, assemble, fabricate, ride, fold, promote, route, proceed, locate, map, re-derive, share, reject, re-offer, re-drive, invent, resume, add, destroy, repair, remain, conclude, grow, suspend, stay, append, match, exist, condition, reconcile, commit, bound, answer, fetch, reserve, stand, obtain, confirm, enumerate, build, fail, walk, step, discard, regenerate, expect, identify, clear, specify, provide, invalidate, adjudicate, rotate, serialize, require, protect, persist, own, monitor, examine, test, delegate, compose, reference, raise, make, discharge.
 
-Term cited: `append`, `read`, `event_id`, `sequence_number`, `recorded_at`, `data`, `next_sequence_number`, `invalid-query`, `invalid-payload`, `storage-failure`: Event Log. `attest`, `verify`, `attestation_id`, `action_ref`, `actor_ref`, `attested_at`, `proof`, `invalid-credential`, `invalid-request`, `not-known`, `registry-unavailable`: Actor Identity. `place_under_retention`, `purge`, `purge_eligible`, `retention_id`, `policy_ref`, `record_ref`, `retention_until`, `purge_deadline`, `purged_at`, `retention-period-not-elapsed`, `not-retained`, `invalid-policy`, `policy-not-found`: Retention Window. `seal`, `evidence_id`, `record_set_ref`, `sealed_at`, `anchored_at`, `mechanism-failure(reason)`, `mechanism-verification-unavailable`, `seal-record-set-mismatch`, `seal-proof-invalid`: Tamper Evidence.
+Term cited: append, read, event_id, sequence_number, recorded_at, data, next_sequence_number, invalid-query, invalid-payload, storage-failure: Event Log. attest, verify, attestation_id, action_ref, actor_ref, attested_at, proof, invalid-credential, invalid-request, not-known, registry-unavailable: Actor Identity. place_under_retention, purge, purge_eligible, retention_id, policy_ref, record_ref, retention_until, purge_deadline, purged_at, retention-period-not-elapsed, not-retained, invalid-policy, policy-not-found: Retention Window. seal, evidence_id, record_set_ref, sealed_at, anchored_at, `mechanism-failure(reason)`, mechanism-verification-unavailable, seal-record-set-mismatch, seal-proof-invalid: Tamper Evidence.
 
-Term value sets: `retention_state` = Retained | Purged. `seal_cadence` = per-event | interval-based | on-demand. `unsealed_tail_mode` = strict | lenient. `mechanism class` = unkeyed | keyed | anchored. erasure outcome = destroyed | destruction-failed(reason). `coverage status` = covered | unsealed tail | records-purged | partially purged. verify outcome = verified | failed-verification(reason) | unverifiable(reason). unverifiable reasons = attestation-registry-unavailable | seal-mechanism-verification-unavailable | partially-purged-coverage. composition-introduced failed-verification reasons = unsealed | purged | attestation-not-known | seal-not-known, plus the constituents' reasons prefixed `attestation-` and `seal-`. `subject` = attestation | event. `disposition` = beyond-horizon. `cascade-failure` step = seal | step-1 | step-2 | step-3. `recording-failure` step = step-3 | step-4. classification = derived index | extraction-pending. `section_kind` = lease | death-detected. `lease` = live | expired. `Legal Hold` = composed | absent. retention status on the audit record = the retention record's state | unresolved (compensation window). attribution on the audit record = the surviving fields | not-recoverable. reserved references = audit.compensation | audit.reconciliation. `event standing` = retained | lawfully destroyed.
+Term value sets: retention_state = Retained | Purged. seal_cadence = per-event | interval-based | on-demand. unsealed_tail_mode = strict | lenient. mechanism class = unkeyed | keyed | anchored. erasure outcome = destroyed | destruction-failed(reason). coverage status = covered | unsealed tail | records-purged | partially purged. verify outcome = verified | failed-verification(reason) | unverifiable(reason). unverifiable reasons = attestation-registry-unavailable | seal-mechanism-verification-unavailable | partially-purged-coverage. composition-introduced failed-verification reasons = unsealed | purged | attestation-not-known | seal-not-known, plus the constituents' reasons prefixed `attestation-` and `seal-`. subject = attestation | event. disposition = beyond-horizon. cascade-failure step = seal | step-1 | step-2 | step-3. recording-failure step = step-3 | step-4. classification = derived index | extraction-pending. section_kind = lease | death-detected. lease = live | expired. `Legal Hold` = composed | absent. retention status on the audit record = the retention record's state | unresolved (compensation window). attribution on the audit record = the surviving fields | not-recoverable. reserved references = audit.compensation | audit.reconciliation. event standing = retained | lawfully destroyed.
 
-Term bounds: `compensation_window`, `record_action_completion_bound`, `purge_completion_bound`, `compensation_closure_latency`, `clock_offset_allowance`, `payload_cap`, `reference_length_cap`, `attestation_id_width`.
+Term bounds: compensation_window, record_action_completion_bound, purge_completion_bound, compensation_closure_latency, clock_offset_allowance, payload_cap, reference_length_cap, attestation_id_width.
 
-Term cadences: `seal_cadence`, `reconciliation_cadence`.
+Term cadences: seal_cadence, reconciliation_cadence.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-11); `(compensation-window)` — carried beside a [Verify Record] outcome on a separate channel.
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); `(compensation-window)` — carried beside a [Verify Record] outcome on a separate channel.
 
-Term terms: (each declared where it is used) `audit log`, `attestation store`, `retention store`, `seal store`, `surviving fields`, `open-upper-bound read`, `full enumeration`, `derived index`, `extraction-pending`, `rebuild-on-miss`, `retention_state`, `live`, `purged`, `purged_events`, `covering seal`, `closed entry`, `sealed_through`, `unsealed tail`, `reconciled`, `resolved policy`, `time arm`, `chained mechanism`, `verify-time presentation`, `mechanism class`, `independently trusted substrate`, `standing false negative`, `shredding-class`, `tombstone-by-mutation`, `Event Log's data field`, `finding's creation`, `serialized envelope`, `reference headroom`, `whole closure`, `section_kind`, `act's completion bound`, `lease`, `holder`, `proceed as landed`, `pre-check`, `closure_sum`, `full constructed payload`, `reserved namespace`, `reconciliation path`, `subject-kind discriminator`, `read-back`, `high-water mark`, `mid-record expiry`, `non-storage refusal`, `slice`, `tail`, `audit record`, `coverage status`, `pair`, `partly-purged coverage`, `Legal Hold`, `hold`, `mid-cascade expiry`, `cascade-failure(step-3)`, `completed cascade`, `divergence`, `record_edge`, `purge_edge`, `horizon`, `purge age`, `attestation age`, `event age`, `binding set`, `orphan`, `true miss`, `owed narration`, `quiescence`, `recorded through [Record Action]`, `audit edge`, `composition-built query`, `insert-only map`, `closed-state marker`, `reconciled policy`, `held section`, `truth-bearing write`, `who / what / when`, `seal disposal`, `re-sealing`, `store outage`, `compliance alert`, `verification surface outage`, `event standing`, `residual finding`, `seal stamps`, `extraction-pending fact`, `invocation`, `later write`, `malformed reference`, `step-3 storage failure`, `step-4 storage failure`, `standing finding`, `open entry`, `external evidence`; and `now`, the seam-injected reading (Clock source 1; `execution-contract.md` §Logic confinement).
+Term terms: (each declared where it is used) audit log, attestation store, retention store, seal store, surviving fields, open-upper-bound read, full enumeration, derived index, extraction-pending, rebuild-on-miss, retention_state, live, purged, purged_events, covering seal, closed entry, sealed_through, unsealed tail, reconciled, resolved policy, time arm, chained mechanism, verify-time presentation, mechanism class, independently trusted substrate, standing false negative, shredding-class, tombstone-by-mutation, `Event Log's data field`, `finding's creation`, serialized envelope, reference headroom, whole closure, section_kind, `act's completion bound`, lease, holder, proceed as landed, pre-check, closure_sum, full constructed payload, reserved namespace, reconciliation path, subject-kind discriminator, read-back, high-water mark, mid-record expiry, non-storage refusal, slice, tail, audit record, coverage status, pair, partly-purged coverage, `Legal Hold`, hold, mid-cascade expiry, `cascade-failure(step-3)`, completed cascade, divergence, record_edge, purge_edge, horizon, purge age, attestation age, event age, binding set, orphan, true miss, owed narration, quiescence, `recorded through [Record Action]`, audit edge, composition-built query, insert-only map, closed-state marker, reconciled policy, held section, truth-bearing write, `who / what / when`, seal disposal, re-sealing, store outage, compliance alert, verification surface outage, event standing, residual finding, seal stamps, extraction-pending fact, invocation, later write, malformed reference, step-3 storage failure, step-4 storage failure, standing finding, open entry, external evidence; and now, the seam-injected reading (Clock source 1; `execution-contract.md` §Logic confinement).
 
 #### Record Action
 
-The composition's core action: validates the caller's primitives, attests the actor, appends the event, places the retention, links the three in the derived indexes, and under per-event cadence fires a seal over the slice the firing cuts. Returns the new `event_id`; `invalid-credential` or `invalid-request` before anything is recorded; [Recording Failure] carrying the step where a store refused after the attestation, or where a lease host's terminus fell between steps 2 and 4 — an orphan attestation at `step-3`, an unretained event at `step-4`, found by different halves of the scan. A seal failure at step 6 does not reject the call.
+The composition's core action: validates the caller's primitives, attests the actor, appends the event, places the retention, links the three in the derived indexes, and under per-event cadence fires a seal over the slice the firing cuts. Returns the new event_id; invalid-credential or invalid-request before anything is recorded; [Recording Failure] carrying the step where a store refused after the attestation, or where a lease host's terminus fell between steps 2 and 4 — an orphan attestation at step-3, an unretained event at step-4, found by different halves of the scan. A seal failure at step 6 does not reject the call.
 
 Kind: Operation
 
 #### Seal Now
 
-The action that seals the current unsealed tail — under interval or on-demand cadence, from [Record Action] step 6 under per-event cadence, and from [Purge Event] step 0 — over the slice, where `tail` is what the open-upper-bound read returns; records the coverage and advances `sealed_through`. Cuts new coverage only. Returns the `evidence_id`, [Nothing To Seal], [Mechanism Failure] with the mechanism's reason, `invalid-request`, or [Recording Failure]; under all of them the events stay in the tail and the next firing retries.
+The action that seals the current unsealed tail — under interval or on-demand cadence, from [Record Action] step 6 under per-event cadence, and from [Purge Event] step 0 — over the slice, where tail is what the open-upper-bound read returns; records the coverage and advances sealed_through. Cuts new coverage only. Returns the evidence_id, [Nothing To Seal], [Mechanism Failure] with the mechanism's reason, invalid-request, or [Recording Failure]; under all of them the events stay in the tail and the next firing retries.
 
 Kind: Operation
 
 #### Read Record
 
-The consolidated read: resolves the `event_id` through `event_to_sequence`, joins the event, its attestation reference, its retention record and its coverage status into one [Audit Record], or returns `not-known`. For a purged event reads the *who / what / when* from the attestation record through the pair. Returning the covering range is what tells a [Verify Record] caller what to present. A pure projection; it presents, [Verify Record] proves.
+The consolidated read: resolves the event_id through event_to_sequence, joins the event, its attestation reference, its retention record and its coverage status into one [Audit Record], or returns not-known. For a purged event reads the *who / what / when* from the attestation record through the pair. Returning the covering range is what tells a [Verify Record] caller what to present. A pure projection; it presents, [Verify Record] proves.
 
 Kind: Operation
 
 #### Verify Record
 
-The four-way verification query: retention state first, then log presence, then the attestation, then the covering seal. Returns `verified`, a prefixed `failed-verification(reason)` (including `purged`), [Unverifiable], or `not-known`; any of the first three may carry `(compensation-window)` on a separate channel. The record set re-presented is always the payloads of the covering seal's range.
+The four-way verification query: retention state first, then log presence, then the attestation, then the covering seal. Returns `verified`, a prefixed `failed-verification(reason)` (including purged), [Unverifiable], or not-known; any of the first three may carry `(compensation-window)` on a separate channel. The record set re-presented is always the payloads of the covering seal's range.
 
 Kind: Operation
 
 #### Purge Eligible
 
-The derived read returning the `event_id`s eligible for the cascade: delegates to Retention Window's read-time `purge_eligible` projection and maps each retention to its event; evaluates no clock, has no rejection arm. Distinct from `RetentionWindow.purge_eligible`, the constituent projection over `retention_id`s.
+The derived read returning the event_id values eligible for the cascade: delegates to Retention Window's read-time purge_eligible projection and maps each retention to its event; evaluates no clock, has no rejection arm. Distinct from `RetentionWindow.purge_eligible`, the constituent projection over retention_id values.
 
 Kind: Operation
 
 #### Purge Event
 
-The action that coordinates the cascade for a retention-elapsed event: seals the event if it is in the tail, requires the retention to be resolved, purges the retention record, writes the destruction record, and delegates destruction of Event Log's `data` field and the attestation's `proof` to the shredding-class `erasure_mechanism`, branching on the reported outcome. Destroys nothing itself, disposes of no seal, re-seals nothing. Returns `ok`, `not-known`, [Not Eligible], [Retention Unresolved], [Cascade Failure] carrying the step, or — where a Legal Hold is composed — [Under Legal Hold].
+The action that coordinates the cascade for a retention-elapsed event: seals the event if it is in the tail, requires the retention to be resolved, purges the retention record, writes the destruction record, and delegates destruction of Event Log's data field and the attestation's proof to the shredding-class `erasure_mechanism`, branching on the reported outcome. Destroys nothing itself, disposes of no seal, re-seals nothing. Returns ok, not-known, [Not Eligible], [Retention Unresolved], [Cascade Failure] carrying the step, or — where a Legal Hold is composed — [Under Legal Hold].
 
 Kind: Operation
 
@@ -1568,7 +1568,7 @@ Kind: Type
 
 #### Recording Failure
 
-The composition's rejection for *a store refused the write*, carrying the step: from [Record Action] on any constituent `storage-failure` — nothing committed at step 2, a partial state after the attestation at step 3 or 4 — and as a lease host's terminus between steps 2 and 4; from [Seal Now] when the seal store would not persist a computed proof. The surface that failed is a store, not a mechanism.
+The composition's rejection for *a store refused the write*, carrying the step: from [Record Action] on any constituent storage-failure — nothing committed at step 2, a partial state after the attestation at step 3 or 4 — and as a lease host's terminus between steps 2 and 4; from [Seal Now] when the seal store would not persist a computed proof. The surface that failed is a store, not a mechanism.
 
 Kind:      Member
 Member of: the record-action and seal rejections
@@ -1586,7 +1586,7 @@ Projects:  nothing-to-seal
 
 #### Mechanism Failure
 
-The composition's rejection from [Seal Now] when the mechanism could not compute a proof, carrying the constituent's `(reason)` unchanged: a transient outage or a standing preconditions failure, told apart by the reason. Not a malformed request (`invalid-request`) and not a store refusal ([Recording Failure]). No coverage entry is written and `sealed_through` does not move.
+The composition's rejection from [Seal Now] when the mechanism could not compute a proof, carrying the constituent's `(reason)` unchanged: a transient outage or a standing preconditions failure, told apart by the reason. Not a malformed request (invalid-request) and not a store refusal ([Recording Failure]). No coverage entry is written and sealed_through does not move.
 
 Kind:      Member
 Member of: the seal rejection
@@ -1595,7 +1595,7 @@ Projects:  mechanism-failure
 
 #### Cascade Failure
 
-The composition's rejection from [Purge Event] when a store or the seal mechanism refuses mid-cascade, carrying the step: `seal` and `step-1` leave nothing changed and the event on [Purge Eligible]'s list; `step-2` and `step-3` leave the retention *Purged* over an incomplete cascade, invisible to [Purge Eligible] and re-driven by the reconciliation scan. On a lease host, the cascade's terminus after step 1.
+The composition's rejection from [Purge Event] when a store or the seal mechanism refuses mid-cascade, carrying the step: seal and step-1 leave nothing changed and the event on [Purge Eligible]'s list; step-2 and step-3 leave the retention *Purged* over an incomplete cascade, invisible to [Purge Eligible] and re-driven by the reconciliation scan. On a lease host, the cascade's terminus after step 1.
 
 Kind:      Member
 Member of: the purge rejection
@@ -1613,7 +1613,7 @@ Projects:  not-eligible
 
 #### Retention Unresolved
 
-The composition's rejection from [Purge Event] step 0½ when the `event_id` resolves to a log entry but to no retention record — the compensation-window state of Invariant 2's liveness arm. Nothing to purge; the remedy is the reconciliation path. Distinct from `not-known` and from [Not Eligible].
+The composition's rejection from [Purge Event] step 0½ when the event_id resolves to a log entry but to no retention record — the compensation-window state of Invariant 2's liveness arm. Nothing to purge; the remedy is the reconciliation path. Distinct from not-known and from [Not Eligible].
 
 Kind:      Member
 Member of: the purge rejection
@@ -1631,7 +1631,7 @@ Projects:  under-legal-hold
 
 #### Unverifiable
 
-The composition's [Verify Record] outcome for *verification could not be performed*: two availability reasons, retried when the surface returns, and `partially-purged-coverage`, standing for the rest of the event's retained lifetime. Nothing is known to be wrong with the record.
+The composition's [Verify Record] outcome for *verification could not be performed*: two availability reasons, retried when the surface returns, and partially-purged-coverage, standing for the rest of the event's retained lifetime. Nothing is known to be wrong with the record.
 
 Kind:      Member
 Member of: the verify-record outcome
@@ -1658,7 +1658,7 @@ Projects:  unverifiable
 
 ## Standards references
 
-The composition is the structural form of what every major audit regime requires: SOX §404 (internal control over financial reporting) and §802 (records retention); HIPAA §164.312(b) (audit controls) and §164.530(j) (documentation retention); PCI DSS Requirement 10 — 10.2, 10.3, 10.5, 10.7; 21 CFR Part 11 (ALCOA and ALCOA+); SEC Rule 17a-4 and FINRA Rule 4511 (composing with Storage Tier); ISO/IEC 27001 §A.12.4.1–4 (the clock-synchronization control via Trusted Timestamping); GDPR Articles 30 and 32; eIDAS (EU 910/2014) qualified preservation, with `anchored_at` from a qualified TSA as the time anchor; DoD 5015.02-STD; NIST SP 800-92; Basel III BCBS 239. The four atoms carry their own standards inheritance. It inherits from Daniel Jackson, *The Essence of Software* — a composition is the wiring of freestanding concepts, not a new primitive; from the audit-grade systems literature — COSO, COBIT and SOC 2 name attribution, integrity, retention and event recording as the four pillars the frameworks assume but never specify; and from Schneier and Kelsey 1999, *Secure Audit Logs to Support Computer Forensics*, the original formal framing of cryptographically protected audit logs.
+The composition is the structural form of what every major audit regime requires: SOX §404 (internal control over financial reporting) and §802 (records retention); HIPAA §164.312(b) (audit controls) and §164.530(j) (documentation retention); PCI DSS Requirement 10 — 10.2, 10.3, 10.5, 10.7; 21 CFR Part 11 (ALCOA and ALCOA+); SEC Rule 17a-4 and FINRA Rule 4511 (composing with Storage Tier); ISO/IEC 27001 §A.12.4.1–4 (the clock-synchronization control via Trusted Timestamping); GDPR Articles 30 and 32; eIDAS (EU 910/2014) qualified preservation, with anchored_at from a qualified TSA as the time anchor; DoD 5015.02-STD; NIST SP 800-92; Basel III BCBS 239. The four atoms carry their own standards inheritance. It inherits from Daniel Jackson, *The Essence of Software* — a composition is the wiring of freestanding concepts, not a new primitive; from the audit-grade systems literature — COSO, COBIT and SOC 2 name attribution, integrity, retention and event recording as the four pillars the frameworks assume but never specify; and from Schneier and Kelsey 1999, *Secure Audit Logs to Support Computer Forensics*, the original formal framing of cryptographically protected audit logs.
 
 ---
 
@@ -1686,7 +1686,7 @@ open:
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/audit-trail.md`.
 
 - **2026-09-11 — Rewritten in GRACE lang v0.31; nothing but language changed.** *Chose:* labelled rules in fenced blocks, rationale under `WHY:`, terms declared where they are used, the Ledger and the invariant numbers unchanged; the instance-start conditions given one owner (§*Instance start*), the class boundary and the scan's halves cited by label from every site that used to restate them. *Over:* the prose spec. *Because:* the migration plan — the corpus is being rewritten in the language, and a spec whose obligations have one owner each is what the reverse diff reads.
-- **2026-08-30 — The reconciliation is one writer per act, bounded at both edges, and the scan writes its intent before its repair.** *Chose:* a per-act critical section keyed by the act's id (`attestation_id` for a record action, `event_id` for a cascade), declared as an instance capability requirement with lease semantics, held by the invocation from its first write and taken by every scan half before its pre-check; two completion bounds (`record_action_completion_bound`, `purge_completion_bound`) below which no half examines anything and at which the invocation yields; a horizon at which the second half reports rather than re-compensates, once, behind a `reported_beyond_horizon` marker; `compensation_closure_latency` and `clock_offset_allowance` declared, the window measured from the finding's creation, the three-term inequality checked at start; the scan reading its own `now` once per run; `audit.reconciliation` written one record per finding before the act it announces, under a declared `reconciliation_operator_credential`; the scan as the sole writer of an orphan's compensation. *Over:* a third half whose placement raced the invocation's own step 4 under no shared key; halves with no lower edge, compensating attestations and events whose [Record Action] was still between two steps; a window measured from detection and an inequality with one term; a findings record of unbounded size and unstated position. *Because:* two writers over one act land two records the seal protects forever, a leg with no lower edge reads work in flight as an orphan and corrects it, and a liveness promise is arithmetic or it is nothing (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *Liveness is arithmetic*, *A stamp from another seam never decides a write alone*, *An outcome is sized before the intent*, and *Capability provenance*; with §*A reconciliation is bounded at both ends* and §*Recovery commits under a declared service identity*). The four contract-shaped sites — `invalid-request`'s position, `recording-failure(step-4)`'s `event_id`, the Event Log durability obligation, Invariant 8's abandoned terminus — are routed as open lines rather than fixed, because every composer transcribes them. *Round 2, same day:* the inequality gained its skew term and its closure latency (the whole closure, intent through compensation, or a cascade round-trip); the per-act section gained its non-lease branch — a leg skips a held act and never blocks, a host that cannot detect death must lease, and the non-lease terminus is *proceed as landed* behind step 4's pre-check; the lease terminus is confined to steps 2–4 inclusive, an invocation past step 4 completing its index writes; the beyond-horizon report and the recording-half detector both gained the horizon; and every *all succeed or none* sentence over un-withdrawable writes was restated as ordered writes plus compensation. The five *until a `destroyed` outcome lands* loops are bounded by open line 2026-08-30-d rather than given a terminus here.
+- **2026-08-30 — The reconciliation is one writer per act, bounded at both edges, and the scan writes its intent before its repair.** *Chose:* a per-act critical section keyed by the act's id (attestation_id for a record action, event_id for a cascade), declared as an instance capability requirement with lease semantics, held by the invocation from its first write and taken by every scan half before its pre-check; two completion bounds (record_action_completion_bound, purge_completion_bound) below which no half examines anything and at which the invocation yields; a horizon at which the second half reports rather than re-compensates, once, behind a reported_beyond_horizon marker; compensation_closure_latency and clock_offset_allowance declared, the window measured from the finding's creation, the three-term inequality checked at start; the scan reading its own now once per run; `audit.reconciliation` written one record per finding before the act it announces, under a declared `reconciliation_operator_credential`; the scan as the sole writer of an orphan's compensation. *Over:* a third half whose placement raced the invocation's own step 4 under no shared key; halves with no lower edge, compensating attestations and events whose [Record Action] was still between two steps; a window measured from detection and an inequality with one term; a findings record of unbounded size and unstated position. *Because:* two writers over one act land two records the seal protects forever, a leg with no lower edge reads work in flight as an orphan and corrects it, and a liveness promise is arithmetic or it is nothing (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *Liveness is arithmetic*, *A stamp from another seam never decides a write alone*, *An outcome is sized before the intent*, and *Capability provenance*; with §*A reconciliation is bounded at both ends* and §*Recovery commits under a declared service identity*). The four contract-shaped sites — invalid-request's position, `recording-failure(step-4)`'s event_id, the Event Log durability obligation, Invariant 8's abandoned terminus — are routed as open lines rather than fixed, because every composer transcribes them. *Round 2, same day:* the inequality gained its skew term and its closure latency (the whole closure, intent through compensation, or a cascade round-trip); the per-act section gained its non-lease branch — a leg skips a held act and never blocks, a host that cannot detect death must lease, and the non-lease terminus is *proceed as landed* behind step 4's pre-check; the lease terminus is confined to steps 2–4 inclusive, an invocation past step 4 completing its index writes; the beyond-horizon report and the recording-half detector both gained the horizon; and every *all succeed or none* sentence over un-withdrawable writes was restated as ordered writes plus compensation. The five *until a destroyed outcome lands* loops are bounded by open line 2026-08-30-d rather than given a terminus here.
 - **2026-08-24 — Seal supersession is extracted to a forthcoming Seal Lifecycle composing pattern, not absorbed.** *Chose:* remove the Reseal action, `superseded_by`, `reseal_on_purge` and every current-seal qualification from the canonical composition; name Seal Lifecycle as owner of re-sealing partly purged seals, mechanism rotation, and supersession bookkeeping. *Over:* keeping the mechanism added at Final Critique 6. *Because:* which seal is current over a range two seals cover is new truth no constituent store carries and no rebuild replays — it clears the extraction gates, and it had spread through three invariants, three checks and four cards.
 
 NOTE: End of Audit Trail.

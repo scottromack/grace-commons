@@ -74,7 +74,7 @@ Deleted: State 9. Non-goal 3 owns it.
 Deleted: State 10. Non-goal 6 owns it.
 ```
 
-Term status: `active` | `revoked` — in force, or withdrawn and terminal.
+Term status: active | revoked — in force, or withdrawn and terminal.
 
 Term granted_at: the instant the grant was recorded — a [Granted At].
 
@@ -140,19 +140,19 @@ Deleted: Operation 24. `execution-contract.md` §Logic confinement owns it.
 Deleted: Operation 25. `execution-contract.md` §Logic confinement owns it.
 ```
 
-Term pair: one `subject_ref` with one `action_scope` — what [Check] matches over.
+Term pair: one subject_ref with one action_scope — what [Check] matches over.
 
-Term live at an instant: `granted_at` at or before the instant, and `revoked_at` either absent or after the instant — the reconstruction an auditor runs over stored fields, never over `status`, which carries the present rather than the past.
+Term live at an instant: granted_at at or before the instant, and revoked_at either absent or after the instant — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the grant store |
 |---|---|---|---|
-| [Grant] | refs present, store accepts | `grant_id` | one grant lands in [Active] (Operation 1, Operation 2) |
+| [Grant] | refs present, store accepts | grant_id | one grant lands in [Active] (Operation 1, Operation 2) |
 | [Grant] | empty or whitespace-only ref, or over the cap | [Invalid Request] | none (Operation 4, Operation 5, String 6) |
-| [Grant] | the pair already has a live grant | `grant_id` | a second, independent grant lands (Operation 6, Identity 7) |
+| [Grant] | the pair already has a live grant | grant_id | a second, independent grant lands (Operation 6, Identity 7) |
 | [Grant] | store refuses the write | [Storage Failure] | none — no partial record (Operation 7, Operation 8) |
-| [Revoke] | id names a live grant | `ok` | [Active] → [Revoked], `revoked_at` stamped (Operation 11, State 5) |
+| [Revoke] | id names a live grant | ok | [Active] → [Revoked], revoked_at stamped (Operation 11, State 5) |
 | [Revoke] | id names a revoked grant | [Not Active] | none — and the answer a retry of a landed revoke gets (Operation 10) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 9) |
 | [Revoke] | store refuses the write | [Storage Failure] | none — **the subject keeps the access** (Operation 13 through 15) |
@@ -160,7 +160,7 @@ The case space, and the rule that owns each case:
 | [Check] | nothing matches, over-length argument included | [Denied] | none (Operation 18, String 7) |
 
 WHY:
-The two storage failures are not the same failure. A failed [Grant] leaves a record missing, which the caller discovers the next time the subject is denied; a failed [Revoke] leaves a subject holding access the organization has decided to remove, and a caller that reads it as *probably fine* has left the door open (Operation 15, Revoke persistence 1 through 4). [Check] refuses nothing: a malformed argument matches no grant, and the correct answer to *may this actor do this thing* is then `denied` rather than an error the call site has to interpret (Operation 19, String 7).
+The two storage failures are not the same failure. A failed [Grant] leaves a record missing, which the caller discovers the next time the subject is denied; a failed [Revoke] leaves a subject holding access the organization has decided to remove, and a caller that reads it as *probably fine* has left the door open (Operation 15, Revoke persistence 1 through 4). [Check] refuses nothing: a malformed argument matches no grant, and the correct answer to *may this actor do this thing* is then denied rather than an error the call site has to interpret (Operation 19, String 7).
 
 ### Invariants
 
@@ -222,23 +222,23 @@ The same atom, five domains, identical mechanic.
 
 ### Banking — segregation of duties on high-value transfers
 
-Regulatory policy requires that no single employee can both initiate and approve a wire transfer above $25,000. Two grants are issued at onboarding: `grant(teller_t9, initiate:transfer) → grant_id g1` and `grant(supervisor_s4, approve:transfer) → grant_id g2`. When teller_t9 attempts to approve their own wire, the system calls `permitted(teller_t9, approve:transfer)` — `denied`. Only supervisor_s4 holds an active grant covering `approve:transfer`. SOX (Sarbanes-Oxley Act) requires this segregation to be demonstrable from records; the grant store is that demonstration.
+Regulatory policy requires that no single employee can both initiate and approve a wire transfer above $25,000. Two grants are issued at onboarding: `grant(teller_t9, initiate:transfer) → grant_id g1` and `grant(supervisor_s4, approve:transfer) → grant_id g2`. When teller_t9 attempts to approve their own wire, the system calls `permitted(teller_t9, approve:transfer)` — denied. Only supervisor_s4 holds an active grant covering `approve:transfer`. SOX (Sarbanes-Oxley Act) requires this segregation to be demonstrable from records; the grant store is that demonstration.
 
 ### Healthcare — HIPAA minimum necessary access
 
-A hospitalist physician is granted access to records for patients under their direct care: `grant(dr_chen, records:ward-7-patients) → g14`. A billing clerk holds a narrower grant: `grant(clerk_b3, records:billing-fields-only) → g22`. When the billing clerk attempts to open a full patient chart, `permitted(clerk_b3, records:ward-7-patients)` returns `denied`. When Dr. Chen's patient is discharged and transferred, the hospitalist grant is revoked: `revoke(g14)`. Subsequent `permitted` queries for Dr. Chen return `denied` for that ward's records. HIPAA (US Health Insurance Portability and Accountability Act) §164.312(a)(1) requires access controls that limit access to the minimum necessary; the grant store is the audit surface.
+A hospitalist physician is granted access to records for patients under their direct care: `grant(dr_chen, records:ward-7-patients) → g14`. A billing clerk holds a narrower grant: `grant(clerk_b3, records:billing-fields-only) → g22`. When the billing clerk attempts to open a full patient chart, `permitted(clerk_b3, records:ward-7-patients)` returns denied. When Dr. Chen's patient is discharged and transferred, the hospitalist grant is revoked: `revoke(g14)`. Subsequent permitted queries for Dr. Chen return denied for that ward's records. HIPAA (US Health Insurance Portability and Accountability Act) §164.312(a)(1) requires access controls that limit access to the minimum necessary; the grant store is the audit surface.
 
 ### Payments — PCI DSS restricted cardholder data access
 
-PCI DSS (Payment Card Industry Data Security Standard — the card networks' mandatory security rules for handling cardholder data) Requirement 7 mandates that access to cardholder data be restricted to individuals whose job requires it. A fraud analyst is granted access: `grant(analyst_a6, cardholder-data:read) → g31`. A customer service representative is not granted this scope; `permitted(rep_r12, cardholder-data:read)` returns `denied`. When the analyst rotates teams, the grant is revoked: `revoke(g31)`. A QSA (Qualified Security Assessor — a PCI-certified auditor) audit calls `permitted` for every employee against the cardholder-data scope and expects to see `denied` for all but the explicitly granted staff; the revocation record shows when access was removed.
+PCI DSS (Payment Card Industry Data Security Standard — the card networks' mandatory security rules for handling cardholder data) Requirement 7 mandates that access to cardholder data be restricted to individuals whose job requires it. A fraud analyst is granted access: `grant(analyst_a6, cardholder-data:read) → g31`. A customer service representative is not granted this scope; `permitted(rep_r12, cardholder-data:read)` returns denied. When the analyst rotates teams, the grant is revoked: `revoke(g31)`. A QSA (Qualified Security Assessor — a PCI-certified auditor) audit calls permitted for every employee against the cardholder-data scope and expects to see denied for all but the explicitly granted staff; the revocation record shows when access was removed.
 
 ### Legal — role-based document access in a matter
 
-A law firm's document management system grants associates access to documents in matters they are staffed on. `grant(associate_j, documents:matter-2024-91) → g55`. A partner on a different matter is not staffed: `permitted(partner_k, documents:matter-2024-91)` → `denied`. When the associate is rolled off the matter, `revoke(g55)` — subsequent access denied. Opposing counsel's discovery request asks the firm to demonstrate who had access to the matter documents and when access was withdrawn; the grant store provides the timeline.
+A law firm's document management system grants associates access to documents in matters they are staffed on. `grant(associate_j, documents:matter-2024-91) → g55`. A partner on a different matter is not staffed: `permitted(partner_k, documents:matter-2024-91)` → denied. When the associate is rolled off the matter, `revoke(g55)` — subsequent access denied. Opposing counsel's discovery request asks the firm to demonstrate who had access to the matter documents and when access was withdrawn; the grant store provides the timeline.
 
 ### Source control — branch protection in regulated software
 
-An FDA-regulated (US Food and Drug Administration — the federal agency regulating drugs and medical devices) medical-device team restricts merge access to the `release` branch. `grant(release_engineer_r, branch:release:merge) → g88`. Developers hold only `branch:feature:merge` grants. `permitted(developer_d, branch:release:merge)` → `denied`. When the release engineer changes roles, `revoke(g88)`; a new engineer is issued a fresh grant: `grant(new_release_engineer_n, branch:release:merge) → g91`. The FDA's 21 CFR (Code of Federal Regulations — the codification of US federal agency rules) Part 11 software validation requirements are satisfied in part by demonstrating that only authorized personnel can modify the release artifact; the grant store is that demonstration.
+An FDA-regulated (US Food and Drug Administration — the federal agency regulating drugs and medical devices) medical-device team restricts merge access to the `release` branch. `grant(release_engineer_r, branch:release:merge) → g88`. Developers hold only `branch:feature:merge` grants. `permitted(developer_d, branch:release:merge)` → denied. When the release engineer changes roles, `revoke(g88)`; a new engineer is issued a fresh grant: `grant(new_release_engineer_n, branch:release:merge) → g91`. The FDA's 21 CFR (Code of Federal Regulations — the codification of US federal agency rules) Part 11 software validation requirements are satisfied in part by demonstrating that only authorized personnel can modify the release artifact; the grant store is that demonstration.
 
 The mechanic is identical across all five. What differs: the scope vocabulary (account:approve vs. records:ward-7 vs. cardholder-data:read vs. documents:matter vs. branch:release:merge), the lifecycle of grants (long-lived role grants vs. short-lived patient-panel grants), the regulatory consequence of [Denied], and the composing patterns active around it (Actor Identity for grantor attribution, Event Log for access-attempt logging, Retention Window for how long the grant store must be kept).
 
@@ -248,7 +248,7 @@ Three scenarios the atom must survive in regulated contexts:
 
 - **Regulator audit — who has access to what.** A HIPAA auditor asks *"which staff have access to full patient records?"* The auditor queries the grant store for all [Active] grants covering the patient-records scope. The grant store answers from stored fields alone — [Subject Ref], [Action Scope], [Granted At], [Status] — with no recourse to developer narration. Invariants 1, 6, and 7 are the structural answer: evaluation is self-contained; every active grant is observable; absence of a grant means denial.
 - **Disputed access — was this actor permitted at the time of the action?** An actor claims they were not authorized to access a resource at a specific time. The investigator queries the grant store for grants where `subject_ref = actor_ref` and `action_scope = contested_scope` with `granted_at ≤ time_of_action` and (`revoked_at IS NULL OR revoked_at > time_of_action`). The timestamp-based form is preferred over `status = active` because [Status] reflects current state, not historical state — a grant revoked after the time of action has `status = revoked` now but was active then; the timestamp condition captures it correctly. A grant matching those criteria is the structural answer: the actor held an [Active] grant at the time of the action. Invariant 1.1 and Invariant 9.2 are what make the reconstruction answerable from the records; Invariant 9.1's ordering is best-effort under a clock that moves backward, so the reconstruction is as good as the deployment's clock discipline (Capability requirement 2).
-- **Privilege escalation investigation — unauthorized access attempt.** A security incident suggests an actor accessed a resource beyond their grant. The investigator runs the same reconstruction the disputed-access scenario uses — the grants live at the time of the incident (`live at an instant`) — because [Check] answers only about now and the atom offers no query over a past instant (Invariant 6.1, Invariant 9.2). An empty reconstruction confirms no grant was in force — any access that occurred did so by circumventing the authorization surface, which is the security incident's scope, not the atom's. The grant store's integrity determines whether the authorization record can be trusted; composing with Tamper Evidence makes that determination structural.
+- **Privilege escalation investigation — unauthorized access attempt.** A security incident suggests an actor accessed a resource beyond their grant. The investigator runs the same reconstruction the disputed-access scenario uses — the grants live at the time of the incident (live at an instant) — because [Check] answers only about now and the atom offers no query over a past instant (Invariant 6.1, Invariant 9.2). An empty reconstruction confirms no grant was in force — any access that occurred did so by circumventing the authorization surface, which is the security incident's scope, not the atom's. The grant store's integrity determines whether the authorization record can be trusted; composing with Tamper Evidence makes that determination structural.
 
 ---
 
@@ -303,7 +303,7 @@ Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted t
 ```
 
 WHY:
-Roles and attributes are the two shapes people reach for first, and both compose: a role is a name the composing system resolves into grants before it calls, and an attribute policy is a pattern that decides and then grants (Non-goal 1 through 3). Explicit deny is refused on purpose — a deny that overrides an allow needs a precedence rule, and precedence is the part of an authorization system that is wrong in production (Non-goal 6, Invariant 7.1). The binding between the authenticated caller and the `subject_ref` passed to [Check] is the composing system's, and getting it wrong is how a correct authorization atom authorizes the wrong person (Non-goal 13, Non-goal 14).
+Roles and attributes are the two shapes people reach for first, and both compose: a role is a name the composing system resolves into grants before it calls, and an attribute policy is a pattern that decides and then grants (Non-goal 1 through 3). Explicit deny is refused on purpose — a deny that overrides an allow needs a precedence rule, and precedence is the part of an authorization system that is wrong in production (Non-goal 6, Invariant 7.1). The binding between the authenticated caller and the subject_ref passed to [Check] is the composing system's, and getting it wrong is how a correct authorization atom authorizes the wrong person (Non-goal 13, Non-goal 14).
 
 Where the atom breaks down: when the scope vocabulary needs hierarchy or wildcards; when evaluation must reason about the resource's attributes at call time; when a grant must end on its own without anyone revoking it; when the grantor's identity is part of the evaluation rather than beside it.
 
@@ -360,7 +360,7 @@ Revoke persistence 4: A high-assurance deployment MUST raise a security alert on
 ```
 
 WHY:
-The two storage failures have opposite polarity. A failed grant withholds access somebody should have and surfaces as a complaint; a failed revoke leaves access somebody should not have and surfaces as nothing at all. That asymmetry is why the retry is an obligation rather than advice, and why `not-active` on the retry is the good answer rather than an error (Revoke persistence 2, Revoke persistence 3).
+The two storage failures have opposite polarity. A failed grant withholds access somebody should have and surfaces as a complaint; a failed revoke leaves access somebody should not have and surfaces as nothing at all. That asymmetry is why the retry is an obligation rather than advice, and why not-active on the retry is the good answer rather than an error (Revoke persistence 2, Revoke persistence 3).
 
 ## Composition notes
 
@@ -383,19 +383,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the deployment (also: a high-assurance deployment); a composing pattern (also: a pattern); a business caller; a caller; a subject; an auditor; the store; a grant; a status.
 
-Term records: `grant record` — one binding, carrying `grant_id`, `subject_ref`, `action_scope`, `granted_at`, `status` and, once withdrawn, `revoked_at`.
+Term records: grant record — one binding, carrying grant_id, subject_ref, action_scope, granted_at, status and, once withdrawn, revoked_at.
 
 Term record verbs: identify, allocate, supply, reuse, hold, reach, compare, trim, normalize, case-fold, read, stand, carry, stamp, offer, delete, record, answer, refuse, leave, take, write, match, rest, consult, change, move, set, share, shrink, evaluate, expand, model, expire, authenticate, bind, revoke, retry, raise, enumerate, call, guard, succeed, compose, resolve, attest, own, declare, find, reconstruct, commit, exceed.
 
-Term value sets: grant answers grant_id and refuses invalid-request | storage-failure. revoke answers ok and refuses not-known | not-active | storage-failure. permitted answers permitted | denied. `status` = active | revoked.
+Term value sets: grant answers grant_id and refuses invalid-request | storage-failure. revoke answers ok and refuses not-known | not-active | storage-failure. permitted answers permitted | denied. status = active | revoked.
 
-Term bounds: `string cap` (the deployment's bound on a string input's length).
+Term bounds: string cap (the deployment's bound on a string input's length).
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: `grant record`, `live at an instant`, `grant_id`, `subject_ref`, `action_scope`, `seam`, `transition`, `business caller`, `now`, `string cap`, `status`, `granted_at`, `revoked_at`, `pair`.
+Term terms: grant record, live at an instant, grant_id, subject_ref, action_scope, seam, transition, business caller, now, string cap, status, granted_at, revoked_at, pair.
 
 #### Grant
 
@@ -411,7 +411,7 @@ Kind: Operation
 
 #### Check
 
-The read-only behavior a composing pattern invokes before an action to evaluate whether a (subject, scope) pair holds an [Active] grant. It returns [Permitted] if any [Active] grant matches the queried [Subject Ref] and [Action Scope], otherwise [Denied]. It changes nothing and never rejects — both outcomes are first-class results. (Its projected contract lowers the verb to `permitted`, which is also the name of one of its two answers — `permitted(alice, read) → denied` is well-formed and reads oddly; the lowering is recorded here because the rules speak [Check] and the wire speaks `permitted`.)
+The read-only behavior a composing pattern invokes before an action to evaluate whether a (subject, scope) pair holds an [Active] grant. It returns [Permitted] if any [Active] grant matches the queried [Subject Ref] and [Action Scope], otherwise [Denied]. It changes nothing and never rejects — both outcomes are first-class results. (Its projected contract lowers the verb to permitted, which is also the name of one of its two answers — `permitted(alice, read) → denied` is well-formed and reads oddly; the lowering is recorded here because the rules speak [Check] and the wire speaks permitted.)
 
 Kind: Operation
 

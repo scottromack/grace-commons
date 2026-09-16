@@ -126,15 +126,15 @@ Composition state 28: A retention purge MUST cover an orphan attestation under t
 Composition state 29: The composition MUST NOT purge a record.
 ```
 
-Term grant attribution map: `grant_attribution` — the composition's map from a grant's handle to the attestation that authorized the grant's issuance.
+Term grant attribution map: grant_attribution — the composition's map from a grant's handle to the attestation that authorized the grant's issuance.
 
-Term revocation attribution map: `revocation_attribution` — the composition's map from a grant's handle to the attestation that authorized the grant's revocation.
+Term revocation attribution map: revocation_attribution — the composition's map from a grant's handle to the attestation that authorized the grant's revocation.
 
 Term attribution entry: a grant attribution entry OR a revocation attribution entry.
 
 Term orphan log: the composition's append-only operational record of an attestation that landed and whose administrative write did not — the composing system's retry and review surface, never the audit's orphan detection.
 
-Term underlying reason: `grant-storage-failure` | `revocation-storage-failure` | `invalid-request` | `not-known` | `not-active` | `pairing-write-failure`.
+Term underlying reason: grant-storage-failure | revocation-storage-failure | invalid-request | not-known | not-active | pairing-write-failure.
 
 Term orphan attestation: an attestation this composition minted that no attribution entry names.
 
@@ -192,27 +192,27 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 
 Term transition: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
 
-Term grant proposal format: `grant_proposal_format` — the deployment's canonical serialization of `{subject_ref, action_scope, nonce, requested_at}` behind the namespace prefix, which is what an issuance attestation binds the grantor's proof to.
+Term grant proposal format: grant_proposal_format — the deployment's canonical serialization of `{subject_ref, action_scope, nonce, requested_at}` behind the namespace prefix, which is what an issuance attestation binds the grantor's proof to.
 
 Term revocation proposal format: the fixed canonical serialization of `{grant_id, requested_at}` behind the namespace prefix, which is what a revocation attestation binds the revoker's proof to.
 
 Term namespace prefix: the deployment's marker on every proposal this composition issues, by which an auditor tells this composition's attestations from a foreign composing system's in a shared Actor Identity store.
 
-Term issuance completion bound: `issue_grant_completion_bound` — the longest an issuance may take between the invocation's attestation and the invocation's pairing, read against the seam reading the invocation began under.
+Term issuance completion bound: issue_grant_completion_bound — the longest an issuance may take between the invocation's attestation and the invocation's pairing, read against the seam reading the invocation began under.
 
-Term revocation completion bound: `revoke_grant_completion_bound` — the same interval for a single-grant revocation.
+Term revocation completion bound: revoke_grant_completion_bound — the same interval for a single-grant revocation.
 
-Term pair-scoped completion bound: `revoke_permission_completion_bound` — the longest a pair-scoped revocation may take between the invocation's first attestation and the invocation's last pairing, over the largest active set on one pair the deployment sizes for.
+Term pair-scoped completion bound: revoke_permission_completion_bound — the longest a pair-scoped revocation may take between the invocation's first attestation and the invocation's last pairing, over the largest active set on one pair the deployment sizes for.
 
-Term pairing write atomicity: `pairing_write_atomicity` — the instance capability under which the attribution maps sit in the Permissions instance's store and one host transaction encloses the atom's single write and the pairing entry.
+Term pairing write atomicity: pairing_write_atomicity — the instance capability under which the attribution maps sit in the Permissions instance's store and one host transaction encloses the atom's single write and the pairing entry.
 
-Term constituent store durability: `constituent_store_durability` — the instance capability under which a handle a successful attest or grant returned stays readable afterwards.
+Term constituent store durability: constituent_store_durability — the instance capability under which a handle a successful attest or grant returned stays readable afterwards.
 
 Term retention scope: the deployment's declaration of what a purge covers — the pair as one unit, or each store on its own.
 
 Term purge record: the retention layer's own record that a named attestation was lawfully destroyed.
 
-Term clock offset allowance: `clock_offset_allowance` — the declared envelope within which the two constituents' stamps, each written at its own seam, may be compared.
+Term clock offset allowance: clock_offset_allowance — the declared envelope within which the two constituents' stamps, each written at its own seam, may be compared.
 
 Term length cap: the composition's declared maximum length of an opaque argument.
 
@@ -255,14 +255,14 @@ Term blank: a value that is absent, empty, or carrying only whitespace — what 
 
 Term boundary predicate: the composition's own validation of an argument at an action's boundary, judged before any constituent call.
 
-Term opaque argument: `subject_ref` | `action_scope` | `grantor_ref` | `grantor_credential` | `grant_id` | `revoker_ref` | `revoker_credential`.
+Term opaque argument: subject_ref | action_scope | grantor_ref | grantor_credential | grant_id | revoker_ref | revoker_credential.
 
 Term administered opaque argument: an opaque argument an administrative action carries — as against one the evaluation passthrough relays.
 
 WHY:
 Primitive policy 6 through 11 carry one asymmetry the page names rather than hides. Administration inputs are trimmed once at this boundary and the trimmed value is what the constituent stores; the evaluation passthrough is **not** trimmed, by design, because the composition relays that query and does not silently rewrite it. The consequence is exact-match: an evaluation whose subject or scope differs from the stored form only by surrounding whitespace answers denied. Callers normalize as the administration surface does, or accept the miss — and either way the behaviour is stated instead of discovered.
 
-Primitive policy 15 and Primitive policy 16 read the constituent's refusal at the right layer. An `invalid-request` from the attest surface means the proposal *this composition assembled* violated the constituent's request shape — a configuration fault in the proposal format, not something the caller typed — so it is pageable rather than retryable, and the composition surfaces it under its own code because the effective cause is a malformed proposal reference.
+Primitive policy 15 and Primitive policy 16 read the constituent's refusal at the right layer. An invalid-request from the attest surface means the proposal *this composition assembled* violated the constituent's request shape — a configuration fault in the proposal format, not something the caller typed — so it is pageable rather than retryable, and the composition surfaces it under its own code because the effective cause is a malformed proposal reference.
 
 Primitive policy 17 keeps the revocation path honest about what it knows. The composition does not pre-query Permissions before attesting a revocation: the atom's own answer at the revocation step is the authority on whether the grant exists and stands active, and a pre-query would only widen the window between the check and the act while adding a second source for the same fact.
 
@@ -313,17 +313,17 @@ permitted(subject_ref, action_scope)
   answers permitted | denied
 ```
 
-Term grant issuance result: `grant_id` and `attestation_id` — what `issue_grant` answers.
+Term grant issuance result: grant_id and attestation_id — what issue_grant answers.
 
-Term grant revocation result: `ok` and `attestation_id` — what `revoke_grant` answers.
+Term grant revocation result: ok and attestation_id — what revoke_grant answers.
 
-Term permission revocation result: `ok`, `revoked_grant_ids` and `attestation_ids` — what `revoke_permission` answers.
+Term permission revocation result: ok, revoked_grant_ids and attestation_ids — what revoke_permission answers.
 
-Term attribution record: `grant_record`, `issuance_attestation_id`, `issuance_verify_result`, an optional `revocation_attestation_id` and an optional `revocation_verify_result` — what `verify_grant_attribution` answers.
+Term attribution record: grant_record, issuance_attestation_id, issuance_verify_result, an optional revocation_attestation_id and an optional revocation_verify_result — what verify_grant_attribution answers.
 
-Term issuance orphan position: `pre-grant` | `post-grant(grant_id)` — where an issuance attestation was left without its grant: before the grant, or after it carrying the grant_id.
+Term issuance orphan position: pre-grant | `post-grant(grant_id)` — where an issuance attestation was left without its grant: before the grant, or after it carrying the grant_id.
 
-Term revocation orphan position: `pre-revoke` | `post-revoke` — where a revocation attestation was left without its revocation: before it or after it.
+Term revocation orphan position: pre-revoke | post-revoke — where a revocation attestation was left without its revocation: before it or after it.
 
 ```
 Action wiring 1: An issuance MUST assemble the proposal PER the grant proposal format.
@@ -424,7 +424,7 @@ Term enumerated set: the pair's active grants a pair-scoped revocation read at o
 
 Term remaining grants: the enumerated set's members a pair-scoped revocation did not revoke.
 
-Term verify result: `verified` | `failed-verification(reason)` | `not-known` | `not-applicable(purged)`.
+Term verify result: verified | `failed-verification(reason)` | not-known | `not-applicable(purged)`.
 
 Term tamper reading: [Verify Grant Attribution]'s reading of an absent attestation as evidence that the attestation record or the attribution entry was rewritten — sound only where no lawful destruction explains the absence.
 
@@ -433,9 +433,9 @@ Term lawful destruction: a retention layer's purge of an attestation the purge r
 Term forensic finding: an outcome a caller logs and hands to the forensic process rather than handling as a routine lookup.
 
 WHY:
-**The rejection taxonomy is positioned, and Action wiring 34 through 37 are what the positions buy a caller.** `pre-grant` and `pre-revoke` mean nothing administrative committed: the orphan is the attestation alone, and the caller may retry — *must*, on the revoke side, because the subject still holds access. `post-grant` and `post-revoke` mean the constituent write **committed** and its pairing did not: a retry would issue a second grant beside an unattributed one, or meet `not-active` and leave another orphan. Under the declared pairing-write atomicity only the `pre-` positions are reachable; the `post-` positions are the partial a host that does not honour the capability leaves, ordered and never absent, and [Verify Grant Attribution] is where they surface. That is §*A composition's own rejection arm carries the retry bit* applied to a composition whose atomicity is declared rather than assumed.
+**The rejection taxonomy is positioned, and Action wiring 34 through 37 are what the positions buy a caller.** pre-grant and pre-revoke mean nothing administrative committed: the orphan is the attestation alone, and the caller may retry — *must*, on the revoke side, because the subject still holds access. `post-grant` and post-revoke mean the constituent write **committed** and its pairing did not: a retry would issue a second grant beside an unattributed one, or meet not-active and leave another orphan. Under the declared pairing-write atomicity only the `pre-` positions are reachable; the `post-` positions are the partial a host that does not honour the capability leaves, ordered and never absent, and [Verify Grant Attribution] is where they surface. That is §*A composition's own rejection arm carries the retry bit* applied to a composition whose atomicity is declared rather than assumed.
 
-Action wiring 27 through 30 keep a caller-error answer honest about its side effect. `not-known` and `not-active` are the caller's fault and surface the constituent's own code — and each still leaves an orphan attestation standing, because the attestation was written before the constituent was asked. A caller that retries against either is manufacturing orphans, and the page says so rather than letting the discovery happen in an audit.
+Action wiring 27 through 30 keep a caller-error answer honest about its side effect. not-known and not-active are the caller's fault and surface the constituent's own code — and each still leaves an orphan attestation standing, because the attestation was written before the constituent was asked. A caller that retries against either is manufacturing orphans, and the page says so rather than letting the discovery happen in an audit.
 
 **Action wiring 41 through 54 are the pair-scoped action, and what it declines to claim is the load-bearing half.** Each grant is attested, revoked and paired exactly as the single-grant action does, under the one seam reading this invocation carries, so no new attestation shape is minted and the revocation map stays injective. But the pairing-write atomicity is declared over *one* grant's write pair, not over a transaction spanning the set, and this composition does not assume a capability it has not declared — so Action wiring 53 refuses the atomicity claim and Action wiring 51 states the terminal condition as a caller contract instead. The count of grants revoked does not tell the caller the permission is gone; the evaluation answering denied does, and it is the only observable that does, because the enumeration was a point-in-time read. Action wiring 54 is the declared degradation: a grant committed between the enumeration and the last revocation survives the sweep, and the caller's re-check is the remedy. A deployment that wants the first answer to be terminal supplies the section (Capability requirement 31).
 
@@ -569,7 +569,7 @@ Invariant 1.4 and Invariant 6.4 are the honest limit stated twice because a read
 
 **Invariant 7 is enforced by two mechanisms with different jobs, and conflating them was the defect the formal model caught.** *Injectivity* follows from the constituent minting a distinct attestation for every call — even for byte-identical proposals — together with the one-attestation-per-act wiring; that is Invariant 7.4. The nonce buys something else: *proposal-content distinctness*, so two issuances for one pair produce proposal bodies an auditor can tell apart (Invariant 7.5). The prose had argued the nonce as sufficient for injectivity, and the model showed that a mechanism argument does not substitute for a named invariant.
 
-**Invariant 9 promises less than its name and says so in its own text.** It is stated over the **enumerated set** and not over the pair, because the composition serializes nothing across the pair: a grant committed by a concurrent issuance after the enumeration is outside this invocation and outside this invariant. That is why the caller's terminal condition is the evaluation answering denied rather than this invariant holding. Where a deployment supplies the section the two coincide and the first `ok` is terminal; Invariant 9.4 keeps the partial answer from asserting anything about the grants it does not name.
+**Invariant 9 promises less than its name and says so in its own text.** It is stated over the **enumerated set** and not over the pair, because the composition serializes nothing across the pair: a grant committed by a concurrent issuance after the enumeration is outside this invocation and outside this invariant. That is why the caller's terminal condition is the evaluation answering denied rather than this invariant holding. Where a deployment supplies the section the two coincide and the first ok is terminal; Invariant 9.4 keeps the partial answer from asserting anything about the grants it does not name.
 
 Invariant 1 with Invariant 3 gives the *attributable-by-construction* property — the regulator's question has a structural answer for every administered grant rather than a procedural one. Invariant 4 gives the audit timeline its coherence, bounded by the allowance. Invariants 6, 7 and 8 govern the composition's own emergent state, which neither constituent carries at all, and Invariant 5 preserves both constituents underneath.
 
@@ -591,8 +591,8 @@ A hospital's administration console grants a nurse read access to a patient reco
 
 Two managers have independently granted `"analyst_9"` the scope `"ledger:export"`. Both grants are active and both are lawful. An administrator means *this analyst should not have this permission*.
 
-- `revoke_grant(<one handle>, …)` answers `ok` — and `permitted("analyst_9", "ledger:export")` still answers **permitted**. One record is gone; the permission is not. An administrative surface that offered that button as *remove permission* misreported access.
-- `revoke_permission("analyst_9", "ledger:export", "security_lead", <cred>)` enumerates both grants, attests **twice** under one request instant, revokes both, and pairs both. It answers the two handles and the two attestations. `permitted` now answers denied, which is the caller's terminal signal — not the count of two.
+- `revoke_grant(<one handle>, …)` answers ok — and `permitted("analyst_9", "ledger:export")` still answers **permitted**. One record is gone; the permission is not. An administrative surface that offered that button as *remove permission* misreported access.
+- `revoke_permission("analyst_9", "ledger:export", "security_lead", <cred>)` enumerates both grants, attests **twice** under one request instant, revokes both, and pairs both. It answers the two handles and the two attestations. permitted now answers denied, which is the caller's terminal signal — not the count of two.
 - The auditor reads the two revocation attestations, same revoker, same instant, two grants of one pair, and sees **one administrative act** without the composition minting a field to say so.
 
 ### Rejection path — nothing to revoke
@@ -601,7 +601,7 @@ Two managers have independently granted `"analyst_9"` the scope `"ledger:export"
 
 ### Rejection path — a credential that does not validate
 
-`issue_grant(…, grantor_credential = <stale>)` reaches the attest step and Actor Identity refuses. The call answers `invalid-credential` and **no grant is recorded** — the ordering's whole point. Nothing is logged as an orphan, because nothing was attested.
+`issue_grant(…, grantor_credential = <stale>)` reaches the attest step and Actor Identity refuses. The call answers invalid-credential and **no grant is recorded** — the ordering's whole point. Nothing is logged as an orphan, because nothing was attested.
 
 ### Failure path — the orphan the ordering accepts
 
@@ -609,7 +609,7 @@ Two managers have independently granted `"analyst_9"` the scope `"ledger:export"
 
 ### Failure path — the partial a non-honouring host leaves
 
-A deployment does not actually enclose the pairing entry in the grant's transaction. `issue_grant(…)` commits the grant and fails to write the pairing. The call answers `orphan-attestation(post-grant(<handle>))` and logs it in the [Orphan Log] **with the grant's handle**, so the join to the unpaired grant is by key. The caller must **not** retry — a retry would issue a second grant beside an unattributed one. [Verify Grant Attribution] on that handle answers `attribution-inconsistency`, and the operator's disposition is a fresh attested revocation and a fresh attested issuance, with the finding standing in the records.
+A deployment does not actually enclose the pairing entry in the grant's transaction. `issue_grant(…)` commits the grant and fails to write the pairing. The call answers `orphan-attestation(post-grant(<handle>))` and logs it in the [Orphan Log] **with the grant's handle**, so the join to the unpaired grant is by key. The caller must **not** retry — a retry would issue a second grant beside an unattributed one. [Verify Grant Attribution] on that handle answers attribution-inconsistency, and the operator's disposition is a fresh attested revocation and a fresh attested issuance, with the finding standing in the records.
 
 ### Failure path — a lawfully purged attestation
 
@@ -619,7 +619,7 @@ A deployment declares a **per-store** retention scope rather than the pair-scope
 
 **Regulator audit — *who authorized this access, and can you prove it?*** For each grant in scope the examiner reads the grant record, follows the attribution entry to the attestation, and runs the constituent's verification. Invariant 1 makes the lookup succeed for every administered grant; Invariant 3 makes the answer complete without a log or a developer's narration. The examiner consults no source code.
 
-**Disputed grant — *I never authorized that.*** The named grantor disputes an issuance. The attestation binds that grantor to a proposal naming this subject, this scope and this request instant, and the verification either stands or does not. An [Attribution Storage Failure] is the other shape a constituent fault takes here, and it names the attestation write rather than the caller. A `failed-verification` under a rotated credential is a credential-history question rather than a forgery finding — the attribution record is stable, and what moves is whether the registry still holds the material that signed it. That is the Compromise Disclosure pattern's and External check 2's.
+**Disputed grant — *I never authorized that.*** The named grantor disputes an issuance. The attestation binds that grantor to a proposal naming this subject, this scope and this request instant, and the verification either stands or does not. An [Attribution Storage Failure] is the other shape a constituent fault takes here, and it names the attestation write rather than the caller. A failed-verification under a rotated credential is a credential-history question rather than a forgery finding — the attribution record is stable, and what moves is whether the registry still holds the material that signed it. That is the Compromise Disclosure pattern's and External check 2's.
 
 **Breach forensics — *were any grants inserted without attribution?*** The investigator enumerates the Permissions store and, for each grant, looks for its attribution entry. A grant with none, older than the completion bound, is either the non-honouring host's partial or **a write that bypassed this composition entirely** — and the composition cannot tell the two apart from its own records, which is the honest limit Intent states and Composes 19 makes a rule. Telling them apart needs Tamper Evidence over the emergent state and over the grant store. What the composition *does* give the investigator is the complete orphan population from the other direction: every attestation this composition issued that no entry names.
 
@@ -799,7 +799,7 @@ Concurrency 9: A deployment supplying a section keyed by the pair MUST close the
 WHY:
 Concurrency 1 through 3 record the multiplicity as lawful rather than tolerated. Permissions permits several active grants on one pair by construction, and two grantors independently authorizing the same access is the case this composition exists to attribute — so a second grant is a second attributed act, not a duplicate to collapse. A deployment that wants single-issuance semantics composes a deduplication layer in front (Non-goal 10).
 
-Concurrency 4 and Concurrency 5 are where the declared atomicity buys serialization for free. The enclosing transaction serializes on the constituent record it writes, so a second revocation for one grant — a caller retrying after a timeout — observes the committed revocation at its own constituent call and receives `not-active`; no second pairing ever runs against one revocation.
+Concurrency 4 and Concurrency 5 are where the declared atomicity buys serialization for free. The enclosing transaction serializes on the constituent record it writes, so a second revocation for one grant — a caller retrying after a timeout — observes the committed revocation at its own constituent call and receives not-active; no second pairing ever runs against one revocation.
 
 Concurrency 6 through 9 are the declared degradation, stated in the same breath as its remedy. The composition serializes nothing across the pair, so an issuance that commits between the enumeration and the last revocation leaves an active grant the invocation never saw and the evaluation goes on answering permitted with every enumerated grant lawfully revoked. The caller's re-check closes it, and a deployment that needs the first answer to be terminal supplies the section and is told exactly what it buys.
 
@@ -831,15 +831,15 @@ Term record verbs: serve, change, inherit, read, hold, reach, call, select, quer
 
 Term records: empty.
 
-Term bounds: `issuance completion bound` (`issue_grant_completion_bound`), `revocation completion bound` (`revoke_grant_completion_bound`), `pair-scoped completion bound` (`revoke_permission_completion_bound`), `clock offset allowance` (`clock_offset_allowance`), `length cap`, `retention horizon`.
+Term bounds: issuance completion bound (issue_grant_completion_bound), revocation completion bound (revoke_grant_completion_bound), pair-scoped completion bound (revoke_permission_completion_bound), clock offset allowance (clock_offset_allowance), length cap, retention horizon.
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.42 (2026-09-15).
+Term qualifiers: migrated — rewritten in GRACE lang v0.42 (2026-09-15).
 
-Term value sets: issue_grant answers the grant's handle with the attestation and refuses invalid-request | invalid-credential | attribution-storage-failure | orphan-attestation(issuance orphan position). revoke_grant answers ok with the attestation and refuses invalid-request | invalid-credential | not-known | not-active | attribution-storage-failure | orphan-attestation(revocation orphan position). revoke_permission answers ok with the revoked grants and the attestations and refuses invalid-request | invalid-credential | not-permitted | partially-revoked(revoked_grant_ids, remaining). verify_grant_attribution answers the attribution record | not-known | attribution-inconsistency. permitted answers permitted | denied. `verify result` = verified | failed-verification(reason) | not-known | not-applicable(purged). `underlying reason` = grant-storage-failure | revocation-storage-failure | invalid-request | not-known | not-active | pairing-write-failure. `retention scope` = pair-scoped | per-store.
+Term value sets: issue_grant answers the grant's handle with the attestation and refuses invalid-request | invalid-credential | attribution-storage-failure | orphan-attestation(issuance orphan position). revoke_grant answers ok with the attestation and refuses invalid-request | invalid-credential | not-known | not-active | attribution-storage-failure | orphan-attestation(revocation orphan position). revoke_permission answers ok with the revoked grants and the attestations and refuses invalid-request | invalid-credential | not-permitted | partially-revoked(revoked_grant_ids, remaining). verify_grant_attribution answers the attribution record | not-known | attribution-inconsistency. permitted answers permitted | denied. verify result = verified | failed-verification(reason) | not-known | not-applicable(purged). underlying reason = grant-storage-failure | revocation-storage-failure | invalid-request | not-known | not-active | pairing-write-failure. retention scope = pair-scoped | per-store.
 
-Term terms: `composition`, `constituents`, `administered grant`, `administrative act`, `grant attribution map`, `revocation attribution map`, `attribution entry`, `orphan log`, `underlying reason`, `orphan attestation`, `binding registry`, `seam`, `transition`, `grant proposal format`, `revocation proposal format`, `namespace prefix`, `issuance completion bound`, `revocation completion bound`, `pair-scoped completion bound`, `pairing write atomicity`, `constituent store durability`, `retention scope`, `purge record`, `clock offset allowance`, `length cap`, `blank`, `boundary predicate`, `opaque argument`, `administered opaque argument`, `admitted issuance`, `admitted revocation`, `pair-scoped revocation`, `enumerated set`, `remaining grants`, `verify result`, `tamper reading`, `lawful destruction`, `forensic finding`, `failed-grant leg`, `post-enumeration grant`, `aged-out attestation`, `landed attestation`, `retention horizon`, `purge-pending orphan`, `non-conformant purge`, `known grant`, `unpaired administered grant`, `issuance orphan position`, `revocation orphan position`, `grant issuance result`, `grant revocation result`, `permission revocation result`, `attribution record`.
+Term terms: composition, constituents, administered grant, administrative act, grant attribution map, revocation attribution map, attribution entry, orphan log, underlying reason, orphan attestation, binding registry, seam, transition, grant proposal format, revocation proposal format, namespace prefix, issuance completion bound, revocation completion bound, pair-scoped completion bound, pairing write atomicity, constituent store durability, retention scope, purge record, clock offset allowance, length cap, blank, boundary predicate, opaque argument, administered opaque argument, admitted issuance, admitted revocation, pair-scoped revocation, enumerated set, remaining grants, verify result, tamper reading, lawful destruction, forensic finding, failed-grant leg, post-enumeration grant, aged-out attestation, landed attestation, retention horizon, purge-pending orphan, non-conformant purge, known grant, unpaired administered grant, issuance orphan position, revocation orphan position, grant issuance result, grant revocation result, permission revocation result, attribution record.
 
 Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Composition state — the derived-index and extraction-pending classifications. `execution-contract.md` §Logic confinement — the seam.
 
@@ -853,7 +853,7 @@ Kind: Operation
 
 #### Revoke Grant
 
-The composition's attributed revocation of one grant, keyed by the grant's handle: attest under the revoker's credential over the fixed `{grant_id, requested_at}` proposal, revoke, and pair. Answers the constituent's own `not-known` and `not-active` as caller faults — each of which still leaves an orphan attestation standing, because the attestation was written before the constituent was asked.
+The composition's attributed revocation of one grant, keyed by the grant's handle: attest under the revoker's credential over the fixed `{grant_id, requested_at}` proposal, revoke, and pair. Answers the constituent's own not-known and not-active as caller faults — each of which still leaves an orphan attestation standing, because the attestation was written before the constituent was asked.
 
 Kind: Operation
 
@@ -878,7 +878,7 @@ Role: the append-only orphan record
 
 #### Orphan Attestation
 
-The composition's rejection when an administrative write fails after its attestation committed, leaving an unmatched attestation. **Its payload carries the position:** `pre-grant` and `pre-revoke` mean nothing administrative committed and the caller may retry — must, on the revoke side, since the subject still holds access; `post-grant(grant_id)` and `post-revoke` mean the constituent write **committed** and its pairing did not, so a retry would issue a second grant beside an unattributed one or meet `not-active` and leave another orphan. Only the `pre-` positions are reachable where the host supplies the pairing write atomicity.
+The composition's rejection when an administrative write fails after its attestation committed, leaving an unmatched attestation. **Its payload carries the position:** pre-grant and pre-revoke mean nothing administrative committed and the caller may retry — must, on the revoke side, since the subject still holds access; `post-grant(grant_id)` and post-revoke mean the constituent write **committed** and its pairing did not, so a retry would issue a second grant beside an unattributed one or meet not-active and leave another orphan. Only the `pre-` positions are reachable where the host supplies the pairing write atomicity.
 
 Kind:      Member
 Member of: the administration rejection
@@ -896,7 +896,7 @@ Projects:  attribution-storage-failure
 
 #### Attribution Inconsistency
 
-The [Verify Grant Attribution] forensic finding: the grant exists in Permissions and its attribution entry is unpopulated — the partial a host that does not supply the pairing write atomicity leaves, reported by the `post-grant` and `post-revoke` landings and joined to its orphan log entry by the grant's handle. A distinct condition from a grant that does not exist, never to be silently coerced to it, and never to be answered by retrying the original act.
+The [Verify Grant Attribution] forensic finding: the grant exists in Permissions and its attribution entry is unpopulated — the partial a host that does not supply the pairing write atomicity leaves, reported by the `post-grant` and post-revoke landings and joined to its orphan log entry by the grant's handle. A distinct condition from a grant that does not exist, never to be silently coerced to it, and never to be answered by retrying the original act.
 
 Kind:      Member
 Member of: the verify result

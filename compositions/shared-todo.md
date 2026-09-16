@@ -355,9 +355,9 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 ### Vocabulary
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
+Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: `composition`, `constituents`, `responsible actor`, `visible tasks`, `action scopes`, `admitted add`, `admitted edit`, `admitted complete`, `admitted delete`, `admitted assign`, `admitted reassign`, `admitted recall`.
+Term terms: composition, constituents, responsible actor, visible tasks, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall.
 
 Term record verbs: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, recheck, rest, leave, wrap, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply.
 

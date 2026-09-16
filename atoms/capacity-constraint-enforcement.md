@@ -33,7 +33,7 @@ A bounded resource needs one place that owns the bound. Without it, every caller
 
 So the atom owns exactly the arithmetic: a declared maximum, a running total, and the refusal that keeps one under the other. Everything that looks adjacent is deliberately outside. Which unit is which belongs to [Provisional Commitment](./provisional-commitment.md), because per-allocation identity is a different grain. Who may allocate belongs to [Permissions](./permissions.md). What happens when the pool drains belongs to whatever composes [Subscription](./subscription.md) and [Notification](./notification.md). Fairness under contention belongs to a queueing pattern. Each of those is a policy; this is the invariant they all rest on.
 
-Two design commitments carry the rest. **Drained is not a state** — `allocated` reaching `capacity` is an arithmetic condition, observable through [Query] and enforced by the allocate guard, and promoting it to a state would conflate a policy decision (an operator halting allocations) with a number reaching another number. And **the atom never clamps.** A capacity adjustment below the running total is refused, not silently fitted; a release beyond the total is refused, not floored at zero. Clamping would keep the invariant true and destroy the caller's ability to know it was violated.
+Two design commitments carry the rest. **Drained is not a state** — allocated reaching capacity is an arithmetic condition, observable through [Query] and enforced by the allocate guard, and promoting it to a state would conflate a policy decision (an operator halting allocations) with a number reaching another number. And **the atom never clamps.** A capacity adjustment below the running total is refused, not silently fitted; a release beyond the total is refused, not floored at zero. Clamping would keep the invariant true and destroy the caller's ability to know it was violated.
 
 ## Structure
 
@@ -64,11 +64,11 @@ Term pool: one bounded resource with a declared maximum and a running total — 
 
 Term pool_id: the opaque value naming one pool — a [Pool Id]; host-allocated at the seam, compared by exact byte identity.
 
-Term colliding write: a [Declare Pool] write whose injected `pool_id` a live pool already carries.
+Term colliding write: a [Declare Pool] write whose injected pool_id a live pool already carries.
 
 Term event id: the opaque value naming one audit event — an [Allocation Event Id], a [Release Event Id], an [Adjustment Event Id] or a [State Change Id], by the event's class.
 
-Term event class: `allocation` | `release` | `adjustment` | `state change` — the four kinds of entry the audit log carries.
+Term event class: allocation | release | adjustment | state change — the four kinds of entry the audit log carries.
 
 Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the pool_id and the event ids here.
 
@@ -109,7 +109,7 @@ State 22: The atom MUST NOT hold a cross-pool bound.
 State 23: The atom MUST NOT interpret a unit.
 ```
 
-Term declaration field: `pool_id` | `declared_at` | `declaring_actor_ref` | `declaration_reason` — set at [Declare Pool] and never changed.
+Term declaration field: pool_id | declared_at | declaring_actor_ref | declaration_reason — set at [Declare Pool] and never changed.
 
 Term allocated_before: the running total an audit event found — an [Allocated Before].
 
@@ -117,14 +117,14 @@ Term allocated_after: the running total an audit event left — an [Allocated Af
 
 Term recorded_at: the instant an audit event was written — a [Recorded At]; stamped from the injected now, and advisory rather than authoritative for order.
 
-Term audit-identifier surface: an audit event's event id, `pool_id`, event class, arithmetic fields, state fields and `recorded_at` — everything the atom never rewrites and the arithmetic chain rests on.
+Term audit-identifier surface: an audit event's event id, pool_id, event class, arithmetic fields, state fields and recorded_at — everything the atom never rewrites and the arithmetic chain rests on.
 
 Term attribution surface: an audit event's actor reference and reason — what makes a record personally identifying, and what a composed erasure mechanism may scrub.
 
 WHY:
-Drained is not a state, and that is the sharpest boundary in the atom. `allocated` reaching `capacity` is a number reaching another number: observable through [Query], enforced by the allocate guard, and derivable at any moment. A state, by contrast, is something an actor decided — suspend, resume, close. Promoting an arithmetic condition to a state would put a policy name on a computation and invite a transition nobody performs (State 6).
+Drained is not a state, and that is the sharpest boundary in the atom. allocated reaching capacity is a number reaching another number: observable through [Query], enforced by the allocate guard, and derivable at any moment. A state, by contrast, is something an actor decided — suspend, resume, close. Promoting an arithmetic condition to a state would put a policy name on a computation and invite a transition nobody performs (State 6).
 
-Order is insertion order, not timestamp order. `recorded_at` comes from the seam's clock and under skew it is not monotonic, so every *after*, *between* and *most recent* in this spec means by insertion (State 11 through 13). A deployment that needs order bound to verifiable wall time composes a trusted-timestamping pattern; without it, timestamps are metadata and insertion is the truth.
+Order is insertion order, not timestamp order. recorded_at comes from the seam's clock and under skew it is not monotonic, so every *after*, *between* and *most recent* in this spec means by insertion (State 11 through 13). A deployment that needs order bound to verifiable wall time composes a trusted-timestamping pattern; without it, timestamps are metadata and insertion is the truth.
 
 An adjustment event names [Prior Capacity] against [New Capacity]; a state-change event names [Prior State] against [New State]; an allocation or release event names [Allocated Before] against [Allocated After] with the [Count] between them. Each is a before and an after on one row, which is what lets an auditor clear the bound at a single event.
 
@@ -149,7 +149,7 @@ WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 WHY:
-The clock has exactly one job here — stamping `declared_at` and each event's `recorded_at` — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock dependence 1, Clock semantics 5).
+The clock has exactly one job here — stamping declared_at and each event's recorded_at — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock dependence 1, Clock semantics 5).
 
 ### Operations
 
@@ -266,9 +266,9 @@ Term available: `capacity − allocated` — an [Available]; computed wherever i
 
 Term count: the units one [Allocate] or [Release] call operates on — a [Count]; a positive count.
 
-Term whole count: a count of zero or more; what `capacity` and `new_capacity` must be.
+Term whole count: a count of zero or more; what capacity and new_capacity must be.
 
-Term positive count: a count of one or more; what `count` must be, which is why a zero-unit call is refused rather than admitted as a no-op.
+Term positive count: a count of one or more; what count must be, which is why a zero-unit call is refused rather than admitted as a no-op.
 
 Term requested total: `allocated + count` — the running total an [Allocate] call would reach, and the value the capacity guard compares.
 
@@ -276,36 +276,36 @@ Term released total: `allocated − count` — the running total a [Release] cal
 
 Term new_capacity: the maximum an [Adjust Capacity] call asks for — a [New Capacity]; a whole count, and refused where it equals the current capacity.
 
-Term pool state: `open` | `suspended` | `closed` — accepting allocations, halted, or terminal. A [State].
+Term pool state: open | suspended | closed — accepting allocations, halted, or terminal. A [State].
 
-Term addressed action: any action carrying a `pool_id` — every action but [Declare Pool].
+Term addressed action: any action carrying a pool_id — every action but [Declare Pool].
 
 Term state-changing action: [Suspend Pool] | [Resume Pool] | [Close Pool] — the three that move a pool's state.
 
 Term writing action: every action but [Query].
 
-Term pool snapshot: `capacity`, `allocated`, `available` and the pool state together — what [Query] answers, and deliberately not the declaration fields or the audit log.
+Term pool snapshot: capacity, allocated, available and the pool state together — what [Query] answers, and deliberately not the declaration fields or the audit log.
 
-Term audit event: one entry on a pool's log — an allocation, a release, an adjustment or a state change, each carrying its own event id and a `recorded_at`.
+Term audit event: one entry on a pool's log — an allocation, a release, an adjustment or a state change, each carrying its own event id and a recorded_at.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the pool |
 |---|---|---|---|
-| [Declare Pool] | capacity a whole count, fields valid, store accepts | the new `pool_id` | pool lands in [Open], `allocated` zero (Operation 1 through 5) |
-| [Allocate] | [Open], count positive, requested total within capacity | the `allocation_event_id` | `allocated` rises, one event appended (Operation 15 through 17) |
+| [Declare Pool] | capacity a whole count, fields valid, store accepts | the new pool_id | pool lands in [Open], allocated zero (Operation 1 through 5) |
+| [Allocate] | [Open], count positive, requested total within capacity | the allocation_event_id | allocated rises, one event appended (Operation 15 through 17) |
 | [Allocate] | [Open], requested total past capacity | [Over Capacity] | none (Operation 13) |
 | [Allocate] | [Suspended] | [Suspended] | none (Operation 10) |
 | [Allocate] | [Closed] | [Closed] | none (Operation 11) |
-| [Release] | any state, count positive and within `allocated` | the `release_event_id` | `allocated` falls, one event appended (Operation 20, Operation 23) |
-| [Release] | count past `allocated` | [Over Release] | none (Operation 22) |
-| [Adjust Capacity] | [Open] or [Suspended], new value differs and covers `allocated` | the `adjustment_event_id` | `capacity` replaced, one event appended (Operation 33, Operation 34) |
+| [Release] | any state, count positive and within allocated | the release_event_id | allocated falls, one event appended (Operation 20, Operation 23) |
+| [Release] | count past allocated | [Over Release] | none (Operation 22) |
+| [Adjust Capacity] | [Open] or [Suspended], new value differs and covers allocated | the adjustment_event_id | capacity replaced, one event appended (Operation 33, Operation 34) |
 | [Adjust Capacity] | new value equals current | [Invalid Request] | none (Operation 31) |
-| [Adjust Capacity] | new value below `allocated` | [Over Allocated] | none (Operation 32) |
+| [Adjust Capacity] | new value below allocated | [Over Allocated] | none (Operation 32) |
 | [Adjust Capacity] | [Closed] | [Closed] | none (Operation 29) |
-| [Suspend Pool] | [Open] | the `state_change_id` | → [Suspended] (Operation 41) |
-| [Resume Pool] | [Suspended] | the `state_change_id` | → [Open] (Operation 44) |
-| [Close Pool] | [Open] or [Suspended] | the `state_change_id` | → [Closed] (Operation 46) |
+| [Suspend Pool] | [Open] | the state_change_id | → [Suspended] (Operation 41) |
+| [Resume Pool] | [Suspended] | the state_change_id | → [Open] (Operation 44) |
+| [Close Pool] | [Open] or [Suspended] | the state_change_id | → [Closed] (Operation 46) |
 | any state change | already in the target state, or [Closed] | [Not Open], [Not Suspended], [Already Closed] | none (Operation 39 through 45) |
 | any addressed action | id names nothing | [Not Known] | none (Operation 8) |
 | any writing action | store refuses | [Storage Failure] | none (Operation 57 through 59) |
@@ -314,7 +314,7 @@ The case space, and the rule that owns each case:
 WHY:
 The rejection order is fixed and each step is defended. [Not Known] comes first because every later check presupposes a record to inspect — an unknown pool has no state, no total and no bound to compare against (Operation 8, Operation 9). State-validity comes before field-format because state is a property of the *target* and format is local to the *call*: a [Closed] pool does not accept the action at all, and saying so before validating per-call fields is the quieter path for the common case of an operator draining a decommissioned pool. The cost is real and accepted — a malformed count against a closed pool reads [Closed], and the caller learns about the count on retry. Field-format comes before the arithmetic because the arithmetic is meaningless on a malformed integer: `allocate(count = -5)` must answer [Invalid Request] and not slip past a bound check that a negative count satisfies by accident (Operation 12). The store write is last, so every in-memory check precedes any durable effect (Operation 60).
 
-The three arithmetic guards are the atom, and all three are comparisons the grammar carries directly: the requested total against `capacity`, `count` against `allocated`, `allocated` against `new_capacity` (Operation 13, Operation 22, Operation 32). Only the sum needs a name, and it has one.
+The three arithmetic guards are the atom, and all three are comparisons the grammar carries directly: the requested total against capacity, count against allocated, allocated against new_capacity (Operation 13, Operation 22, Operation 32). Only the sum needs a name, and it has one.
 
 Nothing clamps. A downward adjustment below the running total is refused rather than fitted, and a release beyond the total is refused rather than floored — because clamping would keep the invariant true while destroying the caller's ability to learn it was about to be broken. Freeing units to fit a smaller bound is a policy decision the caller makes explicitly, with [Release] calls, before adjusting again (Operation 37, Operation 38).
 
@@ -419,35 +419,35 @@ Invariants 4 and 5 together give the *bounded-arithmetic* property — at every 
 
 ### Airline — non-overbooking seat pool
 
-A carrier declares a cabin: `declare_pool(capacity: 180, declaring_actor_ref: inventory_svc, reason: "NK1234 2026-05-14 main cabin")` → `pool_a1`. Each booking calls `allocate(pool_a1, count: 1, allocating_actor_ref: booking_svc)`; the 181st answers `over-capacity` and the cabin is not oversold. A cancellation calls `release(pool_a1, count: 1, ...)` and the seat returns to the pool. An equipment swap to a smaller aircraft with 174 seats sold calls `adjust_capacity(pool_a1, new_capacity: 174, ...)` → accepted; the same call against 170 answers `over-allocated`, because four passengers are already holding seats the smaller bound would not cover, and the carrier must release before it can adjust (Operation 32).
+A carrier declares a cabin: `declare_pool(capacity: 180, declaring_actor_ref: inventory_svc, reason: "NK1234 2026-05-14 main cabin")` → `pool_a1`. Each booking calls `allocate(pool_a1, count: 1, allocating_actor_ref: booking_svc)`; the 181st answers over-capacity and the cabin is not oversold. A cancellation calls `release(pool_a1, count: 1, ...)` and the seat returns to the pool. An equipment swap to a smaller aircraft with 174 seats sold calls `adjust_capacity(pool_a1, new_capacity: 174, ...)` → accepted; the same call against 170 answers over-allocated, because four passengers are already holding seats the smaller bound would not cover, and the carrier must release before it can adjust (Operation 32).
 
 ### Banking — credit-limit headroom
 
-A revolving line: `declare_pool(capacity: 25000, ...)` → `pool_c9`. Each draw allocates, each repayment releases, and a draw past the limit answers `over-capacity`. A credit review lowering the line to 10000 while 14000 is drawn answers `over-allocated` — the atom refuses to put the customer instantly over their new limit by arithmetic, and the reviewer must sequence the reduction against repayment explicitly (Operation 37).
+A revolving line: `declare_pool(capacity: 25000, ...)` → `pool_c9`. Each draw allocates, each repayment releases, and a draw past the limit answers over-capacity. A credit review lowering the line to 10000 while 14000 is drawn answers over-allocated — the atom refuses to put the customer instantly over their new limit by arithmetic, and the reviewer must sequence the reduction against repayment explicitly (Operation 37).
 
 ### Healthcare — ward bed pool
 
-A ward of 24 beds. An infection-control hold calls `suspend_pool(pool_w3, ...)`: admissions stop, discharges continue, because [Release] is admitted in every state (Operation 20). Capacity can still be re-tuned while paused. `resume_pool` reopens it.
+A ward of 24 beds. An infection-control hold calls `suspend_pool(pool_w3, ...)`: admissions stop, discharges continue, because [Release] is admitted in every state (Operation 20). Capacity can still be re-tuned while paused. resume_pool reopens it.
 
 ### Database operations — connection pool
 
-A primary pool of 200 connections, allocated on checkout and released on return. A failover calls `suspend_pool`; in-flight connections drain through [Release] while nothing new is admitted; `close_pool` retires it, and the last returns still land because closing forecloses allocation and not unwinding (Invariant 3.4).
+A primary pool of 200 connections, allocated on checkout and released on return. A failover calls suspend_pool; in-flight connections drain through [Release] while nothing new is admitted; close_pool retires it, and the last returns still land because closing forecloses allocation and not unwinding (Invariant 3.4).
 
 ### Rejection paths
 
-`allocate(pool_a1, count: 0, ...)` → `invalid-request`. A zero-unit allocation is not a use of the action (Operation 12).
+`allocate(pool_a1, count: 0, ...)` → invalid-request. A zero-unit allocation is not a use of the action (Operation 12).
 
-`adjust_capacity(pool_a1, new_capacity: 180, ...)` where capacity is already 180 → `invalid-request`. A no-op adjustment would append an event recording no change (Operation 31).
+`adjust_capacity(pool_a1, new_capacity: 180, ...)` where capacity is already 180 → invalid-request. A no-op adjustment would append an event recording no change (Operation 31).
 
-`allocate(pool_x, count: 1, ...)` where `pool_x` names nothing → `not-known` — which covers both *never declared* and *declared, closed, and since purged under a composed retention pattern*. The atom cannot tell them apart and does not pretend to (Operation 8, Invariant 1.1).
+`allocate(pool_x, count: 1, ...)` where `pool_x` names nothing → not-known — which covers both *never declared* and *declared, closed, and since purged under a composed retention pattern*. The atom cannot tell them apart and does not pretend to (Operation 8, Invariant 1.1).
 
-`allocate(pool_closed, count: -5, ...)` against a closed pool → `closed`, not `invalid-request`. State precedes format, and the caller learns about the count on retry against a live pool.
+`allocate(pool_closed, count: -5, ...)` against a closed pool → closed, not invalid-request. State precedes format, and the caller learns about the count on retry against a live pool.
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit — was the cabin ever oversold?** The auditor walks the pool's allocation events and checks each one's own snapshot: `allocated_after` equals `allocated_before` plus `count`, and `allocated_after` does not exceed the capacity in effect at that index. No replay from the beginning is required, because every event carries its own before and after — which is the whole reason the snapshots are on the record (Check 3.1, Check 3.2).
+- **Regulator audit — was the cabin ever oversold?** The auditor walks the pool's allocation events and checks each one's own snapshot: allocated_after equals allocated_before plus count, and allocated_after does not exceed the capacity in effect at that index. No replay from the beginning is required, because every event carries its own before and after — which is the whole reason the snapshots are on the record (Check 3.1, Check 3.2).
 - **Disputed drawdown — the customer says the line was cut without notice.** Every capacity change is an adjustment event naming prior capacity, new capacity, the acting reference and a stated reason (Invariant 11.2). What the store cannot show is the *rejected* draws the customer attempted, because rejections write nothing here; a deployment under PCI DSS (Payment Card Industry Data Security Standard) Requirement 10.2.4 wires [Event Log](./event-log.md) around the call surface for that (External check 1, Non-goal 26).
-- **Breach investigation — which pools were manipulated during the window?** The auditor filters audit events by `recorded_at` inside the window and reads each one's actor reference. Two limits are stated rather than discovered: `recorded_at` is advisory under clock skew and insertion order is authoritative (State 13), and where the deployment has scrubbed the attribution surface under a composed erasure the arithmetic still verifies while the actor no longer resolves (Invariant 8.4, Invariant 8.5).
+- **Breach investigation — which pools were manipulated during the window?** The auditor filters audit events by recorded_at inside the window and reads each one's actor reference. Two limits are stated rather than discovered: recorded_at is advisory under clock skew and insertion order is authoritative (State 13), and where the deployment has scrubbed the attribution surface under a composed erasure the arithmetic still verifies while the actor no longer resolves (Invariant 8.4, Invariant 8.5).
 
 ---
 
@@ -552,7 +552,7 @@ Concurrency 5: The atom MUST NOT offer a multi-action transaction.
 ```
 
 WHY:
-The guard reads `allocated` and the write changes it; two concurrent allocates against one unit of headroom both read *room* and both write, and Invariant 4.1 — the reason this atom exists — breaks by the very sequence it forbids. Check-then-act, and the fix is the implementation's: one transition, or a compare-and-set that does the same work (Concurrency 2, Concurrency 3).
+The guard reads allocated and the write changes it; two concurrent allocates against one unit of headroom both read *room* and both write, and Invariant 4.1 — the reason this atom exists — breaks by the very sequence it forbids. Check-then-act, and the fix is the implementation's: one transition, or a compare-and-set that does the same work (Concurrency 2, Concurrency 3).
 
 ### String policy
 
@@ -633,19 +633,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; an operator; an auditor; a reader; the store; a pool; a pool state; an audit event; an audit log; a crash; a write; an action; a rejection; a string field; the pool count.
 
-Term records: `pool` — one bounded resource, carrying `pool_id`, `capacity`, `allocated`, a pool state, the declaration fields and an audit log; `audit event` — one entry on that log, carrying an event id, the `pool_id`, an event class, a `recorded_at` and the fields the event's class names.
+Term records: pool — one bounded resource, carrying pool_id, capacity, allocated, a pool state, the declaration fields and an audit log; audit event — one entry on that log, carrying an event id, the pool_id, an event class, a recorded_at and the fields the event's class names.
 
 Term record verbs: identify, offer, share, re-order, retain, allocate, change, match, normalize, order, write, refuse, draw, reuse, hold, record, stand, set, stamp, answer, append, raise, lower, admit, release, fit, interpret, leave, insert, remove, carry, read, supply, rest, fall, commit, scrub, reconstruct, replay, bound, find, equal, purge, evict, expire, attest, move, merge, split, notify, seal, compose, gate, distinguish, serialize, make, discharge, compute, own, declare, call, name, store, case-fold, exceed.
 
-Term value sets: declare_pool answers pool_id and refuses invalid-request | storage-failure. allocate answers allocation_event_id and refuses not-known | over-capacity | suspended | closed | invalid-request | storage-failure. release answers release_event_id and refuses not-known | over-release | invalid-request | storage-failure. adjust_capacity answers adjustment_event_id and refuses not-known | closed | over-allocated | invalid-request | storage-failure. suspend_pool, resume_pool and close_pool answers state_change_id and refuses not-known | already-closed | invalid-request | storage-failure. query answers pool_snapshot and refuses not-known. `pool state` and `event class` are declared above and cited here (Closed vocabulary 15).
+Term value sets: declare_pool answers pool_id and refuses invalid-request | storage-failure. allocate answers allocation_event_id and refuses not-known | over-capacity | suspended | closed | invalid-request | storage-failure. release answers release_event_id and refuses not-known | over-release | invalid-request | storage-failure. adjust_capacity answers adjustment_event_id and refuses not-known | closed | over-allocated | invalid-request | storage-failure. suspend_pool, resume_pool and close_pool answers state_change_id and refuses not-known | already-closed | invalid-request | storage-failure. query answers pool_snapshot and refuses not-known. pool state and event class are declared above and cited here (Closed vocabulary 15).
 
-Term bounds: `reason cap` (2000 codepoints); `maximum length` (the deployment's cap per string field); `whole count` and `positive count` (the integer floors); `capacity` (the pool's own declared bound).
+Term bounds: reason cap (2000 codepoints); maximum length (the deployment's cap per string field); whole count and positive count (the integer floors); capacity (the pool's own declared bound).
 
 Term cadences: empty.
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.36 (2026-09-12).
+Term qualifiers: migrated — rewritten in GRACE lang v0.36 (2026-09-12).
 
-Term terms: `pool`, `pool_id`, `event id`, `event class`, `seam`, `transition`, `now`, `business caller`, `capacity`, `allocated`, `available`, `count`, `whole count`, `positive count`, `requested total`, `released total`, `new_capacity`, `pool state`, `addressed action`, `state-changing action`, `writing action`, `pool snapshot`, `audit event`, `declaration field`, `allocated_before`, `allocated_after`, `recorded_at`, `colliding write`, `integer width`, `audit-identifier surface`, `attribution surface`, `reason cap`, `control character`, `zero-width character`, `bidi-override character`, `maximum length`.
+Term terms: pool, pool_id, event id, event class, seam, transition, now, business caller, capacity, allocated, available, count, whole count, positive count, requested total, released total, new_capacity, pool state, addressed action, state-changing action, writing action, pool snapshot, audit event, declaration field, allocated_before, allocated_after, recorded_at, colliding write, integer width, audit-identifier surface, attribution surface, reason cap, control character, zero-width character, bidi-override character, maximum length.
 
 #### Declare Pool
 
@@ -1072,7 +1072,7 @@ Capacity Constraint Enforcement is a utility primitive; no single regulator owns
 - **Basel III Liquidity Coverage Ratio (BCBS 238 — Basel Committee on Banking Supervision, the international body that sets bank-capital and liquidity standards)** — bank credit-line and counterparty-limit pools must be enforced as hard constraints with auditable adjustments; the atom is the operational form of a regulator-facing credit-limit headroom pool.
 - **Sarbanes-Oxley §404 (Internal Control over Financial Reporting)** — where confirmed allocations against a pool are material to the books (credit-limit consumption flowing to the balance sheet, inventory allocation flowing to cost-of-goods-sold), the controls around pool adjustments and the audit trail of who-allocated-what-when become SOX-scope. Composes with Audit Trail to produce the records-alone-defensible evidence §404 attestations require.
 - **PCI DSS Requirement 10 (Logging and monitoring)** — when the pool governs payment-related capacity (a payment-gateway connection pool, a card-authorization headroom pool), every successful allocation and state change must be logged with attribution; this atom's audit-log invariants supply the structural form for the successful-change surface. Req. 10.2.4 specifically requires logging of *invalid logical access attempts* (rejected calls), which this atom does not produce events for; the composing Event Log around the atom's call surface (see Composition notes → Event Log) records the rejection journal. The full PCI DSS Req. 10 obligation is satisfied by the atom + Event Log composition, not by the atom alone.
-- **The Joint Commission, *Provision of Care, Treatment, and Services*** — healthcare bed-management and ward-capacity standards require capacity changes (closures for renovation, surge expansions) to be auditable with attribution and reason. The atom's `adjust_capacity` event-recording discipline is the operational form.
+- **The Joint Commission, *Provision of Care, Treatment, and Services*** — healthcare bed-management and ward-capacity standards require capacity changes (closures for renovation, surge expansions) to be auditable with attribution and reason. The atom's adjust_capacity event-recording discipline is the operational form.
 - **GDPR Article 30 (Records of processing)** — where the pool's allocation events touch personal data (per-customer credit-line pools, per-patient bed allocations referencing the patient by id), the audit log is itself a processing activity subject to controller-records obligations. Composes with Audit Trail and Retention Window for the full obligation surface.
 - **Authorization-related standards (SOX §404 segregation-of-duties, HIPAA Privacy Rule §164.508 minimum-necessary, PCI DSS Requirement 7 restrict access by business need-to-know)** — these regimes require enforcement of *who may act*, not merely attribution of *who did act*. This atom records the attribution surface (`*_actor_ref`) for every successful action but does not constrain who may invoke which action; the authorization decision composes with Permissions (see *Edge cases → Authorization* and the Permissions Composition note). Composing with Permissions and Actor Identity together produces the *was-permitted-and-was-attested* surface these standards require — Permissions for the decision that admitted the call, Actor Identity for the non-repudiable record of who the decision admitted.
 
@@ -1103,6 +1103,6 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/capacity-constraint-enforcement.md`.
 
-- **2026-09-12 — Rewritten in GRACE lang v0.36; nothing but language changed.** *Chose:* the eight actions as a signature block, the fourteen invariant numbers unchanged, the six acceptance areas opened into `Check 1.1 through 6.1` with three External checks for what the store cannot answer, the arithmetic routed through declared `requested total` and `released total` so no rule carries a sum, the three host obligations Invariant 4 rests on given their own families (`Concurrency`, `Crash atomicity`, `Arithmetic`). *Over:* the prose spec. *Because:* the migration plan; nothing cites this atom by label. The open question this atom was picked to answer — whether a domain whose logic *is* arithmetic survives Hard invariant 24 — answers yes: `MUST NOT EXCEED` and `EXCEEDS` carry every comparison directly, and only the two sums needed names.
+- **2026-09-12 — Rewritten in GRACE lang v0.36; nothing but language changed.** *Chose:* the eight actions as a signature block, the fourteen invariant numbers unchanged, the six acceptance areas opened into `Check 1.1 through 6.1` with three External checks for what the store cannot answer, the arithmetic routed through declared requested total and released total so no rule carries a sum, the three host obligations Invariant 4 rests on given their own families (`Concurrency`, `Crash atomicity`, `Arithmetic`). *Over:* the prose spec. *Because:* the migration plan; nothing cites this atom by label. The open question this atom was picked to answer — whether a domain whose logic *is* arithmetic survives Hard invariant 24 — answers yes: `MUST NOT EXCEED` and `EXCEEDS` carry every comparison directly, and only the two sums needed names.
 
 NOTE: End of Capacity Constraint Enforcement.

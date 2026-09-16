@@ -1002,7 +1002,7 @@ def check_rebuild_bound(patterns: dict[Path, Pattern]) -> list[Finding]:
 # arm (2026-08-29); the same-line `record_action` condition is what isolates
 # the substrate's arm from its composers' — the step lists put the call and
 # its mapping on one line, which is the corpus convention this leans on.
-RECORDING_BARE_MAPPED = re.compile(r"`recording-failure`\s*→")
+RECORDING_BARE_MAPPED = re.compile(r"(?<![\w-])`?recording-failure`?\s*→")
 SUBSTRATE_CALL = re.compile(r"record_action")
 AUDIT_TRAIL_LINK = re.compile(r"\(\.{0,2}/?(?:compositions/)?audit-trail\.md")
 
@@ -1357,7 +1357,8 @@ def check_stale_census(root: Path, patterns: dict[Path, Pattern]) -> list[Findin
     std: set[str] = set()
     sm = re.search(r"^Term standard label family: (.+)$", text, re.M)
     if sm:
-        std = {x.strip() for x in re.findall(r"`([^`]+)`", sm.group(1))}
+        # the family line's value set, names bare since v0.51: `Name (gloss) | …`
+        std = {x.strip().strip("`") for x in re.findall(r"(?:^|\|)\s*([^|(]+?)\s*\(", sm.group(1))}
     clause = re.search(r"a label family recurring across specs outside the standard set", text)
     clause_line = line_of(text, clause.start()) if clause else 1
     for name, specs in sorted(census.items()):

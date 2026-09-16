@@ -75,9 +75,9 @@ State 11: The atom MUST NOT hold a transport.
 State 12: The atom MUST NOT hold a retry.
 ```
 
-Term status: `pending` | `delivered` | `failed` | `expired` — the [Status] field's four values: awaiting an outcome, reached, attempted without success, or out of time.
+Term status: pending | delivered | failed | expired — the [Status] field's four values: awaiting an outcome, reached, attempted without success, or out of time.
 
-Term terminal stamp: `delivered_at` | `failed_at` | `expired_at` — the one stamp a terminal status carries.
+Term terminal stamp: delivered_at | failed_at | expired_at — the one stamp a terminal status carries.
 
 Term created_at: the instant the notification was recorded — a [Created At].
 
@@ -157,23 +157,23 @@ Deleted: Operation 26. `execution-contract.md` §Logic confinement owns it.
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.
 
-Term pending at an instant: `created_at` at or before the instant, and the terminal stamp either absent or after the instant — the reconstruction an auditor runs over stored fields, never over `status`, which carries the present rather than the past.
+Term pending at an instant: created_at at or before the instant, and the terminal stamp either absent or after the instant — the reconstruction an auditor runs over stored fields, never over status, which carries the present rather than the past.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the notification store |
 |---|---|---|---|
-| [Create] | recipient present, store accepts | `notification_id` | one notification lands in [Pending] (Operation 1, Operation 2) |
+| [Create] | recipient present, store accepts | notification_id | one notification lands in [Pending] (Operation 1, Operation 2) |
 | [Create] | empty or whitespace-only recipient, or over the cap | [Invalid Request] | none (Operation 4, String 5, String 6) |
-| [Create] | empty payload | `notification_id` | one notification lands — the payload is the caller's business (Operation 5, Operation 6) |
-| [Deliver] | notification is pending | `ok` | [Pending] → [Delivered], `delivered_at` stamped (Operation 10, State 8) |
-| [Fail] | notification is pending | `ok` | [Pending] → [Failed], `failed_at` stamped (Operation 11) |
-| [Expire] | notification is pending, attempted or not | `ok` | [Pending] → [Expired], `expired_at` stamped (Operation 12, Operation 13) |
+| [Create] | empty payload | notification_id | one notification lands — the payload is the caller's business (Operation 5, Operation 6) |
+| [Deliver] | notification is pending | ok | [Pending] → [Delivered], delivered_at stamped (Operation 10, State 8) |
+| [Fail] | notification is pending | ok | [Pending] → [Failed], failed_at stamped (Operation 11) |
+| [Expire] | notification is pending, attempted or not | ok | [Pending] → [Expired], expired_at stamped (Operation 12, Operation 13) |
 | any terminal transition | notification already terminal | [Not Pending] | none — including a second [Deliver] (Operation 9) |
 | any terminal transition | id names nothing | [Not Known] | none (Operation 8) |
-| any write | store refuses | `storage-failure` | none (Operation 7, Operation 15, Operation 16) |
+| any write | store refuses | storage-failure | none (Operation 7, Operation 15, Operation 16) |
 | [Status Of] | id names a notification | its stored fields | none — the call reads (Operation 17, Operation 22) |
-| [Status Of] | id names nothing | `not-known` | none (Operation 18) |
+| [Status Of] | id names nothing | not-known | none (Operation 18) |
 | [Pending For] | recipient has pending notifications | their ids, unordered | none (Operation 19, Operation 21) |
 | [Pending For] | recipient has none, or only terminal ones | empty list | none (Operation 20) |
 | [Pending For] | over-length or whitespace-only recipient | empty list | none — a read with a bad argument has a correct answer (String 8, String 9) |
@@ -258,19 +258,19 @@ Supervisor_s later asks *"was I notified about the queue-9 escalation?"* — `pe
 
 ### Compliance system — policy change
 
-An administrator broadcasts a policy update. Three compliance officers each receive a notification: `create(officer_a, {type: "policy:updated", policy_id: p7}) → notif_101`, similarly for officers b and c. Officer_a's email bounces: `fail(notif_101)`. Officers b and c are delivered successfully. `status_of(notif_101)` shows [Failed At]; `status_of(notif_102)` and `status_of(notif_103)` show [Delivered At]. An operator queries `pending_for` for each officer — empty for all three. The notification store shows: two [Delivered], one [Failed]; the composing system creates a retry for officer_a or escalates to a secondary channel.
+An administrator broadcasts a policy update. Three compliance officers each receive a notification: `create(officer_a, {type: "policy:updated", policy_id: p7}) → notif_101`, similarly for officers b and c. Officer_a's email bounces: `fail(notif_101)`. Officers b and c are delivered successfully. `status_of(notif_101)` shows [Failed At]; `status_of(notif_102)` and `status_of(notif_103)` show [Delivered At]. An operator queries pending_for for each officer — empty for all three. The notification store shows: two [Delivered], one [Failed]; the composing system creates a retry for officer_a or escalates to a secondary channel.
 
 ### Rejection path — invalid create
 
-A composing system attempts to create a notification with an empty recipient reference: `create(recipient_ref: "", payload: {type: "task:assigned", task_id: "t1"})` → `invalid-request`. No [Notification Id] is issued; no record enters the store. The composing system must supply a non-empty recipient reference before the notification can be created.
+A composing system attempts to create a notification with an empty recipient reference: `create(recipient_ref: "", payload: {type: "task:assigned", task_id: "t1"})` → invalid-request. No [Notification Id] is issued; no record enters the store. The composing system must supply a non-empty recipient reference before the notification can be created.
 
 ### Regulated adversarial scenarios
 
 Three scenarios the notification store must survive in regulated contexts:
 
-- **Regulator audit — demonstrate all notifications for a compliance event.** A compliance auditor asks *"show all notifications created for the policy:updated event on 2025-03-14, and whether each was delivered."* The auditor queries the notification store for notifications where `created_at` falls on 2025-03-14 and the payload references the relevant policy. [Status Of] for each returned id shows the delivery outcome — [Delivered At], [Failed At], or [Expired At]. The notification store answers from stored fields alone; Invariants 1 and 3-4 guarantee the delivery record is complete and unambiguous.
+- **Regulator audit — demonstrate all notifications for a compliance event.** A compliance auditor asks *"show all notifications created for the policy:updated event on 2025-03-14, and whether each was delivered."* The auditor queries the notification store for notifications where created_at falls on 2025-03-14 and the payload references the relevant policy. [Status Of] for each returned id shows the delivery outcome — [Delivered At], [Failed At], or [Expired At]. The notification store answers from stored fields alone; Invariants 1 and 3-4 guarantee the delivery record is complete and unambiguous.
 - **Disputed delivery — actor claims they were not notified.** Officer_a claims they received no notification of policy update p7. The investigator queries the notification store for notifications where `recipient_ref = officer_a` and the payload references `policy_id: p7`. If a record exists with [Delivered At] set, Invariant 1 (notification immutability) is the structural answer: the notification was created with that recipient and delivery was confirmed at that time. If the record shows [Failed At] or [Expired At], the store confirms delivery was not completed and documents why. The notification store is the single source of truth; no external corroboration is required.
-- **Breach investigation — identify Pending notifications that may have exposed payload data.** A security incident requires identifying all notifications that were [Pending] at the time of breach (2025-06-01T03:00Z) and may have carried sensitive payload data. The investigator queries for notifications where `created_at ≤ 2025-06-01T03:00Z` and either `status = pending` (still unresolved now) or the applicable terminal timestamp falls after 2025-06-01T03:00Z (meaning the notification was [Pending] during the breach window but has since resolved). The reconstruction logic mirrors the Subscription pattern: `created_at ≤ T` and (`status = pending` or `delivered_at > T` or `failed_at > T` or `expired_at > T`). [Status Of] for each candidate returns the current record; `created_at` confirms the exposure window. The notification store answers the exposure scope question from stored fields alone without recourse to logs or developer narration.
+- **Breach investigation — identify Pending notifications that may have exposed payload data.** A security incident requires identifying all notifications that were [Pending] at the time of breach (2025-06-01T03:00Z) and may have carried sensitive payload data. The investigator queries for notifications where `created_at ≤ 2025-06-01T03:00Z` and either `status = pending` (still unresolved now) or the applicable terminal timestamp falls after 2025-06-01T03:00Z (meaning the notification was [Pending] during the breach window but has since resolved). The reconstruction logic mirrors the Subscription pattern: `created_at ≤ T` and (`status = pending` or `delivered_at > T` or `failed_at > T` or `expired_at > T`). [Status Of] for each candidate returns the current record; created_at confirms the exposure window. The notification store answers the exposure scope question from stored fields alone without recourse to logs or developer narration.
 
 ---
 
@@ -301,7 +301,7 @@ External check 3: An auditor MUST read who created a notification from the compo
 External check 4: An auditor MUST read the transport's own outcome from the deployment's delivery layer (Non-goal 5).
 ```
 
-NOTE: EVERY check names the rule the check tests. External check 1 is the one that makes cross-deployment audit possible: without the declared policy, one shop's `failed_at` and another's `expired_at` record the same operational event and no reader can tell.
+NOTE: EVERY check names the rule the check tests. External check 1 is the one that makes cross-deployment audit possible: without the declared policy, one shop's failed_at and another's expired_at record the same operational event and no reader can tell.
 
 ## Non-goals
 
@@ -415,19 +415,19 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a recipient; an auditor; the store; a notification; a status.
 
-Term records: `notification` — one delivery record, carrying `notification_id`, `recipient_ref`, `payload`, `created_at`, `status` and, once it ends, one terminal stamp.
+Term records: notification — one delivery record, carrying notification_id, recipient_ref, payload, created_at, status and, once it ends, one terminal stamp.
 
 Term record verbs: identify, allocate, supply, reuse, carry, compare, trim, normalize, case-fold, read, stand, stamp, offer, delete, hold, record, answer, accept, leave, refuse, order, write, change, move, set, share, shrink, keep, own, evaluate, choose, retry, create, deliver, validate, deduplicate, purge, gate, expire, enumerate, call, serialize, compose, guard, declare, find, reconstruct, raise, require, exceed.
 
-Term value sets: create answers notification_id and refuses invalid-request | storage-failure. deliver answers ok and refuses not-known | not-pending | storage-failure. fail answers ok and refuses not-known | not-pending | storage-failure. expire answers ok and refuses not-known | not-pending | storage-failure. status_of answers the notification's stored fields | not-known. pending_for answers a list of notification_id, empty where nothing pends. `status` = pending | delivered | failed | expired. `terminal stamp` = delivered_at | failed_at | expired_at.
+Term value sets: create answers notification_id and refuses invalid-request | storage-failure. deliver answers ok and refuses not-known | not-pending | storage-failure. fail answers ok and refuses not-known | not-pending | storage-failure. expire answers ok and refuses not-known | not-pending | storage-failure. status_of answers the notification's stored fields | not-known. pending_for answers a list of notification_id, empty where nothing pends. status = pending | delivered | failed | expired. terminal stamp = delivered_at | failed_at | expired_at.
 
-Term bounds: `string cap` (the deployment's bound on a string input's length).
+Term bounds: string cap (the deployment's bound on a string input's length).
 
 Term cadences: empty — a delivery window is the composing pattern's (Operation 14b, Composition note 7).
 
-Term qualifiers: `migrated` — rewritten in GRACE lang v0.35 (2026-09-12).
+Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: `notification`, `notification_id`, `recipient_ref`, `payload`, `seam`, `transition`, `business caller`, `now`, `string cap`, `status`, `terminal stamp`, `created_at`, `terminal transition`.
+Term terms: notification, notification_id, recipient_ref, payload, seam, transition, business caller, now, string cap, status, terminal stamp, created_at, terminal transition.
 
 #### Create
 
