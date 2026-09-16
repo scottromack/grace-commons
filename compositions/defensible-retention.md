@@ -47,7 +47,7 @@ This is a composition, not a new primitive. Legal Hold, Retention Window and Aud
 - **[Retention Window](../atoms/retention-window.md)** — the policy-bounded lifetime of a business record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every decision is recorded through.
 
-```text
+```
 Composes 1: EXACTLY ONE Legal Hold instance MUST serve the composition.
 Composes 2: EXACTLY ONE Retention Window instance MUST serve the composition.
 Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
@@ -89,7 +89,7 @@ Composes 12 through 14 declare the read capability exactly, because the substrat
 
 ### Composition state
 
-```text
+```
 Composition state 1: The composition MUST store a record-to-retentions index.
 Composition state 2: The composition MUST store a retention-to-record index.
 Composition state 3: An admitted placement MUST add the placement's retention to the record-to-retentions index.
@@ -153,7 +153,7 @@ Composition state 27 through 32 declare the two relations the gate actually eval
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
 Deleted: Capability requirement 3. `execution-contract.md` §Logic confinement owns it.
@@ -218,7 +218,7 @@ Capability requirement 34 and Capability requirement 35 are one serialization ob
 
 ### Primitive policy
 
-```text
+```
 Primitive policy 1: The composition MUST answer invalid-request for a blank record_ref.
 Primitive policy 2: The composition MUST answer invalid-request for a blank policy_ref.
 Primitive policy 3: The composition MUST answer invalid-request for a blank actor_ref.
@@ -256,7 +256,7 @@ Primitive policy 18 and Primitive policy 19 inherit legal hold(../atoms/legal-ho
 
 ### Identity
 
-```text
+```
 Identity 1: The composition MUST compare a record_ref byte-exact.
 Identity 2: The composition MUST NOT fold a record_ref's case.
 Identity 3: The composition MUST NOT normalize a record_ref.
@@ -272,7 +272,7 @@ The gate evaluates equality on `record_ref` and nothing else, so `record_ref` is
 
 ### Audit arm
 
-```text
+```
 Audit arm 1: The composition MUST retry a recording-failure carrying step-2.
 Audit arm 2: The composition MUST retry a recording-failure carrying step-3.
 Audit arm 3: The composition MUST NOT retry a recording-failure carrying step-4.
@@ -326,7 +326,7 @@ purge_record(retention_id, actor_ref, credential)
 
 Term position: `intent` | `outcome` — the record a write lands: the intent or the outcome.
 
-```text
+```
 Action wiring 1: The composition MUST NOT record an intent BEFORE the boundary predicate passes.
 Action wiring 2: The composition MUST NOT make a committing call BEFORE recording an intent.
 Action wiring 3: An intent MUST carry the invocation_id.
@@ -451,7 +451,7 @@ Action wiring 73 is the caller's disambiguation and it is structural rather than
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST NOT destroy a record covered by an active hold under strict mode.
 Wiring decision 2: The composition MUST destroy a record ONLY AFTER the gate read.
 Wiring decision 3: The composition MUST record the hold check result on a destruction.
@@ -474,7 +474,7 @@ Wiring decision 6 and Wiring decision 7 are the advisory path's honest residue. 
 
 ### Reconciliation
 
-```text
+```
 Reconciliation 1: The sweep MUST run at an instance's start.
 Reconciliation 2: The sweep MUST run PER reconciliation cadence.
 Reconciliation 3: The sweep MUST NOT store a record of the sweep's own.
@@ -532,7 +532,7 @@ Reconciliation 26 and Reconciliation 27 are the re-derivability test stated as a
 Each emerges from the composition; none belongs to one constituent.
 
 - **Invariant 1 — Hold-blocks-purge.**
-  ```text
+  ```
   Invariant 1.1: IF an active hold covers the record AND the hold check mode = strict THEN the composition MUST NOT call Retention Window's purge.
   Invariant 1.2: IF an active hold covers the record AND the hold check mode = strict THEN a purge MUST answer EXACTLY ONE OF under-legal-hold, recording-failure, invalid-credential, invalid-request.
   Invariant 1.3: The composition MUST NOT read an unreadable hold store as an empty hold check result.
@@ -540,13 +540,13 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   WHY: this is the composition's defining emergent claim and neither constituent can carry it — legal hold(../atoms/legal-hold.md) intercepts no purge and retention window(../atoms/retention-window.md) consults no hold store. Invariant 1.2 enumerates every answer a blocked purge can give rather than the one a reader expects: the gate record is itself a substrate write, so its own arms are live, and each of the three lands the refusal without reaching a destruction. Invariant 1.3 is the cheapest-compliant reading closed — *unreadable therefore zero* is exactly the spoliation hole the gate exists to fill.
 - **Invariant 2 — Retention coverage.**
-  ```text
+  ```
   Invariant 2.1: EVERY record an admitted placement covered MUST carry a retention standing EXACTLY ONE OF retained, purged.
   Invariant 2.2: The composition MUST NOT gate a record no admitted placement covered.
   ```
   WHY: the scope claim is what the store-sourced rebuild degrades (`Composition state 17`). A refusal citing a sibling this composition did not place is correct as a refusal and wrong as a statement about this composition's own coverage, and an implementation reading from the fallback says which of the two it is answering.
 - **Invariant 3 — Hold audit coverage.**
-  ```text
+  ```
   Invariant 3.1: EVERY admitted hold placement MUST carry a hold placed outcome.
   Invariant 3.2: EVERY admitted hold release MUST carry a hold released outcome.
   Invariant 3.3: A hold placed outcome MUST carry the hold_id, the record_ref AND the placed_by.
@@ -555,7 +555,7 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   WHY: both bounds are the substrate's and both were once asserted away. A hold that outlives the audit horizon keeps its Legal Hold record and loses its placement event's payload, so *the full lifecycle is reconstructible* is true within the horizon and false past it. And the newest events sit in the substrate's unsealed tail until the seal cadence covers them, so tamper-evidence over the tail is pending rather than in force.
 - **Invariant 4 — Retention-decision audit coverage.**
-  ```text
+  ```
   Invariant 4.1: EVERY admitted placement MUST carry a retention placed outcome.
   Invariant 4.2: EVERY admitted purge MUST carry a record purged outcome.
   Invariant 4.3: EVERY purge the gate refused under strict mode MUST carry a gate record.
@@ -565,7 +565,7 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   WHY: Invariant 4.3 is the half a reader forgets. Recording only the passings would leave an auditor unable to tell a gate that never fired from a gate that was never wired, and the two event classes together are what make the gate's behaviour readable in both directions.
 - **Invariant 5 — Audit completeness modulo the substrate's partial-attestation contract.**
-  ```text
+  ```
   Invariant 5.1: EVERY outcome MUST follow an intent carrying the outcome's invocation_id.
   Invariant 5.2: An intent carrying no outcome MUST stand as an open marker.
   Invariant 5.3: The composition MUST NOT read an open marker as a conformance failure.
@@ -575,7 +575,7 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   WHY: the pairing is this composition's own; the atomicity it sits on is the substrate's and arrives by citation rather than by restatement (`Composes 5`, `Composes 6`). An orphan attestation with no event-log entry is audit trail(./audit-trail.md)'s own partial-attestation contract, which this composition inherits and does not re-derive. What it adds is the quiescence reading: Invariant 5.6 holds once the owed record lands, and the window before it is a hard alerting condition rather than a tolerated steady state (`Action wiring 70`).
 - **Invariant 6 — Non-retroactivity of holds.**
-  ```text
+  ```
   Invariant 6.1: A post-destruction hold MUST NOT change the destroyed record's retention.
   Invariant 6.2: A post-destruction hold MUST NOT remove the record purged outcome.
   Invariant 6.3: A reader MUST decide a hold's order against a destruction by the hold placed outcome's log position.
@@ -583,7 +583,7 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   WHY: Invariant 6.1 rests on Retention Window Invariant 3 — purged is terminal — and Invariant 6.2 on Event Log Invariant 2, which grants the event is unchangeable for as long as the event exists. Invariant 6.3 and Invariant 6.4 are the disambiguation the backdating case forces: `placed_at` is the caller's assertion of when an obligation arose and may legitimately predate anything, so the log position is the only evidence of which came first.
 - **Invariant 7 — Multi-hold independence.**
-  ```text
+  ```
   Invariant 7.1: IF an active hold covers the record THEN a release MUST NOT make the record purge-eligible.
   Invariant 7.2: [Purge Eligible] MUST answer a record carrying an active hold as hold-blocked.
   Invariant 7.3: [Purge Eligible] MUST answer a record carrying the unavailable sentinel as hold-blocked.
@@ -591,7 +591,7 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   WHY: Legal Hold Invariant 4 gives the constituent half — concurrent holds are independent, and a release reaches no other hold. What this invariant adds is the aggregate consequence over the record, including the sentinel's reading: a hold count that could not be taken is hold-blocked, never zero, so the degraded answer and the refusal agree.
 - **Invariant 8 — Defensible destruction.**
-  ```text
+  ```
   Invariant 8.1: EVERY destroyed record MUST carry a record purged outcome naming the hold check result.
   Invariant 8.2: EVERY destroyed record MUST carry a retention standing purged.
   Invariant 8.3: A destroyed record's retention_until MUST NOT EXCEED the retention's purged_at.
@@ -601,7 +601,7 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   WHY: Invariant 8.3 is Retention Window Invariant 8 read from this side. Invariant 8.5 names the substrate's non-transient degradation rather than leaving it out: once one member of a seal's covering range is purged, the surviving members answer `unverifiable(partially-purged-coverage)` for the rest of their retained lives — unknown, not bad, and a reader told otherwise would read a lawful purge as tampering. Invariant 8.6 is the honest end of the claim: after the audit records themselves lawfully age out, defensibility rests on the deployment's archival practice.
 - **Invariant 9 — Cross-retention joint enforcement.**
-  ```text
+  ```
   Invariant 9.1: IF the sibling set carries a retention outside elapsed retention THEN the composition MUST NOT destroy the record.
   Invariant 9.3: The composition MUST NOT leave a sibling retained over a destroyed record.
   Invariant 9.4: A pending sibling MUST stand named in the record purged outcome.
@@ -610,7 +610,7 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   WHY: this discharges the obligation Retention Window's `Composition note 3` assigns to a composing layer, and it discharges it in both directions — no destruction while a sibling lives, and no sibling left retained once the record is gone. `Composition state 19` and Invariant 9.5 are the pair that keeps it sound where the evidence has lapsed: a sibling set rebuilt from the trail would omit exactly the long retention whose placement event died first, so the gate reads the store in every state and the audit traversal supplies `Invariant 2`'s scope claim and nothing the gate depends on.
 - **Invariant 10 — Authentication precedes destruction and commitment.**
-  ```text
+  ```
   Invariant 10.1: The composition MUST NOT make a committing call BEFORE the caller's credential validates.
   Invariant 10.2: The composition MUST NOT destroy a record BEFORE the caller's credential validates.
   Invariant 10.3: The composition MUST NOT claim a presenter stands as the actor.
@@ -691,7 +691,7 @@ An implementation is acceptable when an external auditor, given the two indexes,
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY record purged outcome carrying an empty hold check result under strict mode (Invariant 1.4).
 Check 1.2: An auditor MUST find EVERY record purged outcome carrying a non-empty hold check result carrying the hold override (Action wiring 55).
 Check 1.3: An auditor MUST find no hold held at a record purged outcome's purged_at (Invariant 1.1).
@@ -734,7 +734,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: An auditor needing the business retention durations confirmed MUST read the deployment's own policy register (Capability requirement 11).
 External check 2: An auditor needing a retention policy's correctness confirmed MUST read the deployment's own regulatory obligations (Capability requirement 31).
 External check 3: An auditor needing a hold's authority confirmed MUST read the deployment's own permissions surface (Non-goal 13).
@@ -753,7 +753,7 @@ External check 1 is this composition's most consequential externally-clearable g
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT reconcile two retention policies.
 Non-goal 2: A deployment needing a reconciled policy MUST compose a Policy Reconciliation pattern.
 Non-goal 3: The composition MUST NOT destroy a record set in one call.
@@ -791,7 +791,7 @@ The other forthcoming patterns named above are **Policy Reconciliation** *(forth
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: The composition MUST NOT place an audit append inside a host transaction's atomic set.
 Atomic writes 2: An admitted placement MUST record the outcome ONLY AFTER the constituent commit.
 Atomic writes 3: An admitted hold placement MUST record the outcome ONLY AFTER the constituent commit.
@@ -809,7 +809,7 @@ The ordering is the load-bearing half. Every outcome follows its committing call
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 4: The composition MUST judge elapsed retention against the injected now.
 Deleted: Clock semantics 2. Action wiring 8 owns it.
 Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
@@ -854,7 +854,7 @@ Clock semantics 4, Clock semantics 5 and Clock semantics 16 stay under this head
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: A late hold MUST leave a destruction standing.
 Concurrency 2: The composition MUST NOT claim a late hold blocks a destruction.
 Concurrency 3: The composition MUST NOT close the residual race at the composition's own layer.
@@ -870,7 +870,7 @@ Concurrency 4 is the sweep's own version of the same hazard, and it is closed he
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A deployment MUST own the policy a record is placed under.
 Composition note 3: A deployment MUST own who may place a hold.

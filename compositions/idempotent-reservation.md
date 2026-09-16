@@ -41,7 +41,7 @@ This is the same composition that runs in every payment processor in production 
 
 ## Composes
 
-```text
+```
 Composes 1: EXACTLY ONE Provisional Commitment instance MUST serve the composition.
 Composes 2: EXACTLY ONE Duplicate Prevention instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
@@ -67,7 +67,7 @@ Composes 4 is the enclosure every guarantee below rests on. A deployment exposin
 
 ### Composition state
 
-```text
+```
 Composition state 1: The composition MUST store a token results map.
 Composition state 2: The composition MUST key the token results map by idempotency_token.
 Composition state 3: An entry MUST carry an action type, a parameters digest, a result, a pending instant AND a completed instant.
@@ -97,7 +97,7 @@ Composition state 9 and Composition state 10 keep the digest out of core logic. 
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: A deployment MUST set the idempotency window.
 Capability requirement 2: A deployment MUST set the token max length.
 Capability requirement 3: A deployment MUST set the digest function.
@@ -134,7 +134,7 @@ Capability requirement 17 is the fork the composition cannot resolve. Where the 
 
 ### Primitive policy
 
-```text
+```
 Primitive policy 1: The composition MUST answer invalid-request for a blank idempotency_token.
 Primitive policy 2: The composition MUST answer invalid-request for an idempotency_token EXCEEDS the token max length.
 Primitive policy 3: The composition MUST compare an idempotency_token byte-exact.
@@ -175,7 +175,7 @@ Term place hold position: `intent` | `outcome(optional id)` — the record a [Pl
 
 Term resolution position: `intent` | `outcome(result)` — the record a resolving write lands: the intent, or the outcome carrying the result.
 
-```text
+```
 Action wiring 1: EVERY state-changing action MUST take an idempotency_token.
 Action wiring 2: The composition MUST write ONLY AFTER taking the token's section.
 Action wiring 3: The composition MUST read the token results map under the section.
@@ -217,7 +217,7 @@ Action wiring 19 is the rule an earlier draft would have made a defect. A `recor
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST record EVERY constituent answer against the token.
 Wiring decision 2: The composition MUST record a constituent's rejection against the token.
 Wiring decision 3: The composition MUST NOT record an answer for a malformed idempotency_token.
@@ -232,7 +232,7 @@ The three exclusions share one reason: the composition did not act, so it holds 
 
 ### Housekeeping
 
-```text
+```
 Housekeeping 1: The eviction leg MUST examine a token's entry ONLY AFTER taking the token's section.
 Housekeeping 2: The eviction leg MUST skip a token whose section the eviction leg cannot take.
 Housekeeping 3: The eviction leg MUST NOT examine an entry younger than the reservation completion bound.
@@ -258,26 +258,26 @@ Housekeeping 7 and Housekeeping 8 are why the leg owes no liveness bound. It evi
 These emerge from the composition; none belongs to one constituent.
 
 - **Invariant 1 — Idempotent place hold within the window.**
-  ```text
+  ```
   Invariant 1.1: Two place_hold calls carrying one idempotency_token AND one parameters digest MUST answer alike inside the idempotency window.
   ```
 - **Invariant 2 — Idempotent state transitions within the window.**
-  ```text
+  ```
   Invariant 2.1: Two resolving calls carrying one idempotency_token AND one parameters digest MUST answer alike inside the idempotency window.
   Invariant 2.2: The composition MUST NOT call a constituent twice for one idempotency_token inside the idempotency window.
   Invariant 2.3: A resolving action's re-entry MUST rest on Provisional Commitment Invariant 2.
   ```
 - **Invariant 3 — Token to commitment, one to one.**
-  ```text
+  ```
   Invariant 3.1: An idempotency_token inside the idempotency window MUST NOT bind two commitment ids.
   ```
 - **Invariant 4 — Token action binding.**
-  ```text
+  ```
   Invariant 4.1: An idempotency_token MUST bind EXACTLY ONE action type.
   Invariant 4.2: An idempotency_token MUST bind EXACTLY ONE parameters digest.
   ```
 - **Invariant 7 — Token expiry releases the binding.**
-  ```text
+  ```
   Invariant 7.1: The eviction leg MUST evict an entry ONLY AFTER Duplicate Prevention's guard elapsed AND the idempotency window elapsed since the entry's pending instant.
   Invariant 7.2: A call carrying an evicted idempotency_token MUST stand as a fresh request.
   Deleted: Invariant 5. Composes 5 owns it.
@@ -285,7 +285,7 @@ These emerge from the composition; none belongs to one constituent.
   ```
   WHY: the two deleted invariants asserted each constituent's invariants hold over this composition's instance, which `execution-contract.md` §Conformance settles by reference (Authority 6). What they carried beyond the blanket is Composes 6 and Composes 7 — the unchanged relay of a constituent rejection, and the once-per-first-invocation `record` discipline, which is this composition's call pattern rather than a property of the atom.
 - **Invariant 8 — Exactly-once effect within the window.**
-  ```text
+  ```
   Invariant 8.1: The composition MUST make the exactly-once claim ONLY IF the deployment declares the section, the token results durability AND Duplicate Prevention's store obligations.
   Invariant 8.2: An admitted first invocation MUST reach Provisional Commitment EXACTLY ONE time inside the idempotency window.
   ```
@@ -339,7 +339,7 @@ An implementation is acceptable when an external auditor, given the commitment s
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY token results entry carrying one action type (Invariant 4.1).
 Check 1.2: An auditor MUST find EVERY token results entry carrying one parameters digest (Invariant 4.2).
 Check 2.1: An auditor MUST find no idempotency_token bound to two commitment ids inside the idempotency window (Invariant 3.1).
@@ -355,7 +355,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: An auditor needing the section confirmed MUST read the deployment's own host (Capability requirement 5).
 External check 2: An auditor needing the token results durability confirmed MUST read the deployment's own store configuration (Capability requirement 12).
 External check 3: An auditor needing Duplicate Prevention's fail-closed posture confirmed MUST read the deployment's own configuration (Capability requirement 16).
@@ -379,7 +379,7 @@ The record-versus-attempt line falls here as it does elsewhere: what *stands* �
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT guarantee exactly-once for an idempotency_token the idempotency window elapsed for.
 Non-goal 2: The composition MUST NOT bound the idempotency window.
 Non-goal 3: The composition MUST NOT mint an idempotency_token.
@@ -408,7 +408,7 @@ Non-goal 13 follows from `Housekeeping 7`. The leg evicts and repairs nothing, s
 
 ### Indeterminate outcome
 
-```text
+```
 Indeterminate outcome 1: A pending entry MUST stand as an act that may have happened.
 Indeterminate outcome 2: The composition MUST NOT delegate again for a pending entry.
 Indeterminate outcome 3: The composition MUST compute the candidates from Provisional Commitment's held commitments.
@@ -440,7 +440,7 @@ Indeterminate outcome 10 is fail-closed's bill. Duplicate Prevention remembers a
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A deployment MUST own an idempotency_token's format.
 Composition note 3: A deployment MUST own the disposition of the candidates.

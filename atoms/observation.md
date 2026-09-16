@@ -47,7 +47,7 @@ The atom imposes no semantics on what a value means. It imposes the structural g
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify an observation by the observation_id.
 Identity 2: The host MUST allocate an observation_id at the seam.
 Identity 3: The transition MUST NOT allocate an observation_id.
@@ -93,7 +93,7 @@ Identity 14 and Identity 15 are why vocabulary standardization sits outside. LOI
 
 ### State
 
-```text
+```
 State 1: EVERY observation MUST stand in EXACTLY ONE OF recorded, amended, retracted.
 State 2: An observation standing in retracted MUST NOT leave retracted.
 State 3: An observation standing in amended MUST NOT return to recorded.
@@ -121,7 +121,7 @@ The consequence is stated rather than hidden: a caller whose clock runs ahead of
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's honesty.
@@ -162,7 +162,7 @@ read(query)
   refuses invalid-query
 ```
 
-```text
+```
 Operation 1: IF subject_ref NOT EXISTS THEN [Record] MUST answer invalid-observation.
 Operation 2: IF recorded_by NOT EXISTS THEN [Record] MUST answer invalid-observation.
 Operation 3: IF observation_type NOT EXISTS THEN [Record] MUST answer invalid-observation.
@@ -280,48 +280,48 @@ Operation 43 admits a limit rather than inventing an order. Two observations sha
 ### Invariants
 
 - **Invariant 1 — Observation immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded content field MUST NOT change.
   ```
 - **Invariant 2 — Amendment produces a successor.**
-  ```text
+  ```
   Invariant 2.1: An admitted amend MUST record a successor observation.
   Invariant 2.2: An admitted amend MUST NOT change the original's content field.
   ```
 - **Invariant 3 — Amendment chains are linear.**
-  ```text
+  ```
   Invariant 3.1: An observation MUST NOT carry two successor_ids.
   Invariant 3.2: An observation MUST NOT carry two predecessor_ids.
   ```
 - **Invariant 4 — Subject ref is inherited across an amendment chain.**
-  ```text
+  ```
   Invariant 4.1: EVERY observation in one amendment chain MUST share one subject_ref.
   ```
   WHY: by construction rather than by check (Operation 21). [Amend] takes no `subject_ref`, so a successor naming a different subject is not a violation the atom catches — it is a call the signature cannot express. A wrong-subject entry is retracted and re-recorded against the right one.
 - **Invariant 5 — Observation type is inherited across an amendment chain.**
-  ```text
+  ```
   Invariant 5.1: EVERY observation in one amendment chain MUST share one observation_type.
   ```
   WHY: the same construction (Operation 22), and the friction is the point. A chain models one measurement's corrections, so an observer who recorded the wrong measurement is not correcting a value — they recorded something that did not happen, which retraction says and amendment does not.
 - **Invariant 6 — Retraction is terminal.**
-  ```text
+  ```
   Invariant 6.1: An observation standing in retracted MUST NOT admit a chain action.
   ```
 - **Invariant 7 — Store durability.**
-  ```text
+  ```
   Invariant 7.1: The atom MUST NOT remove an observation from the store.
   Invariant 7.2: A storage-failure rejection MUST leave no partial record in the store.
   Invariant 7.3: A reader MUST NOT observe a partial record once a crash has landed.
   ```
   WHY: Invariant 7.3 forbids the repair-later posture other stores are allowed. A crash-recovery scan that fixes a dangling amend after the fact is not a substitute here, because between the crash and the repair the partial record is *visible*, which is the state this invariant says never exists — and one of the two dangling shapes cannot be repaired at all without rewriting a write-once field (Atomic writes 4, Invariant 9.1).
 - **Invariant 8 — Recorded at is set once.**
-  ```text
+  ```
   Invariant 8.1: A recorded recorded_at MUST NOT change.
   Invariant 8.2: A successor observation's recorded_at MUST stand at the amendment's instant.
   ```
   WHY: the successor's instant says when the correction was entered, and the original's says when the measurement was taken. Conflating them would lose the distinction a reviewer needs most — whether a value changed because the subject changed or because the record was wrong.
 - **Invariant 9 — Transition metadata is write-once.**
-  ```text
+  ```
   Invariant 9.1: A recorded transition metadata field MUST NOT change.
   ```
   WHY: the protections come from elsewhere and meet here. A `successor_id` cannot be overwritten because a second [Amend] answers `already-amended` (Operation 14, Invariant 3.1); a `retracted_by` cannot be overwritten because retraction is terminal (Invariant 6.1); a successor's `predecessor_id`, `amended_by` and `amendment_reason` are covered as any observation's fields are (Invariant 1.1). Taken with Invariant 1 and Invariant 8, no field of any observation ever changes after it is first written.
@@ -376,7 +376,7 @@ This atom's acceptance is what an external auditor can clear from the observatio
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find a re-read observation's observation_id, subject_ref, recorded_by, observation_type, value, unit and recorded_at unchanged from the prior read (Invariant 1.1).
 Check 1.2: An auditor MUST find a re-read transition metadata field unchanged from the prior read (Invariant 9.1).
 Check 2.1: An auditor MUST find a successor observation for EVERY amended observation's successor_id (Invariant 2.1).
@@ -398,7 +398,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing EVERY issued observation_id found in the store MUST capture the record answers (Invariant 7.1).
 External check 2: A deployment needing a recorded_by confirmed authorized MUST read the composing [Permissions](./permissions.md) record (Non-goal 13).
 External check 3: A deployment needing a reference bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Non-goal 11).
@@ -412,7 +412,7 @@ External check 4 is the boundary a reader most wants the atom to cross and it ca
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT define a value constraint.
 Non-goal 2: The deployment MUST declare a value constraint per observation_type.
 Non-goal 3: The atom MUST NOT bound the look-back on a recorded_at.
@@ -453,7 +453,7 @@ Non-goal 21 draws the analytics line. Trend, delta-from-prior and reference-rang
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: A reader MUST NOT observe a successor observation without the original's successor_id.
 Atomic writes 2: A reader MUST NOT observe an amended original without the successor observation.
 Atomic writes 3: An uncommitted crash MUST leave the store as the call found the store.
@@ -473,7 +473,7 @@ A caller whose [Amend] timed out recovers by reading the original: standing in a
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST serialize two chain actions against one observation.
 Concurrency 2: The implementation MUST NOT read the state precondition BEFORE the implementation takes the per-observation section.
 Concurrency 3: The implementation MUST hold the per-observation section across the state check and the transition the check guards.
@@ -495,7 +495,7 @@ Concurrency 8 states the other half — [Record] contends over nothing, so two c
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -520,7 +520,7 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own the value constraint per observation_type.
 Composition note 3: A composing pattern MUST own the authorization of a call.

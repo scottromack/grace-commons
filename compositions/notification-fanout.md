@@ -39,7 +39,7 @@ The composition makes two architectural commitments explicit. First, the subscri
 
 ## Composes
 
-```text
+```
 Composes 1: EXACTLY ONE Subscription instance MUST serve the composition.
 Composes 2: EXACTLY ONE Notification instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
@@ -64,7 +64,7 @@ Composes 5 and Composes 6 are what the preservation claims carried *beyond* the 
 
 ### Composition state
 
-```text
+```
 Composition state 1: The composition MUST NOT store a record.
 Composition state 2: The composition MUST NOT persist a fanout id.
 Composition state 3: A deployment needing a fanout recorded MUST compose [Event Log](../atoms/event-log.md).
@@ -76,7 +76,7 @@ The contract classification is *conforming, no stored composition state* (`execu
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one fanout id at the seam.
 Capability requirement 3: The host MUST draw a fanout id meeting the entropy floor.
@@ -102,7 +102,7 @@ Capability requirement 6 and Capability requirement 7 are the two halves of the 
 
 ### Primitive policy
 
-```text
+```
 Primitive policy 1: [Fanout] MUST answer invalid-request for a blank event_scope.
 Primitive policy 2: [Fanout] MUST answer invalid-request for a payload that NOT EXISTS.
 Primitive policy 3: The composition MUST take the fanout id ONLY AFTER the arguments clear the boundary predicate.
@@ -129,7 +129,7 @@ fanout(event_scope, payload)
 
 Term fanout result: `fanout_id`, `created`, `failed` and `fired_at` — what `fanout` answers.
 
-```text
+```
 Action wiring 1: An admitted fanout MUST call Subscription's subscribers_for with the event_scope.
 Action wiring 2: An admitted fanout MUST take the fired_at from the seam's clock reading.
 Action wiring 3: An admitted fanout MUST take the fanout_id from the seam's id.
@@ -167,7 +167,7 @@ Action wiring 5 says the rejection carries no id because the invocation did not 
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST continue a fan-out through a failed create.
 Wiring decision 2: The composition MUST NOT abort a fan-out for a failed create.
 Wiring decision 3: The composition MUST account for EVERY subscriber the subscribers_for answer carries in EXACTLY ONE OF the created list, the failed list.
@@ -185,37 +185,37 @@ Wiring decision 3 is bounded by what a completed call can claim. A crash inside 
 Invariant 1 through 5 and Invariant 8 emerge from the composition; neither constituent carries them alone.
 
 - **Invariant 1 — Fanout coverage.**
-  ```text
+  ```
   Invariant 1.1: An admitted fanout answering a result MUST call Notification's create EXACTLY ONE time per subscriber_ref the subscribers_for answer carried.
   Invariant 1.2: EVERY subscriber_ref the subscribers_for answer carried MUST stand in EXACTLY ONE OF the created list, the failed list.
   Invariant 1.3: The composition MUST NOT call Notification's create for a subscriber_ref outside the subscribers_for answer.
   ```
   WHY: the claim is over an invocation that answered. A crash inside the fan-out produces no result and no account of anybody, which is the bound Wiring decision 3 carries and the Summary states.
 - **Invariant 2 — Payload consistency.**
-  ```text
+  ```
   Invariant 2.1: EVERY notification record of one admitted fanout MUST carry one payload.
   ```
 - **Invariant 3 — No cross-notification coupling.**
-  ```text
+  ```
   Invariant 3.1: A failed create MUST NOT change another subscriber_ref's notification record.
   Invariant 3.2: EVERY notification record of one admitted fanout MUST carry the record's own status.
   Invariant 3.3: A notification record MUST NOT reference another notification record.
   ```
 - **Invariant 4 — At most one notification per subscriber per fanout.**
-  ```text
+  ```
   Invariant 4.1: An admitted fanout MUST NOT record two notification_ids for one subscriber_ref.
   Invariant 4.2: The composition MUST NOT claim a record the composition did not observe.
   ```
   WHY: Invariant 4.2 is the scope and it is deliberate. An indeterminate create may have committed a record whose id never came back, nothing in [Notification](../atoms/notification.md)'s declared surface lets anyone find it afterwards, and a retry can therefore produce a second record. That residual is the caller's (Indeterminate outcome 4) and is not a breach of an invariant that never claimed to see the unseen.
 - **Invariant 5 — The subscription store is read-only.**
-  ```text
+  ```
   Invariant 5.1: The composition MUST NOT write to the subscription store.
   Deleted: Invariant 6. Composes 7 owns it.
   Deleted: Invariant 7. Composes 7 owns it.
   ```
   WHY: the two deleted invariants asserted that [Notification](../atoms/notification.md)'s and [Subscription](../atoms/subscription.md)'s own invariants hold over this composition's instances. The prose named them *preservation claims* and set them apart from the six that emerge, which is the right distinction and the reason they could be collapsed cleanly: `execution-contract.md` §Conformance already establishes recursive conformance, so restating it twice was a citing spec restating a rule it cites (Authority 6). What they carried beyond the blanket is Composes 5 and Composes 6.
 - **Invariant 8 — Fanout invocation uniqueness.**
-  ```text
+  ```
   Invariant 8.1: Two admitted fanouts answering a result MUST NOT share a fanout_id.
   Invariant 8.2: The composition MUST call a constituent ONLY AFTER taking a fanout_id.
   Invariant 8.3: An admitted fanout answering a result MUST answer a fanout_id.
@@ -294,7 +294,7 @@ A derived implementation is acceptable when an external auditor, given the subsc
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST read a fanout's event_scope and fired_at from the composed Event Log entry (Invariant 8.3).
 Check 1.2: An auditor MUST reconstruct the active subscriber set at the fired_at from Subscription's historical-state filter (Invariant 1.2).
 Check 1.3: An auditor MUST find EVERY reconstructed subscriber_ref in EXACTLY ONE OF the created list, the failed list (Invariant 1.2).
@@ -316,7 +316,7 @@ Term boundary window: the interval the read latency bound and the clock offset a
 
 ### External checks
 
-```text
+```
 External check 1: An auditor needing create-time isolation confirmed MUST read the deployment's own transaction configuration (Invariant 3.1).
 External check 2: An auditor needing a fanout grouped MUST read a composed [Event Log](../atoms/event-log.md) (Composition state 2).
 External check 3: An auditor needing the boundary window computed MUST read the deployment's disclosed bounds (Capability requirement 6, Capability requirement 7).
@@ -333,7 +333,7 @@ Check 1.5 and Check 1.6 are the boundary window doing real work. A subscribe or 
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT guarantee idempotency across two fanouts.
 Deleted: Non-goal 2. Composition state 4 owns it.
 Non-goal 3: The composition MUST NOT answer a result for a fanout that crashed.
@@ -363,7 +363,7 @@ Non-goal 10 is the boundary with the delivery layer. This composition creates re
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 1: The fired_at MUST stand as a lower bound on the instant the subscription store fixed the subscriber set.
 Clock semantics 2: The composition MUST NOT claim the fired_at as the instant the subscription store fixed the subscriber set.
 Clock semantics 3: The composition MUST NOT claim the fired_at equal to a notification record's created_at.
@@ -375,7 +375,7 @@ The set is fixed when the subscription store executes the read, which the compos
 
 ### Indeterminate outcome
 
-```text
+```
 Indeterminate outcome 1: An unrecordable create MUST stand as indeterminate.
 Indeterminate outcome 2: The composition MUST NOT read an unrecordable create as no record.
 Indeterminate outcome 3: A caller retrying a failed subscriber_ref MUST call Notification's create for the subscriber_ref.
@@ -397,7 +397,7 @@ Indeterminate outcome 5 and Indeterminate outcome 6 are the discriminator the co
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A deployment MUST own the caller's authority to fan out.
 Composition note 3: A deployment MUST own a payload's schema and size.

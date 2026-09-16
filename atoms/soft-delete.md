@@ -45,7 +45,7 @@ Purge is the regulated interface. GDPR (EU General Data Protection Regulation) A
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a lifecycle record by the record_id.
 Identity 2: The caller MUST supply the record_id.
 Identity 3: The atom MUST NOT allocate a record_id.
@@ -80,7 +80,7 @@ Identity 10 follows from both. A `record_id` that names nothing in the host syst
 
 ### State
 
-```text
+```
 State 1: A host record carrying no lifecycle record MUST NOT stand in a state.
 State 2: A lifecycle record MUST NOT leave purged.
 State 3: The atom MUST NOT offer a restore-from-purged surface.
@@ -103,7 +103,7 @@ State 11 is what makes a purge auditable. The lifecycle record outlives the cont
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's honesty.
@@ -141,7 +141,7 @@ read(query)
   refuses invalid-query
 ```
 
-```text
+```
 Operation 1: IF record_id NOT EXISTS THEN a transitioning action MUST answer invalid-request.
 Operation 2: IF the acting reference NOT EXISTS THEN a transitioning action MUST answer invalid-request.
 Operation 3: IF reason NOT EXISTS THEN [Purge] MUST answer invalid-request.
@@ -250,47 +250,47 @@ Operation 38 is the scope rule an auditor must read before trusting an empty ans
 ### Invariants
 
 - **Invariant 1 — Deletion attribution is immutable within a deletion epoch.**
-  ```text
+  ```
   Invariant 1.1: An admitted restore MUST NOT change a deletion field.
   Invariant 1.2: An admitted purge MUST NOT change a deletion field.
   Invariant 1.3: An admitted soft delete MUST replace EVERY deletion field.
   ```
   WHY: the epoch is the unit of immutability, not the record. A restore and a purge leave the deletion attribution exactly as they found it; a second soft delete replaces all three fields together, and the prior epoch's attribution is gone from this store. The full cycle history is [Event Log](./event-log.md)'s (Non-goal 5), and the reason the atom keeps only the latest is that a summary the reader can trust beats a history the reader has to reconstruct — the summary answers *who deleted this, and when* without ambiguity about which deletion is meant.
 - **Invariant 2 — Membership exclusivity.**
-  ```text
+  ```
   Invariant 2.1: EVERY tracked record MUST stand in EXACTLY ONE OF active, deleted, purged.
   ```
 - **Invariant 3 — Purge is terminal.**
-  ```text
+  ```
   Invariant 3.1: A lifecycle record standing in purged MUST NOT leave purged.
   ```
 - **Invariant 4 — Purge requires a prior deletion.**
-  ```text
+  ```
   Invariant 4.1: EVERY purged lifecycle record MUST carry a deleted_by and a deleted_at.
   Invariant 4.2: A purged lifecycle record's deleted_by MUST carry a non-whitespace character.
   ```
   WHY: there is no direct path from active to purged (State 4), so every purged record passed through deleted and carries that step's attribution as evidence. The two-step shape is the atom's deliberate friction: the first step hides the record and is reversible, the second destroys it and is not, and separating them creates a moment where the decision can be reconsidered.
 - **Invariant 5 — Purge attribution is complete.**
-  ```text
+  ```
   Invariant 5.1: EVERY purged lifecycle record's purged_by MUST carry a non-whitespace character.
   Invariant 5.2: EVERY purged lifecycle record's purge_reason MUST carry a non-whitespace character.
   Invariant 5.3: EVERY purged lifecycle record MUST carry a purged_at.
   ```
   WHY: the load-bearing one. An anonymous purge, a whitespace-only reason or a missing instant each defeat the record that legal proceedings, regulatory inspections and GDPR compliance demonstrations require. A reason is mandatory on purge and optional on deletion because destruction is the act that must justify itself.
 - **Invariant 6 — Temporal ordering within a transition.**
-  ```text
+  ```
   Invariant 6.1: A purged lifecycle record's purged_at MUST NOT precede the record's deleted_at.
   Invariant 6.2: A recorded restored_at MUST NOT precede the deleted_at the restore found.
   Invariant 6.3: The atom MUST NOT order two deletion epochs from the stored fields.
   ```
   WHY: Invariant 6.3 is an honest limit rather than a gap. After a soft delete following a restore, `deleted_at` is replaced and the stored `restored_at` from the prior cycle then precedes it — which looks inverted and is correct, because the two fields describe different epochs. The stored fields bound each transition against the deletion current *at that moment*, and cross-epoch ordering is recoverable only from a composed [Event Log](./event-log.md).
 - **Invariant 7 — Lifecycle record durability.**
-  ```text
+  ```
   Invariant 7.1: The atom MUST NOT remove a lifecycle record from the store.
   Invariant 7.2: A storage-failure rejection MUST leave no partial record in the store.
   ```
 - **Invariant 8 — Deletion attribution is complete.**
-  ```text
+  ```
   Invariant 8.1: EVERY lifecycle record's deleted_by MUST carry a non-whitespace character.
   Invariant 8.2: EVERY lifecycle record MUST carry a deleted_at.
   ```
@@ -343,7 +343,7 @@ This atom's acceptance is what an external auditor can clear from the lifecycle 
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find no lifecycle record absent from a later read (Invariant 7.1).
 Check 1.2: An auditor MUST find a purged lifecycle record in the store (Invariant 7.1, State 11).
 Check 2.1: An auditor MUST find a non-whitespace character in EVERY purged lifecycle record's purged_by (Invariant 5.1).
@@ -364,7 +364,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing the host record's content confirmed destroyed MUST read the host system (Identity 11, Non-goal 3).
 External check 2: A deployment needing two deletion epochs ordered MUST read the composing [Event Log](./event-log.md) (Invariant 6.3).
 External check 3: A deployment needing a purge's eligibility confirmed MUST read the composing gate (Non-goal 8).
@@ -378,7 +378,7 @@ External check 2 follows from Invariant 6.3. The stored fields carry one deletio
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT answer a second [Soft Delete] against a deleted lifecycle record as a success.
 Non-goal 2: A deployment needing an idempotent delete MUST read already-deleted as a success.
 Non-goal 3: The atom MUST NOT destroy the host record's content.
@@ -414,7 +414,7 @@ Non-goal 1 is worth stating because the alternative is tempting. A second [Soft 
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: A reader MUST NOT observe a state change without the transition's recorded fields.
 Atomic writes 2: An uncommitted crash MUST leave the lifecycle record as the call found the lifecycle record.
 Atomic writes 3: The implementation MUST resolve a dangling transition.
@@ -430,7 +430,7 @@ Every transitioning action writes the state and its fields together (Operation 2
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST serialize two transitioning actions against one lifecycle record.
 Concurrency 2: A serialized transitioning action MUST read the state the prior transitioning action left.
 Concurrency 3: The second serialized [Soft Delete] against one lifecycle record MUST answer already-deleted.
@@ -443,7 +443,7 @@ Concurrency 5 reads oddly and is right: a second purge answers `not-deleted` rat
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -466,7 +466,7 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own the purge eligibility gate.
 Composition note 3: A composing pattern MUST own the authorization of a call.

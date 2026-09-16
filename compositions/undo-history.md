@@ -39,7 +39,7 @@ The composition is event-sourced: the state is defined by replaying the log rath
 
 ## Composes
 
-```text
+```
 Composes 1: EXACTLY ONE Personal Todo shape MUST serve the composition.
 Composes 2: EXACTLY ONE Event Log instance MUST serve the composition.
 Composes 3: The composition MUST derive the Personal Todo state from the event log instance.
@@ -74,7 +74,7 @@ The composition's one state is the derived state the replay builds from the log,
 
 #### Replay
 
-```text
+```
 Replay 1: The replay MUST read EVERY event of the event log instance in sequence_number order.
 Replay 2: The replay MUST build the undone set from EVERY undo event.
 Replay 3: The replay MUST skip an undo event.
@@ -131,7 +131,7 @@ read_history(query)
   refuses invalid-query
 ```
 
-```text
+```
 Action wiring 1: A forward action MUST validate the call against Personal Todo's precondition for the action.
 Action wiring 2: A forward action MUST validate the call against the derived state.
 Action wiring 3: IF Personal Todo's precondition fails THEN a forward action MUST answer the precondition's rejection.
@@ -184,7 +184,7 @@ Action wiring 19 is the boundary against redo. Undo events are not forward event
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST restore an undone delete's unit at the unit's original id.
 Wiring decision 2: The composition MUST restore an undone delete's unit carrying the unit's original instants.
 Wiring decision 3: The composition MUST restore an undone delete's unit through the replay.
@@ -211,7 +211,7 @@ The result: Invariant 6.1 falls out of the replay rather than being designed in 
 {type: "undo",     event_id, recorded_at, undone_event_id, undone_event_type}
 ```
 
-```text
+```
 Event schema 1: The composition MUST append an event carrying EXACTLY ONE OF the five schemas.
 Event schema 2: Event Log MUST assign event_id and recorded_at at the log's own seam.
 Event schema 3: The composition MUST NOT change an appended event.
@@ -242,40 +242,40 @@ Event schema 8 is a foreclosure rather than a mapping. [Event Log](../atoms/even
 Each of these emerges from the composition. None belongs to a single constituent; each needs both atoms working together.
 
 - **Invariant 1 — Log faithfulness.**
-  ```text
+  ```
   Invariant 1.1: EVERY state-changing admitted action MUST append EXACTLY ONE event.
   Invariant 1.2: EVERY event of the event log instance MUST follow an admitted action.
   Deleted: Invariant 1.3. Action wiring 11 owns it.
   ```
   WHY: Action wiring 11 is the one exception and it is the constituent's, not this composition's. Personal Todo declares a normalized-equal edit an accepted action that writes nothing; mirroring that exactly is what keeps Invariant 1.1 true of *state-changing* actions rather than of all of them.
 - **Invariant 2 — State equivalence.**
-  ```text
+  ```
   Invariant 2.1: The derived state MUST equal the replay of the event log instance.
   ```
 - **Invariant 3 — An undo targets the most recent surviving forward event.**
-  ```text
+  ```
   Invariant 3.1: EVERY undo event's undone_event_id MUST name the undo target the undo found.
   ```
 - **Invariant 4 — Personal Todo's invariants hold over the derived state.**
-  ```text
+  ```
   Invariant 4.1: EVERY Personal Todo invariant MUST hold over one replayed derived state.
   Invariant 4.2: The composition MUST NOT claim a Personal Todo invariant across two replays.
   ```
   WHY: the scoping is the point and it is deliberate. Within any single replayed state every Personal Todo invariant holds, the temporal ones included, exactly as over a direct forward history — because every surviving event was a successful action against a then-valid state. Across successive replays the exposed timeline deliberately rewinds, since an undo removes the newest surviving event, so a claim like *a completion once exposed stays exposed* is this composition's designed undo behaviour rather than a constituent violation. Invariant 4.2 says so rather than leaving a reader to discover it.
 - **Invariant 5 — Event Log's invariants hold.**
-  ```text
+  ```
   Invariant 5.1: EVERY Event Log invariant MUST hold over the event log instance.
   Invariant 5.2: The composition MUST NOT remove an event.
   Invariant 5.3: The composition MUST NOT rewrite an event.
   ```
   WHY: [Event Log](../atoms/event-log.md)'s `Composition note 5` obliges a composing pattern to cite its invariants by number, because `Composition note 4` freezes those numbers against the citations. This composition rests on six of the seven, each named in the qualified form because this spec carries an Invariant 1 through 7 of its own, so the unqualified form is wrong for every one of the six: Event Log Invariant 1 (append-only) and Event Log Invariant 2 (event immutability), which Invariant 5.2 and Invariant 5.3 mirror from this side; Event Log Invariant 3 (total order) and Event Log Invariant 4 (sequence-number monotonicity), without which Replay 1's *in sequence_number order* names nothing; Event Log Invariant 5 (read consistency), which bounds the replay's input to exactly the landed events; and Event Log Invariant 6 (no id reuse), which is what lets an `undone_event_id` name one event for the life of the log (Invariant 3.1, Check 3.3). It does not rest on Event Log Invariant 7: `recorded_at` is an annotation this composition never orders by.
 - **Invariant 6 — Identity is preserved across a delete and its undo.**
-  ```text
+  ```
   Invariant 6.1: An undone delete's unit MUST carry the unit's original id, instants and Personal Todo state.
   ```
   WHY: Personal Todo alone cannot do this — its delete is terminal and a fresh add produces a new id. Composed with Event Log it comes back, because the original `add` event is still there to replay.
 - **Invariant 7 — Prior states are reachable by undoing.**
-  ```text
+  ```
   Invariant 7.1: A finite sequence of [Undo] calls MUST walk the derived state back through the surviving event sequence.
   Invariant 7.2: The composition MUST NOT reach a state an undo abandoned.
   Invariant 7.3: The composition MUST NOT reach a state a forward action abandoned.
@@ -310,7 +310,7 @@ This composition's acceptance is records-alone: every invariant above is checkab
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EXACTLY ONE event PER state-changing admitted action in the event log instance (Invariant 1.1).
 Check 1.2: An auditor MUST find an admitted action behind EVERY event of the event log instance (Invariant 1.2).
 Check 2.1: An auditor MUST find the derived state equal to a fresh replay of the event log instance (Invariant 2.1).
@@ -330,7 +330,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing the event log instance confirmed durable across a restart MUST read the deployment's own storage (Non-goal 5).
 External check 2: A deployment needing the event log instance confirmed to be this Personal Todo's own history MUST read the deployment's wiring (Non-goal 6).
 External check 3: A deployment needing an undo's surface meaning confirmed MUST read the deployment's own interface (Non-goal 9).
@@ -346,7 +346,7 @@ External check 2 follows from the same assumption in the other direction. The co
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT reapply an undone event.
 Non-goal 2: A deployment needing redo MUST compose a redo pattern.
 Non-goal 3: The composition MUST NOT offer a branching history.

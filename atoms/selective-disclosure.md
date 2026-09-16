@@ -43,7 +43,7 @@ The authority field is where the atom earns its name. Three types and no others 
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a disclosure record by the disclosure_id.
 Identity 2: The host MUST allocate a disclosure_id at the seam.
 Identity 3: The transition MUST NOT allocate a disclosure_id.
@@ -84,7 +84,7 @@ The id is the injected `id_t`, fresh by construction at the seam, which is what 
 
 ### State
 
-```text
+```
 State 1: EVERY disclosure record MUST carry disclosure_id, subject_ref, recipient, scope, authority_type, authority_reference and disclosed_at.
 State 2: The atom MUST NOT offer a state machine over a disclosure record.
 State 3: The atom MUST NOT offer an optional field on a disclosure record.
@@ -106,7 +106,7 @@ State 10 states the gap that makes backdating undetectable here rather than leav
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's honesty.
@@ -136,7 +136,7 @@ read(filters)
   refuses invalid-query
 ```
 
-```text
+```
 Operation 1: IF subject_ref NOT EXISTS THEN [Record] MUST answer invalid-request.
 Operation 2: IF recipient NOT EXISTS THEN [Record] MUST answer invalid-request.
 Operation 3: IF scope NOT EXISTS THEN [Record] MUST answer invalid-request.
@@ -214,34 +214,34 @@ Operation 22 refuses an unrecognized filter key rather than ignoring it, which i
 ### Invariants
 
 - **Invariant 1 — Record immutability.**
-  ```text
+  ```
   Invariant 1.1: A stored disclosure record's field MUST NOT change.
   Invariant 1.2: The atom MUST NOT offer an action that changes a stored disclosure record.
   ```
 - **Invariant 2 — Authority completeness.**
-  ```text
+  ```
   Invariant 2.1: EVERY disclosure record's authority_type MUST stand in the authority types.
   Invariant 2.2: EVERY disclosure record's authority_reference MUST carry a non-whitespace character.
   ```
   WHY: a record failing either arm cannot answer *under what authority was this disclosure made*, which is the one question the atom exists to answer. An unrecognized type or an empty reference is a conformance failure rather than a degraded record, because a disclosure accounting that cannot name its basis is not an accounting.
 - **Invariant 3 — Field completeness.**
-  ```text
+  ```
   Invariant 3.1: EVERY disclosure record MUST carry a disclosed_at.
   Invariant 3.2: EVERY disclosure record's subject_ref, recipient, scope and authority_reference MUST carry a non-whitespace character.
   ```
 - **Invariant 4 — Temporal soundness.**
-  ```text
+  ```
   Invariant 4.1: EVERY disclosure record's disclosed_at MUST NOT follow the now the record's creation read.
   ```
   WHY: a record whose `disclosed_at` is later than the instant it was written claims the system recorded a disclosure that had not happened yet. The constraint is enforced against the resolved value — caller-supplied or defaulted — by Operation 7's guard, before the write.
 - **Invariant 5 — No disclosure unrecorded.**
-  ```text
+  ```
   Invariant 5.1: EVERY transmission of a subject's data to a party beside the subject MUST produce a disclosure record.
   Invariant 5.2: The atom MUST NOT detect a transmission the atom's caller does not record.
   ```
   WHY: the atom's whole accountability purpose rests on this invariant and the atom cannot enforce it, which is why Invariant 5.2 states the limit plainly rather than leaving it to be discovered. The atom records when called and cannot intercept a disclosure that happens without a call. It is a calling-system obligation, cleared by External check 2 and structurally closed only by a composing pattern that makes its own disclosure surface the only one — which [Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md) does.
 - **Invariant 6 — Store durability and append-only nature.**
-  ```text
+  ```
   Invariant 6.1: The atom MUST NOT remove a disclosure record from the store.
   Invariant 6.2: A storage-failure rejection MUST leave no partial record in the store.
   Invariant 6.3: An answered disclosure_id MUST name a durably persisted disclosure record.
@@ -298,7 +298,7 @@ This atom's acceptance is what an external auditor can clear from the disclosure
 
 ### Conformance checks
 
-```text
+```
 Check 2.1: An auditor MUST find disclosure_id, subject_ref, recipient, scope, authority_type, authority_reference and disclosed_at on EVERY disclosure record (State 1, Invariant 3.1).
 Check 2.2: An auditor MUST find a non-whitespace character in EVERY disclosure record's subject_ref, recipient, scope and authority_reference (Invariant 3.2).
 Check 2.3: An auditor MUST find EVERY disclosure record's authority_type standing in the authority types (Invariant 2.1).
@@ -317,7 +317,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing authority store (Non-goal 7, Non-goal 8).
 External check 2: A deployment needing Invariant 5.1 cleared MUST read the egress record beside the disclosure store.
 External check 3: A deployment needing a backdated disclosed_at detected MUST read the composing [Event Log](./event-log.md)'s receipt instant (State 10).
@@ -331,7 +331,7 @@ The three external checks are the audit boundary stated rather than left to be d
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT retrieve a subject's data.
 Non-goal 2: The atom MUST NOT redact a subject's data.
 Non-goal 3: The atom MUST NOT transmit a subject's data.
@@ -372,7 +372,7 @@ Non-goal 21 is deliberate asymmetry. `disclosed_at` is bounded above because a f
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The atom MUST NOT serialize two [Record] calls against one subject_ref.
 Concurrency 2: A [Record] call's answer MUST NOT rest on a concurrent [Record] call's answer.
 Concurrency 3: The implementation MUST issue EXACTLY ONE disclosure_id per admitted record.
@@ -383,7 +383,7 @@ There is no shared mutable state for two [Record] calls to contend over — each
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -404,7 +404,7 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 
 ### Correction by append
 
-```text
+```
 Correction 1: The atom MUST NOT edit a disclosure record.
 Correction 2: The atom MUST NOT remove a disclosure record.
 Correction 3: A caller correcting a disclosure record MUST call [Record] again.
@@ -420,7 +420,7 @@ A record capturing the wrong scope or the wrong recipient stands permanently, an
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the attestation binding the recording actor.

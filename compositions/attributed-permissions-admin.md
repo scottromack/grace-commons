@@ -46,7 +46,7 @@ This is not a Role-Based Access Control layer, not a delegation system, and not 
 - **[Permissions](../atoms/permissions.md)** — the grant store and the evaluation surface.
 - **[Actor Identity](../atoms/actor-identity.md)** — the attestation surface the administration is attributed through.
 
-```text
+```
 Composes 1: EXACTLY ONE Permissions instance MUST serve the composition.
 Composes 2: EXACTLY ONE Actor Identity instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
@@ -94,7 +94,7 @@ Composes 23 and Composes 24 look like an implementation note and are a checked i
 
 ### Composition state
 
-```text
+```
 Composition state 1: The composition MUST store a grant attribution map.
 Composition state 2: The composition MUST store a revocation attribution map.
 Composition state 3: The composition MUST store an orphan log.
@@ -151,7 +151,7 @@ Composition state 27 and Composition state 28 are the retention scope this compo
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one nonce at the seam PER issuance.
 Deleted: Capability requirement 3. `execution-contract.md` §Logic confinement owns it.
@@ -231,7 +231,7 @@ Capability requirement 31 through 33 are two declined obligations. The compositi
 
 ### Primitive policy
 
-```text
+```
 Primitive policy 1: An action MUST call a constituent ONLY AFTER the boundary predicate.
 Primitive policy 2: The boundary predicate MUST refuse a blank opaque argument.
 Primitive policy 3: The boundary predicate MUST refuse an opaque argument exceeding the length cap.
@@ -268,7 +268,7 @@ Primitive policy 17 keeps the revocation path honest about what it knows. The co
 
 ### Identity
 
-```text
+```
 Identity 1: The composition MUST identify a pairing by the grant's handle.
 Identity 2: The composition MUST NOT mint a pairing identity.
 Identity 3: The grant's handle MUST stand as Permissions' own.
@@ -325,7 +325,7 @@ Term issuance orphan position: `pre-grant` | `post-grant(grant_id)` — where an
 
 Term revocation orphan position: `pre-revoke` | `post-revoke` — where a revocation attestation was left without its revocation: before it or after it.
 
-```text
+```
 Action wiring 1: An issuance MUST assemble the proposal PER the grant proposal format.
 Action wiring 2: An issuance MUST call Actor Identity's attest with the proposal, the grantor AND the grantor's credential.
 Action wiring 3: IF Actor Identity answers invalid-credential THEN [Issue Grant] MUST answer invalid-credential.
@@ -445,7 +445,7 @@ Action wiring 27 through 30 keep a caller-error answer honest about its side eff
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST record an administrative act's state change ONLY AFTER the act's landed attestation.
 Wiring decision 2: The composition MUST NOT record a state change BEFORE the act's landed attestation.
 Wiring decision 3: The composition MUST NOT enclose an attestation AND a constituent write in one transaction.
@@ -469,7 +469,7 @@ WHY:
 
 ### Housekeeping
 
-```text
+```
 Housekeeping 1: The composition MAY compose a failed-grant leg.
 Housekeeping 2: The failed-grant leg MUST enumerate an attestation through Actor Identity's declared enumeration.
 Housekeeping 3: The failed-grant leg MUST filter an enumerated attestation by the namespace prefix.
@@ -517,7 +517,7 @@ Housekeeping 16 through 18 are the horizon arm, and the third is the one that ma
 
 ## Composition-level invariants
 
-```text
+```
 Invariant 1.1: An administered grant MUST carry a grant attribution entry.
 Invariant 1.2: A grant attribution entry MUST name an attestation the Actor Identity store holds.
 Invariant 1.3: Invariant 1.1 MUST hold ONLY IF the deployment supplies the pairing write atomicity.
@@ -631,7 +631,7 @@ A derived implementation is *acceptable* — in the regulator-acceptance sense �
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find a grant attribution entry PER administered grant (Invariant 1.1).
 Check 1.2: An auditor MUST call Actor Identity's verify for the named attestation (Invariant 3.1).
 Check 1.3: An auditor MUST read a grant younger than the issuance completion bound as inconclusive (Capability requirement 16).
@@ -666,7 +666,7 @@ Check 7.3: An auditor MUST NOT read a post-enumeration grant as the enumeration'
 
 ### External checks
 
-```text
+```
 External check 1: The deployment MUST establish the grantor's authority to issue the grant (Capability requirement 33).
 External check 2: The deployment MUST establish the grantor's credential integrity since the attestation (Invariant 3.1).
 External check 3: The deployment MUST establish that one transaction encloses a constituent write AND the write's pairing entry (Capability requirement 23).
@@ -692,7 +692,7 @@ External check 3 is the antecedent Invariants 1 and 2 carry, and the records sho
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT gate a grantor's authority.
 Non-goal 2: The composition MUST NOT manage a role.
 Non-goal 3: The composition MUST NOT evaluate an attribute-based policy.
@@ -731,7 +731,7 @@ Non-goal 15 is the m-of-n case named rather than half-built: a grant needing two
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: An invocation MUST attest ONLY AFTER the boundary predicate.
 Atomic writes 2: An invocation MUST call a constituent's write ONLY AFTER the invocation's landed attestation.
 Atomic writes 3: An invocation MUST write a pairing entry inside the constituent write's transaction.
@@ -754,7 +754,7 @@ Atomic writes 9 through 11 name the disposition rather than inventing a repair. 
 
 ### Clock dependence
 
-```text
+```
 Clock dependence 1: A guard MUST NOT rest on now at this composition.
 ```
 
@@ -763,7 +763,7 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 5: The request instant MUST stand informational within a proposal.
 Deleted: Clock semantics 2. Identity 8 owns it: a proposal carries the request instant (Identity 7), and the request instant is the invocation's seam reading.
 Deleted: Clock semantics 1. Capability requirement 1 owns it.
@@ -784,7 +784,7 @@ Clock semantics 9 through 11 keep the two constituents' stamps apart. The attest
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: Two issuances over one pair MUST produce two grants.
 Concurrency 2: Two issuances over one pair MUST produce two attestations.
 Concurrency 3: The composition MUST NOT read a second grant on one pair as a defect.

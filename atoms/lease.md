@@ -17,7 +17,7 @@ Two patterns in this library described a per-key section with lease semantics in
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a lease by the pair (key, holder).
 Identity 2: The atom MUST compare keys by byte identity.
 Identity 3: The atom MUST NOT normalize a key.
@@ -34,7 +34,7 @@ Take, release, take again on one pair is two [Lease] grants under one name, told
 
 ### State
 
-```text
+```
 State 1: The host MUST hold EXACTLY ONE lease state per key.
 State 2: The host MUST derive free from a passed instant at the moment a question is asked.
 State 3: The host MUST NOT store a transition for a passed instant.
@@ -63,7 +63,7 @@ release(key, holder)
   answers released | not-held
 ```
 
-```text
+```
 Operation 1: [Take] MUST wait for the key to become free.
 Operation 2: [Take] MUST succeed at the instant the key becomes free.
 Operation 3: [Take] MUST NOT wait longer than the arrival term.
@@ -96,41 +96,41 @@ A key frees by release or by the current holder's instant passing. The bound is 
 ### Invariants
 
 - **Invariant 1 — One holder.**
-  ```text
+  ```
   Invariant 1.1: A key MUST stand in EXACTLY ONE OF free, held by one holder.
   Invariant 1.2: Two takes on one key with no intervening release and no intervening expiry MUST NOT succeed together.
   ```
 - **Invariant 2 — The terminus is the instant.**
-  ```text
+  ```
   Invariant 2.1: A grant MUST end at EXACTLY ONE OF release, instant.
   Invariant 2.2: The host MUST NOT end a grant on any other event.
   ```
   WHY: a holder's death, a network partition, a host restart, a supervisor's judgement — none ends a grant.
 - **Invariant 3 — Death is not observable.**
-  ```text
+  ```
   Invariant 3.1: The atom MUST NOT report a holder's death.
   Invariant 3.2: An implementation MUST NOT end a grant early on a belief that the holder has died.
   ```
   WHY: a host that frees a key the moment it believes a holder is gone hands the key to the next party while the previous holder's work may still be in flight, and Invariant 1 is then true of the grant and false of the world.
 - **Invariant 4 — A waiter's bound is fixed at arrival.**
-  ```text
+  ```
   Invariant 4.1: A take's bound MUST equal the arrival term.
   Invariant 4.2: Admitting an earlier waiter MUST NOT extend a later waiter's bound.
   ```
 - **Invariant 5 — Standing is answered, never assumed.**
-  ```text
+  ```
   Invariant 5.1: [Remaining] and [Release] MUST answer against the (key, holder) pair as the host holds the pair.
   ```
   WHY: a party that has lost standing learns it from the host rather than from its own clock.
 - **Invariant 6 — A fence instant carries its allowance.**
-  ```text
+  ```
   Invariant 6.1: EVERY instant handed to a party judging on another clock MUST carry the allowance subtracted.
   Invariant 6.2: The holder MUST mint EVERY such instant independently.
   ```
 
 ### The terminus, and carrying it as a fence
 
-```text
+```
 Fence 1: [Take] MUST return expires_at as an absolute instant on the granting host's clock.
 Fence 2: A holder MAY pass a fence to a third party.
 Fence 3: IF a work item's effect instant EXCEEDS the fence THEN the fenced party MUST refuse the work item.
@@ -170,7 +170,7 @@ This atom writes no records, so its acceptance checks are conformance checks aga
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST confirm that two concurrent takes on one key, with no release and no expiry between the takes, yield EXACTLY ONE expires_at (Invariant 1.1, Invariant 1.2).
 Check 1.2: An auditor MUST confirm that the other take answers EXACTLY ONE OF unavailable, held (Operation 1, Operation 7).
 Check 2.1: An auditor MUST confirm that a key held by a party that never releases becomes takeable at the instant (Invariant 2.1).
@@ -191,7 +191,7 @@ NOTE: EVERY check names the rule the check tests. A check that names none is a c
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: A holder MUST NOT take a key the holder already holds.
 Non-goal 2: The atom MUST NOT offer a depth count.
 Non-goal 3: The host MUST admit waiters in arrival order.
@@ -210,7 +210,7 @@ The atom does not detect death and no implementation may pretend to (Invariant 3
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A composing pattern MUST name this atom as an instance capability requirement.
 Composition note 2: The deployment MUST supply a host offering the signature block's operations under Operation 1 through 14.
 Composition note 3: The deployment MUST share the host across every node of the instance.

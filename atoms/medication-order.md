@@ -41,7 +41,7 @@ This is a freestanding atom in the EOS sense: its own state, its own ten writes 
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify an order by the order_id.
 Identity 2: The atom MUST assign the order_id from the id material the seam supplies.
 Identity 3: The atom MUST NOT generate an order_id.
@@ -86,7 +86,7 @@ Identity 15 is the store-instance boundary stated as a refusal. Instances exist 
 
 ### State
 
-```text
+```
 State 1: EVERY order MUST carry order_id, EVERY core field the call supplied and a state.
 State 2: EVERY verified order MUST carry verifier_ref and verified_at.
 State 3: EVERY dispensed order MUST carry dispenser_ref, quantity and dispensed_at.
@@ -111,7 +111,7 @@ State 14 says the absence plainly. There is no purge here and no delete surface 
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
 Capability requirement 3: The deployment MUST declare the clock_offset_allowance.
@@ -181,7 +181,7 @@ read(query)
   refuses invalid-query
 ```
 
-```text
+```
 Operation 1: IF a required string input NOT EXISTS THEN an action MUST answer a blank-input rejection.
 Operation 2: IF the dose NOT EXCEEDS zero THEN [Order] MUST answer invalid-order.
 Operation 3: IF a supplied ordered_at EXCEEDS the future bound THEN [Order] MUST answer invalid-order.
@@ -335,69 +335,69 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
 ### Invariants
 
 - **Invariant 1 — Order immutability.**
-  ```text
+  ```
   Invariant 1.1: An action MUST NOT change a core field.
   ```
 - **Invariant 2 — The successor inherits the identity fields.**
-  ```text
+  ```
   Invariant 2.1: EVERY successor order MUST carry the original's patient_ref, prescriber_ref and medication_ref.
   ```
   WHY: by construction rather than by guard — [Amend] takes none of the three (Operation 30 through 32), so divergence is unrepresentable. `amended_by` records who made the correction; prescribing authorship stays with the original prescriber, which is why `prescriber_ref` is inherited rather than replaced.
 - **Invariant 3 — Amendment is pre-dispensing only.**
-  ```text
+  ```
   Invariant 3.1: [Amend] MUST answer a rejection ONLY IF the order NOT EXISTS in a pre-dispensing state.
   ```
   WHY: one of the two rules that carry this atom's domain. An order that has crossed the dispensing edge is corrected by discontinuing and re-ordering, because the medication is in someone else's custody and a record that edited itself would describe a bottle that does not exist.
 - **Invariant 4 — Amendment chains are linear.**
-  ```text
+  ```
   Invariant 4.1: An order MUST NOT carry two successor_ids.
   Invariant 4.2: An order MUST NOT carry two predecessor_ids.
   ```
 - **Invariant 5 — A hold resumes where it paused.**
-  ```text
+  ```
   Invariant 5.1: An admitted reinstate MUST stand the order in the prior_state the hold recorded.
   ```
 - **Invariant 6 — Cancel is pre-dispensing; discontinue is post-dispensing.**
-  ```text
+  ```
   Invariant 6.1: [Cancel] MUST answer a rejection ONLY IF the order NOT EXISTS in a pre-dispensing state.
   Invariant 6.2: [Discontinue] MUST answer a rejection ONLY IF the order NOT EXISTS in a post-dispensing state.
   ```
   WHY: the second rule carrying the domain, and the reason the two terminals are named differently rather than folded into one *stopped*. A cancelled order means the medication never reached the patient; a discontinued one means it was dispensed or administered and then stopped. Those are different facts for pharmacy accounting, for DEA controlled-substance reconciliation and for an adverse-event investigation, and a single terminal would make them indistinguishable in exactly the record an investigator reads.
 - **Invariant 7 — A terminal state is absorbing.**
-  ```text
+  ```
   Invariant 7.1: An order standing in a terminal state MUST NOT leave the terminal state.
   ```
 - **Invariant 8 — An amended order is inactive.**
-  ```text
+  ```
   Invariant 8.1: An order standing in amended MUST NOT leave amended.
   ```
 - **Invariant 9 — An on-hold order admits only a reinstate.**
-  ```text
+  ```
   Invariant 9.1: A held-refusing action MUST answer on-hold against an order standing in on-hold.
   ```
 - **Invariant 10 — Attribution is complete.**
-  ```text
+  ```
   Invariant 10.1: EVERY attribution reference an order carries MUST carry a non-whitespace character.
   ```
   WHY: attribution is the non-repudiation property every adversarial scenario below turns on, and a blank actor reference defeats all of them at once. The rule is stated over what the order *carries* rather than over what an action accepts, so it holds of the record an auditor reads rather than of the call that made it.
 - **Invariant 11 — A reason is complete.**
-  ```text
+  ```
   Invariant 11.1: EVERY reason field an order carries MUST carry a non-whitespace character.
   ```
 - **Invariant 12 — Transition metadata is write-once within its cycle.**
-  ```text
+  ```
   Invariant 12.1: An action MUST NOT change a field group a prior transition wrote.
   Invariant 12.2: An admitted hold MUST replace EVERY hold field.
   Invariant 12.3: An admitted reinstate MUST replace EVERY reinstate field.
   ```
   WHY: the two exceptions are one fact — an order may be held and reinstated more than once, and the record carries the most recent cycle. Each individual hold writes its fields once and they stand until the next hold; the full history is a composing [Event Log](./event-log.md)'s (Non-goal 20). Calling that immutability would be a lie and calling it mutability would be a worse one, so the rules name the cycle.
 - **Invariant 13 — The placement instant is set once.**
-  ```text
+  ```
   Invariant 13.1: An action MUST NOT change an order's ordered_at.
   Invariant 13.2: EVERY successor order MUST carry the successor's own ordered_at.
   ```
 - **Invariant 14 — Order store durability.**
-  ```text
+  ```
   Invariant 14.1: The atom MUST NOT remove an order from the store.
   Invariant 14.2: A storage-failure rejection MUST leave no partial record in the store.
   Invariant 14.3: The implementation MUST NOT repair a partial record.
@@ -442,7 +442,7 @@ This atom's acceptance is what an external auditor can clear from the order stor
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY order standing in EXACTLY ONE OF the states (State 1).
 Check 1.2: An auditor MUST find no order standing outside a terminal state on a later read of an order a prior read found in that terminal state (Invariant 7.1).
 Check 1.3: An auditor MUST find no order standing outside amended on a later read of an order a prior read found amended (Invariant 8.1).
@@ -473,7 +473,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing an amendment chain's full hold history MUST read the composing [Event Log](./event-log.md) (Invariant 12.2, Non-goal 20).
 External check 2: A deployment needing a second dose event recorded MUST read the composing dose-event pattern (Operation 69, Non-goal 12).
 External check 3: A deployment needing a caller authorized MUST read the composing [Permissions](./permissions.md) (Non-goal 15).
@@ -493,7 +493,7 @@ External check 5 follows from Identity 13. This atom never reads what a `medicat
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT change a medication_ref.
 Non-goal 2: A deployment needing a different medication MUST place a new order.
 Non-goal 3: The atom MUST NOT amend an order across the dispensing edge.
@@ -534,7 +534,7 @@ Non-goal 24 is the honest limit. An open-ended order — one placed with no `dur
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: The implementation MUST commit a transition whole.
 Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
 Atomic writes 3: The implementation MUST own the transactional boundary.
@@ -547,7 +547,7 @@ Atomic writes 4 names the store the transaction spans, and the words are load-be
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 4: The atom MUST bound a supplied ordered_at from above by the future bound.
 Deleted: Clock semantics 3. Operation 4 owns it for ordered_at, and the `resolved dispensed_at`, `resolved administered_at` and `resolved completed_at` declarations own it for the event instants.
 Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
@@ -563,7 +563,7 @@ Clock semantics 4 and Clock semantics 5 are asymmetric on purpose, and the asymm
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST evaluate the state check and the state change of an order action inside one section.
 Concurrency 2: A losing order action MUST read the winner's state.
 Concurrency 3: A losing order action MUST answer the rejection the winner's state earns.
@@ -575,7 +575,7 @@ Concurrency 4 states what the atom does *not* do, because the alternative is tem
 
 ### Indeterminate outcome
 
-```text
+```
 Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the order.
 Indeterminate outcome 2: A caller MUST NOT read a lost answer as a refusal.
 Indeterminate outcome 3: A caller MUST retry a lost [Amend] ONLY IF the original stands in a pre-dispensing state.
@@ -586,7 +586,7 @@ Every order action but [Amend] is self-detecting under a lost answer: a second v
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -609,7 +609,7 @@ Blankness carries more weight here than in most atoms because two whole invarian
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A composing [Permissions](./permissions.md) MUST decide who may call an order action.
 Composition note 2: A composing [Actor Identity](./actor-identity.md) MUST attest the actor behind EVERY state-changing action.
 Composition note 3: A composing [Event Log](./event-log.md) MUST append an event on EVERY admitted action.

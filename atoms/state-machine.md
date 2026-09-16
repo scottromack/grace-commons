@@ -47,7 +47,7 @@ The guard is where the atom's restraint is sharpest. A declared transition may c
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify an instance by the instance_id.
 Identity 2: The atom MUST identify a history entry by the transition_id.
 Identity 3: The host MUST allocate an instance_id at the seam.
@@ -93,7 +93,7 @@ Lexicographic sortability (Identity 11) is the same deployment obligation [Selec
 
 ### State
 
-```text
+```
 State 1: EVERY instance MUST carry instance_id, a declaration, a current state, a transition history and next_sequence_number.
 State 2: An instance MAY carry subject_ref.
 State 3: An instance MAY carry instance_metadata.
@@ -115,7 +115,7 @@ State 14 is stated as a rule rather than left to the implementation because the 
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's honesty.
@@ -149,7 +149,7 @@ read_declaration(instance_id)
   refuses invalid-request | not-known
 ```
 
-```text
+```
 Operation 1: [Instantiate] MUST answer invalid-request ONLY IF the declaration is well-formed.
 Operation 2: IF a supplied actor_ref NOT EXISTS THEN an action MUST answer invalid-request.
 Operation 3: IF the resolved instantiated_at EXCEEDS now THEN [Instantiate] MUST answer invalid-request.
@@ -272,58 +272,58 @@ Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inh
 ### Invariants
 
 - **Invariant 1 — Declaration immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded declaration's field MUST NOT change.
   Invariant 1.2: [Read Declaration] MUST answer the declaration as [Instantiate] took the declaration.
   ```
 - **Invariant 2 — Exactly one current state.**
-  ```text
+  ```
   Invariant 2.1: EVERY instance MUST stand in EXACTLY ONE member of the instance's states.
   ```
 - **Invariant 3 — Only declared transitions fire.**
-  ```text
+  ```
   Invariant 3.1: EVERY history entry MUST match EXACTLY ONE declared transition in the instance's declaration.
   Invariant 3.2: Two declared transitions in one declaration MUST NOT share one from_state and one action.
   ```
   WHY: Invariant 3.2 is what makes Invariant 3.1's *exactly one* reachable. The uniqueness is enforced once, at [Instantiate] (Declaration 13), and every later match inherits it — so the atom never carries a tiebreak rule, because a conforming declaration never presents a tie.
 - **Invariant 4 — Terminal absorption.**
-  ```text
+  ```
   Invariant 4.1: An instance standing in a terminal state MUST NOT leave the terminal state.
   Invariant 4.2: A declared transition's from_state MUST NOT stand in the terminal states.
   ```
   WHY: absorption holds twice over — by enforcement at [Fire] (Operation 13) and by construction in the declaration (Invariant 4.2), which is what makes it structural. A deployment needing post-terminal behaviour models it as a non-terminal state or instantiates a new instance; there is no reopen surface and there is no declaration that could describe one.
 - **Invariant 5 — History append-only and complete.**
-  ```text
+  ```
   Invariant 5.1: A history entry MUST NOT change.
   Invariant 5.2: An instance's history entry count MUST equal the instance's admitted fire count.
   ```
 - **Invariant 6 — History total order.**
-  ```text
+  ```
   Invariant 6.1: Two history entries in one instance MUST NOT share a sequence_number.
   Invariant 6.2: An instance's sequence_numbers MUST stand from one to the instance's history entry count.
   Invariant 6.3: An instance's history order MUST rest on sequence_number alone.
   ```
 - **Invariant 7 — Replay determinism.**
-  ```text
+  ```
   Invariant 7.1: An instance carrying a history entry MUST stand in the highest sequence_number entry's to_state.
   Invariant 7.2: An instance carrying no history entry MUST stand in the initial state.
   Invariant 7.3: A replay of an instance's history from the initial state in sequence_number ascending order MUST reach the instance's current state.
   ```
   WHY: the current state is a projection of the history, cached so a guard need not replay. Invariant 7.3 is what makes the cache safe to hold: an auditor can rebuild the state from the entries alone, and a disagreement between the cache and the replay is a conformance failure rather than a repair job.
 - **Invariant 8 — Guard gating without evaluation.**
-  ```text
+  ```
   Invariant 8.1: A guarded declared transition MUST fire ONLY IF the caller asserts guard_satisfied.
   Invariant 8.2: The atom MUST NOT evaluate a guard's condition.
   Invariant 8.3: A guarded declared transition's history entry MUST record the caller's assertion.
   ```
   WHY: the entry attests that the caller asserted the guard at the moment of the call, and attests nothing about the world. The distinction is the atom's whole restraint, and it is what an auditor must understand before reading `guard_satisfied: true` as evidence — it is evidence of an assertion, and [Execute Gated Workflow](../compositions/execute-gated-workflow.md) is where the assertion is earned by reading a bound [Approval Step](./approval-step.md).
 - **Invariant 9 — Transition attribution completeness.**
-  ```text
+  ```
   Invariant 9.1: A recorded actor_ref MUST carry a non-whitespace character.
   ```
   WHY: the entry is complete for forensic replay whether or not `actor_ref` was supplied. Attribution is deployment policy here, not an atom-level mandate — which is exactly the gap [Actor Identity](./actor-identity.md) closes where a regulator needs the actor bound rather than named.
 - **Invariant 10 — Store durability.**
-  ```text
+  ```
   Invariant 10.1: The atom MUST NOT remove an instance from the store.
   Invariant 10.2: The atom MUST NOT remove a history entry from an instance.
   Invariant 10.3: A storage-failure rejection MUST leave no partial record in the store.
@@ -331,7 +331,7 @@ Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inh
 
 ### The declaration
 
-```text
+```
 Declaration 1: [Instantiate] MUST NOT take a partial declaration.
 Declaration 2: The atom MUST NOT change a recorded declaration.
 Declaration 3: The atom MUST NOT offer a declaration edit surface.
@@ -418,7 +418,7 @@ This atom's acceptance is what an external auditor can clear from the workflow s
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find a re-read declaration unchanged from the prior read (Invariant 1.1).
 Check 1.2: An auditor MUST find a declaration unchanged across an admitted fire (Invariant 1.1).
 Check 2.1: An auditor MUST find EVERY history entry's from_state, action and to_state standing as a declared transition in the instance's declaration (Invariant 3.1).
@@ -440,7 +440,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing a guard's condition confirmed MUST read the composing pattern that evaluates the guard (Invariant 8.2).
 External check 2: A deployment needing an instance's history entry count matched against the instance's admitted fire count MUST capture the fire answers (Invariant 5.2).
 External check 3: A deployment needing an actor_ref bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Non-goal 11).
@@ -453,7 +453,7 @@ External check 1 is the atom's central restraint stated as an audit boundary. `g
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: A deployment needing a guard evaluated MUST compose the evaluating pattern.
 Non-goal 2: A deployment gating a declared transition on an approval MUST compose [Approval Step](./approval-step.md).
 Non-goal 3: The atom MUST NOT stand an instance in two states at once.
@@ -491,7 +491,7 @@ Non-goal 19 is the limit an auditor most often pushes against. *Show me every ba
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: A reader MUST NOT observe a history entry without the entry's next_sequence_number raise.
 Atomic writes 2: A reader MUST NOT observe a history entry without the entry's current state change.
 Atomic writes 3: An uncommitted crash MUST leave the instance as the call found the instance.
@@ -508,7 +508,7 @@ Every admitted fire couples three durable mutations — the entry, the counter r
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 4: A fired_at MUST NOT bound a later history entry's fired_at.
 Deleted: Clock semantics 1. Capability requirement 2 owns it.
 Deleted: Clock semantics 2. Capability requirement 3 owns it.
@@ -521,7 +521,7 @@ Clock semantics 4 is the rule that looks like a gap and is a commitment. Wall-ti
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST serialize two [Fire] calls against one instance.
 Concurrency 2: A serialized [Fire] MUST read the current state the prior [Fire] left.
 ```
@@ -531,7 +531,7 @@ Unlike [Selective Disclosure](./selective-disclosure.md), whose concurrent recor
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -554,7 +554,7 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own a guard's evaluation.
 Composition note 3: A composing pattern asserting guard_satisfied MUST own the evidence.

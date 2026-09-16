@@ -2687,7 +2687,7 @@ def check_section_classification(root: Path) -> list[Finding]:
 # four ways — `Operation 3–7`, `Operation 3 through Operation 7`,
 # `Operations 3–7`, `Operation 3 to 7` — and no reader resolved any of them
 # past the first label. The families are read from the labelled rules of the
-# grammar and every spec, inside text fences, so an external standard's
+# grammar and every spec, inside bare fences, so an external standard's
 # `Articles 5–6` is not a label and is not flagged. A repeated family after
 # `to` is left alone: *renumbered Operation 3 to Operation 7* is a move, not a
 # range. Code spans are scrubbed, so the grammar can quote a retired form.
@@ -2712,7 +2712,7 @@ def label_families(root: Path) -> set[str]:
         for line in src.read_text(encoding="utf-8").splitlines():
             fm = _RANGE_FENCE.match(line)
             if fm:
-                in_text = not in_text and fm.group(1) == "text"
+                in_text = not in_text and fm.group(1) == ""
                 continue
             m = _RANGE_LABEL.match(line) if in_text else None
             if m and m.group(1) not in _RANGE_NOT_FAMILY:

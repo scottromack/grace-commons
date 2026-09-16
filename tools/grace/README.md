@@ -3,7 +3,7 @@
 The mechanical slice of [`GRACE-lang.md`](../../GRACE-lang.md): what a form-reader can decide about a spec's normative surface without semantics. It is the forerunner of the parser §11 obliges, not the parser — it resolves no identifiers (Closed vocabulary 4), matches no value against a value set (Hard invariant 14), and normalizes nothing (§16).
 
 ```
-python3 tools/grace/check.py                 # GRACE-lang.md + every spec carrying a ```text fence
+python3 tools/grace/check.py                 # GRACE-lang.md + every spec declaring itself migrated
 python3 tools/grace/check.py <paths...>      # named files
 python3 tools/grace/check.py --gate          # exit 1 on any non-advisory finding
 ```
@@ -14,7 +14,8 @@ Standard library only. One finding per line, `path:line: [CODE] message`. Non-ga
 
 | Code | What it reads |
 |---|---|
-| **F-fence-first / F-unlabelled / F-fence-empty** | A ```text fence whose first line is neither a labelled rule nor a surface prefix (Surface 19); an unprefixed line in a normative block that is not a rule (Hard invariant 1, Sugar 3). A bare fence opening `name(` is a signature block (Surface 20) unless its call carries values — `name: value` or a quoted literal — which makes it an example; any other fence is the surface nothing (Surface 21). |
+| **F-fence-first / F-unlabelled / F-fence-empty** | A bare fence is classified by its first line (Surface 18): a labelled rule or a tombstone opens a normative block, a surface prefix opens that surface, `name(` opens a signature block (Surface 20) unless its call carries values — `name: value` or a quoted literal — which makes it an example. A block that carries a labelled rule under any other first line fires (Surface 19); so does an unprefixed line in a normative block that is not a rule (Hard invariant 1, Sugar 3), and an empty fence. Any other block, and any fence with another language's info string, is the surface nothing (Surface 21). |
+| **D-fence-form** | A fence still marked `text`. A GRACE lang block takes a bare fence, and its first line says what it is (Surface 28). |
 | **R-label-heading / R-label-abbrev** | A label whose name is not the heading the rule sits under, or whose invariant or step number is not the one it sits under (Rule shape 7); an abbreviation in a label (Rule shape 8). |
 | **L-dup-label / L-tombstone-reuse / L-dup-tombstone** | A label used twice; a rule carrying a label a tombstone reserves (Hard invariant 25, Hard invariant 27). |
 | **R-no-modal / R-if-then / R-when-colon / R-when-empty / R-nested-when / R-child-label** | The rule form and the statement shapes (Rule shape 2, Rule shape 6, Hard invariant 3): a sentence with no modal and no `IS AUTHORITATIVE FOR` is a declaration, not a rule (Closed vocabulary 14); `IF` without `THEN`; a WHEN block's shape and children (WHEN block 3, Hard invariant 6). |

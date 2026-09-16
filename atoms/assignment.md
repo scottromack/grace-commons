@@ -31,7 +31,7 @@ Work gets handed to people, and the handing has to be answerable: who holds this
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify an assignment by the assignment_id.
 Identity 2: The host MUST allocate an assignment_id at the atom's seam.
 Identity 3: The transition MUST NOT allocate an assignment_id.
@@ -63,7 +63,7 @@ Identity by task would make a reassignment overwrite its predecessor, which dest
 
 ### State
 
-```text
+```
 State 1: EVERY assignment MUST stand in EXACTLY ONE OF active, recalled, transferred.
 State 2: EVERY assignment MUST carry assignment_id, task_ref, assignee_ref, assigned_at and status.
 State 3: A recalled assignment MUST carry recalled_at.
@@ -92,7 +92,7 @@ Recalled and transferred are two terminal values of the [Status] rather than one
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
@@ -126,7 +126,7 @@ history_for(task_ref)
   answers assignments
 ```
 
-```text
+```
 Operation 1: [Assign] MUST record EXACTLY ONE assignment per successful call.
 Operation 2: [Assign] MUST stand the assignment in active.
 Operation 3: [Assign] MUST answer assignment_id.
@@ -190,54 +190,54 @@ Reassign is one commit and not a recall followed by an assign, which is the whol
 ### Invariants
 
 - **Invariant 1 — At most one Active assignment per task.**
-  ```text
+  ```
   Invariant 1.1: Two active assignments MUST NOT share a task_ref.
   ```
 - **Invariant 2 — Assignment immutability.**
-  ```text
+  ```
   Invariant 2.1: A recorded assignment's assignment_id, task_ref, assignee_ref and assigned_at MUST NOT change.
   ```
 - **Invariant 3 — Status monotonicity.**
-  ```text
+  ```
   Invariant 3.1: A status MUST move from active to EXACTLY ONE OF recalled, transferred.
   Invariant 3.2: A status MUST NOT move to active from a terminal status.
   ```
 - **Invariant 4 — Terminal states are absorbing.**
-  ```text
+  ```
   Invariant 4.1: A recalled assignment MUST NOT take a further transition.
   Invariant 4.2: A transferred assignment MUST NOT take a further transition.
   ```
 - **Invariant 5 — Id stability.**
-  ```text
+  ```
   Invariant 5.1: [Assign] MUST set the assignment_id.
   Invariant 5.2: An assignment_id MUST NOT change.
   ```
 - **Invariant 6 — No id reuse.**
-  ```text
+  ```
   Invariant 6.1: Two assignments MUST NOT share an assignment_id.
   ```
 - **Invariant 7 — Reassign atomicity.**
-  ```text
+  ```
   Invariant 7.1: A task_ref MUST carry EXACTLY ONE active assignment once [Reassign] lands.
   Invariant 7.2: The reassigned assignment MUST stand in transferred once [Reassign] lands.
   Invariant 7.3: A reader MUST NOT observe two active assignments for one task_ref.
   Invariant 7.4: A reader MUST NOT observe the task_ref unassigned once the first write lands AND the second write NOT EXISTS.
   ```
 - **Invariant 8 — Timestamp ordering.**
-  ```text
+  ```
   Invariant 8.1: IF recalled_at EXISTS THEN assigned_at MUST NOT EXCEED recalled_at.
   Invariant 8.2: IF transferred_at EXISTS THEN assigned_at MUST NOT EXCEED transferred_at.
   Invariant 8.3: The atom MUST stamp EVERY timestamp once.
   ```
   WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (Capability requirement 2 through 3).
 - **Invariant 9 — Complete responsibility history.**
-  ```text
+  ```
   Invariant 9.1: The assignments carrying one task_ref MUST record EVERY actor who held the task.
   Invariant 9.2: The assignments carrying one task_ref MUST record when each holding began.
   Invariant 9.3: The assignments carrying one task_ref MUST record how each holding ended.
   ```
 - **Invariant 10 — Assignment store durability.**
-  ```text
+  ```
   Invariant 10.1: The atom MUST NOT delete an assignment record.
   Invariant 10.2: The assignment set MUST NOT shrink.
   ```
@@ -284,7 +284,7 @@ This atom's acceptance is what an external auditor can clear from the assignment
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find no task_ref carrying two active assignments (Invariant 1.1).
 Check 2.1: An auditor MUST reconstruct a task's chain of responsibility from the assignments carrying the task_ref (Invariant 9.1, Invariant 9.2, Invariant 9.3).
 Check 2.2: An auditor MUST read a recalled assignment as the task standing unassigned at recalled_at (Operation 12).
@@ -296,7 +296,7 @@ Check 5.1: An auditor MUST identify which composing patterns a deployment wired 
 
 ### External checks
 
-```text
+```
 External check 1: An auditor MUST read the assigner's authority from the composing [Permissions](./permissions.md) records (Non-goal 5).
 External check 2: An auditor MUST read who issued an assignment from the composing [Actor Identity](./actor-identity.md) attestations (Non-goal 7).
 External check 3: An auditor MUST read a task's completion from the host's task system (Non-goal 11).
@@ -309,7 +309,7 @@ NOTE: EVERY check names the rule the check tests. The assignment store answers *
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT require an assignee's acceptance.
 Non-goal 2: A deployment needing acceptance MUST compose an acceptance pattern.
 Non-goal 3: The atom MUST NOT expire an assignment.
@@ -333,7 +333,7 @@ Where the atom breaks down: when responsibility is genuinely shared at the same 
 
 ### Reassign atomicity
 
-```text
+```
 Reassign atomicity 1: The implementation MUST commit the transferred write and the active write together.
 Reassign atomicity 2: A crash inside [Reassign] MUST NOT leave the task_ref unassigned.
 Reassign atomicity 3: A crash inside [Reassign] MUST NOT leave two active assignments for one task_ref.
@@ -345,7 +345,7 @@ The dangerous half is the quiet one: old marked transferred, successor never wri
 
 ### The assign race
 
-```text
+```
 Assign race 1: The implementation MUST make the active-assignment check and the write one transition.
 Assign race 2: The implementation MUST NOT record two active assignments for one task_ref under concurrent calls.
 Assign race 3: The second concurrent [Assign] for one task_ref MUST answer already-assigned.
@@ -353,7 +353,7 @@ Assign race 3: The second concurrent [Assign] for one task_ref MUST answer alrea
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own what a task is.
 Composition note 3: A composing pattern MUST own whether an assignee may hold the task.

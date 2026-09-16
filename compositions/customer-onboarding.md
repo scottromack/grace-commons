@@ -45,7 +45,7 @@ What the composition is *not*: it is not the verification workflow (document OCR
 - **[Retention Window](../atoms/retention-window.md)** — the policy-bounded lifetime of the party record.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every decision is recorded through.
 
-```text
+```
 Composes 1: EXACTLY ONE Party Identity instance MUST serve the composition.
 Composes 2: EXACTLY ONE Retention Window instance MUST serve the composition.
 Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
@@ -101,7 +101,7 @@ Composes 19 and Composes 20 are the write-side half of the gate. [Activity Permi
 
 ### Composition state
 
-```text
+```
 Composition state 1: The composition MUST store a case-to-monitoring index.
 Composition state 2: The composition MUST store a party-to-case index.
 Composition state 3: The composition MUST store a case-to-retentions index.
@@ -203,7 +203,7 @@ Composition state 36 through 43 are the cardinality and modality the relations c
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply a case_id at the seam PER admitted initiation.
 Capability requirement 3: The host MUST supply a trigger_id at the seam PER admitted trigger.
@@ -296,7 +296,7 @@ Capability requirement 40 and Capability requirement 41 keep the scheduler out. 
 
 ### Primitive policy
 
-```text
+```
 Primitive policy 1: An action MUST call a constituent ONLY AFTER the boundary predicate.
 Primitive policy 2: The boundary predicate MUST refuse a blank opaque argument.
 Primitive policy 3: The boundary predicate MUST refuse a blank actor reference.
@@ -345,7 +345,7 @@ Primitive policy 10 through 13 keep every identifier opaque. A deployment wantin
 
 ### Identity
 
-```text
+```
 Identity 1: A case MUST carry a case_id.
 Identity 2: The seam MUST allocate a case_id.
 Identity 3: A case_id MUST stand immutable.
@@ -380,7 +380,7 @@ Identity 17 is why [Trigger Monitoring Review] needs no separate intent: its `mo
 
 ### Audit arm
 
-```text
+```
 Audit arm 1: An invocation MUST make a committing call ONLY AFTER the landed intent.
 Audit arm 2: IF Audit Trail answers invalid-credential at an intent THEN the action MUST answer invalid-credential.
 Audit arm 3: IF Audit Trail answers invalid-request at an intent THEN the action MUST answer invalid-request.
@@ -459,7 +459,7 @@ Term enrollment failure: `invalid-request` | `storage-failure` — Party Identit
 
 Term position: `intent` | `outcome` — the record a write lands: the intent or the outcome.
 
-```text
+```
 Action wiring 1: [Initiate Onboarding] MUST answer invalid-request for a call carrying a party_id AND enrollment fields.
 Action wiring 2: [Initiate Onboarding] MUST answer invalid-request for a call carrying no party_id AND no enrollment fields.
 Action wiring 3: [Initiate Onboarding] MUST answer invalid-request for an unset monitoring interval.
@@ -540,7 +540,7 @@ Action wiring 77: A periodic trigger against a suspended party MUST NOT advance 
 Action wiring 78: The reconciliation MUST match a renewal recovery on the trigger_id.
 Action wiring 79: An admitted trigger MUST answer recorded.
 ```
-```text
+```
 Action wiring 80: The composition MUST read the case-to-monitoring index at [Clear Review].
 Action wiring 81: IF the case NOT EXISTS THEN [Clear Review] MUST answer not-known.
 Action wiring 82: IF the open-trigger set stands empty THEN [Clear Review] MUST answer no-open-trigger.
@@ -674,7 +674,7 @@ Action wiring 117 and Action wiring 118 are the re-entry arm, and it is the alte
 
 Action wiring 139 through 145 are the gate's fail-closed shape. The cheapest-compliant reading — unavailable implies permit — is exactly the before-activity hole the gate exists to close, so an unreadable store and a case entry whose party the store no longer answers for both answer `state-unavailable` and never `permitted`. The gate compares no timestamp and reads no clock, so it is clock-independent by construction, which is why it is excluded from the serialization obligation: its two reads need not be atomic, because the state read is authoritative and any skew yields a spurious `not-known` or a conservative `not-verified`, never a false `permitted`.
 
-```text
+```
 Action wiring 146: An initiated outcome MUST carry the injected now as opened_at.
 Action wiring 147: A monitoring triggered outcome MUST carry the injected now as triggered_at.
 Action wiring 148: A party suspended outcome MUST carry the injected now as suspended_at.
@@ -690,7 +690,7 @@ Action wiring 146 through 153 are where each outcome's instant comes from, state
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST hold the activity gate.
 Wiring decision 2: [Activity Permitted] MUST answer permitted ONLY IF the composition's own case names the party.
 Wiring decision 3: [Activity Permitted] MUST answer permitted ONLY IF Party Identity reports the party verified.
@@ -715,7 +715,7 @@ WHY:
 
 ### Reconciliation
 
-```text
+```
 Reconciliation 1: The composition MUST run the reconciliation at process restart.
 Reconciliation 2: The composition MUST run the reconciliation PER reconciliation cadence.
 Reconciliation 3: The reconciliation MUST select an open marker over an open-ended sequence range.
@@ -770,7 +770,7 @@ Reconciliation 32 and Reconciliation 33 place the leg: nothing awaits its answer
 
 ## Composition-level invariants
 
-```text
+```
 Invariant 1.1: [Activity Permitted] MUST answer permitted ONLY IF the party-to-case index names the party AND Party Identity reports the party verified.
 Invariant 1.2: [Activity Permitted] MUST answer permitted for a party the party-to-case index names AND Party Identity reports verified.
 Invariant 1.3: A party MUST reach regulated activity ONLY IF [Activity Permitted] answers permitted.
@@ -923,7 +923,7 @@ A derived implementation is *acceptable* — in the regulator-acceptance sense �
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find a verification recorded record carrying a state_change_id PER party carrying a regulated activity record (Invariant 1.3).
 Check 1.2: An auditor MUST confirm Audit Trail's verify_record answers verified for the found verification recorded record (Invariant 2.2).
 Check 1.3: An auditor MUST confirm the found verification recorded record stands earlier in the log than the party's first activity record (Invariant 1.3).
@@ -970,7 +970,7 @@ Check 9.5: An auditor MUST NOT read an aged-out event's payload (Composition sta
 
 ### External checks
 
-```text
+```
 External check 1: The deployment MUST establish the verification method's adequacy for the party's risk tier (Non-goal 3).
 External check 2: The deployment MUST establish the screening list's currency at the screening's instant (Non-goal 1).
 External check 3: The deployment MUST establish the verifying_actor_ref's identity (Invariant 8.3).
@@ -1007,7 +1007,7 @@ External check 7 and External check 8 are the two obligations that make the gate
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT run a verification workflow.
 Non-goal 2: The composition MUST NOT judge an identity document.
 Non-goal 3: The composition MUST NOT decide a risk tier.
@@ -1056,7 +1056,7 @@ Non-goal 10 is the closure's honest limit. [Close Party] gates *new* activity an
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: An invocation MUST record an outcome ONLY AFTER the invocation's committing call.
 Atomic writes 2: An invocation MUST populate an index ONLY AFTER the invocation's landed outcome.
 Atomic writes 3: An invocation MUST retry a committing call ONLY AFTER the constituent re-query.
@@ -1086,7 +1086,7 @@ The ordering disciplines are what shrink the windows rather than close them: the
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 4: The next review due MUST NOT EXCEED the placement's cover.
 Deleted: Clock semantics 2. Action wiring 146 through 152 own it, one outcome at a time.
 Deleted: Clock semantics 1. Capability requirement 1 owns it.
@@ -1111,7 +1111,7 @@ Capability requirement 44 and Non-goal 21 name the residual honestly. Where revi
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: A deployment MUST serialize a state-changing action over one party_id.
 Concurrency 2: A deployment MUST NOT serialize [Activity Permitted].
 Concurrency 3: [Activity Permitted]'s two reads MUST NOT stand atomic.

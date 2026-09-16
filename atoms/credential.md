@@ -42,7 +42,7 @@ This is a freestanding atom in the EOS sense: its own state, its own four writes
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a credential by the credential_id.
 Identity 2: The atom MUST assign the credential_id from the id material the seam supplies.
 Identity 3: The atom MUST NOT generate a credential_id.
@@ -84,7 +84,7 @@ Identity 11 also narrows the near-duplicate a byte-exact key otherwise admits �
 
 ### State
 
-```text
+```
 State 1: EVERY credential MUST carry credential_id, principal_ref, credential_type, verifier, registered_at and a status.
 State 2: A credential MAY carry an expires_at.
 State 3: EVERY rotated credential MUST carry rotated_at and successor_credential_id.
@@ -111,7 +111,7 @@ State 14 names an absence a deployment eventually wants. When a deployment upgra
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
 Capability requirement 3: The deployment MUST supply the derivation registry at the seam.
@@ -169,7 +169,7 @@ read(filter)
 
 Term verification failure: `material-mismatch` | `no-active-credential` — the reasons [Verify] gives for a failed verification.
 
-```text
+```
 Operation 1: IF principal_ref NOT EXISTS THEN [Register] MUST answer invalid-request.
 Operation 2: IF credential_material NOT EXISTS THEN [Register] MUST answer invalid-request.
 Operation 3: IF credential_type NOT EXISTS THEN [Register] MUST answer invalid-request.
@@ -291,63 +291,63 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
 ### Invariants
 
 - **Invariant 1 — Registration immutability.**
-  ```text
+  ```
   Invariant 1.1: A transitioning write MUST NOT change a property.
   Invariant 1.2: A transitioning write MUST NOT change a terminal field the write found.
   ```
   WHY: Invariant 1.2 is write-once stated as a rule, and unlike its counterpart in [Invitation](./invitation.md) it can bind: a rotated credential carries `successor_credential_id`, and a later write that re-linked it would silently rewrite the chain Invariant 7.1 reconstructs. The rule has a reachable violation because this atom's stored terminals carry fields and a second write against them is expressible; nothing here prevents that write except this rule.
 - **Invariant 2 — Effective-active uniqueness.**
-  ```text
+  ```
   Invariant 2.1: Two effective-active credentials MUST NOT share a pair.
   ```
   WHY: the bound ranges over the reading, not the stored status, which is why a pair may carry a lapsed active record beside its successor (Operation 8) and still satisfy it. Two mechanisms keep it: [Rotate] commits both writes together (Operation 40), so the pair is never doubly effective-active mid-transition; and [Register]'s check and write run under one section (Capability requirement 8), so two concurrent registrations for one pair cannot both pass the check.
 - **Invariant 3 — Sole-holder verification.**
-  ```text
+  ```
   Invariant 3.1: [Verify] MUST answer verified ONLY IF the presented verifier matches an effective-active credential's verifier.
   ```
 - **Invariant 4 — Revocation is absorbing.**
-  ```text
+  ```
   Invariant 4.1: A revoked credential MUST NOT answer verified.
   ```
 - **Invariant 5 — A stored terminal is absorbing.**
-  ```text
+  ```
   Invariant 5.1: A credential standing in a stored terminal MUST NOT leave the stored terminal.
   ```
   WHY: a lapsed credential draws the same two rejections a stored terminal does — `not-active` from [Rotate], `already-terminal` from [Revoke] — and for a different reason, which is worth saying because the shared answers invite a reader to assume a shared mechanism. A stored terminal is excluded by what it stores; a lapsed credential is excluded by what the clock says, stands in active still, and is owned by Invariant 11.1 and Invariant 12.1 rather than here.
 - **Invariant 6 — Rotation does not mutate.**
-  ```text
+  ```
   Invariant 6.1: An admitted rotate MUST NOT change the prior credential's verifier.
   Invariant 6.2: An admitted rotate MUST NOT change a field of the prior credential beside status, rotated_at and successor_credential_id.
   ```
 - **Invariant 7 — The rotation chain is walkable.**
-  ```text
+  ```
   Invariant 7.1: EVERY rotated credential's successor_credential_id MUST name a credential.
   Invariant 7.2: EVERY rotated credential's successor MUST carry the rotated credential's pair.
   ```
 - **Invariant 8 — Credential material is never persisted.**
-  ```text
+  ```
   Invariant 8.1: The atom MUST NOT answer credential material.
   Deleted: Invariant 8.2. Capability requirement 5 owns the one-way derivation function.
   ```
   WHY: the one-way property is the deployment's to supply and not a property of any reachable state, so it sat in the wrong family — an `Invariant` is a property of every reachable state (GRACE-lang Standard label 1) and a deployment's obligation is a `Capability requirement`. Same fact, moved to the family that owns its kind (council read 41).
 - **Invariant 9 — Revocation attribution is complete.**
-  ```text
+  ```
   Invariant 9.1: EVERY revoked credential MUST carry a non-blank revoked_by_ref.
   Invariant 9.2: EVERY revoked credential MUST carry a non-blank revocation_reason.
   Invariant 9.3: EVERY revoked credential MUST carry a revoked_at.
   ```
 - **Invariant 10 — Credential durability.**
-  ```text
+  ```
   Invariant 10.1: The atom MUST NOT remove a credential from the store.
   Invariant 10.2: A storage-failure rejection MUST leave no partial credential in the store.
   ```
 - **Invariant 11 — A lapse precludes verification.**
-  ```text
+  ```
   Invariant 11.1: A lapsed credential MUST NOT answer verified.
   ```
   WHY: the expiry analogue of Invariant 4.1, and the difference is the whole of this atom's render-time form. Revocation excludes by a write; a lapse excludes by a reading, and the mechanism is Operation 20's check ordering rather than any stored flag. Because a pair holds at most one effective-active credential (Invariant 2.1), once that one lapses no `verified` is possible for the pair until a fresh register.
 - **Invariant 12 — Expiry is derived, never written.**
-  ```text
+  ```
   Invariant 12.1: The atom MUST NOT write a field when a credential lapses.
   Invariant 12.2: An admitted read MUST compute the effective status from the credential's expires_at and now.
   ```
@@ -395,7 +395,7 @@ This atom's acceptance is what an external auditor can clear from the credential
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find no two effective-active credentials sharing a pair, against a clock the auditor supplies (Invariant 2.1).
 Check 1.2: An auditor MUST read effective-active from the window reading and NOT from the stored status (Operation 8, Invariant 2.1).
 Check 2.1: An auditor MUST find no credential storing expired as a status (State 6).
@@ -423,7 +423,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing credential material confirmed absent from a log MUST read the deployment's own logging (State 9, State 10).
 External check 2: A deployment needing a verifier comparison confirmed constant-time MUST read the implementation (Operation 24).
 External check 3: A deployment needing a derivation function confirmed one-way MUST read the derivation registry (Capability requirement 5).
@@ -442,7 +442,7 @@ External check 4 is the lost-answer family. `verified` and `failed-verification`
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT confirm that a principal_ref names a proofed party.
 Non-goal 2: A deployment needing identity proofing MUST compose [Party Identity](./party-identity.md).
 Non-goal 3: The atom MUST NOT sequence two credential checks.
@@ -486,7 +486,7 @@ Non-goal 26 is the honest limit on the stored terminals. A credential nobody rot
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: The implementation MUST commit a transition whole.
 Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
 Atomic writes 3: The implementation MUST own the transactional boundary.
@@ -499,7 +499,7 @@ Atomic writes 5 is the half of rotation a partial write breaks. Two records chan
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST commit the standing check and the status change of a transitioning write as one atomic operation.
 Concurrency 2: A losing transitioning write MUST answer a standing rejection.
 Concurrency 3: A losing [Register] racing on one pair MUST answer duplicate-active-credential.
@@ -507,7 +507,7 @@ Concurrency 3: A losing [Register] racing on one pair MUST answer duplicate-acti
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -530,7 +530,7 @@ Byte-exactness bites hardest on `credential_type`, because that string is half t
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A composing [Login](../compositions/login.md) MUST issue a session ONLY AFTER a verified answer.
 Composition note 2: A composing [Login](../compositions/login.md) MUST own the lockout policy.
 Composition note 3: A composing [Login](../compositions/login.md) MUST invalidate EVERY session derived from a revoked credential.

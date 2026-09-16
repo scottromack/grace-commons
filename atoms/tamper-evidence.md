@@ -29,7 +29,7 @@ A regulated record set must answer one question from the records alone: *have th
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify evidence by the evidence_id.
 Identity 2: The host MUST allocate an evidence_id at the atom's seam.
 Identity 3: The transition MUST NOT allocate an evidence_id.
@@ -59,7 +59,7 @@ Identity by record set would collapse a legitimate re-seal — a stronger mechan
 
 ### State
 
-```text
+```
 State 1: EVERY evidence MUST stand in sealed.
 State 2: The atom MUST NOT offer a transition out of sealed.
 State 3: EVERY evidence MUST carry evidence_id, record_set_ref, proof and sealed_at.
@@ -86,7 +86,7 @@ One state, no transitions out, no deletion and no revocation: an evidence that c
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 ```
 
@@ -108,7 +108,7 @@ Term mechanism failure reason: `unreadable-records` | `keying-precondition` | `a
 
 Term verification failure: `proof-invalid` | `record-set-mismatch` | `mechanism-verification-unavailable` — the reasons [Verify] gives for a failed verification.
 
-```text
+```
 Operation 1: [Seal] MUST compute the proof over the record set from the mechanism_credential.
 Operation 2: [Seal] MUST record EXACTLY ONE evidence per successful call.
 Operation 3: [Seal] MUST stamp sealed_at from the injected now.
@@ -167,49 +167,49 @@ The four verify outcomes are kept apart by their conditions rather than by the o
 ### Invariants
 
 - **Invariant 1 — Evidence immutability.**
-  ```text
+  ```
   Invariant 1.1: EVERY evidence field of a recorded evidence MUST NOT change.
   ```
 - **Invariant 2 — Detectability of tampering.**
-  ```text
+  ```
   Invariant 2.1: IF the presented record set differs from the sealed record set THEN [Verify] MUST answer proof-invalid.
   Invariant 2.2: A deployment MUST NOT rest detectability on a deprecated mechanism.
   Invariant 2.3: A deployment MUST re-seal a record set under a sound mechanism.
   ```
   WHY: the contract is detectability from the records alone, given the proof and the originating records — and it holds exactly as far as the mechanism does. A mechanism with a practical collision admits crafted tampering that verifies, so mechanism health is a Mechanism Registry pattern's *(forthcoming)* and re-sealing is the deployment's (Invariant 2.2, Invariant 2.3).
 - **Invariant 3 — Record-set binding.**
-  ```text
+  ```
   Invariant 3.1: A recorded proof MUST verify against the record set the evidence's record_set_ref names.
   Invariant 3.2: A recorded proof MUST NOT verify against another record set.
   ```
 - **Invariant 4 — Verification self-containment given the originating records.**
-  ```text
+  ```
   Invariant 4.1: [Verify] MUST consult the verification set.
   Invariant 4.2: [Verify] MUST NOT consult the host's state.
   Invariant 4.3: [Verify] MUST NOT consult a source outside the verification set.
   ```
   WHY: an RFC 3161 verification reads the timestamp authority's published certificate, which is the mechanism's dependency rather than the atom's — and it is the only admitted one (Invariant 4.1).
 - **Invariant 5 — Id stability.**
-  ```text
+  ```
   Invariant 5.1: [Seal] MUST set the evidence_id.
   Invariant 5.2: An evidence_id MUST NOT change.
   ```
 - **Invariant 6 — No id reuse.**
-  ```text
+  ```
   Invariant 6.1: Two evidence records MUST NOT share an evidence_id.
   ```
 - **Invariant 7 — Verification consistency under a fixed record set.**
-  ```text
+  ```
   Invariant 7.1: Two verifications of one evidence against one record set MUST answer alike.
   ```
   WHY: an answer that differs across record-set states is detectability working, not inconsistency.
 - **Invariant 8 — Mechanism opacity.**
-  ```text
+  ```
   Invariant 8.1: The atom's contract MUST hold for EVERY sound mechanism.
   Invariant 8.2: The atom MUST NOT read the proof's internal structure.
   ```
 - **Invariant 9 — Seal store durability.**
-  ```text
+  ```
   Invariant 9.1: The atom MUST NOT delete an evidence.
   Invariant 9.2: The evidence set MUST NOT shrink.
   Invariant 9.3: A storage-failure MUST NOT leave a partial evidence.
@@ -285,7 +285,7 @@ This atom's acceptance is what an external auditor can clear from the seal store
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST reconstruct EVERY seal from the evidence's stored fields (Invariant 1.1, State 3).
 Check 1.2: An auditor MUST NOT need state beyond those fields and the originating record set (Invariant 4.1, Invariant 4.2).
 Check 2.1: An auditor MUST verify an evidence with the auditor's own implementation of the mechanism's verification function (Invariant 4.1, Operation 13).
@@ -301,7 +301,7 @@ Check 6.2: An auditor MUST read the deployment's mechanism (Operation 26).
 
 ### External checks
 
-```text
+```
 External check 1: An auditor MUST read the mechanism's health from the Mechanism Registry's evidence (Invariant 2.2, Invariant 2.3).
 External check 2: An auditor MUST read the anchor's trust from the anchoring authority's own records (Non-goal 1, Non-goal 2).
 ```
@@ -312,7 +312,7 @@ NOTE: EVERY check names the rule the check tests. The bar is the regulator's que
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT prevent tampering.
 Non-goal 2: A deployment needing reach beyond detection MUST compose an external-anchoring pattern.
 Non-goal 3: The atom MUST NOT anchor a proof once the seal lands.
@@ -338,7 +338,7 @@ Where the atom breaks down: when the host cannot supply a record_set_ref whose c
 
 ### Atomicity of a seal
 
-```text
+```
 Seal atomicity 1: The implementation MUST make [Seal] atomic.
 Seal atomicity 2: A crash inside [Seal] MUST NOT leave a recorded evidence with a proof the mechanism did not produce.
 Seal atomicity 3: The deployment MUST own the durability of the seal store.
@@ -349,14 +349,14 @@ The atom's contract assumes the evidence record is durable and the write is all-
 
 ### Concurrent seals
 
-```text
+```
 Concurrent seal 1: Two seals over one record set MUST stand as independent evidence.
 Concurrent seal 2: The atom MUST NOT order two seals over one record set.
 ```
 
 ### Retention coupling
 
-```text
+```
 Retention coupling 1: A purged record set MUST leave [Verify] unable to hold.
 Retention coupling 2: A composing pattern MUST own the cascading purge of an evidence alongside the records.
 Retention coupling 3: A deployment MUST NOT read a seal over destroyed records as proof of the records' content.
@@ -367,7 +367,7 @@ Tamper-evidence outlives the records only as far as the records are retained. On
 
 ### Verification caching
 
-```text
+```
 Verification caching 1: An implementation MAY cache a verification result.
 Verification caching 2: An implementation MUST NOT cache a verification result across two record-set states.
 ```
@@ -377,7 +377,7 @@ WHY:
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: An integrity-relevant [Event Log](./event-log.md) instance MUST compose this atom.
 Composition note 3: A deployment needing an attributable seal MUST supply an actor's credential as the mechanism_credential.

@@ -42,7 +42,7 @@ This is a freestanding atom in the EOS sense — its own state, its own four act
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a commitment by the id.
 Identity 2: The atom MUST assign the id from the id material the seam supplies.
 Identity 3: The atom MUST NOT generate an id.
@@ -85,7 +85,7 @@ Identity 10 and Identity 11 state the other boundary. The atom holds references 
 
 ### State
 
-```text
+```
 State 1: EVERY commitment MUST carry id, resource, requester, placed_at, expires_at and a state.
 State 2: EVERY confirmed commitment MUST carry confirmed_at.
 State 3: EVERY released commitment MUST carry released_at.
@@ -108,7 +108,7 @@ State 8 through 10 are the three surfaces a reader keeps expecting to find. A co
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
 Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one section.
@@ -161,7 +161,7 @@ expire(id)
   refuses not-known | not-held | window-not-elapsed | storage-failure
 ```
 
-```text
+```
 Operation 1: IF resource NOT EXISTS THEN [Place Hold] MUST answer invalid-request.
 Operation 2: IF requester NOT EXISTS THEN [Place Hold] MUST answer invalid-request.
 Operation 3: IF duration NOT EXISTS THEN [Place Hold] MUST answer invalid-request.
@@ -247,46 +247,46 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
 ### Invariants
 
 - **Invariant 1 — Membership exclusivity.**
-  ```text
+  ```
   Invariant 1.1: EVERY commitment MUST stand in EXACTLY ONE OF held, confirmed, released, expired.
   ```
 - **Invariant 2 — Single-resolution.**
-  ```text
+  ```
   Invariant 2.1: A commitment MUST NOT reach two terminal states.
   Invariant 2.2: A commitment MUST NOT carry two terminal instants.
   ```
   WHY: the atom's central guarantee, and the one an implementation most often breaks under concurrency; Concurrency 1 states the mechanism that delivers it. Both rules are *at most one*, and that is deliberate. A draft of this migration carried a third — *EXACTLY ONE resolving action against one commitment MUST commit* — whose only content beyond these two was *at least one*, which is liveness this atom cannot deliver: it decides nothing about when [Expire] fires (Non-goal 13) and licenses lazy expiry, under which a never-touched lapsed commitment never resolves. Non-goal 25 states that limit and Capability requirement 12 is where a deployment may close it. The model agrees with the rules as they now stand rather than as the draft stated them: `provisional-commitment.cfg` declares `INVARIANT Safety` and no temporal property, and `Inv_SingleResolution` checks that a written resolution matches the state — the at-most-one half, silent on whether any resolution is ever written (council read 38).
 - **Invariant 3 — Terminal absorption.**
-  ```text
+  ```
   Invariant 3.1: A commitment standing in a terminal state MUST NOT leave the terminal state.
   Deleted: Invariant 4. Identity 4 owns id stability.
   ```
 - **Invariant 5 — Property immutability.**
-  ```text
+  ```
   Invariant 5.1: An admitted resolving action MUST NOT change a property.
   Invariant 5.2: A re-hold MUST produce a commitment carrying a fresh id.
   ```
   WHY: Operation 33 through 35 keep a resolving action from *accepting* a property, and Invariant 5.1 keeps one from changing a property by any other route. The two are separate claims: an implementation can change a stored field it was never handed.
 - **Invariant 6 — Hold window monotonicity.**
-  ```text
+  ```
   Invariant 6.1: The store MUST NOT carry a degenerate window.
   ```
 - **Invariant 7 — Honored window.**
-  ```text
+  ```
   Invariant 7.1: The store MUST NOT carry a late resolution.
   Invariant 7.2: The store MUST NOT carry a premature expiry.
   Invariant 7.3: EVERY held commitment MUST read EXACTLY ONE OF open, lapsed.
   ```
   WHY: this is what an auditor comes for, and it is structural rather than procedural. Invariant 7.1 and Invariant 7.2 are the two halves of one guarantee — no resolution recorded after the declared window, no expiry recorded before it — and together they make the query *show me every hold resolved outside its window* return the empty set by construction. Invariant 7.3 is what makes the pair total: every held commitment reads one way or the other at every instant, so there is no gap between the window closing and expiry becoming legal.
 - **Invariant 8 — Resolution instants follow placement.**
-  ```text
+  ```
   Invariant 8.1: A commitment's confirmed_at MUST NOT precede the commitment's placed_at.
   Invariant 8.2: A commitment's released_at MUST NOT precede the commitment's placed_at.
   Deleted: Invariant 9. Identity 5 owns id reuse for every id, resolved or not.
   ```
   WHY: the family floors the two *resolution* instants and not `expired_at`, whose floor is the stronger one Invariant 7.2 already carries — an expiry may not precede `expires_at`, which by Invariant 6.1 exceeds `placed_at`. The family was titled *Transition instants* in a draft, which promised a floor on all three and delivered two (council read 38).
 - **Invariant 10 — Commitment store durability.**
-  ```text
+  ```
   Invariant 10.1: The atom MUST NOT remove a commitment from the store.
   Invariant 10.2: The store instance's commitment count MUST NOT fall.
   Invariant 10.3: A storage-failure rejection MUST leave no partial commitment in the store.
@@ -349,7 +349,7 @@ This atom's acceptance is what an external auditor can clear from the commitment
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY commitment standing in EXACTLY ONE OF held, confirmed, released, expired (Invariant 1.1).
 Check 1.2: An auditor MUST find a terminal instant on EVERY commitment standing in a terminal state (State 2, State 3, State 4).
 Check 1.3: An auditor MUST find no terminal instant on a held commitment (State 5).
@@ -372,7 +372,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing the resource confirmed returned to availability MUST read the registry (Non-goal 11, Non-goal 12).
 External check 2: A deployment needing the transitions of one commitment ordered MUST read the composing [Event Log](./event-log.md) (Non-goal 3).
 External check 3: A deployment needing a rejection observed MUST read the composing [Event Log](./event-log.md) (Non-goal 23).
@@ -390,7 +390,7 @@ External check 5 is the audit consequence of the eager-or-lazy choice (Non-goal 
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT answer a repeated [Place Hold] with one commitment.
 Non-goal 2: A deployment needing an idempotent place hold MUST compose [Duplicate Prevention](./duplicate-prevention.md).
 Non-goal 3: The atom MUST NOT record a transition history.
@@ -432,7 +432,7 @@ Non-goal 24 names where the atom breaks down rather than where it declines. A bl
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: The implementation MUST commit a transition whole.
 Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
 Atomic writes 3: The implementation MUST own the transactional boundary.
@@ -444,7 +444,7 @@ Atomic writes 4 is the honest limit. A crash between the state change and the in
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST commit the state check and the state change of a resolving action as one atomic operation.
 Concurrency 2: A losing resolving action MUST answer not-held.
 Concurrency 3: A losing [Place Hold] racing on one resource MUST answer resource-unavailable.
@@ -452,7 +452,7 @@ Concurrency 3: A losing [Place Hold] racing on one resource MUST answer resource
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -476,7 +476,7 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A composing [Duplicate Prevention](./duplicate-prevention.md) MUST map an idempotency token to the id an admitted place hold answered.
 Composition note 2: A composing [Duplicate Prevention](./duplicate-prevention.md) MUST answer a repeated token with the mapped id.
 Composition note 3: A composing [Event Log](./event-log.md) MUST append an event on EVERY admitted action.

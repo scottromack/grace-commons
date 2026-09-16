@@ -41,7 +41,7 @@ Updates are not retroactive in the sense the atom commits to. A new set produces
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a preference record by the preference_id.
 Identity 2: The host MUST allocate a preference_id at the seam.
 Identity 3: The transition MUST NOT allocate a preference_id.
@@ -68,7 +68,7 @@ Equality is exact and the atom folds no case, trims no whitespace and normalizes
 
 ### State
 
-```text
+```
 State 1: EVERY preference record MUST stand in EXACTLY ONE OF active, suspended, deleted.
 State 2: EVERY preference record MUST carry preference_id, principal_ref, declared_channels, set_at and status.
 State 3: A preference record MUST carry EVERY preference field the [Set] call supplied.
@@ -120,7 +120,7 @@ Nothing about delivery lives here: what was sent, to whom, and whether the princ
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
@@ -160,7 +160,7 @@ read(preference_id)
   answers preference_record | not-known
 ```
 
-```text
+```
 Operation 1: [Set] MUST record EXACTLY ONE preference record per successful call.
 Operation 2: [Set] MUST stand the new preference record in active.
 Operation 3: [Set] MUST answer the preference_id.
@@ -250,7 +250,7 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
 ### Invariants
 
 - **Invariant 1 — Preference record immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded preference record's preference_id, principal_ref, declared_channels and set_at MUST NOT change.
   Invariant 1.2: A recorded preference field MUST NOT change.
   Invariant 1.3: A recorded metadata MUST NOT change.
@@ -260,7 +260,7 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   Invariant 1.7: A preference record MUST NOT carry a mutable field beyond status.
   ```
 - **Invariant 2 — Status monotonicity.**
-  ```text
+  ```
   Invariant 2.1: A status MUST move from active to EXACTLY ONE OF suspended, deleted.
   Invariant 2.2: A status MUST move from suspended to deleted.
   Invariant 2.3: A status MUST NOT move from suspended to active.
@@ -268,11 +268,11 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   Invariant 2.5: A status MUST NOT move from deleted to suspended.
   ```
 - **Invariant 3 — At most one preference record currently in effect per principal.**
-  ```text
+  ```
   Invariant 3.1: Two preference records currently in effect MUST NOT share a principal_ref.
   ```
 - **Invariant 4 — Supersession atomicity.**
-  ```text
+  ```
   Invariant 4.1: A supersession MUST change the prior preference record and the new preference record in one operation.
   Invariant 4.2: A reader MUST NOT observe two preference records currently in effect for one principal_ref.
   Invariant 4.3: A refused supersession MUST leave the prior preference record currently in effect.
@@ -280,44 +280,44 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   ```
   WHY: Invariant 4.1 asserts the atomic co-occurrence alone, which holds unconditionally. The timestamp relation between the prior record's `deleted_at` and the successor's `set_at` is a best-effort directional claim, and it rests on clock monotonicity the hard set does not carry — so it lives under Temporal property 4, not here.
 - **Invariant 5 — Channel preferences reference declared channels, and the proof is on the record.**
-  ```text
+  ```
   Invariant 5.1: EVERY channel_preferences key MUST stand in the preference record's own declared_channels.
   Invariant 5.2: An auditor MUST clear Invariant 5.1 from one preference record.
   Invariant 5.3: A change to the deployment's declared channel set MUST NOT change a recorded declared_channels.
   ```
 - **Invariant 6 — Suspension is value-preserving.**
-  ```text
+  ```
   Invariant 6.1: [Suspend] MUST change status and suspended_at alone.
   Invariant 6.2: [Suspend] MUST NOT change a preference field.
   Invariant 6.3: [Suspend] MUST NOT change principal_ref.
   ```
   WHY: this is the structural mechanism behind cheap resumption — a composing pattern reads the suspended record's values and replays them in a fresh [Set], with no vocabulary loss and nothing for the principal to re-enter. The one caveat is that the replay is re-validated against the set injected for the later call, so a channel name dropped from the declaration in the meantime must be dropped from the replay (Resumption 1 through 4).
 - **Invariant 7 — Current For determinism.**
-  ```text
+  ```
   Invariant 7.1: [Current For] MUST answer the preference record currently in effect for the principal_ref.
   Invariant 7.2: [Current For] MUST answer none ONLY IF no preference record currently in effect EXISTS for the principal_ref.
   Invariant 7.3: [Current For] MUST rest on the preference record set alone.
   ```
 - **Invariant 8 — No id reuse.**
-  ```text
+  ```
   Invariant 8.1: Two preference records MUST NOT share a preference_id.
   ```
 - **Invariant 9 — Store durability over this atom's own surface.**
-  ```text
+  ```
   Invariant 9.1: The atom MUST NOT offer a removal surface.
   Invariant 9.2: The preference record count MUST NOT fall.
   Invariant 9.3: [Read] MUST answer a deleted preference record.
   ```
   WHY: scoped to this atom's own surface on purpose. Lawful disposal under a composed [Retention Window](./retention-window.md), or a deployment's erasure obligations under GDPR (EU General Data Protection Regulation) Article 17, is that pattern's declared and recorded act — an auditor of a composed deployment reads its retention records alongside this store (Non-goal 26, Non-goal 27).
 - **Invariant 10 — Validation-context self-containment.**
-  ```text
+  ```
   Invariant 10.1: EVERY preference record MUST carry declared_channels.
   Invariant 10.2: A recorded declared_channels MUST NOT stand empty.
   Invariant 10.3: An auditor MUST clear Check 5.1 from the store alone.
   Invariant 10.4: The atom MUST NOT hold the declared channel set's governance.
   ```
 - **Temporal property — Timestamp ordering.**
-  ```text
+  ```
   Temporal property 1: IF suspended_at EXISTS THEN set_at MUST NOT EXCEED suspended_at.
   Temporal property 2: IF deleted_at EXISTS THEN set_at MUST NOT EXCEED deleted_at.
   Temporal property 3: IF suspended_at EXISTS AND deleted_at EXISTS THEN suspended_at MUST NOT EXCEED deleted_at.
@@ -334,7 +334,7 @@ Immutability and durability together give *auditability* — the full history of
 
 ### Store instance model
 
-```text
+```
 Instance 1: The deployment MUST route EVERY call to one store instance.
 Instance 2: Two preference records in one store instance MUST NOT share a preference_id.
 Instance 3: The atom MUST read one principal_ref in two store instances as two principals.
@@ -422,7 +422,7 @@ This atom's acceptance is what an external auditor can clear from the preference
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST enumerate EVERY preference record's preference_id, principal_ref, set_at, status, suspended_at and deleted_at from the store (Invariant 9.1, Invariant 9.2).
 Check 1.2: An auditor MUST find EVERY supplied preference field on the preference record (Invariant 1.2, State 3).
 Check 2.1: An auditor MUST reconstruct the preference record currently in effect for a principal_ref at a past instant from set_at, status and deleted_at (Invariant 3.1, Invariant 4.1).
@@ -444,7 +444,7 @@ Check 2.2 fixes the interval convention so two auditors reading one store agree:
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT route a notification.
 Non-goal 2: The atom MUST NOT fire an event.
 Non-goal 3: The atom MUST NOT create a notification.
@@ -492,7 +492,7 @@ No resume action, because returning a [Suspended] record to [Active] would break
 
 ### Clock dependence
 
-```text
+```
 Clock dependence 1: A guard MUST NOT read now.
 Clock dependence 2: A rejection MUST NOT rest on now.
 ```
@@ -502,7 +502,7 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The host MUST serialize concurrent calls on one principal_ref.
 Concurrency 2: The recorded timestamps MUST witness the serialization order.
 Concurrency 3: [Current For] MUST NOT answer a torn preference record.
@@ -514,7 +514,7 @@ The cases fall out of the rules rather than needing their own. Two sets for one 
 
 ### Channel set evolution
 
-```text
+```
 Channel set evolution 1: The deployment MUST own the declared channel set's change history.
 Channel set evolution 2: A change to the declared channel set MUST NOT change a recorded preference record.
 Channel set evolution 3: An auditor MUST read a historical channel_preferences key against the preference record's own declared_channels.
@@ -526,7 +526,7 @@ Adding or withdrawing a channel is a configuration-surface operation; the atom s
 
 ### Opaque input bounds
 
-```text
+```
 Opaque input bound 1: The atom MUST store EVERY opaque input as supplied.
 Opaque input bound 2: The atom MUST NOT bound an opaque input's size.
 Opaque input bound 3: The deployment MUST own an opaque input's size bound.
@@ -538,7 +538,7 @@ WHY:
 
 ### Re-creation after deletion
 
-```text
+```
 Re-creation 1: A [Set] call following a [Delete] MUST record a fresh preference record.
 Re-creation 2: The two preference records MUST stand in the store independently.
 Re-creation 3: The retired preference_id MUST NOT return.
@@ -546,7 +546,7 @@ Re-creation 3: The retired preference_id MUST NOT return.
 
 ### Resumption
 
-```text
+```
 Resumption 1: A composing pattern MUST read a suspended preference record's values through [Current For].
 Resumption 2: A composing pattern MUST replay the values through a fresh [Set] call.
 Resumption 3: [Set] MUST validate a replayed channel_preferences key against the injected declared channel set.
@@ -555,7 +555,7 @@ Resumption 4: IF a replayed channel name NOT EXISTS in the injected declared cha
 
 ### Supersession atomicity
 
-```text
+```
 Supersession atomicity 1: The implementation MUST make the currency check and the supersession write one transition.
 Supersession atomicity 2: The implementation MUST serialize EVERY operation touching one principal_ref.
 Supersession atomicity 3: The deployment MUST choose a host isolation level that forecloses two concurrent [Set] calls standing two preference records currently in effect.
@@ -573,7 +573,7 @@ The spec does not define post-crash reconciliation — how an implementation det
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST call [Current For] when a notification is queued.
 Composition note 3: A composing pattern MUST capture the preference record's values at queue time.

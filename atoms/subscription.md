@@ -39,7 +39,7 @@ A subscription is a standing answer to *who wants to hear about this?* — recor
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a subscription by the subscription_id.
 Identity 2: The host MUST allocate a subscription_id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a subscription_id.
@@ -68,7 +68,7 @@ The id is the capability: knowing it is what lets a caller cancel, so it is draw
 
 ### State
 
-```text
+```
 State 1: EVERY subscription MUST stand in EXACTLY ONE OF active, cancelled.
 State 2: EVERY subscription MUST carry subscription_id, subscriber_ref, event_scope, subscribed_at and status.
 State 3: A cancelled subscription MUST carry cancelled_at.
@@ -91,7 +91,7 @@ A cancelled subscription stays in the store because the record of who was listen
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
@@ -122,7 +122,7 @@ subscribers_for(event_scope)
   answers subscriber_refs
 ```
 
-```text
+```
 Operation 1: [Subscribe] MUST record EXACTLY ONE subscription per successful call.
 Operation 2: [Subscribe] MUST stand the subscription in active.
 Operation 3: [Subscribe] MUST answer subscription_id.
@@ -181,45 +181,45 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
 ### Invariants
 
 - **Invariant 1 — Subscription immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded subscription's subscription_id, subscriber_ref, event_scope and subscribed_at MUST NOT change.
   ```
 - **Invariant 2 — Status monotonicity.**
-  ```text
+  ```
   Invariant 2.1: A status MUST move from active to cancelled.
   Invariant 2.2: A status MUST NOT move from cancelled to active.
   ```
 - **Invariant 3 — Cancellation is terminal.**
-  ```text
+  ```
   Invariant 3.1: [Cancel] MUST answer not-active for a cancelled subscription.
   Invariant 3.2: [Subscribers For] MUST NOT answer a cancelled subscription's subscriber_ref.
   ```
 - **Invariant 4 — New subscribe after cancel produces a new id.**
-  ```text
+  ```
   Invariant 4.1: A subscription recorded for a pair whose earlier subscription stands in cancelled MUST carry a fresh subscription_id.
   Invariant 4.2: The two subscriptions MUST stand in the store independently.
   ```
 - **Invariant 5 — No id reuse.**
-  ```text
+  ```
   Invariant 5.1: Two subscriptions MUST NOT share a subscription_id.
   ```
 - **Invariant 6 — At most one active subscription per pair.**
-  ```text
+  ```
   Invariant 6.1: Two active subscriptions MUST NOT share a pair.
   ```
   WHY: two live subscriptions for one actor and one scope produce two notifications for one event — the duplicate this atom exists to foreclose, and the structural difference from [Permissions](./permissions.md), which admits many grants over one pair.
 - **Invariant 7 — Evaluation self-containment.**
-  ```text
+  ```
   Invariant 7.1: [Subscribed] MUST rest on the active set alone.
   Invariant 7.2: [Subscribers For] MUST rest on the active set alone.
   ```
 - **Invariant 8 — Absence means not-subscribed.**
-  ```text
+  ```
   Invariant 8.1: [Subscribed] MUST answer not-subscribed ONLY IF no active subscription matches the pair.
   Invariant 8.2: [Subscribers For] MUST NOT answer a subscriber_ref whose subscription for the scope NOT EXISTS in the active set.
   ```
 - **Invariant 9 — Timestamp ordering.**
-  ```text
+  ```
   Invariant 9.1: IF cancelled_at EXISTS THEN subscribed_at MUST NOT EXCEED cancelled_at.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2).
@@ -260,7 +260,7 @@ This atom's acceptance is what an external auditor can clear from the subscripti
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST reconstruct a scope's active subscriber set at a past instant from subscribed_at, status and cancelled_at (Invariant 1.1, Invariant 9.1).
 Check 2.1: An auditor MUST find no two active subscriptions sharing a pair (Invariant 6.1).
 Check 3.1: An auditor MUST find cancelled_at present on EVERY cancelled subscription (State 3).
@@ -273,7 +273,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT fire an event.
 Non-goal 2: The atom MUST NOT match an event to a subscription.
 Non-goal 3: The atom MUST NOT create a notification.
@@ -302,7 +302,7 @@ Where the atom breaks down: when the audience cannot be named in advance — a r
 
 ### Atomicity of a cancel
 
-```text
+```
 Cancel atomicity 1: The implementation MUST change status and cancelled_at together.
 Cancel atomicity 2: A crash inside [Cancel] MUST NOT leave a cancelled status without cancelled_at.
 Cancel atomicity 3: A crash inside [Cancel] MUST NOT leave cancelled_at on an active subscription.
@@ -313,7 +313,7 @@ Half a cancel breaks Invariant 2.1 or Invariant 9.1 while every field looks indi
 
 ### Cancel as a capability
 
-```text
+```
 Cancel capability 1: A caller holding the subscription_id MUST reach [Cancel].
 Cancel capability 2: The atom MUST NOT enumerate subscription_ids.
 Cancel capability 3: A deployment needing richer authorization MUST compose [Permissions](./permissions.md).
@@ -324,7 +324,7 @@ Knowing the id is the whole authorization, which is honest only because the id i
 
 ### The lost ledger
 
-```text
+```
 Lost ledger 1: The atom MUST NOT recover a subscription_id.
 Lost ledger 2: A composing pattern MUST own the durability of the subscription_ids the pattern recorded.
 Lost ledger 3: A deployment losing a subscription_id MUST read the subscription as permanently active.
@@ -336,7 +336,7 @@ The capability trade buys unguessability and pays for it here. The id is the who
 
 ### The pair race
 
-```text
+```
 Pair race 1: The implementation MUST make the pair check and the write one transition.
 Pair race 2: The implementation MUST NOT record two active subscriptions for one pair under concurrent calls.
 Pair race 3: A store enforcing the pair's uniqueness MAY discharge Pair race 1.
@@ -347,7 +347,7 @@ Operation 6 reads the active set and [Subscribe] then writes; two concurrent cal
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST call [Subscribers For] when an event fires.
 Composition note 3: A composing pattern MUST record the subscription_id at subscribe time.

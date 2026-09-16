@@ -31,7 +31,7 @@ Every system that accepts input from a person or another system meets the same c
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a guarded entry by the identity.
 Identity 2: The atom MUST treat an identity as opaque.
 Identity 3: The atom MUST NOT interpret an identity.
@@ -48,7 +48,7 @@ The atom stores a value and compares a value; what counts as *the same thing see
 
 ### State
 
-```text
+```
 State 1: The host MUST hold EXACTLY ONE recorded_at per guarded identity.
 State 2: The host MUST derive under guard from the elapsed term at the moment a question is asked.
 State 3: The atom MUST NOT hold state beyond the recorded set.
@@ -69,7 +69,7 @@ One set and one stamp per entry are the whole of the atom's storage, and *under 
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 ```
 
@@ -86,7 +86,7 @@ check(identity)
   answers seen | not-seen
 ```
 
-```text
+```
 Operation 1: [Record] MUST place an identity that is not under guard under guard.
 Operation 2: [Record] MUST stamp recorded_at from the injected now.
 Operation 3: [Record] MUST answer ok.
@@ -126,7 +126,7 @@ Both calls are total. The containing pattern has already acted when it records �
 ### Invariants
 
 - **Invariant 2 — Single-recording.**
-  ```text
+  ```
   Invariant 2.1: [Record] MUST NOT extend the guard of an identity under guard.
   Invariant 2.2: [Record] MUST preserve the recorded_at of an identity under guard.
   Invariant 2.3: [Record] MUST open a fresh guard for an identity that is not under guard.
@@ -135,12 +135,12 @@ Both calls are total. The containing pattern has already acted when it records �
   WHY: the deleted invariant claimed EVERY identity in the recorded set stands under guard, unconditionally, and a WHY beside it narrowed the claim to an eager host — a rule whose scope lived on a surface Surface 15 tells the parser to ignore and Surface 9 lets a writer delete. The atom sells behaviour rather than storage, which the rules already say in both directions: Operation 6 answers `seen` for an identity under guard and Operation 7 answers `not-seen` for one that is not, so nothing remained for the invariant to own. Restating it as the answer claim — *EVERY identity the check answers seen for MUST stand under guard* — was considered and refused: that is Operation 7's contrapositive, one proposition under a second label, which is the defect rather than the cure (Authority 3, council read 52).
   WHY: the clock starts at the first sighting and runs out at a fixed instant, so a flurry of repeats cannot hold an identity blocked past the term the containing pattern asked for. An expired entry a host has not yet dropped is not under guard, and a record against it opens a new guard rather than reviving the old one (Invariant 2.3).
 - **Invariant 3 — Idempotency of check.**
-  ```text
+  ```
   Invariant 3.1: [Check] MUST NOT alter the recorded set.
   Invariant 3.2: Two checks of one identity under one now MUST answer alike.
   ```
 - **Invariant 4 — Eventual expiry.** NOTE: watch the modal's temporal scope — Invariant 4.1 reads as safety (*always dropped*) and is meant as liveness (*eventually dropped*), the reading Lazy expiry 1 and Lazy expiry 2 license, and the only word carrying the distinction is *Eventual* in this heading. GRACE's MUST has no temporal scope; the docket carries the class (council read 52).
-  ```text
+  ```
   Invariant 4.1: The host MUST drop an identity that is not under guard from the recorded set.
   Deleted: Invariant 4.2. Operation 7 owns it.
   ```
@@ -176,7 +176,7 @@ An implementation is acceptable when an external auditor, given the recorded set
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EXACTLY ONE recorded_at PER identity the recorded set holds (State 1).
 Check 1.2: An auditor MUST find an identity's recorded_at unchanged across a second record inside the identity's window (Invariant 2.2).
 Check 1.3: An auditor MUST find no guard extended by a second record (Invariant 2.1).
@@ -194,7 +194,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: An auditor needing the window duration confirmed MUST read the containing pattern's own declaration (Operation 11).
 External check 2: An auditor needing the matching rule confirmed MUST read the containing pattern's own declaration (Identity 5).
 External check 3: An auditor needing a guard miss confirmed MUST read the deployment's own store (Record failure 2).
@@ -212,7 +212,7 @@ The external set is short and each member is a value the records cannot carry. T
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT decide the containing pattern's response to an answer.
 Non-goal 2: The atom MUST NOT require a recorded set that survives a restart.
 Non-goal 3: The deployment MUST own whether the recorded set survives a restart.
@@ -237,7 +237,7 @@ Where the pattern breaks down: when *recent* is measured by something other than
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 1: The atom MUST anchor a guard to the injected now of the opening record.
 Deleted: Clock semantics 2. Non-goal 12 owns it.
 Deleted: Clock semantics 3. Non-goal 13 owns it.
@@ -250,7 +250,7 @@ Clock semantics 1 stays under this heading rather than under Clock dependence: i
 
 ### Check store unavailability
 
-```text
+```
 Check unavailability 1: The deployment MUST declare EXACTLY ONE OF fail-open, fail-closed.
 Check unavailability 2: A fail-open implementation MUST proceed as not-seen.
 Check unavailability 3: A fail-closed implementation MUST proceed as seen.
@@ -262,7 +262,7 @@ Fail-open risks accepting a duplicate; fail-closed risks refusing a first attemp
 
 ### Lazy expiry
 
-```text
+```
 Lazy expiry 1: A host MAY drop an identity that is not under guard at the moment a question is asked.
 Lazy expiry 2: A host MAY drop an identity that is not under guard on a schedule.
 Lazy expiry 3: A lazy host MUST answer not-seen for an identity the lazy host still holds.
@@ -273,7 +273,7 @@ The atom claims behaviour and not storage, which is why the two host modes are i
 
 ### Record storage failure
 
-```text
+```
 Record failure 1: [Record] MUST NOT refuse on a failed write.
 Record failure 2: The atom MUST treat a failed write as a guard miss.
 Record failure 3: The atom MUST NOT treat a failed write as a safety violation.

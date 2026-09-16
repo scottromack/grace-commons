@@ -2,7 +2,7 @@
 """GRACE lang surface checker — the mechanical slice of `GRACE-lang.md`.
 
 Reads a spec's normative surface the way §2 and §17 of the grammar say a parser
-must — a fenced ```text block classified by its first line, `Term`
+must — a bare fenced block classified by its first line, `Term`
 declarations — and reports what a form-reader can decide without semantics:
 fence classification (Surface 18, Surface 19) and signature blocks (Surface 20), unlabelled lines (Hard invariant 1, Sugar 3), label uniqueness
 and tombstone reuse (Hard invariant 25, Hard invariant 27), the rule form and the statement shapes (Rule shape 1, Rule shape 2,
@@ -15,7 +15,7 @@ label no rule carries (Hard invariant 12).
 
 Standard library only. `python3 tools/grace/check.py [paths...]`; with no path
 it reads GRACE-lang.md and every file under atoms/ and compositions/ that
-carries a ```text fence. Prints one finding per line, `path:line: [CODE] message`.
+declares itself migrated. Prints one finding per line, `path:line: [CODE] message`.
 Non-gating by default: exits 0 whatever it finds; `--gate` exits 1 on any
 finding that is not advisory (the W- codes).
 
@@ -430,36 +430,37 @@ def scan(path: Path) -> list[Finding]:
             track(lines[i])
             i += 1
             continue
-        if m.group(2) != "text":
-            # Surface 20/Surface 21: a bare fence opening with a signature line is a signature block; any other fence is nothing
-            k = i + 1
-            while k < n and not lines[k].strip():
-                k += 1
-            head = lines[k].strip() if k < n else ""
-            if m.group(2) == "" and SIGNATURE.match(head) and not example_call(lines, k):
-                end = k
-                while end < n and not (FENCE.match(lines[end]) and FENCE.match(lines[end]).group(2) == ""):
-                    end += 1
-                # v0.48: the signature form, one signature per action (Closed vocabulary 24)
-                for off, why in signature_form(lines[k:end]):
-                    add(k + off + 1, "D-signature-form", f"{why}: {lines[k + off].strip()[:60]}")
-                for off, sig in enumerate(lines[k:end]):
-                    if SIGNATURE.match(sig):
-                        signatures.append((k + off, sig.split("(")[0]))
-                i = end + 1
-                continue
-            i += 1
-            continue
+        info = m.group(2)
         fence_indent = len(m.group(1))
         start = i + 1
         j = start
         while j < n and not (FENCE.match(lines[j]) and FENCE.match(lines[j]).group(2) == ""):
             j += 1
         block = lines[start:j]
+        if info not in ("", "text"):
+            i = j + 1  # another language's code is the surface nothing (Surface 21)
+            continue
+        if info == "text":
+            add(i + 1, "D-fence-form", "a fence marked `text`; a GRACE lang block opens with a bare "
+                "fence and its first line says what it is (Surface 28, GRACE-lang v0.49)")
         # Surface 18: classify by the first non-blank line
         first = next((b.strip() for b in block if b.strip()), "")
         if not first:
-            add(start, "F-fence-empty", "empty ```text fence")
+            add(start, "F-fence-empty", "empty fence")
+        elif not (PREFIX.match(first) or LABEL.match(first) or first.startswith("Deleted:")):
+            h = start + next(o for o, b in enumerate(block) if b.strip())  # the first line's index
+            if SIGNATURE.match(first) and not example_call(lines, h):
+                # Surface 20: a signature opens a signature block
+                for off, why in signature_form(lines[h:j]):
+                    add(h + off + 1, "D-signature-form", f"{why}: {lines[h + off].strip()[:60]}")
+                for off, sig in enumerate(lines[h:j]):
+                    if SIGNATURE.match(sig):
+                        signatures.append((h + off, sig.split("(")[0]))
+            elif any(LABEL.match(b.strip()) and not PREFIX.match(b.strip()) for b in block):
+                # Surface 19: labelled rules under a first line that opens nothing
+                add(start, "F-fence-first", "a fenced block carries a labelled rule under a first line "
+                    f"that opens no normative block and no surface (Surface 19): {first[:80]}")
+            # Surface 21: any other block is the surface nothing
         elif PREFIX.match(first):
             # Surface 22: the prefix covers the whole block — not normative; labels inside are exemplars
             labelled = 0
@@ -538,8 +539,6 @@ def scan(path: Path) -> list[Finding]:
             for r in rules:
                 if r.line >= start and r.text.startswith("WHEN ") and not any(x.parent == r.label for x in rules):
                     add(r.line, "R-when-empty", f"{r.label}: WHEN block with no child rule")
-        else:
-            add(start, "F-fence-first", f"fenced block's first line is neither a labelled rule nor a surface prefix (Surface 19): {first[:80]}")
         i = j + 1
 
     # tombstone reuse (Hard invariant 25, Hard invariant 27)

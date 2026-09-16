@@ -49,7 +49,7 @@ Three adjacent concepts are distinguished, and every distinction is load-bearing
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a step by the step_id.
 Identity 2: The host MUST allocate a step_id at the seam.
 Identity 3: The transition MUST NOT allocate a step_id.
@@ -91,7 +91,7 @@ Identity 10 is the rule the exclusivity invariants rest on. `decided_by` against
 
 ### State
 
-```text
+```
 State 1: A step MUST NOT leave a terminal state.
 State 2: The atom MUST NOT offer a re-open surface.
 State 3: The atom MUST NOT offer a decision reversal surface.
@@ -116,7 +116,7 @@ State 15 names what makes back-insertion undetectable here. The atom stores the 
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's honesty.
@@ -158,7 +158,7 @@ read(query)
   refuses invalid-query
 ```
 
-```text
+```
 Operation 1: IF subject_ref NOT EXISTS THEN [Submit] MUST answer invalid-request.
 Operation 2: IF approver_ref NOT EXISTS THEN [Submit] MUST answer invalid-request.
 Operation 3: IF submitter_ref NOT EXISTS THEN [Submit] MUST answer invalid-request.
@@ -277,30 +277,30 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
 ### Invariants
 
 - **Invariant 1 — Submission immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded submission field MUST NOT change.
   ```
 - **Invariant 2 — Membership exclusivity.**
-  ```text
+  ```
   Invariant 2.1: EVERY step MUST stand in EXACTLY ONE OF pending, approved, rejected, withdrawn.
   ```
 - **Invariant 3 — Terminal absorption.**
-  ```text
+  ```
   Invariant 3.1: A step standing in a terminal state MUST NOT leave the terminal state.
   ```
   WHY: all three terminals absorb, and the atom carries no re-open, re-activate or reversal surface (State 2, State 3). A decision made in error is answered by a new [Submit] naming the relationship to the original, which produces a more complete record than a reversal: an auditor sees the first decision and the correction, in order, rather than a record that no longer says what happened.
 - **Invariant 4 — Approver exclusivity.**
-  ```text
+  ```
   Invariant 4.1: An approved step's decided_by MUST equal the step's approver_ref.
   Invariant 4.2: A rejected step's decided_by MUST equal the step's approver_ref.
   ```
   WHY: there is no fallback approver, no escalation and no *any authorized actor* surface. Delegation — binding a different actor to stand in for the named approver — is a composing pattern's, and it works either by producing a step whose `approver_ref` names the delegate or by gating the call before it reaches this surface (Non-goal 5, Non-goal 6).
 - **Invariant 5 — Submitter exclusivity.**
-  ```text
+  ```
   Invariant 5.1: A withdrawn step's withdrawn_by MUST equal the step's submitter_ref.
   ```
 - **Invariant 6 — Decision attribution completeness.**
-  ```text
+  ```
   Invariant 6.1: EVERY terminal step's attribution reference MUST carry a non-whitespace character.
   Invariant 6.2: EVERY terminal step MUST carry the terminal state's instant.
   Invariant 6.3: EVERY rejected step's decision_reason MUST carry a non-whitespace character.
@@ -308,22 +308,22 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
   ```
   WHY: the load-bearing one. An anonymous decision, a whitespace-only attribution, a missing instant or a rejection with no stated reason each defeat the audit trail SOX §404 control evidence and FDA Part 11 electronic-signature requirements rest on. A rejection in particular is not operationally meaningful without its reason — the record would show that something was refused and leave the submitter, and a later auditor, with no account of why.
 - **Invariant 7 — Temporal ordering.**
-  ```text
+  ```
   Invariant 7.1: A terminal step's terminal instant MUST NOT precede the step's submitted_at.
   ```
   WHY: a step cannot be documented as decided or withdrawn before it was submitted. The bound holds on the value persisted, whether caller-supplied or resolved to `now`, and is enforced before the transition commits (Operation 19).
 - **Invariant 8 — Submission attribution completeness.**
-  ```text
+  ```
   Invariant 8.1: EVERY step's step_id, subject_ref, approver_ref, submitter_ref and scope MUST carry a non-whitespace character.
   Invariant 8.2: EVERY step MUST carry a submitted_at.
   ```
 - **Invariant 9 — Concurrent step independence.**
-  ```text
+  ```
   Invariant 9.1: A resolving action on one step MUST NOT change a second step's field.
   ```
   WHY: independence is universal rather than scoped to a shared subject, though the shared-subject case is the operationally interesting one — a subject with two open gates needs two decisions, and whether a subject has any open gate is a `subject_ref` and `pending` query rather than a field on the subject.
 - **Invariant 10 — Store durability.**
-  ```text
+  ```
   Invariant 10.1: The atom MUST NOT remove a step from the store.
   Invariant 10.2: A storage-failure rejection MUST leave no partial record in the store.
   Invariant 10.3: An answered step_id MUST name a durably persisted step.
@@ -380,7 +380,7 @@ This atom's acceptance is what an external auditor can clear from the step store
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY step standing in EXACTLY ONE OF pending, approved, rejected, withdrawn (Invariant 2.1).
 Check 2.1: An auditor MUST find a non-whitespace character in EVERY step's step_id, subject_ref, approver_ref, submitter_ref and scope (Invariant 8.1).
 Check 2.2: An auditor MUST find a submitted_at on EVERY step (Invariant 8.2).
@@ -402,7 +402,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing EVERY issued step_id found in the store MUST capture the submit answers (Invariant 10.3).
 External check 2: A deployment needing the subjects carrying no step identified MUST read the subject set beside the step store (Non-goal 19).
 External check 3: A deployment needing a decided_by bound to an actor MUST read the composing [Actor Identity](./actor-identity.md) attestation (Non-goal 14).
@@ -418,7 +418,7 @@ External check 4 records a deliberate silence. A refused call writes nothing her
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT read two [Submit] calls carrying one field set as one step.
 Non-goal 2: A deployment needing at-most-once submission MUST compose [Duplicate Prevention](./duplicate-prevention.md).
 Non-goal 3: The atom MUST NOT decide whether a subject's open gates are enough.
@@ -455,7 +455,7 @@ Non-goal 20 keeps `submitted_at` unbounded below on purpose. A gate is routinely
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: A reader MUST NOT observe a terminal state without the state's attribution fields.
 Atomic writes 2: An uncommitted crash MUST leave the step as the call found the step.
 Atomic writes 3: The implementation MUST resolve a dangling transition.
@@ -471,7 +471,7 @@ Every resolving action writes the state and its attribution fields together (Ope
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST serialize two resolving actions against one step.
 Concurrency 2: A serialized resolving action MUST read the state the prior resolving action left.
 Concurrency 3: The second serialized resolving action against one pending step MUST answer not-pending.
@@ -482,7 +482,7 @@ Unlike a store whose concurrent writes contend over nothing, two resolving calls
 
 ### Indeterminate outcome
 
-```text
+```
 Indeterminate outcome 1: A caller receiving no answer MUST NOT retry BEFORE the caller reads the step store.
 Indeterminate outcome 2: A caller MUST NOT read a transport fault as a storage-failure.
 Indeterminate outcome 3: A caller retrying a landed resolving action MUST read not-pending.
@@ -493,7 +493,7 @@ The [Storage Failure] guarantees are the store's: it committed or it did not, an
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -516,7 +516,7 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the segregation policy over a submitter_ref and an approver_ref.

@@ -49,7 +49,7 @@ export function sliceGA(text) {
 const LIST_ITEM = /^\s*(?:(\d+)\.|[-*])\s+(.*)$/;
 // The claim is the first **bold** run in the item (handles nested *italics*).
 const BOLD_LEAD = /\*\*(.+?)\*\*/;
-// A GRACE lang check rule inside a ```text fence: `Check 3.2: …` or
+// A GRACE lang check rule inside a bare fence: `Check 3.2: …` or
 // `External check 4: …` (GRACE-lang Rule shape 7). One check per number; the
 // number after the dot is a rule of that check, and the first rule is the claim.
 const FENCE = /^\s*```/;

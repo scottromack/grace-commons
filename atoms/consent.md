@@ -41,7 +41,7 @@ Revocation is a first-class action rather than a state flag, with its own timest
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a consent record by the consent_id.
 Identity 2: The host MUST allocate a consent_id at the seam.
 Identity 3: The transition MUST NOT allocate a consent_id.
@@ -72,7 +72,7 @@ The id carries a second job the other atoms' ids do not: it is the tiebreak key.
 
 ### State
 
-```text
+```
 State 2: A consent record's state MUST rest on granted_at, revoked_at and expires_at against the evaluation instant.
 State 3: EVERY consent record MUST carry consent_id, subject_ref, purpose, granted_by, granted_at and state.
 State 4: A consent record MUST carry an expires_at the [Grant] call supplied.
@@ -96,7 +96,7 @@ Term grant field: `consent_id` | `subject_ref` | `purpose` | `granted_by` | `gra
 
 #### Expiry
 
-```text
+```
 Expiry 1: IF a consent record is withdrawn THEN the consent record MUST stand in revoked.
 Expiry 2: IF a consent record is elapsed THEN the consent record MUST stand in expired.
 Expiry 3: A consent record MUST stand in expired ONLY IF the consent record is not withdrawn.
@@ -111,7 +111,7 @@ Expiry is a condition, not an act. Nothing triggers it, nothing polls for it, an
 
 #### Stored state
 
-```text
+```
 Stored state 1: The implementation MAY write the stored state at the instant expires_at elapses.
 Stored state 2: The implementation MAY write the stored state at the first evaluation past expires_at.
 Stored state 3: The implementation MUST NOT answer a granted result for an elapsed consent record.
@@ -122,7 +122,7 @@ Stored state 4: The implementation MUST serialize a lazy stored state write for 
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
@@ -151,7 +151,7 @@ read(query)
   refuses invalid-query
 ```
 
-```text
+```
 Operation 1: [Grant] MUST record EXACTLY ONE consent record per successful call.
 Operation 2: [Grant] MUST stand the consent record in granted.
 Operation 3: [Grant] MUST answer the consent_id.
@@ -289,60 +289,60 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
 ### Invariants
 
 - **Invariant 1 — Grant immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded consent record's grant fields MUST NOT change.
   Invariant 1.2: A grant field the [Grant] call omitted MUST NOT appear later.
   ```
 - **Invariant 2 — Membership exclusivity.**
-  ```text
+  ```
   Invariant 2.1: EVERY consent record MUST stand in EXACTLY ONE OF granted, revoked, expired at the evaluation instant.
   Invariant 2.2: The stored state MUST equal the consent record's state at the instant a result reaches the caller.
   ```
 - **Invariant 3 — Terminal absorption.**
-  ```text
+  ```
   Invariant 3.1: A revoked consent record MUST NOT leave revoked.
   Invariant 3.2: An expired consent record MUST NOT leave expired.
   Invariant 3.3: A composing pattern returning a data subject to agreement MUST call [Grant].
   ```
 - **Invariant 4 — Revocation attribution is complete.**
-  ```text
+  ```
   Invariant 4.1: EVERY revoked consent record's revoked_by MUST carry a non-whitespace character.
   Invariant 4.2: EVERY revoked consent record's revocation_reason MUST carry a non-whitespace character.
   Invariant 4.3: EVERY revoked consent record MUST carry a revoked_at.
   ```
   WHY: an anonymous withdrawal, a whitespace-only ground, or a missing instant each defeats the one thing the record exists to demonstrate — that the data subject exercised the right, and that the system honoured it (Check 3.1).
 - **Invariant 5 — Temporal ordering on revocation.**
-  ```text
+  ```
   Invariant 5.1: EVERY revoked consent record's granted_at MUST NOT EXCEED the revoked_at.
   ```
   WHY: the bound is on the value the record carries, so it holds whichever way the value was derived — a caller-supplied instant and a seam-resolved one meet the same floor, which is what makes it proof against clock-skew artifacts as well as backdating (Operation 25).
 - **Invariant 6 — Expiry coherence.**
-  ```text
+  ```
   Invariant 6.1: IF the candidate record is elapsed THEN [Check] MUST answer expired.
   Invariant 6.2: IF the candidate record is withdrawn AND the candidate record is elapsed THEN [Check] MUST answer revoked.
   Invariant 6.3: The implementation MUST write the elapsed consent record's stored state within the operation that answers the caller.
   ```
   WHY: the bound on [Expires At] at grant time — strictly later than [Now] — is a [Grant] precondition and not part of this invariant (Operation 7 through 9). What this one holds is the reading: a record past its bound reads as [Expired], a record withdrawn first reads as [Revoked] because the earlier terminal event is the one that happened, and an implementation that answers a [Granted] result for a record whose state at the queried instant is [Expired] is non-conformant however it manages its cache.
 - **Invariant 7 — Grant attribution is complete.**
-  ```text
+  ```
   Invariant 7.1: EVERY consent record's consent_id, subject_ref, purpose and granted_by MUST carry a non-whitespace character.
   Invariant 7.2: EVERY consent record MUST carry a granted_at.
   ```
   WHY: Invariant 1.1 holds these fields still; this one holds them non-blank. An anonymous grant, a whitespace-only purpose or a missing instant answers none of *who agreed to what, and when* — which is the whole regulatory question (Check 2.1).
 - **Invariant 8 — Consent store durability.**
-  ```text
+  ```
   Invariant 8.1: The atom MUST NOT remove a consent record from the store.
   Invariant 8.2: The consent record count MUST NOT fall.
   Invariant 8.3: A storage-failure rejection MUST leave no partial consent record in the store.
   ```
 - **Invariant 9 — Revocation non-retroactivity.**
-  ```text
+  ```
   Invariant 9.1: [Revoke] MUST NOT change a grant field.
   Invariant 9.2: [Revoke] MUST NOT change the lawfulness of a processing act the consent record covered.
   ```
   WHY: withdrawal terminates future reliance; it does not rewrite the past, which is GDPR Article 7(3)'s own construction and the reason the grant record survives the revocation intact.
 - **Invariant 10 — Point-in-time faithfulness.**
-  ```text
+  ```
   Invariant 10.1: [Check] MUST answer from the candidate record alone.
   Invariant 10.2: A tie on granted_at MUST resolve to the greatest consent_id in lexicographic byte-order.
   Invariant 10.3: A later write MUST NOT change a [Check] answer for the at_time.
@@ -352,7 +352,7 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
 
 ### Store instance model
 
-```text
+```
 Instance 1: The deployment MUST route EVERY call to one store instance.
 Instance 2: Two consent records in one store instance MUST NOT share a consent_id.
 Instance 3: A store_name MUST name one store instance.
@@ -412,7 +412,7 @@ This atom's acceptance is what an external auditor can clear from the consent st
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY issued consent_id in the store through [Read] (Invariant 8.1, Invariant 8.2).
 Check 2.1: An auditor MUST find a non-whitespace character in EVERY consent record's consent_id, subject_ref, purpose and granted_by (Invariant 7.1).
 Check 2.2: An auditor MUST find a granted_at on EVERY consent record (Invariant 7.2).
@@ -439,7 +439,7 @@ Check 5.1 asserts on [Check]'s answer and not on a stored [Expired] field, becau
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT merge two [Grant] calls carrying one subject_ref and one purpose.
 Non-goal 2: A deployment needing at-most-once grant MUST compose [Duplicate Prevention](./duplicate-prevention.md).
 Non-goal 3: The atom MUST NOT hold at most one granted consent record per subject_ref and purpose.
@@ -477,7 +477,7 @@ Who may grant on a subject's behalf, who may withdraw, and who may read the reco
 
 ### Clock dependence
 
-```text
+```
 Clock dependence 1: A guard MAY read now ONLY IF the call carries an instant.
 ```
 
@@ -486,7 +486,7 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 5: [Grant] MUST guard a supplied expires_at against now.
 Deleted: Clock semantics 1. Capability requirement 2 owns it.
 Deleted: Clock semantics 2. Capability requirement 3 owns it.
@@ -506,7 +506,7 @@ Clock semantics 5, Clock semantics 6 and Clock semantics 8 stay under this headi
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST serialize a state transition on one consent_id.
 Concurrency 2: Two concurrent [Revoke] calls on one consent_id MUST answer revoked once.
 Concurrency 3: The later concurrent [Revoke] call on one consent_id MUST answer already-revoked.
@@ -518,7 +518,7 @@ Concurrent grants for one pair are not a race, because the atom admits several r
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST NOT run a processing act BEFORE calling [Check].
 Composition note 3: A composing pattern MUST own the suppression of a processing act.

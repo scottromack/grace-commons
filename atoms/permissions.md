@@ -29,7 +29,7 @@ WHY:
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a grant by the grant_id.
 Identity 2: The host MUST allocate a grant_id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a grant_id.
@@ -61,7 +61,7 @@ Many grants over one pair is the deliberate opposite of [Subscription](./subscri
 
 ### State
 
-```text
+```
 State 1: EVERY grant MUST stand in EXACTLY ONE OF active, revoked.
 State 2: EVERY grant MUST carry grant_id, subject_ref, action_scope, granted_at and status.
 State 3: A revoked grant MUST carry revoked_at.
@@ -85,7 +85,7 @@ There is no stored denial, because absence is denial (Invariant 7.1) — an expl
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
@@ -112,7 +112,7 @@ permitted(subject_ref, action_scope)
   answers permitted | denied
 ```
 
-```text
+```
 Operation 1: [Grant] MUST record EXACTLY ONE grant per successful call.
 Operation 2: [Grant] MUST stand the grant in active.
 Operation 3: [Grant] MUST answer grant_id.
@@ -165,50 +165,50 @@ The two storage failures are not the same failure. A failed [Grant] leaves a rec
 ### Invariants
 
 - **Invariant 1 — Grant immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded grant's grant_id, subject_ref, action_scope and granted_at MUST NOT change.
   Invariant 1.2: The atom MUST stamp granted_at once.
   ```
 - **Invariant 2 — Status monotonicity.**
-  ```text
+  ```
   Invariant 2.1: A status MUST move from active to revoked.
   Invariant 2.2: A status MUST NOT move from revoked to active.
   ```
 - **Invariant 3 — Revocation is terminal.**
-  ```text
+  ```
   Invariant 3.1: [Revoke] MUST answer not-active for a revoked grant.
   Invariant 3.2: [Check] MUST NOT answer permitted on a revoked grant.
   ```
 - **Invariant 4 — Id stability.**
-  ```text
+  ```
   Invariant 4.1: [Grant] MUST set the grant_id.
   Invariant 4.2: A grant_id MUST NOT change.
   ```
 - **Invariant 5 — No id reuse.**
-  ```text
+  ```
   Invariant 5.1: Two grants MUST NOT share a grant_id.
   ```
 - **Invariant 6 — Evaluation self-containment.**
-  ```text
+  ```
   Invariant 6.1: [Check] MUST rest on the active grant set alone.
   Invariant 6.2: [Check] MUST NOT consult a source outside the active grant set.
   ```
 - **Invariant 7 — Denial by absence.**
-  ```text
+  ```
   Invariant 7.1: [Check] MUST answer denied ONLY IF no active grant matches the pair.
   ```
 - **Invariant 8 — Revoked grants confer no permission.**
-  ```text
+  ```
   Invariant 8.1: A revoked grant MUST NOT stand in the active grant set.
   ```
 - **Invariant 9 — Timestamp ordering.**
-  ```text
+  ```
   Invariant 9.1: IF revoked_at EXISTS THEN granted_at MUST NOT EXCEED revoked_at.
   Invariant 9.2: A grant MUST stand in force at an instant ONLY IF the grant is live at the instant.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2 through 3).
 - **Invariant 10 — Grant store durability.**
-  ```text
+  ```
   Invariant 10.1: The atom MUST NOT delete a grant record.
   Invariant 10.2: The grant set MUST NOT shrink.
   Invariant 10.3: A storage-failure from [Grant] MUST NOT leave a partial grant.
@@ -258,7 +258,7 @@ This atom's acceptance is what an external auditor can clear from the grant stor
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST read EVERY grant's grant_id, subject_ref, action_scope, granted_at and status from the store (State 2).
 Check 1.2: An auditor MUST read revoked_at on EVERY revoked grant (State 3).
 Check 2.1: An auditor MUST reconstruct the grant set in force at a past instant from granted_at and revoked_at (Invariant 9.2).
@@ -271,7 +271,7 @@ Check 6.1: An auditor MUST identify which composing patterns a deployment wired 
 
 ### External checks
 
-```text
+```
 External check 1: An auditor MUST read who issued a grant from the composing [Actor Identity](./actor-identity.md) attestations (Non-goal 9).
 External check 2: An auditor MUST read whether an access was attempted from the composing [Event Log](./event-log.md) records (Non-goal 11).
 External check 3: An auditor MUST read a departing subject's full revocation from the composing pattern's deprovisioning records (Deprovisioning 2, Deprovisioning 3, Deprovisioning 4).
@@ -282,7 +282,7 @@ NOTE: EVERY check names the rule the check tests. The grant store answers *who c
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT hold a role.
 Non-goal 2: A deployment needing roles MUST NOT call [Grant] BEFORE the deployment resolves the role to grants.
 Non-goal 3: The atom MUST NOT evaluate an attribute policy.
@@ -311,7 +311,7 @@ Where the atom breaks down: when the scope vocabulary needs hierarchy or wildcar
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -328,7 +328,7 @@ Byte-exact and nothing else. A scope vocabulary that needs case-insensitivity or
 
 ### Deprovisioning a subject
 
-```text
+```
 Deprovisioning 2: A composing pattern MUST enumerate a departing subject's active grants.
 Deprovisioning 3: A composing pattern MUST call [Revoke] for EVERY grant the enumeration returns.
 Deprovisioning 4: A composing pattern MUST NOT read one revoke as a subject's deprovisioning.
@@ -340,7 +340,7 @@ This is the many-grants decision's bill. A composing pattern that revokes one gr
 
 ### Grant concurrency and revoke concurrency
 
-```text
+```
 Grant concurrency 1: Two concurrent [Grant] calls on one pair MUST record two grants.
 Grant concurrency 2: A composing pattern intending one authoritative grant MUST guard against a concurrent issue.
 Revoke concurrency 1: Two concurrent [Revoke] calls on one grant_id MUST NOT succeed together.
@@ -352,7 +352,7 @@ The polarity is deliberate on both sides: grants do not race because two grants 
 
 ### Revoke persistence failure
 
-```text
+```
 Revoke persistence 1: A caller MUST read storage-failure from [Revoke] as the subject keeping the access.
 Revoke persistence 2: A caller MUST retry a revoke that answered storage-failure.
 Revoke persistence 3: A caller MUST read not-active from a retried revoke as the revocation standing.
@@ -364,7 +364,7 @@ The two storage failures have opposite polarity. A failed grant withholds access
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own the scope vocabulary.
 Composition note 3: A composing pattern MUST own the binding between the authenticated caller and the subject_ref.

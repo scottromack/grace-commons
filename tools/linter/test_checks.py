@@ -707,7 +707,7 @@ Term standard label family: `Identity` (what identifies an instance) | `Invarian
 
 CENSUS_PATTERN = """Term qualifiers: `migrated` — rewritten in GRACE lang v0.40 (2026-09-14).
 
-```text
+```
 {family} 1: The composition MUST stand.
 Invariant 1.1: The composition MUST stand.
 ```
@@ -828,7 +828,7 @@ ACCEPT_SECTION = """## Generation acceptance
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find the thing (Operation 1).
 ```
 """
@@ -1007,7 +1007,7 @@ def check_tombstone_form_synthetic(problems: list[str]) -> None:
         with tempfile.TemporaryDirectory() as d:
             f = Path(d) / "atoms" / "synthetic.md"
             f.parent.mkdir(exist_ok=True)
-            f.write_text(head + "```text\n" + block + "```\n", encoding="utf-8")
+            f.write_text(head + "```\n" + block + "```\n", encoding="utf-8")
             return scan(f)
     # the rule beneath uses an undeclared verb, so C-verb firing proves the rule was read
     got = run("Deleted: Operation 1. Operation 3 owns it.\nOperation 2: The atom MUST write the store.\n")
@@ -1035,7 +1035,7 @@ def check_range_form_synthetic(problems: list[str]) -> int:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
     from check import scan  # noqa: E402
     from cites import in_range  # noqa: E402
-    grammar = ("```text\nOperation 1: x.\nInvariant 2.1: x.\nreconcile step 5.2: x.\n```\n")
+    grammar = ("```\nOperation 1: x.\nInvariant 2.1: x.\nreconcile step 5.2: x.\n```\n")
     silent = ["Operation 3 through 7", "Invariant 2.1 through 2.4",
               "reconcile step 5.2 through 5.4", "the retired `Operation 3–7`",
               "GDPR Articles 5–6", "renumbered Operation 3 to Operation 7"]
@@ -1058,7 +1058,7 @@ def check_range_form_synthetic(problems: list[str]) -> int:
         f = Path(d) / "atoms" / "synthetic.md"
         f.parent.mkdir()
         f.write_text("Term qualifiers: `migrated` — rewritten in GRACE lang v0.47 (2026-09-15).\n\n"
-                     "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n```text\n"
+                     "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n```\n"
                      "Operation 1: The atom MUST read the store.\n"
                      "Operation 2: The atom MUST read the store (Operation 1 through 5).\n```\n",
                      encoding="utf-8")
@@ -1082,7 +1082,7 @@ def check_signature_form_synthetic(problems: list[str]) -> int:
     from check import scan  # noqa: E402
     head = ("Term qualifiers: `migrated` — rewritten in GRACE lang v0.48 (2026-09-15).\n\n"
             "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n")
-    tail = ("\n```text\nOperation 1: [Place] MUST read the store.\n"
+    tail = ("\n```\nOperation 1: [Place] MUST read the store.\n"
             "Operation 2: [Read] MUST read the store.\n```\n")
     def run(block: str):
         with tempfile.TemporaryDirectory() as d:
@@ -1113,6 +1113,45 @@ def check_signature_form_synthetic(problems: list[str]) -> int:
     for name, block in firing:
         if not run(block):
             problems.append(f"D-signature-form: {name} did not fire")
+    return len(silent) + len(firing)
+
+
+def check_fence_form_synthetic(problems: list[str]) -> int:
+    """D-fence-form and Surface 19 after the fence kinds merged (council read 90).
+    A bare fence of rules, a Ledger-shaped block, another language's code and a
+    labelled rule quoted under a NOTE stay silent; a fence marked `text` fires
+    D-fence-form, and a labelled rule under a first line that opens nothing fires
+    F-fence-first. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: `migrated` — rewritten in GRACE lang v0.49 (2026-09-16).\n\n"
+            "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n")
+    def run(body: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + body, encoding="utf-8")
+            return {x.code for x in scan(f)}
+    rules = "```\nOperation 1: The atom MUST read the store.\n```\n"
+    silent = [
+        ("a bare fence of rules", rules),
+        ("a Ledger-shaped block", rules + "```\nstatus: draft\nopen:\n- none\n```\n"),
+        ("another language's code", rules + "```bash\nOperation 1: echo not a rule\n```\n"),
+        ("a rule quoted under a NOTE", rules + "```\nNOTE: an exemplar\nOperation 9: The atom MUST read.\n```\n"),
+    ]
+    firing = [
+        ("a fence marked text", "D-fence-form", "```text\nOperation 1: The atom MUST read the store.\n```\n"),
+        ("a rule under a first line that opens nothing", "F-fence-first",
+         rules + "```\nThe rules below.\nOperation 2: The atom MUST read the store.\n```\n"),
+    ]
+    for name, body in silent:
+        got = run(body) & {"D-fence-form", "F-fence-first", "F-unlabelled", "X-ref"}
+        if got:
+            problems.append(f"fence form: fired on {name} ({sorted(got)})")
+    for name, code, body in firing:
+        if code not in run(body):
+            problems.append(f"fence form: {name} did not fire {code}")
     return len(silent) + len(firing)
 
 
@@ -1245,6 +1284,14 @@ def main(argv: list[str]) -> int:
         print("D-tombstone-form: 5 synthetic fixtures hold (a tombstone written first keeps "
               "its block live; the retired shape, a missing period, a missing close and "
               "a missing label fire) \u2713")
+
+    fence_problems: list[str] = []
+    n_fence = check_fence_form_synthetic(fence_problems)
+    failures.extend(fence_problems)
+    if not fence_problems:
+        print(f"D-fence-form / F-fence-first: {n_fence} synthetic fixtures hold (a bare fence of "
+              "rules, a Ledger block, another language's code and a quoted exemplar silent; a "
+              "fence marked `text` and a rule under a first line that opens nothing fire) \u2713")
 
     sig_problems: list[str] = []
     n_sig = check_signature_form_synthetic(sig_problems)

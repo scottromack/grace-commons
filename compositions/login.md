@@ -39,7 +39,7 @@ This composition does not implement multi-factor authentication (MFA — requiri
 
 ## Composes
 
-```text
+```
 Composes 1: EXACTLY ONE Credential instance MUST serve the composition.
 Composes 2: EXACTLY ONE Session instance MUST serve the composition.
 Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
@@ -78,7 +78,7 @@ Composes 15 through 17 declare the read capability exactly. The substrate passes
 
 ### Composition state
 
-```text
+```
 Composition state 1: The composition MUST store a credential-to-sessions map.
 Composition state 2: The composition MUST store the strict inverse of the credential-to-sessions map.
 Composition state 3: The composition MUST write both maps under one transaction.
@@ -115,7 +115,7 @@ With failed-login auditing enabled — the default and the regulated posture —
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Deleted: Capability requirement 2. `execution-contract.md` §Logic confinement owns it.
 Deleted: Capability requirement 3. `execution-contract.md` §Logic confinement owns it.
@@ -151,7 +151,7 @@ Capability requirement 13 exists because a cadence longer than the window makes 
 
 ### Primitive policy
 
-```text
+```
 Primitive policy 1: The composition MUST answer invalid-request for a blank principal_ref.
 Primitive policy 2: The composition MUST answer invalid-request for a blank credential_type.
 Primitive policy 3: The composition MUST answer invalid-request for a blank presented_material.
@@ -172,7 +172,7 @@ Primitive policy 8 and Primitive policy 9 inherit credential(../atoms/credential
 
 ### Audit arm
 
-```text
+```
 Audit arm 1: The composition MUST retry a recording-failure.
 Audit arm 2: The composition MUST NOT retry a landed record.
 Audit arm 3: The composition MUST derive an owed record again at a restart.
@@ -210,7 +210,7 @@ Term login result: `session_token` and `expires_at` — what `login` answers.
 
 Term revocation tally: `revoked`, `skipped` and `failed` — what `revoke_sessions_for_credential` answers.
 
-```text
+```
 Action wiring 1: An admitted login MUST call Credential's verify with the principal_ref, the credential_type AND the presented_material.
 Action wiring 2: IF Credential's verify answers failed-verification THEN an admitted login MUST answer credential-invalid.
 Action wiring 3: An admitted login MUST NOT answer Credential's verify reason to the caller.
@@ -258,7 +258,7 @@ Action wiring 21 skips rather than revokes, and the reason is derivation rather 
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST gate a session's issuance on Credential's verify answering verified.
 Wiring decision 2: The composition MUST cascade a credential's revocation to the credential's sessions.
 Wiring decision 3: The composition MUST NOT revoke a credential.
@@ -272,7 +272,7 @@ Wiring decision 3 keeps the two surfaces apart. This composition provides the do
 
 ### Reconciliation
 
-```text
+```
 Reconciliation 1: The sweep MUST run at an instance's start.
 Reconciliation 2: The sweep MUST run every reconciliation cadence.
 Reconciliation 3: The sweep MUST NOT store a record of the sweep's own.
@@ -307,12 +307,12 @@ Reconciliation 3 is what keeps the sweep cheap to reason about: every comparison
 Each emerges from the composition; none belongs to one constituent.
 
 - **Invariant 1 — Credential gates issuance.**
-  ```text
+  ```
   Invariant 1.1: EVERY session_token the session-to-credential map carries MUST follow Credential's verify answering verified.
   Invariant 1.2: The composition MUST NOT call Session's issue for a login Credential's verify refused.
   ```
 - **Invariant 2 — Cascade completeness.**
-  ```text
+  ```
   Invariant 2.1: EVERY session the cascade set carried AND Session's validate answered valid for MUST stand terminal at the cascade's return.
   Invariant 2.2: The composition MUST NOT read a cascade as covering a session the cascade set did not carry.
   Invariant 2.3: The cascade set MUST carry the union of the map's entry AND the event-derived set.
@@ -320,22 +320,22 @@ Each emerges from the composition; none belongs to one constituent.
   ```
   WHY: the claim is snapshot-scoped on purpose. A session issued after the set was read is outside the cascade by construction, and a cascade that claimed otherwise would be promising to catch a login that had not happened when it looked.
 - **Invariant 3 — Session-credential traceability.**
-  ```text
+  ```
   Invariant 3.1: EVERY session-to-credential entry's credential_id MUST equal the credential_id the confirming read answered.
   ```
 - **Invariant 4 — Login event log completeness.**
-  ```text
+  ```
   Invariant 4.2: A login committing Session's issue AND carrying no login event log entry MUST stand as the sweep's to close.
   Deleted: Invariant 4.1. Composition state 10 owns it.
   ```
   WHY: the deleted invariant's one exception is Invariant 4.2, and it is named rather than hidden. The session exists and the entry does not, which is exactly the *sessions versus records* comparison's input — so the gap is a sweep obligation rather than a broken invariant.
 - **Invariant 5 — Audit trail completeness.**
-  ```text
+  ```
   Invariant 5.1: EVERY login succeeded event MUST name a session_token the session-to-credential map carries.
   Invariant 5.2: EVERY session revoked event MUST name a session_token the cascade found valid.
   ```
 - **Invariant 6 — Map inverse consistency.**
-  ```text
+  ```
   Invariant 6.1: The credential-to-sessions map AND the session-to-credential map MUST agree.
   ```
   WHY: the two are projections of one relation, so a divergence is an index defect the rebuild resolves and never a fact of its own.
@@ -386,7 +386,7 @@ An implementation is acceptable when an external auditor, given the credential s
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY login succeeded event naming a session_token the session-to-credential map carries (Invariant 5.1).
 Check 1.2: An auditor MUST find EVERY session-to-credential entry naming a credential_id the credential store carries (Invariant 3.1).
 Check 2.1: An auditor MUST find the credential-to-sessions map AND the session-to-credential map agreeing (Invariant 6.1).
@@ -406,7 +406,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: An auditor needing the login event log's durability confirmed MUST read the deployment's own store configuration (Composition state 11).
 External check 2: An auditor needing the issuer refs confirmed MUST read the deployment's own declaration (Capability requirement 10).
 External check 3: An auditor needing the login completion bound confirmed MUST read the deployment's own declaration (Capability requirement 14).
@@ -426,7 +426,7 @@ External check 6 is the corpus's first check that sends an auditor to a **compos
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT register a credential.
 Non-goal 2: The composition MUST NOT rotate a credential.
 Deleted: Non-goal 3. Wiring decision 3 owns it.
@@ -454,7 +454,7 @@ Non-goal 10 and Non-goal 11 are the two a regulated reader expects and does not 
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A deployment MUST own a credential's registration, rotation AND revocation.
 Composition note 3: A deployment MUST call [Revoke Sessions For Credential] when the deployment revokes a credential.

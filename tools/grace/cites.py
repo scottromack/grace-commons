@@ -78,17 +78,25 @@ class Spec:
 
 def parse(path: Path) -> Spec:
     spec = Spec(path)
-    in_text_fence = False
-    for i, raw in enumerate(path.read_text(encoding="utf-8").split("\n"), start=1):
+    lines = path.read_text(encoding="utf-8").split("\n")
+    in_fence = normative = False
+    for i, raw in enumerate(lines, start=1):
         fm = FENCE.match(raw)
         if fm:
-            in_text_fence = (fm.group(1) == "text") if not in_text_fence else False
+            in_fence = not in_fence
+            normative = False
+            if in_fence and fm.group(1) == "":
+                # a bare fence is normative when its first line is a rule or a
+                # tombstone (GRACE-lang Surface 18)
+                first = next((x.strip() for x in lines[i:] if x.strip()), "")
+                normative = bool(LABEL.match(first)) and not first.startswith(
+                    ("NOTE:", "WHY:", "UX:", "PROVISIONAL:")) or first.startswith("Deleted:")
             continue
         dm = TERM_DECL.match(raw)
         if dm:
             spec.terms[dm.group(1)] = (i, dm.group(2))
             continue
-        if not in_text_fence:
+        if not normative:
             continue
         lm = LABEL.match(raw.strip())
         if lm and not raw.strip().startswith(("NOTE:", "WHY:", "UX:", "PROVISIONAL:")):

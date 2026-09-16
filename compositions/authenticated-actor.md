@@ -43,7 +43,7 @@ This is a composition, not a new primitive. Credential and Actor Identity are un
 
 ## Composes
 
-```text
+```
 Composes 1: EXACTLY ONE Credential instance MUST serve the composition.
 Composes 2: EXACTLY ONE Actor Identity instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
@@ -75,7 +75,7 @@ The document had also half-found the shape on its own. Every emergent invariant 
 
 ### Composition state
 
-```text
+```
 Composition state 1: The composition MUST store a principal binding map.
 Composition state 2: The composition MUST store the strict inverse of the principal binding map.
 Composition state 3: The composition MUST write the principal binding map AND the inverse under one transaction.
@@ -109,7 +109,7 @@ Composition state 10 is what keeps the admitted gap honest. No leg writes the at
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: A deployment MUST declare the attest surface separation.
 Capability requirement 2: A deployment MUST set the gating credential type default.
 Capability requirement 3: The host MUST supply a critical section keyed by principal_ref.
@@ -138,7 +138,7 @@ Capability requirement 10 exists because this composition's records carry **thre
 
 ### Primitive policy
 
-```text
+```
 Primitive policy 1: The composition MUST answer invalid-request for a blank principal_ref.
 Primitive policy 2: The composition MUST answer invalid-request for a blank actor_ref.
 Primitive policy 3: The composition MUST answer invalid-request for a blank credential_material.
@@ -187,7 +187,7 @@ Term storage position: `credential` | `binding` — the write that failed: the c
 
 Term attest position: `attestation` | `log(attestation_id)` — where an attest failed: at the attestation, or at the log write carrying the attestation_id.
 
-```text
+```
 Action wiring 1: An admitted registration MUST run the guard ONLY AFTER taking the principal's section.
 Action wiring 2: An admitted registration MUST answer namespace-conflict naming the guard for a principal_ref the principal binding carries.
 Action wiring 3: An admitted registration MUST answer namespace-conflict naming the guard for an actor_ref the inverse map carries.
@@ -234,7 +234,7 @@ Action wiring 25 is the same discipline one action over. `attestation` means not
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST gate an attestation on the gating credential's effective-active status.
 Wiring decision 2: The composition MUST read the gate under the principal's section.
 Wiring decision 3: The composition MUST write the attestation under the section the gate read held.
@@ -247,7 +247,7 @@ The cascade is forward closure, and the two refusals are why it has to live here
 
 ### Housekeeping
 
-```text
+```
 Housekeeping 1: The orphaned-credential leg MUST run at an instance's start.
 Housekeeping 2: The orphaned-credential leg MUST run every reconciliation cadence.
 Housekeeping 3: The orphaned-credential leg MUST NOT write.
@@ -269,28 +269,28 @@ Housekeeping 5 is the age edge. A credential younger than the registration bound
 Each emerges from the composition; none belongs to one constituent. Each carries the constituent guarantees it rests on rather than restating them as invariants of its own.
 
 - **Invariant 1 — Revocation cascade, attest-surface closure.**
-  ```text
+  ```
   Invariant 1.1: The composition MUST NOT produce an attestation for a principal_ref carrying no effective-active gating credential at the gate read.
   Invariant 1.2: The gate read MUST precede the attestation write inside one held section.
   Invariant 1.3: A revoked gating credential MUST close the principal's attest surface for EVERY later call.
   ```
   WHY: rests on credential(../atoms/credential.md)'s revocation-absorbing terminal, which is what makes *every later call* true rather than merely likely, and on actor identity(../atoms/actor-identity.md)'s attestation immutability, which is what makes closure forward-only. The one declared residue is Concurrency 3.
 - **Invariant 2 — Secret-surface separation.**
-  ```text
+  ```
   Invariant 2.1: The composition MUST NOT pass the credential_material to Actor Identity's attest.
   Invariant 2.2: The composition MUST NOT pass Credential's verifier to Actor Identity's attest.
   Invariant 2.3: A deployment MUST provision the attest credential distinct from the credential_material.
   ```
   WHY: the composition forecloses cross-routing structurally and the deployment attests the provisioning. Whether the two opaque secrets are *cryptographically* distinct cannot be read from any record here, which is why Invariant 2.3 is a deployment obligation and External check 1 is where it clears.
 - **Invariant 3 — Namespace binding.**
-  ```text
+  ```
   Invariant 3.1: EVERY bound principal_ref MUST carry EXACTLY ONE actor_ref.
   Invariant 3.2: EVERY bound actor_ref MUST carry EXACTLY ONE principal_ref.
   Invariant 3.3: The principal binding AND the inverse map MUST agree.
   ```
   WHY: the guard looks and the constraint decides. Invariant 3.3's failure is evidence of a failed atomic write rather than a race, because Composition state 3 puts both directions in one transaction.
 - **Invariant 4 — Attestation traceability.**
-  ```text
+  ```
   Invariant 4.1: EVERY [Attest As Actor] call MUST append EXACTLY ONE attest log entry.
   Invariant 4.2: An admitted attestation answering attest-failed naming the log MUST NOT append an attest log entry.
   Invariant 4.3: EVERY success entry MUST carry the attestation_id AND the gate's credential_id.
@@ -340,7 +340,7 @@ An implementation is acceptable when an external auditor, given the credential s
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY bound principal_ref carrying one actor_ref (Invariant 3.1).
 Check 1.2: An auditor MUST find EVERY bound actor_ref carrying one principal_ref (Invariant 3.2).
 Check 1.3: An auditor MUST find the principal binding AND the inverse map agreeing (Invariant 3.3).
@@ -358,7 +358,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: An auditor needing the two secret surfaces confirmed distinct MUST read the deployment's own provisioning (Invariant 2.3).
 External check 2: An auditor needing the section confirmed MUST read the deployment's own host (Capability requirement 3).
 External check 3: An auditor needing an actor_ref confirmed in the actor registry MUST read the actor registry (Composes 8).
@@ -375,7 +375,7 @@ External check 1 is the one a deployment can fail while every record looks corre
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT confirm the two secret surfaces cryptographically distinct.
 Non-goal 2: The composition MUST NOT confirm an actor_ref provisioned in the actor registry.
 Non-goal 3: The composition MUST NOT invalidate an attestation for a credential later found compromised.
@@ -405,7 +405,7 @@ Non-goal 14 is why the orphan exists at all. Two stores, no distributed transact
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The section MUST serialize the composition's invocations for one principal_ref.
 Concurrency 2: The section MUST NOT serialize Credential's revoke.
 Concurrency 3: A revoke committing between the gate read and the attestation write MUST stand as the declared residue.
@@ -423,7 +423,7 @@ Concurrency 6 is the deployment's way out and is named as an option rather than 
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Deleted: Composition note 2. Invariant 2.3 owns it.
 Composition note 3: A deployment MUST own an actor_ref's provisioning in the actor registry.

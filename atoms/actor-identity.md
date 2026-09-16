@@ -29,7 +29,7 @@ A regulated action has to answer one question from the records: *who authorized 
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify an attestation by the attestation_id.
 Identity 2: The host MUST allocate an attestation_id at the atom's seam.
 Identity 3: The transition MUST NOT allocate an attestation_id.
@@ -62,7 +62,7 @@ Identity by action and actor together would collapse the re-attestation the regi
 
 ### State
 
-```text
+```
 State 1: EVERY attestation MUST stand in attested.
 State 2: The atom MUST NOT offer a transition out of attested.
 State 3: EVERY attestation MUST carry attestation_id, action_ref, actor_ref, proof and attested_at.
@@ -91,7 +91,7 @@ One state and no way out: an attestation that could be revoked would prove nothi
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 ```
 
@@ -111,7 +111,7 @@ verify(attestation_id)
 
 Term verification failure: `proof-invalid` | `actor-unknown-in-registry` | `registry-unavailable` — the reasons [Verify] gives for a failed verification.
 
-```text
+```
 Operation 1: [Attest] MUST compute the proof over the action_ref and the actor_ref from the credential.
 Operation 2: [Attest] MUST record EXACTLY ONE attestation per successful call.
 Operation 3: [Attest] MUST stamp attested_at from the injected now.
@@ -166,47 +166,47 @@ The four verify outcomes are kept apart by their conditions, not by the order th
 ### Invariants
 
 - **Invariant 1 — Attestation immutability.**
-  ```text
+  ```
   Invariant 1.1: EVERY attestation field of a recorded attestation MUST NOT change.
   ```
 - **Invariant 2 — Action binding.**
-  ```text
+  ```
   Invariant 2.1: A recorded proof MUST verify against the recorded action_ref.
   Invariant 2.2: A proof produced for another action MUST NOT verify against the attestation.
   ```
 - **Invariant 3 — Actor binding.**
-  ```text
+  ```
   Invariant 3.1: A recorded proof MUST verify against the recorded actor_ref under the registry's public material.
   Invariant 3.2: A proof produced by another actor MUST NOT verify against the attestation.
   ```
 - **Invariant 4 — Id stability.**
-  ```text
+  ```
   Invariant 4.1: [Attest] MUST set the attestation_id.
   Invariant 4.2: An attestation_id MUST NOT change.
   ```
 - **Invariant 5 — No id reuse.**
-  ```text
+  ```
   Invariant 5.1: Two attestations MUST NOT share an attestation_id.
   ```
 - **Invariant 6 — Self-containment.**
-  ```text
+  ```
   Invariant 6.1: [Verify] MUST consult the verification set.
   Invariant 6.2: [Verify] MUST NOT consult the host's state.
   Invariant 6.3: [Verify] MUST NOT consult a source outside the verification set.
   ```
   WHY: a mechanism that embeds revocation status in the proof keeps verification self-contained; one that sends the verifier to a live revocation service weakens the invariant, which is a mechanism choice the deployment makes (Revocation status 1 through 4).
 - **Invariant 7 — Verification consistency under fixed registry state.**
-  ```text
+  ```
   Invariant 7.1: Two verifications of one attestation under one registry view MUST answer alike.
   ```
 - **Invariant 8 — Non-repudiation contract.**
-  ```text
+  ```
   Invariant 8.1: A verified attestation MUST bind the actor_ref to the action_ref at attested_at ONLY IF the credential was uncompromised at attested_at.
   Invariant 8.2: The atom MUST NOT reinterpret an attestation under a later compromise.
   ```
   WHY: the contract is conditional on credential integrity, and the condition is a fact the records cannot carry. A compromise is disclosed by new records that reinterpret old ones — never by mutating an attestation, which would make the store itself unreliable (Invariant 8.2, Non-goal 9).
 - **Invariant 9 — Attestation durability.**
-  ```text
+  ```
   Invariant 9.1: The atom MUST NOT delete an attestation.
   Invariant 9.2: The attestation set MUST NOT shrink.
   Invariant 9.3: A storage-failure MUST NOT leave a partial attestation.
@@ -264,7 +264,7 @@ This atom's acceptance is what an external auditor can clear from the attestatio
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST reconstruct EVERY attestation from the attestation's stored fields (Invariant 1.1, State 3).
 Check 1.2: An auditor MUST NOT need state beyond those fields and the registry's public material (Invariant 6.1, Invariant 6.2).
 Check 2.1: An auditor MUST verify an attestation without privileged access to the system (Invariant 6.1, Operation 21).
@@ -279,7 +279,7 @@ NOTE: EVERY check names the rule the check tests. The bar is the regulator's que
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT register an actor.
 Non-goal 2: The atom MUST NOT retire an actor.
 Non-goal 3: A deployment MUST compose an actor-registry pattern for the actor's lifecycle.
@@ -306,7 +306,7 @@ Where the atom breaks down: when authorization cannot be reduced to one actor �
 
 ### Attestation store durability
 
-```text
+```
 Attestation durability 1: [Attest] MUST write EXACTLY ONE record per successful call.
 Attestation durability 2: The implementation MUST own durability across a crash.
 Attestation durability 3: A high-assurance deployment MUST compose a durability mechanism.
@@ -315,7 +315,7 @@ Attestation durability 4: A storage-failure MUST agree with the absence of a per
 
 ### Revocation status at verify time
 
-```text
+```
 Revocation status 1: A credential mechanism MAY carry the revocation status inside the proof.
 Revocation status 2: A mechanism carrying the revocation status inside the proof MUST keep [Verify] self-contained.
 Revocation status 3: A deployment MUST NOT read a mechanism resting on a live revocation service as self-contained.
@@ -327,7 +327,7 @@ Stapled status and short-lived credentials both satisfy Invariant 6.1; a live st
 
 ### The registry's view moves
 
-```text
+```
 Registry view 1: A rotation of an actor's public material MAY turn a verified attestation into a failing one.
 Registry view 2: The actor registry MUST own whether historical public material is kept.
 Registry view 3: A deployment whose old attestations must keep verifying MUST retain the historical public material.
@@ -338,7 +338,7 @@ Audit Trail's long-lived attestations are the case: an attestation made years ag
 
 ### Verification caching
 
-```text
+```
 Verification caching 1: An implementation MAY cache a verification result.
 Verification caching 2: An implementation MUST NOT cache a verification result across two registry views.
 ```
@@ -348,7 +348,7 @@ WHY:
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST carry the attestation_id alongside the record the attestation attributes.
 Composition note 3: A composing pattern MUST trust a recorded actor field ONLY IF [Verify] answers verified.

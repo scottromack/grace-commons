@@ -29,7 +29,7 @@ When litigation is filed or reasonably anticipated, the duty to preserve arrives
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a hold by the hold_id.
 Identity 2: The host MUST allocate a hold_id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a hold_id.
@@ -61,7 +61,7 @@ Two authorities can demand preservation of one document — a plaintiff's litiga
 
 ### State
 
-```text
+```
 State 1: EVERY hold MUST stand in EXACTLY ONE OF active, released.
 State 2: EVERY hold MUST carry hold_id, record_ref, placed_by, hold_reason, placed_at and state.
 State 3: A hold MAY carry case_ref.
@@ -94,7 +94,7 @@ There is no aggregate *is this record held* field, because an aggregate is a sec
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
@@ -122,7 +122,7 @@ read(query)
   refuses invalid-query
 ```
 
-```text
+```
 Operation 1: [Place] MUST record EXACTLY ONE hold per successful call.
 Operation 2: [Place] MUST stand the hold in active.
 Operation 3: [Place] MUST answer hold_id.
@@ -200,43 +200,43 @@ A blank `hold_id` is refused before the store is consulted, because *you passed 
 ### Invariants
 
 - **Invariant 1 — Hold immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded hold's hold_id, record_ref, placed_by, hold_reason, placed_at and case_ref MUST NOT change.
   ```
 - **Invariant 2 — Membership exclusivity.**
-  ```text
+  ```
   Invariant 2.1: EVERY hold MUST stand in EXACTLY ONE OF active, released.
   ```
 - **Invariant 3 — Terminal absorption.**
-  ```text
+  ```
   Invariant 3.1: A released hold MUST NOT stand in active again.
   Invariant 3.2: The atom MUST NOT offer a re-activation.
   ```
 - **Invariant 4 — Concurrent holds are independent.**
-  ```text
+  ```
   Invariant 4.1: A release MUST NOT change another hold's state.
   Invariant 4.2: A hold's state MUST rest on that hold's own release alone.
   Invariant 4.3: A record MUST read as held at an instant ONLY IF a hold over the record is held at an instant.
   ```
 - **Invariant 5 — Release attribution is complete.**
-  ```text
+  ```
   Invariant 5.1: A released hold MUST carry a released_by that is not blank.
   Invariant 5.2: A released hold MUST carry a release_reason that is not blank.
   Invariant 5.3: A released hold MUST carry released_at.
   ```
   WHY: an anonymous or unexplained release defeats the audit trail a court reads — *who decided the duty had ended, and on what ground* is the question a spoliation dispute turns on.
 - **Invariant 6 — Temporal ordering.**
-  ```text
+  ```
   Invariant 6.1: A released hold's placed_at MUST NOT EXCEED the hold's released_at.
   ```
 - **Invariant 7 — Placement attribution is complete.**
-  ```text
+  ```
   Invariant 7.1: EVERY hold MUST carry a placed_by that is not blank.
   Invariant 7.2: EVERY hold MUST carry a hold_reason that is not blank.
   Invariant 7.3: EVERY hold MUST carry placed_at.
   ```
 - **Invariant 8 — Hold store durability.**
-  ```text
+  ```
   Invariant 8.1: The atom MUST NOT delete a hold record.
   Invariant 8.2: The hold set MUST NOT shrink.
   Invariant 8.3: A storage-failure from [Place] MUST NOT leave a partial hold.
@@ -246,7 +246,7 @@ Immutability and durability give the *preservation record* property — the full
 
 ### Store instance model
 
-```text
+```
 Instance 1: The atom MUST hold every hold under EXACTLY ONE store instance.
 Instance 2: Two holds in one store instance MUST NOT share a hold_id.
 Instance 3: The atom MUST NOT reach across store instances.
@@ -303,7 +303,7 @@ This atom's acceptance is what an external auditor can clear from the hold store
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY issued hold_id in the store (Invariant 8.1, Invariant 8.2).
 Check 2.1: An auditor MUST find placed_by and hold_reason not blank on EVERY hold (Invariant 7.1, Invariant 7.2).
 Check 2.3: An auditor MUST find record_ref not blank on EVERY hold (Operation 4).
@@ -323,7 +323,7 @@ Check 7.1: An auditor MUST identify which composing patterns a deployment wired 
 
 ### External checks
 
-```text
+```
 External check 1: An auditor MUST read whether a held record was purged from the composing pattern's purge records (Non-goal 1, Composition note 2).
 External check 2: An auditor MUST read who was permitted to place a hold from the composing [Permissions](./permissions.md) records (Non-goal 7).
 External check 3: An auditor MUST read a hold record's integrity from the composing [Tamper Evidence](./tamper-evidence.md) seals (Non-goal 11).
@@ -334,7 +334,7 @@ NOTE: EVERY check names the rule the check tests. The hold store answers *what w
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT block a purge.
 Non-goal 2: A deployment needing an enforced hold MUST compose [Defensible Retention](../compositions/defensible-retention.md).
 Non-goal 3: The atom MUST NOT read the record a record_ref names.
@@ -363,7 +363,7 @@ Where the atom breaks down: when the preservation duty is defined by a query rat
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST serialize two releases of one hold_id.
 Concurrency 2: The second concurrent release MUST answer already-released.
 Concurrency 3: Two placements over one record MUST record two holds.
@@ -371,7 +371,7 @@ Concurrency 3: Two placements over one record MUST record two holds.
 
 ### Back-dating a placement
 
-```text
+```
 Backdating 1: [Place] MUST accept a placed_at below now.
 Backdating 2: [Place] MUST NOT accept a placed_at above now.
 Backdating 3: The deployment MUST own the evidentiary weight of a back-dated placed_at.
@@ -385,7 +385,7 @@ An empty answer and a misrouted answer read alike, and this atom's empty answer 
 
 ### Place persistence failure
 
-```text
+```
 Place persistence 1: A caller MUST read storage-failure from [Place] as the record standing unheld.
 Place persistence 2: A caller MUST retry a place that answered storage-failure.
 Place persistence 3: A high-assurance deployment MUST raise an alert on storage-failure from [Place].
@@ -397,7 +397,7 @@ The two storage failures have opposite polarity, and this atom's dangerous side 
 
 ### The aggregate question
 
-```text
+```
 Aggregate 1: A composing pattern MUST read a record's active holds to answer whether the record is held.
 Aggregate 2: The atom MUST NOT carry a held flag on a record.
 Aggregate 3: A composing pattern MUST read an empty active set as the record standing unheld ONLY IF the answered store_name matches the record's store instance.
@@ -405,7 +405,7 @@ Aggregate 3: A composing pattern MUST read an empty active set as the record sta
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST check a record's active holds at the purge surface.
 Composition note 3: A composing pattern MUST own who may place a hold.

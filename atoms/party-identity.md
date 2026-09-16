@@ -42,7 +42,7 @@ This is a freestanding atom in the EOS sense: its own state machine, its own fiv
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a party by the party_id.
 Identity 2: The atom MUST identify a verification event by the verification_id.
 Identity 3: The atom MUST identify a state change event by the state_change_id.
@@ -93,7 +93,7 @@ Identity 16 is the atom's sharpest refusal and the one a reader most often mista
 
 ### State
 
-```text
+```
 State 1: EVERY party MUST carry party_id, EVERY enrollment field and a state.
 State 2: EVERY party MUST carry a state change log.
 State 3: EVERY party MUST carry a verification event list.
@@ -110,7 +110,7 @@ State 6 and State 7 are the reason a reason is optional in the record and mandat
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
 Capability requirement 3: The store instance MUST serialize two party actions naming one party_id.
@@ -155,7 +155,7 @@ read(query)
 
 Term verification result: `verification_id` and an optional `state_change_id` — what `verify` answers.
 
-```text
+```
 Operation 1: IF a required string input NOT EXISTS THEN an action MUST answer invalid-request.
 Operation 2: IF the date_of_birth parses as no calendar date THEN [Enroll] MUST answer invalid-request.
 Operation 3: IF the date_of_birth EXCEEDS now THEN [Enroll] MUST answer invalid-request.
@@ -269,48 +269,48 @@ Operation 59 is this atom's one departure from its siblings on instants. [Approv
 ### Invariants
 
 - **Invariant 1 — Party record permanence.**
-  ```text
+  ```
   Invariant 1.1: The atom MUST NOT remove a party from the store.
   Invariant 1.2: A storage-failure rejection MUST leave no partial party in the store.
   Invariant 1.3: The store instance's party count MUST NOT fall.
   ```
 - **Invariant 2 — State membership exclusivity.**
-  ```text
+  ```
   Invariant 2.1: EVERY party MUST stand in EXACTLY ONE OF unverified, verified, suspended, closed.
   ```
 - **Invariant 3 — Closed is absorbing.**
-  ```text
+  ```
   Invariant 3.1: A party standing in closed MUST NOT leave closed.
   ```
 - **Invariant 4 — Verified rests on recorded evidence.**
-  ```text
+  ```
   Invariant 4.1: EVERY party standing in verified MUST carry a fresh verification.
   ```
   WHY: the atom's reason for existing, and the one invariant a composing system leans on without reading this page. A downstream process that gates on *a verified party* is trusting that the standing was not asserted — and the atom owns that rather than delegating it, so every composition inherits it. There are exactly two paths into verified, and each records the required evidence as part of the transition: a passed verify against an unverified party, and a reinstate that Operation 18 will not admit without one.
 - **Invariant 5 — Verification events are immutable.**
-  ```text
+  ```
   Invariant 5.1: The atom MUST NOT change a verification event.
   ```
 - **Invariant 6 — Verification events are append-only.**
-  ```text
+  ```
   Invariant 6.1: The atom MUST NOT remove a verification event.
   Invariant 6.2: The atom MUST NOT append a verification event BEFORE a prior verification event.
   Invariant 6.3: A party's verification event list length MUST NOT fall.
   ```
 - **Invariant 7 — Enrollment fields are immutable.**
-  ```text
+  ```
   Invariant 7.1: An action MUST NOT change an enrollment field.
   ```
   WHY: the enrollment record is the auditable original — what was known and checked at onboarding — and a later truth does not overwrite it. A legal name change or a renewed document is an event that layers on top through a composing pattern (Non-goal 4). The one authorized exception is field-level scrubbing under an erasure obligation, which is a composing pattern's act and not an action here (External check 3); `party_id`, `enrolled_at` and `enrolling_actor_ref` survive a scrub so the chain of custody outlives the personal data.
 - **Invariant 8 — No transition is silent.**
-  ```text
+  ```
   Invariant 8.1: EVERY transitioning action MUST append a state change event.
   Invariant 8.2: A party's state change log length MUST NOT fall.
   Deleted: Invariant 9. Identity 6 owns identifier stability.
   Deleted: Invariant 10. Identity 7, Identity 8 and Identity 9 own identifier uniqueness.
   ```
 - **Invariant 11 — Action atomicity.**
-  ```text
+  ```
   Invariant 11.1: An action MUST commit EVERY record the action writes in one transition.
   Invariant 11.2: A storage-failure rejection MUST leave no record of the action in the store.
   ```
@@ -318,7 +318,7 @@ Operation 59 is this atom's one departure from its siblings on instants. [Approv
 
 ### Ordering
 
-```text
+```
 Ordering 1: The store instance MUST append a verification event in insertion order.
 Ordering 2: The store instance MUST append a state change event in insertion order.
 Ordering 3: The atom MUST read the most recent event from insertion order.
@@ -368,7 +368,7 @@ This atom's acceptance is what an external auditor can clear from the party stor
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY party standing in EXACTLY ONE OF unverified, verified, suspended, closed (Invariant 2.1).
 Check 1.2: An auditor MUST find no party standing outside closed on a later read of a party a prior read found closed (Invariant 3.1).
 Check 2.1: An auditor MUST find a fresh verification on EVERY party standing in verified (Invariant 4.1).
@@ -395,7 +395,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing an identity check performed MUST read the composing verification workflow (Non-goal 7).
 External check 2: A deployment needing two parties resolved as one natural person MUST read the composing identity resolution (Identity 16, Non-goal 1).
 External check 3: A deployment needing an enrollment field scrubbed MUST read the composing erasure coordination (Invariant 7.1, Non-goal 12).
@@ -416,7 +416,7 @@ External check 3 follows from Invariant 7.1 and is the one an erasure obligation
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT detect a duplicate party.
 Non-goal 2: A deployment needing duplicates resolved MUST compose an identity resolution pattern.
 Non-goal 3: The atom MUST NOT change an enrollment field.
@@ -453,7 +453,7 @@ Non-goal 21 is what *closed* does not mean. Closing a party stops new regulated 
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: The implementation MUST commit a transition whole.
 Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
 Atomic writes 3: The implementation MUST own the transactional boundary.
@@ -462,7 +462,7 @@ Atomic writes 4: The implementation MUST NOT repair a dangling transition.
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 5: A recorded instant MUST NOT carry an ordering.
 Deleted: Clock semantics 3. Capability requirement 8 owns it.
 Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
@@ -475,7 +475,7 @@ Clock semantics 5 is the Ordering family stated from the clock's side, and the p
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST commit the state checks and the state change of a transitioning action as one atomic operation.
 Concurrency 2: A losing party action MUST read the winner's state.
 Concurrency 3: A losing party action MUST answer the state rejection the winner's state earns.
@@ -483,7 +483,7 @@ Concurrency 3: A losing party action MUST answer the state rejection the winner'
 
 ### Indeterminate outcome
 
-```text
+```
 Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the party.
 Indeterminate outcome 2: A caller MUST NOT read a lost answer as a refusal.
 Indeterminate outcome 3: A caller MUST NOT retry a lost [Enroll] BEFORE reading the store.
@@ -494,7 +494,7 @@ Invariant 11.1 is store-side and the caller's knowledge is weaker. A transport f
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -517,7 +517,7 @@ The blank rule earns its keep on `reason` more than anywhere else. A suspension,
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A composing [Customer Onboarding](../compositions/customer-onboarding.md) MUST gate regulated activity on the party standing in verified.
 Composition note 2: A composing [Customer Onboarding](../compositions/customer-onboarding.md) MUST own the verification workflow.
 Composition note 3: A composing [External Onboarding](../compositions/external-onboarding.md) MUST call [Enroll] ONLY AFTER an accepted invitation.

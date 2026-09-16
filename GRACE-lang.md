@@ -1,4 +1,4 @@
-# GRACE lang v0.48 — Minimal Earned Grammar
+# GRACE lang v0.49 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -8,13 +8,13 @@ Status: the current version and its history are §23; this line states nothing e
 Date: 2026-09-15
 
 NOTE:
-This document obeys itself. A fenced block is classified by its first line (Surface 18): a labelled rule or a tombstone opens a normative block, a surface prefix opens that surface, anything else is a parse error. Everything outside the fences and the `Term` lines carries nothing (Surface 3); `WHY:` and `NOTE:` label it for readers. The vocabulary the document's own rules use is declared in §13.
+This document obeys itself. A fenced block is classified by its first line (Surface 18): a labelled rule or a tombstone opens a normative block, a surface prefix opens that surface, a signature opens a signature block, and any other block is the surface nothing — unless it carries a labelled rule, which is a parse error. Everything outside the fences and the `Term` lines carries nothing (Surface 3); `WHY:` and `NOTE:` label it for readers. The vocabulary the document's own rules use is declared in §13.
 
 ---
 
 ### 1. Core Principles
 
-```text
+```
 Principle 1: The grammar MUST contain only forms earned by repeated use in real specifications.
 Principle 2: §21 MAY admit a form ONLY IF the form's concept recurs across specifications AND the concept satisfies contested.
 Principle 3: §21 MUST NOT admit a form on one occurrence.
@@ -43,7 +43,7 @@ The test is the concept, not the token: a token appears only after its form is a
 
 Term surface: `normative` | `WHY:` | `UX:` | `PROVISIONAL:` | `NOTE:` | `nothing` (a line outside every fenced block and outside a `Term` declaration).
 
-```text
+```
 Surface 1: EVERY line MUST belong to exactly one surface.
 Surface 2: The parser MUST read an unprefixed line in a normative block as normative.
 Surface 3: The parser MUST NOT read a line outside a normative block as normative.
@@ -61,27 +61,28 @@ Surface 14: A provisional form MUST NOT carry normative force.
 Surface 15: The parser MUST ignore WHY:, UX:, NOTE: and PROVISIONAL: lines.
 Surface 16: A system MUST obey EVERY normative line.
 Surface 17: A system MUST NOT obey WHY:, UX: or NOTE:.
-Surface 18: The parser MUST classify a text fence by the block's first line: a labelled rule opens a normative block; a tombstone opens a normative block; a surface prefix opens that surface.
-Surface 19: The parser MUST reject a text fence whose first line is neither a labelled rule nor a surface prefix.
+Surface 18: The parser MUST classify a bare fence by the block's first line: a labelled rule opens a normative block; a tombstone opens a normative block; a surface prefix opens that surface; a signature opens a signature block.
+Surface 19: The parser MUST reject a fenced block that carries a labelled rule under a first line that opens no normative block and no surface.
 Surface 20: The parser MUST read a signature block as a declaration.
-Surface 21: The parser MUST read a fenced block that is neither a text fence nor a signature block as the surface nothing.
+Surface 21: The parser MUST read EVERY other fenced block as the surface nothing.
 Surface 22: A surface prefix on a block's first line MUST cover every line of the block.
 Surface 23: A surface prefix on a later line of a normative block MUST cover that line alone.
 Surface 24: The parser MUST read a line outside every fenced block and outside every declaration as the surface nothing.
 Surface 25: The parser MUST read a term entry as the surface nothing.
 Surface 26: The parser MUST resolve a bracket marker to the declaration the marker names.
 Surface 27: A term entry MUST NOT carry an obligation.
+Surface 28: A writer MUST write EVERY block the parser classifies in a bare fence.
 ```
 
-Term normative block: a fenced text block of labelled rules, a `Term` declaration, or a signature block — a spec's whole normative surface (`spec-format.md` §*The normative surface*).
+Term normative block: a fenced block of labelled rules, a `Term` declaration, or a signature block — a spec's whole normative surface (`spec-format.md` §*The normative surface*).
 
-Term text fence: a fenced block whose info string is `text`.
+Term bare fence: a fenced block whose opening line carries no info string — the one fence kind a normative block, a surface block and a signature block take; a block's first line, not its fence, says which it is.
 
 Term term entry: a Terms registry entry — a heading, prose and a `Kind` line — the reader's copy of a declaration (`spec-format.md` §*Terms*).
 
 Term bracket marker: `[Name]` in prose, and the link line that lands it on the name's term entry; a pointer to the declaration, never a second copy of the declaration.
 
-Term signature block: a fenced block with no info string whose first line is a signature, in the signature form, one signature per action and one or more per block; each signature is the declaration of that action's outcomes, read as the value set the action's rules land on.
+Term signature block: a bare fence whose first line is a signature, in the signature form, one signature per action and one or more per block; each signature is the declaration of that action's outcomes, read as the value set the action's rules land on.
 
 Term normative: unprefixed Strict Caveman (§20) inside a normative block, other than a tombstone.
 
@@ -93,20 +94,20 @@ Term obey: a system obeys a rule when every run of the system satisfies the rule
 
 Term MAY rule: a rule under `MAY`; a system satisfies a `MAY` rule vacuously, and a `MAY` rule obliges nothing.
 
-```text
+```
 NOTE: a fragment, not a rule — no label, no actor, no modal; the tail alone:
       close intent ONLY AFTER hold_bound
 ```
-```text
+```
 WHY:
 The sweep waits for the longer of two possible holders, so an intent record is never closed mid-write by another invocation.
 ```
-```text
+```
 UX:
 We are still checking whether this action completed.
 Please do not submit it again yet.
 ```
-```text
+```
 PROVISIONAL:
 open_invocations IS DERIVED FROM journal.
 ```
@@ -119,7 +120,7 @@ NOTE: `hold_bound` is the example's term; the arithmetic lives in the declaratio
 
 ### 3. WHAT / WHY / HOW
 
-```text
+```
 NOTE:
 Normative = WHAT
 WHY       = WHY
@@ -133,7 +134,7 @@ Only the normative line carries meaning the system must obey (Surface 16, Surfac
 
 ### 4. Direction of Generation
 
-```text
+```
 Direction 1: A writer MAY generate WHY: from a normative line.
 Direction 2: A writer MAY generate UX: from a normative line.
 Direction 3: A writer MUST NOT generate a normative line from WHY:.
@@ -143,7 +144,7 @@ Direction 6: A written normative rule MUST stand alone and pass every check this
 Direction 7: A writer MUST NOT keep fuzzy intent as a source of truth.
 ```
 
-```text
+```
 NOTE:
 Normative → WHY     (allowed)
 Normative → UX      (allowed)
@@ -166,7 +167,7 @@ Term rule form: `LABEL: statement` on one line, or `LABEL: WHEN condition:` foll
 
 Term child: a rule inside a WHEN block.
 
-```text
+```
 Rule shape 1: EVERY rule MUST carry a label.
 Rule shape 2: EVERY statement MUST match one statement shape.
 Rule shape 3: A normative sentence MUST carry exactly one obligation.
@@ -186,7 +187,7 @@ A label is read by people before a parser: *Non-goal 4* says where to look, *NG4
 
 Term standard label family: `Identity` (what identifies an instance) | `State` (what the spec holds) | `Operation` (one action's rules) | `Invariant` (a property of every reachable state) | `Check` (an acceptance check) | `External check` (a check needing evidence the records do not carry) | `Non-goal` (what the spec does not do, and who owns it instead) | `Composition note` (an obligation on a composing pattern) | `Composes` (a constituent's role) | `Capability requirement` (what the deployment supplies) | `Wiring decision` (the decision a composition exists to make, and the wiring the decision rejects) | `Audit arm` (how a composition maps the audit substrate's rejection taxonomy at the composition's own boundary) | `Reconciliation` (the leg running outside every invocation whose output something awaits within a promised window) | `Housekeeping` (the leg running outside every invocation whose output nothing awaits).
 
-```text
+```
 Standard label 1: The grammar IS AUTHORITATIVE FOR the standard label families.
 Standard label 2: A specification MUST NOT redeclare a standard label family.
 Standard label 3: A label family outside the standard set MUST carry the meaning of the heading the family names.
@@ -220,7 +221,7 @@ Term casing tier: `upper case` | `title case` | `sentence case` | `lower case`.
 
 Term domain identifier: a record verb, a value-set member, a field name or an action name — a name the specification declares rather than the grammar.
 
-```text
+```
 Casing 1: The grammar IS AUTHORITATIVE FOR the casing tiers.
 Casing 2: EVERY reserved token MUST carry upper case.
 Casing 3: The parser MUST NOT read a lower-case token as a reserved token.
@@ -250,7 +251,7 @@ Term modal: `MUST` | `MUST NOT` | `MAY`.
 
 Term condition operator: `=` | `!=` | `EXISTS` | `NOT EXISTS` | `EXCEEDS` | `AND` (flat) | `OR` (flat, inclusive).
 
-```text
+```
 Earned vocabulary 1: A condition MUST NOT mix `AND` and `OR`.
 Earned vocabulary 2: A writer MUST route a mixed condition through a declared term.
 Earned vocabulary 3: A rule MUST NOT carry `OR` in an obligation or between obligations.
@@ -264,14 +265,14 @@ Earned vocabulary 5: A condition MUST NOT nest.
 
 Term tail: `ONLY AFTER term` | `ONLY IF condition` | `WITHIN term` | `PER term` | `BEFORE term` (under `MUST NOT` only, Timing 5).
 
-```text
+```
 Tail 1: A reader MUST NOT infer beyond a tail's text.
 ```
 
 WHY:
 `ONLY IF` is admitted by Principle 2: the concept recurs, and gate 12 F1's repair is the finding. `ONLY UNDER` is provisional (§18): no controlled use, no finding.
 
-```text
+```
 NOTE:
 /people MAY serve actor ONLY IF invite_actor EXISTS OR grant_permission EXISTS.
 ```
@@ -280,7 +281,7 @@ NOTE:
 
 ### 8. Timing and Bounds
 
-```text
+```
 Timing 1: A writer MUST write a positive lower-bound ordering as `actor MUST action ONLY AFTER term`.
 Timing 2: The parser MUST normalize `actor MUST action AFTER term` to `actor MUST action ONLY AFTER term`.
 Timing 3: The parser MUST normalize `actor MAY action AFTER term` to `actor MAY action ONLY AFTER term`.
@@ -303,13 +304,13 @@ WHY:
 
 ### 9. WHEN Blocks
 
-```text
+```
 WHEN block 1: The parser MUST read EVERY child of a WHEN block as an independent rule.
 WHEN block 2: A reader MUST NOT infer ordering among the children of a WHEN block.
 WHEN block 3: A WHEN block MUST NOT nest.
 ```
 
-```text
+```
 NOTE:
 WHEN condition:
     statement
@@ -321,7 +322,7 @@ WHEN condition:
 
 ### 10. Authority
 
-```text
+```
 Authority 1: A writer MUST write authority as `subject IS AUTHORITATIVE FOR proposition`.
 Authority 2: A synonym MUST NOT carry authority semantics.
 Authority 3: Two rules MUST NOT claim authority for one proposition.
@@ -337,7 +338,7 @@ No synonym — `canonical`, `source of truth`, `primary` — carries authority s
 
 ### 11. Hard Invariants (parser-enforced)
 
-```text
+```
 Hard invariant 1: The parser MUST reject an unprefixed line in a normative block that does not parse.
 Hard invariant 2: The parser MUST reject a normative rule with no explicit subject.
 Hard invariant 3: The parser MUST reject a normative rule with no explicit modal where the statement shape requires one.
@@ -386,20 +387,20 @@ A range citation says one thing four spellings used to say: `Operation 3–7` ca
 
 ### 12. Sugar Rule
 
-```text
+```
 Sugar 1: Sugar MAY shorten a rule.
 Sugar 2: Sugar MUST NOT add information.
 Sugar 3: A writer MUST NOT place a sentence that matches no admitted form and no deterministic sugar in a normative block.
 ```
 
-```text
+```
 NOTE: the sugar and its normalization.
 NOTE: sweep MUST run AFTER examine_edge.
 ```
-```text
+```
 NOTE: sweep MUST run ONLY AFTER examine_edge.
 ```
-```text
+```
 NOTE: PER and a cadence, exercised once; the examples in this document borrow Recoverable Invocation's vocabulary and are exemplars, not citations — Hard invariant 28 does not reach a NOTE:.
 NOTE: sweep MUST examine PER reconciliation_cadence.
 ```
@@ -408,7 +409,7 @@ NOTE: sweep MUST examine PER reconciliation_cadence.
 
 ### 13. Closed Vocabulary
 
-```text
+```
 Closed vocabulary 1: EVERY specification MUST declare the specification's own closed vocabulary.
 Closed vocabulary 2: A vocabulary MUST carry EVERY category the specification uses, from the category value set.
 Closed vocabulary 3: A vocabulary MUST declare a category with no member as empty.
@@ -461,7 +462,7 @@ Term agent: an actor that can perform a rule's verb — the grammar; §21; the p
 WHY:
 A named expression has one owner, and a diff can match it by name. Closed vocabulary 8 is what rejects the passive — *The actor MUST be granted invite_actor* has no declared record verb after the modal — which is why no parser invariant restates the rule. A citation form lets a composition use a constituent's term without restating it.
 
-```text
+```
 NOTE:
 record verb record_action: Audit Trail
 ```
@@ -488,7 +489,7 @@ Term value sets: `surface`; `quantifier`, `modal`, `condition operator`; `tail`;
 
 ### 14. Closed Value Sets
 
-```text
+```
 Value set 1: A value set MUST enumerate every admitted value.
 Value set 2: The parser MUST reject an undeclared value.
 Value set 3: A value set MUST NOT carry an implicit other.
@@ -498,7 +499,7 @@ Value set 3: A value set MUST NOT carry an implicit other.
 
 ### 15. Canonical Examples
 
-```text
+```
 NOTE: exemplars in Recoverable Invocation's vocabulary, not citations; the labels are illustrative.
 Canonical example 1:
 IF commit = unknown THEN invocation MUST yield.
@@ -512,7 +513,7 @@ operator MUST NOT resolve BEFORE acquiring section.
 Canonical example 4:
 sweep MUST reconcile AFTER examine_edge.
 ```
-```text
+```
 NOTE: Canonical example 4 normalizes to `ONLY AFTER`.
 Canonical example 5:
 IF intent_age EXCEEDS retention_edge THEN sweep MUST NOT examine intent.
@@ -527,7 +528,7 @@ Term run_floor: `max(completion_bound, closure_latency + journal_write_bound) + 
 
 ### 16. Normalized Form
 
-```text
+```
 Normalized form 1: The parser MUST lower EVERY parsed rule to an explicit structural representation.
 Normalized form 2: The representation MUST carry only information present in the normative source or added by a ratified deterministic sugar rewrite.
 Normalized form 3: The representation MUST NOT carry information from WHY:, UX:, NOTE:, PROVISIONAL: or context.
@@ -537,7 +538,7 @@ Normalized form 3: The representation MUST NOT carry information from WHY:, UX:,
 
 ### 17. Reverse Diff
 
-```text
+```
 Reverse diff 1: The reverse diff MUST compare normalized normative obligations.
 Reverse diff 2: The reverse diff MUST report ADDED, REMOVED and CHANGED.
 Reverse diff 3: The reverse diff MUST treat two forms that normalize identically as equivalent.
@@ -549,13 +550,13 @@ Reverse diff 5: The reverse diff MUST NOT report a change to WHY: or UX:.
 
 ### 18. Candidate Forms
 
-```text
+```
 Candidate form 1: The parser MUST treat a form as provisional until §21 admits the form.
 Candidate form 2: A spec MUST state a degraded rule in admitted forms under IF or WHEN.
 Candidate form 3: A spec MUST mark a `DEGRADES TO` pairing PROVISIONAL:.
 ```
 
-```text
+```
 PROVISIONAL: ONLY UNDER
 PROVISIONAL: IS DERIVED FROM
 PROVISIONAL: COMPOSES / BINDS
@@ -578,7 +579,7 @@ During the corpus rewrite, no grammar is added preemptively. A rewriter flags re
 
 ### 19. Language Growth
 
-```text
+```
 NOTE:
 real need
 → repeated use
@@ -601,7 +602,7 @@ One occurrence is never enough (Principle 3).
 
 Term Strict Caveman: short sentences; one obligation per sentence; explicit subject, modal, action and object; explicit condition when needed; one canonical term for one meaning; no pronouns; no rhetorical dependency; no hidden implication.
 
-```text
+```
 Caveman 1: A writer MUST express complex behavior as more simple rules.
 Caveman 2: A writer MUST NOT express complex behavior as a more complicated sentence.
 ```
@@ -612,7 +613,7 @@ Caveman 2: A writer MUST NOT express complex behavior as a more complicated sent
 
 Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; `WHY:` and `UX:` with zero normative force; `MUST` / `MUST NOT` / `MAY`; `EVERY` / `EXACTLY ONE` / `EXACTLY ONE OF`; flat `IF` and flat `WHEN`; flat `AND`, flat `OR`, never both in one condition; `OR` only inside conditions and term declarations; `=` / `!=` / `EXISTS` / `NOT EXISTS` / `EXCEEDS`; `ONLY AFTER` / `ONLY IF` / `WITHIN` / `PER`; `MUST NOT EXCEED` for ≥, no `AT LEAST`, no `STRICTLY`; the strict lower bound as `MAY … ONLY IF … EXCEEDS …`; `IS AUTHORITATIVE FOR` (introduced, labelled); one site is one spec; forbidden-before (`MUST NOT … BEFORE`); deterministic `AFTER` sugar under `MUST` and `MAY`; positive `MUST … BEFORE` illegal; one obligation per sentence; labels named for their heading, never abbreviated; closed vocabulary including record verbs; the `Term` declaration form; the signature block as a declaration form, one line per action; the standard label families; the casing tiers; the term entry and the bracket marker as reader sugar; a declaration may cite its owner; arithmetic only in term declarations; closed value sets; no pronouns, §13 rejects the passive; no inference; normalized representation; reverse diff over normalized rules; admission by Principle 2 — recurrence AND contested.
 
-```text
+```
 Lock 1: The parser MUST accept only the locked forms and the locked forms' deterministic sugar.
 Lock 2: §21 MUST NOT admit a form outside the locked forms except by Principle 2.
 ```
@@ -629,6 +630,9 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.49 (2026-09-16): one fence kind. A block of rules was a fence marked `text`, a signature block a fence marked with nothing, and the two marks said nothing the first line did not already say — so the mark goes and the first line decides (Surface 18, Term bare fence). A block that carries a labelled rule under a first line that opens nothing is still rejected (Surface 19), which is what the `text` mark used to guard. 982 fences unmarked across the grammar, `spec-format.md` and forty-one specifications. Formatted strictly: `check.py`'s `D-fence-form` gates a fence still marked `text`. Council read 90.
 
 NOTE:
 v0.48 (2026-09-15): a signature is written in words — `name(inputs, optional input)`, an answers line, a refuses line (Term signature form, Closed vocabulary 24 through 27) — replacing the arrow, the trailing `?`, the braced or bracketed record and the `rejected(…)` wrapper. A record an action answers is a declared term, as an inner choice became one at council read 84. 171 signatures in 51 blocks across forty specifications; the wrapper also left 69 rules and 115 prose and example sites, where the outcome now stands by its own name. Admitted with the syntax table, formatted strictly: `check.py`'s `D-signature-form` gates. Council read 89.

@@ -29,7 +29,7 @@ A notification is a promise to tell somebody something, and the interesting part
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a notification by the notification_id.
 Identity 2: The host MUST allocate a notification_id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a notification_id.
@@ -60,7 +60,7 @@ One attempt, one record. A retry is a new notification with a new id rather than
 
 ### State
 
-```text
+```
 State 1: EVERY notification MUST stand in EXACTLY ONE OF pending, delivered, failed, expired.
 State 2: EVERY notification MUST carry notification_id, recipient_ref, payload, created_at and status.
 State 3: A delivered notification MUST carry delivered_at.
@@ -86,7 +86,7 @@ Four states and exactly one terminal stamp each, because the audit question is *
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
@@ -124,7 +124,7 @@ pending_for(recipient_ref)
   answers notification_ids
 ```
 
-```text
+```
 Operation 1: [Create] MUST record EXACTLY ONE notification per successful call.
 Operation 2: [Create] MUST stand the notification in pending.
 Operation 3: [Create] MUST answer notification_id.
@@ -184,24 +184,24 @@ The three terminal transitions share one precondition pair — known, and pendin
 ### Invariants
 
 - **Invariant 1 — Notification immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded notification's notification_id, recipient_ref, payload and created_at MUST NOT change.
   Invariant 1.2: A landed terminal stamp MUST NOT change.
   ```
 - **Invariant 2 — Status monotonicity.**
-  ```text
+  ```
   Invariant 2.1: A status MUST move from pending to EXACTLY ONE OF delivered, failed, expired.
   Invariant 2.2: A status MUST NOT move to pending from a terminal status.
   Invariant 2.3: A status MUST NOT move between two terminal statuses.
   Invariant 2.4: A notification MUST read as pending at an instant ONLY IF the notification is pending at an instant.
   ```
 - **Invariant 3 — Terminal states are exclusive.**
-  ```text
+  ```
   Invariant 3.1: A notification standing in a terminal status MUST carry EXACTLY ONE terminal stamp.
   Invariant 3.2: A pending notification MUST NOT carry a terminal stamp.
   ```
 - **Invariant 4 — Terminal timestamps match status.**
-  ```text
+  ```
   Invariant 4.1: A delivered notification MUST carry delivered_at.
   Invariant 4.2: A notification carrying delivered_at MUST stand in delivered.
   Invariant 4.3: A failed notification MUST carry failed_at.
@@ -210,27 +210,27 @@ The three terminal transitions share one precondition pair — known, and pendin
   Invariant 4.6: A notification carrying expired_at MUST stand in expired.
   ```
 - **Invariant 5 — Id stability.**
-  ```text
+  ```
   Invariant 5.1: [Create] MUST set the notification_id.
   Invariant 5.2: A notification_id MUST NOT change.
   ```
 - **Invariant 6 — No id reuse.**
-  ```text
+  ```
   Invariant 6.1: Two notifications MUST NOT share a notification_id.
   ```
 - **Invariant 7 — Pending query excludes terminals.**
-  ```text
+  ```
   Invariant 7.1: [Pending For] MUST answer a notification_id ONLY IF the notification stands in pending.
   ```
 - **Invariant 8 — Timestamp ordering.**
-  ```text
+  ```
   Invariant 8.1: IF delivered_at EXISTS THEN created_at MUST NOT EXCEED delivered_at.
   Invariant 8.2: IF failed_at EXISTS THEN created_at MUST NOT EXCEED failed_at.
   Invariant 8.3: IF expired_at EXISTS THEN created_at MUST NOT EXCEED expired_at.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2).
 - **Invariant 9 — Notification durability.**
-  ```text
+  ```
   Invariant 9.1: The atom MUST NOT delete a notification record.
   Invariant 9.2: The notification set MUST NOT shrink.
   Invariant 9.3: [Status Of] MUST answer a created notification's fields for the store's life.
@@ -280,7 +280,7 @@ This atom's acceptance is what an external auditor can clear from the notificati
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST read EVERY notification's notification_id, recipient_ref, payload, created_at and status from the store (State 2).
 Check 2.1: An auditor MUST reconstruct a notification's status at a past instant from created_at and the terminal stamp (Invariant 2.4).
 Check 2.2: An auditor MUST read the reconstruction as deterministic on stored fields (Invariant 1.2).
@@ -294,7 +294,7 @@ Check 6.1: An auditor MUST identify which composing patterns a deployment wired 
 
 ### External checks
 
-```text
+```
 External check 1: An auditor MUST read the deployment's fail-versus-expire policy from the deployment's own declaration (Operation 14).
 External check 2: An auditor MUST read a payload's retention from the composing [Retention Window](./retention-window.md) records (Non-goal 13).
 External check 3: An auditor MUST read who created a notification from the composing [Actor Identity](./actor-identity.md) attestations (Non-goal 11).
@@ -305,7 +305,7 @@ NOTE: EVERY check names the rule the check tests. External check 1 is the one th
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT evaluate a subscription.
 Non-goal 2: The atom MUST NOT choose a notification's recipient.
 Non-goal 3: The atom MUST NOT retry a failed notification.
@@ -333,7 +333,7 @@ Where the atom breaks down: when *delivered* is not a single observable event �
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -349,7 +349,7 @@ Term string cap: the deployment's bound on a string input's length.
 
 ### Atomicity of a terminal transition
 
-```text
+```
 Terminal atomicity 1: The implementation MUST change status and the terminal stamp together.
 Terminal atomicity 2: A crash inside a terminal transition MUST NOT leave a terminal status without the terminal stamp.
 Terminal atomicity 3: A crash inside a terminal transition MUST NOT leave a terminal stamp on a pending notification.
@@ -361,7 +361,7 @@ Half a transition breaks Invariant 4 while every field reads plausibly on its ow
 
 ### Bulk expiry
 
-```text
+```
 Bulk expiry 1: A composing pattern MUST enumerate a recipient's pending notifications.
 Bulk expiry 2: A composing pattern MUST call [Expire] for EVERY notification the enumeration returns.
 Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
@@ -369,7 +369,7 @@ Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
 
 ### Deliver persistence failure
 
-```text
+```
 Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the notification standing pending.
 Deliver persistence 2: A caller MUST retry a deliver that answered storage-failure.
 Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry.
@@ -381,7 +381,7 @@ The transport accepted the notification and the store did not record it, so the 
 
 ### Payload retention
 
-```text
+```
 Payload retention 1: The atom MUST keep a payload for the store's life.
 Payload retention 2: The atom MUST NOT offer a payload purge.
 Payload retention 3: A deployment whose payloads carry sensitive content MUST compose [Retention Window](./retention-window.md).
@@ -394,7 +394,7 @@ Invariant 1.1 forbids a payload changing and Invariant 9.2 forbids the set shrin
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A deployment MUST declare the deployment's fail-versus-expire policy.
 Composition note 3: A composing pattern MUST own who is notified.

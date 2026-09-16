@@ -41,7 +41,7 @@ Two disciplines carry the rest. **Order is the sequence number, never the clock*
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a chain by the chain_id.
 Identity 2: The atom MUST identify an entry by the entry_id.
 Identity 3: The host MUST allocate a chain_id at the seam.
@@ -86,7 +86,7 @@ Custodian equality is byte-exact: `Lab-7` and `lab-7` are two custodians here. C
 
 ### State
 
-```text
+```
 State 1: EVERY chain MUST stand in EXACTLY ONE OF open, archived.
 State 2: EVERY chain MUST carry chain_id, artifact_ref, a chain state, a current custodian and next_sequence_number.
 State 3: EVERY entry MUST carry entry_id, sequence_number, event_type and recorded_at.
@@ -115,7 +115,7 @@ The current custodian is a projection, not a fact of its own: replay the entries
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's honesty.
@@ -153,7 +153,7 @@ read(chain_id, query)
   refuses not-known | invalid-query
 ```
 
-```text
+```
 Operation 1: IF artifact_ref NOT EXISTS THEN [Originate] MUST answer invalid-ref.
 Operation 2: IF custodian_ref NOT EXISTS THEN [Originate] MUST answer invalid-ref.
 Operation 3: IF genesis_type NOT EXISTS in the genesis types THEN [Originate] MUST answer invalid-genesis-type.
@@ -283,22 +283,22 @@ Rejection precedence lives in the guards rather than in a note. Existence comes 
 ### Invariants
 
 - **Invariant 1 — Entry immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded entry's fields MUST NOT change.
   ```
 - **Invariant 2 — Append-only chain.**
-  ```text
+  ```
   Invariant 2.1: A chain's entry count MUST NOT fall under the atom's actions.
   Invariant 2.2: A recorded entry's sequence_number MUST NOT change.
   ```
 - **Invariant 3 — Single origin.**
-  ```text
+  ```
   Invariant 3.1: EVERY chain MUST carry EXACTLY ONE genesis entry.
   Invariant 3.2: A genesis entry's sequence_number MUST stand at one.
   Invariant 3.3: The atom MUST NOT offer a second originate against a recorded chain.
   ```
 - **Invariant 4 — Custody continuity.**
-  ```text
+  ```
   Invariant 4.1: EVERY open chain MUST carry EXACTLY ONE current custodian.
   Invariant 4.2: EVERY custodian-guarded entry's custodian_ref MUST equal the current custodian the entry found.
   Invariant 4.3: EVERY transferred entry's from_custodian_ref MUST equal the current custodian the entry found.
@@ -306,30 +306,30 @@ Rejection precedence lives in the guards rather than in a note. Existence comes 
   ```
   WHY: the load-bearing one, and the reason this is not a configured [Event Log](./event-log.md). That atom is content-agnostic, carries no subject and no custodian, and permits sequence gaps by design; continuity needs all three. A stream that admits a gap cannot prove there wasn't one.
 - **Invariant 5 — Dense total order within a chain.**
-  ```text
+  ```
   Invariant 5.1: Two entries in one chain MUST NOT share a sequence_number.
   Invariant 5.2: A chain's sequence_numbers MUST stand from one to the chain's entry count.
   Invariant 5.3: A chain's order MUST rest on sequence_number alone.
   ```
 - **Invariant 6 — Archived is terminal and absorbing.**
-  ```text
+  ```
   Invariant 6.1: An archived chain MUST NOT leave archived.
   Invariant 6.2: An archived chain MUST NOT admit an entry.
   ```
 - **Invariant 7 — Custodian presence.**
-  ```text
+  ```
   Invariant 7.1: EVERY non-transferred entry's custodian_ref MUST carry a non-whitespace character.
   Invariant 7.2: EVERY transferred entry's from_custodian_ref and to_custodian_ref MUST carry a non-whitespace character.
   ```
 - **Invariant 8 — Event type validity.**
-  ```text
+  ```
   Invariant 8.1: EVERY entry's event_type MUST stand in the event types.
   Invariant 8.2: A genesis entry's event_type MUST stand in the genesis types.
   Invariant 8.3: A non-genesis entry's event_type MUST NOT stand in the genesis types.
   Invariant 8.4: An archived chain's last entry's event_type MUST stand at archived.
   ```
 - **Invariant 9 — Chain durability over this atom's own surface.**
-  ```text
+  ```
   Invariant 9.1: The chain count MUST NOT fall under the atom's actions.
   Invariant 9.2: A storage-failure rejection MUST leave no partial record in the store.
   ```
@@ -387,7 +387,7 @@ This atom's acceptance is what an external auditor can clear from the chain stor
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find a custodian_ref on EVERY non-transferred entry (Invariant 7.1).
 Check 1.2: An auditor MUST find a from_custodian_ref and a to_custodian_ref on EVERY transferred entry (Invariant 7.2).
 Check 2.1: An auditor MUST find EXACTLY ONE genesis entry per chain (Invariant 3.1).
@@ -414,7 +414,7 @@ Check 5.1 rests on `sequence_number` rather than `recorded_at` deliberately: a b
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT confirm that a custodian_ref names a credentialed party.
 Non-goal 2: A deployment needing a non-repudiable custodian MUST compose [Actor Identity](./actor-identity.md).
 Non-goal 3: The atom MUST NOT decide who may call an action.
@@ -455,7 +455,7 @@ Non-goal 21 follows from the identity model: `artifact_ref` is opaque and non-un
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: A reader MUST NOT observe an entry without the entry's next_sequence_number raise.
 Atomic writes 2: A reader MUST NOT observe a transferred entry without the entry's current custodian change.
 Atomic writes 3: A reader MUST NOT observe an archived entry without the chain's move to archived.
@@ -474,7 +474,7 @@ Every append couples at least two durable mutations — the entry and the counte
 
 ### Clock dependence
 
-```text
+```
 Clock dependence 1: A rejection MUST NOT rest on now.
 Clock dependence 2: A guard MUST NOT read now.
 ```
@@ -484,7 +484,7 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 4: A guard MUST NOT rest on recorded_at.
 Deleted: Clock semantics 1. Capability requirement 2 owns it.
 Deleted: Clock semantics 2. Capability requirement 3 owns it.
@@ -498,7 +498,7 @@ No invariant here is at risk from a bad clock, because ordering rests on `sequen
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST serialize two calls against one chain.
 Concurrency 2: EVERY serialized transfer against one open chain MUST append.
 Concurrency 3: The second serialized transfer MUST read from_custodian_ref from the current custodian the first transfer set.
@@ -510,7 +510,7 @@ WHY:
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -537,7 +537,7 @@ A whitespace-only descriptor answers `invalid-descriptor` rather than `invalid-r
 
 ### Correction by append
 
-```text
+```
 Correction 1: The atom MUST NOT edit an entry.
 Correction 2: The atom MUST NOT remove an entry.
 Correction 3: The current custodian MUST record a correction as a subsequent entry.
@@ -551,7 +551,7 @@ The chain is append-only and entries are immutable (Invariant 1.1, Invariant 2.1
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the attestation binding a custodian_ref to an actor.

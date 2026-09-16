@@ -39,7 +39,7 @@ Two design commitments carry the rest. **Drained is not a state** — `allocated
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a pool by the pool_id.
 Identity 2: The atom MUST identify an audit event by the event id.
 Identity 3: The host MUST allocate a pool_id at the seam.
@@ -83,7 +83,7 @@ Identity 13 and Identity 14 are the create-only discipline: an injected id that 
 
 ### State
 
-```text
+```
 State 1: EVERY pool MUST stand in EXACTLY ONE OF open, suspended, closed.
 State 2: EVERY pool MUST carry pool_id, capacity, allocated, a pool state, declared_at, declaring_actor_ref and declaration_reason.
 State 3: EVERY pool MUST carry an audit log.
@@ -132,7 +132,7 @@ An audit event has two surfaces with different lifetimes, and the split is struc
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
@@ -187,7 +187,7 @@ query(pool_id)
   refuses not-known
 ```
 
-```text
+```
 Operation 1: [Declare Pool] MUST record EXACTLY ONE pool per successful call.
 Operation 2: [Declare Pool] MUST stand the pool in open.
 Operation 3: [Declare Pool] MUST set allocated to zero.
@@ -323,18 +323,18 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
 ### Invariants
 
 - **Invariant 1 — Pool record permanence under this atom's actions.**
-  ```text
+  ```
   Invariant 1.1: The atom MUST NOT offer an action that removes a pool.
   Invariant 1.2: The pool count MUST NOT fall under the atom's actions.
   Invariant 1.3: A storage-failure rejection MUST leave no partial pool in the store.
   ```
   WHY: scoped to the atom's own surface. A deployment purging a long-closed pool under a composed [Retention Window](./retention-window.md) is that pattern's declared act, and the consequence is named rather than hidden — a regulator querying a stale id reads [Not Known] whether the pool was never declared or was purged, and distinguishes the two from the deployment's retention manifest (Non-goal 24, Non-goal 25).
 - **Invariant 2 — State membership exclusivity.**
-  ```text
+  ```
   Invariant 2.1: EVERY pool MUST stand in EXACTLY ONE OF open, suspended, closed.
   ```
 - **Invariant 3 — Closed is absorbing for state and for new allocation.**
-  ```text
+  ```
   Invariant 3.1: A closed pool MUST NOT leave closed.
   Invariant 3.2: [Allocate] MUST answer closed against a closed pool.
   Invariant 3.3: [Adjust Capacity] MUST answer closed against a closed pool.
@@ -342,7 +342,7 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
   ```
   WHY: a composing pattern's per-allocation records may still be unwinding when the pool closes. Refusing [Release] there would not block those records reaching their own terminal states — those transitions are internal to the composing pattern — it would strand the pool's total at its close-time value and leave a final figure matching no observable reality (Composition note 3).
 - **Invariant 4 — Capacity constraint.**
-  ```text
+  ```
   Invariant 4.1: EVERY pool's allocated MUST NOT EXCEED the capacity.
   Invariant 4.2: [Allocate] MUST refuse a call whose requested total EXCEEDS capacity.
   Invariant 4.3: [Adjust Capacity] MUST refuse a call whose allocated EXCEEDS the new_capacity.
@@ -350,23 +350,23 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
   ```
   WHY: the load-bearing arithmetic invariant, and the one a composing pattern may rely on without re-implementing the bound — contingent on three host obligations the atom names and cannot itself supply: serialized execution per pool, crash-atomic multi-record writes, and integer arithmetic that does not lose the sum. A deployment missing any of the three can observe the invariant fail despite every precondition holding; that is a deployment-side gap, and its audit posture must say so.
 - **Invariant 5 — Non-negativity.**
-  ```text
+  ```
   Invariant 5.1: EVERY pool's allocated MUST NOT fall below zero.
   Invariant 5.2: [Release] MUST refuse a call whose count EXCEEDS allocated.
   Invariant 5.3: Invariant 5.1 MUST rest on the host obligations Invariant 4.4 names.
   ```
 - **Invariant 6 — Capacity non-negativity.**
-  ```text
+  ```
   Invariant 6.1: EVERY pool's capacity MUST stand as a whole count.
   Invariant 6.2: [Declare Pool] MUST refuse a capacity outside the whole counts.
   Invariant 6.3: [Adjust Capacity] MUST refuse a new_capacity outside the whole counts.
   ```
 - **Invariant 7 — Declaration fields immutable.**
-  ```text
+  ```
   Invariant 7.1: A recorded declaration field MUST NOT change.
   ```
 - **Invariant 8 — An audit event has two surfaces with distinct lifetimes.**
-  ```text
+  ```
   Invariant 8.1: The atom MUST NOT offer an action that changes an audit-identifier surface.
   Invariant 8.2: The atom MUST NOT offer an action that changes an attribution surface.
   Invariant 8.3: An audit-identifier surface MUST stand for as long as the audit event stands.
@@ -374,7 +374,7 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
   Invariant 8.5: An arithmetic reconstruction MUST NOT rest on an attribution surface.
   ```
 - **Invariant 9 — Audit log append-only under this atom's actions.**
-  ```text
+  ```
   Invariant 9.1: The atom MUST NOT offer an action that removes an audit event.
   Invariant 9.2: The atom MUST NOT offer an action that re-orders an audit log.
   Invariant 9.3: An audit log's length MUST NOT fall under the atom's actions.
@@ -382,29 +382,29 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
   ```
   WHY: the *under this atom's actions* qualifier is load-bearing. A regulator reads the composed-system view, which this atom does not govern alone: append-only here is necessary for the audit chain and not sufficient, and the deployment's retention schedule is the other half of what a regulator sees. The arithmetic chain reconstructs within the active window; before it, reconstruction needs the archive or is bounded out (Check 2.2).
 - **Invariant 10 — State changes are auditable.**
-  ```text
+  ```
   Invariant 10.1: EVERY state change MUST append a state-change event.
   Invariant 10.2: EVERY state-change event MUST carry prior_state, new_state, acting_actor_ref and a reason.
   ```
 - **Invariant 11 — Capacity adjustments are auditable.**
-  ```text
+  ```
   Invariant 11.1: EVERY capacity change MUST append an adjustment event.
   Invariant 11.2: EVERY adjustment event MUST carry prior_capacity, new_capacity, adjusting_actor_ref and a reason.
   ```
 - **Invariant 12 — Id stability.**
-  ```text
+  ```
   Invariant 12.1: A recorded pool_id MUST NOT change.
   Invariant 12.2: A recorded event id MUST NOT change.
   ```
 - **Invariant 13 — No id reuse.**
-  ```text
+  ```
   Invariant 13.1: Two pools MUST NOT share a pool_id.
   Invariant 13.2: Two audit events MUST NOT share an event id.
   Invariant 13.3: Invariant 13.2 MUST rest on the generator the deployment declares.
   ```
   WHY: honest rather than decorative. Ids are seam-injected, so the atom cannot foreclose a colliding generator. Its one contribution is the create-only [Declare Pool] write, which surfaces an observable pool-id collision as [Storage Failure] (Identity 13, Identity 14); event-id uniqueness rests wholly on the deployment.
 - **Invariant 14 — Action atomicity.**
-  ```text
+  ```
   Invariant 14.1: A writing action MUST commit EVERY record the action writes in one operation.
   Invariant 14.2: A storage-failure rejection MUST leave no partial record in the store.
   Invariant 14.3: Invariant 14.1 MUST rest on the host obligation Crash atomicity 1 names.
@@ -457,7 +457,7 @@ This atom's acceptance is what an external auditor can clear from the pool recor
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY pool's pool_id, capacity, allocated, pool state and declaration fields present (Invariant 7.1, State 2).
 Check 2.1: An auditor MUST reconstruct a pool's capacity, allocated and pool state at an audit event by replaying an unbroken audit log forward from the declaration (Invariant 9.1, State 11).
 Check 2.2: An auditor MUST read a purged audit event as a break in the replay (Invariant 9.4).
@@ -477,7 +477,7 @@ NOTE: EVERY check names the rule the check tests.
 
 #### External checks
 
-```text
+```
 External check 1: An auditor needing a refused call MUST read the refusal from a composing [Event Log](./event-log.md) (Non-goal 26).
 External check 2: An auditor needing a per-unit history MUST read the history from a composing [Provisional Commitment](./provisional-commitment.md) (Non-goal 1).
 External check 3: An auditor needing an attested actor MUST read the attestation from a composing [Actor Identity](./actor-identity.md) (Non-goal 12).
@@ -490,7 +490,7 @@ The three External checks name what this store cannot answer. Refused calls leav
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT hold a per-allocation lifecycle.
 Non-goal 2: A deployment needing per-unit identity MUST compose [Provisional Commitment](./provisional-commitment.md).
 Non-goal 3: The atom MUST NOT order two contending calls fairly.
@@ -533,7 +533,7 @@ Where the atom breaks down is worth naming. When the resource is not fungible at
 
 ### Clock dependence
 
-```text
+```
 Clock dependence 1: A guard MUST NOT read now.
 Clock dependence 2: A rejection MUST NOT rest on now.
 ```
@@ -543,7 +543,7 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The host MUST serialize concurrent calls on one pool_id.
 Concurrency 2: The implementation MUST make the arithmetic guard and the write one transition.
 Concurrency 3: A store enforcing a compare-and-set on allocated MAY discharge Concurrency 2.
@@ -556,7 +556,7 @@ The guard reads `allocated` and the write changes it; two concurrent allocates a
 
 ### String policy
 
-```text
+```
 String 1: EVERY required string field MUST carry a codepoint outside the whitespace category.
 String 2: IF a required string field NOT EXISTS THEN the action MUST answer invalid-request.
 String 3: The deployment MUST set a maximum length for an actor reference.
@@ -588,7 +588,7 @@ The cap's *value* is the deployment's; its *existence* is the contract. An uncap
 
 ### Arithmetic
 
-```text
+```
 Arithmetic 1: The deployment MUST compute the requested total without loss.
 Arithmetic 2: The deployment MUST own the integer width.
 Arithmetic 3: IF the requested total EXCEEDS the integer width THEN the deployment MUST NOT admit the call.
@@ -599,7 +599,7 @@ Invariant 4.1 rests on the sum being computable. A deployment on fixed-width sig
 
 ### Crash atomicity
 
-```text
+```
 Crash atomicity 1: The host MUST commit an action's pool change and the action's audit event in one operation.
 Crash atomicity 2: A crash inside a writing action MUST NOT leave an audit event without the matching pool change.
 Crash atomicity 3: A crash inside a writing action MUST NOT leave a pool change without the matching audit event.
@@ -609,7 +609,7 @@ Crash atomicity 4: A recovered store MUST NOT stand in a violation of Invariant 
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own the per-unit lifecycle.
 Composition note 3: A composing pattern MUST call [Release] when the pattern's own allocation reaches a terminal state.

@@ -41,7 +41,7 @@ Two disciplines carry the rest. The redemption counter is the only field that mo
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a capability by the capability_token.
 Identity 2: The capability_token MUST serve as the bearer credential [Redeem] accepts.
 Identity 3: The capability_token MUST serve as the bearer credential [Revoke] accepts.
@@ -74,7 +74,7 @@ Identity 11 is the half of uniqueness that randomness cannot supply. Unguessabil
 
 ### State
 
-```text
+```
 State 1: EVERY capability MUST stand in EXACTLY ONE OF allocated, redeemed, revoked.
 State 2: EVERY capability MUST carry capability_token, allocator_ref, scope, max_redemptions, remaining_redemptions, allocated_at, expires_at and status.
 State 3: EVERY capability MUST carry an expires_at.
@@ -98,7 +98,7 @@ Term status: `allocated` | `redeemed` | `revoked` — redeemable, exhausted, or 
 
 #### Expiry
 
-```text
+```
 Expiry 1: A lapse MUST NOT write to the capability.
 Expiry 2: A lapse MUST NOT fire a transition.
 Expiry 3: A lapse MUST NOT lower remaining_redemptions.
@@ -115,7 +115,7 @@ The boundary instant is on the dead side: `now` reaching `expires_at` reads [Exp
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's honesty.
@@ -154,7 +154,7 @@ read(filter)
 
 Term redemption failure: `exhausted` | `expired` | `revoked` | `not-known` — the reasons [Redeem] gives for an invalid capability.
 
-```text
+```
 Operation 1: [Allocate] MUST record EXACTLY ONE capability per successful call.
 Operation 2: [Allocate] MUST stand the capability in allocated.
 Operation 3: [Allocate] MUST answer the capability_token.
@@ -300,11 +300,11 @@ Revocation forfeits the remaining redemptions without spending them, and so does
 ### Invariants
 
 - **Invariant 1 — Allocation provenance immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded capability's capability_token, allocator_ref, scope, max_redemptions, allocated_at and expires_at MUST NOT change.
   ```
 - **Invariant 2 — Redemption counter monotonic.**
-  ```text
+  ```
   Invariant 2.1: A capability's remaining_redemptions MUST NOT rise.
   Invariant 2.2: A capability's max_redemptions MUST NOT EXCEED the remaining_redemptions at allocation.
   Invariant 2.3: A capability's remaining_redemptions MUST NOT EXCEED the max_redemptions.
@@ -312,14 +312,14 @@ Revocation forfeits the remaining redemptions without spending them, and so does
   Invariant 2.5: A capability's remaining_redemptions MUST NOT fall below zero.
   ```
 - **Invariant 3 — Bearer redemption.**
-  ```text
+  ```
   Invariant 3.1: [Redeem] MUST accept the capability_token as the whole call.
   Invariant 3.2: [Redeem] MUST NOT accept an identity claim.
   Invariant 3.3: [Redeem] MUST NOT check an identity claim.
   Invariant 3.4: A capability MUST NOT carry a redeemer's identity.
   ```
 - **Invariant 4 — Exhaustion atomicity.**
-  ```text
+  ```
   Invariant 4.1: [Redeem] MUST commit the lowering to zero and the move to redeemed in one operation.
   Invariant 4.2: Two concurrent [Redeem] calls on a capability whose remaining_redemptions stands at one MUST answer redeemed once.
   Invariant 4.3: The [Redeem] call the serialization places second MUST answer exhausted.
@@ -329,13 +329,13 @@ Revocation forfeits the remaining redemptions without spending them, and so does
   Invariant 4.7: A partial write MUST NOT stand as an observable capability.
   ```
 - **Invariant 5 — Audit asymmetry.**
-  ```text
+  ```
   Invariant 5.1: EVERY capability MUST carry the allocator_ref.
   Invariant 5.2: An auditor MUST NOT find a redeemer's identity in the capability store.
   Invariant 5.3: The atom MUST NOT infer a redeemer's identity.
   ```
 - **Invariant 6 — Three structurally distinct terminal modes, two stored and one derived.**
-  ```text
+  ```
   Invariant 6.1: A redeemed capability MUST carry a redeemed_at AND a remaining_redemptions of zero.
   Invariant 6.2: A revoked capability MUST carry revoked_at, revoked_by_ref and revocation_reason.
   Invariant 6.3: A lapsed capability MUST NOT carry a redeemed_at.
@@ -345,7 +345,7 @@ Revocation forfeits the remaining redemptions without spending them, and so does
   Invariant 6.7: A revoked capability MUST NOT carry a redeemed_at.
   ```
 - **Invariant 7 — Stored terminal state absorbing.**
-  ```text
+  ```
   Invariant 7.1: A redeemed capability MUST NOT leave redeemed.
   Invariant 7.2: A revoked capability MUST NOT leave revoked.
   Invariant 7.3: A lapsed capability MUST NOT admit a write.
@@ -353,30 +353,30 @@ Revocation forfeits the remaining redemptions without spending them, and so does
   ```
   WHY: the asymmetry is the point. Exhaustion and revocation are absorbing *stored* states; a lapse admits no write either, but its stored status stays [Allocated] because nothing was ever written to move it. That is what lets Invariant 6 and Invariant 7 range over writes alone (Invariant 13.1, Expiry 1).
 - **Invariant 8 — Scope immutability.**
-  ```text
+  ```
   Invariant 8.1: A recorded scope MUST NOT change.
   Invariant 8.2: A deployment re-scoping an authorization MUST call [Allocate].
   ```
 - **Invariant 9 — Revocation attribution completeness.**
-  ```text
+  ```
   Invariant 9.1: EVERY revoked capability MUST carry a revoked_at.
   Invariant 9.2: EVERY revoked capability's revoked_by_ref MUST carry a non-whitespace character.
   Invariant 9.3: EVERY revoked capability's revocation_reason MUST carry a non-whitespace character.
   ```
 - **Invariant 10 — Every capability has a finite lifetime.**
-  ```text
+  ```
   Invariant 10.1: EVERY capability MUST carry an expires_at.
   Invariant 10.2: The atom MUST NOT record a capability carrying no expires_at.
   ```
 - **Invariant 11 — Capability durability over this atom's own surface.**
-  ```text
+  ```
   Invariant 11.1: The atom MUST NOT offer a removal surface.
   Invariant 11.2: An action the atom offers MUST NOT reduce the capability count.
   Invariant 11.3: A storage-failure rejection MUST leave no partial capability in the store.
   ```
   WHY: the atom offers no deletion and does not forbid one either. A deployment purging terminal records under [Retention Window](./retention-window.md) is that pattern's declared act, and the consequence is named rather than hidden — a purged token answers [Not Known], which therefore covers *never allocated* and *allocated, terminal, since purged* alike (Non-goal 21, Non-goal 22).
 - **Invariant 12 — Capability token uniqueness.**
-  ```text
+  ```
   Invariant 12.1: Two capabilities MUST NOT share a capability_token.
   Invariant 12.2: IF a write would reuse a capability_token THEN the store MUST refuse the write.
   Invariant 12.3: [Allocate] MUST NOT allocate a capability_token any capability carries.
@@ -384,7 +384,7 @@ Revocation forfeits the remaining redemptions without spending them, and so does
   ```
   WHY: uniqueness is store-enforced and not merely probabilistic, which is the difference between an invariant and a hope. The entropy source makes a collision vanishingly unlikely; Invariant 12.2 makes one impossible to commit, and a rejected collision surfaces as [Storage Failure]. Invariant 12.4 is the honest scope: a purge under a composed retention pattern takes records out of the store, so lifetime-uniqueness ranges over what the store still holds (Invariant 11.2).
 - **Invariant 13 — Expiry is derived, never written.**
-  ```text
+  ```
   Invariant 13.1: A capability MUST NOT carry a stored expired status.
   Invariant 13.2: A capability MUST NOT carry an expiry timestamp beside expires_at.
   Invariant 13.3: A lapse MUST NOT write to the capability.
@@ -435,7 +435,7 @@ This atom's acceptance is what an external auditor can clear from the capability
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY capability's allocator_ref, scope, max_redemptions, allocated_at and expires_at present (Invariant 5.1, Invariant 10.1).
 Check 2.1: An auditor MUST find no capability's remaining_redemptions below zero (Invariant 2.5).
 Check 2.2: An auditor MUST find EVERY capability's remaining_redemptions no higher than the max_redemptions (Invariant 2.3).
@@ -454,7 +454,7 @@ NOTE: EVERY check names the rule the check tests.
 
 #### External checks
 
-```text
+```
 External check 1: An auditor MUST read a refused [Redeem] from the composing [Audit Trail](../compositions/audit-trail.md) (Invariant 7.3).
 External check 2: An auditor needing a redemption's attribution MUST read the attribution from the composing pattern's records (Invariant 5.2, Non-goal 6).
 External check 3: An auditor needing a capability's field history MUST read the history from the composing [Audit Trail](../compositions/audit-trail.md) (Invariant 1.1).
@@ -467,7 +467,7 @@ Check 4.3 asserts on the reproduced projection rather than on a stored field, be
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT confirm an allocator_ref's authority.
 Non-goal 2: A deployment gating allocation MUST compose [Permissions](./permissions.md).
 Non-goal 3: The atom MUST NOT evaluate a scope.
@@ -509,7 +509,7 @@ The purge posture is the honest one rather than the tidy one. The atom deletes n
 
 ### Clock dependence
 
-```text
+```
 Clock dependence 1: A guard MAY read now ONLY IF the guard derives a lapse.
 Clock dependence 2: A guard MUST NOT read now to admit a caller-supplied instant.
 ```
@@ -519,7 +519,7 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST serialize a write on one capability_token.
 Concurrency 2: The implementation MUST make the counter read and the counter write one transition.
 Concurrency 3: A store enforcing a compare-and-set on remaining_redemptions MAY discharge Concurrency 2.
@@ -530,7 +530,7 @@ Operation 28 reads the counter and [Redeem] then writes it; two concurrent calls
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -548,7 +548,7 @@ Byte-exactness means two `allocator_ref` values differing only in normalization 
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own the scope's meaning.
 Composition note 3: A composing pattern MUST own the authority to allocate for a scope.

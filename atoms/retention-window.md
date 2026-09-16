@@ -29,7 +29,7 @@ A regulated record has two deadlines and they point opposite ways: keep it long 
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a retention by the retention_id.
 Identity 2: The host MUST allocate a retention_id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a retention_id.
@@ -62,7 +62,7 @@ Identity by record and policy together would collapse the policy-transition case
 
 ### State
 
-```text
+```
 State 1: EVERY retention MUST stand in EXACTLY ONE OF retained, purged.
 State 2: EVERY retention MUST carry retention_id, record_ref, policy_ref, retained_at, retention_until and purge_deadline.
 State 3: A purged retention MUST carry purged_at.
@@ -98,7 +98,7 @@ Two states and no third: a storage tier is an orthogonal axis a Storage Tier pat
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's honesty.
 Capability requirement 3: The deployment MUST own the clock's monotonicity.
@@ -119,7 +119,7 @@ purge(retention_id)
   refuses not-known | not-retained | retention-period-not-elapsed | storage-failure
 ```
 
-```text
+```
 Operation 1: [Place Under Retention] MUST record EXACTLY ONE retention per successful call.
 Operation 2: [Place Under Retention] MUST stand the retention in retained.
 Operation 3: [Place Under Retention] MUST answer retention_id.
@@ -174,59 +174,59 @@ The refusal order is carried by each rule's own condition rather than by the ord
 ### Invariants
 
 - **Invariant 1 — Membership exclusivity.**
-  ```text
+  ```
   Invariant 1.1: EVERY retention MUST stand in EXACTLY ONE OF retained, purged.
   ```
 - **Invariant 2 — Retain-then-Retained persistence.**
-  ```text
+  ```
   Invariant 2.1: A recorded retention MUST stand in retained ONLY IF [Purge] NOT EXISTS for the retention.
   ```
 - **Invariant 3 — Terminal absorption.**
-  ```text
+  ```
   Invariant 3.1: A purged retention MUST NOT stand in retained again.
   Invariant 3.2: The atom MUST NOT offer an un-purge.
   ```
 - **Invariant 4 — Id stability.**
-  ```text
+  ```
   Invariant 4.1: [Place Under Retention] MUST set the retention_id.
   Invariant 4.2: A retention_id MUST NOT change.
   ```
 - **Invariant 5 — Record_ref and policy_ref immutability.**
-  ```text
+  ```
   Invariant 5.1: A retention's record_ref MUST NOT change.
   Invariant 5.2: A retention's policy_ref MUST NOT change.
   ```
 - **Invariant 6 — Retention window monotonicity.**
-  ```text
+  ```
   Invariant 6.1: retained_at MUST NOT EXCEED retention_until.
   Invariant 6.2: retention_until MUST NOT EXCEED purge_deadline.
   Deleted: Invariant 6.3. Operation 7 and Operation 7a own a duration that does not advance the deadline, and an invariant restating a precondition is a second owner.
   ```
 - **Invariant 7 — No early purge.**
-  ```text
+  ```
   Invariant 7.1: IF purge eligible = no THEN a retention MUST NOT stand in purged.
   ```
   WHY: this is the regulator's structural guarantee that an obligation cannot be silently shortened, and it is gated per retention_id — a retention's own retention_until and nothing else (Simultaneous retention 1 through 4).
 - **Invariant 8 — Purge timestamp consistency.**
-  ```text
+  ```
   Invariant 8.1: retention_until MUST NOT EXCEED purged_at.
   Invariant 8.2: The implementation MUST supply an honest now.
   Invariant 8.3: The atom MUST NOT bound purged_at by purge_deadline.
   ```
   WHY: overshoot is observable and never forbidden, which is what lets an auditor measure it instead of watching a system refuse to record it (Invariant 8.3).
 - **Invariant 9 — No id reuse.**
-  ```text
+  ```
   Invariant 9.1: Two retentions MUST NOT share a retention_id.
   ```
 - **Invariant 10 — Retention store durability.**
-  ```text
+  ```
   Invariant 10.1: The atom MUST NOT delete a retention record.
   Invariant 10.2: The retention set MUST NOT shrink.
   Invariant 10.3: A storage-failure MUST NOT leave a partial retention.
   ```
   WHY: the purged record is the audit evidence that destruction was lawful; deleting it destroys the proof that the atom existed to produce.
 - **Invariant 11 — Purge-eligibility is derived, never stored.**
-  ```text
+  ```
   Invariant 11.1: A retention record MUST NOT carry an eligibility flag.
   Invariant 11.2: A reader MUST derive purge eligible from the retention's state, retention_until and the injected now.
   Invariant 11.3: The atom MUST NOT write when a retention crosses retention_until.
@@ -294,7 +294,7 @@ This atom's acceptance is what an external auditor can clear from the retention 
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST read the policy applied to a record from the retention's policy_ref (State 2).
 Check 2.1: An auditor MUST find the set of purged retentions whose purged_at falls below retention_until empty (Invariant 7.1, Invariant 8.1).
 Check 3.1: An auditor MUST confirm that no retention record carries an eligibility flag (Invariant 11.1).
@@ -307,7 +307,7 @@ Check 6.1: An auditor MUST identify which composing patterns a deployment wired 
 
 ### External checks
 
-```text
+```
 External check 1: An auditor MUST confirm from the deployment's own destruction records that a destroyed record's retentions were EVERY ONE purged (Simultaneous retention 4).
 External check 2: An auditor MUST read the composing pattern's joint-enforcement mechanism (Simultaneous retention 3, Composition note 3).
 External check 3: An auditor MUST read the deployment's declared time resolution (Operation 7a).
@@ -319,7 +319,7 @@ NOTE: EVERY check names the rule the check tests. The bar is the regulator's que
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT hold a record's storage tier.
 Non-goal 2: The atom MUST NOT suspend a purge under a legal hold.
 Non-goal 3: A deployment under litigation MUST compose a legal-hold pattern.
@@ -344,7 +344,7 @@ Where the atom breaks down: when the obligation is a function of the record's co
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 3: Two readers judging purge eligible under skewed clocks MAY disagree near retention_until.
 Deleted: Clock semantics 1. Capability requirement 2 owns it.
 Deleted: Clock semantics 2. Capability requirement 3 owns it.
@@ -356,7 +356,7 @@ Because eligibility is derived, a brief disagreement between two readers near th
 
 ### Concurrency and atomicity
 
-```text
+```
 Concurrency 1: The implementation MUST hold EVERY state transition atomic per retention_id.
 Concurrency 2: The implementation MUST serialize two purges of one retention_id.
 Concurrency 3: The second purge of one retention_id MUST answer not-retained.
@@ -364,7 +364,7 @@ Concurrency 3: The second purge of one retention_id MUST answer not-retained.
 
 ### Divergence between the retention and the record
 
-```text
+```
 Record divergence 1: The implementation MUST coordinate the destruction with the state transition.
 Record divergence 2: IF the storage layer cannot confirm the destruction THEN [Purge] MUST answer storage-failure.
 Record divergence 3: The atom MUST NOT read the record's existence.
@@ -375,7 +375,7 @@ A retention that reads `purged` over a record that still exists is a compliance 
 
 ### Purge that does not persist
 
-```text
+```
 Purge persistence 1: A caller MUST read storage-failure from [Purge] as the record standing undestroyed.
 Purge persistence 2: A caller MUST retry a purge that answered storage-failure.
 Purge persistence 3: A high-assurance deployment MUST alert on storage-failure from [Purge].
@@ -386,7 +386,7 @@ A failed placement is a security-shaped failure — the obligation was never rec
 
 ### Simultaneous retentions over one record
 
-```text
+```
 Simultaneous retention 1: The atom MUST admit two live retentions over one record_ref.
 Simultaneous retention 2: The atom MUST gate a purge against the purging retention's own retention_until.
 Simultaneous retention 3: The atom MUST NOT read a sibling retention over one record_ref.
@@ -398,7 +398,7 @@ This is the atom's sharpest edge and the one a composition must close. Purging t
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A regulated [Event Log](./event-log.md) instance MUST place an appended event under retention.
 Composition note 3: A composing pattern MUST own joint enforcement across retentions over one record.

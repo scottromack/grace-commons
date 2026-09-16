@@ -43,7 +43,7 @@ This is a composition, not a new primitive. Personal Todo, Permissions, and Assi
 
 ## Composes
 
-```text
+```
 Composes 1: EXACTLY ONE Personal Todo instance MUST serve the composition.
 Composes 2: EXACTLY ONE Permissions instance MUST serve the composition.
 Composes 3: EXACTLY ONE Assignment instance MUST serve the composition.
@@ -70,7 +70,7 @@ Composes 7 and Composes 8 name the two constituent assignments this composition 
 
 ### Composition state
 
-```text
+```
 Composition state 1: The composition MUST NOT store a record.
 Composition state 2: The composition MUST derive the responsible actor from Assignment's active_for.
 Composition state 3: The composition MUST derive the visible tasks from Personal Todo's store.
@@ -88,7 +88,7 @@ The contract classification is *conforming, no stored composition state* (`execu
 
 ### Action wiring
 
-```text
+```
 Action wiring 1: The composition MUST call a constituent ONLY AFTER Permissions' permitted answers.
 Action wiring 2: IF Permissions' permitted answers denied THEN the composition MUST answer permission-denied.
 Action wiring 3: The composition MUST NOT call a constituent for a denied answer.
@@ -133,7 +133,7 @@ Action wiring 19 is a refusal to be helpful. An empty answer is a fact about the
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST delete a task ONLY AFTER the task's active assignment is recalled.
 Wiring decision 2: The composition MUST NOT wrap the recall and the delete in one transaction.
 Wiring decision 3: The composition MUST leave a recalled assignment standing for a delete that fails.
@@ -144,7 +144,7 @@ The cascade is the composition's load-bearing decision and neither constituent h
 
 ### Scope vocabulary
 
-```text
+```
 Scope vocabulary 1: The composition MUST define the action scopes the Permissions instance carries.
 Scope vocabulary 2: The composition MUST gate a read on tasks:view.
 Scope vocabulary 3: The composition MUST gate an add on tasks:add.
@@ -170,27 +170,27 @@ WHY:
 Each of these needs two or all three constituents working together. None is available from one atom called alone.
 
 - **Invariant 1 — Permission enforcement.**
-  ```text
+  ```
   Invariant 1.1: EVERY state-changing call MUST follow a permitted answer for the call's scope.
   Invariant 1.2: A denied answer MUST NOT reach a constituent.
   ```
 - **Invariant 2 — At most one responsible actor per task.**
-  ```text
+  ```
   Invariant 2.1: EVERY task MUST NOT carry two active assignments.
   ```
   WHY: this is Assignment's own guarantee holding over the composition's single instance (Composes 6). It is stated here because the *single instance* is this composition's decision — two Assignment instances over one task list would satisfy the atom and break the claim.
 - **Invariant 3 — Cascade-on-delete.**
-  ```text
+  ```
   Invariant 3.1: EVERY deleted task MUST carry no active assignment.
   Invariant 3.2: The composition MUST NOT leave an active assignment naming a task_id the Personal Todo instance does not carry.
   ```
 - **Invariant 4 — Responsibility queryability.**
-  ```text
+  ```
   Invariant 4.1: The Assignment instance MUST answer a task's responsible actor.
   Invariant 4.2: The Assignment instance MUST answer a task's responsibility history.
   ```
 - **Invariant 5 — Authorization history completeness.**
-  ```text
+  ```
   Invariant 5.1: The Permissions instance MUST answer an actor_ref's grant history.
   Invariant 5.2: A grant record MUST outlive the task the grant governed.
   Deleted: Invariant 6. Composes 6 owns it.
@@ -251,7 +251,7 @@ The closing claim above is the acceptance bar and this section distributes it: *
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY assignment of a deleted task standing in EXACTLY ONE OF recalled, transferred (Invariant 3.1).
 Check 1.2: An auditor MUST find no active assignment naming a task_id the Personal Todo store does not carry (Invariant 3.2).
 Check 2.1: An auditor MUST find no task_id carrying two active assignments in the Assignment store (Invariant 2.1).
@@ -267,7 +267,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: An auditor needing the gate's order confirmed MUST read the deployment's own implementation (Invariant 1.1).
 External check 2: An auditor needing a denied call confirmed unreached MUST read the deployment's own implementation (Invariant 1.2).
 External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed [Audit Trail](./audit-trail.md) (Non-goal 7).
@@ -283,7 +283,7 @@ External check 4 is the one a deployment can fail silently, and §Non-goals name
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT scope visibility per task.
 Non-goal 2: The composition MUST NOT grant tasks:view with an assignment.
 Non-goal 3: The composition MUST NOT refuse a self-assignment.
@@ -321,7 +321,7 @@ WHY:
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The composition MUST rest on the host's serialization for two calls naming one task_id.
 Concurrency 2: The composition MUST answer Assignment's already-assigned to the loser of two assigns.
 Concurrency 3: The composition MUST answer Personal Todo's not-known to the loser of two deletes.
@@ -336,7 +336,7 @@ Concurrency 4 and Concurrency 5 are the revoked-grant window stated rather than 
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A deployment MUST bind an actor_ref to an authenticated caller.
 Composition note 3: A deployment MUST own whether a completed task's assignment is recalled.

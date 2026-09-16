@@ -49,7 +49,7 @@ What the composition is *not*: it is not the issuance surface — it revokes gra
 - **[Credential](../atoms/credential.md)** *(optional)* — the re-authentication surface, enumerated and revoked where composed.
 - **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every record is written through.
 
-```text
+```
 Composes 1: EXACTLY ONE Permissions instance MUST serve the composition.
 Composes 2: EXACTLY ONE Session instance MUST serve the composition.
 Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
@@ -110,7 +110,7 @@ Composes 25 through 28 split attestation by who is present. Every write an invoc
 
 ### Composition state
 
-```text
+```
 Composition state 1: The composition MUST store a suspension-state index.
 Composition state 2: The composition MUST store a high-water mark.
 Composition state 3: The composition MUST store a suspension log.
@@ -215,7 +215,7 @@ WHY:
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
 Deleted: Capability requirement 3. `execution-contract.md` §Logic confinement owns it.
@@ -300,7 +300,7 @@ Capability requirement 40 through 43 are the issuance gate, and they are the dep
 
 ### Primitive policy
 
-```text
+```
 Primitive policy 1: An action MUST call a constituent ONLY AFTER the boundary predicate.
 Primitive policy 2: The boundary predicate MUST refuse a blank actor_ref.
 Primitive policy 3: The boundary predicate MUST refuse a blank operator reference.
@@ -344,7 +344,7 @@ Primitive policy 17 through 20 put the sizing between the snapshot and the inten
 
 ### Identity
 
-```text
+```
 Identity 1: A state-changing invocation MUST carry an invocation_id.
 Identity 2: The seam MUST allocate an invocation_id.
 Identity 3: An invocation_id MUST stand immutable.
@@ -380,7 +380,7 @@ Identity 11 is the frozen rule *Intents pair with outcomes by an invocation iden
 
 ### Audit arm
 
-```text
+```
 Audit arm 1: An invocation MUST make a committing call ONLY AFTER the invocation's landed intent.
 Audit arm 2: An intent MUST verify the credential of the principal the invocation's revocations name.
 Audit arm 3: IF Audit Trail answers invalid-credential at an intent THEN the action MUST answer invalid-credential carrying intent.
@@ -456,7 +456,7 @@ Term position: `intent` | `outcome` — the record a write lands: the intent or 
 
 Term not-suspended state: `active` | `suspending` — the actor states a reinstatement refuses.
 
-```text
+```
 Action wiring 1: The composition MUST take the actor's section at [Suspend Actor] ONLY AFTER the boundary predicate.
 Action wiring 2: The composition MUST read the suspension-state index at [Suspend Actor] ONLY AFTER the actor's section.
 Action wiring 3: The composition MUST hold the actor's section at [Suspend Actor] through the index write.
@@ -591,7 +591,7 @@ WHY:
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST close every authorization surface under one act.
 Wiring decision 2: The composition MUST NOT reverse a cascade.
 Wiring decision 3: The composition MUST complete a stopped cascade.
@@ -611,7 +611,7 @@ WHY:
 
 ### Reconciliation
 
-```text
+```
 Reconciliation 1: The composition MUST run the sweep at process restart.
 Reconciliation 2: The composition MUST run the sweep PER reconciliation cadence.
 Reconciliation 3: The sweep's candidates MUST stand as the suspending entries taken with the open intents above the mark.
@@ -669,7 +669,7 @@ Reconciliation 31 and Reconciliation 32 place the leg: no caller awaits its answ
 
 ## Composition-level invariants
 
-```text
+```
 Invariant 1.1: A suspended actor MUST hold no stored-active grant from the plan.
 Invariant 1.2: A suspended actor MUST hold no stored-active session from the plan.
 Invariant 1.3: A suspended actor MUST hold no effective-active credential from the plan ONLY IF the credential arm stands composed.
@@ -794,7 +794,7 @@ A derived implementation is *acceptable* — in the regulator-acceptance sense �
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find no stored-active planned grant PER suspended actor (Invariant 1.1).
 Check 1.2: An auditor MUST find no stored-active planned session PER suspended actor (Invariant 1.2).
 Check 1.3: An auditor MUST find no effective-active planned credential PER suspended actor (Invariant 1.3).
@@ -848,7 +848,7 @@ Check 6.10: An auditor MUST take an aged-out open cascade from the suspension-st
 
 ### External checks
 
-```text
+```
 External check 1: The deployment MUST establish that the grant subject namespace coincides with the actor namespace (Capability requirement 13).
 External check 2: The deployment MUST establish that the session principal namespace coincides with the actor namespace (Capability requirement 14).
 External check 3: The deployment MUST establish that the credential principal namespace coincides with the actor namespace (Capability requirement 15).
@@ -881,7 +881,7 @@ External check 1 through 3 are the enumeration's completeness, and they are the 
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT issue a grant.
 Non-goal 2: The composition MUST NOT issue a session.
 Non-goal 3: The composition MUST NOT issue a credential.
@@ -924,7 +924,7 @@ Non-goal 17 is an enrichment declined as a constituent: the state gate already m
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: An invocation MUST record an outcome ONLY AFTER the invocation's committing calls.
 Atomic writes 2: An invocation MUST populate an index ONLY AFTER the invocation's landed record.
 Atomic writes 3: The composition MUST NOT reverse a committed constituent write.
@@ -952,7 +952,7 @@ Atomic writes 12 is the limit on all of it: an unresolved member is *named*, not
 
 ### Clock semantics
 
-```text
+```
 Clock semantics 6: A reader MUST read the substrate's insertion order as the authoritative order.
 Deleted: Clock semantics 2. Identity 16, Action wiring 48 and Action wiring 84 own it: intended_at, suspended_at and reinstated_at are every timestamp this composition stamps, and each takes the injected now.
 Deleted: Clock semantics 1. Capability requirement 1 owns it.
@@ -976,7 +976,7 @@ Clock semantics 10 and Clock semantics 11 put the clock offset allowance where i
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: A deployment MUST serialize a state-changing call over one actor_ref.
 Concurrency 2: The state gate MUST stand inside the actor's section.
 Concurrency 3: Two calls MUST NOT write an intent for one actor.

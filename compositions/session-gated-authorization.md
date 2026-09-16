@@ -39,7 +39,7 @@ The second guarantee is principal binding: the subject passed to `Permissions.pe
 
 ## Composes
 
-```text
+```
 Composes 1: EXACTLY ONE Session instance MUST serve the composition.
 Composes 2: EXACTLY ONE Permissions instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
@@ -64,7 +64,7 @@ Composes 6 and Composes 7 name the two constituent obligations this composition 
 
 ### Composition state
 
-```text
+```
 Composition state 1: The composition MUST NOT store a record.
 Composition state 2: The composition MUST NOT derive an index.
 Composition state 3: The composition MUST evaluate the gate from the constituents' own surfaces.
@@ -76,7 +76,7 @@ The contract classification is *conforming, no stored composition state* (`execu
 
 ### Primitive policy
 
-```text
+```
 Primitive policy 1: A deployment MUST pin the length bound.
 Primitive policy 2: [Check Permitted] MUST answer invalid-request for a blank session_token.
 Primitive policy 3: [Check Permitted] MUST answer invalid-request for a blank action_scope.
@@ -99,7 +99,7 @@ check_permitted(session_token, action_scope)
   refuses invalid-request | session-invalid(validation failure)
 ```
 
-```text
+```
 Action wiring 1: The composition MUST validate the arguments against the boundary predicate.
 Action wiring 2: The composition MUST call Session's validate ONLY AFTER the arguments clear the boundary predicate.
 Action wiring 3: The composition MUST call Session's validate with the session_token.
@@ -140,7 +140,7 @@ Action wiring 12 keeps the gate binary. The `expires_at` reaches the composition
 
 ### Wiring decision
 
-```text
+```
 Wiring decision 1: The composition MUST call Permissions' permitted ONLY AFTER Session's validate gives a valid answer.
 ```
 
@@ -152,7 +152,7 @@ The decision the composition exists to make: the session gates the permission ch
 ## Composition-level invariants
 
 - **Invariant 1 — Session gates authorization.**
-  ```text
+  ```
   Invariant 1.1: The composition MUST NOT call Permissions' permitted for a session_token Session's validate gave no valid answer for.
   Deleted: Invariant 1.2. Session Composition note 4 owns it.
   Deleted: Invariant 1.3. Session Composition note 4 owns it.
@@ -160,20 +160,20 @@ The decision the composition exists to make: the session gates the permission ch
   ```
   WHY: [Session](../atoms/session.md)'s `Composition note 4` already forbids a composing pattern to call Permissions on an invalid answer, and `Composes 7` cites it — so the three deleted rules, which enumerated that prohibition over `expired`, `revoked` and `not-known`, restated a rule this spec cites rather than owns (Authority 6). Invariant 1.1 is not that rule. `Composition note 4` fires on an invalid answer *given*; Invariant 1.1 fires on no valid answer *given*, which also covers the call that never asked. The two do not normalize identically (Authority 4), and the gap between them is exactly what this composition adds: Session forbids acting on a bad answer, and the closure forbids acting on no answer at all. A deployment that skipped `validate` entirely would satisfy `Composition note 4` and breach Invariant 1.1.
 - **Invariant 2 — Principal binding.**
-  ```text
+  ```
   Invariant 2.1: EVERY subject_ref Permissions' permitted receives MUST equal the valid answer's principal_ref.
   Invariant 2.2: The composition MUST NOT query a principal_ref beside the session's own.
   ```
   WHY: this one is emergent in the sense the summary claims, and [Permissions](../atoms/permissions.md)'s `Composition note 3` is why — the atom assigns the binding to a composing pattern and declines to own it, so the rule exists here because no atom holds it. That is the shape Composes 6 discharges, and it is a different shape from Invariant 1's.
 - **Invariant 3 — Denial is not rejection.**
-  ```text
+  ```
   Invariant 3.1: A denied answer MUST follow an admitted gate.
   Invariant 3.2: A session-invalid answer MUST NOT follow an admitted gate.
   Invariant 3.3: The composition MUST NOT answer denied for a session Session's validate gave an invalid answer for.
   ```
   WHY: `denied` means the gate cleared and the answer is no; `session-invalid` means the gate did not clear and Permissions was never asked. A caller that collapses them reads an authentication failure as an authorization decision, and an auditor that collapses them cannot tell a revoked session from a missing grant.
 - **Invariant 4 — Default deny.**
-  ```text
+  ```
   Invariant 4.1: An admitted gate MUST answer denied for a pair no active grant covers.
   Invariant 4.2: A valid session MUST NOT stand as sufficient for access.
   ```
@@ -277,7 +277,7 @@ This composition introduces no per-call event log, so the acceptance bar has two
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find Session's state naming a disputed session_token's status at the disputed instant (Invariant 1.1).
 Check 1.2: An auditor MUST find no permitted answer for a session_token Session's state shows expired at the disputed instant (Invariant 1.1, Session Composition note 4).
 Check 1.3: An auditor MUST find no permitted answer for a session_token Session's state shows revoked at the disputed instant (Invariant 1.1, Session Composition note 4).
@@ -290,7 +290,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: An auditor needing the gate's order confirmed MUST read the deployment's own implementation (Invariant 1.1).
 External check 2: An auditor needing the principal binding confirmed MUST read the deployment's own implementation (Invariant 2.1).
 External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed [Audit Trail](./audit-trail.md) (Composition state 1).
@@ -307,7 +307,7 @@ External check 5 is the one a deployment can fail silently. Every guarantee here
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The composition MUST NOT issue a session.
 Non-goal 2: The composition MUST NOT terminate a session.
 Non-goal 3: The composition MUST NOT grant a permission.
@@ -335,7 +335,7 @@ Non-goal 7 is worth stating because the opposite reads as helpful. A principal m
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The composition MUST answer from the validate answer the call received.
 Concurrency 2: The composition MUST NOT detect a revocation that follows the validate answer.
 Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound Session's session_duration.
@@ -348,7 +348,7 @@ The gate is point-in-time at the instant `Session.validate` runs. A revocation l
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Deleted: Composition note 2. Composition state 4 owns it.
 Composition note 3: A deployment MUST own the action_scope vocabulary.

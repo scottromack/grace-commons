@@ -29,7 +29,7 @@ A composing pattern records facts about state changes, and the same need recurs 
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify an event by the event_id.
 Identity 2: The host MUST allocate an event_id at the atom's seam.
 Identity 3: The transition MUST NOT allocate an event_id.
@@ -56,7 +56,7 @@ Identity is allocated at the seam and handed in, which forecloses a caller that 
 
 ### State
 
-```text
+```
 State 1: The log MUST hold events in EXACTLY ONE total order.
 State 2: EVERY event MUST carry event_id, sequence_number, recorded_at and data.
 State 3: The log MUST carry log_name.
@@ -91,7 +91,7 @@ A volatile instance that restarts `next_sequence_number` at one has broken Invar
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 ```
 
@@ -110,7 +110,7 @@ read(query)
   refuses invalid-query
 ```
 
-```text
+```
 Operation 1: [Append] MUST write the event at the tail.
 Operation 2: [Append] MUST stamp recorded_at from the injected clock.
 Operation 3: [Append] MUST carry next_sequence_number into the event.
@@ -155,36 +155,36 @@ An append refuses for one reason before the write and one reason at it, and for 
 ### Invariants
 
 - **Invariant 1 — Append-only.**
-  ```text
+  ```
   Invariant 1.1: An event in the log MUST remain in the log for the life of the log instance.
   Invariant 1.2: The atom MUST NOT remove an event.
   ```
 - **Invariant 2 — Event immutability.**
-  ```text
+  ```
   Invariant 2.1: EVERY event field of a landed event MUST NOT change.
   ```
 - **Invariant 3 — Total order.**
-  ```text
+  ```
   Invariant 3.1: Two distinct landed events MUST NOT share a sequence_number.
   Invariant 3.2: EVERY two distinct landed events MUST stand in EXACTLY ONE order.
   ```
 - **Invariant 4 — Sequence-number monotonicity.**
-  ```text
+  ```
   Invariant 4.1: A landed event MUST carry a sequence_number above EVERY sequence_number landed earlier.
   ```
   WHY: the invariant is over landed events, which is what leaves room for the gap a storage failure consumes (Sequence gap 1 through 4).
 - **Invariant 5 — Read consistency.**
-  ```text
+  ```
   Invariant 5.1: A read MUST answer EVERY landed event the read's query matches.
   Invariant 5.2: A read MUST answer the events by sequence_number, rising.
   Invariant 5.3: A read MUST NOT answer an event for a consumed sequence_number no event landed under.
   ```
 - **Invariant 6 — No id reuse.**
-  ```text
+  ```
   Invariant 6.1: Two events in the log MUST NOT share an event_id.
   ```
 - **Invariant 7 — Wall-time best-effort monotonicity.**
-  ```text
+  ```
   Invariant 7.1: IF the clock is non-decreasing THEN recorded_at MUST NOT fall in append order.
   Invariant 7.2: sequence_number IS AUTHORITATIVE FOR the log's order.
   ```
@@ -235,7 +235,7 @@ An implementation is acceptable when an external auditor, given one log instance
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY event of an earlier read in a later read of one log instance (Invariant 1.1).
 Check 1.2: An auditor MUST find a re-read event's EVERY event field unchanged (Invariant 2.1).
 Check 2.1: An auditor MUST find no two landed events sharing a sequence_number (Invariant 3.1).
@@ -257,7 +257,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: An auditor needing the log instance's durability confirmed MUST read the deployment's own store (Durability 2).
 External check 2: An auditor needing the appends serialized confirmed MUST read the host's own concurrency control (Operation 12).
 External check 3: An auditor needing the clock non-decreasing confirmed MUST read the deployment's own clock discipline (Invariant 7.1).
@@ -273,7 +273,7 @@ The external set is where the real limit sits, and it is larger than a reader ex
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT prune an event.
 Non-goal 2: A pattern needing time-bounded retention MUST compose [Retention Window](./retention-window.md).
 Non-goal 3: The atom MUST NOT detect tampering.
@@ -301,7 +301,7 @@ Where the pattern breaks down: when the host cannot supply atomic, serialized ap
 
 ### Durability across crashes
 
-```text
+```
 Durability 1: The atom MUST specify in-memory semantics.
 Durability 2: The deployment MUST own persistence across a process restart.
 Durability 3: A durable implementation MUST supply a durability mechanism.
@@ -313,7 +313,7 @@ Append-only and event immutability are best-effort across a crash unless the imp
 
 ### Erasure where law requires it
 
-```text
+```
 Erasure 1: The atom MUST NOT erase an event.
 Erasure 2: A deployment under an erasure obligation MUST compose an erasure pattern.
 Erasure 3: A deployment under an erasure obligation MUST NOT read this atom as satisfying the obligation.
@@ -324,7 +324,7 @@ WHY:
 
 ### Sequence-number gaps on storage failure
 
-```text
+```
 Sequence gap 1: An implementation MAY consume a sequence_number on a failed write.
 Sequence gap 2: The next landed event MUST carry a sequence_number above a consumed sequence_number.
 Sequence gap 3: A consumer MUST NOT read a gap as a lost event.
@@ -336,7 +336,7 @@ Invariant 4 holds over landed events, so a gap violates nothing — but a consum
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A composing pattern MUST append on every state change.
 Composition note 1a: A composing pattern MAY derive state by replay.
 Composition note 2: A composing pattern MUST own what an event means.

@@ -43,7 +43,7 @@ The second commitment is that lapsing is *derived*, not written. There is no `ex
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a session by the session_token.
 Identity 2: The session_token MUST serve as the bearer credential [Validate] accepts.
 Identity 3: The host MUST allocate a session_token at the seam.
@@ -77,7 +77,7 @@ Because the token is the credential, its security properties are structural and 
 
 ### State
 
-```text
+```
 State 1: EVERY session MUST stand in EXACTLY ONE OF active, revoked.
 State 2: EVERY session MUST carry session_token, principal_ref, issued_by_ref, issued_at, expires_at and status.
 State 3: EVERY session MUST carry an expires_at.
@@ -101,7 +101,7 @@ The stored state space is two values because lapsing needs no third. [Expired] i
 
 #### Expiry
 
-```text
+```
 Expiry 1: A lapse MUST NOT write to the session.
 Expiry 2: A lapse MUST NOT fire a transition.
 Expiry 3: The atom MUST NOT stamp an expiry.
@@ -114,7 +114,7 @@ Expiry 8: [Validate] MUST surface a lapse as expired.
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST configure a default session duration.
 Capability requirement 3: The deployment MUST supply the session_token's random material at the seam.
@@ -177,7 +177,7 @@ read(filter)
 
 Term validation failure: `expired` | `revoked` | `not-known` — the reasons [Validate] gives for an invalid session.
 
-```text
+```
 Operation 1: [Issue] MUST record EXACTLY ONE session per successful call.
 Operation 2: [Issue] MUST stand the session in active.
 Operation 3: [Issue] MUST answer the session_token.
@@ -292,67 +292,67 @@ Revocation takes the token as the whole authorization, and the atom exposes no w
 ### Invariants
 
 - **Invariant 1 — Issue immutability.**
-  ```text
+  ```
   Invariant 1.1: A recorded session's session_token, principal_ref, issued_by_ref, issued_at and expires_at MUST NOT change.
   Invariant 1.2: A session's status and revocation fields MUST stand as the only fields a later action writes.
   ```
 - **Invariant 2 — Expiry timestamp immutability.**
-  ```text
+  ```
   Invariant 2.1: No action MUST change a recorded expires_at.
   Invariant 2.2: A deployment extending a session MUST call [Issue].
   ```
 - **Invariant 3 — Validity bound conjunctive, by derivation.**
-  ```text
+  ```
   Invariant 3.1: [Validate] MUST answer valid ONLY IF the session_token names a session AND the session stands in active AND the session is not lapsed.
   Invariant 3.2: [Validate] MUST derive the lapse from expires_at against now.
   Invariant 3.3: [Validate] MUST NOT answer expired for a revoked session.
   ```
 - **Invariant 4 — Revocation absorbing.**
-  ```text
+  ```
   Invariant 4.1: [Validate] MUST NOT answer valid for a revoked session.
   ```
 - **Invariant 5 — Stored terminal absorbing.**
-  ```text
+  ```
   Invariant 5.1: A revoked session MUST NOT leave revoked.
   Invariant 5.2: [Revoke] MUST answer already-terminal against a revoked session.
   Invariant 5.3: A lapsed session MUST reach [Revoke].
   ```
 - **Invariant 6 — Four structurally distinct validate outcomes.**
-  ```text
+  ```
   Invariant 6.1: [Validate] MUST answer EXACTLY ONE OF valid, expired, revoked, not-known.
   Invariant 6.2: An implementation MUST NOT merge two validate answers.
   ```
 - **Invariant 7 — Session token uniqueness.**
-  ```text
+  ```
   Invariant 7.1: Two sessions MUST NOT share a session_token.
   Invariant 7.2: [Issue] MUST NOT allocate a session_token any session carries.
   ```
 - **Invariant 8 — Revocation attribution completeness.**
-  ```text
+  ```
   Invariant 8.1: EVERY revoked session MUST carry a revoked_at.
   Invariant 8.2: EVERY revoked session's revoked_by_ref MUST carry a non-whitespace character.
   Invariant 8.3: EVERY revoked session's revocation_reason MUST carry a non-whitespace character.
   ```
 - **Invariant 9 — Session durability over this atom's own surface.**
-  ```text
+  ```
   Invariant 9.1: The atom MUST NOT offer a removal surface.
   Invariant 9.2: An action the atom offers MUST NOT reduce the session count.
   Invariant 9.3: A storage-failure rejection MUST leave no partial session in the store.
   ```
   WHY: disposal under a retention policy is the composing pattern's declared act, outside this atom's own surface — the same scoping [Retention Window](./retention-window.md) carries elsewhere (Non-goal 20, Non-goal 21).
 - **Invariant 10 — Every session has a finite lifetime.**
-  ```text
+  ```
   Invariant 10.1: EVERY session MUST carry an expires_at.
   Invariant 10.2: The atom MUST NOT record a session carrying no expires_at.
   ```
 - **Invariant 11 — Expiry absorbing, by derivation.**
-  ```text
+  ```
   Invariant 11.1: [Validate] MUST NOT answer valid for a lapsed session.
   Invariant 11.2: A lapsed session MUST stand lapsed at EVERY later now.
   ```
   WHY: the expiry analogue of Invariant 4, and the asymmetry is the point — revocation is an absorbing *stored* state, a lapse is an absorbing *derived* condition. Invariant 11.2 rests on the deadline's immutability (Invariant 2.1) and on the deployment's clock discipline (Capability requirement 7); both paths that foreclose a valid answer are stated so the verification surface is symmetric.
 - **Invariant 12 — Expiry is derived, never written.**
-  ```text
+  ```
   Invariant 12.1: A session MUST NOT carry a stored expired status.
   Invariant 12.2: A session MUST NOT carry an expiry timestamp beside expires_at.
   Invariant 12.3: A lapse MUST NOT write to the session.
@@ -403,7 +403,7 @@ This atom's acceptance is what an external auditor can clear from the session st
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find an expires_at on EVERY session (Invariant 10.1).
 Check 1.2: An auditor MUST find one expires_at per session across the session's whole life (Invariant 2.1).
 Check 2.1: An auditor MUST find no stored expired status on any session (Invariant 12.1).
@@ -425,7 +425,7 @@ Check 5.1 is the one check that reads a contract rather than records. Four disti
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT verify an authentication credential.
 Non-goal 2: A deployment needing an authentication credential verified MUST compose [Credential](./credential.md).
 Non-goal 3: The atom MUST NOT sequence a multi-factor challenge.
@@ -465,7 +465,7 @@ The token is opaque and its format is deployment configuration — with one cons
 
 ### Clock dependence
 
-```text
+```
 Clock dependence 1: A guard MUST NOT read now.
 Clock dependence 2: A rejection MUST NOT rest on now.
 ```
@@ -475,7 +475,7 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST serialize a status move on one session_token.
 Concurrency 2: Two concurrent [Revoke] calls on one session_token MUST answer revoked once.
 Concurrency 3: The [Revoke] call the serialization places second MUST answer already-terminal.
@@ -484,7 +484,7 @@ Concurrency 4: Two concurrent [Issue] calls carrying one principal_ref MUST reco
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -508,7 +508,7 @@ Byte-exactness means callers own canonicalization: two references differing only
 
 ### Token format
 
-```text
+```
 Token format 1: A claim set token's expiry claim MUST NOT differ from the session's expires_at.
 Token format 2: A deployment extending a claim set token MUST call [Issue].
 ```
@@ -520,7 +520,7 @@ The format is the deployment's (Capability requirement 5, Non-goal 16), but one 
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: IF the verified answer NOT EXISTS THEN a composing pattern MUST NOT call [Issue].
 Composition note 3: A composing pattern MUST own the attribution of an issuance.

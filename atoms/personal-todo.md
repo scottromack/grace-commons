@@ -29,7 +29,7 @@ One person, a list of things to do, and nothing else. The atom exists because ev
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify a unit by the id.
 Identity 2: The host MUST allocate an id at the atom's seam.
 Identity 3: The transition MUST NOT allocate an id.
@@ -53,7 +53,7 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 
 ### State
 
-```text
+```
 State 1: EVERY known unit MUST stand in EXACTLY ONE OF pending, done.
 State 2: EVERY unit MUST carry id, description and added_at.
 State 3: A unit MAY carry last_edited_at.
@@ -81,7 +81,7 @@ Deletion is the only way out and it is terminal: the atom keeps no memory of wha
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST own the clock's monotonicity.
 Capability requirement 3: The deployment MUST own the clock's timezone handling.
@@ -113,7 +113,7 @@ delete(id)
   refuses not-known | storage-failure
 ```
 
-```text
+```
 Operation 1: [Add] MUST record EXACTLY ONE unit per successful call.
 Operation 2: [Add] MUST stand the unit in pending.
 Operation 3: [Add] MUST answer id.
@@ -168,40 +168,40 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
 ### Invariants
 
 - **Invariant 1 — Membership exclusivity.**
-  ```text
+  ```
   Invariant 1.1: EVERY known unit MUST stand in EXACTLY ONE OF pending, done.
   ```
 - **Invariant 2 — Add-then-Pending persistence.**
-  ```text
+  ```
   Invariant 2.1: A recorded unit MUST stand in pending ONLY IF [Complete] NOT EXISTS AND [Delete] NOT EXISTS for the unit.
   ```
 - **Invariant 3 — Complete-then-Done persistence.**
-  ```text
+  ```
   Invariant 3.1: A completed unit MUST stand in done ONLY IF [Delete] NOT EXISTS for the unit.
   ```
 - **Invariant 4 — Delete is terminal.**
-  ```text
+  ```
   Invariant 4.1: A deleted unit's id MUST NOT stand in the list.
   Deleted: Invariant 4.2. Identity 5 owns id reuse for every id, deleted or not.
   ```
 - **Invariant 5 — Edit preserves state.**
-  ```text
+  ```
   Invariant 5.1: An edited unit MUST stand in pending.
   Invariant 5.2: [Edit] MUST NOT change a field other than description and last_edited_at.
   ```
 - **Invariant 6 — Active-set description uniqueness.**
-  ```text
+  ```
   Invariant 6.1: Two units in the active set MUST NOT share a normalized description.
   ```
 - **Invariant 7 — Timestamp monotonicity.**
-  ```text
+  ```
   Invariant 7.1: IF last_edited_at EXISTS THEN added_at MUST NOT EXCEED last_edited_at.
   Invariant 7.2: IF completed_at EXISTS THEN added_at MUST NOT EXCEED completed_at.
   Invariant 7.3: IF last_edited_at EXISTS AND completed_at EXISTS THEN last_edited_at MUST NOT EXCEED completed_at.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Capability requirement 2 through 3).
 - **Invariant 8 — Id stability.**
-  ```text
+  ```
   Invariant 8.1: [Add] MUST set the id.
   Invariant 8.2: An id MUST NOT change.
   Invariant 8.3: [Edit] MUST NOT change the id.
@@ -209,7 +209,7 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
 
 ### Description policy
 
-```text
+```
 Description 1: The atom MUST trim a description's leading and trailing whitespace.
 Description 2: The atom MUST normalize a description to Unicode normal form C.
 Description 3: The atom MUST preserve a description's internal whitespace.
@@ -267,7 +267,7 @@ An implementation is acceptable when an external auditor, given the list and the
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find EVERY known unit standing in EXACTLY ONE OF pending, done (Invariant 1.1).
 Check 1.2: An auditor MUST find EVERY unit carrying id, description AND added_at (State 2).
 Check 1.3: An auditor MUST find EVERY done unit carrying completed_at (State 4).
@@ -288,7 +288,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Capability requirement 2).
 External check 2: An auditor needing a transition's atomicity confirmed MUST read the implementation's own transactional boundary (Concurrency 2).
 External check 3: An auditor needing a second client's calls accounted for MUST read the deployment's own concurrency-resolution pattern (Concurrency 3).
@@ -303,7 +303,7 @@ The external set is three lines because this atom assumes almost nothing it cann
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT hold a second actor.
 Non-goal 2: A deployment needing a shared list MUST compose [Shared Todo](../compositions/shared-todo.md).
 Non-goal 3: The atom MUST NOT assign a unit to an actor.
@@ -331,7 +331,7 @@ Where the atom breaks down: any system with more than one actor; a system where 
 
 ### Concurrency on one unit
 
-```text
+```
 Concurrency 1: The atom MUST assume a linear sequence of calls from one actor.
 Concurrency 2: The implementation MUST make EVERY transition atomic.
 Concurrency 3: A deployment running two clients MUST compose a concurrency-resolution pattern.
@@ -342,7 +342,7 @@ Two tabs acting on one unit is outside the atom: a crash or a race that leaves a
 
 ### Re-adding a deleted description
 
-```text
+```
 Re-adding 1: The atom MUST accept a description equal to a deleted unit's description.
 Re-adding 2: [Add] MUST answer a fresh id for such a unit.
 ```
@@ -352,7 +352,7 @@ WHY:
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A composing pattern MUST own what this atom declines.
 Composition note 2: A composing pattern needing a recency guard MUST record a deleted description with [Duplicate Prevention](./duplicate-prevention.md).
 Composition note 3: A composing pattern needing a recency guard MUST NOT call [Add] BEFORE a [Duplicate Prevention](./duplicate-prevention.md) check.

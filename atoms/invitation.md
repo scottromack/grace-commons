@@ -42,7 +42,7 @@ This is a freestanding atom in the EOS sense: its own state, its own four writes
 
 ### Identity model
 
-```text
+```
 Identity 1: The atom MUST identify an invitation by the invitation_token.
 Identity 2: The atom MUST assign the invitation_token from the token material the seam supplies.
 Identity 3: The atom MUST NOT generate an invitation_token.
@@ -82,7 +82,7 @@ Identity 10 through 13 are one posture stated four times because each is separat
 
 ### State
 
-```text
+```
 State 1: EVERY invitation MUST carry invitation_token, inviter_ref, context, initiated_at, expires_at and a status.
 State 2: An invitation MAY carry an invitee_ref.
 State 3: EVERY accepted invitation MUST carry accepting_identity_ref and accepted_at.
@@ -107,7 +107,7 @@ State 10 and State 11 are the surfaces a reader keeps expecting. A declined or l
 
 ### Capability requirement
 
-```text
+```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the token material at the seam.
 Capability requirement 3: The deployment MUST supply token material drawn from a cryptographically random source.
@@ -159,7 +159,7 @@ read(filter)
   answers the matching invitations
 ```
 
-```text
+```
 Operation 1: IF inviter_ref NOT EXISTS THEN [Initiate] MUST answer invalid-request.
 Operation 2: IF context NOT EXISTS THEN [Initiate] MUST answer invalid-request.
 Operation 3: IF the ttl falls outside the ttl bounds THEN [Initiate] MUST answer invalid-request.
@@ -258,61 +258,61 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
 ### Invariants
 
 - **Invariant 1 — Initiation immutability.**
-  ```text
+  ```
   Invariant 1.1: An admitted resolving write MUST NOT change a property.
   Deleted: Invariant 1.2. State 6 and Operation 16 leave a resolving write no resolution field to find.
   ```
   WHY: a draft carried a second rule — *an admitted resolving write MUST NOT change a resolution field the write found* — and it could not bind. An admitted resolving write runs only on a pending invitation (Operation 16 refuses every other case), and a pending invitation carries no resolution field (State 6), so the set the rule quantified over is empty at every reachable state. Same class as the resource return [Provisional Commitment](./provisional-commitment.md) re-homed one atom earlier: a MUST that cannot be violated is decoration, and the cure is to find the rule that already makes it true rather than to keep a second copy that cannot fail (council read 39).
 - **Invariant 2 — Single-resolution by write.**
-  ```text
+  ```
   Invariant 2.1: An invitation MUST NOT reach two stored terminals.
   Invariant 2.2: An invitation MUST NOT carry two resolution instants.
   ```
   WHY: both rules are *at most one*, and the atom makes no claim that an invitation is ever resolved at all — a pending invitation whose window lapses is never written, and `Non-goal 24` says so. Concurrency 1 is the mechanism that delivers the at-most-one under racing writes.
 - **Invariant 3 — Acceptance binds identity.**
-  ```text
+  ```
   Invariant 3.1: EVERY accepted invitation MUST carry a non-blank accepting_identity_ref.
   Invariant 3.2: An admitted accept MUST commit accepting_identity_ref and accepted_at with the status change.
   Deleted: Invariant 4. Identity 13, State 2 and Operation 6 own the opaque invitee.
   ```
   WHY: the load-bearing one, and the reason this atom exists rather than folding into [Capability](./capability.md). An accepted invitation with no bound identity is an account that entered the system through a documented channel with nobody's name on it, which is exactly the record a regulator comes here to read.
 - **Invariant 5 — The stored terminals are structurally distinct.**
-  ```text
+  ```
   Invariant 5.1: Two stored terminals MUST NOT carry one resolution field pattern.
   ```
   WHY: the field pattern is what an auditor reads when the status column is not enough — an accepted invitation carries an identity and an instant, a declined one carries an instant alone, a revoked one carries an actor, a reason and an instant. Collapsing any two would make a refusal and a withdrawal the same event in the record, and they are not.
 - **Invariant 6 — A refusal names what blocked it.**
-  ```text
+  ```
   Invariant 6.1: EVERY already-resolved answer MUST name a stored terminal.
   Invariant 6.2: A lapsed invitation's resolving write MUST answer expired.
   ```
 - **Invariant 7 — Expiry deadline immutability.**
-  ```text
+  ```
   Invariant 7.1: The atom MUST NOT change an invitation's expires_at.
   ```
 - **Invariant 8 — Revocation attribution completeness.**
-  ```text
+  ```
   Invariant 8.1: EVERY revoked invitation MUST carry a non-blank revoked_by_ref.
   Invariant 8.2: EVERY revoked invitation MUST carry a non-blank revocation_reason.
   Invariant 8.3: EVERY revoked invitation MUST carry a revoked_at.
   ```
   WHY: withdrawal is the one resolution taken *against* the invitee rather than by them, so it is the one that must justify itself. An anonymous revocation, or one with a whitespace reason, defeats the record a dispute is settled from.
 - **Invariant 9 — Every invitation has a finite lifetime.**
-  ```text
+  ```
   Invariant 9.1: EVERY invitation MUST carry an expires_at.
   ```
   WHY: an invitation that never expires is not expressible here, and that is a design choice rather than a limitation. A bearer token with no deadline is a standing key; the deadline is what makes the outstanding set bounded and the derived status decidable.
 - **Invariant 10 — Invitation durability.**
-  ```text
+  ```
   Invariant 10.1: The atom MUST NOT remove an invitation from the store.
   Invariant 10.2: A storage-failure rejection MUST leave no partial invitation in the store.
   ```
 - **Invariant 11 — Token uniqueness is store-enforced.**
-  ```text
+  ```
   Invariant 11.1: An invitation_token MUST resolve to EXACTLY ONE invitation.
   ```
 - **Invariant 12 — Expiry is derived, never written.**
-  ```text
+  ```
   Invariant 12.1: The atom MUST NOT write a field when an invitation lapses.
   Invariant 12.2: An admitted read MUST compute the effective status from the invitation's expires_at and now.
   ```
@@ -356,7 +356,7 @@ This atom's acceptance is what an external auditor can clear from the invitation
 
 ### Conformance checks
 
-```text
+```
 Check 1.1: An auditor MUST find no invitation carrying two resolution instants (Invariant 2.2).
 Check 1.2: An auditor MUST find EXACTLY ONE resolution instant on EVERY invitation standing in a stored terminal (State 3, State 4, State 5).
 Check 1.3: An auditor MUST find no resolution field on a pending invitation (State 6).
@@ -382,7 +382,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ### External checks
 
-```text
+```
 External check 1: A deployment needing an already-resolved answer's payload confirmed MUST read the caller's record of the answer (Non-goal 22).
 External check 2: A deployment needing an accepting_identity_ref matched to the invitee MUST read the composing pattern's own rule (Identity 13, Non-goal 10).
 External check 3: A deployment needing the inviter's authority confirmed MUST read the composing policy layer (Non-goal 6).
@@ -401,7 +401,7 @@ External check 5 follows from Operation 27. [Decline] takes no acting reference,
 
 ## Non-goals
 
-```text
+```
 Non-goal 1: The atom MUST NOT create an identity record for an accepted invitation.
 Non-goal 2: A deployment needing an identity record MUST compose [Party Identity](./party-identity.md).
 Non-goal 3: The atom MUST NOT register a credential.
@@ -441,7 +441,7 @@ Non-goal 24 is the honest limit on single-resolution. Nothing here makes an invi
 
 ### Atomic writes
 
-```text
+```
 Atomic writes 1: The implementation MUST commit a transition whole.
 Atomic writes 2: The implementation MUST discard an uncommitted transition whole.
 Atomic writes 3: The implementation MUST own the transactional boundary.
@@ -450,7 +450,7 @@ Atomic writes 4: The implementation MUST NOT repair a dangling transition.
 
 ### Concurrency
 
-```text
+```
 Concurrency 1: The implementation MUST commit the status check and the status change of a resolving write as one atomic operation.
 Concurrency 2: A losing resolving write MUST answer already-resolved.
 Concurrency 3: A losing resolving write MUST name the stored terminal the winner recorded.
@@ -461,7 +461,7 @@ Concurrency 3 is the race the atom is most often asked to survive: two people ac
 
 ### String policy
 
-```text
+```
 String 1: The atom MUST compare a string input byte-exactly.
 String 2: The atom MUST NOT trim a string input.
 String 3: The atom MUST NOT normalize a string input.
@@ -483,7 +483,7 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 
 ## Composition notes
 
-```text
+```
 Composition note 1: A composing [External Onboarding](../compositions/external-onboarding.md) MUST create the party record ONLY AFTER an admitted accept.
 Composition note 2: A composing [External Onboarding](../compositions/external-onboarding.md) MUST pass the accepting_identity_ref as the party record's reference.
 Composition note 3: A composing [Credential](./credential.md) MUST register against the accepting_identity_ref.
