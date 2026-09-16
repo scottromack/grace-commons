@@ -1156,6 +1156,8 @@ def check_condition_form_synthetic(problems: list[str]) -> int:
         ("membership", "Operation 1: IF the hold's state IS NOT IN the active states THEN [Release] MUST answer not-known.", ""),
         ("a quoted retired form", "Operation 1: IF reason EQUALS blank THEN [Release] MUST answer invalid-request, never `reason NOT EXISTS`.", ""),
         ("a value set", "Operation 1: [Release] MUST read the store.", "Term value sets: state = active | released."),
+        ("stand as a write", "Operation 1: [Release] MUST stand the hold in released.", ""),
+        ("a state as a value", "Operation 1: IF the hold's state EQUALS released THEN [Release] MUST answer not-known.", ""),
     ]
     firing = [
         ("NOT EXISTS on a value", "Operation 1: IF reason NOT EXISTS THEN [Release] MUST answer invalid-request.", ""),
@@ -1163,6 +1165,7 @@ def check_condition_form_synthetic(problems: list[str]) -> int:
         ("EXISTS in a set", "Operation 1: IF the state NOT EXISTS in the active states THEN [Release] MUST answer not-known.", ""),
         ("an input tested with EXISTS", "Operation 1: [Release] MUST answer not-known ONLY IF hold_id EXISTS.", ""),
         ("is blank in a condition", "Operation 1: IF reason is blank THEN [Release] MUST answer invalid-request.", ""),
+        ("stands in in a condition", "Operation 1: IF the hold stands in released THEN [Release] MUST answer not-known.", ""),
         ("= in a condition", "Operation 1: IF reason = blank THEN [Release] MUST answer invalid-request.", ""),
         ("!= in a condition", "Operation 1: IF reason != blank THEN [Release] MUST read the store.", ""),
         ("= in a write", "Operation 1: [Release] MUST read the store with cause = released.", ""),
@@ -1698,8 +1701,8 @@ def main(argv: list[str]) -> int:
     failures.extend(cond_problems)
     if not cond_problems:
         print(f"D-condition-form: {n_cond} synthetic fixtures hold (a thing's absence and "
-              "presence, a missing value, a differing value, membership, a quoted retired form "
-              "and a value set silent; NOT EXISTS on a value and on a thing, `is blank`, EXISTS in a set, an "
+              "presence, a missing value, a differing value, membership, a quoted retired form, "
+              "a value set, a write with *stand* and a state tested as a value silent; NOT EXISTS on a value and on a thing, `is blank`, *stands in* in a condition, EXISTS in a set, an "
               "input tested with EXISTS, = and != in a condition, = in a write and != in a "
               "declaration fire) \u2713")
 

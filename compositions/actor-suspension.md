@@ -459,11 +459,11 @@ Action wiring 1: The composition MUST take the actor's section at [Suspend Actor
 Action wiring 2: The composition MUST read the suspension-state index at [Suspend Actor] ONLY AFTER the actor's section.
 Action wiring 3: The composition MUST hold the actor's section at [Suspend Actor] through the index write.
 Action wiring 4: The composition MUST run the tail read at the state gate.
-Action wiring 5: IF the actor stands suspended THEN [Suspend Actor] MUST answer already-suspended.
-Action wiring 6: IF the actor stands suspended THEN [Suspend Actor] MUST NOT revoke a member.
-Action wiring 7: IF the actor stands suspended THEN [Suspend Actor] MUST NOT record an intent.
-Action wiring 8: IF the actor stands suspending THEN [Suspend Actor] MUST resume the open cascade.
-Action wiring 9: IF the actor stands active THEN [Suspend Actor] MUST open a fresh cascade.
+Action wiring 5: IF the actor's lifecycle state EQUALS suspended THEN [Suspend Actor] MUST answer already-suspended.
+Action wiring 6: IF the actor's lifecycle state EQUALS suspended THEN [Suspend Actor] MUST NOT revoke a member.
+Action wiring 7: IF the actor's lifecycle state EQUALS suspended THEN [Suspend Actor] MUST NOT record an intent.
+Action wiring 8: IF the actor's lifecycle state EQUALS suspending THEN [Suspend Actor] MUST resume the open cascade.
+Action wiring 9: IF the actor's lifecycle state EQUALS active THEN [Suspend Actor] MUST open a fresh cascade.
 Action wiring 10: A fresh cascade MUST snapshot the actor's grants through Permissions' declared read.
 Action wiring 11: A fresh cascade MUST snapshot the actor's sessions through Session's declared read.
 Action wiring 12: A fresh cascade MUST snapshot the actor's credentials through Credential's declared read ONLY IF the credential arm stands composed.
@@ -524,20 +524,20 @@ Action wiring 66: [Suspension Report] MUST NOT transition a lifecycle state.
 Action wiring 67: [Suspension Report] MUST NOT write a constituent's store.
 Action wiring 68: [Suspension Report] MUST NOT record an audit event.
 Action wiring 69: [Suspension Report] MUST NOT take the actor's section.
-Action wiring 70: IF the actor stands active THEN [Suspension Report] MUST answer active.
-Action wiring 71: IF the actor stands suspending THEN [Suspension Report] MUST answer the state, the intent_event_id, the operator, the reason AND the open members.
+Action wiring 70: IF the actor's lifecycle state EQUALS active THEN [Suspension Report] MUST answer active.
+Action wiring 71: IF the actor's lifecycle state EQUALS suspending THEN [Suspension Report] MUST answer the state, the intent_event_id, the operator, the reason AND the open members.
 Action wiring 72: A suspending answer's open members MUST derive from the plan against the constituents' declared reads.
-Action wiring 73: IF the actor stands suspended THEN [Suspension Report] MUST answer the state, the suspended_at, the operator, the reason, the suspension_event_id AND the revoked set.
+Action wiring 73: IF the actor's lifecycle state EQUALS suspended THEN [Suspension Report] MUST answer the state, the suspended_at, the operator, the reason, the suspension_event_id AND the revoked set.
 Action wiring 74: The composition MUST read the revoked set from the outcome the suspension_event_id names at [Suspension Report].
 Action wiring 75: IF the outcome stands aged out THEN [Suspension Report] MUST answer the enumeration availability as unavailable.
 Action wiring 76: IF the outcome stands aged out THEN [Suspension Report] MUST NOT answer an empty revoked set.
 Action wiring 77: IF the outcome stands aged out THEN [Suspension Report] MUST answer the state, the suspended_at, the operator AND the suspension_event_id from the suspension-state index.
 Action wiring 78: The composition MUST read the suspension-state index at [Reinstate Actor].
 Action wiring 79: The composition MUST run the tail read at [Reinstate Actor].
-Action wiring 80: IF the actor stands active THEN [Reinstate Actor] MUST answer already-active carrying active.
-Action wiring 81: IF the actor stands suspending THEN [Reinstate Actor] MUST answer already-active carrying suspending.
-Action wiring 82: IF the actor stands suspending THEN [Reinstate Actor] MUST NOT record a reinstated outcome.
-Action wiring 83: IF the actor stands suspended THEN [Reinstate Actor] MUST record a reinstated outcome.
+Action wiring 80: IF the actor's lifecycle state EQUALS active THEN [Reinstate Actor] MUST answer already-active carrying active.
+Action wiring 81: IF the actor's lifecycle state EQUALS suspending THEN [Reinstate Actor] MUST answer already-active carrying suspending.
+Action wiring 82: IF the actor's lifecycle state EQUALS suspending THEN [Reinstate Actor] MUST NOT record a reinstated outcome.
+Action wiring 83: IF the actor's lifecycle state EQUALS suspended THEN [Reinstate Actor] MUST record a reinstated outcome.
 Action wiring 84: A reinstated outcome MUST carry the invocation_id, the reinstated actor, the reason AND the injected now as reinstated_at.
 Action wiring 85: An admitted reinstatement MUST write the active entry ONLY AFTER the landed reinstated outcome.
 Action wiring 86: [Reinstate Actor] MUST NOT reverse a revocation.
@@ -595,7 +595,7 @@ Wiring decision 2: The composition MUST NOT reverse a cascade.
 Wiring decision 3: The composition MUST complete a stopped cascade.
 Wiring decision 4: The composition MUST NOT enlist a constituent revocation in a transaction.
 Wiring decision 5: The composition MUST NOT claim a rollback.
-Wiring decision 6: The composition MUST open a fresh cascade ONLY IF the actor stands active.
+Wiring decision 6: The composition MUST open a fresh cascade ONLY IF the actor's lifecycle state EQUALS active.
 Wiring decision 7: The composition MUST NOT open a second cascade for one actor.
 Wiring decision 8: An outcome MUST carry the revoked set in full.
 Wiring decision 9: The composition MUST NOT read a constituent's own revocation record as the act.
@@ -713,9 +713,9 @@ Invariant 5.8: A credential validation MUST NOT establish a channel binding.
 Invariant 5.9: A credential validation MUST NOT establish an authorization.
 ```
 
-Term admitted suspension: a [Suspend Actor] call whose boundary predicate passed, whose actor stood active or suspending, and whose intent landed.
+Term admitted suspension: a [Suspend Actor] call whose boundary predicate passed, whose actor's lifecycle state DOES NOT EQUAL suspended, and whose intent landed.
 
-Term admitted reinstatement: a [Reinstate Actor] call whose boundary predicate passed and whose actor stood suspended.
+Term admitted reinstatement: a [Reinstate Actor] call whose boundary predicate passed and whose actor's lifecycle state EQUALS suspended.
 
 Term accounted cascade: an open cascade standing suspending with the open members named, closed within the completion window, OR named by an escalated finding.
 

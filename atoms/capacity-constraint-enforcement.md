@@ -197,11 +197,11 @@ Operation 6: [Declare Pool] MUST answer the pool_id.
 Operation 7: IF capacity IS NOT IN the whole counts THEN [Declare Pool] MUST answer invalid-request.
 Operation 8: IF the pool_id names no pool THEN an addressed action MUST answer not-known.
 Operation 9: An addressed action MUST answer not-known ONLY IF the pool_id names no pool.
-Operation 10: IF the pool stands in suspended THEN [Allocate] MUST answer suspended.
-Operation 11: IF the pool stands in closed THEN [Allocate] MUST answer closed.
+Operation 10: IF the pool state EQUALS suspended THEN [Allocate] MUST answer suspended.
+Operation 11: IF the pool state EQUALS closed THEN [Allocate] MUST answer closed.
 Operation 12: IF count IS NOT IN the positive counts THEN [Allocate] MUST answer invalid-request.
 Operation 13: IF the requested total EXCEEDS capacity THEN [Allocate] MUST answer over-capacity.
-Operation 14: [Allocate] MUST answer over-capacity ONLY IF the pool stands in open.
+Operation 14: [Allocate] MUST answer over-capacity ONLY IF the pool state EQUALS open.
 Operation 15: [Allocate] MUST raise allocated to the requested total.
 Operation 16: [Allocate] MUST append an allocation event.
 Operation 17: [Allocate] MUST answer the allocation event id.
@@ -216,7 +216,7 @@ Operation 25: [Release] MUST answer the release event id.
 Operation 26: [Release] MUST NOT change capacity.
 Operation 27: [Release] MUST NOT change the pool's state.
 Operation 28: [Release] MUST NOT match a count against a prior allocation's count.
-Operation 29: IF the pool stands in closed THEN [Adjust Capacity] MUST answer closed.
+Operation 29: IF the pool state EQUALS closed THEN [Adjust Capacity] MUST answer closed.
 Operation 30: IF new_capacity IS NOT IN the whole counts THEN [Adjust Capacity] MUST answer invalid-request.
 Operation 31: IF new_capacity EQUALS capacity THEN [Adjust Capacity] MUST answer invalid-request.
 Operation 32: IF allocated EXCEEDS new_capacity THEN [Adjust Capacity] MUST answer over-allocated.
@@ -226,13 +226,13 @@ Operation 35: [Adjust Capacity] MUST answer the adjustment event id.
 Operation 36: [Adjust Capacity] MUST NOT change allocated.
 Operation 37: [Adjust Capacity] MUST NOT set capacity to allocated in place of answering over-allocated.
 Operation 38: [Adjust Capacity] MUST NOT release a unit to fit a lower capacity.
-Operation 39: IF the pool stands in suspended THEN [Suspend Pool] MUST answer not-open.
-Operation 40: IF the pool stands in closed THEN [Suspend Pool] MUST answer already-closed.
+Operation 39: IF the pool state EQUALS suspended THEN [Suspend Pool] MUST answer not-open.
+Operation 40: IF the pool state EQUALS closed THEN [Suspend Pool] MUST answer already-closed.
 Operation 41: [Suspend Pool] MUST stand the pool in suspended.
-Operation 42: IF the pool stands in open THEN [Resume Pool] MUST answer not-suspended.
-Operation 43: IF the pool stands in closed THEN [Resume Pool] MUST answer already-closed.
+Operation 42: IF the pool state EQUALS open THEN [Resume Pool] MUST answer not-suspended.
+Operation 43: IF the pool state EQUALS closed THEN [Resume Pool] MUST answer already-closed.
 Operation 44: [Resume Pool] MUST stand the pool in open.
-Operation 45: IF the pool stands in closed THEN [Close Pool] MUST answer already-closed.
+Operation 45: IF the pool state EQUALS closed THEN [Close Pool] MUST answer already-closed.
 Operation 46: [Close Pool] MUST stand the pool in closed.
 Operation 47: A state-changing action MUST append a state-change event.
 Operation 48: A state-changing action MUST answer the state change id.

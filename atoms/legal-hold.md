@@ -135,7 +135,7 @@ Operation 10: [Place] MUST accept a placed_at below now.
 Operation 11: IF the store refuses the write THEN [Place] MUST answer storage-failure.
 Operation 12: IF hold_id EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 13: IF no hold EXISTS for the hold_id THEN [Release] MUST answer not-known.
-Operation 14: IF the hold stands in released THEN [Release] MUST answer already-released.
+Operation 14: IF the hold state EQUALS released THEN [Release] MUST answer already-released.
 Operation 15: IF released_by EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 16: IF release_reason EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 17: IF the resolved released_at falls below the hold's placed_at THEN [Release] MUST answer invalid-request.
@@ -173,7 +173,7 @@ Term admitted axis: hold_id | record_ref | placed_by | case_ref | hold state | a
 
 Term resolved released_at: the released_at the release records — the caller's value where one is supplied, the injected now otherwise.
 
-Term held at an instant: placed_at at or before the instant, and the hold either standing active or carrying a released_at after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
+Term held at an instant: placed_at at or before the instant, and either the hold state EQUALS active or the hold carries a released_at after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
 
 The case space, and the rule that owns each case:
 

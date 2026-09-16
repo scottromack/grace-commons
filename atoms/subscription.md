@@ -132,7 +132,7 @@ Operation 6: IF an active subscription EXISTS for the pair THEN [Subscribe] MUST
 Operation 7: The atom MUST NOT interpret subscriber_ref beyond the presence check.
 Operation 8: The atom MUST NOT interpret event_scope beyond the presence check.
 Operation 9: IF no subscription EXISTS for the subscription_id THEN [Cancel] MUST answer not-known.
-Operation 10: IF the subscription stands in cancelled THEN [Cancel] MUST answer not-active.
+Operation 10: IF the subscription's status EQUALS cancelled THEN [Cancel] MUST answer not-active.
 Operation 11: [Cancel] MUST stand the subscription in cancelled.
 Operation 12: [Cancel] MUST accept the subscription_id as the whole authorization.
 Operation 13: IF the store refuses the write THEN [Subscribe] MUST answer storage-failure.
@@ -196,7 +196,7 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
   ```
 - **Invariant 4 — New subscribe after cancel produces a new id.**
   ```
-  Invariant 4.1: A subscription recorded for a pair whose earlier subscription stands in cancelled MUST carry a fresh subscription_id.
+  Invariant 4.1: A subscription recorded for a pair whose earlier subscription's status EQUALS cancelled MUST carry a fresh subscription_id.
   Invariant 4.2: The two subscriptions MUST stand in the store independently.
   ```
 - **Invariant 5 — No id reuse.**

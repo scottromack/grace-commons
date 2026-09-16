@@ -383,7 +383,7 @@ Action wiring 55: The composition MUST read the grant through Permissions' decla
 Action wiring 56: IF no grant EXISTS for the grant_id THEN [Verify Grant Attribution] MUST answer not-known.
 Action wiring 57: The composition MUST read the grant attribution entry at [Verify Grant Attribution].
 Action wiring 58: IF no grant attribution entry EXISTS for the grant_id THEN [Verify Grant Attribution] MUST answer attribution-inconsistency.
-Action wiring 59: [Verify Grant Attribution] MUST read the revocation attribution entry ONLY IF the grant stands revoked.
+Action wiring 59: [Verify Grant Attribution] MUST read the revocation attribution entry ONLY IF the grant's status EQUALS revoked.
 Action wiring 60: IF no revocation attribution entry EXISTS for a revoked grant THEN [Verify Grant Attribution] MUST answer attribution-inconsistency.
 Action wiring 61: The composition MUST call Actor Identity's verify PER named attestation at [Verify Grant Attribution].
 Action wiring 62: IF Actor Identity answers not-known THEN [Verify Grant Attribution] MUST read the purge record.
@@ -404,7 +404,7 @@ Action wiring 76: A caller MUST NOT read a registry-unavailable verification as 
 Action wiring 77: A caller MAY read a not-known answer over an absent grant as a miss.
 Action wiring 78: [Verify Grant Attribution] MUST NOT write.
 Action wiring 79: [Verify Grant Attribution] MUST answer the grant record, the issuance attestation AND the issuance verification.
-Action wiring 80: [Verify Grant Attribution] MUST answer the revocation attestation AND the revocation verification ONLY IF the grant stands revoked.
+Action wiring 80: [Verify Grant Attribution] MUST answer the revocation attestation AND the revocation verification ONLY IF the grant's status EQUALS revoked.
 Action wiring 81: The composition MUST pass an evaluation to Permissions unchanged.
 Action wiring 82: The composition MUST NOT record an evaluation.
 Action wiring 83: The composition MUST NOT attribute an evaluation.
@@ -658,7 +658,7 @@ Check 6.1: An auditor MUST confirm no attestation appears twice in the grant att
 Check 6.2: An auditor MUST confirm no attestation appears twice in the revocation attribution map (Invariant 7.2).
 Check 6.3: An auditor MUST confirm no attestation appears in both attribution maps (Invariant 7.3).
 Check 6.4: An auditor MUST read a repeated attestation as a structural breach (Invariant 7.1).
-Check 7.1: An auditor MUST confirm EVERY grant a pair-scoped revocation answered ok for stands revoked (Invariant 9.1).
+Check 7.1: An auditor MUST find no grant a pair-scoped revocation answered ok for whose status DOES NOT EQUAL revoked (Invariant 9.1).
 Check 7.2: An auditor MUST confirm EVERY grant a pair-scoped revocation answered ok for carries a revocation attribution entry (Invariant 9.2).
 Check 7.3: An auditor MUST NOT read a post-enumeration grant as the enumeration's member (Invariant 9.3).
 ```

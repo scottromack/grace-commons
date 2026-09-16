@@ -122,12 +122,12 @@ Operation 6: [Grant] MUST NOT refuse a pair an active grant already covers.
 Operation 7: IF the store refuses the write THEN [Grant] MUST answer storage-failure.
 Operation 8: [Grant] MUST NOT record a partial grant.
 Operation 9: IF no grant EXISTS for the grant_id THEN [Revoke] MUST answer not-known.
-Operation 10: IF the grant stands in revoked THEN [Revoke] MUST answer not-active.
+Operation 10: IF the grant's status EQUALS revoked THEN [Revoke] MUST answer not-active.
 Operation 11: [Revoke] MUST stand the grant in revoked.
 Operation 12: [Revoke] MUST commit the active-to-revoked move as one write.
 Operation 13: IF the store refuses the write THEN [Revoke] MUST answer storage-failure.
 Operation 14: [Revoke] MUST leave the grant standing in active on storage-failure.
-Operation 15: A caller MUST read storage-failure from [Revoke] as the grant standing in force.
+Operation 15: A caller MUST read storage-failure from [Revoke] as a grant whose status EQUALS active.
 Operation 16: [Check] MUST answer EXACTLY ONE OF permitted, denied.
 Operation 17: [Check] MUST answer permitted ONLY IF an active grant matches the pair.
 Operation 18: [Check] MUST answer denied for a pair no active grant matches.

@@ -288,7 +288,7 @@ Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inh
   WHY: Invariant 3.2 is what makes Invariant 3.1's *exactly one* reachable. The uniqueness is enforced once, at [Instantiate] (Declaration 13), and every later match inherits it — so the atom never carries a tiebreak rule, because a conforming declaration never presents a tie.
 - **Invariant 4 — Terminal absorption.**
   ```
-  Invariant 4.1: An instance standing in a terminal state MUST NOT leave the terminal state.
+  Invariant 4.1: An instance whose current state IS IN the terminal states MUST NOT leave the terminal state.
   Invariant 4.2: A declared transition's from_state MUST NOT stand in the terminal states.
   ```
   WHY: absorption holds twice over — by enforcement at [Fire] (Operation 13) and by construction in the declaration (Invariant 4.2), which is what makes it structural. A deployment needing post-terminal behaviour models it as a non-terminal state or instantiates a new instance; there is no reopen surface and there is no declaration that could describe one.
@@ -423,9 +423,9 @@ Check 1.1: An auditor MUST find a re-read declaration unchanged from the prior r
 Check 1.2: An auditor MUST find a declaration unchanged across an admitted fire (Invariant 1.1).
 Check 2.1: An auditor MUST find EVERY history entry's from_state, action and to_state standing as a declared transition in the instance's declaration (Invariant 3.1).
 Check 2.2: An auditor MUST find no two declared transitions in one declaration sharing one from_state and one action (Invariant 3.2).
-Check 3.1: An auditor MUST find EVERY instance standing in EXACTLY ONE member of the instance's states (Invariant 2.1).
-Check 4.1: An auditor MUST find an instance standing in a terminal state carrying no history entry following the entry that reached the terminal state (Invariant 4.1).
-Check 4.2: An auditor MUST find no declared transition's from_state standing in the terminal states (Invariant 4.2).
+Check 3.1: An auditor MUST find EVERY instance whose current state EQUALS EXACTLY ONE member of the instance's states (Invariant 2.1).
+Check 4.1: An auditor MUST find an instance whose current state IS IN the terminal states carrying no history entry following the entry that reached the terminal state (Invariant 4.1).
+Check 4.2: An auditor MUST find no declared transition whose from_state IS IN the terminal states (Invariant 4.2).
 Check 5.1: An auditor MUST find an instance's sequence_numbers standing from one to the instance's history entry count (Invariant 6.2).
 Check 5.2: An auditor MUST reconstruct an instance's history order from sequence_number alone (Invariant 6.3).
 Check 5.3: An auditor MUST find a re-read history entry's fields unchanged from the prior read (Invariant 5.2).

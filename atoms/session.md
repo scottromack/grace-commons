@@ -192,18 +192,18 @@ Operation 11: [Issue] MUST NOT recompute expires_at from a later clock reading.
 Operation 12: IF the store refuses the write THEN [Issue] MUST answer storage-failure.
 Operation 13: [Validate] MUST answer EXACTLY ONE OF valid, expired, revoked, not-known.
 Operation 14: IF the session_token names no session THEN [Validate] MUST answer not-known.
-Operation 15: IF the session stands in revoked THEN [Validate] MUST answer revoked.
+Operation 15: IF the session's status EQUALS revoked THEN [Validate] MUST answer revoked.
 Operation 16: IF the session is lapsed THEN [Validate] MUST answer expired.
-Operation 17: [Validate] MUST answer expired ONLY IF the session stands in active.
-Operation 18: [Validate] MUST answer valid ONLY IF the session stands in active AND the session is not lapsed.
+Operation 17: [Validate] MUST answer expired ONLY IF the session's status EQUALS active.
+Operation 18: [Validate] MUST answer valid ONLY IF the session's status EQUALS active AND the session is not lapsed.
 Operation 19: [Validate] MUST carry principal_ref and expires_at in a valid answer.
 Operation 20: [Validate] MUST NOT write.
 Operation 21: [Validate] MUST NOT refuse a call.
 Operation 22: IF the session_token names no session THEN [Revoke] MUST answer not-known.
-Operation 23: IF the session stands in revoked THEN [Revoke] MUST answer already-terminal.
-Operation 24: [Revoke] MUST answer already-terminal ONLY IF the session stands in revoked.
-Operation 25: IF the session stands in active AND revoked_by_ref EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Operation 26: IF the session stands in active AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 23: IF the session's status EQUALS revoked THEN [Revoke] MUST answer already-terminal.
+Operation 24: [Revoke] MUST answer already-terminal ONLY IF the session's status EQUALS revoked.
+Operation 25: IF the session's status EQUALS active AND revoked_by_ref EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 26: IF the session's status EQUALS active AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 27: [Revoke] MUST accept a lapsed session.
 Operation 28: [Revoke] MUST stand the session in revoked.
 Operation 29: [Revoke] MUST stamp revoked_at from the injected now.
@@ -243,7 +243,7 @@ Term expiry deadline: `issued_at + session_duration` — what [Issue] stores as 
 
 Term expires_at: the instant the session's validity ends — an [Expires At]; stamped at issue, never changed, never absent.
 
-Term lapsed: the session stands in active and now is no earlier than the session's expires_at — the condition [Validate] derives and never stamps.
+Term lapsed: the session's status EQUALS active and now is no earlier than the session's expires_at — the condition [Validate] derives and never stamps.
 
 Term effective_status: expired where the session is lapsed, and the stored status otherwise — an [Effective Status]; a pure projection over the session and now, never stored.
 
@@ -303,7 +303,7 @@ Revocation takes the token as the whole authorization, and the atom exposes no w
   ```
 - **Invariant 3 — Validity bound conjunctive, by derivation.**
   ```
-  Invariant 3.1: [Validate] MUST answer valid ONLY IF the session_token names a session AND the session stands in active AND the session is not lapsed.
+  Invariant 3.1: [Validate] MUST answer valid ONLY IF the session_token names a session AND the session's status EQUALS active AND the session is not lapsed.
   Invariant 3.2: [Validate] MUST derive the lapse from expires_at against now.
   Invariant 3.3: [Validate] MUST NOT answer expired for a revoked session.
   ```
@@ -413,7 +413,7 @@ Check 2.4: An auditor MUST reproduce the effective_status from expires_at agains
 Check 3.1: An auditor MUST reconstruct the sessions in force at a past instant from issued_at, expires_at and revoked_at (Invariant 3.1, Invariant 3.2).
 Check 4.1: An auditor MUST find a revoked_at, a revoked_by_ref and a revocation_reason on EVERY revoked session (Invariant 8.1, Invariant 8.2, Invariant 8.3).
 Check 5.1: An auditor MUST find the four validate answers distinguishable on the implementation's contract (Invariant 6.1, Invariant 6.2).
-Check 6.1: An auditor MUST find no revoked session standing in active (Invariant 5.1).
+Check 6.1: An auditor MUST find no revoked session whose status EQUALS active (Invariant 5.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -497,7 +497,7 @@ String 8: The deployment MUST canonicalize an opaque reference.
 
 Term verified answer: the verified outcome [Credential](./credential.md)'s verification produces; cited from that atom, never restated here (Closed vocabulary 15).
 
-Term invalid answer: [Validate]'s answer standing in expired, revoked OR not-known — every answer outside valid.
+Term invalid answer: an answer of [Validate] that EQUALS expired, revoked OR not-known — every answer outside valid.
 
 Term authentication credential: the material a principal presents to prove identity, as [Credential](./credential.md) declares it; distinct from the session_token, which is the bearer credential this atom's own [Validate] accepts (Identity 2).
 

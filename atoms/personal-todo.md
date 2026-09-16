@@ -74,7 +74,7 @@ Term last_edited_at: the instant the unit's description last changed — a [Last
 
 Term completed_at: the instant the unit was finished — a [Completed At].
 
-Term active set: the units standing in pending together with the units standing in done — what uniqueness ranges over.
+Term active set: the units whose unit state EQUALS pending together with the units whose unit state EQUALS done — what uniqueness ranges over.
 
 WHY:
 Deletion is the only way out and it is terminal: the atom keeps no memory of what left, which is why re-adding a deleted description succeeds and why a system that wants *not twice this morning* composes [Duplicate Prevention](./duplicate-prevention.md) rather than asking this atom to remember (State 10, Composition note 2). There is no reopening, because a person who reopens a finished thing is describing a different pattern — one with history — and adding the transition here would quietly take that pattern's job (State 9).
@@ -121,16 +121,16 @@ Operation 4: IF the normalized description matches a unit in the active set THEN
 Operation 5: IF the store refuses the write THEN [Add] MUST answer storage-failure.
 Operation 6: [Add] MUST NOT record a unit on storage-failure.
 Operation 7: IF no unit EXISTS for the id THEN [Edit] MUST answer not-known.
-Operation 8: IF the unit stands in done THEN [Edit] MUST answer not-editable.
-Operation 9: IF the unit stands in pending AND the normalized new_description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
-Operation 9a: IF the unit stands in pending AND the normalized new_description fails the description policy THEN [Edit] MUST answer invalid-description.
-Operation 10: IF the unit stands in pending AND the normalized new_description EQUALS the unit's description THEN [Edit] MUST answer ok.
+Operation 8: IF the unit state EQUALS done THEN [Edit] MUST answer not-editable.
+Operation 9: IF the unit state EQUALS pending AND the normalized new_description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
+Operation 9a: IF the unit state EQUALS pending AND the normalized new_description fails the description policy THEN [Edit] MUST answer invalid-description.
+Operation 10: IF the unit state EQUALS pending AND the normalized new_description EQUALS the unit's description THEN [Edit] MUST answer ok.
 Operation 11: [Edit] MUST NOT write for a new_description equal to the unit's description.
 Operation 12: [Edit] MUST NOT stamp last_edited_at for a new_description equal to the unit's description.
 Operation 13: [Edit] MUST replace the unit's description.
 Operation 14: [Edit] MUST leave the unit standing in pending.
 Operation 15: IF no unit EXISTS for the id THEN [Complete] MUST answer not-known.
-Operation 16: IF the unit stands in done THEN [Complete] MUST answer not-pending.
+Operation 16: IF the unit state EQUALS done THEN [Complete] MUST answer not-pending.
 Operation 17: [Complete] MUST stand the unit in done.
 Operation 18: IF no unit EXISTS for the id THEN [Delete] MUST answer not-known.
 Operation 19: [Delete] MUST take a pending unit out of the list.
@@ -268,14 +268,14 @@ An implementation is acceptable when an external auditor, given the list and the
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY known unit standing in EXACTLY ONE OF pending, done (Invariant 1.1).
+Check 1.1: An auditor MUST find EVERY known unit whose unit state EQUALS EXACTLY ONE OF pending, done (Invariant 1.1).
 Check 1.2: An auditor MUST find EVERY unit carrying id, description AND added_at (State 2).
 Check 1.3: An auditor MUST find EVERY done unit carrying completed_at (State 4).
-Check 2.1: An auditor MUST find no deleted unit's id standing in the list (Invariant 4.1).
+Check 2.1: An auditor MUST find no deleted unit whose id IS IN the list (Invariant 4.1).
 Check 2.2: An auditor MUST find no two units sharing an id (Identity 5).
 Check 2.3: An auditor MUST find a unit's id unchanged across an edit (Invariant 8.3).
 Check 3.1: An auditor MUST find no two units in the active set sharing a normalized description (Invariant 6.1).
-Check 3.2: An auditor MUST find an edited unit standing in pending (Invariant 5.1).
+Check 3.2: An auditor MUST find an edited unit whose unit state EQUALS pending (Invariant 5.1).
 Check 3.3: An auditor MUST find an edit changing no field beside description AND last_edited_at (Invariant 5.2).
 Check 3.4: An auditor MUST find no last_edited_at stamped for an edit answering ok on an unchanged description (Operation 12).
 Check 4.1: An auditor MUST find EVERY unit's added_at not exceeding the unit's last_edited_at (Invariant 7.1).

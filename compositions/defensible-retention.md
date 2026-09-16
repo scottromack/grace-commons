@@ -112,7 +112,7 @@ Composition state 19: The composition MUST read the sibling set from Retention W
 Composition state 20: An index MUST stand outside an action's atomicity set.
 Composition state 21: The composition MUST read a missing index entry as a rebuild trigger.
 Composition state 22: The composition MUST NOT claim a cross-constituent consistency for an index.
-Composition state 23: The rebuild MUST drop an index entry whose retention stands purged.
+Composition state 23: The rebuild MUST drop an index entry whose retention's retention state EQUALS purged.
 Composition state 24: The composition MUST report a dropped entry carrying no record_purged event as a bypass finding.
 Composition state 25: The composition MUST NOT read a stale index entry as a bypass alone.
 Composition state 26: The record-to-retentions index AND the retention-to-record index MUST agree.
@@ -124,7 +124,7 @@ Composition state 31: A record MAY carry no hold.
 Composition state 32: A hold MUST NOT rest on a retention.
 ```
 
-Term record-to-retentions index: record_to_retentions — the composition's index from a record_ref to the retentions standing retained over the record — the auditor's first query surface and a read-path convenience, never the gate's input.
+Term record-to-retentions index: record_to_retentions — the composition's index from a record_ref to the retentions whose retention state EQUALS retained over the record — the auditor's first query surface and a read-path convenience, never the gate's input.
 
 Term retention-to-record index: retention_to_record — the composition's index from a retention_id to the record the retention covers, with the retention's retention_until and purge_deadline read back from Retention Window's declared Outputs.
 
@@ -136,7 +136,7 @@ Term purged placement event: a retention_placed event whose payload the audit in
 
 Term rebuild: the composition's named regeneration of an index — select this composition's placement events over an open-ended sequence range, take a surviving event's record_ref and retention_id, read Retention Window's store for an entry a purged placement event covers, and drop every retention the store reports purged.
 
-Term sibling set: the retentions standing retained over one record beside the named retention, read from Retention Window's store.
+Term sibling set: the retentions whose retention state EQUALS retained over one record beside the named retention, read from Retention Window's store.
 
 Term pending sibling: a sibling set member whose own purge has not landed.
 
@@ -349,7 +349,7 @@ Action wiring 20: IF Legal Hold answers invalid-request THEN [Place Hold] MUST a
 Action wiring 21: IF Legal Hold answers storage-failure THEN [Place Hold] MUST answer storage-failure.
 Action wiring 22: The composition MUST NOT record a hold release intent BEFORE reading the hold through Legal Hold's read.
 Action wiring 23: IF no hold EXISTS for the hold_id THEN [Release Hold] MUST answer not-known.
-Action wiring 24: IF the hold stands released THEN [Release Hold] MUST answer already-released.
+Action wiring 24: IF the hold state EQUALS released THEN [Release Hold] MUST answer already-released.
 Action wiring 25: An admitted hold release MUST call Legal Hold's release with the hold_id, the released_by, the reason AND the released_at.
 Action wiring 26: An admitted hold release MUST record a hold released outcome carrying the hold_id, the reason AND the released_at.
 Action wiring 27: An admitted hold release MUST answer released.
@@ -380,7 +380,7 @@ Action wiring 53: IF the hold check result stands non-empty AND the hold check m
 Action wiring 54: IF the hold check result stands non-empty AND the hold check mode EQUALS strict THEN a purge MUST NOT call Retention Window's purge.
 Action wiring 55: IF the hold check result stands non-empty AND the hold check mode EQUALS advisory THEN a purge MUST record the hold override.
 Action wiring 56: IF the hold check result stands non-empty AND the hold check mode EQUALS advisory THEN a purge MUST NOT record a purge blocked gate record.
-Action wiring 57: IF the named retention stands outside elapsed retention THEN a purge MUST answer not-eligible.
+Action wiring 57: IF the named retention IS NOT IN the elapsed retentions THEN a purge MUST answer not-eligible.
 Action wiring 58: An admitted purge MUST call Retention Window's purge with the retention_id.
 Action wiring 59: An admitted purge MUST call Retention Window's purge PER sibling set member.
 Action wiring 60: An admitted purge MUST record a record purged outcome carrying the retention_id, the record_ref, the purged retention ids, the hold check result, the hold override AND the injected now as purged_at.
@@ -415,7 +415,7 @@ Term admitted placement: a [Place Record Under Retention] call whose boundary pr
 
 Term admitted hold placement: a [Place Hold] call whose boundary predicate passed and whose intent landed.
 
-Term admitted hold release: a [Release Hold] call whose boundary predicate passed, whose named hold stands active and whose intent landed.
+Term admitted hold release: a [Release Hold] call whose boundary predicate passed, whose named hold's hold state EQUALS active and whose intent landed.
 
 Term admitted purge: a [Purge Record] call whose boundary predicate passed, whose sibling set carries no retention outside elapsed retention, whose hold check admitted the destruction and whose intent landed.
 
@@ -540,7 +540,7 @@ Each emerges from the composition; none belongs to one constituent.
   WHY: this is the composition's defining emergent claim and neither constituent can carry it — [Legal Hold](../atoms/legal-hold.md) intercepts no purge and [Retention Window](../atoms/retention-window.md) consults no hold store. Invariant 1.2 enumerates every answer a blocked purge can give rather than the one a reader expects: the gate record is itself a substrate write, so its own arms are live, and each of the three lands the refusal without reaching a destruction. Invariant 1.3 is the cheapest-compliant reading closed — *unreadable therefore zero* is exactly the spoliation hole the gate exists to fill.
 - **Invariant 2 — Retention coverage.**
   ```
-  Invariant 2.1: EVERY record an admitted placement covered MUST carry a retention standing EXACTLY ONE OF retained, purged.
+  Invariant 2.1: EVERY record an admitted placement covered MUST carry a retention whose retention state EQUALS EXACTLY ONE OF retained, purged.
   Invariant 2.2: The composition MUST NOT gate a record no admitted placement covered.
   ```
   WHY: the scope claim is what the store-sourced rebuild degrades (`Composition state 17`). A refusal citing a sibling this composition did not place is correct as a refusal and wrong as a statement about this composition's own coverage, and an implementation reading from the fallback says which of the two it is answering.
@@ -592,7 +592,7 @@ Each emerges from the composition; none belongs to one constituent.
 - **Invariant 8 — Defensible destruction.**
   ```
   Invariant 8.1: EVERY destroyed record MUST carry a record purged outcome naming the hold check result.
-  Invariant 8.2: EVERY destroyed record MUST carry a retention standing purged.
+  Invariant 8.2: EVERY destroyed record MUST carry a retention whose retention state EQUALS purged.
   Invariant 8.3: A destroyed record's retention_until MUST NOT EXCEED the retention's purged_at.
   Invariant 8.4: A record purged outcome MUST carry a seal ONLY AFTER the seal coverage.
   Invariant 8.5: A reader MUST read an unverifiable partially-purged-coverage answer as unknown.
@@ -696,7 +696,7 @@ Check 1.2: An auditor MUST find EVERY record purged outcome carrying a non-empty
 Check 1.3: An auditor MUST find no hold held at a record purged outcome's purged_at (Invariant 1.1).
 Check 1.4: An auditor MUST read a hold whose hold placed outcome follows the record purged outcome as outside the historical hold set (Invariant 6.3).
 Check 1.5: An auditor MUST find EVERY gate record carrying a non-empty hold check result (Invariant 4.5).
-Check 1.6: An auditor MUST find a gate record's named hold standing active at the gate record's log position (Invariant 4.5).
+Check 1.6: An auditor MUST find a gate record's named hold whose hold state EQUALS active at the gate record's log position (Invariant 4.5).
 Check 1.7: An auditor MUST read Legal Hold's read unfiltered by hold state for the historical hold set (Invariant 6.3).
 Check 2.1: An auditor MUST find a hold placed outcome PER hold whose placement stands within the audit horizon (Invariant 3.1).
 Check 2.2: An auditor MUST find a hold released outcome PER released hold whose release stands within the audit horizon (Invariant 3.2).

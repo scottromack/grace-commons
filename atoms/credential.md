@@ -247,9 +247,9 @@ Term live: the window reading of an active credential whose expires_at EQUALS bl
 
 Term lapsed: the window reading of an active credential whose expires_at DOES NOT EQUAL blank and does not exceed now; the boundary instant — expires_at equal to now — reads lapsed.
 
-Term effective-active credential: a credential standing in active that reads live — what every bound, guard and lookup in this atom means by *the active credential*.
+Term effective-active credential: a credential whose status EQUALS active that reads live — what every bound, guard and lookup in this atom means by *the active credential*.
 
-Term lapsed credential: a credential standing in active that reads lapsed.
+Term lapsed credential: a credential whose status EQUALS active that reads lapsed.
 
 Term proceeding verify: a [Verify] call whose pair carries an effective-active credential.
 
@@ -311,7 +311,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   ```
 - **Invariant 5 — A stored terminal is absorbing.**
   ```
-  Invariant 5.1: A credential standing in a stored terminal MUST NOT leave the stored terminal.
+  Invariant 5.1: A credential whose status IS IN the stored terminals MUST NOT leave the stored terminal.
   ```
   WHY: a lapsed credential draws the same two rejections a stored terminal does — not-active from [Rotate], already-terminal from [Revoke] — and for a different reason, which is worth saying because the shared answers invite a reader to assume a shared mechanism. A stored terminal is excluded by what it stores; a lapsed credential is excluded by what the clock says, stands in active still, and is owned by Invariant 11.1 and Invariant 12.1 rather than here.
 - **Invariant 6 — Rotation does not mutate.**
@@ -410,7 +410,7 @@ Check 4.3: An auditor MUST find a revoked_at on EVERY revoked credential (Invari
 Check 5.1: An auditor MUST find no credential material in a credential (State 9).
 Check 5.2: An auditor MUST find no presented material in a credential (State 10).
 Check 5.3: An auditor MUST find no verifier in an admitted read's answer (Operation 53, State 8).
-Check 6.1: An auditor MUST find no credential standing outside a stored terminal on a later read of a credential a prior read found in that stored terminal (Invariant 5.1).
+Check 6.1: An auditor MUST find no credential whose status IS NOT IN the stored terminals on a later read of a credential a prior read found in that stored terminal (Invariant 5.1).
 Check 6.2: An auditor MUST find no terminal field on an active credential (State 5).
 Check 7.1: An auditor MUST find a re-read credential's properties unchanged across an admitted rotate (Invariant 1.1, Invariant 6.1).
 Check 7.2: An auditor MUST find a re-read credential's terminal fields unchanged across a later write (Invariant 1.2).

@@ -133,7 +133,7 @@ Operation 5: [Create] MUST accept an empty payload.
 Operation 6: The atom MUST NOT read a payload.
 Operation 7: IF the store refuses the write THEN [Create] MUST answer storage-failure.
 Operation 8: IF no notification EXISTS for the notification_id THEN a terminal transition MUST answer not-known.
-Operation 9: IF the notification stands in a terminal status THEN a terminal transition MUST answer not-pending.
+Operation 9: IF the notification's status DOES NOT EQUAL pending THEN a terminal transition MUST answer not-pending.
 Operation 10: [Deliver] MUST stand the notification in delivered.
 Operation 11: [Fail] MUST stand the notification in failed.
 Operation 12: [Expire] MUST stand the notification in expired.
@@ -197,7 +197,7 @@ The three terminal transitions share one precondition pair — known, and pendin
   ```
 - **Invariant 3 — Terminal states are exclusive.**
   ```
-  Invariant 3.1: A notification standing in a terminal status MUST carry EXACTLY ONE terminal stamp.
+  Invariant 3.1: A notification whose status DOES NOT EQUAL pending MUST carry EXACTLY ONE terminal stamp.
   Invariant 3.2: A pending notification MUST NOT carry a terminal stamp.
   ```
 - **Invariant 4 — Terminal timestamps match status.**
@@ -220,7 +220,7 @@ The three terminal transitions share one precondition pair — known, and pendin
   ```
 - **Invariant 7 — Pending query excludes terminals.**
   ```
-  Invariant 7.1: [Pending For] MUST answer a notification_id ONLY IF the notification stands in pending.
+  Invariant 7.1: [Pending For] MUST answer a notification_id ONLY IF the notification's status EQUALS pending.
   ```
 - **Invariant 8 — Timestamp ordering.**
   ```
@@ -370,7 +370,7 @@ Bulk expiry 3: A composing pattern MUST NOT read one expiry as a deadline sweep.
 ### Deliver persistence failure
 
 ```
-Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the notification standing pending.
+Deliver persistence 1: A caller MUST read storage-failure from [Deliver] as the notification whose status EQUALS pending.
 Deliver persistence 2: A caller MUST retry a deliver that answered storage-failure.
 Deliver persistence 3: A caller MUST NOT deliver the payload a second time on that retry.
 Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver].

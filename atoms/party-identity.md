@@ -168,19 +168,19 @@ Operation 9: [Enroll] MUST NOT answer not-known.
 Operation 10: IF party_id EQUALS blank THEN a party action MUST answer invalid-request.
 Operation 11: IF the party_id names no party THEN a party action MUST answer not-known.
 Operation 12: A party action MUST answer not-known ONLY IF party_id DOES NOT EQUAL blank.
-Operation 13: IF the party stands in closed THEN a party action MUST answer already-closed.
-Operation 14: IF the party stands in unverified THEN [Suspend] MUST answer not-verifiable.
-Operation 15: IF the party stands in suspended THEN [Suspend] MUST answer already-suspended.
+Operation 13: IF the party's state EQUALS closed THEN a party action MUST answer already-closed.
+Operation 14: IF the party's state EQUALS unverified THEN [Suspend] MUST answer not-verifiable.
+Operation 15: IF the party's state EQUALS suspended THEN [Suspend] MUST answer already-suspended.
 Operation 16: IF the party's state DOES NOT EQUAL suspended THEN [Reinstate] MUST answer not-suspended.
 Operation 17: A party action MUST answer a state rejection ONLY IF the party_id names a party.
 Operation 18: IF no fresh verification EXISTS THEN [Reinstate] MUST answer no-passed-verification-since-suspend.
-Operation 19: [Reinstate] MUST answer no-passed-verification-since-suspend ONLY IF the party stands in suspended.
+Operation 19: [Reinstate] MUST answer no-passed-verification-since-suspend ONLY IF the party's state EQUALS suspended.
 Operation 20: A party action MUST answer invalid-request on a field fault ONLY IF EVERY state check passes.
 Operation 21: IF the verification_result differs from passed AND the verification_result differs from failed THEN [Verify] MUST answer invalid-request.
 Operation 22: An admitted verify MUST append a verification event carrying a fresh verification_id.
 Operation 23: An admitted verify MUST record verifying_actor_ref, verification_method, verification_result and evidence_ref on the verification event.
 Operation 24: An admitted verify MUST record now as the verification event's verified_at.
-Operation 25: IF the party stands in unverified AND the verification_result EQUALS passed THEN an admitted verify MUST stand the party in verified.
+Operation 25: IF the party's state EQUALS unverified AND the verification_result EQUALS passed THEN an admitted verify MUST stand the party in verified.
 Operation 26: An admitted verify MUST NOT change the party's state outside the unverified-to-verified transition.
 Operation 27: An admitted verify MUST answer the verification_id.
 Operation 28: An admitted verify driving a transition MUST answer the state_change_id.
@@ -280,11 +280,11 @@ Operation 59 is this atom's one departure from its siblings on instants. [Approv
   ```
 - **Invariant 3 — Closed is absorbing.**
   ```
-  Invariant 3.1: A party standing in closed MUST NOT leave closed.
+  Invariant 3.1: A party whose state EQUALS closed MUST NOT leave closed.
   ```
 - **Invariant 4 — Verified rests on recorded evidence.**
   ```
-  Invariant 4.1: EVERY party standing in verified MUST carry a fresh verification.
+  Invariant 4.1: EVERY party whose state EQUALS verified MUST carry a fresh verification.
   ```
   WHY: the atom's reason for existing, and the one invariant a composing system leans on without reading this page. A downstream process that gates on *a verified party* is trusting that the standing was not asserted — and the atom owns that rather than delegating it, so every composition inherits it. There are exactly two paths into verified, and each records the required evidence as part of the transition: a passed verify against an unverified party, and a reinstate that Operation 18 will not admit without one.
 - **Invariant 5 — Verification events are immutable.**
@@ -369,9 +369,9 @@ This atom's acceptance is what an external auditor can clear from the party stor
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY party standing in EXACTLY ONE OF unverified, verified, suspended, closed (Invariant 2.1).
-Check 1.2: An auditor MUST find no party standing outside closed on a later read of a party a prior read found closed (Invariant 3.1).
-Check 2.1: An auditor MUST find a fresh verification on EVERY party standing in verified (Invariant 4.1).
+Check 1.1: An auditor MUST find EVERY party whose state EQUALS EXACTLY ONE OF unverified, verified, suspended, closed (Invariant 2.1).
+Check 1.2: An auditor MUST find no party whose state DOES NOT EQUAL closed on a later read of a party a prior read found closed (Invariant 3.1).
+Check 2.1: An auditor MUST find a fresh verification on EVERY party whose state EQUALS verified (Invariant 4.1).
 Check 2.2: An auditor MUST read most recent from insertion order (Ordering 3, Ordering 4).
 Check 3.1: An auditor MUST find verifying_actor_ref, verification_method, evidence_ref and verified_at on EVERY verification event (State 4).
 Check 3.2: An auditor MUST find a re-read verification event unchanged (Invariant 5.1).
@@ -517,7 +517,7 @@ The blank rule earns its keep on reason more than anywhere else. A suspension, a
 ## Composition notes
 
 ```
-Composition note 1: A composing Customer Onboarding MUST gate regulated activity on the party standing in verified.
+Composition note 1: A composing Customer Onboarding MUST gate regulated activity on the party whose state EQUALS verified.
 Composition note 2: A composing Customer Onboarding MUST own the verification workflow.
 Composition note 3: A composing External Onboarding MUST call [Enroll] ONLY AFTER an accepted invitation.
 Composition note 4: A composing Actor Identity MUST attest the actor behind EVERY transitioning action.

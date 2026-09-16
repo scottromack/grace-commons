@@ -464,7 +464,7 @@ Action wiring 2: [Initiate Onboarding] MUST answer invalid-request for a call ca
 Action wiring 3: [Initiate Onboarding] MUST answer invalid-request for an unset monitoring interval.
 Action wiring 4: An external path call MUST read the party through Party Identity's declared read.
 Action wiring 5: IF no party EXISTS for the party_id THEN [Initiate Onboarding] MUST answer party-not-known.
-Action wiring 6: IF the party's state stands outside the admissible states THEN [Initiate Onboarding] MUST answer party-not-admissible carrying the state.
+Action wiring 6: IF the party's state IS NOT IN the admissible states THEN [Initiate Onboarding] MUST answer party-not-admissible carrying the state.
 Action wiring 7: IF an active case EXISTS for the party THEN [Initiate Onboarding] MUST answer already-onboarded.
 Action wiring 8: An admitted initiation MUST record an initiation intent.
 Action wiring 9: A direct path initiation MUST NOT carry a party_id on the initiation intent.
@@ -502,7 +502,7 @@ Action wiring 40: The composition MUST read the party through Party Identity's d
 Action wiring 41: IF the read stands unanswered THEN [Trigger Monitoring Review] MUST answer state-unavailable.
 Action wiring 42: IF Party Identity answers invalid-query THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 43: The composition MUST read an invalid-query answer as the composition's own defect.
-Action wiring 44: IF the trigger_type belongs to the adverse trigger types AND the party's state stands outside the suspendable states THEN [Trigger Monitoring Review] MUST answer not-verified carrying the state.
+Action wiring 44: IF the trigger_type belongs to the adverse trigger types AND the party's state IS NOT IN the suspendable states THEN [Trigger Monitoring Review] MUST answer not-verified carrying the state.
 Action wiring 45: A periodic trigger MUST NOT refuse a party's state.
 Action wiring 46: An admitted trigger MUST record a monitoring triggered outcome carrying the case_id, the party_id, the trigger_id, the trigger_type, the trigger_ref AND the triggered_at.
 Action wiring 47: An admitted periodic trigger against an unsuspended party MUST carry the next review due on the monitoring triggered record.
@@ -793,7 +793,7 @@ Invariant 5.5: The composition MUST NOT expose a purge surface.
 Invariant 5.6: A purging layer MUST NOT destroy a closed case's party record BEFORE the post closure floor.
 Invariant 6.1: A verified party under an active case MUST carry a case-to-monitoring entry.
 Invariant 6.2: A case-to-monitoring entry MUST carry a next review due.
-Invariant 7.1: A quiescent active case MUST carry a non-empty open-trigger set ONLY IF the case's party stands suspended.
+Invariant 7.1: A quiescent active case MUST carry a non-empty open-trigger set ONLY IF the state of the case's party EQUALS suspended.
 Invariant 7.2: A quiescent suspended party under an active case MUST carry a non-empty open-trigger set.
 Invariant 7.3: A verified party carrying a closed trigger inside the clearance window MUST stand as a surfaced orphan.
 Invariant 7.4: A quiescent closed case MUST carry an empty open-trigger set.
@@ -809,9 +809,9 @@ Invariant 8.7: A credential validation MUST NOT establish the customer's evidenc
 
 Term quiescent case: a case carrying no invocation in flight.
 
-Term quiescent verified party: a party standing verified whose case carries no invocation in flight.
+Term quiescent verified party: a party whose state EQUALS verified whose case carries no invocation in flight.
 
-Term quiescent suspended party: a party standing suspended whose case carries no invocation in flight.
+Term quiescent suspended party: a party whose state EQUALS suspended whose case carries no invocation in flight.
 
 Term quiescent closed case: a closed case carrying no invocation in flight.
 
@@ -938,7 +938,7 @@ Check 4.1: An auditor MUST find a review cleared record naming a verification_id
 Check 4.2: An auditor MUST confirm the named verification stands passed in Party Identity's store (Invariant 4.1).
 Check 4.3: An auditor MUST confirm the named verification stands later in the log than the party's most recent suspension (Invariant 4.1).
 Check 4.4: An auditor MUST confirm the review cleared record's attested actor_ref matches the party reinstated record's attested actor_ref (Invariant 4.3).
-Check 5.1: An auditor MUST find a post closure placement standing retained PER closed party outside lawful destruction (Invariant 5.3).
+Check 5.1: An auditor MUST find a post closure placement whose retention state EQUALS retained PER closed party outside lawful destruction (Invariant 5.3).
 Check 5.2: An auditor MUST read a closed party's record destroyed inside the post closure floor as a conformance failure (Invariant 5.6).
 Check 5.3: An auditor MUST find a current placement standing unelapsed PER quiescent active case (Invariant 5.1).
 Check 5.4: An auditor MUST reproduce the chain of placements from the initiated payload AND the retention renewed payloads in Event Log order (Composition state 29).
@@ -949,7 +949,7 @@ Check 6.2: An auditor MUST reproduce the next review due as the latest schedule-
 Check 6.3: An auditor MUST read a reproduced next review due disagreeing with the index as a rebuild trigger (Composition state 9).
 Check 6.4: An auditor MUST read a case carrying no schedule-bearing payload as a conformance failure (Invariant 6.2).
 Check 7.1: An auditor MUST reproduce the open-trigger set PER active case (Composition state 31).
-Check 7.2: An auditor MUST confirm the party stands suspended PER active case carrying a non-empty reproduced set (Invariant 7.1).
+Check 7.2: An auditor MUST confirm the party's state EQUALS suspended PER active case carrying a non-empty reproduced set (Invariant 7.1).
 Check 7.3: An auditor MUST confirm the reproduced set stands non-empty PER suspended party under an active case (Invariant 7.2).
 Check 7.4: An auditor MUST find a trigger outcome PER adverse monitoring triggered record (Invariant 7.1).
 Check 7.5: An auditor MUST confirm a party closed record's open triggers at close names EVERY trigger the reproduced set carried at the closure (Invariant 7.5).

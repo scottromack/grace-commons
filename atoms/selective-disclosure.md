@@ -301,10 +301,10 @@ This atom's acceptance is what an external auditor can clear from the disclosure
 ```
 Check 2.1: An auditor MUST find disclosure_id, subject_ref, recipient, scope, authority_type, authority_reference and disclosed_at on EVERY disclosure record (State 1, Invariant 3.1).
 Check 2.2: An auditor MUST find a non-whitespace character in EVERY disclosure record's subject_ref, recipient, scope and authority_reference (Invariant 3.2).
-Check 2.3: An auditor MUST find EVERY disclosure record's authority_type standing in the authority types (Invariant 2.1).
+Check 2.3: An auditor MUST find EVERY disclosure record whose authority_type IS IN the authority types (Invariant 2.1).
 Check 3.1: An auditor MUST find a re-read disclosure record's fields unchanged from the prior read (Invariant 1.1).
 Check 3.2: An auditor MUST find no disclosure record absent from a later unfiltered read (Invariant 6.1, State 9).
-Check 4.1: An auditor MUST find [Record] answering unknown-authority-type for an authority_type standing outside the authority types (Operation 9).
+Check 4.1: An auditor MUST find [Record] answering unknown-authority-type for an authority_type that IS NOT IN the authority types (Operation 9).
 Check 4.2: An auditor MUST find no disclosure record recorded by a refused [Record] (Operation 16).
 Check 5.1: An auditor MUST find a subject_ref query answering EVERY disclosure record carrying the subject_ref (Operation 27).
 Check 5.2: An auditor MUST find an authority_type query answering ONLY the disclosure records carrying the authority_type (Operation 28).

@@ -91,7 +91,7 @@ Term degenerate duration: a duration that does not carry retention_until past re
 
 Term max_purge_delay: the lag the policy allows between retention-end and purge — a [Max Purge Delay]; not negative.
 
-Term purge eligible: yes | no — a [Purge Eligible]; yes exactly when the retention stands in retained AND retention_until has passed against the injected now. Derived at the moment a question is asked, never written; the term entry's purge_eligible is the projection of this answer.
+Term purge eligible: yes | no — a [Purge Eligible]; yes exactly when the retention state EQUALS retained AND retention_until has passed against the injected now. Derived at the moment a question is asked, never written; the term entry's purge_eligible is the projection of this answer.
 
 WHY:
 Two states and no third: a storage tier is an orthogonal axis a Storage Tier pattern *(forthcoming)* owns, and a record moves from active to cold storage without its obligation changing (State 10). Eligibility is derived rather than stored because a stored flag lags the clock — nothing fires when a retention crosses retention_until, no scheduler runs, and the only write is the purge that actually happened (State 7, Invariant 11.1). There is no un-purge and no policy edit: extending an obligation means a new retention under a new policy, which is a new audit record rather than a quiet overwrite of an old one (State 8, State 9).
@@ -135,7 +135,7 @@ Operation 11: [Place Under Retention] MUST NOT read the host's record store.
 Operation 12: [Purge] MUST stand the retention in purged.
 Operation 13: [Purge] MUST stamp purged_at from the injected now.
 Operation 14: IF no retention EXISTS for the retention_id THEN [Purge] MUST answer not-known.
-Operation 15: IF the retention stands in purged THEN [Purge] MUST answer not-retained.
+Operation 15: IF the retention state EQUALS purged THEN [Purge] MUST answer not-retained.
 Operation 16: IF purge eligible EQUALS no THEN [Purge] MUST answer retention-period-not-elapsed.
 Operation 17: [Purge] MUST NOT write on retention-period-not-elapsed.
 Operation 18: [Purge] MUST NOT refuse a call past purge_deadline.

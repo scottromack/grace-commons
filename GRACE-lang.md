@@ -1,4 +1,4 @@
-# GRACE lang v0.54 — Minimal Earned Grammar
+# GRACE lang v0.55 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -288,10 +288,11 @@ Earned vocabulary 11: A writer MUST write a field a write sets as `field set to 
 Earned vocabulary 12: A writer MUST NOT write `=` in a rule.
 Earned vocabulary 13: A specification MUST NOT write a `Term` declaration for a rule noun.
 Earned vocabulary 14: A writer MUST write a rule noun under the rule noun's own name.
+Earned vocabulary 15: A writer MUST write a test of a record's state as a value test, `the record's state EQUALS member`.
 ```
 
 WHY:
-One operator, one sense. EXISTS asks whether a thing is there — a stored record, an event, a condition — and nothing else; EQUALS blank asks whether a value is missing; IS IN asks whether a value belongs to a set, a record's state among them. Before v0.52 one operator carried all three and more, and `step_id NOT EXISTS` (the caller sent nothing) and `the assignment_id NOT EXISTS` (no record carries the id) differed by an article. The operators are English words so that a rule read aloud, by a person or by a screen reader, says what it means: `!=` comes out as *exclamation equals* or as nothing at all. `no` stays lower case — it is the English determiner, beside `a` and `an`, and EXISTS is the token. `=` and `|` stay only where a value set is declared (Term value-set form).
+One operator, one sense. EXISTS asks whether a thing is there — a stored record, an event, a condition — and nothing else; EQUALS blank asks whether a value is missing; IS IN asks whether a value belongs to a set, a record's state among them. Before v0.52 one operator carried all three and more, and `step_id NOT EXISTS` (the caller sent nothing) and `the assignment_id NOT EXISTS` (no record carries the id) differed by an article. The operators are English words so that a rule read aloud, by a person or by a screen reader, says what it means: `!=` comes out as *exclamation equals* or as nothing at all. `no` stays lower case — it is the English determiner, beside `a` and `an`, and EXISTS is the token. `=` and `|` stay only where a value set is declared (Term value-set form). A record's state is one of those values, so a condition tests it with EQUALS and IS IN like any other (Earned vocabulary 15); *stand* stays the verb of the write that moves it — `MUST stand the party in verified`.
 
 The rule nouns are the grammar's for the reason blank is: every specification's rules say *call*, *answer*, *write*, *input*, *field* and *instant*, and almost none declared them, so a noun the rules leaned on hardest resolved to nothing. Earned vocabulary 14 is why *argument* is gone: it named the same thing as *input*, which the signature form already used. *Instance* is not among them yet — State Machine declares an instance as one workflow, and the other specifications mean one deployed copy of a pattern, so the name carries two meanings until one of them is renamed.
 
@@ -668,6 +669,9 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.55 (2026-09-16): a record's state is tested as a value. Conditions asked it two ways — `IF the session stands in active` and `IF the party's state EQUALS verified` — and the maintainer ruled the second: the state is a declared value set, so the test names it, `the session's status EQUALS active`, `the order's state IS IN the pre-dispensing states` (Earned vocabulary 15). 178 rule and declaration lines in twenty-nine specifications moved, the state named by each specification's own value set — status, state, pool state, hold state, unit state, chain state, retention state, lifecycle state. *Stand* stays the verb of the write that moves a state. `check.py`'s `D-condition-form` gates *stands in* and *stands outside* in a condition. Council read 102.
 
 NOTE:
 v0.54 (2026-09-16): a term entry's code-spelling line is `Projection:`, not `Projects:`. Every other label on a term entry names a thing — `Kind:`, `Role:`, `Wire:` — and `Projects:` was the one verb; the line holds the projection a name lowers to, and under the v0.53 ruling it is where the code spelling lives. 757 lines renamed in fifty-three specifications, migrated or not, with their aligned blocks re-padded, and the term registry's introduction in twenty-three; `term-adapter.mjs` reads the new label and writes `projections` into the derived manifest. Proposed by the maintainer. Council read 101.

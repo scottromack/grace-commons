@@ -178,11 +178,11 @@ Operation 20: [Redeem] MUST accept the capability_token as the whole call.
 Operation 21: [Redeem] MUST NOT accept an identity input.
 Operation 22: [Redeem] MUST NOT record a redeemer's identity.
 Operation 23: IF the capability_token names no capability THEN [Redeem] MUST answer not-known.
-Operation 24: IF the capability stands in redeemed THEN [Redeem] MUST answer exhausted.
-Operation 25: IF the capability stands in revoked THEN [Redeem] MUST answer revoked.
+Operation 24: IF the capability's status EQUALS redeemed THEN [Redeem] MUST answer exhausted.
+Operation 25: IF the capability's status EQUALS revoked THEN [Redeem] MUST answer revoked.
 Operation 26: IF the capability is lapsed THEN [Redeem] MUST answer expired.
-Operation 27: [Redeem] MUST answer expired ONLY IF the capability stands in allocated.
-Operation 28: [Redeem] MUST answer redeemed ONLY IF the capability stands in allocated AND the capability is not lapsed.
+Operation 27: [Redeem] MUST answer expired ONLY IF the capability's status EQUALS allocated.
+Operation 28: [Redeem] MUST answer redeemed ONLY IF the capability's status EQUALS allocated AND the capability is not lapsed.
 Operation 29: [Redeem] MUST carry the scope and the allocator_ref in a redeemed answer.
 Operation 30: A redeeming [Redeem] MUST lower remaining_redemptions by one.
 Operation 31: A refused [Redeem] MUST NOT lower remaining_redemptions.
@@ -190,8 +190,8 @@ Operation 32: IF remaining_redemptions reaches zero THEN [Redeem] MUST stand the
 Operation 33: IF remaining_redemptions reaches zero THEN [Redeem] MUST stamp redeemed_at from the injected now.
 Operation 34: [Redeem] MUST commit the lowering and the exhausting move in one operation.
 Operation 35: IF the capability_token names no capability THEN [Revoke] MUST answer not-known.
-Operation 36: IF the capability stands in redeemed THEN [Revoke] MUST answer already-terminal.
-Operation 37: IF the capability stands in revoked THEN [Revoke] MUST answer already-terminal.
+Operation 36: IF the capability's status EQUALS redeemed THEN [Revoke] MUST answer already-terminal.
+Operation 37: IF the capability's status EQUALS revoked THEN [Revoke] MUST answer already-terminal.
 Operation 38: IF the capability is lapsed THEN [Revoke] MUST answer already-terminal.
 Operation 39: IF the capability is revocable AND revoked_by_ref EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 40: IF the capability is revocable AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
@@ -245,9 +245,9 @@ Term expiry deadline: `allocated_at + ttl` — what [Allocate] stores as expires
 
 Term expires_at: the instant the capability's window closes — an [Expires At]; stamped at allocation, never changed, never absent.
 
-Term lapsed: the capability stands in allocated and now is no earlier than the capability's expires_at — the condition the guards derive and never stamp.
+Term lapsed: the capability's status EQUALS allocated and now is no earlier than the capability's expires_at — the condition the guards derive and never stamp.
 
-Term revocable: the capability stands in allocated and the capability is not lapsed — what [Revoke] requires.
+Term revocable: the capability's status EQUALS allocated and the capability is not lapsed — what [Revoke] requires.
 
 Term effective_status: expired where the capability is lapsed, and the stored status otherwise — an [Effective Status]; a pure projection over the capability and now, never stored.
 

@@ -168,14 +168,14 @@ Operation 14: [Grant] MUST answer storage-failure ONLY IF EVERY grant guard pass
 Operation 15: IF consent_id EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 16: IF the consent_id names no consent record THEN [Revoke] MUST answer not-known.
 Operation 17: [Revoke] MUST answer not-known ONLY IF consent_id DOES NOT EQUAL blank.
-Operation 18: IF the consent record stands in revoked THEN [Revoke] MUST answer already-revoked.
-Operation 19: IF the consent record stands in expired THEN [Revoke] MUST answer already-expired.
+Operation 18: IF the consent record's state EQUALS revoked THEN [Revoke] MUST answer already-revoked.
+Operation 19: IF the consent record's state EQUALS expired THEN [Revoke] MUST answer already-expired.
 Operation 20: [Revoke] MUST resolve revoked_at from the call.
 Operation 21: [Revoke] MUST resolve revoked_at from the injected now ONLY IF the call supplied a blank revoked_at.
-Operation 22: IF the consent record stands in granted AND revoked_by EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Operation 23: IF the consent record stands in granted AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Operation 24: IF the consent record stands in granted AND the resolved revoked_at EXCEEDS now THEN [Revoke] MUST answer invalid-request.
-Operation 25: IF the consent record stands in granted AND granted_at EXCEEDS the resolved revoked_at THEN [Revoke] MUST answer invalid-request.
+Operation 22: IF the consent record's state EQUALS granted AND revoked_by EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 23: IF the consent record's state EQUALS granted AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 24: IF the consent record's state EQUALS granted AND the resolved revoked_at EXCEEDS now THEN [Revoke] MUST answer invalid-request.
+Operation 25: IF the consent record's state EQUALS granted AND granted_at EXCEEDS the resolved revoked_at THEN [Revoke] MUST answer invalid-request.
 Operation 26: [Revoke] MUST stand the consent record in revoked.
 Operation 27: [Revoke] MUST record revoked_by on the consent record.
 Operation 28: [Revoke] MUST record the reason as the revocation_reason.

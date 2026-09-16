@@ -171,14 +171,14 @@ Operation 9: An admitted submit MUST answer the step_id.
 Operation 10: IF step_id EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 11: IF the step_id names no step THEN a resolving action MUST answer not-known.
 Operation 12: A resolving action MUST answer not-known ONLY IF step_id DOES NOT EQUAL blank.
-Operation 13: IF the step stands in a terminal state THEN a resolving action MUST answer not-pending.
+Operation 13: IF the step's state IS IN the terminal states THEN a resolving action MUST answer not-pending.
 Operation 14: A resolving action MUST answer not-pending ONLY IF the step_id names a step.
 Operation 15: IF the deciding reference EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 16: IF reason EQUALS blank THEN [Reject] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN [Withdraw] MUST answer invalid-request.
 Operation 18: IF the resolved decision instant EXCEEDS now THEN a resolving action MUST answer invalid-request.
 Operation 19: IF the resolved decision instant precedes the step's submitted_at THEN a resolving action MUST answer invalid-request.
-Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step stands in pending.
+Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step's state EQUALS pending.
 Operation 21: IF decided_by DOES NOT EQUAL approver_ref THEN a deciding action MUST answer unauthorized.
 Operation 22: IF withdrawn_by DOES NOT EQUAL submitter_ref THEN [Withdraw] MUST answer unauthorized.
 Operation 23: A resolving action MUST answer unauthorized ONLY IF EVERY attribution check passes.
@@ -286,7 +286,7 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
   ```
 - **Invariant 3 — Terminal absorption.**
   ```
-  Invariant 3.1: A step standing in a terminal state MUST NOT leave the terminal state.
+  Invariant 3.1: A step whose state IS IN the terminal states MUST NOT leave the terminal state.
   ```
   WHY: all three terminals absorb, and the atom carries no re-open, re-activate or reversal surface (State 2, State 3). A decision made in error is answered by a new [Submit] naming the relationship to the original, which produces a more complete record than a reversal: an auditor sees the first decision and the correction, in order, rather than a record that no longer says what happened.
 - **Invariant 4 — Approver exclusivity.**
@@ -381,7 +381,7 @@ This atom's acceptance is what an external auditor can clear from the step store
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY step standing in EXACTLY ONE OF pending, approved, rejected, withdrawn (Invariant 2.1).
+Check 1.1: An auditor MUST find EVERY step whose state EQUALS EXACTLY ONE OF pending, approved, rejected, withdrawn (Invariant 2.1).
 Check 2.1: An auditor MUST find a non-whitespace character in EVERY step's step_id, subject_ref, approver_ref, submitter_ref and scope (Invariant 8.1).
 Check 2.2: An auditor MUST find a submitted_at on EVERY step (Invariant 8.2).
 Check 3.1: An auditor MUST find a non-whitespace character in EVERY terminal step's attribution reference (Invariant 6.1).
@@ -395,7 +395,7 @@ Check 4.3: An auditor MUST find EVERY withdrawn step's withdrawn_by equal to the
 Check 5.1: An auditor MUST find no attribution field on a pending step (State 13).
 Check 6.1: An auditor MUST find no step absent from a later unfiltered read (Invariant 10.1).
 Check 6.2: An auditor MUST find a re-read step's submission fields unchanged from the prior read (Invariant 1.1).
-Check 6.3: An auditor MUST find no step standing in pending on a later read of a step a prior read found terminal (Invariant 3.1).
+Check 6.3: An auditor MUST find no step whose state EQUALS pending on a later read of a step a prior read found terminal (Invariant 3.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.

@@ -135,14 +135,14 @@ Operation 5: IF assignee_ref EQUALS blank THEN [Assign] MUST answer invalid-requ
 Operation 6: IF an active assignment EXISTS for the task_ref THEN [Assign] MUST answer already-assigned.
 Operation 7: IF the store refuses the write THEN [Assign] MUST answer storage-failure.
 Operation 8: IF no assignment EXISTS for the assignment_id THEN [Recall] MUST answer not-known.
-Operation 9: IF the assignment stands in recalled THEN [Recall] MUST answer not-active.
-Operation 10: IF the assignment stands in transferred THEN [Recall] MUST answer not-active.
+Operation 9: IF the assignment's status EQUALS recalled THEN [Recall] MUST answer not-active.
+Operation 10: IF the assignment's status EQUALS transferred THEN [Recall] MUST answer not-active.
 Operation 11: [Recall] MUST stand the assignment in recalled.
 Operation 12: [Recall] MUST leave the task_ref with no active assignment.
 Operation 13: IF the store refuses the write THEN [Recall] MUST answer storage-failure.
 Operation 14: IF no assignment EXISTS for the assignment_id THEN [Reassign] MUST answer not-known.
-Operation 15: IF the assignment stands in recalled THEN [Reassign] MUST answer not-active.
-Operation 16: IF the assignment stands in transferred THEN [Reassign] MUST answer not-active.
+Operation 15: IF the assignment's status EQUALS recalled THEN [Reassign] MUST answer not-active.
+Operation 16: IF the assignment's status EQUALS transferred THEN [Reassign] MUST answer not-active.
 Operation 17: IF new_assignee_ref EQUALS blank THEN [Reassign] MUST answer invalid-request.
 Operation 18: [Reassign] MUST stand the old assignment in transferred.
 Operation 19: [Reassign] MUST record EXACTLY ONE active assignment for the task_ref.
@@ -288,7 +288,7 @@ This atom's acceptance is what an external auditor can clear from the assignment
 Check 1.1: An auditor MUST find no task_ref carrying two active assignments (Invariant 1.1).
 Check 2.1: An auditor MUST reconstruct a task's chain of responsibility from the assignments carrying the task_ref (Invariant 9.1, Invariant 9.2, Invariant 9.3).
 Check 2.2: An auditor MUST read a recalled assignment as the task standing unassigned at recalled_at (Operation 12).
-Check 2.3: An auditor MUST read a transferred assignment as a successor standing active at transferred_at (Invariant 7.1, Invariant 7.2).
+Check 2.3: An auditor MUST read a transferred assignment as a successor whose status EQUALS active at transferred_at (Invariant 7.1, Invariant 7.2).
 Check 3.1: An auditor MUST find no assignment whose status moved out of a terminal status (Invariant 3.2, Invariant 4.1, Invariant 4.2).
 Check 4.1: An auditor MUST find no assignment whose assigned_at EXCEEDS the assignment's terminal stamp (Invariant 8.1, Invariant 8.2).
 Check 5.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).

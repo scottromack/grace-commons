@@ -175,12 +175,12 @@ Operation 12: An admitted initiate MUST record the expiry bound as expires_at.
 Operation 13: An admitted initiate MUST stand the invitation in pending.
 Operation 14: An admitted initiate MUST answer the invitation_token.
 Operation 15: IF the invitation_token names no invitation THEN a resolving write MUST answer not-known.
-Operation 16: IF the invitation stands in a stored terminal THEN a resolving write MUST answer already-resolved.
-Operation 17: A resolving write answering already-resolved MUST name the stored terminal the invitation stands in.
+Operation 16: IF the invitation's status IS IN the stored terminals THEN a resolving write MUST answer already-resolved.
+Operation 17: A resolving write answering already-resolved MUST name the invitation's status.
 Operation 18: A resolving write MUST NOT name expired as a stored terminal.
 Operation 19: A resolving write MUST answer already-resolved ONLY IF the invitation_token names an invitation.
 Operation 20: IF the invitation reads lapsed THEN a resolving write MUST answer expired.
-Operation 21: A resolving write MUST answer expired ONLY IF the invitation stands in pending.
+Operation 21: A resolving write MUST answer expired ONLY IF the invitation's status EQUALS pending.
 Operation 22: A refused resolving write MUST NOT record a field.
 Operation 23: IF accepting_identity_ref EQUALS blank THEN [Accept] MUST answer invalid-request.
 Operation 24: IF revoked_by_ref EQUALS blank THEN [Revoke] MUST answer invalid-request.
@@ -358,7 +358,7 @@ This atom's acceptance is what an external auditor can clear from the invitation
 
 ```
 Check 1.1: An auditor MUST find no invitation carrying two resolution instants (Invariant 2.2).
-Check 1.2: An auditor MUST find EXACTLY ONE resolution instant on EVERY invitation standing in a stored terminal (State 3, State 4, State 5).
+Check 1.2: An auditor MUST find EXACTLY ONE resolution instant on EVERY invitation whose status IS IN the stored terminals (State 3, State 4, State 5).
 Check 1.3: An auditor MUST find no resolution field on a pending invitation (State 6).
 Check 2.1: An auditor MUST find no invitation storing expired as a status (State 7).
 Check 2.2: An auditor MUST find no invitation carrying an expiry instant (State 8).

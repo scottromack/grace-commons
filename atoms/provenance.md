@@ -165,10 +165,10 @@ Operation 8: An admitted originate MUST stand the chain in open.
 Operation 9: An admitted originate MUST answer the chain_id.
 Operation 10: IF the chain_id names no chain THEN an addressed action MUST answer not-known.
 Operation 11: An addressed action MUST answer not-known ONLY IF the chain_id names no chain.
-Operation 12: IF the chain stands in archived THEN [Transfer] MUST answer archived.
-Operation 13: IF the chain stands in archived THEN [Transform] MUST answer archived.
-Operation 14: IF the chain stands in archived THEN [Disclose] MUST answer archived.
-Operation 15: IF the chain stands in archived THEN [Archive] MUST answer already-archived.
+Operation 12: IF the chain state EQUALS archived THEN [Transfer] MUST answer archived.
+Operation 13: IF the chain state EQUALS archived THEN [Transform] MUST answer archived.
+Operation 14: IF the chain state EQUALS archived THEN [Disclose] MUST answer archived.
+Operation 15: IF the chain state EQUALS archived THEN [Archive] MUST answer already-archived.
 Operation 16: A chain-state rejection MUST answer ONLY IF the chain_id names a chain.
 Operation 17: IF to_custodian_ref EQUALS blank THEN [Transfer] MUST answer invalid-ref.
 Operation 18: [Transfer] MUST NOT accept a from_custodian_ref from the caller.
@@ -400,7 +400,7 @@ Check 4.1: An auditor MUST find a chain's sequence_numbers standing from one to 
 Check 4.2: An auditor MUST reconstruct a chain's order from sequence_number alone (Invariant 5.3).
 Check 5.1: An auditor MUST find no entry in an archived chain following the archived entry's sequence_number (Invariant 6.2).
 Check 6.1: An auditor MUST find a re-read entry's fields unchanged from the prior read (Invariant 1.1).
-Check 7.1: An auditor MUST find EVERY entry's event_type standing in the event types (Invariant 8.1).
+Check 7.1: An auditor MUST find EVERY entry whose event_type IS IN the event types (Invariant 8.1).
 Check 7.2: An auditor MUST find EVERY archived chain's last entry standing at archived (Invariant 8.4).
 Check 7.3: An auditor MUST find no entry_id repeated within a chain (Identity 16).
 Check 7.4: An auditor MUST find no chain_id repeated within a store instance (Identity 15).

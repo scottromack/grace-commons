@@ -176,6 +176,9 @@ RETIRED_CONDITION = (
     (re.compile(r"(?<![!<>=])!="), "`!=`; write DOES NOT EQUAL (Earned vocabulary 12)"),
     (re.compile(r"\b(?:is|are) blank\b"), "`is blank`; a missing value is `EQUALS blank` "
      "(Earned vocabulary 7)"),
+    (re.compile(r"(?:\b(?:IF|WHEN|AND|OR|ONLY IF)\s+|\bwhose\s+)(?:the |a |an )?[a-z][\w' -]*? stands (?:in|outside)\b"),
+     "a state tested with *stands in*; a record's state is a value, `the record's state EQUALS member` "
+     "(Earned vocabulary 15)"),
 )
 RULE_EQUALS = re.compile(r"(?<![!<>=])=(?!=)")
 VALUE_EXISTS = re.compile(r"(?:^|\b(?:IF|WHEN|AND|OR|ONLY IF) )(?:(?:the|a|an|no|EVERY) )?([a-z_][a-z0-9_]*) EXISTS\b")

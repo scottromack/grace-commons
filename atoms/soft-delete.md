@@ -150,10 +150,10 @@ Operation 5: IF the record_id names no lifecycle record THEN [Purge] MUST answer
 Operation 6: [Soft Delete] MUST NOT answer not-known.
 Operation 7: IF the record_id names no lifecycle record THEN an admitted soft delete MUST record the lifecycle record.
 Operation 8: The atom MUST NOT offer a registration action.
-Operation 9: IF the lifecycle record stands in deleted THEN [Soft Delete] MUST answer already-deleted.
-Operation 10: IF the lifecycle record stands in purged THEN [Soft Delete] MUST answer already-purged.
-Operation 11: IF the lifecycle record stands in purged THEN [Restore] MUST answer already-purged.
-Operation 12: IF the lifecycle record stands in active THEN [Restore] MUST answer not-deleted.
+Operation 9: IF the lifecycle record's state EQUALS deleted THEN [Soft Delete] MUST answer already-deleted.
+Operation 10: IF the lifecycle record's state EQUALS purged THEN [Soft Delete] MUST answer already-purged.
+Operation 11: IF the lifecycle record's state EQUALS purged THEN [Restore] MUST answer already-purged.
+Operation 12: IF the lifecycle record's state EQUALS active THEN [Restore] MUST answer not-deleted.
 Operation 13: IF the lifecycle record's state DOES NOT EQUAL deleted THEN [Purge] MUST answer not-deleted.
 Operation 14: A transitioning action MUST answer a state rejection ONLY IF record_id DOES NOT EQUAL blank.
 Operation 15: A transitioning action MUST answer invalid-request on an attribution fault ONLY IF EVERY state check passes.
@@ -221,11 +221,11 @@ Term latest transition instant: the most recent of a lifecycle record's deleted_
 
 Term filter axes: record_id | deleted_by | purged_by | state | deleted_at | restored_at | purged_at — the seven axes [Read] accepts, and no others.
 
-Term admitted soft delete: a [Soft Delete] call whose record_id and deleted_by exist, whose lifecycle record stands outside deleted and purged, and whose resolved deleted_at the guards admit.
+Term admitted soft delete: a [Soft Delete] call whose record_id and deleted_by exist, whose lifecycle record's state EQUALS active, and whose resolved deleted_at the guards admit.
 
-Term admitted restore: a [Restore] call whose record_id names a lifecycle record standing in deleted, and whose restored_by and resolved restored_at the guards admit.
+Term admitted restore: a [Restore] call whose record_id names a lifecycle record whose state EQUALS deleted, and whose restored_by and resolved restored_at the guards admit.
 
-Term admitted purge: a [Purge] call whose record_id names a lifecycle record standing in deleted, and whose purged_by, reason and resolved purged_at the guards admit.
+Term admitted purge: a [Purge] call whose record_id names a lifecycle record whose state EQUALS deleted, and whose purged_by, reason and resolved purged_at the guards admit.
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
@@ -262,7 +262,7 @@ Operation 38 is the scope rule an auditor must read before trusting an empty ans
   ```
 - **Invariant 3 — Purge is terminal.**
   ```
-  Invariant 3.1: A lifecycle record standing in purged MUST NOT leave purged.
+  Invariant 3.1: A lifecycle record whose state EQUALS purged MUST NOT leave purged.
   ```
 - **Invariant 4 — Purge requires a prior deletion.**
   ```
@@ -352,8 +352,8 @@ Check 2.3: An auditor MUST find a purged_at on EVERY purged lifecycle record (In
 Check 2.4: An auditor MUST find no purged lifecycle record's purged_at preceding the record's deleted_at (Invariant 6.1).
 Check 3.1: An auditor MUST find a deleted_by and a deleted_at on EVERY purged lifecycle record (Invariant 4.1).
 Check 3.2: An auditor MUST find a non-whitespace character in EVERY purged lifecycle record's deleted_by (Invariant 4.2).
-Check 4.1: An auditor MUST find EVERY tracked record standing in EXACTLY ONE OF active, deleted, purged (Invariant 2.1).
-Check 4.2: An auditor MUST find no lifecycle record standing outside purged on a later read of a record a prior read found purged (Invariant 3.1).
+Check 4.1: An auditor MUST find EVERY tracked record whose state EQUALS EXACTLY ONE OF active, deleted, purged (Invariant 2.1).
+Check 4.2: An auditor MUST find no lifecycle record whose state DOES NOT EQUAL purged on a later read of a record a prior read found purged (Invariant 3.1).
 Check 5.1: An auditor MUST find a non-whitespace character in EVERY lifecycle record's deleted_by (Invariant 8.1).
 Check 5.2: An auditor MUST find a deleted_at on EVERY lifecycle record (Invariant 8.2).
 Check 5.3: An auditor MUST find a re-read lifecycle record's deletion fields unchanged across an admitted restore (Invariant 1.1).

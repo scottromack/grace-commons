@@ -285,7 +285,7 @@ Check 1.2: An auditor MUST find no permitted answer for a session_token Session'
 Check 1.3: An auditor MUST find no permitted answer for a session_token Session's state shows revoked at the disputed instant (Invariant 1.1, Session Composition note 4).
 Check 2.1: An auditor MUST find Session's state naming the principal_ref a disputed permitted answer rests on (Invariant 2.1).
 Check 2.2: An auditor MUST find Permissions' state carrying an active grant for the disputed pair at the disputed instant (Invariant 4.1).
-Check 3.1: An auditor MUST find EVERY answer of the composition standing in EXACTLY ONE OF permitted, denied, invalid-request, session-invalid (Invariant 3.1, Invariant 3.2).
+Check 3.1: An auditor MUST find EVERY answer of the composition that EQUALS EXACTLY ONE OF permitted, denied, invalid-request, session-invalid (Invariant 3.1, Invariant 3.2).
 ```
 
 NOTE: EVERY check names the rule the check tests.

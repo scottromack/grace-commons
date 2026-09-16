@@ -194,20 +194,20 @@ Operation 9: [Order] MUST NOT answer not-known.
 Operation 10: IF order_id EQUALS blank THEN an order action MUST answer a blank-input rejection.
 Operation 11: IF the order_id names no order THEN an order action MUST answer not-known.
 Operation 12: An order action MUST answer not-known ONLY IF order_id DOES NOT EQUAL blank.
-Operation 13: IF the order stands in on-hold THEN a held-refusing action MUST answer on-hold.
-Operation 14: IF the order stands in an inactive state THEN a state-changing action MUST answer the inactive state's rejection.
-Operation 15: A state-changing action MUST answer an inactive-state rejection ONLY IF the order stands outside on-hold.
+Operation 13: IF the order's state EQUALS on-hold THEN a held-refusing action MUST answer on-hold.
+Operation 14: IF the order's state IS IN the inactive states THEN a state-changing action MUST answer the inactive state's rejection.
+Operation 15: A state-changing action MUST answer an inactive-state rejection ONLY IF the order's state DOES NOT EQUAL on-hold.
 Operation 16: IF the order's state DOES NOT EQUAL ordered THEN [Verify] MUST answer not-in-ordered-state.
 Operation 17: IF the order's state IS NOT IN the pre-dispensing states THEN [Amend] MUST answer already-dispensed.
 Operation 18: IF the order's state IS NOT IN the pre-dispensing states THEN [Cancel] MUST answer already-dispensed.
 Operation 19: IF the order's state DOES NOT EQUAL verified THEN [Dispense] MUST answer not-verified.
-Operation 20: IF the order stands in dispensed THEN [Dispense] MUST answer already-dispensed.
+Operation 20: IF the order's state EQUALS dispensed THEN [Dispense] MUST answer already-dispensed.
 Operation 21: IF the order's state DOES NOT EQUAL dispensed THEN [Administer] MUST answer not-dispensed.
-Operation 22: IF the order stands in administered THEN [Administer] MUST answer already-administered.
+Operation 22: IF the order's state EQUALS administered THEN [Administer] MUST answer already-administered.
 Operation 23: IF the order's state DOES NOT EQUAL administered THEN [Complete] MUST answer not-administered.
 Operation 24: IF the order's state IS NOT IN the post-dispensing states THEN [Discontinue] MUST answer not-dispensed.
 Operation 25: IF the order's state IS NOT IN the actionable states THEN [Hold] MUST answer the order's state rejection.
-Operation 26: IF the order stands in on-hold THEN [Hold] MUST answer already-on-hold.
+Operation 26: IF the order's state EQUALS on-hold THEN [Hold] MUST answer already-on-hold.
 Operation 27: IF the order's state DOES NOT EQUAL on-hold THEN [Reinstate] MUST answer not-on-hold.
 Operation 28: A state-changing action MUST answer a blank-input rejection on a field fault ONLY IF EVERY state check passes.
 Operation 29: IF EVERY supplied dosing parameter matches the order's dosing parameter THEN [Amend] MUST answer invalid-request.
@@ -365,15 +365,15 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   WHY: the second rule carrying the domain, and the reason the two terminals are named differently rather than folded into one *stopped*. A cancelled order means the medication never reached the patient; a discontinued one means it was dispensed or administered and then stopped. Those are different facts for pharmacy accounting, for DEA controlled-substance reconciliation and for an adverse-event investigation, and a single terminal would make them indistinguishable in exactly the record an investigator reads.
 - **Invariant 7 — A terminal state is absorbing.**
   ```
-  Invariant 7.1: An order standing in a terminal state MUST NOT leave the terminal state.
+  Invariant 7.1: An order whose state IS IN the terminal states MUST NOT leave the terminal state.
   ```
 - **Invariant 8 — An amended order is inactive.**
   ```
-  Invariant 8.1: An order standing in amended MUST NOT leave amended.
+  Invariant 8.1: An order whose state EQUALS amended MUST NOT leave amended.
   ```
 - **Invariant 9 — An on-hold order admits only a reinstate.**
   ```
-  Invariant 9.1: A held-refusing action MUST answer on-hold against an order standing in on-hold.
+  Invariant 9.1: A held-refusing action MUST answer on-hold against an order whose state EQUALS on-hold.
   ```
 - **Invariant 10 — Attribution is complete.**
   ```
@@ -443,9 +443,9 @@ This atom's acceptance is what an external auditor can clear from the order stor
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY order standing in EXACTLY ONE OF the states (State 1).
-Check 1.2: An auditor MUST find no order standing outside a terminal state on a later read of an order a prior read found in that terminal state (Invariant 7.1).
-Check 1.3: An auditor MUST find no order standing outside amended on a later read of an order a prior read found amended (Invariant 8.1).
+Check 1.1: An auditor MUST find EVERY order whose state EQUALS EXACTLY ONE OF the states (State 1).
+Check 1.2: An auditor MUST find no order whose state IS NOT IN the terminal states on a later read of an order a prior read found in that terminal state (Invariant 7.1).
+Check 1.3: An auditor MUST find no order whose state DOES NOT EQUAL amended on a later read of an order a prior read found amended (Invariant 8.1).
 Check 2.1: An auditor MUST find a re-read order's core fields unchanged (Invariant 1.1).
 Check 2.2: An auditor MUST find EVERY successor order carrying the original's patient_ref, prescriber_ref and medication_ref (Invariant 2.1).
 Check 2.3: An auditor MUST find no order carrying two successor_ids (Invariant 4.1).
@@ -578,7 +578,7 @@ Concurrency 4 states what the atom does *not* do, because the alternative is tem
 ```
 Indeterminate outcome 1: A caller MUST NOT retry an action whose answer the caller lost BEFORE reading the order.
 Indeterminate outcome 2: A caller MUST NOT read a lost answer as a refusal.
-Indeterminate outcome 3: A caller MUST retry a lost [Amend] ONLY IF the original stands in a pre-dispensing state.
+Indeterminate outcome 3: A caller MUST retry a lost [Amend] ONLY IF the original's state IS IN the pre-dispensing states.
 ```
 
 WHY:
@@ -614,7 +614,7 @@ Composition note 2: A composing Actor Identity MUST attest the actor behind EVER
 Composition note 3: A composing Event Log MUST append an event on EVERY admitted action.
 Composition note 4: A composing Event Log MUST append an event on EVERY refused action.
 Composition note 5: A composing Tamper Evidence MUST cover EVERY order the store holds.
-Composition note 6: A composing Retention Window MUST place an order under retention ONLY IF the order stands in a terminal state.
+Composition note 6: A composing Retention Window MUST place an order under retention ONLY IF the order's state IS IN the terminal states.
 Composition note 7: A composing Legal Hold MUST block a composing retention's purge.
 Composition note 8: A composing Duplicate Prevention MUST map an idempotency token to the order_id an admitted order answered.
 Composition note 9: A composing dose-event pattern MUST name the order_id on EVERY dose event.

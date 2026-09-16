@@ -95,8 +95,8 @@ Identity 14 and Identity 15 are why vocabulary standardization sits outside. LOI
 
 ```
 State 1: EVERY observation MUST stand in EXACTLY ONE OF recorded, amended, retracted.
-State 2: An observation standing in retracted MUST NOT leave retracted.
-State 3: An observation standing in amended MUST NOT return to recorded.
+State 2: An observation whose state EQUALS retracted MUST NOT leave retracted.
+State 3: An observation whose state EQUALS amended MUST NOT return to recorded.
 State 4: The atom MUST NOT offer a purged state.
 State 5: The atom MUST NOT offer a removal surface.
 State 6: The atom MUST NOT offer an edit surface.
@@ -175,8 +175,8 @@ Operation 9: An admitted record MUST stand the observation in recorded.
 Operation 10: An admitted record MUST answer the observation_id.
 Operation 11: IF the observation_id names no observation THEN a chain action MUST answer not-known.
 Operation 12: A chain action MUST answer not-known ONLY IF the observation_id names no observation.
-Operation 13: IF the observation stands in retracted THEN a chain action MUST answer already-retracted.
-Operation 14: IF the observation stands in amended THEN [Amend] MUST answer already-amended.
+Operation 13: IF the observation's state EQUALS retracted THEN a chain action MUST answer already-retracted.
+Operation 14: IF the observation's state EQUALS amended THEN [Amend] MUST answer already-amended.
 Operation 15: A chain action MUST answer a state rejection ONLY IF the observation_id names an observation.
 Operation 16: IF amended_by EQUALS blank THEN [Amend] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN a chain action MUST answer invalid-request.
@@ -200,7 +200,7 @@ Operation 34: An admitted amend MUST answer the successor's observation_id.
 Operation 35: An admitted retract MUST stand the observation in retracted.
 Operation 36: An admitted retract MUST record retracted_by and reason as retraction_reason.
 Operation 37: An admitted retract MUST answer retracted.
-Operation 38: An observation standing in amended MUST NOT refuse [Retract].
+Operation 38: An observation whose state EQUALS amended MUST NOT refuse [Retract].
 Operation 39: IF the store refuses the write THEN a writing action MUST answer storage-failure.
 Operation 40: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 41: A refused action MUST leave the store as the call found the store.
@@ -252,9 +252,9 @@ Term filter axes: observation_id | subject_ref | observation_type | state | reco
 
 Term admitted record: a [Record] call whose references, observation_type, unit, value constraint, value and resolved recorded_at the guards all admit.
 
-Term admitted amend: an [Amend] call whose observation_id names an observation standing in recorded, and whose amended_by, reason, value and unit the guards admit.
+Term admitted amend: an [Amend] call whose observation_id names an observation whose state EQUALS recorded, and whose amended_by, reason, value and unit the guards admit.
 
-Term admitted retract: a [Retract] call whose observation_id names an observation standing outside retracted, and whose retracted_by and reason the guards admit.
+Term admitted retract: a [Retract] call whose observation_id names an observation whose state DOES NOT EQUAL retracted, and whose retracted_by and reason the guards admit.
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
@@ -305,7 +305,7 @@ Operation 43 admits a limit rather than inventing an order. Two observations sha
   WHY: the same construction (Operation 22), and the friction is the point. A chain models one measurement's corrections, so an observer who recorded the wrong measurement is not correcting a value — they recorded something that did not happen, which retraction says and amendment does not.
 - **Invariant 6 — Retraction is terminal.**
   ```
-  Invariant 6.1: An observation standing in retracted MUST NOT admit a chain action.
+  Invariant 6.1: An observation whose state EQUALS retracted MUST NOT admit a chain action.
   ```
 - **Invariant 7 — Store durability.**
   ```
@@ -385,7 +385,7 @@ Check 2.3: An auditor MUST find EVERY observation in one amendment chain sharing
 Check 2.4: An auditor MUST find EVERY observation in one amendment chain sharing one observation_type (Invariant 5.1).
 Check 2.5: An auditor MUST find no observation carrying two successor_ids (Invariant 3.1).
 Check 2.6: An auditor MUST find no observation carrying two predecessor_ids (Invariant 3.2).
-Check 3.1: An auditor MUST find no observation standing outside retracted on a later read of an observation a prior read found retracted (Invariant 6.1).
+Check 3.1: An auditor MUST find no observation whose state DOES NOT EQUAL retracted on a later read of an observation a prior read found retracted (Invariant 6.1).
 Check 4.1: An auditor MUST find no observation absent from a later read (Invariant 7.1).
 Check 5.1: An auditor MUST find a non-whitespace character in EVERY observation's recorded_by (Operation 2, String 5).
 Check 5.2: An auditor MUST find a non-whitespace character in EVERY retracted observation's retracted_by and retraction_reason (Operation 17, Operation 18).

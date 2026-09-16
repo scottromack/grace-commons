@@ -176,12 +176,12 @@ Operation 11: An admitted place hold MUST record the window bound as expires_at.
 Operation 12: An admitted place hold MUST stand the commitment in held.
 Operation 13: An admitted place hold MUST answer the id.
 Operation 14: IF the id names no commitment THEN a resolving action MUST answer not-known.
-Operation 15: IF the commitment stands in a terminal state THEN a resolving action MUST answer not-held.
+Operation 15: IF the commitment's state IS IN the terminal states THEN a resolving action MUST answer not-held.
 Operation 16: A resolving action MUST answer not-held ONLY IF the id names a commitment.
 Operation 17: IF the commitment reads lapsed THEN [Confirm] MUST answer window-elapsed.
 Operation 18: IF the commitment reads lapsed THEN [Release] MUST answer window-elapsed.
 Operation 19: IF the commitment reads open THEN [Expire] MUST answer window-not-elapsed.
-Operation 20: A resolving action MUST answer a window rejection ONLY IF the commitment stands in held.
+Operation 20: A resolving action MUST answer a window rejection ONLY IF the commitment's state EQUALS held.
 Operation 21: An admitted confirm MUST stand the commitment in confirmed.
 Operation 22: An admitted release MUST stand the commitment in released.
 Operation 23: An admitted expire MUST stand the commitment in expired.
@@ -258,7 +258,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   WHY: the atom's central guarantee, and the one an implementation most often breaks under concurrency; Concurrency 1 states the mechanism that delivers it. Both rules are *at most one*, and that is deliberate. A draft of this migration carried a third — *EXACTLY ONE resolving action against one commitment MUST commit* — whose only content beyond these two was *at least one*, which is liveness this atom cannot deliver: it decides nothing about when [Expire] fires (Non-goal 13) and licenses lazy expiry, under which a never-touched lapsed commitment never resolves. Non-goal 25 states that limit and Capability requirement 12 is where a deployment may close it. The model agrees with the rules as they now stand rather than as the draft stated them: `provisional-commitment.cfg` declares `INVARIANT Safety` and no temporal property, and `Inv_SingleResolution` checks that a written resolution matches the state — the at-most-one half, silent on whether any resolution is ever written (council read 38).
 - **Invariant 3 — Terminal absorption.**
   ```
-  Invariant 3.1: A commitment standing in a terminal state MUST NOT leave the terminal state.
+  Invariant 3.1: A commitment whose state IS IN the terminal states MUST NOT leave the terminal state.
   Deleted: Invariant 4. Identity 4 owns id stability.
   ```
 - **Invariant 5 — Property immutability.**
@@ -294,9 +294,9 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
 
 Term degenerate window: a commitment whose expires_at does not exceed the commitment's placed_at.
 
-Term late resolution: a commitment standing in confirmed whose expires_at does not exceed the commitment's confirmed_at, OR one standing in released whose expires_at does not exceed the commitment's released_at.
+Term late resolution: a commitment whose state EQUALS confirmed and whose expires_at does not exceed the commitment's confirmed_at, OR one whose state EQUALS released and whose expires_at does not exceed the commitment's released_at.
 
-Term premature expiry: a commitment standing in expired whose expired_at precedes the commitment's expires_at.
+Term premature expiry: a commitment whose state EQUALS expired and whose expired_at precedes the commitment's expires_at.
 
 Term re-hold: a [Place Hold] naming a resource and a requester a resolved commitment already names.
 
@@ -350,11 +350,11 @@ This atom's acceptance is what an external auditor can clear from the commitment
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY commitment standing in EXACTLY ONE OF held, confirmed, released, expired (Invariant 1.1).
-Check 1.2: An auditor MUST find a terminal instant on EVERY commitment standing in a terminal state (State 2, State 3, State 4).
+Check 1.1: An auditor MUST find EVERY commitment whose state EQUALS EXACTLY ONE OF held, confirmed, released, expired (Invariant 1.1).
+Check 1.2: An auditor MUST find a terminal instant on EVERY commitment whose state IS IN the terminal states (State 2, State 3, State 4).
 Check 1.3: An auditor MUST find no terminal instant on a held commitment (State 5).
 Check 2.1: An auditor MUST find no commitment carrying two terminal instants (Invariant 2.2).
-Check 2.2: An auditor MUST find no commitment standing outside a terminal state on a later read of a commitment a prior read found in that terminal state (Invariant 3.1).
+Check 2.2: An auditor MUST find no commitment whose state IS NOT IN the terminal states on a later read of a commitment a prior read found in that terminal state (Invariant 3.1).
 Check 3.1: An auditor MUST find no late resolution in the store (Invariant 7.1).
 Check 3.2: An auditor MUST find no premature expiry in the store (Invariant 7.2).
 Check 3.3: An auditor MUST find no degenerate window in the store (Invariant 6.1).
@@ -480,7 +480,7 @@ Composition note 1: A composing Duplicate Prevention MUST map an idempotency tok
 Composition note 2: A composing Duplicate Prevention MUST answer a repeated token with the mapped id.
 Composition note 3: A composing Event Log MUST append an event on EVERY admitted action.
 Composition note 4: A composing Event Log MUST append an event on EVERY refused action.
-Composition note 5: A composing Retention Window MUST place a commitment under retention ONLY IF the commitment stands in a terminal state.
+Composition note 5: A composing Retention Window MUST place a commitment under retention ONLY IF the commitment's state IS IN the terminal states.
 Composition note 6: A composing capacity constraint pattern MUST read the pool's capacity rule PER place hold.
 Composition note 7: A composing capacity constraint pattern MUST NOT call [Place Hold] BEFORE the capacity decision.
 Composition note 8: A composing capacity constraint pattern MUST return the pool slot on a releasing action.

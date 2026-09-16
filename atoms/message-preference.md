@@ -177,14 +177,14 @@ Operation 14: IF a preference record currently in effect EXISTS for the principa
 Operation 15: [Set] MUST commit the new preference record and the supersession in one operation.
 Operation 16: IF the store refuses the write THEN [Set] MUST answer storage-failure.
 Operation 17: IF no preference record EXISTS for the preference_id THEN [Suspend] MUST answer not-known.
-Operation 18: IF the preference record stands in suspended THEN [Suspend] MUST answer not-active.
-Operation 19: IF the preference record stands in deleted THEN [Suspend] MUST answer not-active.
+Operation 18: IF the preference record's status EQUALS suspended THEN [Suspend] MUST answer not-active.
+Operation 19: IF the preference record's status EQUALS deleted THEN [Suspend] MUST answer not-active.
 Operation 20: [Suspend] MUST stand the preference record in suspended.
 Operation 21: [Suspend] MUST NOT change a preference field.
 Operation 22: [Suspend] MUST accept the preference_id as the whole authorization.
 Operation 23: IF the store refuses the write THEN [Suspend] MUST answer storage-failure.
 Operation 24: IF no preference record EXISTS for the preference_id THEN [Delete] MUST answer not-known.
-Operation 25: IF the preference record stands in deleted THEN [Delete] MUST answer already-deleted.
+Operation 25: IF the preference record's status EQUALS deleted THEN [Delete] MUST answer already-deleted.
 Operation 26: [Delete] MUST stand the preference record in deleted.
 Operation 27: [Delete] MUST NOT remove the preference record from the store.
 Operation 28: [Delete] MUST accept the preference_id as the whole authorization.
@@ -207,7 +207,7 @@ Deleted: Operation 43. Clock dependence 2 owns it.
 
 Term preference field: channel_preferences | frequency_limit | quiet_hours | format — the four values a [Set] call must carry one of; metadata is not one.
 
-Term currently in effect: a preference record standing in active OR in suspended — what at-most-one ranges over and what [Current For] answers.
+Term currently in effect: a preference record whose status EQUALS active OR in suspended — what at-most-one ranges over and what [Current For] answers.
 
 Term supersession: the one operation in which a [Set] call stands a principal's prior preference record in deleted and records the new preference record.
 

@@ -107,7 +107,7 @@ Action wiring 11: IF the recall answers storage-failure THEN an admitted delete 
 Action wiring 12: IF the recall answers storage-failure THEN an admitted delete MUST NOT call Personal Todo's delete.
 Action wiring 13: An admitted assign MUST answer not-known for a task_id the Personal Todo instance does not carry.
 Action wiring 14: An admitted assign MUST call Assignment's assign ONLY AFTER the task_id's existence check clears.
-Action wiring 15: An admitted assign MUST accept a task_id standing in done.
+Action wiring 15: An admitted assign MUST accept a task_id whose unit state EQUALS done.
 Action wiring 16: An admitted reassign MUST call Assignment's reassign with the assignment_id and the new_assignee_ref.
 Action wiring 17: An admitted recall MUST call Assignment's recall with the assignment_id.
 Action wiring 18: The composition MUST answer the constituent's answer.
@@ -256,7 +256,7 @@ The closing claim above is the acceptance bar and this section distributes it: *
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY assignment of a deleted task standing in EXACTLY ONE OF recalled, transferred (Invariant 3.1).
+Check 1.1: An auditor MUST find EVERY assignment of a deleted task whose status EQUALS EXACTLY ONE OF recalled, transferred (Invariant 3.1).
 Check 1.2: An auditor MUST find no active assignment naming a task_id the Personal Todo store does not carry (Invariant 3.2).
 Check 2.1: An auditor MUST find no task_id carrying two active assignments in the Assignment store (Invariant 2.1).
 Check 3.1: An auditor MUST find a task's responsible actor from the Assignment store (Invariant 4.1).
