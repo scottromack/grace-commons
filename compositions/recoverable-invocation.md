@@ -1128,7 +1128,7 @@ An escalated entry becomes resolved when an operator's abandonment names it, and
 
 - **Invariant 9 — Constituent invariants preserved.**
   ```
-  Invariant 9.1: EVERY Audit Trail invariant (1–8) MUST hold over the journal instance, and transitively every invariant of Audit Trail's four constituents.
+  Invariant 9.1: Audit Trail Invariant 1 through 8 MUST hold over the journal instance, and transitively every invariant of Audit Trail's four constituents.
   Invariant 9.2: This composition MUST NOT write to the adopter's constituent store.
   Invariant 9.3: The adopter's commit partition MUST transcribe the constituent's arms as the constituent states the arms.
   ```

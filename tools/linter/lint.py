@@ -2760,6 +2760,10 @@ def check_range_form(root: Path) -> list[Finding]:
         (re.compile(lead + r" " + first + r" to " + last),
          "*to*, which does not say whether the last is in"),
     ]
+    # the family written in any case, singular or plural, with the numbers in
+    # parentheses: `all Audit Trail invariants (1–8)` (council read 95)
+    retired.append((re.compile(r"(?i)(?<![\w-])(" + alt + r")s? \((\d+(?:\.\d+)?)\s*[–—-]\s*(\d+(?:\.\d+)?)\)"),
+                    "the numbers in parentheses"))
     written = re.compile(lead + r" " + first + r" through " + last)
     md_files: list[Path] = []
     for dirpath, dirnames, filenames in os.walk(root):

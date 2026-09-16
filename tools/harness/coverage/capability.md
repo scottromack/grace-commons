@@ -16,7 +16,7 @@
 
 ## Step 2 — coverage matrix
 
-One row per numbered Invariant (1–13) plus the two emergent claims and the load-bearing lapsed-cannot-be-redeemed guarantee.
+One row per numbered invariant, Invariant 1 through 13, plus the two emergent claims and the load-bearing lapsed-cannot-be-redeemed guarantee.
 
 | Spec claim (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|

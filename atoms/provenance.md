@@ -328,10 +328,11 @@ archived and already-archived are two answers to one state because they tell a r
   Invariant 8.3: A non-genesis entry's event_type MUST NOT stand in the genesis types.
   Invariant 8.4: An archived chain's last entry's event_type MUST stand at archived.
   ```
-- **Invariant 9 — Chain durability over this atom's own surface.**
+- **Invariant 10 — Chain durability over this atom's own surface.**
   ```
-  Invariant 9.1: The chain count MUST NOT fall under the atom's actions.
-  Invariant 9.2: A storage-failure rejection MUST leave no partial record in the store.
+  Deleted: Invariant 9. Identity 15 and Identity 16 own id uniqueness.
+  Invariant 10.1: The chain count MUST NOT fall under the atom's actions.
+  Invariant 10.2: A storage-failure rejection MUST leave no partial record in the store.
   ```
   WHY: scoped to the atom's own surface. Lawful disposal under a composed [Retention Window](./retention-window.md) or [Defensible Retention](../compositions/defensible-retention.md) is that pattern's declared and recorded act (Non-goal 19, Non-goal 20).
 
@@ -470,7 +471,7 @@ Term uncommitted crash: a crash BEFORE an appending action's commit lands.
 Term dangling transition: an appending action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
 
 WHY:
-Every append couples at least two durable mutations — the entry and the counter raise — and [Transfer] and [Archive] carry a third (Operation 36 through 38). The obligation is an observability guarantee, all-or-none: a partly applied append is not a transient condition an implementation may expose and repair later; it must never be servable. A [Storage Failure] answer carries the same guarantee from the caller's side (Operation 41, Invariant 9.2).
+Every append couples at least two durable mutations — the entry and the counter raise — and [Transfer] and [Archive] carry a third (Operation 36 through 38). The obligation is an observability guarantee, all-or-none: a partly applied append is not a transient condition an implementation may expose and repair later; it must never be servable. A [Storage Failure] answer carries the same guarantee from the caller's side (Operation 41, Invariant 10.2).
 
 ### Clock dependence
 
@@ -531,7 +532,7 @@ Term blank: a value that is absent, empty, or carries only whitespace — what e
 Term maximum length: the deployment's cap per string input.
 
 WHY:
-The cap's value is a deployment choice; the cap's existence is part of the contract. An uncapped opaque field turns an append-only chain that is never deleted (Invariant 9.1) into an unbounded-payload sink, and a regulated store must be able to state its maximum record size.
+The cap's value is a deployment choice; the cap's existence is part of the contract. An uncapped opaque field turns an append-only chain that is never deleted (Invariant 10.1) into an unbounded-payload sink, and a regulated store must be able to state its maximum record size.
 
 A whitespace-only descriptor answers invalid-descriptor rather than invalid-ref because a descriptor is content, not a reference (Operation 24). An opaque transformation that cannot be described at all is a gap in the chain's story, not a transformation entry.
 
@@ -794,7 +795,7 @@ Projects:  invalid-genesis-type
 
 #### Storage Failure
 
-The rejection any action returns when its store write fails after all preconditions pass; guarantees no partial record is observable (Invariant 9).
+The rejection any action returns when its store write fails after all preconditions pass; guarantees no partial record is observable (Invariant 10).
 
 Kind:      Member
 Member of: the action rejection
@@ -932,7 +933,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-12 — Rewritten in GRACE lang v0.39; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the six actions as a signature block, Invariant 1 through 8 keeping their numbers and their sub-rule numbering, every success effect conditioned on a declared admitted originate / admitted transfer / admitted transform / admitted disclose / admitted archive so no effect binds a refused call (Hard invariant 16), rejection precedence carried by `Operation 11`, `Operation 16` and `Operation 27` rather than by a WHY note, the seven acceptance areas raised to `Check 1.1 through 7.4`, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and five edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`, `Correction`), the Composition notes prose raised to `Composition note 1 through 8` with the named compositions moved into the WHY. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into provenance` found nothing in the corpus citing this atom by label, so the rewrite carried no frozen-number risk.
 
-- **2026-09-12 — Id uniqueness and the archived read are stated once.** *Chose:* the former Invariant 9 (no id reuse) is carried by `Identity 15` and `Identity 16` in the Identity model, and the former archived-chain-admits-a-read invariant by `Operation 53` on the action surface; the durability invariant took the freed number 9. *Over:* keeping both copies for emphasis. *Because:* Authority 3 — two rules must not claim authority for one proposition, and the identity model is where identity rules sit. Both duplicates were found by the checker, not by a reader.
+- **2026-09-12 — Id uniqueness and the archived read are stated once.** *Chose:* the former Invariant 9 (no id reuse) is carried by `Identity 15` and `Identity 16` in the Identity model, and the former archived-chain-admits-a-read invariant by `Operation 53` on the action surface; the durability invariant took the freed number 9 — a renumbering Hard invariant 26 and Hard invariant 27 forbid, which left Chain of Custody's citation of Provenance's ten invariants pointing past the end; council read 95 returned durability to Invariant 10 and tombstoned Invariant 9. *Over:* keeping both copies for emphasis. *Because:* Authority 3 — two rules must not claim authority for one proposition, and the identity model is where identity rules sit. Both duplicates were found by the checker, not by a reader.
 
 - **2026-09-12 — The transferred entry carries the custodian pair in place of a single custodian_ref, not beside it.** *Chose:* `State 4` bounded to a non-transferred entry, `State 5` stating the exclusion, `Invariant 7.1` and `Check 1.1` bounded to match. *Over:* the rewrite's `EVERY entry MUST carry a custodian_ref`, which was mine and wrong. *Because:* the prose State section said the single field "is replaced by" the pair, and the preserved [Custodian Ref] term entry says so too — a rewritten rule contradicted a term entry the migration carried across byte-identical. Found by GLM on a first council read of this atom; the witness was the untouched half of the document, which is the argument for preserving term entries verbatim through a migration.
 

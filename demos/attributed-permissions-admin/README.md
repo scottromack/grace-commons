@@ -45,7 +45,7 @@ deno task test       # run all tests
 ## Tests
 
 - `attribution.test.ts` — issue_grant and revoke_grant happy/rejection paths; verify_grant_attribution for active and revoked grants.
-- `invariants.test.ts` — One test per invariant (1–8), each labelled with its Alloy assertion name. This is the primary spec-conformance file.
+- `invariants.test.ts` — One test per invariant, Invariant 1 through 8, each labelled with its Alloy assertion name. This is the primary spec-conformance file.
 - `scenarios.test.ts` — HTTP-level walkthroughs via `app.fetch()` covering SOX, HIPAA, and PCI DSS scenarios, plus the `/verify` and `/orphans` endpoints.
 
 ## Implementation findings

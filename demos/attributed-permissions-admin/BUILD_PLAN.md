@@ -74,7 +74,7 @@ Tests use `DB_PATH=:memory:` and are fully isolated per file.
 | File | What it covers |
 |---|---|
 | `attribution.test.ts` | issue_grant and revoke_grant happy/error paths; verify_grant_attribution |
-| `invariants.test.ts` | One test per invariant (1–8), each labelled with Alloy assertion name |
+| `invariants.test.ts` | One test per invariant, Invariant 1 through 8, each labelled with Alloy assertion name |
 | `scenarios.test.ts` | HTTP-level walkthroughs via app.fetch() for SOX, HIPAA, PCI DSS scenarios |
 
 ---

@@ -1042,10 +1042,12 @@ def check_range_form_synthetic(problems: list[str]) -> int:
     grammar = ("```\nOperation 1: x.\nInvariant 2.1: x.\nreconcile step 5.2: x.\n```\n")
     silent = ["Operation 3 through 7", "Invariant 2.1 through 2.4",
               "reconcile step 5.2 through 5.4", "the retired `Operation 3–7`",
-              "GDPR Articles 5–6", "renumbered Operation 3 to Operation 7"]
+              "GDPR Articles 5–6", "renumbered Operation 3 to Operation 7",
+              "quoted `all Operation invariants (1–8)`"]
     firing = ["Operation 3–7", "Operation 3 through Operation 7", "Operations 3–7",
               "Operation 3 to 7", "Operation 7 through 3", "Operation 2 through 2",
-              "Invariant 2.1 through 4"]
+              "Invariant 2.1 through 4", "all Operation invariants (1–8)",
+              "EVERY Invariant (2.1–2.4)"]
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
         (root / "GRACE-lang.md").write_text(grammar, encoding="utf-8")

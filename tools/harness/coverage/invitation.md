@@ -17,7 +17,7 @@
 
 ## Step 2 — coverage matrix
 
-One row per numbered Invariant (1–12).
+One row per numbered invariant, Invariant 1 through 12.
 
 | Spec invariant (no. + name) | Load-bearing (vote)? | Verdict | Model construct / reason |
 |---|---|---|---|
