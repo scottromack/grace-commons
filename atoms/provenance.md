@@ -584,7 +584,7 @@ Term records: chain — one artifact's custody history for one episode, carrying
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, read, take, raise, commit, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, govern, survive, route, share, equal, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, replay, reconstruct, repeat, observe, complete, roll back, serve, accept, serialize, name, claim, detect, bound, dispose, decide, compose, declare, wire, guard, rest, apply, supply, inject, fall, remove, edit, reorder, empty, move, cache, resolve, run.
 
-Term value sets: originate answers chain_id and refuses invalid-ref | invalid-genesis-type | storage-failure. transfer answers entry_id and refuses not-known | archived | invalid-ref | storage-failure. transform answers entry_id and refuses not-known | archived | invalid-ref | invalid-descriptor | not-current-custodian | storage-failure. disclose answers entry_id and refuses not-known | archived | invalid-ref | not-current-custodian | storage-failure. archive answers entry_id and refuses not-known | already-archived | invalid-ref | not-current-custodian | storage-failure. read answers the matching entries and refuses not-known | invalid-query. event_type = originated | received | transferred | transformed | disclosed | archived. genesis types = originated | received. chain state = open | archived.
+Term value sets: event_type = originated | received | transferred | transformed | disclosed | archived. genesis types = originated | received. chain state = open | archived.
 
 Term bounds: maximum length (the deployment's cap per string input).
 

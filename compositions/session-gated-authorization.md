@@ -379,7 +379,7 @@ Term record verbs: validate, call, answer, accept, read, write, store, derive, e
 
 Term actors: the composition; the constituents; a deployment; an auditor; a caller; a principal; a session; a grant; an argument; an answer.
 
-Term value sets: check_permitted answers permitted | denied and refuses invalid-request | session-invalid(validation failure). invalid answer reasons = expired | revoked | not-known.
+Term value sets: invalid answer reasons = expired | revoked | not-known.
 
 Term cited: `execution-contract.md` §Composition state — the no-stored-state classification. [Session](../atoms/session.md) `Composition note 4` — the gate obligation. [Permissions](../atoms/permissions.md) `Composition note 2` — the scope vocabulary. [Permissions](../atoms/permissions.md) `Composition note 3` — the caller-to-subject binding; validation failure: Session.
 

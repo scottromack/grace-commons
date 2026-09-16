@@ -419,7 +419,7 @@ Term records: notification — one delivery record, carrying notification_id, re
 
 Term record verbs: identify, allocate, supply, reuse, carry, compare, trim, normalize, case-fold, read, stand, stamp, offer, delete, hold, record, answer, accept, leave, refuse, order, write, change, move, set, share, shrink, keep, own, evaluate, choose, retry, create, deliver, validate, deduplicate, purge, gate, expire, enumerate, call, serialize, compose, guard, declare, find, reconstruct, raise, require, exceed.
 
-Term value sets: create answers notification_id and refuses invalid-request | storage-failure. deliver answers ok and refuses not-known | not-pending | storage-failure. fail answers ok and refuses not-known | not-pending | storage-failure. expire answers ok and refuses not-known | not-pending | storage-failure. status_of answers the notification's stored fields | not-known. pending_for answers a list of notification_id, empty where nothing pends. status = pending | delivered | failed | expired. terminal stamp = delivered_at | failed_at | expired_at.
+Term value sets: status = pending | delivered | failed | expired. terminal stamp = delivered_at | failed_at | expired_at.
 
 Term bounds: string cap (the deployment's bound on a string input's length).
 

@@ -400,7 +400,7 @@ Term records: evidence — one commitment, carrying evidence_id, record_set_ref,
 
 Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, make, cache, declare, renumber, add.
 
-Term value sets: seal answers evidence_id and refuses invalid-request | mechanism-failure(mechanism failure reason) | storage-failure. verify answers verified | failed-verification(verification failure) | not-known. record set match = yes | no. seal check = held | failed | unavailable. evidence field = evidence_id | record_set_ref | proof | sealed_at | anchored_at. evidence state = sealed.
+Term value sets: record set match = yes | no. seal check = held | failed | unavailable. evidence field = evidence_id | record_set_ref | proof | sealed_at | anchored_at. evidence state = sealed.
 
 Term bounds: empty.
 

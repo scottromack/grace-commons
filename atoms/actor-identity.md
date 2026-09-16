@@ -371,7 +371,7 @@ Term records: attestation — one binding, carrying attestation_id, action_ref, 
 
 Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, agree, fail.
 
-Term value sets: attest answers attestation_id and refuses invalid-request | invalid-credential | storage-failure. verify answers verified | failed-verification(verification failure) | not-known. registry answer = material | unknown-actor | unreachable. proof check = held | failed. attestation field = attestation_id | action_ref | actor_ref | proof | attested_at.
+Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. attestation field = attestation_id | action_ref | actor_ref | proof | attested_at.
 
 Term bounds: empty.
 

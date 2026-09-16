@@ -551,7 +551,7 @@ Term records: step — one authorization gate, carrying step_id, subject_ref, ap
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, order, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, capture, choose, canonicalize, retry, permit.
 
-Term value sets: submit answers step_id and refuses invalid-request | storage-failure. approve answers approved and refuses invalid-request | not-known | not-pending | unauthorized | storage-failure. reject answers rejected_outcome and refuses invalid-request | not-known | not-pending | unauthorized | storage-failure. withdraw answers withdrawn and refuses invalid-request | not-known | not-pending | unauthorized | storage-failure. read answers the matching steps and refuses invalid-query. state = pending | approved | rejected | withdrawn.
+Term value sets: state = pending | approved | rejected | withdrawn.
 
 Term bounds: empty.
 

@@ -576,7 +576,7 @@ Term records: capability — one bearer-token authorization, carrying capability
 
 Term record verbs: identify, serve, offer, supply, check, compare, allocate, reuse, change, carry, share, draw, refuse, interpret, confirm, apply, accept, record, stand, answer, stamp, recompute, set, lower, rise, fall, reach, commit, leave, derive, surface, write, fire, schedule, read, rest, remove, evaluate, hold, merge, admit, infer, reduce, range, find, reproduce, own, gate, bind, narrow, deliver, protect, notify, purge, forbid, distinguish, guarantee, seal, compose, trim, normalize, case-fold, exceed, canonicalize, reconcile, serialize, make, discharge, attest, declare, call.
 
-Term value sets: allocate answers capability_token and refuses invalid-request | storage-failure. redeem answers redeemed(scope, allocator_ref) | invalid(redemption failure). revoke answers revoked and refuses invalid-request | already-terminal | not-known | storage-failure. read answers the matching capabilities, each carrying its effective_status. status = allocated | redeemed | revoked.
+Term value sets: status = allocated | redeemed | revoked.
 
 Term bounds: default capability ttl (the validity duration [Allocate] applies where the call supplies none); single-use default (the max_redemptions [Allocate] applies where the call supplies none); zero duration (the floor a ttl must exceed); zero (the floor a max_redemptions must exceed); maximum length (the deployment's cap per string input).
 

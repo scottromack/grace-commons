@@ -588,7 +588,6 @@ Term records: instance — one workflow instance, carrying instance_id, a declar
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, commit, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, observe, resolve, complete, serve, serialize, shrink, fall, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, survive, canonicalize.
 
-Term value sets: instantiate answers instance_id and refuses invalid-declaration | invalid-request | storage-failure. fire answers the matched transition's to_state and refuses invalid-request | not-known | terminal | invalid-transition | guard-not-satisfied | storage-failure. current answers the instance's current state and refuses invalid-request | not-known. history answers the matching history entries and refuses invalid-request | not-known | invalid-query. read_declaration answers the instance's declaration and refuses invalid-request | not-known.
 
 Term bounds: empty.
 

@@ -372,7 +372,7 @@ Term records: subscription — one standing interest, carrying subscription_id, 
 
 Term record verbs: make, discharge, recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, leave, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, exceed.
 
-Term value sets: subscribe answers subscription_id and refuses invalid-request | already-subscribed | storage-failure. cancel answers ok and refuses not-known | not-active | storage-failure. subscribed answers subscribed | not-subscribed. subscribers_for answers a list of subscriber_ref, empty where nothing matches. status = active | cancelled.
+Term value sets: status = active | cancelled.
 
 Term bounds: id entropy (the random material a subscription_id is drawn from).
 

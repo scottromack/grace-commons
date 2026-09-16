@@ -375,7 +375,7 @@ Term records: unit — one thing to do, carrying id, description, added_at, a un
 
 Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find.
 
-Term value sets: add answers id and refuses invalid-description | duplicate-active | storage-failure. edit answers ok and refuses not-known | not-editable | invalid-description | duplicate-active | storage-failure. complete answers ok and refuses not-known | not-pending | storage-failure. delete answers ok and refuses not-known | storage-failure. unit state = pending | done.
+Term value sets: unit state = pending | done.
 
 Term bounds: description cap (the bound on a normalized description's length).
 

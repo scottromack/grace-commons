@@ -429,7 +429,7 @@ Term records: hold — one preservation obligation, carrying hold_id, record_ref
 
 Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, leave, read, order, write, change, rest, shrink, find, serialize, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, exceed, fall.
 
-Term value sets: place answers hold_id and refuses invalid-request | storage-failure. release answers released and refuses invalid-request | not-known | already-released | storage-failure. read answers the matching holds, ordered and refuses invalid-query. hold state = active | released.
+Term value sets: hold state = active | released.
 
 Term bounds: empty.
 

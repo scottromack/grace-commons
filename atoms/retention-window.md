@@ -421,7 +421,7 @@ Term records: retention — one obligation, carrying retention_id, record_ref, p
 
 Term record verbs: identify, allocate, supply, reuse, carry, stand, set, store, offer, hold, record, answer, read, resolve, stamp, judge, leave, refuse, write, derive, change, delete, shrink, share, admit, gate, destroy, retry, alert, coordinate, confirm, serialize, own, disagree, compose, place, define, version, retain, permit, purge, choose, suspend, renumber, add, find, reproduce, compute, reconstruct, declare, exceed, bound.
 
-Term value sets: place_under_retention answers retention_id and refuses invalid-request | invalid-policy | policy-not-found | storage-failure. purge answers ok and refuses not-known | not-retained | retention-period-not-elapsed | storage-failure. retention state = retained | purged. purge eligible = yes | no.
+Term value sets: retention state = retained | purged. purge eligible = yes | no.
 
 Term bounds: duration (the policy's retention period); max_purge_delay (the lag the policy allows); retention_until; purge_deadline.
 

@@ -509,7 +509,7 @@ Term records: commitment — one resource held for one requester for a bounded w
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, own, admit, offer, hold, return, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, route, consult, append, place, produce, map, attest, fall, precede, sample, consume, supply, release, run, acknowledge, canonicalize, declare, compose, wire, remove, bind, decide, define, bound, surface, pass, reach, accept, pause, call, guarantee, trim, case-fold.
 
-Term value sets: place_hold answers id and refuses invalid-request | resource-unavailable | storage-failure. confirm answers ok and refuses not-known | not-held | window-elapsed | storage-failure. release answers ok and refuses not-known | not-held | window-elapsed | storage-failure. expire answers ok and refuses not-known | not-held | window-not-elapsed | storage-failure. state = held | confirmed | released | expired. terminal state = confirmed | released | expired. terminal instant = confirmed_at | released_at | expired_at. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placed_at | expires_at.
+Term value sets: state = held | confirmed | released | expired. terminal state = confirmed | released | expired. terminal instant = confirmed_at | released_at | expired_at. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placed_at | expires_at.
 
 Term bounds: duration bounds, window bound.
 

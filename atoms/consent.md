@@ -546,7 +546,7 @@ Term records: consent record — one agreement to one purpose, carrying consent_
 
 Term record verbs: route, share, name, accept, carry, identify, allocate, reuse, change, draw, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, exclude, ignore, leave, read, supply, rest, offer, remove, suppress, hold, poll, equal, serialize, appear, meet, fall, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, guard, declare, call, run, merge, precede.
 
-Term value sets: grant answers consent_id and refuses invalid-request | storage-failure. revoke answers revoked and refuses invalid-request | not-known | already-revoked | already-expired | storage-failure. check answers granted | revoked | expired | not-known. read answers an ordered sequence of consent records, empty where nothing matches and refuses invalid-query. state = granted | revoked | expired. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
+Term value sets: state = granted | revoked | expired. supported filter axes and grant field are declared above and cited here (Closed vocabulary 15).
 
 Term bounds: empty.
 

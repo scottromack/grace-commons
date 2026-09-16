@@ -606,7 +606,7 @@ Term records: preference record — one principal's stated delivery shaping, car
 
 Term record verbs: route, share, read, name, accept, carry, hold, offer, resolve, inject, stamp, validate, write, answer, surface, identify, allocate, reuse, change, interpret, normalize, match, canonicalize, record, stand, compare, commit, remove, leave, refuse, supply, rest, appear, move, call, observe, clear, fall, own, enumerate, find, reconstruct, mark, disclose, fire, create, deliver, compose, evaluate, declare, detect, gate, expire, redact, seal, guarantee, push, replay, drop, make, serialize, choose, witness, store, bound, return, capture, apply.
 
-Term value sets: set answers preference_id and refuses invalid-request | undeclared-channel | storage-failure. suspend answers ok and refuses not-known | not-active | storage-failure. delete answers ok and refuses not-known | already-deleted | storage-failure. current_for answers the preference record currently in effect | none. read answers the whole preference record | not-known. status = active | suspended | deleted. preference field = channel_preferences | frequency_limit | quiet_hours | format.
+Term value sets: status = active | suspended | deleted. preference field = channel_preferences | frequency_limit | quiet_hours | format.
 
 Term bounds: supersession gap bound (the largest supersession gap one operation is expected to span); opaque input size bound (the deployment's cap on a stored opaque value).
 

@@ -497,7 +497,7 @@ Term records: lifecycle record — the state and attribution this atom holds for
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, set, replace, leave, own, match, normalize, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, order, name, bind, destroy, hold, gate, retain, define, canonicalize, register, untrack.
 
-Term value sets: soft_delete answers deleted and refuses invalid-request | already-deleted | already-purged | storage-failure. restore answers restored and refuses invalid-request | not-known | not-deleted | already-purged | storage-failure. purge answers purged and refuses invalid-request | not-known | not-deleted | storage-failure. read answers the matching lifecycle records and refuses invalid-query. state = active | deleted | purged.
+Term value sets: state = active | deleted | purged.
 
 Term bounds: empty.
 

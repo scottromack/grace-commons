@@ -1091,11 +1091,11 @@ def check_signature_form_synthetic(problems: list[str]) -> int:
             "Term record verbs: read.\n\n## Structure\n\n### Operations\n\n")
     tail = ("\n```\nOperation 1: [Place] MUST read the store.\n"
             "Operation 2: [Read] MUST read the store.\n```\n")
-    def run(block: str):
+    def run(block: str, after: str = ""):
         with tempfile.TemporaryDirectory() as d:
             f = Path(d) / "atoms" / "synthetic.md"
             f.parent.mkdir()
-            f.write_text(head + "```\n" + block + "```\n" + tail, encoding="utf-8")
+            f.write_text(head + "```\n" + block + "```\n" + tail + after, encoding="utf-8")
             return [x for x in scan(f) if x.code == "D-signature-form"]
     good = ("place(item_ref, optional reason)\n  answers placement result\n"
             "  refuses invalid-request | recording-failure(position)\n\n"
@@ -1113,6 +1113,14 @@ def check_signature_form_synthetic(problems: list[str]) -> int:
         ("no blank line between", "place(item_ref)\n  answers ok\nread(filter)\n  answers ok\n"),
         ("a header over two lines", "place(item_ref,\n      reason)\n  answers ok\n"),
     ]
+    # a value sets line naming a signed action restates the signature (council read 98)
+    restated = "\nTerm value sets: place answers placement result. state = held | released.\n"
+    unsigned = "\nTerm value sets: probe answers committed | unavailable. state = held | released.\n"
+    if not run(good, restated):
+        problems.append("D-signature-form: a value sets line restating a signature did not fire")
+    got = run(good, unsigned)
+    if got:
+        problems.append(f"D-signature-form: fired on a value sets line naming no signed action: {got[0].message}")
     for name, block in silent:
         got = run(block)
         if got:
@@ -1120,7 +1128,7 @@ def check_signature_form_synthetic(problems: list[str]) -> int:
     for name, block in firing:
         if not run(block):
             problems.append(f"D-signature-form: {name} did not fire")
-    return len(silent) + len(firing)
+    return len(silent) + len(firing) + 2
 
 
 def check_fence_form_synthetic(problems: list[str]) -> int:
@@ -1598,9 +1606,9 @@ def main(argv: list[str]) -> int:
     failures.extend(sig_problems)
     if not sig_problems:
         print(f"D-signature-form: {n_sig} synthetic fixtures hold (the form and an example "
-              "call silent; the arrow, a `?`, a braced record, the `rejected(…)` wrapper, "
+              "call silent, and a value sets line naming no signed action; the arrow, a `?`, a braced record, the `rejected(…)` wrapper, "
               "a nested arm, two codes with no bar, a missing answers line, a missing blank "
-              "line and a split header fire) \u2713")
+              "line, a split header and a value sets line restating a signature fire) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)

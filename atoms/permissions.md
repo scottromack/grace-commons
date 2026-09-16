@@ -387,7 +387,7 @@ Term records: grant record — one binding, carrying grant_id, subject_ref, acti
 
 Term record verbs: identify, allocate, supply, reuse, hold, reach, compare, trim, normalize, case-fold, read, stand, carry, stamp, offer, delete, record, answer, refuse, leave, take, write, match, rest, consult, change, move, set, share, shrink, evaluate, expand, model, expire, authenticate, bind, revoke, retry, raise, enumerate, call, guard, succeed, compose, resolve, attest, own, declare, find, reconstruct, commit, exceed.
 
-Term value sets: grant answers grant_id and refuses invalid-request | storage-failure. revoke answers ok and refuses not-known | not-active | storage-failure. permitted answers permitted | denied. status = active | revoked.
+Term value sets: status = active | revoked.
 
 Term bounds: string cap (the deployment's bound on a string input's length).
 

@@ -637,7 +637,7 @@ Term records: pool — one bounded resource, carrying pool_id, capacity, allocat
 
 Term record verbs: identify, offer, share, re-order, retain, allocate, change, match, normalize, order, write, refuse, draw, reuse, hold, record, stand, set, stamp, answer, append, raise, lower, admit, release, fit, interpret, leave, insert, remove, carry, read, supply, rest, fall, commit, scrub, reconstruct, replay, bound, find, equal, purge, evict, expire, attest, move, merge, split, notify, seal, compose, gate, distinguish, serialize, make, discharge, compute, own, declare, call, name, store, case-fold, exceed.
 
-Term value sets: declare_pool answers pool_id and refuses invalid-request | storage-failure. allocate answers allocation_event_id and refuses not-known | over-capacity | suspended | closed | invalid-request | storage-failure. release answers release_event_id and refuses not-known | over-release | invalid-request | storage-failure. adjust_capacity answers adjustment_event_id and refuses not-known | closed | over-allocated | invalid-request | storage-failure. suspend_pool, resume_pool and close_pool answers state_change_id and refuses not-known | already-closed | invalid-request | storage-failure. query answers pool_snapshot and refuses not-known. pool state and event class are declared above and cited here (Closed vocabulary 15).
+Term value sets: pool state and event class are declared above and cited here (Closed vocabulary 15).
 
 Term bounds: reason cap (2000 codepoints); maximum length (the deployment's cap per string field); whole count and positive count (the integer floors); capacity (the pool's own declared bound).
 

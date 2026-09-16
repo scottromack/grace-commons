@@ -235,7 +235,7 @@ Term records: empty — the atom writes nothing.
 
 Term record verbs: identify, compare, normalize, hold, derive, store, wait, succeed, answer, extend, compute, end, reach, treat, return, pass, refuse, judge, mint, apply, stand, report, equal, take, offer, admit, carry, make, roll, isolate, write, record, choose, state, check, name, supply, share, own, invent, confirm, fail.
 
-Term value sets: lease state = free | held. grant terminus = release | instant. take answers expires_at | unavailable. try_take answers taken(expires_at) | held. remaining answers duration | none. release answers released | not-held.
+Term value sets: lease state = free | held. grant terminus = release | instant.
 
 Term bounds: duration (the term a take asks for); the allowance; the fence ceiling.
 

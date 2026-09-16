@@ -299,7 +299,7 @@ Term records: recorded set — the identities under guard, one recorded_at per e
 
 Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, require, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct, find.
 
-Term value sets: check answers seen | not-seen. record answers ok. store policy = fail-open | fail-closed.
+Term value sets: store policy = fail-open | fail-closed.
 
 Term bounds: window duration (the length a containing pattern chooses for a guard; window is the lowering token the [Window Duration] term entry carries).
 

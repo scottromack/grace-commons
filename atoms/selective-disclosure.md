@@ -453,7 +453,7 @@ Term records: disclosure record — one recorded disclosure, carrying disclosure
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, sort, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, fall, call, produce, choose, capture.
 
-Term value sets: record answers recorded(disclosure_id) and refuses invalid-request | unknown-authority-type | storage-failure. read answers the matching disclosure records and refuses invalid-query. authority_type = consent | legal-hold | regulatory.
+Term value sets: authority_type = consent | legal-hold | regulatory.
 
 Term bounds: empty.
 

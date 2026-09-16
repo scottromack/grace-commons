@@ -554,7 +554,7 @@ Term records: observation — one recorded measurement, carrying observation_id,
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, stamp, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, raise, compare, trim, case-fold, refuse, write, read, find, observe, repair, commit, fall, bound, decide, declare, compose, wire, supply, remove, order, sort, name, bind, derive, map, define, apply, hold, release, serialize, lapse, return, canonicalize, store, fail, accept, rest, capture.
 
-Term value sets: record answers observation_id and refuses invalid-observation | storage-failure. amend answers the successor's observation_id and refuses not-known | already-amended | already-retracted | invalid-request | invalid-observation | storage-failure. retract answers retracted and refuses not-known | already-retracted | invalid-request | storage-failure. read answers the matching observations and refuses invalid-query. state = recorded | amended | retracted.
+Term value sets: state = recorded | amended | retracted.
 
 Term bounds: clock_offset_allowance (the margin a deployment declares between a caller's clock and the seam's); value constraint (the bound a deployment declares per observation_type).
 

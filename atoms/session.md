@@ -553,7 +553,7 @@ Term records: session — one bounded-lifetime attestation, carrying session_tok
 
 Term record verbs: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, commit, leave, rest, remove, merge, return, reach, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, exceed, differ, give, reduce, detect, canonicalize, reconcile, serialize, declare.
 
-Term value sets: issue answers session_token and refuses invalid-request | storage-failure. validate answers valid(principal_ref, expires_at) | invalid(validation failure). revoke answers revoked and refuses invalid-request | already-terminal | not-known | storage-failure. read answers the matching sessions, each carrying its effective_status. status = active | revoked.
+Term value sets: status = active | revoked.
 
 Term bounds: token entropy (the floor a session_token's random material is drawn from); default session duration (the window [Issue] applies where the call supplies none); zero duration (the floor a session_duration must exceed); maximum length (the deployment's cap per string input).
 

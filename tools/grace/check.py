@@ -920,6 +920,21 @@ def scan(path: Path) -> list[Finding]:
                     f"`{action.strip()}` is declared in a signature block and no rule names it "
                     f"(Closed vocabulary 20)")
 
+    # a value sets line restating a signature: the signature block is the
+    # value set of the action's outcomes (Closed vocabulary 21), and a second
+    # copy is a second owner that drifts (Authority 3) — close_pool's phantom
+    # refusals, council read 98
+    if signatures:
+        declared = {a.strip() for _, a in signatures}
+        for k, raw in enumerate(lines):
+            if not raw.startswith("Term value sets:"):
+                continue
+            for m in re.finditer(r"(?<![\w`])([a-z_][a-z0-9_]*) answers ", raw):
+                if m.group(1) in declared:
+                    add(k + 1, "D-signature-form",
+                        f"a value sets line restates `{m.group(1)}`'s signature; the signature "
+                        f"block owns its outcomes (Closed vocabulary 21, Authority 3)")
+
     # a check that names no rule (advisory): the auditor is the last reader
     # nobody audits, and a check whose failure nobody can state passes forever
     if names:

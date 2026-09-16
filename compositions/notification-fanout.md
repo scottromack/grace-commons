@@ -427,7 +427,6 @@ Term record verbs: call, answer, take, read, write, record, validate, compare, n
 
 Term actors: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; a subscriber; a notification record; a subscription record.
 
-Term value sets: fanout answers fanout result and refuses invalid-request | subscribers-unavailable.
 
 Term cited: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the no-stored-state classification and the record-coordination rule. `execution-contract.md` §Logic confinement — the seam and the transition.
 
