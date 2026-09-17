@@ -988,6 +988,9 @@ def check_decl_form_synthetic(problems: list[str]) -> None:
         ("a backticked name", "Term `clock offset allowance`: the declared envelope.\n", True),
         ("no space after the colon", "Term clock offset allowance:the declared envelope.\n", True),
         ("no closing period", "Term clock offset allowance: the declared envelope\n", True),
+        ("a bullet heading over the form", "- **clock_offset_allowance**\n  Term clock_offset_allowance: the declared envelope.\n", False),
+        ("a bold-bullet declaration", "- **clock_offset_allowance** — the declared envelope.\n", True),
+        ("a backticked bold-bullet declaration", "- **`clock_offset_allowance`** — the declared envelope.\n", True),
     )
     with tempfile.TemporaryDirectory() as d:
         for name, line, fires in cases:
@@ -1863,8 +1866,9 @@ def main(argv: list[str]) -> int:
     check_decl_form_synthetic(decl_problems)
     failures.extend(decl_problems)
     if not decl_problems:
-        print("D-decl-form: 5 synthetic fixtures hold (the form silent; the retired "
-              "separator, a backticked name, a missing space and a missing period fire) \u2713")
+        print("D-decl-form: 8 synthetic fixtures hold (the form and a bullet heading over it silent; "
+              "the retired separator, a backticked name, a missing space, a missing period and "
+              "the bold-bullet declaration, backticked or not, fire) \u2713")
 
     caps_problems: list[str] = []
     check_caps_synthetic(caps_problems)

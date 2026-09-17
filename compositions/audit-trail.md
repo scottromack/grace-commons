@@ -108,7 +108,8 @@ Term closed-state marker: compensated_attestations and reported_beyond_horizon.
 WHY:
 An index entry is evidence that the truth-bearing writes committed, never a peer write the compensation protocol has to handle. Both sides of every derived mapping are immutable constituent content, so each rebuild is total over what the constituent stores still hold.
 
-- **event_to_attestation** — map from event_id to the attestation_id Actor Identity produced at record time; the auditor's traversal from an event to its attribution. The classification splits by retention state, because the rebuild's source does not survive the cascade.
+- **event_to_attestation**
+  Term event_to_attestation: map from event_id to the attestation_id Actor Identity produced at record time; the auditor's traversal from an event to its attribution. The classification splits by retention state, because the rebuild's source does not survive the cascade.
   ```
   event_to_attestation 1: [Record Action] step 5 MUST populate event_to_attestation with the event's event_id mapped to the attestation_id.
   event_to_attestation 2: WHEN retention_state DOES NOT EQUAL Purged:
@@ -120,13 +121,15 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
       event_to_attestation 3c: The pair MUST carry the durability obligation of Durability 6.
   ```
   WHY: [Record Action] step 3 writes attestation_id into the appended payload, so the live binding is immutable Event Log content. The cascade destroys the payload's recoverability, so for a purged event the binding is destroyed with the thing that carried it, and only a record written before the delegation can carry it ([Purge Event] step 2).
-- **event_to_retention** — map from event_id to the retention_id Retention Window produced at record time; the policy the event is held under.
+- **event_to_retention**
+  Term event_to_retention: map from event_id to the retention_id Retention Window produced at record time; the policy the event is held under.
   ```
   event_to_retention 1: [Record Action] step 5 MUST populate event_to_retention with the event's event_id mapped to the retention_id.
   event_to_retention 2: The composition MUST classify event_to_retention as derived index.
   event_to_retention 3: The rebuild MUST enumerate the retention store and re-key each retention record by the record's record_ref.
   ```
-- **event_to_sequence** — map from event_id to the sequence_number Event Log assigned at append; the index that makes id-addressed reads possible.
+- **event_to_sequence**
+  Term event_to_sequence: map from event_id to the sequence_number Event Log assigned at append; the index that makes id-addressed reads possible.
   ```
   event_to_sequence 1: [Record Action] step 5 MUST populate event_to_sequence with the event's event_id mapped to the sequence_number.
   event_to_sequence 2: The composition MUST classify event_to_sequence as derived index.
@@ -137,7 +140,8 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   event_to_sequence 7: The composition MUST NOT ask EventLog.read for a payload predicate.
   ```
   WHY: Event Log declares no read-by-id surface — read takes a sequence-number range, a wall-time range or a payload predicate, and routes lookup by payload field to a Reverse Index pattern *(forthcoming)*. Event Log's Outputs declare that every returned event carries its event_id, sequence_number, recorded_at and data, so both sides of the map are immutable Event Log content and the rebuild is total; the relation event_id ↔ sequence_number is one-to-one and mandatory on both sides at quiescence (Event Log Invariants 2, 3 and 6), and a lost entry is a rebuild trigger, never a relation violation.
-- **seal_coverage** — for each evidence_id in the seal store, the contiguous sequence-number range the seal commits to as [Seal Now] cut it, plus a per-entry purged_events set the cascade writes; what tells the verifier which record set to present.
+- **seal_coverage**
+  Term seal_coverage: for each evidence_id in the seal store, the contiguous sequence-number range the seal commits to as [Seal Now] cut it, plus a per-entry purged_events set the cascade writes; what tells the verifier which record set to present.
   ```
   seal_coverage 1: [Seal Now] MUST populate seal_coverage with the evidence_id mapped to the sealed slice.
   seal_coverage 2: The composition MUST classify the ranges of seal_coverage as derived index.
@@ -157,7 +161,8 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   Term covering seal: the evidence_id whose seal_coverage range contains the event's sequence_number.
 
   WHY: event_id carries no ordering, so a range of ids is not an interval. Nothing but [Seal Now] writes a coverage entry, so a hole or an overlap is not a state this composition reaches. A seal covering a thousand events is very often partly purged and partly live — a policy selector gives two events in one range two retention periods — and a whole-entry flag would report a live event as destroyed. No constituent store says *this member was later destroyed*, so no rebuild regenerates the set.
-- **erasure_outcomes** — for each event over which [Purge Event] step 3 has issued its delegation, the outcome the configured `erasure_mechanism` reported: destroyed or `destruction-failed(reason)`.
+- **erasure_outcomes**
+  Term erasure_outcomes: for each event over which [Purge Event] step 3 has issued its delegation, the outcome the configured erasure_mechanism reported: destroyed or `destruction-failed(reason)`.
   ```
   erasure_outcomes 1: The cascade MUST record the mechanism's reported outcome in erasure_outcomes for EVERY delegation [Purge Event] step 3 issues.
   erasure_outcomes 2: erasure_outcomes MUST address an outcome per event_id.
@@ -171,7 +176,7 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   Term open entry: an erasure_outcomes entry that is not a closed entry; open for re-driving.
 
   WHY: no constituent witnessed the mechanism's report. A lost outcome is not safely re-derivable — re-driving over already-destroyed content may only answer *target already unreadable in a way it cannot confirm* — so losing a destroyed outcome can leave a completed cascade permanently unclosable. Four surfaces read the element: First half 3, purge_event step 4.1, Invariant 8.3 and Check 5.8.
-- **sealed_through** — the most recent sequence_number any seal covers.
+- **sealed_through**
   ```
   sealed_through 1: The composition MUST classify sealed_through as derived index.
   sealed_through 2: The rebuild MUST compute sealed_through from the rebuilt ranges of seal_coverage.
@@ -179,7 +184,8 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   Term sealed_through: the maximum sequence_number over all seal_coverage ranges; zero for an empty seal store.
 
   Term unsealed tail: the events whose sequence_number EXCEEDS sealed_through.
-- **compensated_attestations** — the set of attestation_id values for which an `audit.compensation` event has been recorded; the closed-state marker for orphan reconciliation.
+- **compensated_attestations**
+  Term compensated_attestations: the set of attestation_id values for which an `audit.compensation` event has been recorded; the closed-state marker for orphan reconciliation.
   ```
   compensated_attestations 1: The composition MUST classify compensated_attestations as derived index.
   compensated_attestations 2: The rebuild MUST keep, from the full enumeration, EVERY event whose action_ref EQUALS audit.compensation AND whose payload subject EQUALS attestation, and take the attestation_id each payload names.
@@ -191,7 +197,8 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   Term reconciled: an orphan whose attestation_id is a member of compensated_attestations.
 
   WHY: the orphan never goes away — Actor Identity Invariant 9 forecloses deletion — so the store cannot carry the closure; the marker does. Without the subject filter a rebuild would read an event_id where it expected an attestation_id. Compensation events are themselves purged in time, so the rebuilt set covers the compensations still live (compensated_attestations 6); the residual — a second compensation for an orphan compensated a retention period earlier — is a duplicate, never a false record. The rebuild is trustworthy because the reserved namespace (Primitive policy 8) means the set is read from records only the composition's own reconciliation path could have written.
-- **reported_beyond_horizon** — the set of attestation_id values for which the scan's second half has recorded a *beyond the horizon* finding; the closed-state marker for that report.
+- **reported_beyond_horizon**
+  Term reported_beyond_horizon: the set of attestation_id values for which the scan's second half has recorded a *beyond the horizon* finding; the closed-state marker for that report.
   ```
   reported_beyond_horizon 1: The composition MUST classify reported_beyond_horizon as derived index.
   reported_beyond_horizon 2: The rebuild MUST keep, from the full enumeration, EVERY event whose action_ref EQUALS audit.reconciliation AND whose payload subject EQUALS attestation AND whose payload disposition EQUALS beyond-horizon, and take the attestation_id each names.
@@ -218,7 +225,8 @@ Eight procedures issue the read and none has a substitute — [Seal Now]'s head 
 
 Seventeen knobs and one instance capability requirement, the per-act section. Each knob carries a type, a default and a setting rule; every default of *none* is deployment-required, and §*Instance start* is the one owner of what an instance refuses to start without.
 
-- **retention_policy** — a Retention Window policy_ref, or a policy selector `(action_ref, actor_ref, data) → policy_ref` for content-derived rules. *Default:* none.
+- **retention_policy**
+  Term retention_policy: a Retention Window policy_ref, or a policy selector `(action_ref, actor_ref, data) → policy_ref` for content-derived rules. *Default:* none.
   ```
   retention_policy 1: The deployment MUST set retention_policy to the reconciled policy for the record class.
   retention_policy 2: [Record Action] step 4 MUST place the retention under the resolved policy.
@@ -231,7 +239,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Term resolved policy: retention_policy where the knob is a policy_ref; the policy_ref the selector returns where the knob is a selector.
 
   WHY: a retention period is a legal obligation, and a composition that picked one would assert a legal conclusion it cannot make; a Policy Reconciliation pattern *(forthcoming)* produces the reconciled value across every regulation in force. The attestation's lifetime rides the event's retention and the two are destroyed in one cascade, so the *Composes* declaration of one Retention Window instance is literally accurate.
-- **seal_cadence** — `per-event` | interval-based | on-demand; an interval-based cadence carries an events arm (every N events), a time arm (every T seconds), or both. *Default:* none.
+- **seal_cadence**
+  Term seal_cadence: `per-event` | interval-based | on-demand; an interval-based cadence carries an events arm (every N events), a time arm (every T seconds), or both. *Default:* none.
   ```
   seal_cadence 1: The deployment MUST set seal_cadence from the forensic window the deployment's regime tolerates.
   seal_cadence 2: A deployment whose auditor requires a bounded per-event tampering window MUST set per-event.
@@ -239,7 +248,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Term time arm: the every-T-seconds arm of an interval-based seal_cadence.
 
   WHY: the cadence bounds the forensic window for any detected tampering; tighter cadence narrows the window at the cost of seal-store growth and verify-time work, and a coarse cadence strands more live seal-mates at every purge (Edge cases).
-- **`seal_mechanism`** — a Tamper Evidence mechanism reference: hash chain, Merkle tree, RFC 3161-anchored timestamp. *Default:* none.
+- **seal_mechanism**
+  Term seal_mechanism: a Tamper Evidence mechanism reference: hash chain, Merkle tree, RFC 3161-anchored timestamp. *Default:* none.
   ```
   seal_mechanism 1: The deployment MUST select a mechanism sound for the full audit horizon.
   seal_mechanism 2: A deployment requiring the forensic-window bound of Check 4 MUST select a chained mechanism.
@@ -253,7 +263,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Term verify-time presentation: the payloads of every event in the covering seal's range, byte-exact, in ascending sequence_number order — no re-serialization, key reordering or encoding fixup.
 
   WHY: Tamper Evidence is mechanism-neutral (its Invariant 8) and records the choice outside itself, so the knob declares the wired choice and configures nothing; every disagreement but a refused credential is invisible by opacity, which is why seal_mechanism 5 is audited outside the records (External check 4). Nothing in the seal store says which rendering a seal committed to, so a mechanism that hashed a different order or a re-serialized form would fail every conforming presentation with nothing in the trail saying why; Tamper Evidence's *Record-set definition* edge case routes the agreement to the host, and this composition is the host.
-- **`mechanism_credential`** — opaque credential material passed to `TamperEvidence.seal` on every seal, whatever the cadence: a signing key for a keyed mechanism, a TSA client credential for an anchored one. *Default:* empty (unkeyed).
+- **mechanism_credential**
+  Term mechanism_credential: opaque credential material passed to `TamperEvidence.seal` on every seal, whatever the cadence: a signing key for a keyed mechanism, a TSA client credential for an anchored one. *Default:* empty (unkeyed).
   ```
   mechanism_credential 1: The composition MUST pass mechanism_credential to TamperEvidence.seal on every seal.
   mechanism_credential 2: The composition MUST pass mechanism_credential through unchanged.
@@ -267,7 +278,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Term mechanism class: unkeyed | keyed | anchored.
 
   WHY: a bare hash chain needs no credential and Tamper Evidence permits an empty one, so the precondition check lives in the constituent, not here. Non-repudiation depends on the credential, not on this composition's surface.
-- **unsealed_tail_mode** — strict | lenient: what [Verify Record] returns for an event in the unsealed tail. *Default:* strict.
+- **unsealed_tail_mode**
+  Term unsealed_tail_mode: strict | lenient: what [Verify Record] returns for an event in the unsealed tail. *Default:* strict.
   ```
   unsealed_tail_mode 1: A deployment MAY set lenient ONLY IF independently trusted substrate EXISTS AND standing false negative EXISTS.
   unsealed_tail_mode 2: A regulated deployment MUST NOT set lenient.
@@ -279,7 +291,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Term standing false negative: a strict tail that would answer `failed-verification(unsealed)` for the whole of a coarse cadence interval.
 
   WHY: strict is the fail-closed value — integrity is unverified until a seal covers the event, and defaulting the other way would let a deployment report unverified events as `verified` by omission. Regulated deployments keep strict.
-- **`erasure_mechanism`** — a reference to the deployment's composed content-destruction mechanism, invoked at [Purge Event] step 3. *Default:* none.
+- **erasure_mechanism**
+  Term erasure_mechanism: a reference to the deployment's composed content-destruction mechanism, invoked at [Purge Event] step 3. *Default:* none.
   ```
   erasure_mechanism 1: The deployment MUST wire a shredding-class erasure mechanism.
   erasure_mechanism 2: The deployment MUST NOT wire a tombstone-by-mutation mechanism.
@@ -298,7 +311,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Term Event Log's data field: the whole constructed object `{action_ref, actor_ref, attestation_id, data}` [Record Action] step 3 appends; the caller-supplied data is one member inside it.
 
   WHY: the name data does double duty. The mechanism takes the outer object, so the payload's copies of action_ref, actor_ref and attestation_id go with it, which is why the purged-event answers read the attestation store; the *who / what / when* outlives the purge, the payload and the binding's verifiability do not. There is no safe default: defaulting to *no destruction* would leave *Purged* over readable content, the gap Invariant 8 forecloses. A mechanism that only reported *I was called* would make success undecidable (erasure_mechanism 7), and an outcome not traceable to its event could close nothing (erasure_mechanism 8). The class boundary is argued at Boundary one.
-- **compensation_window** — the duration within which the liveness arms of Invariants 1, 2 and 8 close: an orphan attestation, an unretained event or a half-completed cascade is surfaced and reconciled inside it. *Default:* none.
+- **compensation_window**
+  Term compensation_window: the duration within which the liveness arms of Invariants 1, 2 and 8 close: an orphan attestation, an unretained event or a half-completed cascade is surfaced and reconciled inside it. *Default:* none.
   ```
   compensation_window 1: The deployment MUST set compensation_window from the tightest reconciliation deadline the deployment's regime imposes.
   compensation_window 2: The composition MUST measure compensation_window from the finding's creation.
@@ -308,7 +322,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Term finding's creation: the orphan attestation's attested_at; the unretained event's recorded_at; the half-completed cascade's purged_at.
 
   WHY: the window is the deployment's declared tolerance for a surfaced finding standing open — a regulatory judgment about its own regime. An orphan created at `t` is invisible to the scan until `t + bound + allowance`, the next run is at most one cadence later, and the closure lands one latency after that (Instance start 16); a cadence no longer than the window is satisfied by a deployment that breaches on every orphan.
-- **reconciliation_cadence** — how often the reconciliation scan runs. *Default:* the time arm of seal_cadence where that cadence carries one; none otherwise.
+- **reconciliation_cadence**
+  Term reconciliation_cadence: how often the reconciliation scan runs. *Default:* the time arm of seal_cadence where that cadence carries one; none otherwise.
   ```
   reconciliation_cadence 1: The reconciliation scan MUST run PER reconciliation_cadence.
   reconciliation_cadence 2: The reconciliation scan MUST run at restart.
@@ -317,13 +332,15 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   reconciliation_cadence 5: reconciliation_cadence MUST govern all three halves of the scan.
   ```
   WHY: an events-only cadence yields no duration — a rate in appends says nothing about how long a finding may stand, and a quiet write period would stretch the interval without bound while the window kept running — so events-only, per-event and on-demand cadences are deployment-required. The time arm is the safe derived default because it is the rate at which the deployment has already declared it wants the audit surface brought up to date. A deployment tightens the cadence where purge volume would otherwise leave many unreconciled entries per sweep.
-- **reconciliation_operator** — an actor_ref: the deployment's maintenance actor authorized to record under the reserved `audit.*` namespace; the discriminator [Record Action] step 1's namespace gate turns on. *Default:* none.
+- **reconciliation_operator**
+  Term reconciliation_operator: an actor_ref: the deployment's maintenance actor authorized to record under the reserved `audit.*` namespace; the discriminator [Record Action] step 1's namespace gate turns on. *Default:* none.
   ```
   reconciliation_operator 1: The deployment MUST provision reconciliation_operator as an actor in the wired attestation store with usable credential material.
   reconciliation_operator 2: [Record Action] step 1 MUST decide the reconciliation path by actor_ref EQUALS reconciliation_operator, byte-identity.
   ```
   WHY: without a declared discriminator the gate is undecidable — *external caller* names no observable property of a call — so an implementer could refuse `audit.*` from everyone (the liveness arms never close) or accept it from everyone (the closure marker is forgeable). Knowing the operator's actor_ref admits a caller past step 1 only; step 2's attest still demands the credential, so an `audit.*` event cannot exist in the log unless attested under the operator identity (Check 7).
-- **`reconciliation_operator_credential`** — opaque credential material for the actor reconciliation_operator names. *Default:* none.
+- **reconciliation_operator_credential**
+  Term reconciliation_operator_credential: opaque credential material for the actor reconciliation_operator names. *Default:* none.
   ```
   reconciliation_operator_credential 1: The scan MUST hand reconciliation_operator_credential to ActorIdentity.attest on EVERY reconciliation-path write.
   reconciliation_operator_credential 2: The composition MUST NOT inspect reconciliation_operator_credential.
@@ -331,7 +348,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   reconciliation_operator_credential 4: The composition MUST NOT write reconciliation_operator_credential into a payload.
   ```
   WHY: an actor_ref without credential material in hand is an identity the scan cannot attest under; storage and rotation are Credential management's business.
-- **payload_cap** — the byte ceiling [Record Action] step 1 checks the full constructed payload against. *Default:* none.
+- **payload_cap**
+  Term payload_cap: the byte ceiling [Record Action] step 1 checks the full constructed payload against. *Default:* none.
   ```
   payload_cap 1: The deployment MUST set payload_cap to the wired Event Log instance's own configured cap.
   payload_cap 2: [Record Action] step 1 MUST measure the serialized envelope against payload_cap.
@@ -341,7 +359,8 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Term serialized envelope: the byte length of Event Log's data field exactly as handed to `EventLog.append`, in the encoding the wired instance sizes it in, framing and field names included.
 
   WHY: the cap is per-instance configuration the wired instance may have changed from the atom's 64 KB default, so the composition can neither derive nor assume one. Summing the members under-counts by the serialization's structure, and under-counting is the direction that strands a committed attestation. Reaching invalid-payload at step 3 after step 1 passed means the two caps disagree.
-- **reference_length_cap** — a byte length, applied independently to action_ref and actor_ref at [Record Action] step 1. *Default:* 1 KB each.
+- **reference_length_cap**
+  Term reference_length_cap: a byte length, applied independently to action_ref and actor_ref at [Record Action] step 1. *Default:* 1 KB each.
   ```
   reference_length_cap 1: [Record Action] step 1 MUST apply reference_length_cap to action_ref and to actor_ref independently.
   reference_length_cap 2: reference_length_cap MUST NOT EXCEED reference headroom.
@@ -351,30 +370,35 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   Term reference headroom: `payload_cap − attestation_id_width − the largest data the deployment intends to accept`.
 
   WHY: a ceiling, not a semantic choice: it exists so a caller cannot push the constructed payload past the cap through the reference fields alone. A deployment lowers it where it wants the rejection to arrive at the reference, and raises it only where a genuine scheme exceeds 1 KB.
-- **attestation_id_width** — the width of the attestation_id the configured Actor Identity instance allocates. *Default:* none.
+- **attestation_id_width**
+  Term attestation_id_width: the width of the attestation_id the configured Actor Identity instance allocates. *Default:* none.
   ```
   attestation_id_width 1: The deployment MUST set attestation_id_width to the maximum width the wired Actor Identity instance allocates.
   attestation_id_width 2: [Record Action] step 1 MUST size the payload with attestation_id_width.
   ```
   WHY: Actor Identity declares the id opaque, host-allocated and of no fixed width. An under-declared width makes step 1's check optimistic and reopens the path where an oversized payload strands a committed attestation.
-- **record_action_completion_bound** — the longest a [Record Action] may take between its first committed write (step 2's attestation, stamped attested_at at Actor Identity's seam) and its last (step 5's index writes). *Default:* none.
+- **record_action_completion_bound**
+  Term record_action_completion_bound: the longest a [Record Action] may take between its first committed write (step 2's attestation, stamped attested_at at Actor Identity's seam) and its last (step 5's index writes). *Default:* none.
   ```
   record_action_completion_bound 1: The deployment MUST set record_action_completion_bound from the observed worst-case latency of [Record Action] steps 2 through 5 with headroom, constituent round-trips included.
   ```
   WHY: a write issued inside the bound must also have landed inside it. The bound does three jobs, each stated where it happens: the lower edge of the scan's second and third halves (record_edge), the per-act lease length for a record action (Per-act section 9a), and the invocation's terminus (record_action step 7.6).
-- **purge_completion_bound** — the longest a [Purge Event] may take between step 1's transition (stamped purged_at at Retention Window's seam) and step 3's outcome record. *Default:* none.
+- **purge_completion_bound**
+  Term purge_completion_bound: the longest a [Purge Event] may take between step 1's transition (stamped purged_at at Retention Window's seam) and step 3's outcome record. *Default:* none.
   ```
   purge_completion_bound 1: The deployment MUST set purge_completion_bound from the observed worst-case latency of [Purge Event] steps 2 through 3 with headroom, the erasure mechanism's round-trip included.
   ```
   WHY: the lower edge of the scan's first half (purge_edge), the lease length for a cascade's section, and the cascade's terminus, on the record action's terms.
-- **compensation_closure_latency** — the deployment's disclosed bound on one whole closure landing, from the moment a scan half takes an act's section to the moment the closure's last record has landed. *Default:* none.
+- **compensation_closure_latency**
+  Term compensation_closure_latency: the deployment's disclosed bound on one whole closure landing, from the moment a scan half takes an act's section to the moment the closure's last record has landed. *Default:* none.
   ```
   compensation_closure_latency 1: The deployment MUST declare compensation_closure_latency as the bound on one whole closure.
   ```
   Term whole closure: for the second and third halves, the `audit.reconciliation` intent, the compensating act and the `audit.compensation` record — three writes, each an attest-append-place across three stores or a retention placement; for the first half, a re-driven cascade, the erasure mechanism's round-trip included.
 
   WHY: declared rather than observed so that the start check can read it; the fourth term of the inequality.
-- **clock_offset_allowance** — the most the composition's seam clock and any constituent's seam clock may differ. *Default:* none.
+- **clock_offset_allowance**
+  Term clock_offset_allowance: the most the composition's seam clock and any constituent's seam clock may differ. *Default:* none.
   ```
   clock_offset_allowance 1: The deployment MUST set clock_offset_allowance from the deployment's clock discipline.
   clock_offset_allowance 2: The scan MUST widen EVERY comparison of now with a constituent-stamped time by clock_offset_allowance.
@@ -1556,7 +1580,7 @@ Kind: Operation
 
 #### Purge Event
 
-The action that coordinates the cascade for a retention-elapsed event: seals the event if it is in the tail, requires the retention to be resolved, purges the retention record, writes the destruction record, and delegates destruction of Event Log's data field and the attestation's proof to the shredding-class `erasure_mechanism`, branching on the reported outcome. Destroys nothing itself, disposes of no seal, re-seals nothing. Returns ok, not-known, [Not Eligible], [Retention Unresolved], [Cascade Failure] carrying the step, or — where a Legal Hold is composed — [Under Legal Hold].
+The action that coordinates the cascade for a retention-elapsed event: seals the event if it is in the tail, requires the retention to be resolved, purges the retention record, writes the destruction record, and delegates destruction of Event Log's data field and the attestation's proof to the shredding-class erasure_mechanism, branching on the reported outcome. Destroys nothing itself, disposes of no seal, re-seals nothing. Returns ok, not-known, [Not Eligible], [Retention Unresolved], [Cascade Failure] carrying the step, or — where a Legal Hold is composed — [Under Legal Hold].
 
 Kind: Operation
 
@@ -1686,7 +1710,7 @@ open:
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/audit-trail.md`.
 
 - **2026-09-11 — Rewritten in GRACE lang v0.31; nothing but language changed.** *Chose:* labelled rules in fenced blocks, rationale under `WHY:`, terms declared where they are used, the Ledger and the invariant numbers unchanged; the instance-start conditions given one owner (§*Instance start*), the class boundary and the scan's halves cited by label from every site that used to restate them. *Over:* the prose spec. *Because:* the migration plan — the corpus is being rewritten in the language, and a spec whose obligations have one owner each is what the reverse diff reads.
-- **2026-08-30 — The reconciliation is one writer per act, bounded at both edges, and the scan writes its intent before its repair.** *Chose:* a per-act critical section keyed by the act's id (attestation_id for a record action, event_id for a cascade), declared as an instance capability requirement with lease semantics, held by the invocation from its first write and taken by every scan half before its pre-check; two completion bounds (record_action_completion_bound, purge_completion_bound) below which no half examines anything and at which the invocation yields; a horizon at which the second half reports rather than re-compensates, once, behind a reported_beyond_horizon marker; compensation_closure_latency and clock_offset_allowance declared, the window measured from the finding's creation, the three-term inequality checked at start; the scan reading its own now once per run; `audit.reconciliation` written one record per finding before the act it announces, under a declared `reconciliation_operator_credential`; the scan as the sole writer of an orphan's compensation. *Over:* a third half whose placement raced the invocation's own step 4 under no shared key; halves with no lower edge, compensating attestations and events whose [Record Action] was still between two steps; a window measured from detection and an inequality with one term; a findings record of unbounded size and unstated position. *Because:* two writers over one act land two records the seal protects forever, a leg with no lower edge reads work in flight as an orphan and corrects it, and a liveness promise is arithmetic or it is nothing (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *Liveness is arithmetic*, *A stamp from another seam never decides a write alone*, *An outcome is sized before the intent*, and *Capability provenance*; with §*A reconciliation is bounded at both ends* and §*Recovery commits under a declared service identity*). The four contract-shaped sites — invalid-request's position, `recording-failure(step-4)`'s event_id, the Event Log durability obligation, Invariant 8's abandoned terminus — are routed as open lines rather than fixed, because every composer transcribes them. *Round 2, same day:* the inequality gained its skew term and its closure latency (the whole closure, intent through compensation, or a cascade round-trip); the per-act section gained its non-lease branch — a leg skips a held act and never blocks, a host that cannot detect death must lease, and the non-lease terminus is *proceed as landed* behind step 4's pre-check; the lease terminus is confined to steps 2–4 inclusive, an invocation past step 4 completing its index writes; the beyond-horizon report and the recording-half detector both gained the horizon; and every *all succeed or none* sentence over un-withdrawable writes was restated as ordered writes plus compensation. The five *until a destroyed outcome lands* loops are bounded by open line 2026-08-30-d rather than given a terminus here.
+- **2026-08-30 — The reconciliation is one writer per act, bounded at both edges, and the scan writes its intent before its repair.** *Chose:* a per-act critical section keyed by the act's id (attestation_id for a record action, event_id for a cascade), declared as an instance capability requirement with lease semantics, held by the invocation from its first write and taken by every scan half before its pre-check; two completion bounds (record_action_completion_bound, purge_completion_bound) below which no half examines anything and at which the invocation yields; a horizon at which the second half reports rather than re-compensates, once, behind a reported_beyond_horizon marker; compensation_closure_latency and clock_offset_allowance declared, the window measured from the finding's creation, the three-term inequality checked at start; the scan reading its own now once per run; `audit.reconciliation` written one record per finding before the act it announces, under a declared reconciliation_operator_credential; the scan as the sole writer of an orphan's compensation. *Over:* a third half whose placement raced the invocation's own step 4 under no shared key; halves with no lower edge, compensating attestations and events whose [Record Action] was still between two steps; a window measured from detection and an inequality with one term; a findings record of unbounded size and unstated position. *Because:* two writers over one act land two records the seal protects forever, a leg with no lower edge reads work in flight as an orphan and corrects it, and a liveness promise is arithmetic or it is nothing (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *Liveness is arithmetic*, *A stamp from another seam never decides a write alone*, *An outcome is sized before the intent*, and *Capability provenance*; with §*A reconciliation is bounded at both ends* and §*Recovery commits under a declared service identity*). The four contract-shaped sites — invalid-request's position, `recording-failure(step-4)`'s event_id, the Event Log durability obligation, Invariant 8's abandoned terminus — are routed as open lines rather than fixed, because every composer transcribes them. *Round 2, same day:* the inequality gained its skew term and its closure latency (the whole closure, intent through compensation, or a cascade round-trip); the per-act section gained its non-lease branch — a leg skips a held act and never blocks, a host that cannot detect death must lease, and the non-lease terminus is *proceed as landed* behind step 4's pre-check; the lease terminus is confined to steps 2–4 inclusive, an invocation past step 4 completing its index writes; the beyond-horizon report and the recording-half detector both gained the horizon; and every *all succeed or none* sentence over un-withdrawable writes was restated as ordered writes plus compensation. The five *until a destroyed outcome lands* loops are bounded by open line 2026-08-30-d rather than given a terminus here.
 - **2026-08-24 — Seal supersession is extracted to a forthcoming Seal Lifecycle composing pattern, not absorbed.** *Chose:* remove the Reseal action, `superseded_by`, `reseal_on_purge` and every current-seal qualification from the canonical composition; name Seal Lifecycle as owner of re-sealing partly purged seals, mechanism rotation, and supersession bookkeeping. *Over:* keeping the mechanism added at Final Critique 6. *Because:* which seal is current over a range two seals cover is new truth no constituent store carries and no rebuild replays — it clears the extraction gates, and it had spread through three invariants, three checks and four cards.
 
 NOTE: End of Audit Trail.

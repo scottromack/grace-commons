@@ -24,7 +24,7 @@ Standard library only. One finding per line, `path:line: [CODE] message`. Non-ga
 | **B-before / B-after / B-banned / B-exceed** | Positive `MUST … BEFORE` (Timing 6, Hard invariant 11); `AFTER` under `MUST NOT` (Timing 4); `AT LEAST`, `STRICTLY` (Timing 10, Timing 11); `MUST EXCEED` (Timing 9). |
 | **A-arith** | An arithmetic operator in a rule (Hard invariant 24, Closed vocabulary 9). |
 | **P-pronoun** | A pronoun in a rule (Hard invariant 4). |
-| **D-decl-form** | A line outside every fence that opens like a declaration and is not the one form, `Term name: definition.` — a bare name running to the first colon, one space, a closing period — or that still carries the retired `Terms ›` separator (GRACE-lang v0.45). |
+| **D-decl-form** | A line outside every fence that opens like a declaration and is not the one form, `Term name: definition.` — a bare name running to the first colon, one space, a closing period — or that still carries the retired `Terms ›` separator (GRACE-lang v0.45); and the pre-migration bold-bullet declaration, `- **name** — definition`, which a migrated spec writes as a bare `- **name**` heading over a `Term name:` line (council read 107). |
 | **R-caps** | A word in capitals that is not a reserved token (Casing 2, Casing 6) — a watched or provisional form, an inflection of a reserved token (`WHILE`, `DEGRADES TO`, `EXIST`), or a proper noun or acronym (`SOX`, `KB`), which a rule spells out (ruled at council read 85, no exceptions). Both sets derive from `GRACE-lang.md`. Landed at council read 79, when three such words were found in rules both checkers passed. |
 | **C-copula / C-verb** | A copula after the modal; a verb after the modal the spec's record-verb declaration does not carry (Closed vocabulary 8). |
 | **F-bracket** | A bracket in a rule that is not a bracket marker for an action or a term: a bracketed range, read as a marker and arithmetic besides; a Markdown link, which does not render inside a fence and names another specification that a rule names bare (Surface 29); and a `[Name]` with no `[Name]:` link line in the spec, which lands on no term entry (Surface 26). |
@@ -99,8 +99,8 @@ python3 tools/grace/nouns.py --json          # the whole reading
 
 It tags each labelled rule with NLTK's averaged-perceptron tagger and matches
 each noun phrase against the names the spec declares (`Term` lines, category
-lists and their aliases, signature names, value-set members, bold-bullet
-settings), its constituents' names and the grammar's, rule nouns included. A
+lists and their aliases, signature names, value-set members), its
+constituents' names and the grammar's, rule nouns included. A
 tagger decides what is a noun, so the count is good to a few percent: the tool
 is advisory, never gates, and needs `nltk` with the
 `averaged_perceptron_tagger_eng` model (`test_checks.py` skips its fixtures when

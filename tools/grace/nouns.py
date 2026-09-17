@@ -63,7 +63,6 @@ def names_of(text: str) -> set[str]:
             extra |= {a.strip() for a in re.split(r",|;| or ", alias)}
         body = re.sub(r"\([^)]*\)", "", body)
         extra |= {a.strip() for a in re.split(r",|;| and ", body.split(" — ")[0].rstrip("."))}
-    extra |= set(re.findall(r"^\s*- \*\*([a-z][a-z0-9_ -]*)\*\* — ", text, re.M))
     m = re.search(r"^Term rule noun:.*? — (.+)\.$", text, re.M)
     if m:
         extra |= {x.strip() for x in m.group(1).split(",")}

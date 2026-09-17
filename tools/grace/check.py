@@ -244,6 +244,7 @@ TERM_DECL = re.compile(r"^\s*Term ([^:`]+?): (.*)$")
 # the name runs to the first colon, bare; one space; the definition ends with a period.
 TERM_DECL_STRICT = re.compile(r"^\s*Term ([^:`\s](?:[^:`]*[^:`\s])?): \S.*\.$")
 DECL_OPENER = re.compile(r"^\s*(Terms ›|Term\b)")
+BOLD_BULLET_DECL = re.compile(r"^\s*- \*\*`?[a-z][a-z0-9_ -]*`?\*\* — ")
 MODAL = re.compile(r"\b(MUST NOT|MUST|MAY)\b")
 _LABEL_TEXT = r"((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?)"
 # A tombstone is its own line (GRACE-lang v0.46): `Deleted: Label. The owner, and why.`
@@ -506,6 +507,18 @@ def scan(path: Path) -> list[Finding]:
             if rx.search(CODE_SPAN.sub(" ", ln)):
                 add(k, "D-rule-noun", f"*{old}* names the rule noun *{new}*; write {new} "
                     f"(Earned vocabulary 14): {ln.strip()[:60]}")
+
+    # D-decl-form, the bold-bullet shape: `- **name** — definition` declared a
+    # setting or a store before migration; a migrated spec declares it with
+    # `Term name:` under a bare bullet heading (council read 107)
+    in_fence = False
+    for k, ln in enumerate(lines, start=1):
+        if FENCE.match(ln):
+            in_fence = not in_fence
+            continue
+        if not in_fence and BOLD_BULLET_DECL.match(ln):
+            add(k, "D-decl-form", "a bold-bullet declaration; keep `- **name**` as the heading and "
+                f"declare with `Term name: definition.` beneath it: {ln.strip()[:60]}")
 
     # D-code-span: a declared name is written bare (Surface 30)
     names_here = declared_names(text)
