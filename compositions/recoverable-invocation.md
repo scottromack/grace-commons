@@ -39,7 +39,7 @@ Not a transaction, not the adopter's store, not an audit journal, not a class. A
 ## Composes
 
 - **[Lease](../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act critical section is a lease, and so are both fences. This page binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics. What the atom refuses to own and this page adds: which key protects which work, and how long a grant must last.
-- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers `event_id` and refuses `invalid-credential | invalid-request | recording-failure(step)`, for every record this page writes, and `read_record(event_id)`, which answers `audit_record | not-known`, where an `event_id` is in hand. Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
+- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event_id and refuses `invalid-credential | invalid-request | recording-failure(step)`, for every record this page writes, and `read_record(event_id)`, which answers `audit_record | not-known`, where an event_id is in hand. Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
 - **The bound act** — not a constituent. The adopter's constituent commit call, supplied as a binding together with the read that tells whether it committed. The constituent's own contract governs the commit.
 - **The act's critical section** — keyed by the act, supplied by the deployment (*Capability requirement*, act_section). No constituent grants it.
 
@@ -154,6 +154,10 @@ Five elements, each carrying the Contract classification of [`execution-contract
   Term act finding: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation_id, finding); carries no last_seen and no span.
 
   Term instance finding: {finding, kind, first_seen, last_seen, run_id}; deduplicates on (finding, kind).
+
+  Term first_seen: the run that first surfaced a finding; set once (findings 7, findings 8).
+
+  Term last_seen: the last run that still saw an instance finding's condition (findings 9, findings 10).
   The five conditions:
   - journal-unavailable — instance finding, no kind: the journal could not be read or written this run ([Reconcile] step 1).
   - store-unavailable — instance finding, kind present: the kind's adopter's store answered unavailable to probe ([Reconcile] step 3).
@@ -511,7 +515,7 @@ Steps:
    ```
 
 WHY:
-Check 2 reads an outcome without recovery whose actor_ref differs from its intent's as a conformance failure (close 1). Every route from an id to an `event_id` reads the intent's payload, which [Resolve] takes an argument to avoid (close 3). close step 1.2 cannot tell a yielded invocation from one never opened; step 0 is the caller's precondition. close step 2.3: an abandonment or escalation says the act was not accounted for, and the correction is [Resolve]'s `supersedes` path. close step 2.4 lands on the position's own arm because the act has committed and the caller's next move is fixed. Step 2 under a fence cannot land a write; without one it is load-bearing — a paused invocation passes step 1, wakes after the sweep closed the act, and the re-read stops a second outcome — and still a mitigation, since a pause between step 2 and the write appends beside the sweep's record (journal_fence none 1). close step 3.3's act is escalated as outcome-unrecordable.
+Check 2 reads an outcome without recovery whose actor_ref differs from its intent's as a conformance failure (close 1). Every route from an id to an event_id reads the intent's payload, which [Resolve] takes an argument to avoid (close 3). close step 1.2 cannot tell a yielded invocation from one never opened; step 0 is the caller's precondition. close step 2.3: an abandonment or escalation says the act was not accounted for, and the correction is [Resolve]'s `supersedes` path. close step 2.4 lands on the position's own arm because the act has committed and the caller's next move is fixed. Step 2 under a fence cannot land a write; without one it is load-bearing — a paused invocation passes step 1, wakes after the sweep closed the act, and the re-read stops a second outcome — and still a mitigation, since a pause between step 2 and the write appends beside the sweep's record (journal_fence none 1). close step 3.3's act is escalated as outcome-unrecordable.
 
 ---
 
@@ -631,7 +635,7 @@ resolve 28: A candidate list exceeding intent_candidates_cap MUST land invalid-r
 ```
 
 WHY:
-Audit Trail projects no read that validates a credential without appending, so validation before the take had no call to make; both substitutes broke it (an early record_action appends before the critical section; a direct `attest` mints an orphan attestation on every typo). resolve 11 is why [Resolve] takes intent_event_id: every route from an invocation_id to an `event_id` reads the payload the purge destroyed, and without the id a lawfully destroyed record answers not-known. resolved_by names the operator, not a record; without resolve 13 a lawful resolution read as a binding_duplicate (`-buggy-supersede`, rejected). The transitive rule is a prose repair the model does not confirm. resolve 19: a reading nothing bounds must not decide a destructive record (`-buggy-opclock` violates Invariant 5 against `probe-reportonly-clean`). resolve 23: a retry after `step-4` appends the duplicate in a deployment that has the fence and needs no pause to do it. resolve 27: the five causes imply three moves — fix and retry, nothing to do, wait and re-issue unchanged.
+Audit Trail projects no read that validates a credential without appending, so validation before the take had no call to make; both substitutes broke it (an early record_action appends before the critical section; a direct `attest` mints an orphan attestation on every typo). resolve 11 is why [Resolve] takes intent_event_id: every route from an invocation_id to an event_id reads the payload the purge destroyed, and without the id a lawfully destroyed record answers not-known. resolved_by names the operator, not a record; without resolve 13 a lawful resolution read as a binding_duplicate (`-buggy-supersede`, rejected). The transitive rule is a prose repair the model does not confirm. resolve 19: a reading nothing bounds must not decide a destructive record (`-buggy-opclock` violates Invariant 5 against `probe-reportonly-clean`). resolve 23: a retry after `step-4` appends the duplicate in a deployment that has the fence and needs no pause to do it. resolve 27: the five causes imply three moves — fix and retry, nothing to do, wait and re-issue unchanged.
 
 ---
 
@@ -810,7 +814,7 @@ read_invocation 15: An adopter that decides a write on [Read Invocation]'s answe
 ```
 
 WHY:
-The rebuild's comparisons are against the substrate's stamps, so the reader is a seam (read_invocation 1). Closings are capped because the degraded Invariant 2 admits them in plurality. Without read_invocation 11 the cheapest implementation answers not-known for a key whose intent and outcome are sitting in the journal. read_invocation 12 is also what a wholly purged act answers — the destroyed payload carried the key — the one admitted exception to §*Lawful destruction is answered before absence*; read_record by `event_id` still answers *Purged*.
+The rebuild's comparisons are against the substrate's stamps, so the reader is a seam (read_invocation 1). Closings are capped because the degraded Invariant 2 admits them in plurality. Without read_invocation 11 the cheapest implementation answers not-known for a key whose intent and outcome are sitting in the journal. read_invocation 12 is also what a wholly purged act answers — the destroyed payload carried the key — the one admitted exception to §*Lawful destruction is answered before absence*; read_record by event_id still answers *Purged*.
 
 ### Wiring decision
 
@@ -1344,7 +1348,7 @@ Term records: `<kind>.intended`, `<kind>.<outcome>`, `<kind>.refused`, `<kind>.r
 
 Term record verbs: write, read, read back, take, release, hold, yield, adopt, retry, refuse, return, surface, count, probe, close, examine, keep, drop, name, carry, size, validate, land, supersede, rebuild, populate, clear, discard, report, proceed, wait, persist, start, derive, sample, declare, bind, treat, transcribe, issue, mint, reach, reveal, escalate, abandon, open, advance, set, move, admit, absorb, exclude, stand, serialize, time, query, run, pass, decide, pair, share, stay, sum, rely, trigger, exist, answer, call, follow, re-read, leave, supply, perform, exempt, bound, block, use, re-run, match, map, make, export, classify, choose, cap, vary, update, touch, suppress, stamp, retain, resolve, remove, reject, recover, record, re-take, partition, own, owe, omit, offer, know, inspect, govern, free, fire, end, disclose, describe, corroborate, confirm, compare, collapse, check, charge, change, belong, add, commit, append, quantify.
 
-Term cited: take, try_take, remaining, release, expires_at: Lease. record_action, read_record, payload_cap, reference_length_cap, attestation_id_width, retention_policy, recorded_at, sequence_number, next_sequence_number, record_action_completion_bound: Audit Trail.
+Term cited: take, try_take, remaining, release, expires_at: Lease. record_action, read_record, payload_cap, reference_length_cap, attestation_id_width, retention_policy, recorded_at, sequence_number, next_sequence_number, record_action_completion_bound, event_id, action_ref, policy_ref: Audit Trail.
 
 Term value sets: landed_by = invocation | sweep | operator. state = open | closed | refused | abandoned | escalated | resolved. disposition = outcome | abandoned | escalated. probe answers committed | not-committed | undecidable | unavailable. commit partition = pre-commit | committed | unknown. repeatable = yes | no. retry_terminus = lease | counted(n). commit_fence = none | declared. journal_fence = none | declared. service_identity = an actor | none. findings = journal-unavailable | store-unavailable | closure-at-risk | binding_duplicate | unbound-kind. [Resolve]'s invalid-request causes = purged | malformed | too-young | already-abandoned | candidates-over-cap. Cross-seam comparisons = applied | minted.
 
@@ -1355,6 +1359,14 @@ Term intent payload: intent_data with invocation_id, kind and act_key added.
 Term outcome payload: outcome_data with invocation_id, intent_event_id, kind and act_key added.
 
 Term recovered outcome payload: the outcome payload with recovery set to true and acting_actor_ref set to the intent's actor_ref added.
+
+Term acting_actor_ref: the original caller's actor_ref, carried by an outcome the sweep or an operator writes (Invariant 5.2, Invariant 5.4).
+
+Term resolved_by: the operator's actor_ref, carried by a closing record an operator writes through [Resolve] (resolve 21).
+
+Term recovery_intended: a `<kind>.recovery_intended` record — the sweep's statement of an act and its plan, written before the outcome it names (Invariant 5.1).
+
+Term store_candidates: the store records an `<kind>.escalated` record names as possibly the intent's, at most intent_candidates_cap of them (reconcile step 3.8a).
 
 Term run_id: a sweep run's own seam-injected id; the critical section holder for the run.
 
@@ -1372,7 +1384,7 @@ Term cadences: reconciliation_cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Term terms: (named expressions, each declared where it is used) worst_closure, window_end, lease_spend, run_floor, closure_spend, examine_edge, abandon_edge, horizon_edge, at_risk_threshold, intent_age, settle_bound, retention_end, usable_term, sweep_lease, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed_already, standing closing, closings key, intents key, terminus, caller_kind, payload_match, quiescence, read path, read-your-writes, `position's existing arm`, journal_fence instant, commit_fence, critical section key, critical section holder, critical section duration, act finding, instance finding, act_key, invocation_id, now, operator_run_id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry.
+Term terms: (named expressions, each declared where it is used) worst_closure, window_end, lease_spend, run_floor, closure_spend, examine_edge, abandon_edge, horizon_edge, at_risk_threshold, intent_age, settle_bound, retention_end, usable_term, sweep_lease, in-flight, aged, partition, examined, skipped, reported, surfaced, unreached, closed_already, standing closing, closings key, intents key, terminus, caller_kind, payload_match, quiescence, read path, read-your-writes, `position's existing arm`, journal_fence instant, commit_fence, critical section key, critical section holder, critical section duration, act finding, instance finding, act_key, invocation_id, now, operator_run_id, resolve refusal, open result, close result, reconcile tally, invocation report, invocation entry, first_seen, last_seen, acting_actor_ref, resolved_by, recovery_intended, store_candidates.
 
 #### Open
 
@@ -1492,7 +1504,7 @@ Projection: journal_unavailable
 
 #### Already Accounted
 
-[Refuse]'s and [Resolve]'s refusal where a closing record already names the invocation_id; carries that record's `event_id`. Nothing is appended; the caller reports the act as accounted for. Distinct from not-open (a programming-error diagnosis never decided from a journal read) and not named `already-closed`, a constituent's pre-commit code an adopter transcribes verbatim.
+[Refuse]'s and [Resolve]'s refusal where a closing record already names the invocation_id; carries that record's event_id. Nothing is appended; the caller reports the act as accounted for. Distinct from not-open (a programming-error diagnosis never decided from a journal read) and not named `already-closed`, a constituent's pre-commit code an adopter transcribes verbatim.
 
 Kind:       Member
 Member of:  the refuse rejections and the resolve rejections

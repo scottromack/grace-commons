@@ -1295,7 +1295,9 @@ def check_ge_form_synthetic(problems: list[str]) -> int:
 def check_nouns_synthetic(problems: list[str]) -> int | None:
     """tools/grace/nouns.py — Closed vocabulary 4's reader (council read 105).
     A declared noun, a rule noun and a constituent's name resolve; an undeclared
-    one does not. Returns the fixture count, or None when nltk is absent (the
+    one does not, and a name beside an owner in a cited list or a value set's own
+    name is declared.
+    Returns the fixture count, or None when nltk is absent (the
     tool is advisory and its dependency optional)."""
     import tempfile
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
@@ -1329,7 +1331,16 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
             problems.append(f"nouns.py: '{noun}' is declared (own, rule noun, constituent) and read as unresolved")
     if "widget" not in misses:
         problems.append("nouns.py: the undeclared 'widget' resolved")
-    return 4
+    # a cited list names its owner after each run of names (council read 112)
+    cited = nouns.names_of("Term cited: take, expires_at: Lease. record_action, read_record: Audit Trail.\n")
+    for name in ("expires_at", "record_action"):
+        if name not in cited:
+            problems.append(f"nouns.py: '{name}' beside an owner in a cited list is not read as declared")
+    # a value set's own name is declared by the value sets line (council read 112)
+    vs = nouns.names_of("Term value sets: landed_by = a | b. enrollment_path = direct | external.\n")
+    if not {"landed_by", "enrollment_path"} <= vs:
+        problems.append("nouns.py: a value set named in the value sets line, first or later, is not read as declared")
+    return 7
 
 
 def check_fence_form_synthetic(problems: list[str]) -> int:
@@ -1851,7 +1862,8 @@ def main(argv: list[str]) -> int:
         print("nouns.py: skipped — nltk and its tagger model are not installed (advisory tool)")
     elif not noun_read_problems:
         print(f"nouns.py: {n_nr} synthetic fixtures hold (the spec's own noun, a rule noun and a "
-              "constituent's noun resolve; an undeclared noun does not) \u2713")
+              "constituent's noun resolve; an undeclared noun does not; two names beside owners in a "
+              "cited list and a value set's own name are declared) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)

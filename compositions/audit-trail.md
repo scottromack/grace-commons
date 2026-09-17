@@ -1455,7 +1455,7 @@ Four serialization obligations, all implementation-owned.
 Concurrency 1: The implementation MUST serialize the read-seal-advance sequence per instance across [Seal Now], the cadence-fired seal and [Purge Event] step 0.
 Concurrency 2: The implementation MUST serialize the cascade per event_id.
 Concurrency 3: The implementation MUST protect the destruction-record write against a lost membership.
-Concurrency 4: A per-evidence_id serialization MAY discharge Concurrency 3.
+Concurrency 4: A serialization keyed by evidence_id MAY discharge Concurrency 3.
 Concurrency 5: An atomic set-add MAY discharge Concurrency 3.
 NOTE: watch cardinality — an inclusive *either discharges it* has no form; written as one obligation and two MAY rules (Concurrency 3 through 5). The same pressure at Second half 12 (one writer) and Compensation 2 (one record per finding).
 Concurrency 6: [Record Action] steps 3 through 5 MUST run under the per-act critical section keyed by the attestation_id step 2 returned.

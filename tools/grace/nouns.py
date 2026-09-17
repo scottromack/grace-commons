@@ -59,10 +59,14 @@ def names_of(text: str) -> set[str]:
     extra: set[str] = set()
     for m in re.finditer(r"^\s*Term (actors|records|terms|bounds|cadences|cited):(.*)$", text, re.M):
         body = m.group(2)
+        if m.group(1) == "cited":  # "name, name: Owner. name: Owner." — each owner closes a list
+            body = re.sub(r":\s+[A-Z][\w ]*?\.(?=\s|$)", ",", body)
         for alias in re.findall(r"\((?:also: )?([^)]*)\)", body):
             extra |= {a.strip() for a in re.split(r",|;| or ", alias)}
         body = re.sub(r"\([^)]*\)", "", body)
         extra |= {a.strip() for a in re.split(r",|;| and ", body.split(" — ")[0].rstrip("."))}
+    for m in re.finditer(r"^\s*Term value sets:(.*)$", text, re.M):  # "name = a | b. name = …"
+        extra |= {n.strip() for n in re.findall(r"(?:^\s*|\.\s)([a-z][\w -]*?) = ", m.group(1))}
     m = re.search(r"^Term rule noun:.*? — (.+)\.$", text, re.M)
     if m:
         extra |= {x.strip() for x in m.group(1).split(",")}

@@ -518,7 +518,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: commitment, id, property, reference, registry, store instance, seam, transition, now, resolving action, well-formedness check, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, capacity decision, degenerate window, late resolution, premature expiry, re-hold.
 
-Term cited: `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: sequence_number: Event Log. `execution-contract.md` §Logic confinement — the seam and the transition.
 
 Term composing pattern: [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Actor Identity](./actor-identity.md), [Permissions](./permissions.md), a capacity constraint pattern, a reversal pattern.
 

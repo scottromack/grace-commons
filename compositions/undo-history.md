@@ -54,6 +54,8 @@ Composes 7: The composition MUST replace Personal Todo's own caller surface.
 
 Term composition: this pattern's wiring of [Personal Todo](../atoms/personal-todo.md) and [Event Log](../atoms/event-log.md) — the actions below, the event schemas and the replay.
 
+Term constituents: [Personal Todo](../atoms/personal-todo.md), [Event Log](../atoms/event-log.md).
+
 Term event log instance: the one [Event Log](../atoms/event-log.md) instance the composition owns for one Personal Todo shape; the composition's sole truth.
 
 Term derived state: the Personal Todo shape the replay produces — a derived index by construction, regenerable from the event log instance and never a second truth.
@@ -391,7 +393,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: composition, event log instance, derived state, unit, seam, event type, forward event, snapshot, forward action, no-op edit, undone set, undo target, replay, surviving event, admitted add, admitted edit, admitted complete, admitted delete, admitted undo, admitted action.
+Term terms: composition, constituents, event log instance, derived state, unit, seam, event type, forward event, snapshot, forward action, no-op edit, undone set, undo target, replay, surviving event, admitted add, admitted edit, admitted complete, admitted delete, admitted undo, admitted action.
 
 Term cited: `execution-contract.md` §Logic confinement — the seam. `execution-contract.md` §Composition state — the derived index and its rebuild obligations.
 

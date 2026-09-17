@@ -81,6 +81,10 @@ Composition state 3: The composition MUST derive the visible tasks from Personal
 Composition state 4: The composition MUST NOT materialize a derived query.
 ```
 
+Term task_id: the Personal Todo id a call names a task by (Action wiring 6).
+
+Term actor_ref: the opaque reference a call carries for the actor making it; the composition checks it and never authenticates it (Non-goal 12).
+
 Term responsible actor: the assignee_ref of the active assignment Assignment's active_for answers for a task_id — none if Assignment answers none.
 
 Term visible tasks: EVERY task of the Personal Todo instance IF the actor_ref holds tasks:view — none otherwise.
@@ -281,7 +285,7 @@ External check 4: An auditor needing the actor_ref bound to a caller MUST read t
 WHY:
 The split is the honest one and it is the same shape [Session-Gated Authorization](./session-gated-authorization.md) found. The three stores record *what stands*: an assignment's terminal state, a grant's history, a task's existence — so Check 1.1 through 5.2 clear from records. They do not record *what was attempted*: a denied call writes nothing anywhere, so the count of refusals and the order of the two steps inside an admitted call leave no trace in any constituent store. That is External check 1 through 3, and it is why a regulated deployment composes [Audit Trail](./audit-trail.md) rather than reading harder.
 
-External check 4 is the one a deployment can fail silently, and §Non-goals names it as a seam rather than a gap: every guarantee here is stated over the `actor_ref` values presented to the composition, and nothing here authenticates them.
+External check 4 is the one a deployment can fail silently, and §Non-goals names it as a seam rather than a gap: every guarantee here is stated over the actor_ref values presented to the composition, and nothing here authenticates them.
 
 ---
 
@@ -306,7 +310,7 @@ Non-goal 15: The composition MUST NOT partition the Personal Todo instance's des
 ```
 
 WHY:
-Non-goal 4 and Non-goal 12 are the two constituent obligations this composition declines, and declining them is a decision rather than an oversight. [Assignment](../atoms/assignment.md)'s `Composition note 4` assigns *whether a completed task's assignment is recalled* to a composing pattern, and both answers are defensible — an Active assignment on a Done task is a completion-attribution record, and recalling it is a clean close — so the composition supports either and the deployment picks. [Permissions](../atoms/permissions.md)'s `Composition note 3` assigns the caller-to-subject binding, and this composition passes `actor_ref` through unauthenticated: an unauthenticated deployment lets any caller act under any actor's grants, which Non-goal 13 names the cure for. Both are pushed down one layer with the receiver named, which is the most a composition can do with an assignment it does not want.
+Non-goal 4 and Non-goal 12 are the two constituent obligations this composition declines, and declining them is a decision rather than an oversight. [Assignment](../atoms/assignment.md)'s `Composition note 4` assigns *whether a completed task's assignment is recalled* to a composing pattern, and both answers are defensible — an Active assignment on a Done task is a completion-attribution record, and recalling it is a clean close — so the composition supports either and the deployment picks. [Permissions](../atoms/permissions.md)'s `Composition note 3` assigns the caller-to-subject binding, and this composition passes actor_ref through unauthenticated: an unauthenticated deployment lets any caller act under any actor's grants, which Non-goal 13 names the cure for. Both are pushed down one layer with the receiver named, which is the most a composition can do with an assignment it does not want.
 
 Non-goal 11 is narrower than it reads. The composition gates every action on the Permissions instance and wires no action for `grant` or `revoke` — who may administer grants is a governance surface of its own, and a regulated deployment composes [Attributed Permissions Admin](./attributed-permissions-admin.md) over the same instance.
 
@@ -361,7 +365,7 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: composition, constituents, responsible actor, visible tasks, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall.
+Term terms: composition, constituents, responsible actor, visible tasks, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall, task_id, actor_ref.
 
 Term record verbs: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, recheck, rest, leave, wrap, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply.
 
@@ -371,7 +375,7 @@ Term cited: `execution-contract.md` §Conformance — recursive conformance and 
 
 #### Add Task
 
-The composition action that adds a task to the shared list — gates on [Tasks Add] via Permissions, then delegates to Personal Todo's `add`. Returns the new `task_id`, or [Permission Denied] before any delegated Personal Todo rejection.
+The composition action that adds a task to the shared list — gates on [Tasks Add] via Permissions, then delegates to Personal Todo's `add`. Returns the new task_id, or [Permission Denied] before any delegated Personal Todo rejection.
 
 Kind: Operation
 

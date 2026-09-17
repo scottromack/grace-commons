@@ -365,6 +365,20 @@ Identity 19: A suspension log entry MUST carry the invocation_id.
 Identity 20: A suspension-state entry MUST carry the invocation_id.
 ```
 
+Term invocation_id: the id the seam allocates for one state-changing invocation; an intent and the outcome paired to it carry the same one (Identity 1 through 10).
+
+Term resume_invocation_id: the resuming call's own invocation_id, carried by a resume intent beside the cascade's (Identity 8).
+
+Term intended_at: the instant an intent records (Identity 16).
+
+Term intent_event_id: the event_id the substrate answers for a cascade's intent (Composition state 6).
+
+Term suspension_event_id: the event_id the substrate answers for a suspended outcome (Composition state 7).
+
+Term suspended_at: the instant a suspended outcome records (Action wiring 48).
+
+Term reinstated_at: the instant a reinstated outcome records (Action wiring 84).
+
 Term intent: the record_action call naming what an invocation is about to do, written before any committing call — `actor.suspension_intended` | `actor.resume_intended` | `actor.recovery_intended`.
 
 Term outcome: the record_action call naming what an invocation did — `actor.suspended` | `actor.reinstated`.
@@ -372,7 +386,7 @@ Term outcome: the record_action call naming what an invocation did — `actor.su
 Term committing call: `Permissions.revoke` | `Session.revoke` | `Credential.revoke` — a constituent call that writes outside the audit instance, and is irreversible once it commits.
 
 WHY:
-Identity 6 through 12 make the invocation_id the one field every pairing runs on, and Identity 15 is what it buys: one outcome per act, whoever wrote it. Three writers can reach an act — the original invocation, a caller's resume and the sweep — and all three write under the *cascade's* key rather than their own, so a resume's own seam id rides beside as `resume_invocation_id` and never displaces the key the checks pair on. Identity 13 and Identity 14 close the other end: a second suspension intent would be a second plan for one actor, which the sweep would pair twice and complete twice, and which Check 3.1 convicts.
+Identity 6 through 12 make the invocation_id the one field every pairing runs on, and Identity 15 is what it buys: one outcome per act, whoever wrote it. Three writers can reach an act — the original invocation, a caller's resume and the sweep — and all three write under the *cascade's* key rather than their own, so a resume's own seam id rides beside as resume_invocation_id and never displaces the key the checks pair on. Identity 13 and Identity 14 close the other end: a second suspension intent would be a second plan for one actor, which the sweep would pair twice and complete twice, and which Check 3.1 convicts.
 
 Identity 11 is the frozen rule *Intents pair with outcomes by an invocation identity* stated where it bites. Resemblance would be available here — an actor, an operator, a plan — and it chooses where a key decides, which is exactly the failure a second concurrent suspension of one actor would expose.
 
@@ -1027,7 +1041,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.41 (2026-09-15).
 
 Term value sets: lifecycle state = active | suspending | suspended. intent = actor.suspension_intended | actor.resume_intended | actor.recovery_intended. outcome = actor.suspended | actor.reinstated. surface = permissions | session | credential. enumeration availability = available | unavailable-past-horizon. already-active reason = active | suspending. benign terminal answer = not-active | already-terminal.
 
-Term terms: composition, constituents, credential arm, service identity, operator, resumer, suspension-state index, high-water mark, suspension log, mirrored log entry, refusal log entry, tail read, audit horizon, aged-out event, rebuild, miss, aged-out entry, aged-out log entry, aged-out actor, aged-out outcome, aged-out open cascade, post-snapshot member, admitted suspension, admitted reinstatement, plan, revoked set, open cascade, seam, transition, unified actor namespace, critical section, suspension completion bound, completion window, closure floor, access retention floor, planned set cap, maximal outcome, clock offset allowance, blank, boundary predicate, opaque input, operator reference, resume prefix, completion prefix, intent, outcome, committing call, landed intent, append step, retention step, read-back, owed outcome, stored active, effective active, snapshot, fresh cascade, resume, cascade, benign terminal answer, non-benign refusal, open members, unresolved members, closed plan, recovery marker, enumeration availability, sweep, pre-check, young intent, plan-unavailable marker, accounted cascade, accounted member, escalated finding, orphan, indeterminate committing call, position, not-suspended state, suspension result, suspension record, reinstatement result.
+Term terms: composition, constituents, credential arm, service identity, operator, resumer, suspension-state index, high-water mark, suspension log, mirrored log entry, refusal log entry, tail read, audit horizon, aged-out event, rebuild, miss, aged-out entry, aged-out log entry, aged-out actor, aged-out outcome, aged-out open cascade, post-snapshot member, admitted suspension, admitted reinstatement, plan, revoked set, open cascade, seam, transition, unified actor namespace, critical section, suspension completion bound, completion window, closure floor, access retention floor, planned set cap, maximal outcome, clock offset allowance, blank, boundary predicate, opaque input, operator reference, resume prefix, completion prefix, intent, outcome, committing call, landed intent, append step, retention step, read-back, owed outcome, stored active, effective active, snapshot, fresh cascade, resume, cascade, benign terminal answer, non-benign refusal, open members, unresolved members, closed plan, recovery marker, enumeration availability, sweep, pre-check, young intent, plan-unavailable marker, accounted cascade, accounted member, escalated finding, orphan, indeterminate committing call, position, not-suspended state, suspension result, suspension record, reinstatement result, invocation_id, resume_invocation_id, intended_at, intent_event_id, suspension_event_id, suspended_at, reinstated_at.
 
 Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. [Credential](../atoms/credential.md) — the effective-active reading and the per-pair bound.
 
