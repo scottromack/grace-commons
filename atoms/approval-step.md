@@ -50,44 +50,44 @@ Three adjacent concepts are distinguished, and every distinction is load-bearing
 ### Identity model
 
 ```
-Identity 1: The atom MUST identify a step by the step_id.
-Identity 2: The host MUST allocate a step_id at the seam.
-Identity 3: The transition MUST NOT allocate a step_id.
-Identity 4: The atom MUST NOT change a step_id.
-Identity 5: Two steps in one store instance MUST NOT share a step_id.
-Identity 6: The deployment MUST choose a step_id format that sorts in lexicographic byte order.
+Identity 1: The atom MUST identify a step by the step id.
+Identity 2: The host MUST allocate a step id at the seam.
+Identity 3: The transition MUST NOT allocate a step id.
+Identity 4: The atom MUST NOT change a step id.
+Identity 5: Two steps in one store instance MUST NOT share a step id.
+Identity 6: The deployment MUST choose a step id format that sorts in lexicographic byte order.
 Identity 7: The deployment MUST route EVERY call to one store instance.
-Identity 8: The atom MUST NOT identify a step by the subject_ref.
-Identity 9: The atom MUST admit a second step carrying a recorded subject_ref.
+Identity 8: The atom MUST NOT identify a step by the subject ref.
+Identity 9: The atom MUST admit a second step carrying a recorded subject ref.
 Identity 10: The atom MUST compare a reference byte-exactly.
 Identity 11: The atom MUST NOT normalize a reference.
-Identity 12: The atom MUST NOT confirm that a subject_ref names a known subject.
+Identity 12: The atom MUST NOT confirm that a subject ref names a known subject.
 Identity 13: The atom MUST NOT interpret a scope.
 Identity 14: The deployment MUST supply a reference in one canonical byte form.
 ```
 
 Term step: one authorization gate — one subject, one approver, one submitter, one scope and one outcome; the record this atom holds.
 
-Term step_id: the opaque value naming one step — a [Step Id]; host-allocated at the seam.
+Term step id: the opaque value naming one step — a [Step Id]; host-allocated at the seam.
 
-Term subject_ref: the opaque reference naming the thing being approved — a [Subject Ref]; a property of the step, never the step's identity.
+Term subject ref: the opaque reference naming the thing being approved — a [Subject Ref]; a property of the step, never the step's identity.
 
-Term approver_ref: the opaque reference naming the actor required to approve — an [Approver Ref]; the authorization anchor.
+Term approver ref: the opaque reference naming the actor required to approve — an [Approver Ref]; the authorization anchor.
 
-Term submitter_ref: the opaque reference naming the actor requesting approval — a [Submitter Ref]; the attribution anchor for the submission.
+Term submitter ref: the opaque reference naming the actor requesting approval — a [Submitter Ref]; the attribution anchor for the submission.
 
 Term scope: the string naming the kind of approval requested — a [Scope]; recorded and filtered on, never interpreted.
 
-Term reference: subject_ref, approver_ref, submitter_ref, decided_by, withdrawn_by OR scope — every string this atom compares for equality.
+Term reference: subject ref, approver ref, submitter ref, decided by, withdrawn by OR scope — every string this atom compares for equality.
 
-Term store instance: one named step store a call is routed to; step_id uniqueness ranges over one instance.
+Term store instance: one named step store a call is routed to; step id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the step_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the step id here.
 
 Term transition: the atom's evaluation of one call against the step store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
-Identity 10 is the rule the exclusivity invariants rest on. decided_by against approver_ref (Invariant 4) and withdrawn_by against submitter_ref (Invariant 5) are exact byte-sequence comparisons on the values as supplied — no Unicode normalization, no case folding, no trimming. Two references that render identically and differ in bytes are different actors to this atom, and a precomposed accented character will not match its decomposed twin. That is unforgiving, and it is the only comparison an exclusivity guard can safely make: a normalizing comparison would let the atom decide that two spellings name one actor, which is an identity judgment this atom has no standing to make. Canonicalization is the deployment's (Identity 14).
+Identity 10 is the rule the exclusivity invariants rest on. decided by against approver ref (Invariant 4) and withdrawn by against submitter ref (Invariant 5) are exact byte-sequence comparisons on the values as supplied — no Unicode normalization, no case folding, no trimming. Two references that render identically and differ in bytes are different actors to this atom, and a precomposed accented character will not match its decomposed twin. That is unforgiving, and it is the only comparison an exclusivity guard can safely make: a normalizing comparison would let the atom decide that two spellings name one actor, which is an identity judgment this atom has no standing to make. Canonicalization is the deployment's (Identity 14).
 
 ### State
 
@@ -98,21 +98,21 @@ State 3: The atom MUST NOT offer a decision reversal surface.
 State 4: The atom MUST NOT offer a re-submission surface on a recorded step.
 State 5: The atom MUST NOT offer a removal surface.
 State 6: The atom MUST NOT offer a delegation surface.
-State 7: EVERY step MUST carry step_id, subject_ref, approver_ref, submitter_ref, scope, submitted_at and a state.
+State 7: EVERY step MUST carry step id, subject ref, approver ref, submitter ref, scope, submitted at and a state.
 State 8: A step MAY carry reason.
-State 9: EVERY approved step MUST carry decided_by and decided_at.
-State 10: EVERY rejected step MUST carry decided_by, decision_reason and decided_at.
-State 11: EVERY withdrawn step MUST carry withdrawn_by, withdrawal_reason and withdrawn_at.
-State 12: An approved step MAY carry decision_reason.
+State 9: EVERY approved step MUST carry decided by and decided at.
+State 10: EVERY rejected step MUST carry decided by, decision reason and decided at.
+State 11: EVERY withdrawn step MUST carry withdrawn by, withdrawal reason and withdrawn at.
+State 12: An approved step MAY carry decision reason.
 State 13: A pending step MUST NOT carry an attribution field.
 State 14: The store instance's step count MUST NOT fall.
 State 15: The atom MUST NOT record a receipt instant.
 ```
 
 WHY:
-State 4 is the one deployments push against. A pending [Approval Step] cannot be revised into a new version; a changed approval need is a new [Submit] producing a new step_id, and the original is withdrawn or decided on its own terms. Revision in place would make the record answer *what is being approved now* when the question an auditor asks is *what was presented to the approver, and what did they decide about it*.
+State 4 is the one deployments push against. A pending [Approval Step] cannot be revised into a new version; a changed approval need is a new [Submit] producing a new step id, and the original is withdrawn or decided on its own terms. Revision in place would make the record answer *what is being approved now* when the question an auditor asks is *what was presented to the approver, and what did they decide about it*.
 
-State 15 names what makes back-insertion undetectable here. The atom stores the declared instants and no separate creation instant, so a step written today with submitted_at a year back reads as a year-old gate. The composing [Audit Trail](../compositions/audit-trail.md) entry carries the receipt instant, and that comparison is where back-insertion surfaces.
+State 15 names what makes back-insertion undetectable here. The atom stores the declared instants and no separate creation instant, so a step written today with submitted at a year back reads as a year-old gate. The composing [Audit Trail](../compositions/audit-trail.md) entry carries the receipt instant, and that comparison is where back-insertion surfaces.
 
 ### Capability requirement
 
@@ -132,7 +132,7 @@ WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 WHY:
-Clock skew between a caller and the seam can push a decided_at the caller believes is current past the injected reading, and Operation 18 rejects it. That is the correct rejection: the bound is enforced against the injected now, not against the caller's belief about the time.
+Clock skew between a caller and the seam can push a decided at the caller believes is current past the injected reading, and Operation 18 rejects it. That is the correct rejection: the bound is enforced against the injected now, not against the caller's belief about the time.
 
 ### Operations
 
@@ -159,36 +159,36 @@ read(query)
 ```
 
 ```
-Operation 1: IF subject_ref EQUALS blank THEN [Submit] MUST answer invalid-request.
-Operation 2: IF approver_ref EQUALS blank THEN [Submit] MUST answer invalid-request.
-Operation 3: IF submitter_ref EQUALS blank THEN [Submit] MUST answer invalid-request.
+Operation 1: IF subject ref EQUALS blank THEN [Submit] MUST answer invalid-request.
+Operation 2: IF approver ref EQUALS blank THEN [Submit] MUST answer invalid-request.
+Operation 3: IF submitter ref EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 4: IF scope EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 5: IF a supplied reason EQUALS blank THEN [Submit] MUST answer invalid-request.
-Operation 6: IF the resolved submitted_at EXCEEDS now THEN [Submit] MUST answer invalid-request.
+Operation 6: IF the resolved submitted at EXCEEDS now THEN [Submit] MUST answer invalid-request.
 Operation 7: An admitted submit MUST record EXACTLY ONE step.
 Operation 8: An admitted submit MUST stand the step in pending.
-Operation 9: An admitted submit MUST answer the step_id.
-Operation 10: IF step_id EQUALS blank THEN a resolving action MUST answer invalid-request.
-Operation 11: IF the step_id names no step THEN a resolving action MUST answer not-known.
-Operation 12: A resolving action MUST answer not-known ONLY IF step_id DOES NOT EQUAL blank.
+Operation 9: An admitted submit MUST answer the step id.
+Operation 10: IF step id EQUALS blank THEN a resolving action MUST answer invalid-request.
+Operation 11: IF the step id names no step THEN a resolving action MUST answer not-known.
+Operation 12: A resolving action MUST answer not-known ONLY IF step id DOES NOT EQUAL blank.
 Operation 13: IF the step's state IS IN the terminal states THEN a resolving action MUST answer not-pending.
-Operation 14: A resolving action MUST answer not-pending ONLY IF the step_id names a step.
+Operation 14: A resolving action MUST answer not-pending ONLY IF the step id names a step.
 Operation 15: IF the deciding reference EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 16: IF reason EQUALS blank THEN [Reject] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN [Withdraw] MUST answer invalid-request.
 Operation 18: IF the resolved decision instant EXCEEDS now THEN a resolving action MUST answer invalid-request.
-Operation 19: IF the resolved decision instant precedes the step's submitted_at THEN a resolving action MUST answer invalid-request.
+Operation 19: IF the resolved decision instant precedes the step's submitted at THEN a resolving action MUST answer invalid-request.
 Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step's state EQUALS pending.
-Operation 21: IF decided_by DOES NOT EQUAL approver_ref THEN a deciding action MUST answer unauthorized.
-Operation 22: IF withdrawn_by DOES NOT EQUAL submitter_ref THEN [Withdraw] MUST answer unauthorized.
+Operation 21: IF decided by DOES NOT EQUAL approver ref THEN a deciding action MUST answer unauthorized.
+Operation 22: IF withdrawn by DOES NOT EQUAL submitter ref THEN [Withdraw] MUST answer unauthorized.
 Operation 23: A resolving action MUST answer unauthorized ONLY IF EVERY attribution check passes.
 Operation 24: An admitted approve MUST stand the step in approved.
 Operation 25: An admitted reject MUST stand the step in rejected.
 Operation 26: An admitted withdraw MUST stand the step in withdrawn.
-Operation 27: An admitted approve MUST record decided_by and the resolved decision instant as decided_at.
-Operation 28: An admitted reject MUST record decided_by, reason as decision_reason and the resolved decision instant as decided_at.
-Operation 29: An admitted withdraw MUST record withdrawn_by, reason as withdrawal_reason and the resolved decision instant as withdrawn_at.
-Operation 30: An admitted approve MUST record a supplied reason as decision_reason.
+Operation 27: An admitted approve MUST record decided by and the resolved decision instant as decided at.
+Operation 28: An admitted reject MUST record decided by, reason as decision reason and the resolved decision instant as decided at.
+Operation 29: An admitted withdraw MUST record withdrawn by, reason as withdrawal reason and the resolved decision instant as withdrawn at.
+Operation 30: An admitted approve MUST record a supplied reason as decision reason.
 Operation 31: An admitted resolve MUST commit the state change and the recorded fields in one operation.
 Operation 32: An admitted resolve MUST answer the action's success token.
 Operation 33: A resolving action MUST NOT change a submission field.
@@ -196,8 +196,8 @@ Operation 34: IF the store refuses the write THEN a writing action MUST answer s
 Operation 35: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 36: A refused action MUST leave the step as the call found the step.
 Operation 37: A refused action MUST NOT record an attribution field.
-Operation 38: An admitted read MUST answer the matching steps in submitted_at ascending order.
-Operation 39: An admitted read MUST order two steps sharing a submitted_at by step_id ascending.
+Operation 38: An admitted read MUST answer the matching steps in submitted at ascending order.
+Operation 39: An admitted read MUST order two steps sharing a submitted at by step id ascending.
 Operation 40: An admitted read MUST answer EVERY step matching the supplied filters.
 Operation 41: An admitted read MUST NOT answer a step failing a supplied filter.
 Operation 42: IF no step matches THEN an admitted read MUST answer an empty step sequence.
@@ -223,29 +223,29 @@ Term terminal state: approved | rejected OR withdrawn — the three absorbing me
 
 Term resolving action: [Approve] | [Reject] | [Withdraw] — the three actions that close a pending step.
 
-Term deciding action: [Approve] | [Reject] — the two a guard on approver_ref covers.
+Term deciding action: [Approve] | [Reject] — the two a guard on approver ref covers.
 
 Term writing action: [Submit] | [Approve] | [Reject] | [Withdraw] — every action but [Read].
 
-Term deciding reference: decided_by on a deciding action, and withdrawn_by on [Withdraw] — the actor reference a resolving action carries.
+Term deciding reference: decided by on a deciding action, and withdrawn by on [Withdraw] — the actor reference a resolving action carries.
 
-Term decision instant: decided_at on a deciding action, and withdrawn_at on [Withdraw] — the instant a resolving action records.
+Term decision instant: decided at on a deciding action, and withdrawn at on [Withdraw] — the instant a resolving action records.
 
 Term resolved decision instant: the decision instant the step carries — the supplied value where one exists, and now otherwise.
 
-Term resolved submitted_at: the submitted_at the step carries — the supplied value where one exists, and now otherwise.
+Term resolved submitted at: the submitted at the step carries — the supplied value where one exists, and now otherwise.
 
-Term submission field: step_id, subject_ref, approver_ref, submitter_ref, scope, submitted_at OR reason — every field [Submit] sets.
+Term submission field: step id, subject ref, approver ref, submitter ref, scope, submitted at OR reason — every field [Submit] sets.
 
-Term attribution field: decided_by, decision_reason, decided_at, withdrawn_by, withdrawal_reason OR withdrawn_at — every field a resolving action sets.
+Term attribution field: decided by, decision reason, decided at, withdrawn by, withdrawal reason OR withdrawn at — every field a resolving action sets.
 
 Term attribution check: Operation 15 through 19 — every check a resolving action makes before the actor guard.
 
-Term filter axes: step_id | subject_ref | approver_ref | submitter_ref | scope | state | submitted_at | decided_at | withdrawn_at — the nine axes [Read] accepts, and no others.
+Term filter axes: step id | subject ref | approver ref | submitter ref | scope | state | submitted at | decided at | withdrawn at — the nine axes [Read] accepts, and no others.
 
-Term admitted submit: a [Submit] call whose references, scope, supplied reason and resolved submitted_at the guards all admit.
+Term admitted submit: a [Submit] call whose references, scope, supplied reason and resolved submitted at the guards all admit.
 
-Term admitted resolve: a resolving action whose step_id names a pending step and whose reason, deciding reference and resolved decision instant the guards admit, and whose deciding reference matches the step's anchor.
+Term admitted resolve: a resolving action whose step id names a pending step and whose reason, deciding reference and resolved decision instant the guards admit, and whose deciding reference matches the step's anchor.
 
 Term admitted approve: an admitted resolve on [Approve].
 
@@ -257,8 +257,8 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 
 | # | Condition | a resolving action answers |
 |---|---|---|
-| 1 | step_id is blank | invalid-request |
-| 2 | step_id is well-formed, it names no step | not-known |
+| 1 | step id is blank | invalid-request |
+| 2 | step id is well-formed, it names no step | not-known |
 | 3 | the step exists, it stands in a terminal state | not-pending |
 | 4 | the step stands in pending, an attribution check fails | invalid-request |
 | 5 | every attribution check passes, the deciding reference is not the anchor | unauthorized |
@@ -268,11 +268,11 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one precedence chain, so the answer alone does not say which guard refused. [State Machine](./state-machine.md) and [Audit Trail](../compositions/audit-trail.md) carry the same shape.
 
 WHY:
-Row 1 precedes the store lookup because a blank step_id is garbage, not a reference to a missing step, and answering [Not Known] would tell the caller their id was valid and unmatched. Row 3 precedes row 4 because a terminal step refuses every resolving call, and a caller told [Invalid Request] about their timestamp on an already-decided step is fixing nothing. Row 5 sits last among the guards deliberately: telling an unauthorized caller *unauthorized* is itself a disclosure — it confirms the step exists, is pending, and that their attribution was otherwise well-formed — so every cheaper refusal is spent first.
+Row 1 precedes the store lookup because a blank step id is garbage, not a reference to a missing step, and answering [Not Known] would tell the caller their id was valid and unmatched. Row 3 precedes row 4 because a terminal step refuses every resolving call, and a caller told [Invalid Request] about their timestamp on an already-decided step is fixing nothing. Row 5 sits last among the guards deliberately: telling an unauthorized caller *unauthorized* is itself a disclosure — it confirms the step exists, is pending, and that their attribution was otherwise well-formed — so every cheaper refusal is spent first.
 
 Operation 19 states the within-step temporal bound as a precedence rather than as a comparison, so no rule here spells `≥` as a two-arm disjunction. A decision recorded *at* the instant of submission is legal, and `precedes` admits it in one arm.
 
-Operation 43 is the filter rule an auditor has to understand before trusting a result set: an instant-range filter on decided_at answers only steps carrying a decided_at, so pending and withdrawn steps are excluded whether or not a state filter says so. The alternative — treating an absent field as unmatched-but-present — would make *every step decided in March* silently include steps that were never decided at all.
+Operation 43 is the filter rule an auditor has to understand before trusting a result set: an instant-range filter on decided at answers only steps carrying a decided at, so pending and withdrawn steps are excluded whether or not a state filter says so. The alternative — treating an absent field as unmatched-but-present — would make *every step decided in March* silently include steps that were never decided at all.
 
 ### Invariants
 
@@ -291,42 +291,42 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
   WHY: all three terminals absorb, and the atom carries no re-open, re-activate or reversal surface (State 2, State 3). A decision made in error is answered by a new [Submit] naming the relationship to the original, which produces a more complete record than a reversal: an auditor sees the first decision and the correction, in order, rather than a record that no longer says what happened.
 - **Invariant 4 — Approver exclusivity.**
   ```
-  Invariant 4.1: An approved step's decided_by MUST equal the step's approver_ref.
-  Invariant 4.2: A rejected step's decided_by MUST equal the step's approver_ref.
+  Invariant 4.1: An approved step's decided by MUST equal the step's approver ref.
+  Invariant 4.2: A rejected step's decided by MUST equal the step's approver ref.
   ```
-  WHY: there is no fallback approver, no escalation and no *any authorized actor* surface. Delegation — binding a different actor to stand in for the named approver — is a composing pattern's, and it works either by producing a step whose approver_ref names the delegate or by gating the call before it reaches this surface (Non-goal 5, Non-goal 6).
+  WHY: there is no fallback approver, no escalation and no *any authorized actor* surface. Delegation — binding a different actor to stand in for the named approver — is a composing pattern's, and it works either by producing a step whose approver ref names the delegate or by gating the call before it reaches this surface (Non-goal 5, Non-goal 6).
 - **Invariant 5 — Submitter exclusivity.**
   ```
-  Invariant 5.1: A withdrawn step's withdrawn_by MUST equal the step's submitter_ref.
+  Invariant 5.1: A withdrawn step's withdrawn by MUST equal the step's submitter ref.
   ```
 - **Invariant 6 — Decision attribution completeness.**
   ```
   Invariant 6.1: EVERY terminal step's attribution reference MUST stand non-blank.
   Invariant 6.2: EVERY terminal step MUST carry the terminal state's instant.
-  Invariant 6.3: EVERY rejected step's decision_reason MUST stand non-blank.
-  Invariant 6.4: EVERY withdrawn step's withdrawal_reason MUST stand non-blank.
+  Invariant 6.3: EVERY rejected step's decision reason MUST stand non-blank.
+  Invariant 6.4: EVERY withdrawn step's withdrawal reason MUST stand non-blank.
   ```
   WHY: the load-bearing one. An anonymous decision, a whitespace-only attribution, a missing instant or a rejection with no stated reason each defeat the audit trail SOX §404 control evidence and FDA Part 11 electronic-signature requirements rest on. A rejection in particular is not operationally meaningful without its reason — the record would show that something was refused and leave the submitter, and a later auditor, with no account of why.
 - **Invariant 7 — Temporal ordering.**
   ```
-  Invariant 7.1: A terminal step's terminal instant MUST NOT precede the step's submitted_at.
+  Invariant 7.1: A terminal step's terminal instant MUST NOT precede the step's submitted at.
   ```
   WHY: a step cannot be documented as decided or withdrawn before it was submitted. The bound holds on the value persisted, whether caller-supplied or resolved to now, and is enforced before the transition commits (Operation 19).
 - **Invariant 8 — Submission attribution completeness.**
   ```
-  Invariant 8.1: EVERY step's step_id, subject_ref, approver_ref, submitter_ref and scope MUST stand non-blank.
-  Invariant 8.2: EVERY step MUST carry a submitted_at.
+  Invariant 8.1: EVERY step's step id, subject ref, approver ref, submitter ref and scope MUST stand non-blank.
+  Invariant 8.2: EVERY step MUST carry a submitted at.
   ```
 - **Invariant 9 — Concurrent step independence.**
   ```
   Invariant 9.1: A resolving action on one step MUST NOT change a second step's field.
   ```
-  WHY: independence is universal rather than scoped to a shared subject, though the shared-subject case is the operationally interesting one — a subject with two open gates needs two decisions, and whether a subject has any open gate is a subject_ref and pending query rather than a field on the subject.
+  WHY: independence is universal rather than scoped to a shared subject, though the shared-subject case is the operationally interesting one — a subject with two open gates needs two decisions, and whether a subject has any open gate is a subject ref and pending query rather than a field on the subject.
 - **Invariant 10 — Store durability.**
   ```
   Invariant 10.1: The atom MUST NOT remove a step from the store.
   Invariant 10.2: A storage-failure rejection MUST leave no partial record in the store.
-  Invariant 10.3: An answered step_id MUST name a durably persisted step.
+  Invariant 10.3: An answered step id MUST name a durably persisted step.
   ```
   WHY: a terminal step is retained as audit evidence. Deleting one would destroy the proof that the required gate was reached and resolved, which is the single thing an external evaluator comes to this store for.
 
@@ -338,13 +338,13 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
 
 A controller determines that posting JE-2026-0441 needs senior finance approval under SOX §404 controls. `submit(subject_ref: "je-2026-0441", approver_ref: "finance_director_chen", submitter_ref: "controller_morgan", scope: "financial:journal-entry:post")` → `step-001`, standing in pending (Operation 7 through 9).
 
-The finance director approves: `approve("step-001", decided_by: "finance_director_chen", reason: "Reviewed and approved — posting authorized")` → approved. The step stands in approved, carrying decided_by, decision_reason and decided_at (Operation 24, Operation 27, Operation 30).
+The finance director approves: `approve("step-001", decided_by: "finance_director_chen", reason: "Reviewed and approved — posting authorized")` → approved. The step stands in approved, carrying decided by, decision reason and decided at (Operation 24, Operation 27, Operation 30).
 
 An auditor later runs `read({subject_ref: "je-2026-0441", state: approved})` and sees who submitted, who approved, when, and why. The control evidence is in the record without developer testimony.
 
 Or the director finds a misclassification: `reject("step-001", decided_by: "finance_director_chen", reason: "GL account 4120 is incorrect — should be 4130 per revenue recognition policy")` → rejected_outcome. The composing workflow routes the entry back, and the corrected entry needs a new [Submit] — this step is closed (Invariant 3.1, State 4).
 
-Or the controller catches a routing error first: `withdraw("step-001", withdrawn_by: "controller_morgan", reason: "Wrong approver — cross-border entries route to tax_director")` → withdrawn, and `step-002` carries the right approver_ref.
+Or the controller catches a routing error first: `withdraw("step-001", withdrawn_by: "controller_morgan", reason: "Wrong approver — cross-border entries route to tax_director")` → withdrawn, and `step-002` carries the right approver ref.
 
 ### Rejection paths
 
@@ -364,12 +364,12 @@ Or the controller catches a routing error first: `withdraw("step-001", withdrawn
 
 ### Multiple gates on one subject
 
-A cross-border entry needs both finance and tax sign-off. Two [Submit] calls produce `step-010` and `step-011` on the same subject_ref, each with its own approver_ref. Approving one leaves the other pending and untouched (Invariant 9.1). Whether the subject has any open gate is `read({subject_ref: X, state: pending})` — a non-empty answer means at least one gate is open. Whether *both* were required, and whether two approvals are enough, is [Multi-Party Approval](../compositions/multi-party-approval.md)'s (Non-goal 3).
+A cross-border entry needs both finance and tax sign-off. Two [Submit] calls produce `step-010` and `step-011` on the same subject ref, each with its own approver ref. Approving one leaves the other pending and untouched (Invariant 9.1). Whether the subject has any open gate is `read({subject_ref: X, state: pending})` — a non-empty answer means at least one gate is open. Whether *both* were required, and whether two approvals are enough, is [Multi-Party Approval](../compositions/multi-party-approval.md)'s (Non-goal 3).
 
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** A SOX §404 examiner asks for evidence that the materiality control operated on a sample of entries. `read({scope: "financial:journal-entry:post", submitted_at: {after: …, before: …}})` answers the gates with full attribution, and Check 2.1 through 3.4 are what make each one usable. What the atom cannot answer is which entries *should* have had a gate and did not — that comparison needs the transaction set, which lives outside (Non-goal 18, External check 2).
-- **Disputed approval.** A director denies approving an entry under an FDA Part 11 signature challenge. The record shows decided_by equal to approver_ref, byte for byte, with the instant and the reason. That proves the call carried their reference and proves nothing about who made the call — the cryptographic binding is [Actor Identity](./actor-identity.md)'s, and the atom says so rather than letting the record be read as a signature (Non-goal 14, External check 3).
+- **Disputed approval.** A director denies approving an entry under an FDA Part 11 signature challenge. The record shows decided by equal to approver ref, byte for byte, with the instant and the reason. That proves the call carried their reference and proves nothing about who made the call — the cryptographic binding is [Actor Identity](./actor-identity.md)'s, and the atom says so rather than letting the record be read as a signature (Non-goal 14, External check 3).
 - **Breach forensics.** An investigator examining unauthorized approval attempts finds that the store holds no record of them: a refused call writes nothing (Operation 36, Operation 37), so unauthorized attempts leave no trace here at all. The attempt log is the composing [Audit Trail](../compositions/audit-trail.md)'s, and this store's contribution is the negative evidence — every decision that *did* land, fully attributed (External check 4).
 
 ---
@@ -382,16 +382,16 @@ This atom's acceptance is what an external auditor can clear from the step store
 
 ```
 Check 1.1: An auditor MUST find EVERY step whose state EQUALS EXACTLY ONE OF pending, approved, rejected, withdrawn (Invariant 2.1).
-Check 2.1: An auditor MUST find EVERY step's step_id, subject_ref, approver_ref, submitter_ref and scope non-blank (Invariant 8.1).
-Check 2.2: An auditor MUST find a submitted_at on EVERY step (Invariant 8.2).
+Check 2.1: An auditor MUST find EVERY step's step id, subject ref, approver ref, submitter ref and scope non-blank (Invariant 8.1).
+Check 2.2: An auditor MUST find a submitted at on EVERY step (Invariant 8.2).
 Check 3.1: An auditor MUST find EVERY terminal step's attribution reference non-blank (Invariant 6.1).
 Check 3.2: An auditor MUST find the terminal state's instant on EVERY terminal step (Invariant 6.2).
-Check 3.3: An auditor MUST find EVERY rejected step's decision_reason non-blank (Invariant 6.3).
-Check 3.4: An auditor MUST find EVERY withdrawn step's withdrawal_reason non-blank (Invariant 6.4).
-Check 3.5: An auditor MUST find no terminal step's terminal instant preceding the step's submitted_at (Invariant 7.1).
-Check 4.1: An auditor MUST find EVERY approved step's decided_by equal to the step's approver_ref (Invariant 4.1).
-Check 4.2: An auditor MUST find EVERY rejected step's decided_by equal to the step's approver_ref (Invariant 4.2).
-Check 4.3: An auditor MUST find EVERY withdrawn step's withdrawn_by equal to the step's submitter_ref (Invariant 5.1).
+Check 3.3: An auditor MUST find EVERY rejected step's decision reason non-blank (Invariant 6.3).
+Check 3.4: An auditor MUST find EVERY withdrawn step's withdrawal reason non-blank (Invariant 6.4).
+Check 3.5: An auditor MUST find no terminal step's terminal instant preceding the step's submitted at (Invariant 7.1).
+Check 4.1: An auditor MUST find EVERY approved step's decided by equal to the step's approver ref (Invariant 4.1).
+Check 4.2: An auditor MUST find EVERY rejected step's decided by equal to the step's approver ref (Invariant 4.2).
+Check 4.3: An auditor MUST find EVERY withdrawn step's withdrawn by equal to the step's submitter ref (Invariant 5.1).
 Check 5.1: An auditor MUST find no attribution field on a pending step (State 13).
 Check 6.1: An auditor MUST find no step absent from a later unfiltered read (Invariant 10.1).
 Check 6.2: An auditor MUST find a re-read step's submission fields unchanged from the prior read (Invariant 1.1).
@@ -403,14 +403,14 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: A deployment needing EVERY issued step_id found in the store MUST capture the submit answers (Invariant 10.3).
+External check 1: A deployment needing EVERY issued step id found in the store MUST capture the submit answers (Invariant 10.3).
 External check 2: A deployment needing the subjects carrying no step identified MUST read the subject set beside the step store (Non-goal 19).
-External check 3: A deployment needing a decided_by bound to an actor MUST read the composing Actor Identity attestation (Non-goal 14).
+External check 3: A deployment needing a decided by bound to an actor MUST read the composing Actor Identity attestation (Non-goal 14).
 External check 4: A deployment needing a refused call's attempt recorded MUST read the composing Audit Trail (Operation 37).
 ```
 
 WHY:
-External check 1 is the answer-capture split: enumerating every *issued* step_id needs the submit answers captured at call time, because a production auditor reading the store cannot know about a step the store is missing. Check 6.1 is the store-alone substitute from the other direction — no step present at an earlier read has since vanished.
+External check 1 is the answer-capture split: enumerating every *issued* step id needs the submit answers captured at call time, because a production auditor reading the store cannot know about a step the store is missing. Check 6.1 is the store-alone substitute from the other direction — no step present at an earlier read has since vanished.
 
 External check 2 is the boundary that most resembles a gap and is not one. This store holds the gates that were submitted; it cannot show the subjects for which no gate was ever submitted, because absence is invisible to a query over what exists. An auditor asking *show me every entry above the materiality threshold with no controller approval* supplies the transaction set and the required-gate mapping, and this store supplies the gates to compare against (Non-goal 18, Non-goal 19). It is the same boundary [Selective Disclosure](./selective-disclosure.md) states as Selective Disclosure Invariant 5.1 — with the difference that this atom declares it a non-goal rather than an invariant it cannot enforce.
 
@@ -423,22 +423,22 @@ Non-goal 1: The atom MUST NOT read two [Submit] calls carrying one field set as 
 Non-goal 2: A deployment needing at-most-once submission MUST compose Duplicate Prevention.
 Non-goal 3: The atom MUST NOT decide whether a subject's open gates are enough.
 Non-goal 4: A deployment needing a quorum rule MUST compose Multi-Party Approval.
-Non-goal 5: The atom MUST NOT bind a second actor to stand in for an approver_ref.
+Non-goal 5: The atom MUST NOT bind a second actor to stand in for an approver ref.
 Non-goal 6: A deployment needing delegation MUST compose a delegation pattern.
 Non-goal 7: The atom MUST NOT confirm that a subject stands in an approvable state.
 Non-goal 8: The atom MUST NOT interpret what an approved step permits.
 Non-goal 9: The atom MUST NOT decide who may call an action.
 Non-goal 10: A deployment needing an authorization decision MUST compose Permissions.
-Non-goal 11: The atom MUST NOT notify an approver_ref.
+Non-goal 11: The atom MUST NOT notify an approver ref.
 Non-goal 12: A deployment needing an approver notified MUST compose Notification.
-Non-goal 13: The atom MUST NOT refuse a submitter_ref matching the step's approver_ref.
-Non-goal 14: The atom MUST NOT bind a decided_by to an actor.
+Non-goal 13: The atom MUST NOT refuse a submitter ref matching the step's approver ref.
+Non-goal 14: The atom MUST NOT bind a decided by to an actor.
 Non-goal 15: A deployment needing a non-repudiable decision MUST compose Actor Identity.
 Non-goal 16: The atom MUST NOT detect a rewrite under the store.
 Non-goal 17: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 18: The atom MUST NOT declare which gates a subject requires.
 Non-goal 19: The atom MUST NOT detect a subject carrying no step.
-Non-goal 20: The atom MUST NOT bound submitted_at from below.
+Non-goal 20: The atom MUST NOT bound submitted at from below.
 Non-goal 21: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
@@ -447,7 +447,7 @@ Non-goal 13 is the one that looks like a missing control. A [Submit] naming the 
 
 Non-goal 18 and Non-goal 19 are the completeness boundary. This atom records the gates that were submitted and cannot record the ones that were not; a query over what exists cannot see an absence. The required-gate mapping — *every journal entry above $10K needs a controller and a CFO approval* — is the calling system's business-rule layer, and the comparison is a composition's (External check 2).
 
-Non-goal 20 keeps submitted_at unbounded below on purpose. A gate is routinely recorded by a workflow bridge after the request was actually made through another channel — an email, a meeting, a paper form — and refusing the earlier instant would force the record to misstate when the request happened. The future bound refuses the one direction that is always fabrication; the defence against a step back-inserted into the past is the composing [Audit Trail](../compositions/audit-trail.md) and [Tamper Evidence](./tamper-evidence.md) layer, which makes the record's creation order itself evident.
+Non-goal 20 keeps submitted at unbounded below on purpose. A gate is routinely recorded by a workflow bridge after the request was actually made through another channel — an email, a meeting, a paper form — and refusing the earlier instant would force the record to misstate when the request happened. The future bound refuses the one direction that is always fabrication; the defence against a step back-inserted into the past is the composing [Audit Trail](../compositions/audit-trail.md) and [Tamper Evidence](./tamper-evidence.md) layer, which makes the record's creation order itself evident.
 
 ---
 
@@ -518,11 +518,11 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own the authorization of a call.
-Composition note 3: A composing pattern MUST own the segregation policy over a submitter_ref and an approver_ref.
-Composition note 4: A composing pattern MUST own the attestation binding a decided_by.
-Composition note 5: A composing pattern MUST own the notification of an approver_ref.
+Composition note 3: A composing pattern MUST own the segregation policy over a submitter ref and an approver ref.
+Composition note 4: A composing pattern MUST own the attestation binding a decided by.
+Composition note 5: A composing pattern MUST own the notification of an approver ref.
 Composition note 6: A composing pattern MUST own a quorum rule over two steps.
-Composition note 7: A composing pattern MUST own the delegation of an approver_ref.
+Composition note 7: A composing pattern MUST own the delegation of an approver ref.
 Composition note 8: A composing pattern MUST own the tamper seal over the step store.
 Composition note 9: A composing pattern MUST own at-most-once submission.
 Composition note 10: A composing pattern MUST own the required gate mapping for a subject.
@@ -534,7 +534,7 @@ WHY:
 
 [Execute Gated Workflow](../compositions/execute-gated-workflow.md) is where this atom meets its sibling. A [State Machine](./state-machine.md) instance governs the process lifecycle, a guarded declared transition fires only where its bound step stands approved, and the two atoms are the fixed-state and declared-state poles of one category rather than competitors.
 
-[Permissions](./permissions.md) governs who may submit and who may read, and is also where segregation of duties lands (Composition note 3, Non-goal 13). [Actor Identity](./actor-identity.md) supplies the electronic signature that makes decided_by non-repudiable under FDA 21 CFR Part 11 and SOX §404 — the attestation is the signature event and this atom's record is the gate the signature attaches to. [Assignment](./assignment.md) is a composing peer rather than an overlap: it tracks who owns the work that becomes the subject. [Event Log](./event-log.md) journals every call as an event where this atom holds the current-state projection, [Tamper Evidence](./tamper-evidence.md) seals the records, and [Duplicate Prevention](./duplicate-prevention.md) supplies at-most-once submission under retry.
+[Permissions](./permissions.md) governs who may submit and who may read, and is also where segregation of duties lands (Composition note 3, Non-goal 13). [Actor Identity](./actor-identity.md) supplies the electronic signature that makes decided by non-repudiable under FDA 21 CFR Part 11 and SOX §404 — the attestation is the signature event and this atom's record is the gate the signature attaches to. [Assignment](./assignment.md) is a composing peer rather than an overlap: it tracks who owns the work that becomes the subject. [Event Log](./event-log.md) journals every call as an event where this atom holds the current-state projection, [Tamper Evidence](./tamper-evidence.md) seals the records, and [Duplicate Prevention](./duplicate-prevention.md) supplies at-most-once submission under retry.
 
 ---
 
@@ -546,7 +546,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an examiner; an investigator; an actor; an approver; a submitter; the store; a step; a pending step; a terminal step; an approved step; a rejected step; a withdrawn step; a resolving action; a deciding action; a writing action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a rejection; a crash; a reader; a string input; an opaque reference; the store instance's step count; an attribution check.
 
-Term records: step — one authorization gate, carrying step_id, subject_ref, approver_ref, submitter_ref, scope, submitted_at, a state and, where supplied or set, reason, decided_by, decision_reason, decided_at, withdrawn_by, withdrawal_reason and withdrawn_at.
+Term records: step — one authorization gate, carrying step id, subject ref, approver ref, submitter ref, scope, submitted at, a state and, where supplied or set, reason, decided by, decision reason, decided at, withdrawn by, withdrawal reason and withdrawn at.
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, order, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, capture, choose, canonicalize, retry, permit.
 
@@ -558,7 +558,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: step, step_id, subject_ref, approver_ref, submitter_ref, scope, reference, store instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submitted_at, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, string input, blank, uncommitted crash, dangling transition.
+Term terms: step, step id, subject ref, approver ref, submitter ref, scope, reference, store instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submitted at, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, string input, blank, uncommitted crash, dangling transition.
 
 #### Approval Step
 
@@ -875,7 +875,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariant 1 through 10 keeping their numbers, every success effect conditioned on a declared admitted submit, admitted resolve or admitted read (Hard invariant 16), the six-step rejection precedence — repeated verbatim in four places in the prose, once per resolving action and once in the state table — collapsed to one seven-row case space with the ordering carried by `ONLY IF` guards, the three resolving actions unified under declared resolving action, deciding reference and decision instant terms so [Approve], [Reject] and [Withdraw] state their shared guards once instead of three times, the six acceptance areas opened into `Check 1.1 through 6.3` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 20` family and five edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`, `Indeterminate outcome`). *Over:* the prose spec. *Because:* the migration plan; `cites.py --into approval-step` found nothing citing this atom by label. 81.1 KB → 62.7 KB.
 
-- **2026-09-12 — Three propositions had two owners each.** *Chose:* `Invariant 2.1` owns membership exclusivity and the `State` family no longer restates it; `Operation 8` owns *an admitted submit stands the step in pending*; `Identity 12` owns *the atom does not confirm a subject_ref*. *Over:* keeping each pair. *Because:* Authority 3, and all three were found by `W-duplicate-proposition` rather than by reading — the same pattern as State Machine, where the duplicates a 169-rule surface hides are exactly the ones no reader finds.
+- **2026-09-12 — Three propositions had two owners each.** *Chose:* `Invariant 2.1` owns membership exclusivity and the `State` family no longer restates it; `Operation 8` owns *an admitted submit stands the step in pending*; `Identity 12` owns *the atom does not confirm a subject ref*. *Over:* keeping each pair. *Because:* Authority 3, and all three were found by `W-duplicate-proposition` rather than by reading — the same pattern as State Machine, where the duplicates a 169-rule surface hides are exactly the ones no reader finds.
 
 - **2026-09-12 — A cross-spec citation was written in the local form.** *Chose:* `Selective Disclosure Invariant 5.1`, the qualified form Hard invariant 28 declares. *Over:* `[Selective Disclosure](./selective-disclosure.md) states as its \`Invariant 5\``, which reads as a citation of *this* spec's Invariant 5 — submitter exclusivity, an unrelated rule. *Because:* the citation-aim audit resolved it against the local registry and the aim was wrong. Nothing enforces the qualified form, and a census over the corpus returns 24 candidates of which nearly all are local citations that merely sit near a spec link — so the class is docketed rather than instrumented.
 

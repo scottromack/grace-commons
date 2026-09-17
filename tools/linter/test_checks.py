@@ -1188,6 +1188,35 @@ def check_condition_form_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing)
 
 
+def check_two_obligations_synthetic(problems: list[str]) -> int:
+    """W-two-obligations (tools/grace/check.py): a second declared record verb
+    after *and* fires, and a declared name whose first word is a verb does not
+    — *and hold reason* names a term (council read 135). Returns the count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.60 (2026-09-18).\n\n"
+            "Term record verbs: find, hold, release.\n\n"
+            "Term hold reason: the stated ground for the preservation.\n\n"
+            "## Structure\n\n### Operations\n\n")
+    def run(rule: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == "W-two-obligations"]
+    n = 0
+    if run("Check 1.1: An auditor MUST find the hold reason and hold the record."):
+        n += 1
+    else:
+        problems.append("W-two-obligations: a second record verb after 'and' did not fire")
+    if not run("Check 1.2: An auditor MUST find placed by and hold reason not blank."):
+        n += 1
+    else:
+        problems.append("W-two-obligations: fired on a declared name after 'and'")
+    return n
+
+
 def check_rule_noun_synthetic(problems: list[str]) -> int:
     """D-rule-noun (tools/grace/check.py) — the rule nouns are the grammar's at
     GRACE-lang v0.53 (council read 100). Using one stays silent; declaring one,
@@ -1360,11 +1389,27 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
         rep2 = nouns.read([page2], root / "GRACE-lang.md", nltk.pos_tag)
     if "ref" in rep2["specs"]["prep"]["misses"]:
         problems.append("nouns.py: 'revoked by ref' read as the bare 'ref'")
+    # a declared name's words belong to the name, whatever the tagger makes of
+    # the middle one (council read 136)
+    with tempfile.TemporaryDirectory() as d3:
+        a3 = Path(d3) / "atoms"
+        a3.mkdir()
+        page3 = a3 / "gap.md"
+        page3.write_text(
+            "Term qualifiers: migrated — rewritten in GRACE lang v0.60 (2026-09-18).\n\n"
+            "Term record verbs: declare.\n\n"
+            "Term clock offset allowance: the margin the deployment declares.\n\n"
+            "```\n"
+            "Capability requirement 1: The deployment MUST declare the clock offset allowance.\n"
+            "```\n", encoding="utf-8")
+        rep3 = nouns.read([page3], root / "GRACE-lang.md", nltk.pos_tag)
+    if "allowance" in rep3["specs"]["gap"]["misses"]:
+        problems.append("nouns.py: 'clock offset allowance' read as the bare 'allowance'")
     # a value set's own name is declared by the value sets line (council read 112)
     vs = nouns.names_of("Term value sets: landed_by = a | b. enrollment_path = direct | external.\n")
     if not {"landed_by", "enrollment_path"} <= vs:
         problems.append("nouns.py: a value set named in the value sets line, first or later, is not read as declared")
-    return 10
+    return 11
 
 
 def check_fence_form_synthetic(problems: list[str]) -> int:
@@ -1912,6 +1957,13 @@ def main(argv: list[str]) -> int:
               "input tested with EXISTS, = and != in a condition, = in a write and != in a "
               "declaration fire) \u2713")
 
+    two_ob_problems: list[str] = []
+    n_two = check_two_obligations_synthetic(two_ob_problems)
+    failures.extend(two_ob_problems)
+    if not two_ob_problems:
+        print(f"W-two-obligations: {n_two} synthetic fixtures hold (a second record verb after "
+              "'and' fires; a declared name whose first word is a verb does not) \u2713")
+
     noun_problems: list[str] = []
     n_noun = check_rule_noun_synthetic(noun_problems)
     failures.extend(noun_problems)
@@ -1944,7 +1996,7 @@ def main(argv: list[str]) -> int:
         print(f"nouns.py: {n_nr} synthetic fixtures hold (the spec's own noun, a rule noun and a "
               "constituent's noun resolve; an undeclared noun does not; two names beside owners in a "
               "cited list and a value set's own name are declared; a rule noun matches its plural, not its stem;"
-              " a name running through a preposition reads whole) \u2713")
+              " a name running through a preposition or a tagger's verb reads whole) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)

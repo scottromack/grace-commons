@@ -177,12 +177,17 @@ def phrases(body: str, tagger, known: set[str] = frozenset()) -> list[list[str]]
             # (council read 132, council read 133)
             words = [norm(w) for w, _ in tokens]
             lead = [before[-1]] if before and before[-1] in PREPOSITIONS else []
-            tail = [after[0]] if after and after[0] in PREPOSITIONS else []
-            nxt = [norm(w) for w, _ in runs[i + 1][1]] if (tail and i + 1 < len(runs)
-                                                          and len(runs[i][2]) == 1) else []
-            for cand, step in ((lead + words + tail + nxt, 2), (lead + words + tail, 1),
-                               (lead + words, 1), (words + tail, 1)):
-                if (tail or lead) and declared(cand):
+            gap = [after[0]] if after else []
+            tail = gap if gap and gap[0] in PREPOSITIONS else []
+            one = len(runs[i][2]) == 1 and i + 1 < len(runs)
+            nxt = [norm(w) for w, _ in runs[i + 1][1]] if one else []
+            # a declared name's own words belong to the name, whatever the tagger
+            # makes of them: *clock offset allowance* is one name, not a noun, a
+            # verb and a noun (council read 136)
+            for cand, step in ((lead + words + gap + nxt, 2), (words + gap + nxt, 2),
+                               (lead + words + tail, 1), (lead + words, 1),
+                               (words + tail, 1)):
+                if (cand != words) and declared(cand):
                     res.append(cand)
                     i += step
                     break

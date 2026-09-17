@@ -48,43 +48,43 @@ The guard is where the atom's restraint is sharpest. A declared transition may c
 ### Identity model
 
 ```
-Identity 1: The atom MUST identify a workflow by the instance_id.
-Identity 2: The atom MUST identify a history entry by the transition_id.
-Identity 3: The host MUST allocate an instance_id at the seam.
-Identity 4: The host MUST allocate a transition_id at the seam.
-Identity 5: The transition MUST NOT allocate an instance_id.
-Identity 6: The transition MUST NOT allocate a transition_id.
-Identity 7: The atom MUST NOT change an instance_id.
-Identity 8: The atom MUST NOT change a transition_id.
-Identity 9: Two workflows in one store instance MUST NOT share an instance_id.
-Identity 10: Two history entries in one workflow MUST NOT share a transition_id.
-Identity 11: The deployment MUST choose an instance_id format that sorts in lexicographic byte order.
+Identity 1: The atom MUST identify a workflow by the instance id.
+Identity 2: The atom MUST identify a history entry by the transition id.
+Identity 3: The host MUST allocate an instance id at the seam.
+Identity 4: The host MUST allocate a transition id at the seam.
+Identity 5: The transition MUST NOT allocate an instance id.
+Identity 6: The transition MUST NOT allocate a transition id.
+Identity 7: The atom MUST NOT change an instance id.
+Identity 8: The atom MUST NOT change a transition id.
+Identity 9: Two workflows in one store instance MUST NOT share an instance id.
+Identity 10: Two history entries in one workflow MUST NOT share a transition id.
+Identity 11: The deployment MUST choose an instance id format that sorts in lexicographic byte order.
 Identity 12: The deployment MUST route EVERY call to one store instance.
-Identity 13: The atom MUST NOT identify a workflow by the subject_ref.
-Identity 14: The atom MUST admit a second workflow carrying a recorded subject_ref.
-Identity 15: The atom MUST NOT confirm that a subject_ref names a known subject.
-Identity 16: The atom MUST NOT interpret an instance_metadata.
+Identity 13: The atom MUST NOT identify a workflow by the subject ref.
+Identity 14: The atom MUST admit a second workflow carrying a recorded subject ref.
+Identity 15: The atom MUST NOT confirm that a subject ref names a known subject.
+Identity 16: The atom MUST NOT interpret an instance metadata.
 ```
 
 Term workflow: one running workflow — one declaration, one current state and one transition history; the record this atom holds.
 
-Term instance_id: the opaque value naming one workflow — a [Workflow Id]; host-allocated at the seam.
+Term instance id: the opaque value naming one workflow — a [Workflow Id]; host-allocated at the seam.
 
-Term history entry: one recorded transition on one workflow, carrying transition_id, sequence_number, from_state, to_state, action, fired_at and, where supplied, actor_ref and guard_satisfied.
+Term history entry: one recorded transition on one workflow, carrying transition id, sequence number, from state, to state, action, fired at and, where supplied, actor ref and guard satisfied.
 
-Term transition_id: the opaque value naming one history entry — a [Transition Id]; host-allocated at the seam.
+Term transition id: the opaque value naming one history entry — a [Transition Id]; host-allocated at the seam.
 
-Term subject_ref: the opaque reference naming the entity whose lifecycle the workflow governs — a [Subject Ref]; a property of the workflow, never the workflow's identity.
+Term subject ref: the opaque reference naming the entity whose lifecycle the workflow governs — a [Subject Ref]; a property of the workflow, never the workflow's identity.
 
-Term instance_metadata: the opaque payload the caller supplies at [Instantiate] for deployment context — a [Workflow Metadata]; recorded, never interpreted.
+Term instance metadata: the opaque payload the caller supplies at [Instantiate] for deployment context — a [Workflow Metadata]; recorded, never interpreted.
 
-Term store instance: one named workflow store a call is routed to; instance_id uniqueness ranges over one store instance.
+Term store instance: one named workflow store a call is routed to; instance id uniqueness ranges over one store instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the instance_id and the transition_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the instance id and the transition id here.
 
 Term transition: the atom's evaluation of one call against the workflow store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term declared transition: one from_state, action, to_state and optional guard in the declaration — a move the workflow may make. Distinct from the transition above, which is the atom's evaluation of a call.
+Term declared transition: one from state, action, to state and optional guard in the declaration — a move the workflow may make. Distinct from the transition above, which is the atom's evaluation of a call.
 
 WHY:
 The corpus's word *transition* carries two senses here and the atom cannot avoid either: the execution contract's transition (one evaluation of one call) and the state machine's declared transition (one edge in the declaration). Both are declared, and every rule names which.
@@ -94,11 +94,11 @@ Lexicographic sortability (Identity 11) is the same deployment obligation [Selec
 ### State
 
 ```
-State 1: EVERY workflow MUST carry instance_id, a declaration, a current state, a transition history and next_sequence_number.
-State 2: A workflow MAY carry subject_ref.
-State 3: A workflow MAY carry instance_metadata.
-State 4: EVERY history entry MUST carry transition_id, sequence_number, from_state, to_state, action and fired_at.
-State 5: A history entry MAY carry actor_ref.
+State 1: EVERY workflow MUST carry instance id, a declaration, a current state, a transition history and next sequence number.
+State 2: A workflow MAY carry subject ref.
+State 3: A workflow MAY carry instance metadata.
+State 4: EVERY history entry MUST carry transition id, sequence number, from state, to state, action and fired at.
+State 5: A history entry MAY carry actor ref.
 State 6: The atom MUST NOT offer a workflow removal surface.
 State 7: The atom MUST NOT offer a history entry removal surface.
 State 8: The atom MUST NOT offer a history entry edit surface.
@@ -107,7 +107,7 @@ State 10: The atom MUST NOT offer a transition out of a terminal state.
 State 11: The atom MUST NOT offer an action that stands a workflow in two states.
 State 12: The store instance's workflow count MUST NOT fall.
 State 13: A workflow's transition history MUST NOT shrink.
-State 14: next_sequence_number MUST survive a restart.
+State 14: next sequence number MUST survive a restart.
 ```
 
 WHY:
@@ -151,51 +151,51 @@ read_declaration(instance_id)
 
 ```
 Operation 1: [Instantiate] MUST answer invalid-request ONLY IF the declaration is well-formed.
-Operation 2: IF a supplied actor_ref EQUALS blank THEN an action MUST answer invalid-request.
-Operation 3: IF the resolved instantiated_at EXCEEDS now THEN [Instantiate] MUST answer invalid-request.
+Operation 2: IF a supplied actor ref EQUALS blank THEN an action MUST answer invalid-request.
+Operation 3: IF the resolved instantiated at EXCEEDS now THEN [Instantiate] MUST answer invalid-request.
 Operation 4: An admitted instantiate MUST record EXACTLY ONE workflow.
 Operation 5: An admitted instantiate MUST stand the workflow in the initial state.
-Operation 6: An admitted instantiate MUST set next_sequence_number to one.
+Operation 6: An admitted instantiate MUST set next sequence number to one.
 Operation 7: An admitted instantiate MUST record an empty transition history.
-Operation 8: An admitted instantiate MUST answer the instance_id.
-Operation 9: IF instance_id EQUALS blank THEN an addressed action MUST answer invalid-request.
+Operation 8: An admitted instantiate MUST answer the instance id.
+Operation 9: IF instance id EQUALS blank THEN an addressed action MUST answer invalid-request.
 Operation 10: IF action EQUALS blank THEN [Fire] MUST answer invalid-request.
-Operation 11: IF the instance_id names no workflow THEN an addressed action MUST answer not-known.
-Operation 12: An addressed action MUST answer not-known ONLY IF instance_id DOES NOT EQUAL blank.
+Operation 11: IF the instance id names no workflow THEN an addressed action MUST answer not-known.
+Operation 12: An addressed action MUST answer not-known ONLY IF instance id DOES NOT EQUAL blank.
 Operation 13: IF the current state IS IN the terminal states THEN [Fire] MUST answer terminal.
-Operation 14: [Fire] MUST answer terminal ONLY IF the instance_id names a workflow.
+Operation 14: [Fire] MUST answer terminal ONLY IF the instance id names a workflow.
 Operation 15: IF no declared transition matches the current state and action THEN [Fire] MUST answer invalid-transition.
 Operation 16: [Fire] MUST answer invalid-transition ONLY IF the current state IS NOT IN the terminal states.
-Operation 17: IF the matched transition carries a guard AND guard_satisfied EQUALS blank THEN [Fire] MUST answer guard-not-satisfied.
+Operation 17: IF the matched transition carries a guard AND guard satisfied EQUALS blank THEN [Fire] MUST answer guard-not-satisfied.
 Operation 18: [Fire] MUST answer guard-not-satisfied ONLY IF a declared transition matches.
-Operation 19: IF the resolved fired_at EXCEEDS now THEN [Fire] MUST answer invalid-request.
-Operation 20: IF the resolved fired_at precedes the workflow's instantiated_at THEN [Fire] MUST answer invalid-request.
+Operation 19: IF the resolved fired at EXCEEDS now THEN [Fire] MUST answer invalid-request.
+Operation 20: IF the resolved fired at precedes the workflow's instantiated at THEN [Fire] MUST answer invalid-request.
 Operation 21: An admitted fire MUST append EXACTLY ONE history entry.
-Operation 22: An admitted fire MUST take the history entry's sequence_number from next_sequence_number.
-Operation 23: An admitted fire MUST raise next_sequence_number by one.
-Operation 24: An admitted fire MUST set the history entry's from_state to the current state the call found.
-Operation 25: An admitted fire MUST set the history entry's to_state to the matched transition's to_state.
-Operation 26: An admitted fire MUST stand the workflow in the matched transition's to_state.
+Operation 22: An admitted fire MUST take the history entry's sequence number from next sequence number.
+Operation 23: An admitted fire MUST raise next sequence number by one.
+Operation 24: An admitted fire MUST set the history entry's from state to the current state the call found.
+Operation 25: An admitted fire MUST set the history entry's to state to the matched transition's to state.
+Operation 26: An admitted fire MUST stand the workflow in the matched transition's to state.
 Operation 27: An admitted fire MUST commit the entry, the raise and the state change in one operation.
-Operation 28: An admitted fire MUST answer the matched transition's to_state.
-Operation 29: An admitted fire over a guarded transition MUST record guard_satisfied on the history entry.
-Operation 30: An admitted fire over an unguarded transition MUST NOT record guard_satisfied on the history entry.
+Operation 28: An admitted fire MUST answer the matched transition's to state.
+Operation 29: An admitted fire over a guarded transition MUST record guard satisfied on the history entry.
+Operation 30: An admitted fire over an unguarded transition MUST NOT record guard satisfied on the history entry.
 Operation 31: [Fire] MUST NOT evaluate a guard.
 Operation 32: [Fire] MUST NOT offer a wildcard declared transition.
 Operation 33: IF the store refuses the write THEN a writing action MUST answer storage-failure.
 Operation 34: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 35: A refused action MUST leave the workflow as the call found the workflow.
 Operation 36: A refused action MUST NOT append a history entry.
-Operation 37: A refused action MUST NOT raise next_sequence_number.
+Operation 37: A refused action MUST NOT raise next sequence number.
 Operation 38: [Current] MUST answer the workflow's current state.
-Operation 39: An admitted history MUST answer the matching history entries in sequence_number ascending order.
+Operation 39: An admitted history MUST answer the matching history entries in sequence number ascending order.
 Operation 40: An admitted history MUST answer EVERY history entry matching the supplied filters.
 Operation 41: An admitted history MUST NOT answer a history entry failing a supplied filter.
 Operation 42: IF no history entry matches THEN an admitted history MUST answer an empty entry sequence.
 Operation 43: IF a filter's axis IS NOT IN the filter axes THEN [History] MUST answer invalid-query.
 Operation 44: IF a string filter's value EQUALS blank THEN [History] MUST answer invalid-query.
 Operation 45: IF a range filter's end precedes the range's start THEN [History] MUST answer invalid-query.
-Operation 46: [History] MUST answer invalid-query ONLY IF the instance_id names a workflow.
+Operation 46: [History] MUST answer invalid-query ONLY IF the instance id names a workflow.
 Operation 47: [Read Declaration] MUST answer the workflow's declaration.
 Operation 48: [Read Declaration] MUST NOT normalize the declaration.
 Operation 49: [Read Declaration] MUST NOT reorder the declaration.
@@ -204,57 +204,57 @@ Deleted: Operation 51. Capability requirement 1 owns it.
 Deleted: Operation 52. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 53. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
-Operation 55: An ordering rule MUST NOT rest on fired_at.
+Operation 55: An ordering rule MUST NOT rest on fired at.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term addressed action: any action carrying an instance_id — every action but [Instantiate].
+Term addressed action: any action carrying an instance id — every action but [Instantiate].
 
 Term writing action: [Instantiate] | [Fire] — the two actions that write.
 
 Term reading action: [Current] | [History] | [Read Declaration] — the three that do not.
 
-Term current state: the state the workflow stands in — a [Current State]; the initial state until a fire lands, and the latest history entry's to_state after.
+Term current state: the state the workflow stands in — a [Current State]; the initial state until a fire lands, and the latest history entry's to state after.
 
-Term next_sequence_number: the counter [Fire] takes a sequence_number from — a [Next Sequence Number]; begins at one, rises by one per append, and survives a restart.
+Term next sequence number: the counter [Fire] takes a sequence number from — a [Next Sequence Number]; begins at one, rises by one per append, and survives a restart.
 
-Term sequence_number: the strictly increasing integer a history entry takes at append — a [Sequence Number]; the history's order source, and never taken from a clock.
+Term sequence number: the strictly increasing integer a history entry takes at append — a [Sequence Number]; the history's order source, and never taken from a clock.
 
-Term fired_at: the instant a declared transition fired — a [Fired At]; a best-effort annotation, and never an order source.
+Term fired at: the instant a declared transition fired — a [Fired At]; a best-effort annotation, and never an order source.
 
-Term instantiated_at: the instant a workflow was created — an [Instantiated At].
+Term instantiated at: the instant a workflow was created — an [Instantiated At].
 
-Term resolved fired_at: the fired_at the history entry carries — the supplied value where one exists, and now otherwise.
+Term resolved fired at: the fired at the history entry carries — the supplied value where one exists, and now otherwise.
 
-Term resolved instantiated_at: the instantiated_at the workflow carries — the supplied value where one exists, and now otherwise.
+Term resolved instantiated at: the instantiated at the workflow carries — the supplied value where one exists, and now otherwise.
 
-Term actor_ref: the opaque reference naming who fired a declared transition — an [Actor Ref]; optional, and recorded where supplied.
+Term actor ref: the opaque reference naming who fired a declared transition — an [Actor Ref]; optional, and recorded where supplied.
 
 Term guard: the opaque label naming the condition a caller asserts before a declared transition fires — a [Guard].
 
-Term guard_satisfied: the caller's assertion that a guard holds — a [Guard Satisfied]; an assertion, never a verdict.
+Term guard satisfied: the caller's assertion that a guard holds — a [Guard Satisfied]; an assertion, never a verdict.
 
-Term matched transition: the one declared transition whose from_state is the current state and whose action is the call's action (Declaration 13).
+Term matched transition: the one declared transition whose from state is the current state and whose action is the call's action (Declaration 13).
 
-Term filter axes: transition_id | sequence_number | from_state | to_state | action | actor_ref | fired_at — the seven axes [History] accepts, and no others.
+Term filter axes: transition id | sequence number | from state | to state | action | actor ref | fired at — the seven axes [History] accepts, and no others.
 
-Term admitted instantiate: an [Instantiate] call whose declaration, actor_ref and resolved instantiated_at the guards all admit.
+Term admitted instantiate: an [Instantiate] call whose declaration, actor ref and resolved instantiated at the guards all admit.
 
-Term admitted fire: a [Fire] call whose instance_id names a live workflow, whose action matches a declared transition the current state offers, whose guard the caller asserted where one is carried, and whose actor_ref and resolved fired_at the guards admit.
+Term admitted fire: a [Fire] call whose instance id names a live workflow, whose action matches a declared transition the current state offers, whose guard the caller asserted where one is carried, and whose actor ref and resolved fired at the guards admit.
 
-Term admitted history: a [History] call whose instance_id names a workflow and whose every filter axis and filter value the guards admit.
+Term admitted history: a [History] call whose instance id names a workflow and whose every filter axis and filter value the guards admit.
 
 | # | Condition | [Fire] answers |
 |---|---|---|
-| 1 | instance_id or action is blank | invalid-request |
-| 2 | both are well-formed, the instance_id names no workflow | not-known |
+| 1 | instance id or action is blank | invalid-request |
+| 2 | both are well-formed, the instance id names no workflow | not-known |
 | 3 | the workflow exists, the current state is terminal | terminal |
 | 4 | the current state is not terminal, no declared transition matches | invalid-transition |
 | 5 | a declared transition matches, it carries a guard, the caller asserts none | guard-not-satisfied |
-| 6 | the gate clears, actor_ref is blank or the resolved fired_at is out of bounds | invalid-request |
+| 6 | the gate clears, actor ref is blank or the resolved fired at is out of bounds | invalid-request |
 | 7 | every precondition passes, the store refuses the write | storage-failure |
 | 8 | every precondition passes, the store accepts the write | new_state |
 
@@ -263,11 +263,11 @@ NOTE: watch condition negation — invalid-request occupies two rows of one prec
 WHY:
 The precedence chain is the atom's most load-bearing ordering and every step earns its place. Argument well-formedness precedes the store lookup (row 1) so a malformed call never costs a read. not-known precedes terminal (row 2) because a state answer about a workflow that does not exist would be an invention. terminal precedes invalid-transition (row 3) because an absorbed workflow rejects *every* action, and telling a caller their action was undeclared when the workflow would refuse any action sends them to fix the wrong thing. invalid-transition precedes guard-not-satisfied (row 4) because a guard belongs to a declared transition, and an undeclared move has no guard to be unsatisfied about.
 
-Row 6 is the one that surprises, and it is deliberate: attribution and temporal checks run *after* the gate. The alternative — checking fired_at before the guard — would tell a caller their timestamp is wrong on a transition they were never allowed to make, which leaks the declaration's shape to a caller the declaration refuses.
+Row 6 is the one that surprises, and it is deliberate: attribution and temporal checks run *after* the gate. The alternative — checking fired at before the guard — would tell a caller their timestamp is wrong on a transition they were never allowed to make, which leaks the declaration's shape to a caller the declaration refuses.
 
 Operation 20 states the within-workflow temporal bound as a precedence rather than as a comparison, which is why no rule here spells `≥` as a two-arm disjunction. A transition cannot be recorded as firing before the workflow existed; a transition firing *at* the instant of instantiation is legal, and `precedes` says exactly that in one arm.
 
-Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inherits: fired_at is best-effort and sequence_number is the order. Under a skewing clock a later history entry may legitimately carry an earlier fired_at, and no invariant here is at risk from it.
+Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inherits: fired at is best-effort and sequence number is the order. Under a skewing clock a later history entry may legitimately carry an earlier fired at, and no invariant here is at risk from it.
 
 ### Invariants
 
@@ -283,13 +283,13 @@ Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inh
 - **Invariant 3 — Only declared transitions fire.**
   ```
   Invariant 3.1: EVERY history entry MUST match EXACTLY ONE declared transition in the workflow's declaration.
-  Invariant 3.2: Two declared transitions in one declaration MUST NOT share one from_state and one action.
+  Invariant 3.2: Two declared transitions in one declaration MUST NOT share one from state and one action.
   ```
   WHY: Invariant 3.2 is what makes Invariant 3.1's *exactly one* reachable. The uniqueness is enforced once, at [Instantiate] (Declaration 13), and every later match inherits it — so the atom never carries a tiebreak rule, because a conforming declaration never presents a tie.
 - **Invariant 4 — Terminal absorption.**
   ```
   Invariant 4.1: A workflow whose current state IS IN the terminal states MUST NOT leave the terminal state.
-  Invariant 4.2: A declared transition's from_state MUST NOT stand in the terminal states.
+  Invariant 4.2: A declared transition's from state MUST NOT stand in the terminal states.
   ```
   WHY: absorption holds twice over — by enforcement at [Fire] (Operation 13) and by construction in the declaration (Invariant 4.2), which is what makes it structural. A deployment needing post-terminal behaviour models it as a non-terminal state or instantiates a new workflow; there is no reopen surface and there is no declaration that could describe one.
 - **Invariant 5 — History append-only and complete.**
@@ -299,29 +299,29 @@ Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inh
   ```
 - **Invariant 6 — History total order.**
   ```
-  Invariant 6.1: Two history entries in one workflow MUST NOT share a sequence_number.
+  Invariant 6.1: Two history entries in one workflow MUST NOT share a sequence number.
   Invariant 6.2: A workflow's sequence_numbers MUST stand from one to the workflow's history entry count.
-  Invariant 6.3: A workflow's history order MUST rest on sequence_number alone.
+  Invariant 6.3: A workflow's history order MUST rest on sequence number alone.
   ```
 - **Invariant 7 — Replay determinism.**
   ```
-  Invariant 7.1: A workflow carrying a history entry MUST stand in the highest sequence_number entry's to_state.
+  Invariant 7.1: A workflow carrying a history entry MUST stand in the highest sequence number entry's to state.
   Invariant 7.2: A workflow carrying no history entry MUST stand in the initial state.
-  Invariant 7.3: A replay of a workflow's history from the initial state in sequence_number ascending order MUST reach the workflow's current state.
+  Invariant 7.3: A replay of a workflow's history from the initial state in sequence number ascending order MUST reach the workflow's current state.
   ```
   WHY: the current state is a projection of the history, cached so a guard need not replay. Invariant 7.3 is what makes the cache safe to hold: an auditor can rebuild the state from the entries alone, and a disagreement between the cache and the replay is a conformance failure rather than a repair job.
 - **Invariant 8 — Guard gating without evaluation.**
   ```
-  Invariant 8.1: A guarded declared transition MUST fire ONLY IF the caller asserts guard_satisfied.
+  Invariant 8.1: A guarded declared transition MUST fire ONLY IF the caller asserts guard satisfied.
   Invariant 8.2: The atom MUST NOT evaluate a guard's condition.
   Invariant 8.3: A guarded declared transition's history entry MUST record the caller's assertion.
   ```
   WHY: the entry attests that the caller asserted the guard at the moment of the call, and attests nothing about the world. The distinction is the atom's whole restraint, and it is what an auditor must understand before reading `guard_satisfied: true` as evidence — it is evidence of an assertion, and [Execute Gated Workflow](../compositions/execute-gated-workflow.md) is where the assertion is earned by reading a bound [Approval Step](./approval-step.md).
 - **Invariant 9 — Transition attribution completeness.**
   ```
-  Invariant 9.1: A recorded actor_ref MUST stand non-blank.
+  Invariant 9.1: A recorded actor ref MUST stand non-blank.
   ```
-  WHY: the entry is complete for forensic replay whether or not actor_ref was supplied. Attribution is deployment policy here, not an atom-level mandate — which is exactly the gap [Actor Identity](./actor-identity.md) closes where a regulator needs the actor bound rather than named.
+  WHY: the entry is complete for forensic replay whether or not actor ref was supplied. Attribution is deployment policy here, not an atom-level mandate — which is exactly the gap [Actor Identity](./actor-identity.md) closes where a regulator needs the actor bound rather than named.
 - **Invariant 10 — Store durability.**
   ```
   Invariant 10.1: The atom MUST NOT remove a workflow from the store.
@@ -341,10 +341,10 @@ Declaration 6: IF a state name EQUALS blank THEN [Instantiate] MUST answer inval
 Declaration 7: IF two state names in states match THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 8: IF the initial state IS NOT IN states THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 9: IF the initial state IS IN the terminal states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 10: IF a declared transition's from_state IS NOT IN states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 11: IF a declared transition's to_state IS NOT IN states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 12: IF a declared transition's from_state IS IN the terminal states THEN [Instantiate] MUST answer invalid-declaration.
-Declaration 13: IF two declared transitions share one from_state and one action THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 10: IF a declared transition's from state IS NOT IN states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 11: IF a declared transition's to state IS NOT IN states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 12: IF a declared transition's from state IS IN the terminal states THEN [Instantiate] MUST answer invalid-declaration.
+Declaration 13: IF two declared transitions share one from state and one action THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 14: IF a declared transition's action EQUALS blank THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 15: IF a supplied guard EQUALS blank THEN [Instantiate] MUST answer invalid-declaration.
 Declaration 16: The terminal states MAY carry no member.
@@ -362,7 +362,7 @@ Term terminal states: the absorbing members of states — a [Terminal States]; p
 Term well-formed declaration: a declaration Declaration 5 through 15 all admit.
 
 WHY:
-Declaration 13 is the determinism constraint and the load-bearing one: at most one declared transition per from_state and action pair means a [Fire] either matches exactly one edge or none, and the atom never chooses between two. Without it *fire the approve action* would be ambiguous in a declaration that named two approve edges, and an implementation would have to invent a tiebreak the spec does not have.
+Declaration 13 is the determinism constraint and the load-bearing one: at most one declared transition per from state and action pair means a [Fire] either matches exactly one edge or none, and the atom never chooses between two. Without it *fire the approve action* would be ambiguous in a declaration that named two approve edges, and an implementation would have to invent a tiebreak the spec does not have.
 
 Declaration 9 and Declaration 12 are the same claim from two directions, and neither is redundant. Declaration 9 refuses a workflow born absorbed — a workflow whose initial state is terminal accepts nothing and exists only to be stuck. Declaration 12 refuses an edge *out of* a terminal state, which is what makes Invariant 4's absorption structural rather than merely enforced at [Fire]: a conforming declaration cannot even describe the move.
 
@@ -382,7 +382,7 @@ A quality system instantiates a batch-release workflow. The declaration names `s
 
 ### The audit question
 
-An inspector asks whether the batch moved only through the approved sequence. `read_declaration("wf_01HQ…")` answers the map as supplied, unchanged since instantiation (Invariant 1.2). `history("wf_01HQ…")` answers three entries in sequence_number order. Every entry's from_state, action and to_state triple appears in the declaration (Invariant 3.1), and replaying them from `sampled` arrives at `released`, which is what `current("wf_01HQ…")` answers (Invariant 7.3). The declaration bounds what *could* have happened and the history says what *did*; neither alone answers the inspector.
+An inspector asks whether the batch moved only through the approved sequence. `read_declaration("wf_01HQ…")` answers the map as supplied, unchanged since instantiation (Invariant 1.2). `history("wf_01HQ…")` answers three entries in sequence number order. Every entry's from state, action and to state triple appears in the declaration (Invariant 3.1), and replaying them from `sampled` arrives at `released`, which is what `current("wf_01HQ…")` answers (Invariant 7.3). The declaration bounds what *could* have happened and the history says what *did*; neither alone answers the inspector.
 
 ### Rejection paths
 
@@ -402,13 +402,13 @@ An inspector asks whether the batch moved only through the approved sequence. `r
 
 ### Multi-workflow independence
 
-Two batches run the same declaration as two workflows. Firing `test` on one moves one current state; the other is untouched, carries its own history and its own next_sequence_number. The declaration is a value each workflow holds, not a shared object (Non-goal 8).
+Two batches run the same declaration as two workflows. Firing `test` on one moves one current state; the other is untouched, carries its own history and its own next sequence number. The declaration is a value each workflow holds, not a shared object (Non-goal 8).
 
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** An FDA inspector auditing under 21 CFR Part 11 and ISO 9001 §8.5.1 asks the system to prove the batch moved only through approved states. Check 2.1 and Check 6.1 are the structural answer: every history entry matches a declared transition, and the declaration is the one supplied at instantiation. What the atom cannot answer is whether the `qa_signoff` guard was truly satisfied — `guard_satisfied: true` attests an assertion (Invariant 8.3), and the evidence lives in the composing [Approval Step](./approval-step.md) record.
-- **Disputed transition.** An external party claims the workflow skipped a required state. The history is gap-free by sequence_number (Invariant 6.2) and replays to the current state (Invariant 7.3), so a skipped state would have to appear as a declared transition that jumps it — which the declaration either names or does not. The claim resolves against the declaration, not against testimony.
-- **Breach investigation.** An investigator reconstructing an anomaly window filters the history by fired_at range and finds the entries generously bracketed. Because sequence_number is dense and is the order source (Invariant 6.2, Operation 55), the investigator confirms the window's completeness against an unfiltered read rather than trusting the wall-time filter — a clock-skewed entry can fall outside the bracket and cannot fall out of the sequence.
+- **Disputed transition.** An external party claims the workflow skipped a required state. The history is gap-free by sequence number (Invariant 6.2) and replays to the current state (Invariant 7.3), so a skipped state would have to appear as a declared transition that jumps it — which the declaration either names or does not. The claim resolves against the declaration, not against testimony.
+- **Breach investigation.** An investigator reconstructing an anomaly window filters the history by fired at range and finds the entries generously bracketed. Because sequence number is dense and is the order source (Invariant 6.2, Operation 55), the investigator confirms the window's completeness against an unfiltered read rather than trusting the wall-time filter — a clock-skewed entry can fall outside the bracket and cannot fall out of the sequence.
 
 ---
 
@@ -421,19 +421,19 @@ This atom's acceptance is what an external auditor can clear from the workflow s
 ```
 Check 1.1: An auditor MUST find a re-read declaration unchanged from the prior read (Invariant 1.1).
 Check 1.2: An auditor MUST find a declaration unchanged across an admitted fire (Invariant 1.1).
-Check 2.1: An auditor MUST find EVERY history entry's from_state, action and to_state standing as a declared transition in the workflow's declaration (Invariant 3.1).
-Check 2.2: An auditor MUST find no two declared transitions in one declaration sharing one from_state and one action (Invariant 3.2).
+Check 2.1: An auditor MUST find EVERY history entry's from state, action and to state standing as a declared transition in the workflow's declaration (Invariant 3.1).
+Check 2.2: An auditor MUST find no two declared transitions in one declaration sharing one from state and one action (Invariant 3.2).
 Check 3.1: An auditor MUST find EVERY workflow whose current state EQUALS EXACTLY ONE member of the workflow's states (Invariant 2.1).
 Check 4.1: An auditor MUST find a workflow whose current state IS IN the terminal states carrying no history entry following the entry that reached the terminal state (Invariant 4.1).
-Check 4.2: An auditor MUST find no declared transition whose from_state IS IN the terminal states (Invariant 4.2).
+Check 4.2: An auditor MUST find no declared transition whose from state IS IN the terminal states (Invariant 4.2).
 Check 5.1: An auditor MUST find a workflow's sequence_numbers standing from one to the workflow's history entry count (Invariant 6.2).
-Check 5.2: An auditor MUST reconstruct a workflow's history order from sequence_number alone (Invariant 6.3).
+Check 5.2: An auditor MUST reconstruct a workflow's history order from sequence number alone (Invariant 6.3).
 Check 5.3: An auditor MUST find a re-read history entry's fields unchanged from the prior read (Invariant 5.2).
 Check 6.1: An auditor MUST reach the workflow's current state by replaying the workflow's history from the initial state (Invariant 7.3).
-Check 7.1: An auditor MUST find guard_satisfied recorded on EVERY guarded declared transition's history entry (Invariant 8.3).
-Check 7.2: An auditor MUST find no guard_satisfied recorded on an unguarded declared transition's history entry (Operation 30).
-Check 8.1: An auditor MUST find transition_id, sequence_number, from_state, to_state, action and fired_at on EVERY history entry (State 4).
-Check 8.2: An auditor MUST find EVERY recorded actor_ref non-blank (Invariant 9.1).
+Check 7.1: An auditor MUST find guard satisfied recorded on EVERY guarded declared transition's history entry (Invariant 8.3).
+Check 7.2: An auditor MUST find no guard satisfied recorded on an unguarded declared transition's history entry (Operation 30).
+Check 8.1: An auditor MUST find transition id, sequence number, from state, to state, action and fired at on EVERY history entry (State 4).
+Check 8.2: An auditor MUST find EVERY recorded actor ref non-blank (Invariant 9.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -443,7 +443,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: A deployment needing a guard's condition confirmed MUST read the composing pattern that evaluates the guard (Invariant 8.2).
 External check 2: A deployment needing a workflow's history entry count matched against the workflow's admitted fire count MUST capture the fire answers (Invariant 5.2).
-External check 3: A deployment needing an actor_ref bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
+External check 3: A deployment needing an actor ref bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
 ```
 
 WHY:
@@ -464,7 +464,7 @@ Non-goal 7: A deployment needing a nested state MUST name the nested state as a 
 Non-goal 8: The atom MUST NOT share one declaration across two workflows.
 Non-goal 9: The atom MUST NOT version a declaration.
 Non-goal 10: A deployment needing a shared declaration template MUST compose a definition registry pattern.
-Non-goal 11: The atom MUST NOT bind an actor_ref to an actor.
+Non-goal 11: The atom MUST NOT bind an actor ref to an actor.
 Non-goal 12: A deployment needing a non-repudiable actor MUST compose Actor Identity.
 Non-goal 13: The atom MUST NOT detect a rewrite under the store.
 Non-goal 14: A deployment needing a rewrite detected MUST compose Tamper Evidence.
@@ -473,7 +473,7 @@ Non-goal 16: A deployment needing a retention bound MUST compose Retention Windo
 Non-goal 17: The atom MUST NOT decide who may call an action.
 Non-goal 18: A deployment needing an authorization decision MUST compose Permissions.
 Non-goal 19: The atom MUST NOT decide which state a workflow ought to stand in.
-Non-goal 20: The atom MUST NOT read two [Fire] calls carrying one instance_id and one action as one fire.
+Non-goal 20: The atom MUST NOT read two [Fire] calls carrying one instance id and one action as one fire.
 Non-goal 21: A deployment needing at-most-once firing MUST supply the deployment's own idempotency key.
 Non-goal 22: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
@@ -492,7 +492,7 @@ Non-goal 19 is the limit an auditor most often pushes against. *Show me every ba
 ### Atomic writes
 
 ```
-Atomic writes 1: A reader MUST NOT observe a history entry without the entry's next_sequence_number raise.
+Atomic writes 1: A reader MUST NOT observe a history entry without the entry's next sequence number raise.
 Atomic writes 2: A reader MUST NOT observe a history entry without the entry's current state change.
 Atomic writes 3: An uncommitted crash MUST leave the workflow as the call found the workflow.
 Atomic writes 4: The implementation MUST resolve a dangling transition.
@@ -509,7 +509,7 @@ Every admitted fire couples three durable mutations — the entry, the counter r
 ### Clock semantics
 
 ```
-Clock semantics 4: A fired_at MUST NOT bound a later history entry's fired_at.
+Clock semantics 4: A fired at MUST NOT bound a later history entry's fired at.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
@@ -517,7 +517,7 @@ Deleted: Clock semantics 5. Non-goal 22 owns it.
 ```
 
 WHY:
-Clock semantics 4 is the rule that looks like a gap and is a commitment. Wall-time monotonicity across history entries is deliberately *not* enforced: under a skewing or resynchronized clock a later transition can legitimately carry an earlier fired_at, and an atom that refused it would reject correct history to protect an annotation. sequence_number is the order (Invariant 6.3, Operation 55), so nothing is lost. A backdated fired_at is accepted within the workflow's own lifetime — documenting a transition recognized late is valid — and the only temporal bounds are the two that are structural: not after now, and not before the workflow existed (Operation 19, Operation 20).
+Clock semantics 4 is the rule that looks like a gap and is a commitment. Wall-time monotonicity across history entries is deliberately *not* enforced: under a skewing or resynchronized clock a later transition can legitimately carry an earlier fired at, and an atom that refused it would reject correct history to protect an annotation. sequence number is the order (Invariant 6.3, Operation 55), so nothing is lost. A backdated fired at is accepted within the workflow's own lifetime — documenting a transition recognized late is valid — and the only temporal bounds are the two that are structural: not after now, and not before the workflow existed (Operation 19, Operation 20).
 
 ### Concurrency
 
@@ -541,7 +541,7 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Term string input: instance_id, action, actor_ref, subject_ref, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
+Term string input: instance id, action, actor ref, subject ref, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
 
 
 WHY:
@@ -556,9 +556,9 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own a guard's evaluation.
-Composition note 3: A composing pattern asserting guard_satisfied MUST own the evidence.
+Composition note 3: A composing pattern asserting guard satisfied MUST own the evidence.
 Composition note 4: A composing pattern MUST own the authorization of a call.
-Composition note 5: A composing pattern MUST own the attestation binding an actor_ref.
+Composition note 5: A composing pattern MUST own the attestation binding an actor ref.
 Composition note 6: A composing pattern MUST own the tamper seal over a transition history.
 Composition note 7: A composing pattern MUST own the retention of the workflow store.
 Composition note 8: A composing pattern MUST own an idempotency key.
@@ -567,9 +567,9 @@ Composition note 10: A composing pattern reading the workflow store MUST NOT wri
 ```
 
 WHY:
-[Execute Gated Workflow](../compositions/execute-gated-workflow.md) (`grounded` 2026-06-04) is the composition this atom exists inside, and it is where the guard evaluation this atom refuses re-converges: it reads a bound [Approval Step](./approval-step.md)'s state and asserts guard_satisfied only where that step stands approved (Composition note 2, Composition note 3). The wiring is State Machine plus Approval Step plus [Permissions](./permissions.md) plus Assignment plus an [Audit Trail](../compositions/audit-trail.md) substrate, and the emergent guarantee is one neither constituent holds alone — a transition that fired carries both the declared-machine proof and the approval evidence behind its gate.
+[Execute Gated Workflow](../compositions/execute-gated-workflow.md) (`grounded` 2026-06-04) is the composition this atom exists inside, and it is where the guard evaluation this atom refuses re-converges: it reads a bound [Approval Step](./approval-step.md)'s state and asserts guard satisfied only where that step stands approved (Composition note 2, Composition note 3). The wiring is State Machine plus Approval Step plus [Permissions](./permissions.md) plus Assignment plus an [Audit Trail](../compositions/audit-trail.md) substrate, and the emergent guarantee is one neither constituent holds alone — a transition that fired carries both the declared-machine proof and the approval evidence behind its gate.
 
-[Approval Step](./approval-step.md) is the fixed-state sibling and the clearest way to see what this atom trades away: its states are known to an evaluator who has read only the spec, and this atom's are known only to one who has read the workflow. [Actor Identity](./actor-identity.md) makes actor_ref survive an authorship challenge under 21 CFR Part 11 and SOX (Sarbanes-Oxley Act) §404; [Tamper Evidence](./tamper-evidence.md) seals the history for court admissibility; [Retention Window](./retention-window.md) bounds how long workflows are kept under GDPR (General Data Protection Regulation) Article 17, HIPAA (Health Insurance Portability and Accountability Act) §164.530(j) and FRCP (Federal Rules of Civil Procedure) Rule 37(e); [Audit Trail](../compositions/audit-trail.md) is the regulated-evidence layer each admitted fire lands in.
+[Approval Step](./approval-step.md) is the fixed-state sibling and the clearest way to see what this atom trades away: its states are known to an evaluator who has read only the spec, and this atom's are known only to one who has read the workflow. [Actor Identity](./actor-identity.md) makes actor ref survive an authorship challenge under 21 CFR Part 11 and SOX (Sarbanes-Oxley Act) §404; [Tamper Evidence](./tamper-evidence.md) seals the history for court admissibility; [Retention Window](./retention-window.md) bounds how long workflows are kept under GDPR (General Data Protection Regulation) Article 17, HIPAA (Health Insurance Portability and Accountability Act) §164.530(j) and FRCP (Federal Rules of Civil Procedure) Rule 37(e); [Audit Trail](../compositions/audit-trail.md) is the regulated-evidence layer each admitted fire lands in.
 
 [Event Log](./event-log.md) is the structural cousin this atom deliberately does not name as a constituent: the transition history is append-only and totally ordered by a sequence number with best-effort wall time, which is an event log's shape, and the load-bearing concept here is the validity gate an event log has no notion of. Where a deployment wants both, that layering belongs to Execute Gated Workflow.
 
@@ -583,7 +583,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the store; a workflow; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a rejection; a crash; a reader; a state name; a string input; an opaque reference; the store instance's workflow count; the workflow's history entry count; the workflow's admitted fire count.
 
-Term records: workflow — one running workflow, carrying instance_id, a declaration, a current state, a transition history, next_sequence_number and, where supplied, subject_ref and instance_metadata. history entry — one recorded transition, carrying transition_id, sequence_number, from_state, to_state, action, fired_at and, where supplied, actor_ref and guard_satisfied.
+Term records: workflow — one running workflow, carrying instance id, a declaration, a current state, a transition history, next sequence number and, where supplied, subject ref and instance metadata. history entry — one recorded transition, carrying transition id, sequence number, from state, to state, action, fired at and, where supplied, actor ref and guard satisfied.
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, commit, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, observe, resolve, complete, serve, serialize, shrink, fall, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, survive, canonicalize.
 
@@ -594,7 +594,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: workflow, instance_id, history entry, transition_id, subject_ref, instance_metadata, store instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, business caller, addressed action, writing action, reading action, current state, next_sequence_number, sequence_number, fired_at, instantiated_at, resolved fired_at, resolved instantiated_at, actor_ref, guard, guard_satisfied, matched transition, filter axes, admitted instantiate, admitted fire, admitted history, string input, blank, uncommitted crash, dangling transition.
+Term terms: workflow, instance id, history entry, transition id, subject ref, instance metadata, store instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, business caller, addressed action, writing action, reading action, current state, next sequence number, sequence number, fired at, instantiated at, resolved fired at, resolved instantiated at, actor ref, guard, guard satisfied, matched transition, filter axes, admitted instantiate, admitted fire, admitted history, string input, blank, uncommitted crash, dangling transition.
 
 #### Instantiate
 
@@ -942,7 +942,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariant 1 through 10 keeping their numbers, the declaration's ten well-formedness checks raised to a `Declaration 1 through 17` family of their own, every success effect conditioned on a declared admitted instantiate, admitted fire or admitted history (Hard invariant 16), [Fire]'s seven-step rejection precedence kept beside the rules as an eight-row case space with the ordering carried by `ONLY IF` guards rather than by a prose *rejection priority* line repeated in two sections, the six acceptance areas opened into `Check 1.1 through 8.2` with three `External check`s for what the store cannot answer, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 21` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`), the Composition notes prose raised to `Composition note 1 through 10`. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into state-machine` found nothing in the corpus citing this atom by label. 78.8 KB → 67.0 KB.
 
-- **2026-09-12 — The within-workflow temporal bound is a precedence, not a `≥`.** *Chose:* `Operation 20` — *IF the resolved fired_at precedes the workflow's instantiated_at THEN [Fire] MUST answer invalid-request*. *Over:* `IF fired_at EXCEEDS instantiated_at OR fired_at = instantiated_at`, the two-arm spelling the condition operator set forces on a `≥`. *Because:* that spelling is a watched class at five sites across two specs (council read 29), and this atom would have been the third. A bound that admits its own boundary is a *precedes* prohibition in one arm — the boundary case (a transition firing at the instant of instantiation) is legal, and one arm says so. The class may still earn an operator; it does not need this atom's vote.
+- **2026-09-12 — The within-workflow temporal bound is a precedence, not a `≥`.** *Chose:* `Operation 20` — *IF the resolved fired at precedes the workflow's instantiated at THEN [Fire] MUST answer invalid-request*. *Over:* `IF fired_at EXCEEDS instantiated_at OR fired_at = instantiated_at`, the two-arm spelling the condition operator set forces on a `≥`. *Because:* that spelling is a watched class at five sites across two specs (council read 29), and this atom would have been the third. A bound that admits its own boundary is a *precedes* prohibition in one arm — the boundary case (a transition firing at the instant of instantiation) is legal, and one arm says so. The class may still earn an operator; it does not need this atom's vote.
 
 - **2026-09-12 — Four propositions had two owners each.** *Chose:* `Invariant 2` owns exactly-one-current-state and the `State` family no longer restates it; `Operation 21` owns *one entry per admitted fire* and `Invariant 5` no longer does; `State 4` owns the history entry's field set and `Invariant 9` no longer does; `Invariant 8.2` owns *the atom does not evaluate a guard* and the `Non-goal` family no longer does. *Over:* keeping each pair for emphasis. *Because:* Authority 3. All four were found by `W-duplicate-proposition`, which is the check earning its keep on the largest atom migrated so far — 192 rules, where a reader cannot hold the whole surface at once and a duplicate is invisible by construction.
 

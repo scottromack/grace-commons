@@ -691,6 +691,9 @@ def scan(path: Path) -> list[Finding]:
             add(labels[lab], "L-tombstone-reuse", f"{lab} is tombstoned at line {k} and used as a rule (Hard invariant 27)")
 
     verbs = declared_verbs(text)
+    # a declared name's own words are not verbs: *and hold reason* names a term,
+    # not a second obligation (council read 135)
+    multiword = sorted((n for n in declared_names(text) if " " in n), key=len, reverse=True)
     link_lines = set(LINK_LINE.findall(text))
     for r in rules:
         body = CODE_SPAN.sub("QUOTED", r.text)  # a code span quotes text; never the rule's own tokens
@@ -809,7 +812,11 @@ def scan(path: Path) -> list[Finding]:
         if verbs is not None:
             mm2 = MODAL.search(stmt)
             if mm2:
-                for am in re.finditer(r"\band\s+(\w+)", stmt[mm2.end():]):
+                tail = stmt[mm2.end():]
+                for am in re.finditer(r"\band\s+(\w+)", tail):
+                    rest = tail[am.start(1):]
+                    if any(rest.startswith(n) for n in multiword):
+                        continue
                     if am.group(1) in verbs:
                         add(r.line, "W-two-obligations",
                             f"{r.label}: a second declared record verb after 'and' — one "
