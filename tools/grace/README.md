@@ -102,7 +102,8 @@ each noun phrase against the names the spec declares (`Term` lines, category
 lists and their aliases, a cited list's names up to each owner, signature
 names, value sets and their members), its
 constituents' names and the grammar's, rule nouns included — a rule noun by
-its own spelling or its plural only, never by a stem. A
+its own spelling or its plural only, never by a stem, and a declared name that
+runs through a preposition (*revoked by ref*) read whole. A
 tagger decides what is a noun, so the count is good to a few percent: the tool
 is advisory, never gates, and needs `nltk` with the
 `averaged_perceptron_tagger_eng` model (`test_checks.py` skips its fixtures when

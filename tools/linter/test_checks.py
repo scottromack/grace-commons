@@ -1345,11 +1345,26 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
     for name in ("expires_at", "record_action"):
         if name not in cited:
             problems.append(f"nouns.py: '{name}' beside an owner in a cited list is not read as declared")
+    # a declared name running through a preposition reads whole (council read 132)
+    with tempfile.TemporaryDirectory() as d2:
+        a2 = Path(d2) / "atoms"
+        a2.mkdir()
+        page2 = a2 / "prep.md"
+        page2.write_text(
+            "Term qualifiers: migrated — rewritten in GRACE lang v0.60 (2026-09-18).\n\n"
+            "Term record verbs: carry.\n\n"
+            "Term revoked by ref: the actor that cancelled the capability.\n\n"
+            "```\n"
+            "State 1: A revoked capability MUST carry revoked by ref.\n"
+            "```\n", encoding="utf-8")
+        rep2 = nouns.read([page2], root / "GRACE-lang.md", nltk.pos_tag)
+    if "ref" in rep2["specs"]["prep"]["misses"]:
+        problems.append("nouns.py: 'revoked by ref' read as the bare 'ref'")
     # a value set's own name is declared by the value sets line (council read 112)
     vs = nouns.names_of("Term value sets: landed_by = a | b. enrollment_path = direct | external.\n")
     if not {"landed_by", "enrollment_path"} <= vs:
         problems.append("nouns.py: a value set named in the value sets line, first or later, is not read as declared")
-    return 9
+    return 10
 
 
 def check_fence_form_synthetic(problems: list[str]) -> int:
@@ -1928,7 +1943,8 @@ def main(argv: list[str]) -> int:
     elif not noun_read_problems:
         print(f"nouns.py: {n_nr} synthetic fixtures hold (the spec's own noun, a rule noun and a "
               "constituent's noun resolve; an undeclared noun does not; two names beside owners in a "
-              "cited list and a value set's own name are declared; a rule noun matches its plural, not its stem) \u2713")
+              "cited list and a value set's own name are declared; a rule noun matches its plural, not its stem;"
+              " a name running through a preposition reads whole) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)

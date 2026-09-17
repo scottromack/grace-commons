@@ -126,11 +126,17 @@ def clean(rule: str) -> str:
     return body
 
 
-def phrases(body: str, tagger) -> list[list[str]]:
+PREPOSITIONS = ("by", "of", "for", "in", "at", "to", "per", "on", "under", "from")
+
+
+def phrases(body: str, tagger, known: set[str] = frozenset()) -> list[list[str]]:
     toks = re.findall(r"[a-z][a-z0-9_]*(?:[-'’][a-z0-9_]+)*|[,.;:—]", body)
     if not toks:
         return []
-    out, cur, prev = [], [], None
+    runs: list[tuple[list[tuple[str, str]], list[str]]] = []
+    cur: list[tuple[str, str]] = []
+    sep: list[str] = []
+    prev = None
     for w, t in tagger(toks):
         if "_" in w:
             t = "NN"
@@ -139,17 +145,43 @@ def phrases(body: str, tagger) -> list[list[str]]:
         prev = w
         if t in ("JJ", "VBN", "VBG") + NOUN_TAGS and w not in STOP:
             cur.append((w, t))
-        elif cur:
-            out.append(cur)
-            cur = []
+        else:
+            if cur:
+                runs.append((cur, []))
+                cur = []
+            if runs:
+                runs[-1][1].append(w)
     if cur:
-        out.append(cur)
-    res = []
-    for ph in out:
-        while ph and ph[-1][1] not in NOUN_TAGS:
-            ph = ph[:-1]
+        runs.append((cur, []))
+
+    def trimmed(run: list[tuple[str, str]]) -> list[str]:
+        while run and run[-1][1] not in NOUN_TAGS:
+            run = run[:-1]
+        return [norm(w) for w, _ in run]
+
+    res: list[list[str]] = []
+    i = 0
+    while i < len(runs):
+        words = [norm(w) for w, _ in runs[i][0]]
+        sep = runs[i][1]
+        # a declared name may run through a preposition — *revoked by ref*,
+        # *revoked at* — which the tagger reads as two phrases or drops
+        # (council read 132)
+        if sep and sep[0] in PREPOSITIONS and known:
+            with_prep = words + [sep[0]]
+            nxt = [norm(w) for w, _ in runs[i + 1][0]] if i + 1 < len(runs) and len(sep) == 1 else []
+            if nxt and forms(" ".join(with_prep + nxt)) & known:
+                res.append(with_prep + nxt)
+                i += 2
+                continue
+            if forms(" ".join(with_prep)) & known:
+                res.append(with_prep)
+                i += 1
+                continue
+        ph = trimmed(runs[i][0])
         if ph:
-            res.append([norm(w) for w, _ in ph])
+            res.append(ph)
+        i += 1
     return res
 
 
@@ -186,7 +218,7 @@ def read(paths: list[Path], grammar: Path, tagger):
         spec = report["specs"].setdefault(p.stem, {"none": 0, "misses": defaultdict(list)})
         for line, rule in rules_of(text):
             report["rules"] += 1
-            for ph in phrases(clean(rule), tagger):
+            for ph in phrases(clean(rule), tagger, known):
                 kind = resolve(ph, known - exact, exact)
                 report[kind] += 1
                 if kind == "none":
