@@ -1,4 +1,4 @@
-# GRACE lang v0.58 — Minimal Earned Grammar
+# GRACE lang v0.59 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -261,7 +261,7 @@ Term absence form: `no thing EXISTS`, with `for` and the identifier where one na
 
 Term rule symbol: a character a rule's own text does not carry — the section sign, the arrow, a brace, the bar, an angle bracket, the en dash, the slash, the asterisk; a section is *the section titled X*, a map entry *k mapped to v*, a call's answer *answering x*, a record *carrying a, b and c*, a range of steps *steps 2 through 5*, and a code spelling such as a template sits in a code span.
 
-Term rule noun: a noun the rules of every specification share, declared once here — call, answer, write, input, field, instant, act.
+Term rule noun: a noun the rules of every specification share, declared once here — call, answer, write, input, field, instant, act, clock.
 
 Term call: one invocation of an action, carrying the inputs the caller supplied.
 
@@ -276,6 +276,8 @@ Term field: a named part of a record.
 Term instant: a point in time, as the clock a specification reads gives it.
 
 Term act: something an actor or a pattern does that its records account for — a commit, a suspension, a purge; the specification's own declarations say which.
+
+Term clock: a source of instants — the deployment's, read at a specification's seam, or one an auditor supplies.
 
 ```
 Earned vocabulary 1: A condition MUST NOT mix `AND` and `OR`.
@@ -300,7 +302,7 @@ Earned vocabulary 17: A writer MUST write the negative of EXCEEDS as DOES NOT EX
 WHY:
 One operator, one sense. EXISTS asks whether a thing is there — a stored record, an event, a condition — and nothing else; EQUALS blank asks whether a value is missing; IS IN asks whether a value belongs to a set, a record's state among them. Before v0.52 one operator carried all three and more, and `step_id NOT EXISTS` (the caller sent nothing) and `the assignment_id NOT EXISTS` (no record carries the id) differed by an article. The operators are English words so that a rule read aloud, by a person or by a screen reader, says what it means: `!=` comes out as *exclamation equals* or as nothing at all. `no` stays lower case — it is the English determiner, beside `a` and `an`, and EXISTS is the token. `=` and `|` stay only where a value set is declared (Term value-set form). A record's state is one of those values, so a condition tests it with EQUALS and IS IN like any other (Earned vocabulary 15); *stand* stays the verb of the write that moves it — `MUST stand the party in verified`.
 
-The rule nouns are the grammar's for the reason blank is: every specification's rules say *call*, *answer*, *write*, *input*, *field* and *instant*, and almost none declared them, so a noun the rules leaned on hardest resolved to nothing. Earned vocabulary 14 is why *argument* is gone: it named the same thing as *input*, which the signature form already used. *Act* joined them at v0.58: eleven specifications say it in their rules, each for its own thing done, and four of them compose Audit Trail, whose rules say it too — so a declaration in each would have redeclared a constituent's term with another meaning (Closed vocabulary 17). *Instance* is not among them yet. State Machine once declared an instance as one workflow while the other specifications meant one deployed copy of a pattern; State Machine's sense is *workflow* since council read 108, and *instance* waits to be measured in its one remaining sense before it is declared. Party Identity once declared *identifier* as every opaque name it assigns, the word this document declares for any name a rule uses; that sense is *assigned id* since council read 109. Audit Trail once declared *tail* as the highest sequence number a read returns, the word this document declares for ONLY AFTER, ONLY IF, WITHIN, PER and BEFORE; that sense is *tail position* since council read 110. *Section* is not a rule noun yet either. Eleven specifications also used it for a critical section, the host-supplied mutual exclusion, beside its sense of a titled part of a document; since council read 111 that sense is always written *critical section*, and bare *section* waits to be measured for its one declaration.
+The rule nouns are the grammar's for the reason blank is: every specification's rules say *call*, *answer*, *write*, *input*, *field* and *instant*, and almost none declared them, so a noun the rules leaned on hardest resolved to nothing. Earned vocabulary 14 is why *argument* is gone: it named the same thing as *input*, which the signature form already used. *Act* joined them at v0.58: eleven specifications say it in their rules, each for its own thing done, and four of them compose Audit Trail, whose rules say it too — so a declaration in each would have redeclared a constituent's term with another meaning (Closed vocabulary 17). *Clock* joined them at v0.59, the word *instant*'s own declaration already leaned on. *Instance* is not among them yet. State Machine once declared an instance as one workflow while the other specifications meant one deployed copy of a pattern; State Machine's sense is *workflow* since council read 108, and *instance* waits to be measured in its one remaining sense before it is declared. Party Identity once declared *identifier* as every opaque name it assigns, the word this document declares for any name a rule uses; that sense is *assigned id* since council read 109. Audit Trail once declared *tail* as the highest sequence number a read returns, the word this document declares for ONLY AFTER, ONLY IF, WITHIN, PER and BEFORE; that sense is *tail position* since council read 110. *Section* is not a rule noun yet either. Eleven specifications also used it for a critical section, the host-supplied mutual exclusion, beside its sense of a titled part of a document; since council read 111 that sense is always written *critical section*, and bare *section* waits to be measured for its one declaration.
 
 ---
 
@@ -676,6 +678,9 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.59 (2026-09-17): *clock* is a rule noun (Term rule noun, Term clock). It is written 122 times in the rules of 35 of the 41 migrated specifications, declared in none, and headed 102 unresolved noun phrases — most of them the deployment's clock obligations, *the clock's monotonicity*, *honesty*, *timezone handling*, *synchronization* and *skew*, restated as capability requirements in 25 specifications. Its spread is the spread of the first six rule nouns, which the maintainer's v0.53 ruling gives to the grammar, and Term instant already named it (council read 119).
 
 NOTE:
 v0.58 (2026-09-17): *act* is a rule noun (Term rule noun, Term act). The noun reader's next most common miss after *critical section* and *instance* was *act*, unresolved at 52 sites in six specifications and used 126 times in the rules of eleven — Recoverable Invocation 54, Audit Trail 27, Attributed Permissions Admin 16, Defensible Retention 13. Each means its own thing done: Recoverable Invocation's call of the bound act, Audit Trail's record action or cascade, Actor Suspension's suspension, Consent's processing act. Declared in each, the word would have taken four meanings inside one composition tree, since Actor Suspension, Customer Onboarding, Defensible Retention and Recoverable Invocation compose Audit Trail. The maintainer ruled it the grammar's, as the six rule nouns of v0.53 are: one sense, something done that a record accounts for, and each specification's own declarations say which (council read 117).
