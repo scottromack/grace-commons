@@ -105,4 +105,7 @@ tagger decides what is a noun, so the count is good to a few percent: the tool
 is advisory, never gates, and needs `nltk` with the
 `averaged_perceptron_tagger_eng` model (`test_checks.py` skips its fixtures when
 they are absent). Measured at council read 105: 20,841 noun phrases in 7,869
-rules, 2,977 resolving to nothing.
+rules, 2,977 resolving to nothing — under nltk 3.10.3 and the
+`averaged_perceptron_tagger_eng` weights whose SHA-256 begins `789e8e35f6fa`.
+The tagger is retrained across nltk releases, so a count is quoted with the
+environment it was taken under; the tool prints its own on every run.

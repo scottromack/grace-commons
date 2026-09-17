@@ -184,6 +184,18 @@ def read(paths: list[Path], grammar: Path, tagger):
     return report
 
 
+def environment(nltk) -> str:
+    """The tagger the count was taken under: a retrained model moves the count."""
+    import hashlib
+    try:
+        d = Path(nltk.data.find("taggers/averaged_perceptron_tagger_eng/"))
+        w = next(d.glob("*weights*"))
+        digest = hashlib.sha256(w.read_bytes()).hexdigest()[:12]
+    except Exception:
+        digest = "unknown"
+    return f"nltk {nltk.__version__}, averaged_perceptron_tagger_eng weights {digest}"
+
+
 def main(argv: list[str]) -> int:
     try:
         import nltk
@@ -201,13 +213,14 @@ def main(argv: list[str]) -> int:
             if C.MIGRATED.search(p.read_text(encoding="utf-8")):
                 paths.append(p)
     rep = read(paths, ROOT / "GRACE-lang.md", tagger)
+    rep["environment"] = environment(nltk)
     if "--json" in argv:
         print(json.dumps(rep, indent=1, default=list))
         return 0
     total = rep["whole"] + rep["inner"] + rep["none"]
     print(f"{rep['rules']} rules in {len(paths)} spec(s); {total} noun phrases: "
           f"{rep['whole']} resolve whole, {rep['inner']} only through a declared name inside, "
-          f"{rep['none']} to nothing (Closed vocabulary 4)")
+          f"{rep['none']} to nothing (Closed vocabulary 4) — under {rep['environment']}")
     if only:
         for phrase, lines in sorted(rep["specs"][only]["misses"].items(), key=lambda x: -len(x[1])):
             print(f"  {phrase}: " + ", ".join(str(n) for n in lines))
