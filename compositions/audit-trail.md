@@ -1166,7 +1166,7 @@ WHY: reconciliation is itself a [Record Action] against the attestation, log and
 
 - **Invariant 3 — Integrity coverage (modulo unsealed tail).**
   ```
-  Invariant 3.1: IF sealed_through EXCEEDS the event's sequence_number OR sealed_through EQUALS the event's sequence_number THEN EXACTLY ONE seal MUST cover the event.
+  Invariant 3.1: IF the event's sequence_number DOES NOT EXCEED sealed_through THEN EXACTLY ONE seal MUST cover the event.
   Invariant 3.2: A purged event MUST remain covered by the covering seal.
   ```
   *Rests on:* [Seal Now] (and [Record Action] step 6 under per-event cadence), with [Purge Event] step 0 keeping it true of every purged event by construction; Tamper Evidence Invariants 1 (evidence immutability), 3 (record-set binding) and 9 (seal store durability, why a seal outlives the records it committed to); Event Log Invariants 3 (total order) and 4 (sequence-number monotonicity), without which a contiguous range is not a well-defined cover.

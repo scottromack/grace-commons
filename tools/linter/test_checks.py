@@ -1158,6 +1158,7 @@ def check_condition_form_synthetic(problems: list[str]) -> int:
         ("a value set", "Operation 1: [Release] MUST read the store.", "Term value sets: state = active | released."),
         ("stand as a write", "Operation 1: [Release] MUST stand the hold in released.", ""),
         ("a state as a value", "Operation 1: IF the hold's state EQUALS released THEN [Release] MUST answer not-known.", ""),
+        ("DOES NOT EXCEED", "Operation 1: IF the count DOES NOT EXCEED zero THEN [Release] MUST answer not-known.", ""),
     ]
     firing = [
         ("NOT EXISTS on a value", "Operation 1: IF reason NOT EXISTS THEN [Release] MUST answer invalid-request.", ""),
@@ -1166,6 +1167,7 @@ def check_condition_form_synthetic(problems: list[str]) -> int:
         ("an input tested with EXISTS", "Operation 1: [Release] MUST answer not-known ONLY IF hold_id EXISTS.", ""),
         ("is blank in a condition", "Operation 1: IF reason is blank THEN [Release] MUST answer invalid-request.", ""),
         ("stands in in a condition", "Operation 1: IF the hold stands in released THEN [Release] MUST answer not-known.", ""),
+        ("NOT EXCEEDS in a condition", "Operation 1: IF the count NOT EXCEEDS zero THEN [Release] MUST answer not-known.", ""),
         ("= in a condition", "Operation 1: IF reason = blank THEN [Release] MUST answer invalid-request.", ""),
         ("!= in a condition", "Operation 1: IF reason != blank THEN [Release] MUST read the store.", ""),
         ("= in a write", "Operation 1: [Release] MUST read the store with cause = released.", ""),
@@ -1253,6 +1255,37 @@ def check_rule_symbol_synthetic(problems: list[str]) -> int:
     for name, rule in firing:
         if not run(rule):
             problems.append(f"D-rule-symbol: {name} did not fire")
+    return len(silent) + len(firing)
+
+
+def check_ge_form_synthetic(problems: list[str]) -> int:
+    """W-ge-disjunction (tools/grace/check.py), gating since GRACE-lang v0.57
+    (council read 104): `x EXCEEDS y OR x EQUALS y` has the one-arm cure
+    `y DOES NOT EXCEED x`. The cure and a two-proposition OR stay silent; the
+    disjunction fires. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.57 (2026-09-17).\n\n"
+            "Term record verbs: answer, read.\n\n## Structure\n\n### Operations\n\n")
+    def run(rule: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == "W-ge-disjunction"]
+    silent = [
+        ("the cure", "Operation 1: IF the threshold DOES NOT EXCEED the age THEN a call MUST answer late."),
+        ("two propositions", "Operation 1: IF the bound EXCEEDS remaining OR remaining EQUALS none THEN a call MUST answer late."),
+    ]
+    firing = [("the disjunction", "Operation 1: IF the age EXCEEDS the threshold OR the age EQUALS the threshold THEN a call MUST answer late.")]
+    for name, rule in silent:
+        got = run(rule)
+        if got:
+            problems.append(f"W-ge-disjunction: fired on {name}: {got[0].message}")
+    for name, rule in firing:
+        if not run(rule):
+            problems.append(f"W-ge-disjunction: {name} did not fire")
     return len(silent) + len(firing)
 
 
@@ -1741,7 +1774,7 @@ def main(argv: list[str]) -> int:
     if not cond_problems:
         print(f"D-condition-form: {n_cond} synthetic fixtures hold (a thing's absence and "
               "presence, a missing value, a differing value, membership, a quoted retired form, "
-              "a value set, a write with *stand* and a state tested as a value silent; NOT EXISTS on a value and on a thing, `is blank`, *stands in* in a condition, EXISTS in a set, an "
+              "a value set, a write with *stand*, a state tested as a value and DOES NOT EXCEED silent; NOT EXISTS on a value and on a thing, `is blank`, *stands in* and NOT EXCEEDS in a condition, EXISTS in a set, an "
               "input tested with EXISTS, = and != in a condition, = in a write and != in a "
               "declaration fire) \u2713")
 
@@ -1760,6 +1793,13 @@ def main(argv: list[str]) -> int:
         print(f"D-rule-symbol: {n_sym} synthetic fixtures hold (a section, a record and a code-span "
               "template silent; a section sign, an arrow, a brace, a bar, an angle bracket, an en "
               "dash and a slash fire) \u2713")
+
+    ge_problems: list[str] = []
+    n_ge = check_ge_form_synthetic(ge_problems)
+    failures.extend(ge_problems)
+    if not ge_problems:
+        print(f"W-ge-disjunction: {n_ge} synthetic fixtures hold (DOES NOT EXCEED and a "
+              "two-proposition OR silent; the two-arm disjunction fires, gating) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)

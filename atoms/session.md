@@ -185,7 +185,7 @@ Operation 4: IF principal_ref EQUALS blank THEN [Issue] MUST answer invalid-requ
 Operation 5: IF issued_by_ref EQUALS blank THEN [Issue] MUST answer invalid-request.
 Operation 6: IF session_duration EQUALS blank THEN [Issue] MUST apply the default session duration.
 Operation 7: [Issue] MUST accept a session_duration ONLY IF the session_duration EXCEEDS the zero duration.
-Operation 8: IF the session_duration NOT EXCEEDS the zero duration THEN [Issue] MUST answer invalid-request.
+Operation 8: IF the session_duration DOES NOT EXCEED the zero duration THEN [Issue] MUST answer invalid-request.
 Operation 9: [Issue] MUST stamp issued_at from the injected now.
 Operation 10: [Issue] MUST stamp expires_at from the expiry deadline.
 Operation 11: [Issue] MUST NOT recompute expires_at from a later clock reading.

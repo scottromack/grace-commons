@@ -275,7 +275,7 @@ Term examine_edge: `recorded_at + completion_bound + clock_offset_allowance`.
 
 Term in-flight: an open intent for which examine_edge EXCEEDS now.
 
-Term aged: an open intent for which now EXCEEDS examine_edge OR now EQUALS examine_edge.
+Term aged: an open intent for which examine_edge DOES NOT EXCEED now.
 
 Term horizon_edge: `recorded_at + retention_period − clock_offset_allowance`.
 
@@ -732,7 +732,7 @@ Without reconcile 1 a journal outage returns zero counts and step 5 surfaces not
    ```
 5. **Liveness, and the duplicate scan.**
    ```
-   reconcile step 5.1: IF intent_age EXCEEDS at_risk_threshold OR intent_age EQUALS at_risk_threshold THEN the run MUST surface an examined or skipped intent whose closing has not landed as the act finding closure-at-risk.
+   reconcile step 5.1: IF at_risk_threshold DOES NOT EXCEED intent_age THEN the run MUST surface an examined or skipped intent whose closing has not landed as the act finding closure-at-risk.
    reconcile step 5.2: The run MUST count closing records by invocation_id across the delta step 1 kept, discounting supersession PER the section titled Which closing stands.
    reconcile step 5.3: The run MUST count open intents by (kind, act_key) across the delta, under the service_identity EQUALS none branch of the section titled Which closing stands.
    reconcile step 5.4: The run MUST surface EVERY invocation_id or (kind, act_key) with more than one on compliance_surface as binding_duplicate.

@@ -174,6 +174,7 @@ RETIRED_CONDITION = (
      "and a missing value is `EQUALS blank` (Earned vocabulary 6, Earned vocabulary 7)"),
     (re.compile(r"\bEXISTS in\b"), "`EXISTS in`; membership is `IS IN` (Earned vocabulary 9)"),
     (re.compile(r"(?<![!<>=])!="), "`!=`; write DOES NOT EQUAL (Earned vocabulary 12)"),
+    (re.compile(r"\bNOT EXCEEDS\b"), "`NOT EXCEEDS`; write DOES NOT EXCEED (Earned vocabulary 17)"),
     (re.compile(r"\b(?:is|are) blank\b"), "`is blank`; a missing value is `EQUALS blank` "
      "(Earned vocabulary 7)"),
     (re.compile(r"(?:\b(?:IF|WHEN|AND|OR|ONLY IF)\s+|\bwhose\s+)(?:the |a |an )?[a-z][\w' -]*? stands (?:in|outside)\b"),
@@ -273,7 +274,7 @@ SOFT_MODAL = re.compile(r"\b(can|could|would|should|might)\b")
 ACTION_RULE = re.compile(r"^(?:IF .*? THEN )?\[([A-Z][A-Za-z ]+)\] (MUST(?: NOT)?|MAY) (\w+)")
 # The condition operators are the whole set a condition may carry; an English
 # comparison in an IF is a condition the normalizer cannot read (council read 26).
-COND_ENGLISH = re.compile(r"^IF .*?\b(is not|is no|are not|does not|do not|is a|are a)\b.*? THEN ")
+COND_ENGLISH = re.compile(r"^IF .*?\b(is not|is no|are not|does not|do not|is a|are a|is negative|is positive|is zero)\b.*? THEN ")
 ARITH = re.compile(r"[+×−]|\s-\s")
 MARKER = re.compile(r"\[([^\]\[]+)\]")
 MD_LINK = re.compile(r"\[([^\]\[]+)\]\(([^)\s]*)\)")
@@ -359,7 +360,6 @@ def example_call(lines: list[str], k: int) -> bool:
 ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
             "W-two-obligations", "W-demonstrative", "W-comparator", "W-modal",
             "W-unconditional-effect", "W-condition-operator", "W-duplicate-proposition",
-            "W-ge-disjunction",
             "D-decl-modal", "D-decl-selfref", "D-decl-unresolved",
             "K-check-bare", "S-action-unused", "E-not-exclusive"}
 # D-tombstone-form gates: a tombstone in any other shape reserves nothing
@@ -769,7 +769,7 @@ def scan(path: Path) -> list[Finding]:
         if COND_ENGLISH.match(body):
             add(r.line, "W-condition-operator",
                 f"{r.label}: an English comparison in a condition — the operators are "
-                f"EQUALS, DOES NOT EQUAL, EXISTS, IS IN, IS NOT IN, EXCEEDS (Earned vocabulary)")
+                f"EQUALS, DOES NOT EQUAL, EXISTS, IS IN, IS NOT IN, EXCEEDS, DOES NOT EXCEED (Earned vocabulary)")
         cm = COMPARATOR.search(stmt) or COMPARATOR.search(cond)
         if cm:
             add(r.line, "W-comparator",
@@ -785,8 +785,7 @@ def scan(path: Path) -> list[Finding]:
         if ge:
             add(r.line, "W-ge-disjunction",
                 f"{r.label}: '{ge[0]} >= {ge[1]}' spelled as a two-arm disjunction — "
-                f"the condition operators carry EXCEEDS and EQUALS and nothing between "
-                f"them (§18 watch list)")
+                f"write '{ge[1]} DOES NOT EXCEED {ge[0]}' (Earned vocabulary 17)")
         sm = SOFT_MODAL.search(stmt) or SOFT_MODAL.search(cond)
         if sm:
             add(r.line, "W-modal",

@@ -167,7 +167,7 @@ Operation 9: IF max_redemptions EQUALS zero THEN [Allocate] MUST answer invalid-
 Operation 10: IF ttl EQUALS blank THEN [Allocate] MUST apply the default capability ttl.
 Operation 11: IF the default capability ttl EQUALS blank THEN [Allocate] MUST answer invalid-request.
 Operation 12: [Allocate] MUST accept a ttl ONLY IF the ttl EXCEEDS the zero duration.
-Operation 13: IF the ttl NOT EXCEEDS the zero duration THEN [Allocate] MUST answer invalid-request.
+Operation 13: IF the ttl DOES NOT EXCEED the zero duration THEN [Allocate] MUST answer invalid-request.
 Operation 14: [Allocate] MUST stamp allocated_at from the injected now.
 Operation 15: [Allocate] MUST stamp expires_at from the expiry deadline.
 Operation 16: [Allocate] MUST NOT recompute expires_at from a later clock reading.

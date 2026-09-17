@@ -87,6 +87,8 @@ Term purged_at: the instant the purge was recorded, stamped from the injected no
 
 Term duration: the retention period the policy carries — a [Duration]; positive.
 
+Term zero duration: a duration of no length — the floor a policy's duration must exceed, and the floor a max_purge_delay must not fall below.
+
 Term degenerate duration: a duration that does not carry retention_until past retained_at at the deployment's time resolution — a positive number too small to make a deadline, or a number in a policy that names no unit.
 
 Term max_purge_delay: the lag the policy allows between retention-end and purge — a [Max Purge Delay]; not negative.
@@ -126,9 +128,9 @@ Operation 3: [Place Under Retention] MUST answer retention_id.
 Operation 4: IF record_ref EQUALS blank THEN [Place Under Retention] MUST answer invalid-request.
 Operation 5: IF policy_ref EQUALS blank THEN [Place Under Retention] MUST answer invalid-request.
 Operation 6: IF the policy_ref IS NOT IN the policy registry THEN [Place Under Retention] MUST answer policy-not-found.
-Operation 7: IF the policy's duration is not positive THEN [Place Under Retention] MUST answer invalid-policy.
+Operation 7: IF the policy's duration DOES NOT EXCEED the zero duration THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 7a: IF the policy's duration EQUALS degenerate duration THEN [Place Under Retention] MUST answer invalid-policy.
-Operation 8: IF the policy's max_purge_delay is negative THEN [Place Under Retention] MUST answer invalid-policy.
+Operation 8: IF the zero duration EXCEEDS the policy's max_purge_delay THEN [Place Under Retention] MUST answer invalid-policy.
 Operation 9: IF the retention store refuses the write THEN [Place Under Retention] MUST answer storage-failure.
 Operation 10: [Place Under Retention] MUST NOT record a partial retention.
 Operation 11: [Place Under Retention] MUST NOT read the host's record store.
@@ -429,7 +431,7 @@ Term cadences: empty — a purge cadence is the composing pattern's (Composition
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: degenerate duration, now, retention, retention_id, record_ref, policy_ref, seam, transition, business caller, retention state, retained_at, retention_until, purge_deadline, purged_at, duration, max_purge_delay, purge eligible.
+Term terms: zero duration, degenerate duration, now, retention, retention_id, record_ref, policy_ref, seam, transition, business caller, retention state, retained_at, retention_until, purge_deadline, purged_at, duration, max_purge_delay, purge eligible.
 
 #### Retention Window
 
