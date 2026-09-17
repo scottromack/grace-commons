@@ -45,10 +45,12 @@ def norm(w: str) -> str:
     return re.sub(r"['’]s$", "", w.lower().strip("'’"))
 
 
-def forms(p: str) -> set[str]:
+def forms(p: str, stems: bool = True) -> set[str]:
+    """A phrase and its plain forms; stems=False strips plurals only."""
     p = norm(p)
     out = {p}
-    for suf, rep in (("ies", "y"), ("es", ""), ("s", ""), ("ed", ""), ("ing", "")):
+    suffixes = (("ies", "y"), ("es", ""), ("s", ""), ("ed", ""), ("ing", ""))
+    for suf, rep in suffixes if stems else suffixes[:3]:
         if p.endswith(suf) and len(p) > len(suf) + 2:
             out.add(p[: -len(suf)] + rep)
     return out
@@ -151,17 +153,23 @@ def phrases(body: str, tagger) -> list[list[str]]:
     return res
 
 
-def resolve(ph: list[str], known: set[str]) -> str:
-    """whole | inner | none"""
-    if forms(" ".join(ph)) & known:
+def resolve(ph: list[str], known: set[str], exact: set[str] = frozenset()) -> str:
+    """whole | inner | none. A rule noun (exact) matches its plural and nothing
+    else: stripping -ed or -ing against a generic noun finds it everywhere
+    (*acting* is not an act, council read 118)."""
+    def hit(words: str) -> bool:
+        return bool(forms(words) & known or forms(words, stems=False) & exact)
+    if hit(" ".join(ph)):
         return "whole"
-    if any(forms(" ".join(ph[i:j])) & known for i in range(len(ph)) for j in range(i + 1, len(ph) + 1)):
+    if any(hit(" ".join(ph[i:j])) for i in range(len(ph)) for j in range(i + 1, len(ph) + 1)):
         return "inner"
     return "none"
 
 
 def read(paths: list[Path], grammar: Path, tagger):
-    gnames = names_of(grammar.read_text(encoding="utf-8"))
+    gtext = grammar.read_text(encoding="utf-8")
+    exact = C.rule_nouns(str(grammar))
+    gnames = names_of(gtext) - exact
     cache: dict[Path, set[str]] = {}
 
     def own(p: Path) -> set[str]:
@@ -179,7 +187,7 @@ def read(paths: list[Path], grammar: Path, tagger):
         for line, rule in rules_of(text):
             report["rules"] += 1
             for ph in phrases(clean(rule), tagger):
-                kind = resolve(ph, known)
+                kind = resolve(ph, known - exact, exact)
                 report[kind] += 1
                 if kind == "none":
                     spec["none"] += 1

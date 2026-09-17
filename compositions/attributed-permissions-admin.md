@@ -62,8 +62,8 @@ Composes 12: The composition MUST surface Actor Identity's verify inside the att
 Composes 13: The composition MUST NOT delete an attestation.
 Composes 14: The composition MUST NOT reverse a committed constituent write.
 Composes 15: The composition MUST attest an administrative act ONLY AFTER the boundary predicate.
-Composes 16: The composition MUST record a grant ONLY AFTER the act's landed attestation.
-Composes 17: The composition MUST record a revocation ONLY AFTER the act's landed attestation.
+Composes 16: The composition MUST record a grant ONLY AFTER the administrative act's landed attestation.
+Composes 17: The composition MUST record a revocation ONLY AFTER the administrative act's landed attestation.
 Composes 18: The composition MUST NOT record an administrative act carrying no attestation.
 Composes 19: The composition MUST NOT claim coverage of a write made outside the composition's surface.
 Composes 20: The composition MUST enumerate an attestation through Actor Identity's declared enumeration.
@@ -445,8 +445,8 @@ Action wiring 27 through 30 keep a caller-error answer honest about its side eff
 ### Wiring decision
 
 ```
-Wiring decision 1: The composition MUST record an administrative act's state change ONLY AFTER the act's landed attestation.
-Wiring decision 2: The composition MUST NOT record a state change BEFORE the act's landed attestation.
+Wiring decision 1: The composition MUST record an administrative act's state change ONLY AFTER the administrative act's landed attestation.
+Wiring decision 2: The composition MUST NOT record a state change BEFORE the administrative act's landed attestation.
 Wiring decision 3: The composition MUST NOT enclose an attestation AND a constituent write in one transaction.
 Wiring decision 4: The composition MUST NOT delete an orphan attestation.
 Wiring decision 5: The composition MUST read an orphan attestation as evidence of an attempted act.

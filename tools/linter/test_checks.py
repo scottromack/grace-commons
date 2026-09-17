@@ -1323,6 +1323,8 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
             "Operation 1: The atom MUST read the ledger.\n"
             "Operation 2: A call MUST read the hold.\n"
             "Operation 3: The atom MUST read the widget.\n"
+            "Operation 4: A call MUST read the acts.\n"
+            "Operation 5: The atom MUST read the representative acting.\n"
             "```\n", encoding="utf-8")
         rep = nouns.read([page], root / "GRACE-lang.md", nltk.pos_tag)
     misses = set(rep["specs"]["synthetic"]["misses"])
@@ -1331,6 +1333,11 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
             problems.append(f"nouns.py: '{noun}' is declared (own, rule noun, constituent) and read as unresolved")
     if "widget" not in misses:
         problems.append("nouns.py: the undeclared 'widget' resolved")
+    # a rule noun matches its plural, never a stem (council read 118)
+    if "act" in misses:
+        problems.append("nouns.py: the rule noun 'act' in its plural read as unresolved")
+    if "representative acting" not in misses:
+        problems.append("nouns.py: 'acting' resolved to the rule noun 'act' by its stem")
     # a cited list names its owner after each run of names (council read 112)
     cited = nouns.names_of("Term cited: take, expires_at: Lease. record_action, read_record: Audit Trail.\n")
     for name in ("expires_at", "record_action"):
@@ -1340,7 +1347,7 @@ def check_nouns_synthetic(problems: list[str]) -> int | None:
     vs = nouns.names_of("Term value sets: landed_by = a | b. enrollment_path = direct | external.\n")
     if not {"landed_by", "enrollment_path"} <= vs:
         problems.append("nouns.py: a value set named in the value sets line, first or later, is not read as declared")
-    return 7
+    return 9
 
 
 def check_fence_form_synthetic(problems: list[str]) -> int:
@@ -1863,7 +1870,7 @@ def main(argv: list[str]) -> int:
     elif not noun_read_problems:
         print(f"nouns.py: {n_nr} synthetic fixtures hold (the spec's own noun, a rule noun and a "
               "constituent's noun resolve; an undeclared noun does not; two names beside owners in a "
-              "cited list and a value set's own name are declared) \u2713")
+              "cited list and a value set's own name are declared; a rule noun matches its plural, not its stem) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)
