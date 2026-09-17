@@ -52,8 +52,8 @@ Composes 1: EXACTLY ONE Legal Hold instance MUST serve the composition.
 Composes 2: EXACTLY ONE Retention Window instance MUST serve the composition.
 Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
 Composes 4: The composition MUST NOT change a constituent's spec.
-Composes 5: The composition MUST inherit a constituent's invariants PER `execution-contract.md` §Conformance.
-Composes 6: The composition MUST read Audit Trail as a substrate PER `execution-contract.md` §Substrate composition invocation.
+Composes 5: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
+Composes 6: The composition MUST read Audit Trail as a substrate PER the section titled Substrate composition invocation in `execution-contract.md`.
 Composes 7: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
 Composes 8: The business retention instance MUST NOT govern an audit event.
 Composes 9: The composition MUST reach a constituent through the constituent's declared surface.
@@ -98,8 +98,8 @@ Composition state 5: An admitted purge MUST remove a purged retention from the r
 Composition state 6: An admitted purge MUST remove a purged retention from the retention-to-record index.
 Composition state 7: An admitted purge MUST leave a pending sibling in the record-to-retentions index.
 Composition state 8: The composition MUST remove a record_ref carrying no retention from the record-to-retentions index.
-Composition state 9: The record-to-retentions index MUST stand as a derived index PER `execution-contract.md` §Composition state.
-Composition state 10: The retention-to-record index MUST stand as a derived index PER `execution-contract.md` §Composition state.
+Composition state 9: The record-to-retentions index MUST stand as a derived index PER the section titled Composition state in `execution-contract.md`.
+Composition state 10: The retention-to-record index MUST stand as a derived index PER the section titled Composition state in `execution-contract.md`.
 Composition state 11: The composition MUST NOT store a truth beside a constituent's store.
 Composition state 12: The rebuild MUST read a surviving placement event for an index entry.
 Composition state 13: The rebuild MUST read Retention Window's store for an entry a purged placement event covers.

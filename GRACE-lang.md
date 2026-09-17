@@ -1,4 +1,4 @@
-# GRACE lang v0.55 — Minimal Earned Grammar
+# GRACE lang v0.56 — Minimal Earned Grammar
 
 ## Grace lang is a controlled semantic metalanguage for domain specifications.
 
@@ -16,8 +16,8 @@ This document obeys itself. A fenced block is classified by its first line (Surf
 
 ```
 Principle 1: The grammar MUST contain only forms earned by repeated use in real specifications.
-Principle 2: §21 MAY admit a form ONLY IF the form's concept recurs across specifications AND the concept satisfies contested.
-Principle 3: §21 MUST NOT admit a form on one occurrence.
+Principle 2: The lock list MAY admit a form ONLY IF the form's concept recurs across specifications AND the concept satisfies contested.
+Principle 3: The lock list MUST NOT admit a form on one occurrence.
 Principle 4: The grammar MAY admit sugar.
 Principle 5: The grammar MUST NOT admit inference.
 Principle 6: Complexity MUST live in the number and arrangement of simple rules.
@@ -196,14 +196,14 @@ Standard label 1: The grammar IS AUTHORITATIVE FOR the standard label families.
 Standard label 2: A specification MUST NOT redeclare a standard label family.
 Standard label 3: A label family outside the standard set MUST carry the meaning of the heading the family names.
 Standard label 4: A label family three specifications name MUST stand as a promotion candidate.
-Standard label 5: §21 MUST NOT promote a label family two specifications name.
+Standard label 5: The lock list MUST NOT promote a label family two specifications name.
 Standard label 6: The maintainer MUST decide EVERY promotion.
 Standard label 7: A promotion MUST rest on a drift pass finding the candidate's specifications carrying one concept.
 Standard label 8: A promotion MUST declare the promoted family's meaning EXACTLY ONE time.
-Standard label 9: A promoted family MUST take the family's position PER `spec-format.md` §Heading standard.
+Standard label 9: A promoted family MUST take the family's position PER the section titled Heading standard in `spec-format.md`.
 Standard label 10: The grammar MUST NOT rank a standard label family beside the family's position.
-Standard label 11: A specification MAY omit a standard label family ONLY IF `spec-format.md` §Heading standard does not require the family's heading.
-Standard label 12: A specification carrying two standard label families MUST order the families PER `spec-format.md` §Heading standard.
+Standard label 11: A specification MAY omit a standard label family ONLY IF the section titled Heading standard in `spec-format.md` does not require the family's heading.
+Standard label 12: A specification carrying two standard label families MUST order the families PER the section titled Heading standard in `spec-format.md`.
 ```
 
 NOTE:
@@ -259,6 +259,8 @@ Term blank: a value that is absent, empty, or carries only whitespace — a call
 
 Term absence form: `no thing EXISTS`, with `for` and the identifier where one names the thing — the one way a condition says a record, an event or a condition is not there.
 
+Term rule symbol: a character a rule's own text does not carry — the section sign, the arrow, a brace, the bar, an angle bracket, the en dash, the slash, the asterisk; a section is *the section titled X*, a map entry *k mapped to v*, a call's answer *answering x*, a record *carrying a, b and c*, a range of steps *steps 2 through 5*, and a code spelling such as a template sits in a code span.
+
 Term rule noun: a noun the rules of every specification share, declared once here — call, answer, write, input, field, instant.
 
 Term call: one invocation of an action, carrying the inputs the caller supplied.
@@ -289,6 +291,7 @@ Earned vocabulary 12: A writer MUST NOT write `=` in a rule.
 Earned vocabulary 13: A specification MUST NOT write a `Term` declaration for a rule noun.
 Earned vocabulary 14: A writer MUST write a rule noun under the rule noun's own name.
 Earned vocabulary 15: A writer MUST write a test of a record's state as a value test, `the record's state EQUALS member`.
+Earned vocabulary 16: A writer MUST NOT write a rule symbol in a rule outside a code span.
 ```
 
 WHY:
@@ -496,7 +499,7 @@ Term identifier: a subject, an object, a term name or a value in a rule; every i
 
 Term actor: a declared identifier that may serve as a rule's subject.
 
-Term agent: an actor that can perform a rule's verb — the grammar; §21; the parser; a specification; a citing spec; an owner; a system; a reader; a writer; a drafter; a human; a language model; the reverse diff; a maintainer; a party. A rule whose subject is an actor and not an agent constrains the writer (obey).
+Term agent: an actor that can perform a rule's verb — the grammar; the lock list; the parser; a specification; a citing spec; an owner; a system; a reader; a writer; a drafter; a human; a language model; the reverse diff; a maintainer; a party. A rule whose subject is an actor and not an agent constrains the writer (obey).
 
 WHY:
 A named expression has one owner, and a diff can match it by name. Closed vocabulary 8 is what rejects the passive — *The actor MUST be granted invite_actor* has no declared record verb after the modal — which is why no parser invariant restates the rule. A citation form lets a composition use a constituent's term without restating it.
@@ -508,7 +511,7 @@ record verb record_action: Audit Trail
 
 #### This document's own vocabulary
 
-Term actors: (every subject in this document, agent or not) the grammar; §21 (the lock list); the parser; a specification (a spec); a rule; a statement; a sentence (a rule's text); a condition; a form; a sugar form; a term; a declaration; a WHEN block; a tail; a surface; a system; a reader; a writer; a drafter; a human; a language model; the reverse diff; the normalized form (the representation); fuzzy intent; a value set; a value; an enumeration; a synonym; a citing spec; an owner (the spec that declares a term); a registry (a spec's Terms section); `WHY:`; `UX:`; `NOTE:`; `PROVISIONAL:`; sugar; complexity; arithmetic; a label; an obligation; a proposition; an invariant; a tombstone; an ordinal; a pronoun; a line; a fenced block; a party; a run; a maintainer; a child; a category; an actor; an agent.
+Term actors: (every subject in this document, agent or not) the grammar; the lock list (§21); the parser; a specification (a spec); a rule; a statement; a sentence (a rule's text); a condition; a form; a sugar form; a term; a declaration; a WHEN block; a tail; a surface; a system; a reader; a writer; a drafter; a human; a language model; the reverse diff; the normalized form (the representation); fuzzy intent; a value set; a value; an enumeration; a synonym; a citing spec; an owner (the spec that declares a term); a registry (a spec's Terms section); `WHY:`; `UX:`; `NOTE:`; `PROVISIONAL:`; sugar; complexity; arithmetic; a label; an obligation; a proposition; an invariant; a tombstone; an ordinal; a pronoun; a line; a fenced block; a party; a run; a maintainer; a child; a category; an actor; an agent.
 
 Term record verbs: decide, contain, admit, recur, satisfy, live, state, read, parse, create, alter, infer, generate, regenerate, discard, write, obey, ignore, carry, use, stand, pass, route, mix, nest, normalize, name, restate, resolve, cite, declare, acquire, redeclare, renumber, reuse, enumerate, reject, lower, report, treat, assume, keep, express, mark, shorten, add, accept, supply, earn, belong, cover, classify, claim, qualify, give, match, place, bind, reserve, compare, land, promote, rest, take, rank, omit, order.
 
@@ -590,7 +593,7 @@ Reverse diff 5: The reverse diff MUST NOT report a change to WHY: or UX:.
 ### 18. Candidate Forms
 
 ```
-Candidate form 1: The parser MUST treat a form as provisional until §21 admits the form.
+Candidate form 1: The parser MUST treat a form as provisional until the lock list admits the form.
 Candidate form 2: A spec MUST state a degraded rule in admitted forms under IF or WHEN.
 Candidate form 3: A spec MUST mark a `DEGRADES TO` pairing PROVISIONAL:.
 ```
@@ -654,7 +657,7 @@ Term locked forms: Strict Caveman normative prose; WHAT / WHY / HOW separation; 
 
 ```
 Lock 1: The parser MUST accept only the locked forms and the locked forms' deterministic sugar.
-Lock 2: §21 MUST NOT admit a form outside the locked forms except by Principle 2.
+Lock 2: The lock list MUST NOT admit a form outside the locked forms except by Principle 2.
 ```
 
 ---
@@ -669,6 +672,9 @@ Strict Caveman grows slowly. Grace itself can grow enormously.
 ---
 
 ### 23. Changes
+
+NOTE:
+v0.56 (2026-09-16): symbols leave the rules. The maintainer's ruling at council read 99 kept `=` and `|` for value-set declarations alone, and 86 symbols still sat in rule text across eleven specifications, with eight more in this document's own rules: 25 `<kind>` templates, 23 section signs, 11 arrows, 7 brace pairs, 7 bars, 5 en dashes in step ranges, 4 slashes and 4 asterisks. Each became words — *the section titled Conformance in `execution-contract.md`*, *the event's event_id mapped to the attestation_id*, *answering attestation_id*, *carrying invocation_id and intent_event_id*, *recording-failure(step-2) and recording-failure(step-3)*, *steps 2 through 5* — or, where it is a code spelling, a code span (`<kind>.intended`, `audit.*`); this document's own rules name the lock list rather than §21. Term rule symbol, Earned vocabulary 16; `check.py`'s `D-rule-symbol` gates. Council read 103.
 
 NOTE:
 v0.55 (2026-09-16): a record's state is tested as a value. Conditions asked it two ways — `IF the session stands in active` and `IF the party's state EQUALS verified` — and the maintainer ruled the second: the state is a declared value set, so the test names it, `the session's status EQUALS active`, `the order's state IS IN the pre-dispensing states` (Earned vocabulary 15). 178 rule and declaration lines in twenty-nine specifications moved, the state named by each specification's own value set — status, state, pool state, hold state, unit state, chain state, retention state, lifecycle state. *Stand* stays the verb of the write that moves a state. `check.py`'s `D-condition-form` gates *stands in* and *stands outside* in a condition. Council read 102.

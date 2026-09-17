@@ -50,7 +50,7 @@ This is not a Role-Based Access Control layer, not a delegation system, and not 
 Composes 1: EXACTLY ONE Permissions instance MUST serve the composition.
 Composes 2: EXACTLY ONE Actor Identity instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
-Composes 4: The composition MUST inherit a constituent's invariants PER `execution-contract.md` §Conformance.
+Composes 4: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
 Composes 5: The composition MUST reach a constituent through the constituent's declared surface.
 Composes 6: The composition MUST NOT read a constituent's store beside the constituent's declared read.
 Composes 7: The composition MUST wrap Permissions' grant.

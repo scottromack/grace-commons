@@ -1217,6 +1217,45 @@ def check_rule_noun_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing)
 
 
+def check_rule_symbol_synthetic(problems: list[str]) -> int:
+    """D-rule-symbol (tools/grace/check.py) — symbols leave the rules at
+    GRACE-lang v0.56 (council read 103). The English forms and a code span
+    stay silent; each symbol fires. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.56 (2026-09-16).\n\n"
+            "Term record verbs: answer, read, write, call.\n\n## Structure\n\n### Operations\n\n")
+    def run(rule: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == "D-rule-symbol"]
+    silent = [
+        ("a section in words", "Operation 1: A call MUST read the store PER the section titled Conformance in `execution-contract.md`."),
+        ("a template in a code span", "Operation 1: A call MUST write `<kind>.intended`."),
+        ("a record in words", "Operation 1: A call MUST answer invocation_id and intent_event_id."),
+    ]
+    firing = [
+        ("a section sign", "Operation 1: A call MUST read the store PER §Conformance."),
+        ("an arrow", "Operation 1: A call MUST call Log.append → event_id."),
+        ("a brace", "Operation 1: A call MUST answer {invocation_id, intent_event_id}."),
+        ("a bar", "Operation 1: recording-failure(step-2 | step-3) MUST land recording-failure(intent)."),
+        ("an angle bracket", "Operation 1: A call MUST write <kind>.intended."),
+        ("an en dash", "Operation 1: A call MUST read steps 2–5."),
+        ("a slash", "Operation 1: A call MUST NOT read the who / what from the payload."),
+    ]
+    for name, rule in silent:
+        got = run(rule)
+        if got:
+            problems.append(f"D-rule-symbol: fired on {name}: {got[0].message}")
+    for name, rule in firing:
+        if not run(rule):
+            problems.append(f"D-rule-symbol: {name} did not fire")
+    return len(silent) + len(firing)
+
+
 def check_fence_form_synthetic(problems: list[str]) -> int:
     """D-fence-form and Surface 19 after the fence kinds merged (council read 90).
     A bare fence of rules, a Ledger-shaped block, another language's code and a
@@ -1713,6 +1752,14 @@ def main(argv: list[str]) -> int:
         print(f"D-rule-noun: {n_noun} synthetic fixtures hold (a rule noun used, a domain term "
               "declared and a quoted *argument* silent; a rule noun declared and *argument* in a "
               "rule and in a declaration fire) \u2713")
+
+    sym_problems: list[str] = []
+    n_sym = check_rule_symbol_synthetic(sym_problems)
+    failures.extend(sym_problems)
+    if not sym_problems:
+        print(f"D-rule-symbol: {n_sym} synthetic fixtures hold (a section, a record and a code-span "
+              "template silent; a section sign, an arrow, a brace, a bar, an angle bracket, an en "
+              "dash and a slash fire) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)

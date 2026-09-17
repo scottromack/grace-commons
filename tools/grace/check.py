@@ -199,6 +199,12 @@ def rule_nouns(grammar_path=None) -> set[str]:
 
 
 RULE_NOUNS = rule_nouns()
+# Symbols stay out of a rule's own text (GRACE-lang v0.56, Earned vocabulary 16):
+# a section is "the section titled X", a map entry "k mapped to v", a call's
+# answer "answering x", a record "carrying a, b and c", a set of codes "a and
+# b", a range "steps 2 through 5"; a template such as `<kind>.intended` is a
+# code spelling and sits in a code span (council read 103).
+RULE_SYMBOL = re.compile(r"[§→{}|<>–/*]")
 RETIRED_NOUNS = ((re.compile(r"\barguments?\b"), "argument", "input"),)
 
 
@@ -702,6 +708,10 @@ def scan(path: Path) -> list[Finding]:
                 f"tier as reserved (ruled at council read 85)")
         for why in condition_form(body, sig_inputs, True):
             add(r.line, "D-condition-form", f"{r.label}: {why}")
+        sm = RULE_SYMBOL.search(CODE_SPAN.sub(" ", body))
+        if sm:
+            add(r.line, "D-rule-symbol", f"{r.label}: `{sm.group(0)}` in a rule's own text; write it in "
+                f"words, or quote a code spelling in a code span (Earned vocabulary 16)")
         for rx, old, new in RETIRED_NOUNS:
             if rx.search(CODE_SPAN.sub(" ", body)):
                 add(r.line, "D-rule-noun", f"{r.label}: *{old}* names the rule noun *{new}*; "

@@ -50,7 +50,7 @@ This is a composition, not a new primitive. Credential and Actor Identity are un
 Composes 1: EXACTLY ONE Credential instance MUST serve the composition.
 Composes 2: EXACTLY ONE Actor Identity instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
-Composes 4: The composition MUST inherit a constituent's invariants PER `execution-contract.md` §Conformance.
+Composes 4: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
 Composes 5: The composition MUST NOT call Credential's verify at the gate.
 Composes 6: The composition MUST NOT call Credential's rotate.
 Composes 7: The composition MUST NOT call Credential's revoke.

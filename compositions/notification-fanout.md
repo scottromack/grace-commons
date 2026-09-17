@@ -48,7 +48,7 @@ Composes 2: EXACTLY ONE Notification instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
 Composes 5: The composition MUST read the subscription store through Subscription's subscribers_for.
 Composes 6: The composition MUST NOT write to the notification store beside Notification's create.
-Composes 7: The composition MUST inherit a constituent's invariants PER `execution-contract.md` §Conformance.
+Composes 7: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
 Deleted: Composes 4. Invariant 5.1 owns it.
 ```
 

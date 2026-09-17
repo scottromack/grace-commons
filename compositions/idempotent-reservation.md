@@ -49,7 +49,7 @@ Composes 1: EXACTLY ONE Provisional Commitment instance MUST serve the compositi
 Composes 2: EXACTLY ONE Duplicate Prevention instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
 Composes 4: The composition MUST replace Provisional Commitment's own caller surface.
-Composes 5: The composition MUST inherit a constituent's invariants PER `execution-contract.md` §Conformance.
+Composes 5: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
 Composes 6: The composition MUST answer a constituent's rejection unchanged.
 Composes 7: The composition MUST call Duplicate Prevention's record EXACTLY ONE time per admitted first invocation.
 Composes 8: The composition MUST configure the Duplicate Prevention instance with the idempotency window.

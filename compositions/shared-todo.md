@@ -53,7 +53,7 @@ Composes 2: EXACTLY ONE Permissions instance MUST serve the composition.
 Composes 3: EXACTLY ONE Assignment instance MUST serve the composition.
 Composes 4: The composition MUST NOT change a constituent's spec.
 Composes 5: The composition MUST replace the constituents' own caller surface.
-Composes 6: The composition MUST inherit a constituent's invariants PER `execution-contract.md` §Conformance.
+Composes 6: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
 Composes 7: The composition MUST discharge Permissions Composition note 2.
 Composes 8: The composition MUST discharge Assignment Composition note 2.
 Composes 9: The composition MUST NOT answer a constituent's rejection changed.

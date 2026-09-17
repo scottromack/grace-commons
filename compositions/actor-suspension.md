@@ -54,8 +54,8 @@ Composes 2: EXACTLY ONE Session instance MUST serve the composition.
 Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
 Composes 4: EXACTLY ONE Credential instance MUST serve the composition ONLY IF the credential arm stands composed.
 Composes 5: The composition MUST NOT change a constituent's spec.
-Composes 6: The composition MUST inherit a constituent's invariants PER `execution-contract.md` §Conformance.
-Composes 7: The composition MUST read Audit Trail as a substrate PER `execution-contract.md` §Substrate composition invocation.
+Composes 6: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
+Composes 7: The composition MUST read Audit Trail as a substrate PER the section titled Substrate composition invocation in `execution-contract.md`.
 Composes 8: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
 Composes 9: The composition MUST reach Actor Identity through Audit Trail.
 Composes 10: The composition MUST reach a constituent through the constituent's declared surface.

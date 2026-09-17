@@ -50,8 +50,8 @@ Composes 1: EXACTLY ONE Party Identity instance MUST serve the composition.
 Composes 2: EXACTLY ONE Retention Window instance MUST serve the composition.
 Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
 Composes 4: The composition MUST NOT change a constituent's spec.
-Composes 5: The composition MUST inherit a constituent's invariants PER `execution-contract.md` §Conformance.
-Composes 6: The composition MUST read Audit Trail as a substrate PER `execution-contract.md` §Substrate composition invocation.
+Composes 5: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
+Composes 6: The composition MUST read Audit Trail as a substrate PER the section titled Substrate composition invocation in `execution-contract.md`.
 Composes 7: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
 Composes 8: The party retention instance MUST NOT govern an audit event.
 Composes 9: The composition MUST reach a constituent through the constituent's declared surface.
