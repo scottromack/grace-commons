@@ -288,7 +288,7 @@ Seventeen knobs and one instance capability requirement, the per-act section. Ea
   ```
   Term independently trusted substrate: a log substrate trusted apart from this composition's seals — WORM storage, an external replica.
 
-  Term standing false negative: a strict tail that would answer `failed-verification(unsealed)` for the whole of a coarse cadence interval.
+  Term standing false negative: the strict unsealed_tail_mode answering `failed-verification(unsealed)` for the whole of a coarse cadence interval.
 
   WHY: strict is the fail-closed value — integrity is unverified until a seal covers the event, and defaulting the other way would let a deployment report unverified events as `verified` by omission. Regulated deployments keep strict.
 - **erasure_mechanism**
@@ -585,7 +585,7 @@ Steps:
    record_action step 5.9: The composition MUST treat a step-5 failure as a rebuild trigger.
    record_action step 5.10: A step-5 failure MUST NOT land [Recording Failure].
    ```
-   Term read-back: the open-upper-bound read over the new tail through `EventLog.read`.
+   Term read-back: the open-upper-bound read over the new unsealed tail through `EventLog.read`.
 
    Term high-water mark: the greater of sealed_through and the highest sequence_number this instance has itself recorded into event_to_sequence.
 
@@ -599,7 +599,7 @@ Steps:
    record_action step 6.5: The deployment MUST alert on a step-6 seal failure with the cause.
    record_action step 6.6: The next cadence firing MUST retry the seal.
    ```
-   WHY: the firing seals the tail it finds — typically the singleton range holding the new event, wider whenever a prior firing's seal failed — not the event that triggered it. The load-bearing writes have committed, the event remains in the unsealed tail Invariant 3 already states the coverage claim modulo, and rejecting the call would misdescribe a record that exists and is attributed.
+   WHY: the firing seals the unsealed tail it finds — typically the singleton range holding the new event, wider whenever a prior firing's seal failed — not the event that triggered it. The load-bearing writes have committed, the event remains in the unsealed tail Invariant 3 already states the coverage claim modulo, and rejecting the call would misdescribe a record that exists and is attributed.
 7. **Return.**
    ```
    record_action step 7.1: [Record Action] step 7 MUST return event_id.
@@ -638,11 +638,11 @@ seal_now()
 Under interval or on-demand cadence, seals the current unsealed tail; [Record Action] step 6 and [Purge Event] step 0 reach it too.
 
 ```
-seal_now 1: [Seal Now] MUST read tail by the open-upper-bound read beginning at the slice's first sequence_number.
+seal_now 1: [Seal Now] MUST read the tail position by the open-upper-bound read beginning at the slice's first sequence_number.
 seal_now 2: [Seal Now] MUST NOT read next_sequence_number.
-seal_now 3: IF the tail read returns no event THEN [Seal Now] MUST land [Nothing To Seal].
+seal_now 3: IF the open-upper-bound read returns no event THEN [Seal Now] MUST land [Nothing To Seal].
 seal_now 4: [Seal Now] MUST call TamperEvidence.seal(slice_ref, mechanism_credential) over the slice.
-seal_now 5: [Seal Now] MUST record the seal_coverage entry for evidence_id as the slice and advance sealed_through to tail.
+seal_now 5: [Seal Now] MUST record the seal_coverage entry for evidence_id as the slice and advance sealed_through to the tail position.
 seal_now 6: [Seal Now] MUST land mechanism-failure(reason) as [Mechanism Failure] carrying the reason unchanged.
 seal_now 7: [Seal Now] MUST pass invalid-request through unchanged.
 seal_now 8: [Seal Now] MUST land storage-failure as [Recording Failure].
@@ -652,12 +652,12 @@ seal_now 11: IF [Seal Now] rejects THEN the next cadence firing MUST re-seal the
 seal_now 12: The composition MUST NOT expose a re-sealing surface.
 ```
 
-Term slice: the sequence-number range from `sealed_through + 1` to tail, inclusive.
+Term slice: the sequence-number range from `sealed_through + 1` to the tail position, inclusive.
 
-Term tail: the highest sequence_number the open-upper-bound read beginning at `sealed_through + 1` returns; the empty result of that read is the empty-tail condition.
+Term tail position: the highest sequence_number the open-upper-bound read beginning at `sealed_through + 1` returns; an empty result of that read means the unsealed tail is empty.
 
 WHY:
-The obvious alternative, *the log's next_sequence_number minus one*, reads an internal state field the atom exposes on no declared surface: it counts allocations rather than successful appends (Event Log's storage-failure gap), and Event Log's Invariant 5 was re-scoped off it for that reason. The three failure arms name three different things an operator has to fix. `mechanism-failure(reason)` carries two worlds on one arm — transient outage (signing hardware down, TSA unreachable, HSM session lost), which the next firing may clear, and standing misconfiguration (keying material that fails the running mechanism's preconditions), which every firing reproduces until Configuration changes — and the reason is what tells them apart. invalid-request is reserved by that atom for a record-set reference with no non-whitespace character or a credential absent entirely; neither comes from a caller, so the arm means a defect in the composition's own construction or a plumbing fault, standing rather than transient, a page for a human. recording-failure means the mechanism computed a proof and the seal store refused to persist it, with no partial evidence record written. Under every arm the events stay in the tail and unsealed_tail_mode governs what [Verify Record] says about them; a tail that stops draining is the alarm TV names. Re-sealing a partly-purged seal's survivors and rotating a seal onto a fresh mechanism belong to Seal Lifecycle *(forthcoming)*, with the supersession bookkeeping both require.
+The obvious alternative, *the log's next_sequence_number minus one*, reads an internal state field the atom exposes on no declared surface: it counts allocations rather than successful appends (Event Log's storage-failure gap), and Event Log's Invariant 5 was re-scoped off it for that reason. The three failure arms name three different things an operator has to fix. `mechanism-failure(reason)` carries two worlds on one arm — transient outage (signing hardware down, TSA unreachable, HSM session lost), which the next firing may clear, and standing misconfiguration (keying material that fails the running mechanism's preconditions), which every firing reproduces until Configuration changes — and the reason is what tells them apart. invalid-request is reserved by that atom for a record-set reference with no non-whitespace character or a credential absent entirely; neither comes from a caller, so the arm means a defect in the composition's own construction or a plumbing fault, standing rather than transient, a page for a human. recording-failure means the mechanism computed a proof and the seal store refused to persist it, with no partial evidence record written. Under every arm the events stay in the unsealed tail and unsealed_tail_mode governs what [Verify Record] says about them; an unsealed tail that stops draining is the alarm TV names. Re-sealing a partly-purged seal's survivors and rotating a seal onto a fresh mechanism belong to Seal Lifecycle *(forthcoming)*, with the supersession bookkeeping both require.
 
 ---
 
@@ -881,7 +881,7 @@ Steps:
    purge_event step 0.4: IF [Seal Now] rejects THEN [Purge Event] MUST land cascade-failure(seal).
    purge_event step 0.5: IF a covering seal EXISTS THEN [Purge Event] step 0 MUST NOT invoke [Seal Now].
    ```
-   WHY: step 2's destruction record lives on a covering seal_coverage entry, and an event with no covering entry has nowhere to record that it was destroyed — the cascade would move the retention to *Purged* and then produce `cascade-failure(step-2)` by construction on every tail purge. Under per-event cadence the step is almost always a no-op, reachable only where the record-time seal failed and the tail has not drained.
+   WHY: step 2's destruction record lives on a covering seal_coverage entry, and an event with no covering entry has nowhere to record that it was destroyed — the cascade would move the retention to *Purged* and then produce `cascade-failure(step-2)` by construction on every purge in the unsealed tail. Under per-event cadence the step is almost always a no-op, reachable only where the record-time seal failed and the unsealed tail has not drained.
 
    **Step 0½ — retention must be resolved before the cascade proper begins.**
    ```
@@ -891,7 +891,7 @@ Steps:
    purge_event step 0½.4: A retention-unresolved refusal MUST leave step 0's seal standing.
    purge_event step 0½.5: The composition MUST NOT invent a retention in order to expire an event.
    ```
-   WHY: a half-step because it is a second precondition, not a store-touching step. `RetentionWindow.purge` takes a retention_id and there is none; the remedy is the third half's placement, after which the event is purgeable, or not, on the same terms as every other. A tail event that got sealed is in a state the composition wanted regardless. The check sits after step 0 because step 0's resolution is what establishes that a log entry exists — the antecedent that distinguishes retention-unresolved from not-known.
+   WHY: a half-step because it is a second precondition, not a store-touching step. `RetentionWindow.purge` takes a retention_id and there is none; the remedy is the third half's placement, after which the event is purgeable, or not, on the same terms as every other. An event that step 0 sealed out of the unsealed tail is in a state the composition wanted regardless. The check sits after step 0 because step 0's resolution is what establishes that a log entry exists — the antecedent that distinguishes retention-unresolved from not-known.
 1. **Purge the retention.**
    ```
    purge_event step 1.1: [Purge Event] step 1 MUST call RetentionWindow.purge(retention_id).
@@ -1263,10 +1263,10 @@ Attribution coverage and retention coverage together give the complete-record pr
 
 ### Walkthrough
 
-A regulated bank deploys the composition as the canonical audit trail for its core ledger: `retention_policy = sox_7_year`; `seal_cadence = every 1000 events or 60 seconds, whichever first`; `seal_mechanism = SHA-256 hash chain, chain tail anchored synchronously at seal time to an RFC 3161 TSA`, linked across seals; `erasure_mechanism = per-event content-key shredding at the storage layer`; `compensation_window = 24 hours`; `record_action_completion_bound = 30 seconds`; `purge_completion_bound = 5 minutes`; `compensation_closure_latency = 15 seconds`; `clock_offset_allowance = 2 seconds`; `reconciliation_cadence = 60 seconds` (the derived default — the time arm of its interval cadence; the thousand-event arm is not a duration); `payload_cap = 64 KB`, matching the wired Event Log instance. Instance start 16 holds with room to spare: closure_sum is 5 minutes + 2 seconds + 60 seconds + 15 seconds, against 24 hours.
+A regulated bank deploys the composition as the canonical audit trail for its core ledger: `retention_policy = sox_7_year`; `seal_cadence = every 1000 events or 60 seconds, whichever first`; `seal_mechanism = SHA-256 hash chain, newest link anchored synchronously at seal time to an RFC 3161 TSA`, linked across seals; `erasure_mechanism = per-event content-key shredding at the storage layer`; `compensation_window = 24 hours`; `record_action_completion_bound = 30 seconds`; `purge_completion_bound = 5 minutes`; `compensation_closure_latency = 15 seconds`; `clock_offset_allowance = 2 seconds`; `reconciliation_cadence = 60 seconds` (the derived default — the time arm of its interval cadence; the thousand-event arm is not a duration); `payload_cap = 64 KB`, matching the wired Event Log instance. Instance start 16 holds with room to spare: closure_sum is 5 minutes + 2 seconds + 60 seconds + 15 seconds, against 24 hours.
 
 1. **A wire-transfer authorization arrives.** `record_action(wire_w91, supervisor_s12, supervisor_credential, {amount: 50000, counterparty: ...})`. Actor Identity → `attestation_a44`; Event Log → `event_e9301`; Retention Window → `retention_r9301` with `retention_until = 2033-05-10`; the event lands in the unsealed tail. Returns `event_e9301`.
-2. **The cadence fires.** The thousand-event arm trips first: [Seal Now] runs over the slice `[8302 .. 9301]`, whose last member is `e9301`. The chain tail is anchored to the TSA synchronously, within the seal call — which is what entitles the record to carry anchored_at at all; batched anchoring after the fact is a separate External Anchoring pattern — and `evidence_s127` is recorded with `anchored_at = 2026-05-10T14:33:00Z`. The seal_coverage entry for `s127` is `[8302 .. 9301]`; sealed_through advances to 9301.
+2. **The cadence fires.** The thousand-event arm trips first: [Seal Now] runs over the slice `[8302 .. 9301]`, whose last member is `e9301`. The chain's newest link is anchored to the TSA synchronously, within the seal call — which is what entitles the record to carry anchored_at at all; batched anchoring after the fact is a separate External Anchoring pattern — and `evidence_s127` is recorded with `anchored_at = 2026-05-10T14:33:00Z`. The seal_coverage entry for `s127` is `[8302 .. 9301]`; sealed_through advances to 9301.
 3. **Six years later, a SOX §404 audit.** *Show me the supervisor authorization on wire w91, and prove it hasn't been altered.* `read_record(e9301)` returns the [Audit Record] in one shot: action `wire_w91`, actor `supervisor_s12`, attestation `a44`, retention `r9301` in *Retained*, and coverage `s127` over `[8302 .. 9301]` — the instruction for the next call. This deployment runs interval cadence, so the auditor pulls all thousand payloads for that range — through Event Log's range read where the log is online, from the archive otherwise — and calls `verify_record(e9301, payloads_8302_through_9301)`. Retention reads *Retained* (no purged short-circuit), the event is present, the attestation verifies against `s12`'s public material, `s127` is the covering seal, the presented range passes through to `TamperEvidence.verify`. Returns `verified`. Under a per-event cadence the same call would carry `e9301`'s single payload; the argument is the same argument, only its extent moves.
 4. **Seven years and one month later.** [Purge Eligible] runs nightly and `e9301` is on the list. `purge_event(e9301)`: step 0 is a no-op — `9301 ≤ sealed_through`, so `s127` covers it. `RetentionWindow.purge(r9301)` moves the retention to *Purged* with `purged_at = 2033-06-14`; `9301` joins `s127`'s purged_events — just that one number, since the other 999 members are under their own retentions — and the same write captures the pair `(e9301, a44)` before anything is destroyed. Destruction of Event Log's data field for `e9301` and of `a44`'s proof goes to the content-key shredder, which reports destroyed; the cascade completes. Had it reported `destruction-failed(...)`, the cascade would have rejected `cascade-failure(step-3)` and the 60-second scan would have re-driven the entry each cycle until a destroyed outcome landed, `r9301` standing as a surfaced alert meanwhile. The Event Log entry's and the attestation's stored fields are byte-for-byte what they were; the key is gone, so the payload and the proof no longer read, while `a44`'s action_ref, actor_ref and attested_at still do. `verify_record(e9301, ...)` now returns `failed-verification(purged)`, read off `r9301` before any `ActorIdentity.verify` call. No re-seal follows: `s127` stays the one seal over `[8302 .. 9301]`, and its 999 survivors answer `unverifiable(partially-purged-coverage)` for the rest of their retained lifetimes — unknown, not bad. A bank that could not accept that composes Seal Lifecycle *(forthcoming)*, at the cost of a mechanism round-trip per purge and a pattern to wire.
 5. **A subsequent regulator inquiry.** *What happened to wire w91?* The retention store holds `r9301` in *Purged* with purged_at inside the lawful window; the seal store retains `s127` indefinitely, now carrying `9301` in purged_events and still the cover for its other members; the attestation store retains `a44` with its surviving fields readable. `read_record(e9301)` sees *Purged*, takes `(e9301, a44)` out of the destruction record, and reads the *who / what / when* off `a44` — so the answer is not merely *something was destroyed* but *`supervisor_s12`'s authorization of `wire_w91`, attested at that moment, was destroyed lawfully on 2033-06-14*.
@@ -1296,7 +1296,7 @@ Selected, not exhaustive; each makes a distinction the composition is built on l
 
 **`unverifiable(attestation-registry-unavailable)`.** During the same audit, `verify_record(e9308, payloads_9302_through_10301)`: retention *Retained*, log entry present, `ActorIdentity.verify(a51)` — and the registry is unreachable behind a network partition. Step 3 does not prefix registry-unavailable; it routes it to step 6, which returns `unverifiable(attestation-registry-unavailable)`. Steps 4 and 5 do not run, so no integrity claim is made either way. The auditor records the outage, not a finding, and retries when the registry returns.
 
-**A lenient-mode tail verify.** A second deployment — an internal operations trail over a WORM substrate, `seal_cadence = every 6 hours`, `unsealed_tail_mode = lenient` — records `e440` at 09:12 and verifies it at 09:20. `read_record(e440)` reports *unsealed tail* (`440 > sealed_through = 431`). `verify_record(e440, e440_payload)`: retention *Retained*, log entry present, attestation verifies; step 4 finds no covering seal and, under lenient, treats coverage as satisfied, skips step 5, finds no availability failure at step 6, and returns `verified` at step 7. The same call against the bank's strict instance returns `failed-verification(unsealed)` — same records, different declared posture, visible in Configuration.
+**A lenient-mode verify in the unsealed tail.** A second deployment — an internal operations trail over a WORM substrate, `seal_cadence = every 6 hours`, `unsealed_tail_mode = lenient` — records `e440` at 09:12 and verifies it at 09:20. `read_record(e440)` reports *unsealed tail* (`440 > sealed_through = 431`). `verify_record(e440, e440_payload)`: retention *Retained*, log entry present, attestation verifies; step 4 finds no covering seal and, under lenient, treats coverage as satisfied, skips step 5, finds no availability failure at step 6, and returns `verified` at step 7. The same call against the bank's strict instance returns `failed-verification(unsealed)` — same records, different declared posture, visible in Configuration.
 
 **invalid-credential — rejected before anything is written.** A terminated supervisor's smart card: `record_action(wire_w95, supervisor_s12, revoked_credential, {...})`. Step 1 passes; step 2's attest refuses invalid-credential; the composition propagates it and stops. No attestation, no event, no retention, no seal attempt, no orphan. The log carries no trace of the attempt — the scope line of Failed attribution 1; a deployment that must audit the attempt composes a Failed-Attempt Log *(forthcoming)*.
 
@@ -1513,12 +1513,12 @@ The state, the surfacing and the closure are owned where they happen: the invoca
 ### Verification of the unsealed tail
 
 ```
-Unsealed tail 1: The deployment MUST monitor tail depth and age against seal_cadence.
+Unsealed tail 1: The deployment MUST monitor the unsealed tail's depth and age against seal_cadence.
 Unsealed tail 2: The deployment MUST read a [Mechanism Failure] with a preconditions reason as a standing misconfiguration.
 Unsealed tail 3: The deployment MUST read a [Seal Now] invalid-request as a standing defect.
 ```
 
-WHY: two things put an event in the tail — the cadence has not fired, or a seal attempt failed — and a tail that stops draining is an operational alarm, not a silent gap. [Nothing To Seal] is not an alarm. An outage reason is transient and the next firing may clear it; a preconditions reason (wrong-shape keying material, which Tamper Evidence routes here rather than to invalid-request) reproduces every firing until Configuration changes; [Recording Failure] means the store refused and the next firing re-seals the same slice. A preconditions reason or invalid-request is a page for a human, not something to wait out.
+WHY: two things put an event in the unsealed tail — the cadence has not fired, or a seal attempt failed — and an unsealed tail that stops draining is an operational alarm, not a silent gap. [Nothing To Seal] is not an alarm. An outage reason is transient and the next firing may clear it; a preconditions reason (wrong-shape keying material, which Tamper Evidence routes here rather than to invalid-request) reproduces every firing until Configuration changes; [Recording Failure] means the store refused and the next firing re-seals the same slice. A preconditions reason or invalid-request is a page for a human, not something to wait out.
 
 ---
 
@@ -1546,7 +1546,7 @@ Term cadences: seal_cadence, reconciliation_cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); `(compensation-window)` — carried beside a [Verify Record] outcome on a separate channel.
 
-Term terms: (each declared where it is used) audit log, attestation store, retention store, seal store, surviving fields, open-upper-bound read, full enumeration, derived index, extraction-pending, rebuild-on-miss, retention_state, live, purged, purged_events, covering seal, closed entry, sealed_through, unsealed tail, reconciled, resolved policy, time arm, chained mechanism, verify-time presentation, mechanism class, independently trusted substrate, standing false negative, shredding-class, tombstone-by-mutation, `Event Log's data field`, `finding's creation`, serialized envelope, reference headroom, whole closure, section_kind, `act's completion bound`, lease, holder, proceed as landed, pre-check, closure_sum, full constructed payload, reserved namespace, reconciliation path, subject-kind discriminator, read-back, high-water mark, mid-record expiry, non-storage refusal, slice, tail, audit record, coverage status, pair, partly-purged coverage, `Legal Hold`, hold, mid-cascade expiry, `cascade-failure(step-3)`, completed cascade, divergence, record_edge, purge_edge, horizon, purge age, attestation age, event age, binding set, orphan, true miss, owed narration, quiescence, `recorded through [Record Action]`, audit edge, composition-built query, insert-only map, closed-state marker, reconciled policy, held section, truth-bearing write, `who / what / when`, seal disposal, re-sealing, store outage, compliance alert, verification surface outage, event standing, residual finding, seal stamps, extraction-pending fact, invocation, later write, malformed reference, step-3 storage failure, step-4 storage failure, standing finding, open entry, external evidence; and now, the seam-injected reading (Clock source 1; `execution-contract.md` §Logic confinement).
+Term terms: (each declared where it is used) audit log, attestation store, retention store, seal store, surviving fields, open-upper-bound read, full enumeration, derived index, extraction-pending, rebuild-on-miss, retention_state, live, purged, purged_events, covering seal, closed entry, sealed_through, unsealed tail, reconciled, resolved policy, time arm, chained mechanism, verify-time presentation, mechanism class, independently trusted substrate, standing false negative, shredding-class, tombstone-by-mutation, `Event Log's data field`, `finding's creation`, serialized envelope, reference headroom, whole closure, section_kind, `act's completion bound`, lease, holder, proceed as landed, pre-check, closure_sum, full constructed payload, reserved namespace, reconciliation path, subject-kind discriminator, read-back, high-water mark, mid-record expiry, non-storage refusal, slice, tail position, audit record, coverage status, pair, partly-purged coverage, `Legal Hold`, hold, mid-cascade expiry, `cascade-failure(step-3)`, completed cascade, divergence, record_edge, purge_edge, horizon, purge age, attestation age, event age, binding set, orphan, true miss, owed narration, quiescence, `recorded through [Record Action]`, audit edge, composition-built query, insert-only map, closed-state marker, reconciled policy, held section, truth-bearing write, `who / what / when`, seal disposal, re-sealing, store outage, compliance alert, verification surface outage, event standing, residual finding, seal stamps, extraction-pending fact, invocation, later write, malformed reference, step-3 storage failure, step-4 storage failure, standing finding, open entry, external evidence; and now, the seam-injected reading (Clock source 1; `execution-contract.md` §Logic confinement).
 
 #### Record Action
 
@@ -1556,7 +1556,7 @@ Kind: Operation
 
 #### Seal Now
 
-The action that seals the current unsealed tail — under interval or on-demand cadence, from [Record Action] step 6 under per-event cadence, and from [Purge Event] step 0 — over the slice, where tail is what the open-upper-bound read returns; records the coverage and advances sealed_through. Cuts new coverage only. Returns the evidence_id, [Nothing To Seal], [Mechanism Failure] with the mechanism's reason, invalid-request, or [Recording Failure]; under all of them the events stay in the tail and the next firing retries.
+The action that seals the current unsealed tail — under interval or on-demand cadence, from [Record Action] step 6 under per-event cadence, and from [Purge Event] step 0 — over the slice, where the tail position is the highest sequence_number the open-upper-bound read returns; records the coverage and advances sealed_through. Cuts new coverage only. Returns the evidence_id, [Nothing To Seal], [Mechanism Failure] with the mechanism's reason, invalid-request, or [Recording Failure]; under all of them the events stay in the unsealed tail and the next firing retries.
 
 Kind: Operation
 
@@ -1580,7 +1580,7 @@ Kind: Operation
 
 #### Purge Event
 
-The action that coordinates the cascade for a retention-elapsed event: seals the event if it is in the tail, requires the retention to be resolved, purges the retention record, writes the destruction record, and delegates destruction of Event Log's data field and the attestation's proof to the shredding-class erasure_mechanism, branching on the reported outcome. Destroys nothing itself, disposes of no seal, re-seals nothing. Returns ok, not-known, [Not Eligible], [Retention Unresolved], [Cascade Failure] carrying the step, or — where a Legal Hold is composed — [Under Legal Hold].
+The action that coordinates the cascade for a retention-elapsed event: seals the event if it is in the unsealed tail, requires the retention to be resolved, purges the retention record, writes the destruction record, and delegates destruction of Event Log's data field and the attestation's proof to the shredding-class erasure_mechanism, branching on the reported outcome. Destroys nothing itself, disposes of no seal, re-seals nothing. Returns ok, not-known, [Not Eligible], [Retention Unresolved], [Cascade Failure] carrying the step, or — where a Legal Hold is composed — [Under Legal Hold].
 
 Kind: Operation
 
