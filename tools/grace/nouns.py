@@ -133,7 +133,7 @@ def phrases(body: str, tagger, known: set[str] = frozenset()) -> list[list[str]]
     toks = re.findall(r"[a-z][a-z0-9_]*(?:[-'’][a-z0-9_]+)*|[,.;:—]", body)
     if not toks:
         return []
-    runs: list[tuple[list[tuple[str, str]], list[str]]] = []
+    runs: list[tuple[list[str], list[tuple[str, str]], list[str]]] = []  # before, tokens, after
     cur: list[tuple[str, str]] = []
     sep: list[str] = []
     prev = None
@@ -144,41 +144,53 @@ def phrases(body: str, tagger, known: set[str] = frozenset()) -> list[list[str]]
             t = "VB"
         prev = w
         if t in ("JJ", "VBN", "VBG") + NOUN_TAGS and w not in STOP:
+            if not cur:
+                runs.append((sep, [], []))
+                sep = []
             cur.append((w, t))
+            runs[-1][1].append((w, t))
         else:
             if cur:
-                runs.append((cur, []))
                 cur = []
-            if runs:
-                runs[-1][1].append(w)
-    if cur:
-        runs.append((cur, []))
+            sep.append(w)
+            if runs and not runs[-1][2]:
+                runs[-1][2].extend([w])
+            elif runs:
+                runs[-1][2].append(w)
 
     def trimmed(run: list[tuple[str, str]]) -> list[str]:
         while run and run[-1][1] not in NOUN_TAGS:
             run = run[:-1]
         return [norm(w) for w, _ in run]
 
+    def declared(words: list[str]) -> bool:
+        return bool(words) and bool(forms(" ".join(words)) & known)
+
     res: list[list[str]] = []
     i = 0
     while i < len(runs):
-        words = [norm(w) for w, _ in runs[i][0]]
-        sep = runs[i][1]
-        # a declared name may run through a preposition — *revoked by ref*,
-        # *revoked at* — which the tagger reads as two phrases or drops
-        # (council read 132)
-        if sep and sep[0] in PREPOSITIONS and known:
-            with_prep = words + [sep[0]]
-            nxt = [norm(w) for w, _ in runs[i + 1][0]] if i + 1 < len(runs) and len(sep) == 1 else []
-            if nxt and forms(" ".join(with_prep + nxt)) & known:
-                res.append(with_prep + nxt)
-                i += 2
-                continue
-            if forms(" ".join(with_prep)) & known:
-                res.append(with_prep)
+        before, tokens, after = runs[i]
+        ph = trimmed(tokens)
+        if known and not declared(ph):
+            # a declared name may run through a preposition — *revoked by ref*,
+            # *at time*, *expires at* — which the tagger splits or drops
+            # (council read 132, council read 133)
+            words = [norm(w) for w, _ in tokens]
+            lead = [before[-1]] if before and before[-1] in PREPOSITIONS else []
+            tail = [after[0]] if after and after[0] in PREPOSITIONS else []
+            nxt = [norm(w) for w, _ in runs[i + 1][1]] if (tail and i + 1 < len(runs)
+                                                          and len(runs[i][2]) == 1) else []
+            for cand, step in ((lead + words + tail + nxt, 2), (lead + words + tail, 1),
+                               (lead + words, 1), (words + tail, 1)):
+                if (tail or lead) and declared(cand):
+                    res.append(cand)
+                    i += step
+                    break
+            else:
+                if ph:
+                    res.append(ph)
                 i += 1
-                continue
-        ph = trimmed(runs[i][0])
+            continue
         if ph:
             res.append(ph)
         i += 1
