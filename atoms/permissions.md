@@ -509,7 +509,7 @@ Projection: denied
 
 #### Invalid Request
 
-The refusal [Grant] returns when [Subject Ref] or [Action Scope] does not contain at least one non-whitespace character. A guard rejection that fails before any store write; no grant is recorded.
+The refusal [Grant] returns when [Subject Ref] or [Action Scope] is blank. A guard rejection that fails before any store write; no grant is recorded.
 
 Kind:       Member
 Member of:  the Grant rejection

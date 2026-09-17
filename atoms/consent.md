@@ -48,7 +48,7 @@ Identity 3: The transition MUST NOT allocate a consent_id.
 Identity 4: The atom MUST NOT reuse a consent_id.
 Identity 5: The atom MUST NOT change a consent_id.
 Identity 6: The atom MUST NOT identify a consent record by the subject_ref and the purpose.
-Identity 7: EVERY consent_id MUST carry a non-whitespace character.
+Identity 7: EVERY consent_id MUST stand non-blank.
 Identity 8: The deployment MUST draw a consent_id that sorts in lexicographic byte-order.
 Identity 9: The atom MUST NOT interpret a subject_ref.
 Identity 10: The atom MUST NOT interpret a purpose.
@@ -305,8 +305,8 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
   ```
 - **Invariant 4 — Revocation attribution is complete.**
   ```
-  Invariant 4.1: EVERY revoked consent record's revoked_by MUST carry a non-whitespace character.
-  Invariant 4.2: EVERY revoked consent record's revocation_reason MUST carry a non-whitespace character.
+  Invariant 4.1: EVERY revoked consent record's revoked_by MUST stand non-blank.
+  Invariant 4.2: EVERY revoked consent record's revocation_reason MUST stand non-blank.
   Invariant 4.3: EVERY revoked consent record MUST carry a revoked_at.
   ```
   WHY: an anonymous withdrawal, a whitespace-only ground, or a missing instant each defeats the one thing the record exists to demonstrate — that the data subject exercised the right, and that the system honoured it (Check 3.1).
@@ -324,7 +324,7 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
   WHY: the bound on [Expires At] at grant time — strictly later than [Now] — is a [Grant] precondition and not part of this invariant (Operation 7 through 9). What this one holds is the reading: a record past its bound reads as [Expired], a record withdrawn first reads as [Revoked] because the earlier terminal event is the one that happened, and an implementation that answers a [Granted] result for a record whose state at the queried instant is [Expired] is non-conformant however it manages its cache.
 - **Invariant 7 — Grant attribution is complete.**
   ```
-  Invariant 7.1: EVERY consent record's consent_id, subject_ref, purpose and granted_by MUST carry a non-whitespace character.
+  Invariant 7.1: EVERY consent record's consent_id, subject_ref, purpose and granted_by MUST stand non-blank.
   Invariant 7.2: EVERY consent record MUST carry a granted_at.
   ```
   WHY: Invariant 1.1 holds these fields still; this one holds them non-blank. An anonymous grant, a whitespace-only purpose or a missing instant answers none of *who agreed to what, and when* — which is the whole regulatory question (Check 2.1).
@@ -413,9 +413,9 @@ This atom's acceptance is what an external auditor can clear from the consent st
 
 ```
 Check 1.1: An auditor MUST find EVERY issued consent_id in the store through [Read] (Invariant 8.1, Invariant 8.2).
-Check 2.1: An auditor MUST find a non-whitespace character in EVERY consent record's consent_id, subject_ref, purpose and granted_by (Invariant 7.1).
+Check 2.1: An auditor MUST find EVERY consent record's consent_id, subject_ref, purpose and granted_by non-blank (Invariant 7.1).
 Check 2.2: An auditor MUST find a granted_at on EVERY consent record (Invariant 7.2).
-Check 3.1: An auditor MUST find a non-whitespace character in EVERY revoked consent record's revoked_by and revocation_reason (Invariant 4.1, Invariant 4.2).
+Check 3.1: An auditor MUST find EVERY revoked consent record's revoked_by and revocation_reason non-blank (Invariant 4.1, Invariant 4.2).
 Check 3.2: An auditor MUST find EVERY revoked consent record's granted_at no later than the revoked_at (Invariant 5.1).
 Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands, then granted once a fresh [Grant] lands (Invariant 3.1, Operation 44).
 Check 5.1: An auditor MUST find [Check] answering granted for an at_time the expires_at exceeds, and expired for an at_time no earlier than the expires_at (Invariant 6.1).

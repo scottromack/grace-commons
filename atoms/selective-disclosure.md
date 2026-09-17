@@ -221,13 +221,13 @@ Operation 22 refuses an unrecognized filter key rather than ignoring it, which i
 - **Invariant 2 — Authority completeness.**
   ```
   Invariant 2.1: EVERY disclosure record's authority_type MUST stand in the authority types.
-  Invariant 2.2: EVERY disclosure record's authority_reference MUST carry a non-whitespace character.
+  Invariant 2.2: EVERY disclosure record's authority_reference MUST stand non-blank.
   ```
   WHY: a record failing either arm cannot answer *under what authority was this disclosure made*, which is the one question the atom exists to answer. An unrecognized type or an empty reference is a conformance failure rather than a degraded record, because a disclosure accounting that cannot name its basis is not an accounting.
 - **Invariant 3 — Field completeness.**
   ```
   Invariant 3.1: EVERY disclosure record MUST carry a disclosed_at.
-  Invariant 3.2: EVERY disclosure record's subject_ref, recipient, scope and authority_reference MUST carry a non-whitespace character.
+  Invariant 3.2: EVERY disclosure record's subject_ref, recipient, scope and authority_reference MUST stand non-blank.
   ```
 - **Invariant 4 — Temporal soundness.**
   ```
@@ -300,7 +300,7 @@ This atom's acceptance is what an external auditor can clear from the disclosure
 
 ```
 Check 2.1: An auditor MUST find disclosure_id, subject_ref, recipient, scope, authority_type, authority_reference and disclosed_at on EVERY disclosure record (State 1, Invariant 3.1).
-Check 2.2: An auditor MUST find a non-whitespace character in EVERY disclosure record's subject_ref, recipient, scope and authority_reference (Invariant 3.2).
+Check 2.2: An auditor MUST find EVERY disclosure record's subject_ref, recipient, scope and authority_reference non-blank (Invariant 3.2).
 Check 2.3: An auditor MUST find EVERY disclosure record whose authority_type IS IN the authority types (Invariant 2.1).
 Check 3.1: An auditor MUST find a re-read disclosure record's fields unchanged from the prior read (Invariant 1.1).
 Check 3.2: An auditor MUST find no disclosure record absent from a later unfiltered read (Invariant 6.1, State 9).
@@ -484,7 +484,7 @@ Projection: disclosure_id
 
 #### Subject Ref
 
-The opaque reference to the data subject whose data was disclosed. Set on [Record], immutable, non-whitespace (Invariant 3); the same subject may appear in many records.
+The opaque reference to the data subject whose data was disclosed. Set on [Record], immutable, non-blank (Invariant 3); the same subject may appear in many records.
 
 Kind:       Field
 Field of:   the disclosure record
@@ -524,7 +524,7 @@ Projection: authority.type
 
 #### Authority Reference
 
-The opaque, non-whitespace string identifying the specific authority — a Consent id, a Legal Hold id, or a regulatory citation. The human-readable half of [Authority]; the atom validates its presence, not its legitimacy.
+The opaque, non-blank string identifying the specific authority — a Consent id, a Legal Hold id, or a regulatory citation. The human-readable half of [Authority]; the atom validates its presence, not its legitimacy.
 
 Kind:       Field
 Field of:   the authority field

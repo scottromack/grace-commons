@@ -556,7 +556,7 @@ Projection: mechanism-verification-unavailable
 
 #### Invalid Request
 
-The refusal [Seal] returns when [Record Set Ref] contains no non-whitespace character, or [Mechanism Credential] is absent entirely. A guard rejection that fails before any store write; no [Evidence] is recorded.
+The refusal [Seal] returns when [Record Set Ref] is blank, or [Mechanism Credential] is absent entirely. A guard rejection that fails before any store write; no [Evidence] is recorded.
 
 Kind:       Member
 Member of:  the Seal rejection

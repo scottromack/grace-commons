@@ -267,13 +267,13 @@ Operation 38 is the scope rule an auditor must read before trusting an empty ans
 - **Invariant 4 — Purge requires a prior deletion.**
   ```
   Invariant 4.1: EVERY purged lifecycle record MUST carry a deleted_by and a deleted_at.
-  Invariant 4.2: A purged lifecycle record's deleted_by MUST carry a non-whitespace character.
+  Invariant 4.2: A purged lifecycle record's deleted_by MUST stand non-blank.
   ```
   WHY: there is no direct path from active to purged (State 4), so every purged record passed through deleted and carries that step's attribution as evidence. The two-step shape is the atom's deliberate friction: the first step hides the record and is reversible, the second destroys it and is not, and separating them creates a moment where the decision can be reconsidered.
 - **Invariant 5 — Purge attribution is complete.**
   ```
-  Invariant 5.1: EVERY purged lifecycle record's purged_by MUST carry a non-whitespace character.
-  Invariant 5.2: EVERY purged lifecycle record's purge_reason MUST carry a non-whitespace character.
+  Invariant 5.1: EVERY purged lifecycle record's purged_by MUST stand non-blank.
+  Invariant 5.2: EVERY purged lifecycle record's purge_reason MUST stand non-blank.
   Invariant 5.3: EVERY purged lifecycle record MUST carry a purged_at.
   ```
   WHY: the load-bearing one. An anonymous purge, a whitespace-only reason or a missing instant each defeat the record that legal proceedings, regulatory inspections and GDPR compliance demonstrations require. A reason is mandatory on purge and optional on deletion because destruction is the act that must justify itself.
@@ -291,7 +291,7 @@ Operation 38 is the scope rule an auditor must read before trusting an empty ans
   ```
 - **Invariant 8 — Deletion attribution is complete.**
   ```
-  Invariant 8.1: EVERY lifecycle record's deleted_by MUST carry a non-whitespace character.
+  Invariant 8.1: EVERY lifecycle record's deleted_by MUST stand non-blank.
   Invariant 8.2: EVERY lifecycle record MUST carry a deleted_at.
   ```
 
@@ -346,15 +346,15 @@ This atom's acceptance is what an external auditor can clear from the lifecycle 
 ```
 Check 1.1: An auditor MUST find no lifecycle record absent from a later read (Invariant 7.1).
 Check 1.2: An auditor MUST find a purged lifecycle record in the store (Invariant 7.1, State 11).
-Check 2.1: An auditor MUST find a non-whitespace character in EVERY purged lifecycle record's purged_by (Invariant 5.1).
-Check 2.2: An auditor MUST find a non-whitespace character in EVERY purged lifecycle record's purge_reason (Invariant 5.2).
+Check 2.1: An auditor MUST find EVERY purged lifecycle record's purged_by non-blank (Invariant 5.1).
+Check 2.2: An auditor MUST find EVERY purged lifecycle record's purge_reason non-blank (Invariant 5.2).
 Check 2.3: An auditor MUST find a purged_at on EVERY purged lifecycle record (Invariant 5.3).
 Check 2.4: An auditor MUST find no purged lifecycle record's purged_at preceding the record's deleted_at (Invariant 6.1).
 Check 3.1: An auditor MUST find a deleted_by and a deleted_at on EVERY purged lifecycle record (Invariant 4.1).
-Check 3.2: An auditor MUST find a non-whitespace character in EVERY purged lifecycle record's deleted_by (Invariant 4.2).
+Check 3.2: An auditor MUST find EVERY purged lifecycle record's deleted_by non-blank (Invariant 4.2).
 Check 4.1: An auditor MUST find EVERY tracked record whose state EQUALS EXACTLY ONE OF active, deleted, purged (Invariant 2.1).
 Check 4.2: An auditor MUST find no lifecycle record whose state DOES NOT EQUAL purged on a later read of a record a prior read found purged (Invariant 3.1).
-Check 5.1: An auditor MUST find a non-whitespace character in EVERY lifecycle record's deleted_by (Invariant 8.1).
+Check 5.1: An auditor MUST find EVERY lifecycle record's deleted_by non-blank (Invariant 8.1).
 Check 5.2: An auditor MUST find a deleted_at on EVERY lifecycle record (Invariant 8.2).
 Check 5.3: An auditor MUST find a re-read lifecycle record's deletion fields unchanged across an admitted restore (Invariant 1.1).
 Check 5.4: An auditor MUST find a re-read lifecycle record's deletion fields unchanged across an admitted purge (Invariant 1.2).
@@ -548,7 +548,7 @@ Projection: state
 
 #### Deleted By
 
-The opaque reference to the actor who performed the most recent deletion. Set on [Soft Delete], non-whitespace (Invariant 8), immutable within the deletion epoch (Invariant 1).
+The opaque reference to the actor who performed the most recent deletion. Set on [Soft Delete], non-blank (Invariant 8), immutable within the deletion epoch (Invariant 1).
 
 Kind:       Field
 Field of:   the lifecycle record
@@ -596,7 +596,7 @@ Projection: restoration_reason
 
 #### Purged By
 
-The opaque reference to the actor who authorized and performed the purge. Set on [Purge], non-whitespace (Invariant 5), immutable.
+The opaque reference to the actor who authorized and performed the purge. Set on [Purge], non-blank (Invariant 5), immutable.
 
 Kind:       Field
 Field of:   the lifecycle record
@@ -612,7 +612,7 @@ Projection: purged_at
 
 #### Purge Reason
 
-The required stated reason for the purge — the [Reason] parameter of [Purge], stored under this name. Non-whitespace (Invariant 5), immutable. Unlike the deletion and restore reasons, purge's reason is mandatory.
+The required stated reason for the purge — the [Reason] parameter of [Purge], stored under this name. Non-blank (Invariant 5), immutable. Unlike the deletion and restore reasons, purge's reason is mandatory.
 
 Kind:       Field
 Field of:   the lifecycle record

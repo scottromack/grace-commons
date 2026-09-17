@@ -573,7 +573,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal [Place Under Retention] returns when [Record Ref] or [Policy Ref] is malformed — neither contains a non-whitespace character. A guard rejection that fails before any store write; no retention is recorded.
+The refusal [Place Under Retention] returns when [Record Ref] or [Policy Ref] is blank. A guard rejection that fails before any store write; no retention is recorded.
 
 Kind:       Member
 Member of:  the Place Under Retention rejection

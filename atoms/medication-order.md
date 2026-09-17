@@ -377,12 +377,12 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   ```
 - **Invariant 10 — Attribution is complete.**
   ```
-  Invariant 10.1: EVERY attribution reference an order carries MUST carry a non-whitespace character.
+  Invariant 10.1: EVERY attribution reference an order carries MUST stand non-blank.
   ```
   WHY: attribution is the non-repudiation property every adversarial scenario below turns on, and a blank actor reference defeats all of them at once. The rule is stated over what the order *carries* rather than over what an action accepts, so it holds of the record an auditor reads rather than of the call that made it.
 - **Invariant 11 — A reason is complete.**
   ```
-  Invariant 11.1: EVERY reason field an order carries MUST carry a non-whitespace character.
+  Invariant 11.1: EVERY reason field an order carries MUST stand non-blank.
   ```
 - **Invariant 12 — Transition metadata is write-once within its cycle.**
   ```
@@ -455,8 +455,8 @@ Check 2.6: An auditor MUST find a predecessor_id naming an order on EVERY succes
 Check 3.1: An auditor MUST find no amended order that was dispensed (Invariant 3.1).
 Check 3.2: An auditor MUST find no cancelled order carrying a dispense field group (Invariant 6.1).
 Check 3.3: An auditor MUST find a dispense field group on EVERY discontinued order (Invariant 6.2).
-Check 4.1: An auditor MUST find a non-whitespace character in EVERY attribution reference an order carries (Invariant 10.1).
-Check 4.2: An auditor MUST find a non-whitespace character in EVERY reason field an order carries (Invariant 11.1).
+Check 4.1: An auditor MUST find EVERY attribution reference an order carries non-blank (Invariant 10.1).
+Check 4.2: An auditor MUST find EVERY reason field an order carries non-blank (Invariant 11.1).
 Check 5.1: An auditor MUST find verifier_ref and verified_at on EVERY dispensed order (State 2, State 13).
 Check 5.2: An auditor MUST find a dispense field group on EVERY administered order (State 3, State 13).
 Check 5.3: An auditor MUST find an administration field group on EVERY completed order (State 5, State 13).

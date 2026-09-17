@@ -330,8 +330,8 @@ Revocation takes the token as the whole authorization, and the atom exposes no w
 - **Invariant 8 — Revocation attribution completeness.**
   ```
   Invariant 8.1: EVERY revoked session MUST carry a revoked_at.
-  Invariant 8.2: EVERY revoked session's revoked_by_ref MUST carry a non-whitespace character.
-  Invariant 8.3: EVERY revoked session's revocation_reason MUST carry a non-whitespace character.
+  Invariant 8.2: EVERY revoked session's revoked_by_ref MUST stand non-blank.
+  Invariant 8.3: EVERY revoked session's revocation_reason MUST stand non-blank.
   ```
 - **Invariant 9 — Session durability over this atom's own surface.**
   ```

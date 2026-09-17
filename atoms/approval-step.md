@@ -301,10 +301,10 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
   ```
 - **Invariant 6 — Decision attribution completeness.**
   ```
-  Invariant 6.1: EVERY terminal step's attribution reference MUST carry a non-whitespace character.
+  Invariant 6.1: EVERY terminal step's attribution reference MUST stand non-blank.
   Invariant 6.2: EVERY terminal step MUST carry the terminal state's instant.
-  Invariant 6.3: EVERY rejected step's decision_reason MUST carry a non-whitespace character.
-  Invariant 6.4: EVERY withdrawn step's withdrawal_reason MUST carry a non-whitespace character.
+  Invariant 6.3: EVERY rejected step's decision_reason MUST stand non-blank.
+  Invariant 6.4: EVERY withdrawn step's withdrawal_reason MUST stand non-blank.
   ```
   WHY: the load-bearing one. An anonymous decision, a whitespace-only attribution, a missing instant or a rejection with no stated reason each defeat the audit trail SOX §404 control evidence and FDA Part 11 electronic-signature requirements rest on. A rejection in particular is not operationally meaningful without its reason — the record would show that something was refused and leave the submitter, and a later auditor, with no account of why.
 - **Invariant 7 — Temporal ordering.**
@@ -314,7 +314,7 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
   WHY: a step cannot be documented as decided or withdrawn before it was submitted. The bound holds on the value persisted, whether caller-supplied or resolved to now, and is enforced before the transition commits (Operation 19).
 - **Invariant 8 — Submission attribution completeness.**
   ```
-  Invariant 8.1: EVERY step's step_id, subject_ref, approver_ref, submitter_ref and scope MUST carry a non-whitespace character.
+  Invariant 8.1: EVERY step's step_id, subject_ref, approver_ref, submitter_ref and scope MUST stand non-blank.
   Invariant 8.2: EVERY step MUST carry a submitted_at.
   ```
 - **Invariant 9 — Concurrent step independence.**
@@ -382,12 +382,12 @@ This atom's acceptance is what an external auditor can clear from the step store
 
 ```
 Check 1.1: An auditor MUST find EVERY step whose state EQUALS EXACTLY ONE OF pending, approved, rejected, withdrawn (Invariant 2.1).
-Check 2.1: An auditor MUST find a non-whitespace character in EVERY step's step_id, subject_ref, approver_ref, submitter_ref and scope (Invariant 8.1).
+Check 2.1: An auditor MUST find EVERY step's step_id, subject_ref, approver_ref, submitter_ref and scope non-blank (Invariant 8.1).
 Check 2.2: An auditor MUST find a submitted_at on EVERY step (Invariant 8.2).
-Check 3.1: An auditor MUST find a non-whitespace character in EVERY terminal step's attribution reference (Invariant 6.1).
+Check 3.1: An auditor MUST find EVERY terminal step's attribution reference non-blank (Invariant 6.1).
 Check 3.2: An auditor MUST find the terminal state's instant on EVERY terminal step (Invariant 6.2).
-Check 3.3: An auditor MUST find a non-whitespace character in EVERY rejected step's decision_reason (Invariant 6.3).
-Check 3.4: An auditor MUST find a non-whitespace character in EVERY withdrawn step's withdrawal_reason (Invariant 6.4).
+Check 3.3: An auditor MUST find EVERY rejected step's decision_reason non-blank (Invariant 6.3).
+Check 3.4: An auditor MUST find EVERY withdrawn step's withdrawal_reason non-blank (Invariant 6.4).
 Check 3.5: An auditor MUST find no terminal step's terminal instant preceding the step's submitted_at (Invariant 7.1).
 Check 4.1: An auditor MUST find EVERY approved step's decided_by equal to the step's approver_ref (Invariant 4.1).
 Check 4.2: An auditor MUST find EVERY rejected step's decided_by equal to the step's approver_ref (Invariant 4.2).
@@ -638,7 +638,7 @@ Projection: scope
 
 #### Reason
 
-The optional submission-context string supplied at [Submit] — a description of what is being approved, the underlying business rule, or a summary of the deviation. Stored under its own name; immutable thereafter. Its absence is valid; if supplied it must contain at least one non-whitespace character. (Distinct from the [Decision Reason] and [Withdrawal Reason] fields the resolving actions write.)
+The optional submission-context string supplied at [Submit] — a description of what is being approved, the underlying business rule, or a summary of the deviation. Stored under its own name; immutable thereafter. Its absence is valid; if supplied it must not be blank. (Distinct from the [Decision Reason] and [Withdrawal Reason] fields the resolving actions write.)
 
 Kind:       Field
 Field of:   Approval Step
@@ -662,7 +662,7 @@ Projection: state
 
 #### Decided By
 
-The opaque reference to the actor who decided, stamped on [Approve] or [Reject]. Present on [Approved] and [Rejected] steps; immutable once set. It must match [Approver Ref] for the decision to be accepted (Invariant 4) and must contain at least one non-whitespace character (Invariant 6).
+The opaque reference to the actor who decided, stamped on [Approve] or [Reject]. Present on [Approved] and [Rejected] steps; immutable once set. It must match [Approver Ref] for the decision to be accepted (Invariant 4) and must not be blank (Invariant 6).
 
 Kind:       Field
 Field of:   Approval Step
@@ -686,7 +686,7 @@ Projection: decided_at
 
 #### Withdrawn By
 
-The opaque reference to the actor who withdrew the request, stamped on [Withdraw]. Present on [Withdrawn] steps; immutable once set. It must match [Submitter Ref] for the withdrawal to be accepted (Invariant 5) and must contain at least one non-whitespace character (Invariant 6).
+The opaque reference to the actor who withdrew the request, stamped on [Withdraw]. Present on [Withdrawn] steps; immutable once set. It must match [Submitter Ref] for the withdrawal to be accepted (Invariant 5) and must not be blank (Invariant 6).
 
 Kind:       Field
 Field of:   Approval Step

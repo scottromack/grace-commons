@@ -360,7 +360,7 @@ Term store_name: the identifier naming one store instance — a [Store Name]; de
 
 Term declared channel set: the named delivery surfaces a preference record in this deployment may reference; deployment configuration the host resolves, never state this atom holds.
 
-Term degenerate: a declared channel set that is empty, that repeats a channel name, OR that carries a channel name with no non-whitespace character.
+Term degenerate: a declared channel set that is empty, that repeats a channel name, OR that carries a blank channel name.
 
 Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the preference_id and the declared channel set here.
 

@@ -387,9 +387,9 @@ Check 2.5: An auditor MUST find no observation carrying two successor_ids (Invar
 Check 2.6: An auditor MUST find no observation carrying two predecessor_ids (Invariant 3.2).
 Check 3.1: An auditor MUST find no observation whose state DOES NOT EQUAL retracted on a later read of an observation a prior read found retracted (Invariant 6.1).
 Check 4.1: An auditor MUST find no observation absent from a later read (Invariant 7.1).
-Check 5.1: An auditor MUST find a non-whitespace character in EVERY observation's recorded_by (Operation 2, String 5).
-Check 5.2: An auditor MUST find a non-whitespace character in EVERY retracted observation's retracted_by and retraction_reason (Operation 17, Operation 18).
-Check 5.3: An auditor MUST find a non-whitespace character in EVERY successor observation's amended_by and amendment_reason (Operation 16, Operation 17).
+Check 5.1: An auditor MUST find EVERY observation's recorded_by non-blank (Operation 2, String 5).
+Check 5.2: An auditor MUST find EVERY retracted observation's retracted_by and retraction_reason non-blank (Operation 17, Operation 18).
+Check 5.3: An auditor MUST find EVERY successor observation's amended_by and amendment_reason non-blank (Operation 16, Operation 17).
 Check 5.4: An auditor MUST find a predecessor_id, an amended_by and an amendment_reason on EVERY successor observation (State 10).
 Check 6.1: An auditor MUST find two reads of one store state ordering two observations sharing a recorded_at alike (Operation 43).
 ```

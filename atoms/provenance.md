@@ -318,8 +318,8 @@ archived and already-archived are two answers to one state because they tell a r
   ```
 - **Invariant 7 — Custodian presence.**
   ```
-  Invariant 7.1: EVERY non-transferred entry's custodian_ref MUST carry a non-whitespace character.
-  Invariant 7.2: EVERY transferred entry's from_custodian_ref and to_custodian_ref MUST carry a non-whitespace character.
+  Invariant 7.1: EVERY non-transferred entry's custodian_ref MUST stand non-blank.
+  Invariant 7.2: EVERY transferred entry's from_custodian_ref and to_custodian_ref MUST stand non-blank.
   ```
 - **Invariant 8 — Event type validity.**
   ```

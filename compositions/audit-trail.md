@@ -452,8 +452,8 @@ Seventeen knobs and one instance capability requirement, the per-act critical se
 The composition takes four caller-supplied inputs at [Record Action], one at each id-addressed surface, and one more at [Verify Record]. Each is validated at this layer or by a named constituent; nothing is normalized anywhere.
 
 ```
-Primitive policy 1: action_ref MUST contain a non-whitespace character.
-Primitive policy 2: actor_ref MUST contain a non-whitespace character.
+Primitive policy 1: action_ref MUST stand non-blank.
+Primitive policy 2: actor_ref MUST stand non-blank.
 Primitive policy 3: [Record Action] step 1 MUST validate action_ref and actor_ref at this layer.
 Primitive policy 4: [Record Action] MUST NOT call a constituent BEFORE step 1 completes.
 Primitive policy 5: [Record Action] step 1 MUST land invalid-request for a malformed reference, with nothing recorded.
@@ -482,7 +482,7 @@ Primitive policy 27: The caller MUST present a non-empty original_event_payload.
 Primitive policy 28: The composition MUST NOT canonicalize original_event_payload.
 ```
 
-Term malformed reference: an action_ref or actor_ref that is empty, all whitespace, or over reference_length_cap.
+Term malformed reference: an action_ref or actor_ref that EQUALS blank OR whose length EXCEEDS reference_length_cap.
 
 Term full constructed payload: Event Log's data field — `{action_ref, actor_ref, attestation_id, data}` — the exact object [Record Action] step 3 hands to `EventLog.append`.
 
@@ -657,7 +657,7 @@ Term slice: the sequence-number range from `sealed_through + 1` to the tail posi
 Term tail position: the highest sequence_number the open-upper-bound read beginning at `sealed_through + 1` returns; an empty result of that read means the unsealed tail is empty.
 
 WHY:
-The obvious alternative, *the log's next_sequence_number minus one*, reads an internal state field the atom exposes on no declared surface: it counts allocations rather than successful appends (Event Log's storage-failure gap), and Event Log's Invariant 5 was re-scoped off it for that reason. The three failure arms name three different things an operator has to fix. `mechanism-failure(reason)` carries two worlds on one arm — transient outage (signing hardware down, TSA unreachable, HSM session lost), which the next firing may clear, and standing misconfiguration (keying material that fails the running mechanism's preconditions), which every firing reproduces until Configuration changes — and the reason is what tells them apart. invalid-request is reserved by that atom for a record-set reference with no non-whitespace character or a credential absent entirely; neither comes from a caller, so the arm means a defect in the composition's own construction or a plumbing fault, standing rather than transient, a page for a human. recording-failure means the mechanism computed a proof and the seal store refused to persist it, with no partial evidence record written. Under every arm the events stay in the unsealed tail and unsealed_tail_mode governs what [Verify Record] says about them; an unsealed tail that stops draining is the alarm TV names. Re-sealing a partly-purged seal's survivors and rotating a seal onto a fresh mechanism belong to Seal Lifecycle *(forthcoming)*, with the supersession bookkeeping both require.
+The obvious alternative, *the log's next_sequence_number minus one*, reads an internal state field the atom exposes on no declared surface: it counts allocations rather than successful appends (Event Log's storage-failure gap), and Event Log's Invariant 5 was re-scoped off it for that reason. The three failure arms name three different things an operator has to fix. `mechanism-failure(reason)` carries two worlds on one arm — transient outage (signing hardware down, TSA unreachable, HSM session lost), which the next firing may clear, and standing misconfiguration (keying material that fails the running mechanism's preconditions), which every firing reproduces until Configuration changes — and the reason is what tells them apart. invalid-request is reserved by that atom for a blank record-set reference or a credential absent entirely; neither comes from a caller, so the arm means a defect in the composition's own construction or a plumbing fault, standing rather than transient, a page for a human. recording-failure means the mechanism computed a proof and the seal store refused to persist it, with no partial evidence record written. Under every arm the events stay in the unsealed tail and unsealed_tail_mode governs what [Verify Record] says about them; an unsealed tail that stops draining is the alarm TV names. Re-sealing a partly-purged seal's survivors and rotating a seal onto a fresh mechanism belong to Seal Lifecycle *(forthcoming)*, with the supersession bookkeeping both require.
 
 ---
 

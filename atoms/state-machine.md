@@ -319,7 +319,7 @@ Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inh
   WHY: the entry attests that the caller asserted the guard at the moment of the call, and attests nothing about the world. The distinction is the atom's whole restraint, and it is what an auditor must understand before reading `guard_satisfied: true` as evidence — it is evidence of an assertion, and [Execute Gated Workflow](../compositions/execute-gated-workflow.md) is where the assertion is earned by reading a bound [Approval Step](./approval-step.md).
 - **Invariant 9 — Transition attribution completeness.**
   ```
-  Invariant 9.1: A recorded actor_ref MUST carry a non-whitespace character.
+  Invariant 9.1: A recorded actor_ref MUST stand non-blank.
   ```
   WHY: the entry is complete for forensic replay whether or not actor_ref was supplied. Attribution is deployment policy here, not an atom-level mandate — which is exactly the gap [Actor Identity](./actor-identity.md) closes where a regulator needs the actor bound rather than named.
 - **Invariant 10 — Store durability.**
@@ -433,7 +433,7 @@ Check 6.1: An auditor MUST reach the workflow's current state by replaying the w
 Check 7.1: An auditor MUST find guard_satisfied recorded on EVERY guarded declared transition's history entry (Invariant 8.3).
 Check 7.2: An auditor MUST find no guard_satisfied recorded on an unguarded declared transition's history entry (Operation 30).
 Check 8.1: An auditor MUST find transition_id, sequence_number, from_state, to_state, action and fired_at on EVERY history entry (State 4).
-Check 8.2: An auditor MUST find a non-whitespace character in EVERY recorded actor_ref (Invariant 9.1).
+Check 8.2: An auditor MUST find EVERY recorded actor_ref non-blank (Invariant 9.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -692,7 +692,7 @@ Projection: instantiated_at
 
 #### States
 
-The non-empty set of named states in a [Declaration]. Each name is non-whitespace and unique within the declaration; [Current State], [Initial State], [From State], and [To State] are all drawn from it.
+The non-empty set of named states in a [Declaration]. Each name is non-blank and unique within the declaration; [Current State], [Initial State], [From State], and [To State] are all drawn from it.
 
 Kind:       Field
 Field of:   the declaration
@@ -740,7 +740,7 @@ Projection: to_state
 
 #### Action
 
-The named trigger of a declared transition — a non-whitespace string. Supplied on [Fire] to select the unique transition from the [Current State]; recorded on the history entry.
+The named trigger of a declared transition — a non-blank string. Supplied on [Fire] to select the unique transition from the [Current State]; recorded on the history entry.
 
 Kind:       Field
 Field of:   a declared transition
@@ -780,7 +780,7 @@ Projection: fired_at
 
 #### Actor Ref
 
-The optional opaque reference to the actor who fired a transition, recorded on the history entry (and on the genesis at [Instantiate]). If supplied, non-whitespace; its presence is deployment policy, not an atom mandate (Invariant 9).
+The optional opaque reference to the actor who fired a transition, recorded on the history entry (and on the genesis at [Instantiate]). If supplied, non-blank; its presence is deployment policy, not an atom mandate (Invariant 9).
 
 Kind:       Field
 Field of:   the history entry

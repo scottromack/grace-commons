@@ -360,8 +360,8 @@ Revocation forfeits the remaining redemptions without spending them, and so does
 - **Invariant 9 — Revocation attribution completeness.**
   ```
   Invariant 9.1: EVERY revoked capability MUST carry a revoked_at.
-  Invariant 9.2: EVERY revoked capability's revoked_by_ref MUST carry a non-whitespace character.
-  Invariant 9.3: EVERY revoked capability's revocation_reason MUST carry a non-whitespace character.
+  Invariant 9.2: EVERY revoked capability's revoked_by_ref MUST stand non-blank.
+  Invariant 9.3: EVERY revoked capability's revocation_reason MUST stand non-blank.
   ```
 - **Invariant 10 — Every capability has a finite lifetime.**
   ```
