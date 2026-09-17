@@ -475,21 +475,21 @@ A caller whose [Amend] timed out recovers by reading the original: standing in a
 
 ```
 Concurrency 1: The implementation MUST serialize two chain actions against one observation.
-Concurrency 2: The implementation MUST NOT read the state precondition BEFORE the implementation takes the per-observation section.
-Concurrency 3: The implementation MUST hold the per-observation section across the state check and the transition the check guards.
+Concurrency 2: The implementation MUST NOT read the state precondition BEFORE the implementation takes the per-observation critical section.
+Concurrency 3: The implementation MUST hold the per-observation critical section across the state check and the transition the check guards.
 Concurrency 4: A second serialized [Amend] against one observation MUST answer already-amended.
-Concurrency 5: The implementation MUST release the per-observation section on the invocation's return.
-Concurrency 6: IF the per-observation section lapses mid-invocation THEN the implementation MUST answer storage-failure.
+Concurrency 5: The implementation MUST release the per-observation critical section on the invocation's return.
+Concurrency 6: IF the per-observation critical section lapses mid-invocation THEN the implementation MUST answer storage-failure.
 Concurrency 7: The atom MUST NOT offer a reconciliation leg.
 Concurrency 8: The atom MUST admit two concurrent [Record] calls against one subject_ref.
 ```
 
-Term per-observation section: the critical section an implementation holds over one observation_id while a chain action's state check and transition run.
+Term per-observation critical section: the mutual exclusion an implementation holds over one observation_id while a chain action's state check and transition run.
 
 WHY:
-Concurrency 2 and Concurrency 3 close the window that makes the state checks meaningful. A state check read outside the section is a fact about the past by the time the transition runs, and two amends that both read *recorded* would both write — producing the branch Invariant 3.1 forbids. Taking the section first makes the check and the transition one step, so a second amend that waited re-reads under the section and lands already-amended.
+Concurrency 2 and Concurrency 3 close the window that makes the state checks meaningful. A state check read outside the critical section is a fact about the past by the time the transition runs, and two amends that both read *recorded* would both write — producing the branch Invariant 3.1 forbids. Taking the critical section first makes the check and the transition one step, so a second amend that waited re-reads under the critical section and lands already-amended.
 
-Concurrency 6 and Concurrency 7 together say what happens when the section is a lease and the lease expires: the invocation's terminus is the expiry, the transaction aborts, and the call answers storage-failure rather than continuing outside the section. There is exactly one writer per transition and no leg that reconciles two.
+Concurrency 6 and Concurrency 7 together say what happens when the critical section is a lease and the lease expires: the invocation's terminus is the expiry, the transaction aborts, and the call answers storage-failure rather than continuing outside the critical section. There is exactly one writer per transition and no leg that reconciles two.
 
 Concurrency 8 states the other half — [Record] contends over nothing, so two clinicians charting the same patient at once is ordinary and each gets its own observation.
 
@@ -561,7 +561,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: observation, observation_id, subject_ref, recorded_by, observation_type, unit, reference, store instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, state rejection, value constraint, clock_offset_allowance, future bound, resolved recorded_at, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, per-observation section, string input, blank, uncommitted crash, dangling amend.
+Term terms: observation, observation_id, subject_ref, recorded_by, observation_type, unit, reference, store instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, state rejection, value constraint, clock_offset_allowance, future bound, resolved recorded_at, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, per-observation critical section, string input, blank, uncommitted crash, dangling amend.
 
 #### Record
 
@@ -878,7 +878,7 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/clinical-observation.md`.
 
-- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section with its semantics — taken before the state check, released on return or death, a lease's expiry the invocation's terminus, a stalled invocation re-reading the state under the section and landing [Already Amended]; a deployment-declared clock_offset_allowance under which the future-dated check on a caller-supplied [Recorded At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction, beside a caller told to read the original and retry; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 7 says never exists, could relink one dangling shape but not the other — the successor's content is nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an act the caller's retry could already have landed; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone* — with *Recovery commits under a declared service identity … and what cannot be re-derived is re-run*, frozen 2026-08-29).
+- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section with its semantics — taken before the state check, released on return or death, a lease's expiry the invocation's terminus, a stalled invocation re-reading the state under the critical section and landing [Already Amended]; a deployment-declared clock_offset_allowance under which the future-dated check on a caller-supplied [Recorded At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction, beside a caller told to read the original and retry; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 7 says never exists, could relink one dangling shape but not the other — the successor's content is nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an act the caller's retry could already have landed; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone* — with *Recovery commits under a declared service identity … and what cannot be re-derived is re-run*, frozen 2026-08-29).
 
 - **2026-09-13 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the four actions as a signature block, Invariant 1 through 9 keeping their numbers, every success effect conditioned on a declared admitted record, admitted amend, admitted retract or admitted read (Hard invariant 16), [Amend] and [Retract] unified under a declared chain action so their shared guards are stated once, the per-action *rejection priority* paragraph collapsed to one seven-row case space, the arithmetic in `recorded_at ≤ now + clock_offset_allowance` routed through a declared future bound so no rule carries a sum (Closed vocabulary 9), the five acceptance areas opened into `Check 1.1 through 6.1` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and four edge-case families. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into clinical-observation` found nothing citing this atom by label. 61.2 KB → 60.7 KB, the smallest reduction of the migration — this atom's prose carried almost no restatement, and what came out was one repeated precedence paragraph.
 

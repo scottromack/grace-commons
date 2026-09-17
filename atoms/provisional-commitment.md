@@ -111,9 +111,9 @@ State 8 through 10 are the three surfaces a reader keeps expecting to find. A co
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The deployment MUST supply the id material at the seam.
-Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one section.
-Capability requirement 4: The registry MUST release the section on the caller's return.
-Capability requirement 5: The registry MUST release the section on the caller's death.
+Capability requirement 3: The registry MUST run the availability read and the hold write for one resource as one critical section.
+Capability requirement 4: The registry MUST release the critical section on the caller's return.
+Capability requirement 5: The registry MUST release the critical section on the caller's death.
 Capability requirement 6: The store MUST acknowledge a write ONLY IF the write commits.
 Capability requirement 7: A deployment firing [Expire] on a cadence MUST declare the cadence.
 Capability requirement 8: A deployment firing [Expire] on a cadence MUST declare the reclamation window the cadence falls inside.

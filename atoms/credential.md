@@ -119,9 +119,9 @@ Capability requirement 4: The deployment MUST declare a derivation function PER 
 Capability requirement 5: The deployment MUST declare a one-way derivation function.
 Capability requirement 6: The deployment MUST NOT declare two credential_types differing only by a foldable difference.
 Capability requirement 7: The deployment MUST declare the default expires_at.
-Capability requirement 8: The store MUST run the effective-active check and the register write for one pair as one section.
-Capability requirement 9: The store MUST release the section on the caller's return.
-Capability requirement 10: The store MUST release the section on the caller's death.
+Capability requirement 8: The store MUST run the effective-active check and the register write for one pair as one critical section.
+Capability requirement 9: The store MUST release the critical section on the caller's return.
+Capability requirement 10: The store MUST release the critical section on the caller's death.
 Capability requirement 11: The store MUST acknowledge a write ONLY IF the write commits.
 Capability requirement 12: The store MUST commit an admitted rotate's two writes together.
 Capability requirement 13: The deployment MUST canonicalize an opaque reference.
@@ -138,7 +138,7 @@ Deleted: Clock semantics 7. Non-goal 28 owns it.
 ```
 
 WHY:
-Capability requirement 8 is a correction, and the correction is worth stating because the prose it replaces named a mechanism that cannot work. A draft of this atom asked the store to enforce effective-active uniqueness with *a unique partial index on the pair where status is active and the credential is not past its deadline* — and no index predicate can reference now. The clock-free half of that index, `where status = active`, forbids exactly the case Operation 8 permits: a lapsed record standing in active beside its successor. So the index is either unimplementable or wrong, and the obligation it was reaching for is a section over the pair — the same shape [Provisional Commitment](./provisional-commitment.md)'s registry carries. The obligation is unchanged; only the mechanism illustration is gone, and it is recorded in the Ledger rather than quietly dropped.
+Capability requirement 8 is a correction, and the correction is worth stating because the prose it replaces named a mechanism that cannot work. A draft of this atom asked the store to enforce effective-active uniqueness with *a unique partial index on the pair where status is active and the credential is not past its deadline* — and no index predicate can reference now. The clock-free half of that index, `where status = active`, forbids exactly the case Operation 8 permits: a lapsed record standing in active beside its successor. So the index is either unimplementable or wrong, and the obligation it was reaching for is a critical section over the pair — the same shape [Provisional Commitment](./provisional-commitment.md)'s registry carries. The obligation is unchanged; only the mechanism illustration is gone, and it is recorded in the Ledger rather than quietly dropped.
 
 Capability requirement 14 is the delegated cap. This atom declares no maximum length for a string input and obliges the deployment to declare one, which is one of the postures the *input-handling regime* docket row counts; the material is exempt only insofar as a derivation function states its own bounds.
 
@@ -300,7 +300,7 @@ Logic confinement is the Contract's (`execution-contract.md` §Logic confinement
   ```
   Invariant 2.1: Two effective-active credentials MUST NOT share a pair.
   ```
-  WHY: the bound ranges over the reading, not the stored status, which is why a pair may carry a lapsed active record beside its successor (Operation 8) and still satisfy it. Two mechanisms keep it: [Rotate] commits both writes together (Operation 40), so the pair is never doubly effective-active mid-transition; and [Register]'s check and write run under one section (Capability requirement 8), so two concurrent registrations for one pair cannot both pass the check.
+  WHY: the bound ranges over the reading, not the stored status, which is why a pair may carry a lapsed active record beside its successor (Operation 8) and still satisfy it. Two mechanisms keep it: [Rotate] commits both writes together (Operation 40), so the pair is never doubly effective-active mid-transition; and [Register]'s check and write run under one critical section (Capability requirement 8), so two concurrent registrations for one pair cannot both pass the check.
 - **Invariant 3 — Sole-holder verification.**
   ```
   Invariant 3.1: [Verify] MUST answer verified ONLY IF the presented verifier matches an effective-active credential's verifier.
@@ -926,14 +926,14 @@ formal: verified — credential.tla + 2 twins, 2026-06-04
 last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
 
 open:
-- 2026-09-13-a · refining · Capability requirement 8 / formal · the prose named a store constraint that cannot be built — a unique partial index whose predicate would have to reference `now`, whose clock-free half forbids the lapsed-beside-successor case Operation 8 permits; the obligation is unchanged and is now a section over the pair, but `credential-buggy-toctou.tla` was built against the index reading → re-check the twin against the section reading
+- 2026-09-13-a · refining · Capability requirement 8 / formal · the prose named a store constraint that cannot be built — a unique partial index whose predicate would have to reference `now`, whose clock-free half forbids the lapsed-beside-successor case Operation 8 permits; the obligation is unchanged and is now a critical section over the pair, but `credential-buggy-toctou.tla` was built against the index reading → re-check the twin against the critical section reading
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/credential.md`.
 
-- **2026-09-13 — Effective-active uniqueness is enforced by a section over the pair, not by a unique partial index.** *Chose:* Capability requirement 8 — the store runs the effective-active check and the register write for one pair as one section. *Over:* the store constraint the prose named, *a unique partial index on `(principal_ref, credential_type)` where `status = Active` and the credential is not past expires_at*. *Because:* an index predicate cannot reference now, and the half of it that can — `where status = Active` — forbids exactly the case Operation 8 permits, a lapsed record standing in active beside its successor. The obligation the prose was reaching for is unchanged; only the mechanism is, and the formal twin built against the old reading is an open Ledger line rather than a silent inheritance.
+- **2026-09-13 — Effective-active uniqueness is enforced by a critical section over the pair, not by a unique partial index.** *Chose:* Capability requirement 8 — the store runs the effective-active check and the register write for one pair as one critical section. *Over:* the store constraint the prose named, *a unique partial index on `(principal_ref, credential_type)` where `status = Active` and the credential is not past expires_at*. *Because:* an index predicate cannot reference now, and the half of it that can — `where status = Active` — forbids exactly the case Operation 8 permits, a lapsed record standing in active beside its successor. The obligation the prose was reaching for is unchanged; only the mechanism is, and the formal twin built against the old reading is an open Ledger line rather than a silent inheritance.
 - **2026-09-13 — Every bound, guard and lookup means effective-active, declared once.** *Chose:* window reading: live | lapsed, and effective-active credential as a credential standing in active that reads live. *Over:* restating *stored active and now < expires_at* at the uniqueness guard, the verify lookup, the rotate precondition and the revoke precondition, which is how the prose carried it four times. *Because:* a spec pays for a proposition once (GRACE-lang Authority 3), and this is the atom's single most misreadable claim — an implementation that reads the stored flag at any one of those four sites is the hazard `credential-buggy-toctou.tla` exists to catch.
 - **2026-09-13 — live admits an absent deadline, which the corpus's other two window readings do not.** *Chose:* a two-member reading whose live member covers both *no deadline* and *deadline not yet reached*. *Over:* a three-member reading separating the unbounded case. *Because:* nothing in this atom treats an unbounded credential differently from one inside its window — every guard asks the same question and gets the same answer — so a third member would be a distinction no rule consumes. It is worth recording because [Provisional Commitment](./provisional-commitment.md) and [Invitation](./invitation.md) both declare a window reading over a *mandatory* deadline, and this is the first where the deadline is optional.
 

@@ -11,7 +11,7 @@ The instant is a value, not a private timer. A holder may carry it to a third pa
 ## Intent
 
 WHY:
-Two patterns in this library described a per-key section with lease semantics in prose, and a third described two fences that are the same concept reached from the other end. Each stated the same rules in its own words, and each repair to one had to be propagated to the others by hand. The concept has its own state machine, its own operations and its own failure mode, and it belongs to none of the patterns that use it. This atom exists so that a pattern needing exclusive standing over a key cites it rather than restating it, and so that the argument for the one hard rule — the terminus is an instant — is made once, where it can be attacked once. It is deliberately small: a lease does not decide who should hold it, does not record that it was held, and does not know what the holder does.
+Two patterns in this library described a per-key critical section with lease semantics in prose, and a third described two fences that are the same concept reached from the other end. Each stated the same rules in its own words, and each repair to one had to be propagated to the others by hand. The concept has its own state machine, its own operations and its own failure mode, and it belongs to none of the patterns that use it. This atom exists so that a pattern needing exclusive standing over a key cites it rather than restating it, and so that the argument for the one hard rule — the terminus is an instant — is made once, where it can be attacked once. It is deliberately small: a lease does not decide who should hold it, does not record that it was held, and does not know what the holder does.
 
 ## Structure
 
@@ -158,7 +158,7 @@ expires_at is the point of the atom ([Expires At]). The judging party's clock is
 
 ## Examples
 
-**A section around a write.** A process takes the key for the act it is about to change, receives expires_at, does its work, and releases on return. A second process arriving mid-way waits at most the first's remaining term and then either takes the key or is told unavailable — and in neither case does it write.
+**A critical section around a write.** A process takes the key for the act it is about to change, receives expires_at, does its work, and releases on return. A second process arriving mid-way waits at most the first's remaining term and then either takes the key or is told unavailable — and in neither case does it write.
 
 **A fence carried to a store.** The same process passes expires_at less the allowance into the store call as a deadline. The process pauses for longer than anyone budgeted; its term passes; the key goes to the next holder. The paused process wakes and issues its write anyway — and the store refuses it, because the deadline it was given has passed on the store's own clock. The next holder's read is therefore complete: nothing of the previous holder's can still land.
 
@@ -200,7 +200,7 @@ Non-goal 5: The atom MUST NOT make the work under a lease atomic.
 Non-goal 6: The atom MUST NOT roll back work done under a lease.
 Non-goal 7: The atom MUST NOT isolate a holder's partial work from a reader.
 Non-goal 8: The atom MUST NOT write a record.
-Non-goal 9: A pattern that must prove a section was held MUST record the section.
+Non-goal 9: A pattern that must prove a critical section was held MUST record the critical section.
 Non-goal 10: The atom MUST NOT choose a grant's duration.
 Non-goal 11: A pattern that needs the term to cover the pattern's work MUST state and check that obligation.
 ```
@@ -221,7 +221,7 @@ Composition note 7: A pattern MUST NOT invent a second deadline concept for a fe
 ```
 
 WHY:
-A section held on one node and not another is no section (Composition note 3). A pattern whose work can exceed the term it asks for has a defect this atom will not catch — it will hand the key on at the instant, exactly as specified (Composition note 5, Non-goal 11). A store deadline and a journal deadline are two uses of one atom (Composition note 6, Composition note 7).
+A critical section held on one node and not another is no critical section (Composition note 3). A pattern whose work can exceed the term it asks for has a defect this atom will not catch — it will hand the key on at the instant, exactly as specified (Composition note 5, Non-goal 11). A store deadline and a journal deadline are two uses of one atom (Composition note 6, Composition note 7).
 
 ## Terms
 
@@ -334,7 +334,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-11 — Rewritten in GRACE lang v0.33; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the operations as a signature block, rationale under `WHY:`, terms declared where they are used, the invariant numbers and the Ledger unchanged. *Over:* the prose draft. *Because:* the migration plan — atoms first, since they declare the vocabulary compositions cite.
 
-- **2026-09-10 — Extracted because the obligation kept propagating, not because the shape repeated.** *Chose:* one atom covering the grant and the terminus-as-fence together. *Over:* leaving the prose in the patterns that use it, and over splitting the section from the fence into two concepts. *Because:* four consecutive review rounds on one composition showed a flat defect density — one foundational finding per nineteen kilobytes of body — with most new defects being an obligation added in one place and not carried to the others. Lease semantics were the largest single source of such obligations, reaching into fences, timing, expiry, remaining, and worked examples. Splitting the grant from the fence would have preserved exactly the propagation the extraction exists to remove: a fence *is* a terminus handed to another party, and stating it twice is how the two got out of step.
+- **2026-09-10 — Extracted because the obligation kept propagating, not because the shape repeated.** *Chose:* one atom covering the grant and the terminus-as-fence together. *Over:* leaving the prose in the patterns that use it, and over splitting the critical section from the fence into two concepts. *Because:* four consecutive review rounds on one composition showed a flat defect density — one foundational finding per nineteen kilobytes of body — with most new defects being an obligation added in one place and not carried to the others. Lease semantics were the largest single source of such obligations, reaching into fences, timing, expiry, remaining, and worked examples. Splitting the grant from the fence would have preserved exactly the propagation the extraction exists to remove: a fence *is* a terminus handed to another party, and stating it twice is how the two got out of step.
 
 - **2026-09-10 — The terminus is an instant, and death is not observable.** *Chose:* a grant that ends only at its instant or at its holder's release. *Over:* a host that frees a key when it believes the holder is gone, which is what one of the composing descriptions admitted. *Because:* a formal model of a composing pattern rejects the release-on-death variant — a holder that dies with a write in flight frees the key, the next holder reads before that write is visible, and two writers land for one key. The rule is stated here once so that a pattern citing this atom inherits the argument rather than restating it.
 

@@ -117,9 +117,9 @@ Capability requirement 2: The deployment MUST supply the id material at the seam
 Capability requirement 3: The deployment MUST declare the clock_offset_allowance.
 Capability requirement 4: The deployment MUST supply the clock_offset_allowance at the seam.
 Capability requirement 5: The store instance MUST serialize two order actions naming one order_id.
-Capability requirement 6: The store instance MUST NOT evaluate the state check BEFORE taking the section.
-Capability requirement 7: The store instance MUST release the section on the caller's return.
-Capability requirement 8: The store instance MUST release the section on the caller's death.
+Capability requirement 6: The store instance MUST NOT evaluate the state check BEFORE taking the critical section.
+Capability requirement 7: The store instance MUST release the critical section on the caller's return.
+Capability requirement 8: The store instance MUST release the critical section on the caller's death.
 Capability requirement 9: The store MUST acknowledge a write ONLY IF the write commits.
 Capability requirement 10: The store MUST commit an admitted amend's two writes together.
 Capability requirement 11: The deployment MUST canonicalize an opaque reference.
@@ -129,7 +129,7 @@ Capability requirement 14: The deployment MUST own the clock's monotonicity.
 ```
 
 WHY:
-Capability requirement 5 through 8 are the concurrency contract stated as the section it needs, not as an ambient hope. Two systems verifying one order, or a dispense racing a concurrent verification, resolve by serialization rather than by this atom detecting the race — and the section must be *taken before the state check*, because a check evaluated outside it reads a state another caller is already leaving.
+Capability requirement 5 through 8 are the concurrency contract stated as the critical section it needs, not as an ambient hope. Two systems verifying one order, or a dispense racing a concurrent verification, resolve by serialization rather than by this atom detecting the race — and the critical section must be *taken before the state check*, because a check evaluated outside it reads a state another caller is already leaving.
 
 Capability requirement 3 and Capability requirement 4 are one value declared and then injected. The future-dated refusal on a supplied ordered_at compares a caller's stamp against this node's reading, and those are two clocks; without a declared margin the refusal rests on their agreement, which is not something either side can promise (Decisions, 2026-08-30).
 
@@ -564,14 +564,14 @@ Clock semantics 4 and Clock semantics 5 are asymmetric on purpose, and the asymm
 ### Concurrency
 
 ```
-Concurrency 1: The implementation MUST evaluate the state check and the state change of an order action inside one section.
+Concurrency 1: The implementation MUST evaluate the state check and the state change of an order action inside one critical section.
 Concurrency 2: A losing order action MUST read the winner's state.
 Concurrency 3: A losing order action MUST answer the rejection the winner's state earns.
-Concurrency 4: The implementation MUST NOT detect a race outside the section.
+Concurrency 4: The implementation MUST NOT detect a race outside the critical section.
 ```
 
 WHY:
-Concurrency 4 states what the atom does *not* do, because the alternative is tempting and wrong. This spec has no race detection, no compare-and-set token, no optimistic retry — it has a section, and a caller who loses one simply reads a state that has moved and receives the rejection that state earns. A stalled or re-issued invocation re-reads under the section and lands an existing rejection rather than a new kind of answer (Decisions, 2026-08-30).
+Concurrency 4 states what the atom does *not* do, because the alternative is tempting and wrong. This spec has no race detection, no compare-and-set token, no optimistic retry — it has a critical section, and a caller who loses one simply reads a state that has moved and receives the rejection that state earns. A stalled or re-issued invocation re-reads under the critical section and lands an existing rejection rather than a new kind of answer (Decisions, 2026-08-30).
 
 ### Indeterminate outcome
 
@@ -1301,6 +1301,6 @@ Directional changes only — the turns a future reader must know the pattern too
   What does not strip is the *graph*. Nine states in this topology, with the amendment boundary and the cancel/discontinue split landing on exactly the dispensing edge, is not derivable from neutral primitives — a generic state machine plus a supplied graph is just this atom with the domain moved into a parameter, and the parameter would carry every clinical judgment the graph encodes. The domain hides in the shape, not in the words and not in the rules. The formal layer corroborates: this is the only atom in the migrated set carrying both an Alloy model and a TLA model, and the Alloy model exists because the *structure* needed checking rather than the timing.
 
   Three specimens now, three hiding places: [Observation](./observation.md) hid nothing and was renamed; [Party Identity](./party-identity.md) hid it in the field schema and kept both name and no tag; this one hides it in the graph and keeps the tag. The test's site-census grows by one per specimen, which is the argument for running it on every atom rather than on the ones that look domain-shaped.
-- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity of the atom's own store as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section — taken before the state check, released on return or death — with a stalled or re-issued invocation re-reading under the section and landing an existing rejection; a re-entry arm for a caller whose [Amend] lost its response, retrying only where the original is still amendable; and a deployment-declared clock_offset_allowance under which the future-dated check on a supplied [Ordered At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction; a caller left to retry [Amend] blind, which on an original still [Ordered] creates a second successor; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 14.2 says never exists, could relink one dangling shape but not the other — the successor's dosing parameters, [Amended By] and its amendment reason are nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an amendment the caller's retry could already have landed, branching a chain Invariant 4.1 keeps linear; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page.
+- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity of the atom's own store as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section — taken before the state check, released on return or death — with a stalled or re-issued invocation re-reading under the critical section and landing an existing rejection; a re-entry arm for a caller whose [Amend] lost its response, retrying only where the original is still amendable; and a deployment-declared clock_offset_allowance under which the future-dated check on a supplied [Ordered At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction; a caller left to retry [Amend] blind, which on an original still [Ordered] creates a second successor; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 14.2 says never exists, could relink one dangling shape but not the other — the successor's dosing parameters, [Amended By] and its amendment reason are nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an amendment the caller's retry could already have landed, branching a chain Invariant 4.1 keeps linear; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page.
 
 NOTE: End of Medication Order.
