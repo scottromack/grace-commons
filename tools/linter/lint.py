@@ -2845,6 +2845,65 @@ def check_stripped_links(root: Path) -> list[Finding]:
     return out
 
 
+SECTION_CITE = re.compile(r"\b[Tt]he (?:section|row) titled ")
+SECTION_FILE = re.compile(r" in \[?`([\w./-]+\.md)`")
+
+
+def _titles(path: Path) -> set[str]:
+    """Every title a citation may name: a heading, a heading's part before its
+    subtitle, a bold-bullet heading, a table row's bold first cell, a labelled
+    rule of `execution-contract.md`."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return set()
+    out: set[str] = set()
+    for m in re.finditer(r"^#+\s+(.*?)\s*$", text, re.M):
+        h = re.sub(r"^\d+(\.\d+)*\.?\s+", "", m.group(1).strip().replace("`", ""))
+        h = re.sub(r"\s*\*\(.*\)\*\s*$", "", h)
+        out.add(h)
+        if " — " in h:
+            out.add(h.split(" — ")[0])
+    for m in re.finditer(r"^\s*- \*\*`?([^*`]+?)`?\*\*", text, re.M):
+        out.add(m.group(1).strip())
+    for m in re.finditer(r"^\| \*\*([^*]+?)\*\* \|", text, re.M):
+        out.add(m.group(1).strip())
+    return {t.lower().replace("*", "").replace("`", "") for t in out if t}
+
+
+def check_section_titles(root: Path) -> list[Finding]:
+    """X-section-title: a citation `the section titled X` names a heading of the
+    file it names, or of its own page where it names none (council read 126). A
+    section carries no label, so nothing else resolves the citation."""
+    cache: dict[Path, set[str]] = {}
+
+    def titles(path: Path) -> set[str]:
+        if path not in cache:
+            cache[path] = _titles(path)
+        return cache[path]
+
+    out: list[Finding] = []
+    for sub in ("atoms", "compositions"):
+        for md in sorted((root / sub).glob("*.md")):
+            for i, raw in enumerate(md.read_text(encoding="utf-8").splitlines(), start=1):
+                for m in SECTION_CITE.finditer(raw):
+                    seg = raw[m.end():].lower().replace("*", "").replace("`", "")
+                    known = set(titles(md))
+                    fm = SECTION_FILE.search(raw[m.end():m.end() + 140])
+                    if fm:
+                        named = md.parent / fm.group(1)
+                        if not named.exists():
+                            named = root / fm.group(1)
+                        known |= titles(named)
+                    cited = re.split(r" in \[?[\w./-]+\.md|[.,;:)]", seg)[0].strip()
+                    if any(seg.startswith(t) for t in known) or (
+                            len(cited) > 8 and any(t.startswith(cited) for t in known)):
+                        continue
+                    out.append(Finding(md, i, "X-section-title",
+                        f"'{raw[m.end():m.end() + 40].strip()}' opens no section title"))
+    return out
+
+
 CONTRACT_CITE = re.compile(r"\bExecution Contract ((?:[A-Z][a-z]+)(?: [a-z]+)*) (\d+)\b")
 CONTRACT_LABEL = re.compile(r"\*\*((?:[A-Z][a-z]+)(?: [a-z]+)*) (\d+):")
 
@@ -3107,6 +3166,7 @@ def main(argv: list[str]) -> int:
     findings += check_range_form(root)
     findings += check_stripped_links(root)
     findings += check_contract_labels(root)
+    findings += check_section_titles(root)
     findings += check_composes_list(patterns)
     findings += check_constituents_agree(patterns)
     findings += check_invariant_numbers(root, patterns)

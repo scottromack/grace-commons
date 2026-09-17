@@ -39,6 +39,7 @@ from lint import (  # noqa: E402
     check_range_form,
     check_stripped_links,
     check_contract_labels,
+    check_section_titles,
     check_composes_list,
     check_constituents_agree,
     check_invariant_numbers,
@@ -1505,6 +1506,28 @@ def check_contract_labels_synthetic(problems: list[str]) -> int:
     return 3
 
 
+def check_section_titles_synthetic(problems: list[str]) -> int:
+    """X-section-title (council read 126): a citation naming a heading of the
+    file it names, a heading of its own page, or the start of a long heading is
+    silent; a title no file carries fires. Returns the fixture count."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        (root / "pressure-testing.md").write_text(
+            "## A compensator is exclusive — one writer per act\n", encoding="utf-8")
+        (root / "atoms" / "a.md").write_text(
+            "## Which closing stands\n\n"
+            "Read the section titled Which closing stands for both keys.\n"
+            "Per the section titled *A compensator is exclusive* in `pressure-testing.md`.\n"
+            "Per the section titled Where the money goes in `pressure-testing.md`.\n"
+            "Per the section titled Which opening stands.\n", encoding="utf-8")
+        lines = {f.line for f in check_section_titles(root)}
+    if lines != {5, 6}:
+        problems.append(f"X-section-title: fired on lines {sorted(lines)}, wanted [5, 6]")
+    return 4
+
+
 def check_generated_views_synthetic(problems: list[str]) -> int:
     """The links the generated views read (council read 93). F-stripped-link
     fires on a bracket-stripped link and is silent on a link and a code span;
@@ -1806,6 +1829,13 @@ def main(argv: list[str]) -> int:
         print(f"F-constituents: {n_const} synthetic fixtures hold (three agreeing homes and a lone list "
               "silent; an extra list item, a declaration naming more, and a serve rule naming more "
               "fire) \u2713")
+
+    title_problems: list[str] = []
+    n_title = check_section_titles_synthetic(title_problems)
+    failures.extend(title_problems)
+    if not title_problems:
+        print(f"X-section-title: {n_title} synthetic fixtures hold (a named file's heading, an own "
+              "page's heading and a long heading's opening silent; a title no file carries fires) \u2713")
 
     contract_problems: list[str] = []
     n_contract = check_contract_labels_synthetic(contract_problems)

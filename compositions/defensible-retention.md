@@ -52,7 +52,7 @@ Composes 1: EXACTLY ONE Legal Hold instance MUST serve the composition.
 Composes 2: EXACTLY ONE Retention Window instance MUST serve the composition.
 Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
 Composes 4: The composition MUST NOT change a constituent's spec.
-Composes 5: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
+Composes 5: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 6: The composition MUST read Audit Trail as a substrate PER the section titled Substrate composition invocation in `execution-contract.md`.
 Composes 7: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
 Composes 8: The business retention instance MUST NOT govern an audit event.
@@ -918,7 +918,7 @@ Term value sets: hold check mode = strict | advisory. hold check result = empty 
 
 Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, blank, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, late hold, position, invocation_id, intended_at, intent_abandoned, attributed_to.
 
-Term cited: the section titled Conformance in `execution-contract.md` — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam.
 
 Term composing patterns: Policy Reconciliation *(forthcoming)*; Hold-Aware Audit Retention *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; a cryptographic shredding pattern *(forthcoming)*; [Permissions](../atoms/permissions.md).
 

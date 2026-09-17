@@ -49,7 +49,7 @@ Composes 1: EXACTLY ONE Provisional Commitment instance MUST serve the compositi
 Composes 2: EXACTLY ONE Duplicate Prevention instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
 Composes 4: The composition MUST replace Provisional Commitment's own caller surface.
-Composes 5: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
+Composes 5: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 6: The composition MUST answer a constituent's rejection unchanged.
 Composes 7: The composition MUST call Duplicate Prevention's record EXACTLY ONE time per admitted first invocation.
 Composes 8: The composition MUST configure the Duplicate Prevention instance with the idempotency window.
@@ -60,7 +60,7 @@ Term composition: this pattern's wiring of [Provisional Commitment](../atoms/pro
 Term constituents: [Provisional Commitment](../atoms/provisional-commitment.md), [Duplicate Prevention](../atoms/duplicate-prevention.md).
 
 WHY:
-Composes 5 is one rule where the prose carried two. `Invariant 5` and `Invariant 6` each asserted a constituent's invariants hold over this composition's instance; the section titled Conformance in [`execution-contract.md`](../execution-contract.md) settles both by reference, so restating them was a citing spec restating a rule it cites (Authority 6, council read 53). What they carried beyond the blanket is Composes 6 — the relay of an unchanged constituent rejection, which no constituent guarantees about a caller — and Composes 7, the once-per-first-invocation `record` discipline, which is this composition's own call pattern and not a property of Duplicate Prevention.
+Composes 5 is one rule where the prose carried two. `Invariant 5` and `Invariant 6` each asserted a constituent's invariants hold over this composition's instance; Execution Contract Conformance 8 settles both by reference, so restating them was a citing spec restating a rule it cites (Authority 6, council read 53). What they carried beyond the blanket is Composes 6 — the relay of an unchanged constituent rejection, which no constituent guarantees about a caller — and Composes 7, the once-per-first-invocation `record` discipline, which is this composition's own call pattern and not a property of Duplicate Prevention.
 
 Composes 4 is the enclosure every guarantee below rests on. A deployment exposing `ProvisionalCommitment.place_hold` beside [Place Hold] gives a caller a route that carries no token, and the exactly-once claim is a claim about the route through this composition alone.
 
@@ -285,7 +285,7 @@ These emerge from the composition; none belongs to one constituent.
   Deleted: Invariant 5. Composes 5 owns it.
   Deleted: Invariant 6. Composes 5 and Composes 7 own it.
   ```
-  WHY: the two deleted invariants asserted each constituent's invariants hold over this composition's instance, which the section titled Conformance in `execution-contract.md` settles by reference (Authority 6). What they carried beyond the blanket is Composes 6 and Composes 7 — the unchanged relay of a constituent rejection, and the once-per-first-invocation `record` discipline, which is this composition's call pattern rather than a property of the atom.
+  WHY: the two deleted invariants asserted each constituent's invariants hold over this composition's instance, which Execution Contract Conformance 8 settles by reference (Authority 6). What they carried beyond the blanket is Composes 6 and Composes 7 — the unchanged relay of a constituent rejection, and the once-per-first-invocation `record` discipline, which is this composition's call pattern rather than a property of the atom.
 - **Invariant 8 — Exactly-once effect within the window.**
   ```
   Invariant 8.1: The composition MUST make the exactly-once claim ONLY IF the deployment declares the critical section, the token results durability AND Duplicate Prevention's store obligations.
@@ -469,7 +469,7 @@ Term record verbs: call, answer, take, read, write, store, key, carry, overwrite
 
 Term actors: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; an operator; an invocation; the eviction leg; an entry; a token; a commitment.
 
-Term cited: the section titled Conformance in `execution-contract.md` — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the extraction-pending classification. The section titled Logic Confinement Principle in `execution-contract.md` — the seam, the transition and the mechanism-capability pattern. [Provisional Commitment](../atoms/provisional-commitment.md) `Invariant 2` — single resolution, which makes a resolving re-run effect-free. [Duplicate Prevention](../atoms/duplicate-prevention.md) `Invariant 2` — a record starts a guard rather than extending one.
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the extraction-pending classification. The section titled Logic Confinement Principle in `execution-contract.md` — the seam, the transition and the mechanism-capability pattern. [Provisional Commitment](../atoms/provisional-commitment.md) `Invariant 2` — single resolution, which makes a resolving re-run effect-free. [Duplicate Prevention](../atoms/duplicate-prevention.md) `Invariant 2` — a record starts a guard rather than extending one.
 
 #### Place Hold
 

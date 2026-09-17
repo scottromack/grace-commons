@@ -50,7 +50,7 @@ This is a composition, not a new primitive. Credential and Actor Identity are un
 Composes 1: EXACTLY ONE Credential instance MUST serve the composition.
 Composes 2: EXACTLY ONE Actor Identity instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
-Composes 4: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
+Composes 4: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 5: The composition MUST NOT call Credential's verify at the gate.
 Composes 6: The composition MUST NOT call Credential's rotate.
 Composes 7: The composition MUST NOT call Credential's revoke.
@@ -298,7 +298,7 @@ Each emerges from the composition; none belongs to one constituent. Each carries
   Invariant 4.3: EVERY success entry MUST carry the attestation_id AND the gate's credential_id.
   Deleted: Invariant 5. Composes 4 owns it.
   ```
-  WHY: Invariant 4.2 is the one admitted gap and it is admitted rather than hidden — the attestation committed and the entry did not, so the call answers with the attestation's id and Check 4 surfaces the unlogged attestation once it is older than the attest completion bound. The deleted invariant asserted both constituents' invariants hold over this composition's instances, which the section titled Conformance in `execution-contract.md` settles by reference (Authority 6, council read 53). It is the fourth such collapse and the cheapest: one rule covering two atoms, where the other three compositions spent one rule per atom. What it carried beyond the blanket is Composes 5 through 10.
+  WHY: Invariant 4.2 is the one admitted gap and it is admitted rather than hidden — the attestation committed and the entry did not, so the call answers with the attestation's id and Check 4 surfaces the unlogged attestation once it is older than the attest completion bound. The deleted invariant asserted both constituents' invariants hold over this composition's instances, which Execution Contract Conformance 8 settles by reference (Authority 6, council read 53). It is the fourth such collapse and the cheapest: one rule covering two atoms, where the other three compositions spent one rule per atom. What it carried beyond the blanket is Composes 5 through 10.
 
 ---
 
@@ -453,7 +453,7 @@ Term record verbs: call, answer, read, write, append, store, key, hold, take, re
 
 Term actors: the composition; the constituents; the host; a deployment; an auditor; a caller; a principal; an actor; the orphaned-credential leg; an invocation; an attestation; a credential.
 
-Term cited: the section titled Conformance in `execution-contract.md` — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the extraction-pending classification. The section titled Capability provenance in `pressure-testing.md` — the declared-source discipline every invariant's rests-on clause follows.
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the extraction-pending classification. The section titled Capability provenance in `pressure-testing.md` — the declared-source discipline every invariant's rests-on clause follows.
 
 #### Register Authenticated Actor
 

@@ -48,7 +48,7 @@ Composes 1: EXACTLY ONE Credential instance MUST serve the composition.
 Composes 2: EXACTLY ONE Session instance MUST serve the composition.
 Composes 3: EXACTLY ONE Audit Trail instance MUST serve the composition.
 Composes 4: The composition MUST NOT change a constituent's spec.
-Composes 5: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
+Composes 5: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 6: The composition MUST read Audit Trail as a substrate PER the section titled Substrate composition invocation in `execution-contract.md`.
 Composes 7: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
 Composes 8: The composition MUST NOT call Credential's register.
@@ -423,7 +423,7 @@ Check 5.2 is the sweep's own comparison written as an auditor's, and the pair wi
 
 Check 2.3 and Check 3.3 are the two an auditor cannot reach from the others. Check 2.3 is the map-degradation exit: `Action wiring 11` records the failure and nothing else says when the record stops mattering, which is either a backfilled pair or a session that has died. Check 3.3 is the reconstruction claim rather than a coverage claim — the log alone is short by exactly the sessions `Invariant 4.2` names as the sweep's, so the pair of surfaces is what makes a principal's history answerable from records with no external source.
 
-External check 6 is the corpus's first check that sends an auditor to a **composition's** acceptance rather than an atom's. [Audit Trail](./audit-trail.md) is a substrate here, so its own guarantees are inherited by reference under the section titled Conformance in `execution-contract.md` and are not re-verified at this layer — the auditor reads its acceptance, not this one's.
+External check 6 is the corpus's first check that sends an auditor to a **composition's** acceptance rather than an atom's. [Audit Trail](./audit-trail.md) is a substrate here, so its own guarantees are inherited by reference under Execution Contract Conformance 8 and are not re-verified at this layer — the auditor reads its acceptance, not this one's.
 
 ---
 
@@ -485,7 +485,7 @@ Term record verbs: call, answer, read, write, append, store, key, hold, remove, 
 
 Term actors: the composition; the constituents; the substrate; the host; the transition; a deployment; an auditor; a caller; a principal; the sweep; a session; a credential; an event.
 
-Term cited: the section titled Conformance in `execution-contract.md` — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Substrate composition invocation in `execution-contract.md` — what naming a composition as a constituent means at runtime. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Substrate composition invocation in `execution-contract.md` — what naming a composition as a constituent means at runtime. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
 #### Revoke Sessions For Credential
 

@@ -50,7 +50,7 @@ This is not a Role-Based Access Control layer, not a delegation system, and not 
 Composes 1: EXACTLY ONE Permissions instance MUST serve the composition.
 Composes 2: EXACTLY ONE Actor Identity instance MUST serve the composition.
 Composes 3: The composition MUST NOT change a constituent's spec.
-Composes 4: The composition MUST inherit a constituent's invariants PER the section titled Conformance in `execution-contract.md`.
+Composes 4: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
 Composes 5: The composition MUST reach a constituent through the constituent's declared surface.
 Composes 6: The composition MUST NOT read a constituent's store beside the constituent's declared read.
 Composes 7: The composition MUST wrap Permissions' grant.
@@ -840,7 +840,7 @@ Term value sets: verify result = verified | failed-verification(reason) | not-kn
 
 Term terms: composition, constituents, administered grant, administrative act, grant attribution map, revocation attribution map, attribution entry, orphan log, underlying reason, orphan attestation, binding registry, seam, transition, grant proposal format, revocation proposal format, namespace prefix, issuance completion bound, revocation completion bound, pair-scoped completion bound, pairing write atomicity, constituent store durability, retention scope, purge record, clock offset allowance, length cap, blank, boundary predicate, opaque input, administered opaque input, admitted issuance, admitted revocation, pair-scoped revocation, enumerated set, remaining grants, verify result, tamper reading, lawful destruction, forensic finding, failed-grant leg, post-enumeration grant, aged-out attestation, landed attestation, retention horizon, purge-pending orphan, non-conformant purge, known grant, unpaired administered grant, issuance orphan position, revocation orphan position, grant issuance result, grant revocation result, permission revocation result, attribution record.
 
-Term cited: the section titled Conformance in `execution-contract.md` — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Logic Confinement Principle in `execution-contract.md` — the seam.
 
 Term composing patterns: Binding Registry *(forthcoming)*; Delegation *(forthcoming)*; Compromise Disclosure *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Scope Registry *(forthcoming)*; [Event Log](../atoms/event-log.md); [Tamper Evidence](../atoms/tamper-evidence.md); [Retention Window](../atoms/retention-window.md); [Idempotent Reservation](./idempotent-reservation.md); [Multi-Party Approval](./multi-party-approval.md).
 
