@@ -83,3 +83,26 @@ The tool names a reading and decides nothing (`GRACE-lang.md` Principle 8). It
 exists because of a specific failure: Lease's `Check 6.1` measured a margin
 Fence 5 set, Fence 5 was repaired, and nothing put the check back in front of a
 reader — the citation graph was there, and only ever read forward (council read 8).
+
+## Which nouns resolve to nothing
+
+`check.py` reads every verb after a modal against the declared record verbs
+(`C-verb`, Closed vocabulary 8). [`nouns.py`](nouns.py) is the reader Closed
+vocabulary 4 lacked — *every normative identifier resolves to a declaration* —
+for the nouns:
+
+```
+python3 tools/grace/nouns.py                 # per-spec counts and the most common misses
+python3 tools/grace/nouns.py --spec lease    # every miss in one spec, by line
+python3 tools/grace/nouns.py --json          # the whole reading
+```
+
+It tags each labelled rule with NLTK's averaged-perceptron tagger and matches
+each noun phrase against the names the spec declares (`Term` lines, category
+lists and their aliases, signature names, value-set members, bold-bullet
+settings), its constituents' names and the grammar's, rule nouns included. A
+tagger decides what is a noun, so the count is good to a few percent: the tool
+is advisory, never gates, and needs `nltk` with the
+`averaged_perceptron_tagger_eng` model (`test_checks.py` skips its fixtures when
+they are absent). Measured at council read 105: 20,841 noun phrases in 7,869
+rules, 2,977 resolving to nothing.

@@ -1289,6 +1289,46 @@ def check_ge_form_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing)
 
 
+def check_nouns_synthetic(problems: list[str]) -> int | None:
+    """tools/grace/nouns.py — Closed vocabulary 4's reader (council read 105).
+    A declared noun, a rule noun and a constituent's name resolve; an undeclared
+    one does not. Returns the fixture count, or None when nltk is absent (the
+    tool is advisory and its dependency optional)."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    try:
+        import nltk
+        nltk.pos_tag(["probe"])
+    except Exception:
+        return None
+    import nouns  # noqa: E402
+    root = Path(__file__).resolve().parents[2]
+    with tempfile.TemporaryDirectory() as d:
+        atoms = Path(d) / "atoms"
+        atoms.mkdir()
+        (atoms / "hold.md").write_text("Term qualifiers: migrated — rewritten in GRACE lang v0.57 (2026-09-17).\n\n"
+                                       "Term hold: one preservation obligation.\n", encoding="utf-8")
+        page = atoms / "synthetic.md"
+        page.write_text(
+            "Term qualifiers: migrated — rewritten in GRACE lang v0.57 (2026-09-17).\n\n"
+            "Term constituents: [Hold](./hold.md).\n\n"
+            "Term record verbs: read, answer.\n\n"
+            "Term ledger: the store of receipts.\n\n"
+            "```\n"
+            "Operation 1: The atom MUST read the ledger.\n"
+            "Operation 2: A call MUST read the hold.\n"
+            "Operation 3: The atom MUST read the widget.\n"
+            "```\n", encoding="utf-8")
+        rep = nouns.read([page], root / "GRACE-lang.md", nltk.pos_tag)
+    misses = set(rep["specs"]["synthetic"]["misses"])
+    for noun in ("ledger", "call", "hold"):
+        if noun in misses:
+            problems.append(f"nouns.py: '{noun}' is declared (own, rule noun, constituent) and read as unresolved")
+    if "widget" not in misses:
+        problems.append("nouns.py: the undeclared 'widget' resolved")
+    return 4
+
+
 def check_fence_form_synthetic(problems: list[str]) -> int:
     """D-fence-form and Surface 19 after the fence kinds merged (council read 90).
     A bare fence of rules, a Ledger-shaped block, another language's code and a
@@ -1800,6 +1840,15 @@ def main(argv: list[str]) -> int:
     if not ge_problems:
         print(f"W-ge-disjunction: {n_ge} synthetic fixtures hold (DOES NOT EXCEED and a "
               "two-proposition OR silent; the two-arm disjunction fires, gating) \u2713")
+
+    noun_read_problems: list[str] = []
+    n_nr = check_nouns_synthetic(noun_read_problems)
+    failures.extend(noun_read_problems)
+    if n_nr is None:
+        print("nouns.py: skipped — nltk and its tagger model are not installed (advisory tool)")
+    elif not noun_read_problems:
+        print(f"nouns.py: {n_nr} synthetic fixtures hold (the spec's own noun, a rule noun and a "
+              "constituent's noun resolve; an undeclared noun does not) \u2713")
 
     range_problems: list[str] = []
     n_range = check_range_form_synthetic(range_problems)
