@@ -77,7 +77,7 @@ Term seam: the atom's I/O boundary as `execution-contract.md` Logic confinement 
 
 Term transition: the atom's evaluation of one call against the order store, as `execution-contract.md` Logic confinement declares it.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 11 and Identity 13 are the atom's sharpest refusal, and the one a clinical reader expects to find broken. This spec never reads what a medication_ref *means* — not its schedule, not its interactions, not its formulary status — which is why it can be one atom rather than a pharmacopoeia. What it guarantees is that the reference recorded at placement is the reference on every record downstream, and Invariant 2.1 makes changing it structurally impossible rather than merely refused: [Amend] does not take a medication_ref at all.
@@ -259,8 +259,8 @@ Operation 74: An admitted read MUST answer the matching orders by ordered_at asc
 Operation 75: An admitted read MUST answer EVERY field group the order carries.
 Operation 76: An admitted read MUST answer an empty sequence where no order matches.
 Operation 77: [Read] MUST NOT record a field.
-Deleted: Operation 78. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 79. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 78. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 79. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by order_id, including a refused one.
@@ -330,7 +330,7 @@ Operation 50 is the same move on [Reinstate]. The action takes no target state, 
 
 Operation 69 and Operation 70 are the two absences a clinical reader arrives expecting. A second dose against one order and a refill against one prescription are both real, both common, and both outside this record — the first is a dose-event pattern composing on top, the second is a new order or a layer above. Modelling either here would put a regimen's bookkeeping inside the prescription primitive.
 
-Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the now declaration cites it rather than restating it.
+Logic confinement is the Contract's (the section titled Logic Confinement Principle in `execution-contract.md`), and the now declaration cites it rather than restating it.
 
 ### Invariants
 
@@ -550,8 +550,8 @@ Atomic writes 4 names the store the transaction spans, and the words are load-be
 ```
 Clock semantics 4: The atom MUST bound a supplied ordered_at from above by the future bound.
 Deleted: Clock semantics 3. Operation 4 owns it for ordered_at, and the `resolved dispensed_at`, `resolved administered_at` and `resolved completed_at` declarations own it for the event instants.
-Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
-Deleted: Clock semantics 2. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Clock semantics 5: The atom MUST NOT bound a supplied event instant.
 Deleted: Clock semantics 6. Capability requirement 13 owns it.
 Deleted: Clock semantics 7. Capability requirement 14 owns it.
@@ -1008,7 +1008,7 @@ Projection: discontinued_at
 
 #### Now
 
-The wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it — never read inside the transition and never supplied by the business caller. It stamps every instant the caller did not supply, and raises the future bound the supplied [Ordered At] is checked against.
+The wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it — never read inside the transition and never supplied by the business caller. It stamps every instant the caller did not supply, and raises the future bound the supplied [Ordered At] is checked against.
 
 Kind:         Parameter
 Parameter of: Order

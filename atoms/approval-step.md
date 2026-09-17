@@ -82,9 +82,9 @@ Term reference: subject_ref, approver_ref, submitter_ref, decided_by, withdrawn_
 
 Term store instance: one named step store a call is routed to; step_id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the step_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the step_id here.
 
-Term transition: the atom's evaluation of one call against the step store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the step store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
 Identity 10 is the rule the exclusivity invariants rest on. decided_by against approver_ref (Invariant 4) and withdrawn_by against submitter_ref (Invariant 5) are exact byte-sequence comparisons on the values as supplied — no Unicode normalization, no case folding, no trimming. Two references that render identically and differ in bytes are different actors to this atom, and a precomposed accented character will not match its decomposed twin. That is unforgiving, and it is the only comparison an exclusivity guard can safely make: a normalizing comparison would let the atom decide that two spellings name one actor, which is an identity judgment this atom has no standing to make. Canonicalization is the deployment's (Identity 14).
@@ -208,14 +208,14 @@ Operation 46: IF a state filter's value IS NOT IN the states THEN [Read] MUST an
 Operation 47: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 48: [Read] MUST NOT write.
 Deleted: Operation 49. Capability requirement 1 owns it.
-Deleted: Operation 50. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 51. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 52. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 50. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 51. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 52. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term states: pending | approved | rejected | withdrawn — a [State], and the whole state space.
 
@@ -877,6 +877,6 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-12 — Three propositions had two owners each.** *Chose:* `Invariant 2.1` owns membership exclusivity and the `State` family no longer restates it; `Operation 8` owns *an admitted submit stands the step in pending*; `Identity 12` owns *the atom does not confirm a subject_ref*. *Over:* keeping each pair. *Because:* Authority 3, and all three were found by `W-duplicate-proposition` rather than by reading — the same pattern as State Machine, where the duplicates a 169-rule surface hides are exactly the ones no reader finds.
 
-- **2026-09-12 — A cross-spec citation was written in the local form.** *Chose:* `Selective Disclosure Invariant 5.1`, the qualified form §11 declares. *Over:* `[Selective Disclosure](./selective-disclosure.md) states as its \`Invariant 5\``, which reads as a citation of *this* spec's Invariant 5 — submitter exclusivity, an unrelated rule. *Because:* the citation-aim audit resolved it against the local registry and the aim was wrong. Nothing enforces the qualified form, and a census over the corpus returns 24 candidates of which nearly all are local citations that merely sit near a spec link — so the class is docketed rather than instrumented.
+- **2026-09-12 — A cross-spec citation was written in the local form.** *Chose:* `Selective Disclosure Invariant 5.1`, the qualified form Hard invariant 28 declares. *Over:* `[Selective Disclosure](./selective-disclosure.md) states as its \`Invariant 5\``, which reads as a citation of *this* spec's Invariant 5 — submitter exclusivity, an unrelated rule. *Because:* the citation-aim audit resolved it against the local registry and the aim was wrong. Nothing enforces the qualified form, and a census over the corpus returns 24 candidates of which nearly all are local citations that merely sit near a spec link — so the class is docketed rather than instrumented.
 
 NOTE: End of Approval Step.

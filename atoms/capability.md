@@ -65,9 +65,9 @@ Term allocator_ref: the opaque reference naming the actor that created the capab
 
 Term scope: the opaque value describing what the capability authorizes — a [Scope]; stored at allocation, answered at redemption, never evaluated.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the capability_token's random material here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the capability_token's random material here.
 
-Term transition: the atom's evaluation of one call against the capability store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the capability store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
 Identity 11 is the half of uniqueness that randomness cannot supply. Unguessability comes from the entropy source; *uniqueness* comes from the store refusing a colliding write, which is why Invariant 12.2 is a store obligation rather than a probabilistic hope (Identity 9, Identity 11, Invariant 12.1, Invariant 12.2).
@@ -210,8 +210,8 @@ Operation 52: [Read] MUST NOT write.
 Operation 53: A liveness query MUST rest on the effective_status.
 Operation 54: A liveness query MUST NOT rest on the stored status alone.
 Deleted: Operation 55. Capability requirement 1 owns it.
-Deleted: Operation 56. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 57. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 56. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 57. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Operation 58: The atom MUST NOT offer an expire action.
 Operation 59: The atom MUST NOT offer a re-scope action.
 Operation 60: The atom MUST NOT offer an extend action.
@@ -221,9 +221,9 @@ Term uncommitted crash: a crash inside [Redeem] whose lowering the store has not
 
 Term committed crash: a crash inside [Redeem] whose lowering the store has committed.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term max_redemptions: the number of redemptions the capability permits — a [Max Redemptions]; set at allocation, never changed.
 
@@ -286,7 +286,7 @@ The case space, and the rule that owns each case:
 | *a window lapses* | now reaches expires_at | nothing is called | **nothing written** — no status, no stamp, no counter move (Expiry 1 through 5) |
 | [Read] | a filter | the matching capabilities, each carrying its effective_status | none (Operation 50, Operation 51) |
 
-NOTE: watch the third write. This atom has three mutating actions — [Allocate], [Redeem] and [Revoke] — and the signature block gives a storage-failure arm to two of them. A redeeming [Redeem] lowers the counter and can move the status in the same operation, and the value set carries no outcome for that write failing. The case table above names the two writes that have the arm rather than *either write*, which is as far as a language rewrite may go: adding the arm is logic, and it is docketed (`open-questions.md` §*A mutating action with no write-failure outcome*). Council read 22.
+NOTE: watch the third write. This atom has three mutating actions — [Allocate], [Redeem] and [Revoke] — and the signature block gives a storage-failure arm to two of them. A redeeming [Redeem] lowers the counter and can move the status in the same operation, and the value set carries no outcome for that write failing. The case table above names the two writes that have the arm rather than *either write*, which is as far as a language rewrite may go: adding the arm is logic, and it is docketed (the row titled *A mutating action with no write-failure outcome* in `open-questions.md`). Council read 22.
 
 WHY:
 [Redeem] takes exactly one argument, and that is a commitment rather than an omission. Accepting a `redeemer_ref` would create the appearance of identity-keyed authorization while the actual check stayed bearer-keyed — a misleading interface that hides the authorization model from the composing system. So the signature makes the bearer semantics unambiguous, and a composing pattern that needs to record who redeemed keeps that in its own records (Operation 20 through 22, Invariant 3.1, Invariant 5.2).

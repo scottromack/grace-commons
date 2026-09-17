@@ -70,7 +70,7 @@ Term constituents: [Credential](../atoms/credential.md), [Session](../atoms/sess
 Term service identity: the composition's own registered actor and credential — a service identity; the attested emitter of every audit event this composition writes.
 
 WHY:
-Composes 6 and Composes 7 are the corpus's first migrated use of a **composition as a constituent**. [Audit Trail](./audit-trail.md) is a substrate, not an atom, so Event Log, Actor Identity, Retention Window and Tamper Evidence are reached *through* it and this composition holds no instance of any of them — which `execution-contract.md` §Substrate composition invocation is what makes legitimate rather than a topology accident.
+Composes 6 and Composes 7 are the corpus's first migrated use of a **composition as a constituent**. [Audit Trail](./audit-trail.md) is a substrate, not an atom, so Event Log, Actor Identity, Retention Window and Tamper Evidence are reached *through* it and this composition holds no instance of any of them — which the section titled Substrate composition invocation in `execution-contract.md` is what makes legitimate rather than a topology accident.
 
 Composes 12 through 14 are the attestation decision and it is forced rather than chosen. Login's callers are end principals whose presented material is the very thing under test — a failed login's principal has no attestable credential at all — so the only honest attestation surface for every event this composition writes is its own registered identity, with the human parties carried as data.
 
@@ -103,7 +103,7 @@ Term login event log: the composition's own append-only record of every login ca
 
 Term login-family events: the substrate's login_succeeded, login_map_write_failure and login_failed events.
 
-**Contract classification: two derived indexes and one extraction-pending element** ([`execution-contract.md`](../execution-contract.md) §Composition state).
+**Contract classification: two derived indexes and one extraction-pending element** (the section titled Composition state in [`execution-contract.md`](../execution-contract.md)).
 
 - The two **maps** are a *derived index*, and the pairing fact lives in a constituent: every issued session's `(credential_id, session_token)` pair is immutable audit content, written into the login_succeeded event's data and, on the map-write failure arm, into a login_map_write_failure event. *Rebuild procedure:* enumerate the substrate through the declared read, select the login-family events, and group each data's session_token by its credential_id. **Bound on the rebuild's totality, stated rather than assumed:** the traversal reads event payloads the substrate destroys at its retention horizon, so the rebuild is total only within that horizon — and the readers need it total for one session lifetime, not for the life of the credential, which the WHY below works out. A login_map_write_failure event names a pair the live map lacks, so the rebuild reconstructs exactly the backfill Invariant 2.4's remediation prescribes — rebuild-on-miss **is** the remediation path.
 - The **login event log** is *extraction-pending, against [Event Log](../atoms/event-log.md)*, with a durability obligation now rather than later. The Contract's record-coordination rule says a composition that must record that its own calls occurred composes Event Log rather than growing a bespoke store, and that is the extraction pending here: a second Event Log instance for the login-attempt journal, at which point the entries become that instance's events and the classification question dissolves.
@@ -121,8 +121,8 @@ With failed-login auditing enabled — the default and the regulated posture —
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. `execution-contract.md` §Logic confinement owns it.
-Deleted: Capability requirement 3. `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Capability requirement 4: The composition MUST NOT mint an id.
 Capability requirement 5: The composition MUST NOT generate cryptographic material.
 Capability requirement 6: A deployment MUST set the default session duration.
@@ -137,10 +137,10 @@ Capability requirement 14: A deployment MUST set the login completion bound.
 Capability requirement 15: A deployment MUST set whether a failed login reaches the substrate.
 ```
 
-Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading here.
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading here.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term transition: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the composition's evaluation of one call against the constituents, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term issuer refs: the issued_by_ref values the deployment's calling layers pass into login — the scope of every sweep comparison against the session store.
 
@@ -423,7 +423,7 @@ Check 5.2 is the sweep's own comparison written as an auditor's, and the pair wi
 
 Check 2.3 and Check 3.3 are the two an auditor cannot reach from the others. Check 2.3 is the map-degradation exit: `Action wiring 11` records the failure and nothing else says when the record stops mattering, which is either a backfilled pair or a session that has died. Check 3.3 is the reconstruction claim rather than a coverage claim — the log alone is short by exactly the sessions `Invariant 4.2` names as the sweep's, so the pair of surfaces is what makes a principal's history answerable from records with no external source.
 
-External check 6 is the corpus's first check that sends an auditor to a **composition's** acceptance rather than an atom's. [Audit Trail](./audit-trail.md) is a substrate here, so its own guarantees are inherited by reference under `execution-contract.md` §Conformance and are not re-verified at this layer — the auditor reads its acceptance, not this one's.
+External check 6 is the corpus's first check that sends an auditor to a **composition's** acceptance rather than an atom's. [Audit Trail](./audit-trail.md) is a substrate here, so its own guarantees are inherited by reference under the section titled Conformance in `execution-contract.md` and are not re-verified at this layer — the auditor reads its acceptance, not this one's.
 
 ---
 
@@ -485,7 +485,7 @@ Term record verbs: call, answer, read, write, append, store, key, hold, remove, 
 
 Term actors: the composition; the constituents; the substrate; the host; the transition; a deployment; an auditor; a caller; a principal; the sweep; a session; a credential; an event.
 
-Term cited: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the derived-index and extraction-pending classifications. `execution-contract.md` §Substrate composition invocation — what naming a composition as a constituent means at runtime. `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: the section titled Conformance in `execution-contract.md` — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Substrate composition invocation in `execution-contract.md` — what naming a composition as a constituent means at runtime. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
 #### Revoke Sessions For Credential
 
@@ -630,6 +630,6 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Audit arm`, `Action wiring`, `Wiring decision`, `Reconciliation` as the surfaces, the six invariant numbers unchanged, and an acceptance section distributed from the checks the prose already named. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. **No preservation claim was collapsed** — this is the first composition of the epoch carrying none, because every invariant here already emerges and the constituents' guarantees were carried as citations rather than as invariants of their own. The three tombstones it does carry are re-homings inside the spec rather than collapses: `Invariant 4.1` to `Composition state 10`, `Non-goal 3` to `Wiring decision 3`, `Non-goal 14` to `Invariant 2.2`.
 - **2026-09-14 — `Reconciliation` reaches recurrence in consecutive migrations, and the decision not to merge it with `Eviction` holds.** *Chose:* to take `Reconciliation` for the issuance-reconciliation sweep. *Over:* minting a third name, or folding it into `Composition state`. *Because:* [Authenticated Actor](./authenticated-actor.md) minted it one migration earlier for the orphaned-credential leg, and this sweep is the same family rather than the same shape: both run outside any invocation, both report or close rather than serve a caller, both owe an age edge. [Idempotent Reservation](./idempotent-reservation.md)'s `Eviction` shares the *shape* and remains separate for the reason council read 61 stated — it evicts where these report, and the difference decides whether a liveness bound is owed. Two consecutive specs is Principle 2's recurrence bar met for `Reconciliation`; `Eviction` stays at one and stays flagged (council read 62).
-- **2026-09-14 — The first composition to name a composition as a constituent.** *Chose:* `Composes 6` and `Composes 7`, citing `execution-contract.md` §Substrate composition invocation, with `External check 6` sending an auditor to [Audit Trail](./audit-trail.md)'s own acceptance rather than re-verifying it here. *Over:* listing Event Log, Actor Identity, Retention Window and Tamper Evidence as this composition's constituents, which is what the atom-only reading of `Composes` would have produced. *Because:* the substrate's guarantees are inherited by reference — that is the point of naming a substrate — and re-listing its constituents would have claimed instances this composition does not hold. The corpus composes compositions and this is the first migrated spec where the rule surface has to say so.
+- **2026-09-14 — The first composition to name a composition as a constituent.** *Chose:* `Composes 6` and `Composes 7`, citing the section titled Substrate composition invocation in `execution-contract.md`, with `External check 6` sending an auditor to [Audit Trail](./audit-trail.md)'s own acceptance rather than re-verifying it here. *Over:* listing Event Log, Actor Identity, Retention Window and Tamper Evidence as this composition's constituents, which is what the atom-only reading of `Composes` would have produced. *Because:* the substrate's guarantees are inherited by reference — that is the point of naming a substrate — and re-listing its constituents would have claimed instances this composition does not hold. The corpus composes compositions and this is the first migrated spec where the rule surface has to say so.
 
 NOTE: End of Login.

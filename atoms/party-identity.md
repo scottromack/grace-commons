@@ -80,11 +80,11 @@ Term reference: an assigned id, an acting reference, document_ref OR evidence_re
 
 Term store instance: one named party store a call is routed to; assigned id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the id material here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the id material here.
 
-Term transition: the atom's evaluation of one call against the party store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the party store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 10 is what an external party's life requires. A [Name] changes by law, a [Document Ref] is superseded when the document is renewed, a [Document Type] differs between two enrollments of one person, and none of that makes the party a different party — so identifying by a content field would collapse attribute change with distinct-party disambiguation. The opaque id is what lets a composition link a lifetime of activity to one durable reference.
@@ -212,8 +212,8 @@ Operation 53: An admitted read MUST answer the matching parties in insertion ord
 Operation 54: An admitted read MUST answer an empty sequence where no party matches.
 Operation 55: [Read] MUST NOT record a field.
 Operation 56: [Read] MUST NOT answer storage-failure.
-Deleted: Operation 57. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 58. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 57. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 58. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Operation 59: The atom MUST NOT accept a caller-supplied instant.
 ```
 
@@ -465,8 +465,8 @@ Atomic writes 4: The implementation MUST NOT repair a dangling transition.
 ```
 Clock semantics 5: A recorded instant MUST NOT carry an ordering.
 Deleted: Clock semantics 3. Capability requirement 8 owns it.
-Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
-Deleted: Clock semantics 2. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 4. Capability requirement 9 owns it.
 ```
 
@@ -560,7 +560,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: party, party_id, verification event, state change event, assigned id, enrollment field, acting reference, reference, store instance, seam, transition, now, party action, transitioning action, state, state rejection, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
 
-Term cited: `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
 Term composing pattern: [Actor Identity](./actor-identity.md), [Consent](./consent.md), [Retention Window](./retention-window.md), [Event Log](./event-log.md), [Audit Trail](../compositions/audit-trail.md), [Customer Onboarding](../compositions/customer-onboarding.md), [External Onboarding](../compositions/external-onboarding.md), an identity resolution pattern, an attribute update pattern, an erasure coordination pattern, a trusted timestamping pattern, a document store.
 
@@ -782,7 +782,7 @@ Projection: fresh_verification
 
 #### Now
 
-The wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it — never read inside the transition and never supplied by the business caller.
+The wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it — never read inside the transition and never supplied by the business caller.
 
 Kind:         Parameter
 Parameter of: Enroll

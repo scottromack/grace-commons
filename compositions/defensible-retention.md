@@ -77,7 +77,7 @@ Term business retention instance: the one [Retention Window](../atoms/retention-
 Term service identity: application_actor_ref and application_credential — the composition's own registered actor and credential, and the attested emitter of every record the sweep writes.
 
 WHY:
-Composes 6 and Composes 7 name the substrate relation. [Audit Trail](./audit-trail.md) is a composition, not an atom, so Event Log, Actor Identity, Tamper Evidence and the audit instance's own Retention Window are reached *through* it and this composition holds no instance of any of them — `execution-contract.md` §Substrate composition invocation is what makes that a declared topology rather than an accident. Composes 8 is the one place the corpus's *declared multi-instance topology* clause bites twice in one spec: two Retention Window instances exist here, one governing business records and one governing the audit events that record their governance, and the whole of this composition's evidence story turns on which of the two a sentence means.
+Composes 6 and Composes 7 name the substrate relation. [Audit Trail](./audit-trail.md) is a composition, not an atom, so Event Log, Actor Identity, Tamper Evidence and the audit instance's own Retention Window are reached *through* it and this composition holds no instance of any of them — the section titled Substrate composition invocation in `execution-contract.md` is what makes that a declared topology rather than an accident. Composes 8 is the one place the corpus's *declared multi-instance topology* clause bites twice in one spec: two Retention Window instances exist here, one governing business records and one governing the audit events that record their governance, and the whole of this composition's evidence story turns on which of the two a sentence means.
 
 Composes 15 through 17 split attestation by who is present. Every write an action makes inside its own invocation is attested by the calling operator, whose credential the substrate verifies inside the write. The sweep runs when that operator is gone and their credential was never persisted, so a sweep write attested as theirs would be a false attribution; it is attested under the service identity with the human named in the payload instead.
 
@@ -156,9 +156,9 @@ Composition state 27 through 32 declare the two relations the gate actually eval
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
-Deleted: Capability requirement 3. `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Capability requirement 4: The transition MUST NOT mint an invocation_id.
-Deleted: Capability requirement 5. `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Capability requirement 6: The composition MUST NOT accept an invocation_id as an input.
 Capability requirement 7: The composition MUST NOT mint a retention_id.
 Capability requirement 8: The composition MUST NOT mint a hold_id.
@@ -192,14 +192,14 @@ Capability requirement 35: A deployment MUST serialize a hold placement and a pu
 Capability requirement 36: The deployment MUST declare the clock offset allowance.
 ```
 
-Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one invocation_id here.
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one invocation_id here.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 Term invocation_id: the id the seam allocates for one state-changing invocation; an intent and the outcome matched to it carry the same one (Capability requirement 2, Reconciliation 6).
 
 Term intended_at: the instant an intent records (Action wiring 8).
 
-Term transition: the composition's evaluation of one call against the constituents, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the composition's evaluation of one call against the constituents, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term evidence floor: the longest retention policy in use on the business retention instance taken with the longest hold the deployment admits — what audit_trail_retention_policy must outlast — the age a placement event's payload must survive to.
 
@@ -819,7 +819,7 @@ The ordering is the load-bearing half. Every outcome follows its committing call
 ```
 Clock semantics 4: The composition MUST judge elapsed retention against the injected now.
 Deleted: Clock semantics 2. Action wiring 8 owns it.
-Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 3. Action wiring 60 owns it.
 Clock semantics 5: The composition MUST judge a sibling set member's eligibility against the injected now.
 Deleted: Clock semantics 6. Composes 18 owns it.
@@ -918,7 +918,7 @@ Term value sets: hold check mode = strict | advisory. hold check result = empty 
 
 Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, blank, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, late hold, position, invocation_id, intended_at, intent_abandoned, attributed_to.
 
-Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam.
+Term cited: the section titled Conformance in `execution-contract.md` — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam.
 
 Term composing patterns: Policy Reconciliation *(forthcoming)*; Hold-Aware Audit Retention *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; a cryptographic shredding pattern *(forthcoming)*; [Permissions](../atoms/permissions.md).
 

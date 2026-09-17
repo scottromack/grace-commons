@@ -70,11 +70,11 @@ Term registry: the deployment's owner of what a resource is and what availabilit
 
 Term store instance: one named commitment store a call is routed to; id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the id material and the registry's availability verdict here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the id material and the registry's availability verdict here.
 
-Term transition: the atom's evaluation of one call against the commitment store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the commitment store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity 5 ranges over a store instance's whole lifetime, which is what makes id reuse a case of sharing rather than a rule of its own — the reason the shipped Invariant 9 is a tombstone below.
@@ -124,9 +124,9 @@ Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolv
 Capability requirement 13: The deployment MUST own the clock's skew.
 Capability requirement 14: The deployment MUST own the clock's monotonicity.
 Deleted: Clock semantics 4. Capability requirement 13 owns it.
-Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
-Deleted: Clock semantics 2. `execution-contract.md` §Logic confinement owns it.
-Deleted: Clock semantics 3. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 5. Capability requirement 14 owns it.
 Deleted: Clock semantics 6. Non-goal 26 owns it.
 ```
@@ -197,8 +197,8 @@ Operation 32: A refused resolving action MUST leave the commitment in held.
 Operation 33: A resolving action MUST NOT accept a resource.
 Operation 34: A resolving action MUST NOT accept a requester.
 Operation 35: A resolving action MUST NOT accept a duration.
-Deleted: Operation 36. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 37. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 36. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 37. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 Term resolving action: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.
@@ -242,7 +242,7 @@ Operation 17 through 19 are the honored window, and the boundary is the whole of
 
 [Release] and [Expire] are two actions rather than one because they differ in which side of the window they are legal on and in what the record then says happened. An auditor asking *did this requester give the resource back, or did the requester simply not answer* reads the terminal state and gets a different answer for each. The return of the resource itself is not here — it is Capability requirement 10, because this atom cannot see availability (Non-goal 11) and a MUST whose subject cannot evaluate it is decoration.
 
-Logic confinement is the Contract's (`execution-contract.md` §Logic confinement), and the now declaration cites it rather than restating it. The clock is consumed twice per call — by the window reading and by the stamp — and both consumptions read the one now the seam supplied, so a transition is a pure function of the commitment, the inputs, now and the id material.
+Logic confinement is the Contract's (the section titled Logic Confinement Principle in `execution-contract.md`), and the now declaration cites it rather than restating it. The clock is consumed twice per call — by the window reading and by the stamp — and both consumptions read the one now the seam supplied, so a transition is a pure function of the commitment, the inputs, now and the id material.
 
 ### Invariants
 
@@ -518,7 +518,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: commitment, id, property, reference, registry, store instance, seam, transition, now, resolving action, well-formedness check, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, capacity decision, degenerate window, late resolution, premature expiry, re-hold.
 
-Term cited: sequence_number: Event Log. `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: sequence_number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
 Term composing pattern: [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Actor Identity](./actor-identity.md), [Permissions](./permissions.md), a capacity constraint pattern, a reversal pattern.
 
@@ -627,7 +627,7 @@ Projection:   duration
 
 #### Now
 
-The wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it — never read inside the transition and never supplied by the business caller. Consumed twice per call: by the window reading and by the transition's stamp.
+The wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it — never read inside the transition and never supplied by the business caller. Consumed twice per call: by the window reading and by the transition's stamp.
 
 Kind:         Parameter
 Parameter of: Place Hold

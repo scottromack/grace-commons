@@ -47,13 +47,13 @@ Term recipient_ref: the opaque reference naming who the notification is for — 
 
 Term payload: the opaque content the notification carries — a [Payload]; stored and returned unchanged.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the notification_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the notification_id here.
 
-Term transition: the atom's evaluation of one call against the notification store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the notification store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 One attempt, one record. A retry is a new notification with a new id rather than a second outcome on the old one, which is what keeps *how many times did we try* answerable and stops a terminal record being rewritten (Identity 7, Non-goal 3).
@@ -151,8 +151,8 @@ Operation 21: [Pending For] MUST NOT order the answer.
 Operation 22: [Status Of] MUST NOT write.
 Operation 23: [Pending For] MUST NOT write.
 Deleted: Operation 24. Capability requirement 1 owns it.
-Deleted: Operation 25. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 26. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 25. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 26. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 Term terminal transition: a [Deliver], a [Fail] or an [Expire] call — the three that end a notification, sharing one precondition pair.

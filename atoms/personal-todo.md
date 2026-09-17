@@ -43,13 +43,13 @@ Term unit: one thing to do — the record this atom holds; recorded, revised, fi
 
 Term id: the opaque value naming one unit — an [Id]; stable across sessions, unique for the system's life.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the id here.
 
-Term transition: the atom's evaluation of one call against the list, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the list, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 ### State
 
@@ -140,8 +140,8 @@ Operation 22: IF the store refuses the write THEN [Complete] MUST answer storage
 Operation 23: IF the store refuses the write THEN [Delete] MUST answer storage-failure.
 Operation 24: A refused call MUST leave the unit as the call found the unit.
 Deleted: Operation 25. Capability requirement 1 owns it.
-Deleted: Operation 26. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 27. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 26. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 27. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 Term new_description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.

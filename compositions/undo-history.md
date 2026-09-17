@@ -62,7 +62,7 @@ Term derived state: the Personal Todo shape the replay produces — a derived in
 
 Term unit: one task in the derived state, named by an id as [Personal Todo](../atoms/personal-todo.md)'s identity model declares it.
 
-Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects a new unit's id here.
+Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects a new unit's id here.
 
 WHY:
 Composes 4 and Composes 5 are the whole composition stated twice, from the storage side and from the call side. The log is the truth and the state is a projection, so an undo is a re-derivation rather than a reversal — and the constituent is never asked to move a unit from done back to pending, which is a transition Personal Todo's own spec forbids. The composition operates one level down, at the log, where the atom only ever sees forward valid actions during replay.
@@ -75,7 +75,7 @@ Composes 7 is what makes the first six enforceable. If callers could still reach
 
 ### Composition state
 
-The composition's one state is the derived state the replay builds from the log, and it is a derived index: the log is the sole truth and the replay is the named rebuild procedure (`execution-contract.md` §Composition state; Replay 15 through 17).
+The composition's one state is the derived state the replay builds from the log, and it is a derived index: the log is the sole truth and the replay is the named rebuild procedure (the section titled Composition state in `execution-contract.md`; Replay 15 through 17).
 
 #### Replay
 
@@ -106,7 +106,7 @@ Term surviving event: a forward event whose event_id IS NOT IN the undone set.
 WHY:
 Replay 5 rests on something worth stating: a surviving event was recorded only because its action succeeded, so Personal Todo's preconditions held when it was written and hold again at every replay step. The replay never has to validate — it is re-running a history that was valid when it happened. Event Log Invariant 5 is what bounds the replay to exactly that set.
 
-Replay 15 through 17 are the contract classification stated as rules (`execution-contract.md` §Composition state). The derived state is a derived index by construction: the log is the sole truth, Replay 1 through 13 *are* the named rebuild, and nothing is stored that the rebuild does not regenerate. So the Contract's three obligations hold trivially — the projection sits outside any atomicity surface, since there is no second truth-bearing write to coordinate with the append; a lost materialization is a rebuild trigger and never data loss; and no consistency claim attaches beyond the replay's own determinism. A cache is permitted and is an ordinary derived index; Replay 17 is what stops an invariant being evaluated against one.
+Replay 15 through 17 are the contract classification stated as rules (the section titled Composition state in `execution-contract.md`). The derived state is a derived index by construction: the log is the sole truth, Replay 1 through 13 *are* the named rebuild, and nothing is stored that the rebuild does not regenerate. So the Contract's three obligations hold trivially — the projection sits outside any atomicity surface, since there is no second truth-bearing write to coordinate with the append; a lost materialization is a rebuild trigger and never data loss; and no consistency claim attaches beyond the replay's own determinism. A cache is permitted and is an ordinary derived index; Replay 17 is what stops an invariant being evaluated against one.
 
 ### Action wiring
 
@@ -234,7 +234,7 @@ Term forward event: an event carrying add, edit, complete OR delete — every ev
 Term snapshot: the unit's full state at a delete — its description, its Personal Todo state and every instant it carries.
 
 WHY:
-Event schema 6 and Event schema 7 are the load-bearing absence. Both fields exist and neither feeds the replay: what a delete removed and what an edit replaced are readable straight from the log through [Read History], with no replay at all, and they are kept in the schemas for *that* reading. A replay that consumed them would be restoring state from a snapshot, which is the design this composition exists to reject (§Wiring decision).
+Event schema 6 and Event schema 7 are the load-bearing absence. Both fields exist and neither feeds the replay: what a delete removed and what an edit replaced are readable straight from the log through [Read History], with no replay at all, and they are kept in the schemas for *that* reading. A replay that consumed them would be restoring state from a snapshot, which is the design this composition exists to reject (the section titled Wiring decision).
 
 The undo schema is the only one carrying two fields of its own: [Undone Event Id], which the replay builds the undone set from (Replay 2), and [Undone Event Type], which the undo answers to the caller (Action wiring 18).
 
@@ -395,7 +395,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
 Term terms: composition, constituents, event log instance, derived state, unit, seam, event type, forward event, snapshot, forward action, no-op edit, undone set, undo target, replay, surviving event, admitted add, admitted edit, admitted complete, admitted delete, admitted undo, admitted action.
 
-Term cited: `execution-contract.md` §Logic confinement — the seam. `execution-contract.md` §Composition state — the derived index and its rebuild obligations.
+Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Composition state in `execution-contract.md` — the derived index and its rebuild obligations.
 
 #### Add
 
@@ -562,7 +562,7 @@ Projection: storage-failure
 ## Standards references
 
 - **Event sourcing (Fowler; CQRS literature)** — the shape this composition instantiates: state derived by replaying a log rather than stored, with compensating events rather than mutation. The composition's contribution is not the shape but what the shape buys when the substrate is a concept with its own invariants — identity preservation across a terminal delete.
-- **The Memento pattern (Gamma et al.)** — the design this composition explicitly rejects for restoration, and keeps for inspection. A memento restores state and produces a new copy; §Wiring decision states why that loses the property users mean by undo.
+- **The Memento pattern (Gamma et al.)** — the design this composition explicitly rejects for restoration, and keeps for inspection. A memento restores state and produces a new copy; the section titled Wiring decision states why that loses the property users mean by undo.
 - **Command pattern with undo (Gamma et al.)** — the classical undo shape, which reverses by invoking an inverse operation. This composition cannot use it, because [Personal Todo](../atoms/personal-todo.md)'s delete is terminal and its completion is persistent: there is no inverse to invoke, so the reversal happens one level down, at the log.
 
 It inherits from:

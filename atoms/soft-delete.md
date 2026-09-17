@@ -69,9 +69,9 @@ Term reference: record_id, deleted_by, restored_by OR purged_by — every opaque
 
 Term store instance: one named lifecycle store a call is routed to; record_id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading here.
 
-Term transition: the atom's evaluation of one call against the lifecycle store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the lifecycle store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
 Identity 2 and Identity 3 are the atom's one departure from the corpus's usual identity shape, and the departure is the point: this atom does not own records, it overlays a lifecycle onto records the host already owns. There is nothing for it to allocate an id *for*. Identity 11 states the other half — the content stays in the host system, and what a purge destroys is the host's content, not anything held here (Non-goal 3).
@@ -188,14 +188,14 @@ Operation 43: IF a state filter's value IS NOT IN the states THEN [Read] MUST an
 Operation 44: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 45: [Read] MUST NOT write.
 Deleted: Operation 46. Capability requirement 1 owns it.
-Deleted: Operation 47. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 48. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 49. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 47. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 48. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 49. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term states: active | deleted | purged — a [State], and the whole state space a tracked record may stand in.
 

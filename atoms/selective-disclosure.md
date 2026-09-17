@@ -73,9 +73,9 @@ Term scope: the opaque string naming what subset of the subject's data was discl
 
 Term store instance: one named disclosure store a call is routed to; disclosure_id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the disclosure_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the disclosure_id here.
 
-Term transition: the atom's evaluation of one call against the disclosure store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the disclosure store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
 The id is the injected `id_t`, fresh by construction at the seam, which is what makes Identity 5 hold at the action level without the transition owning a generator or a collision path. Lexicographic sortability (Identity 15) is not cosmetic: it is the stable tiebreaker [Read]'s total order rests on, so a deployment choosing an unsortable id format breaks the read contract rather than merely the aesthetics — ULID, UUID v7 and a zero-padded integer string all satisfy it.
@@ -168,14 +168,14 @@ Operation 28: An admitted read MUST NOT answer a disclosure record failing a sup
 Operation 29: [Read] MUST NOT write.
 Operation 30: [Read] MUST NOT answer storage-failure.
 Deleted: Operation 31. Capability requirement 1 owns it.
-Deleted: Operation 32. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 33. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 34. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 32. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 33. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 34. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; carries authority_type and authority_reference and nothing else.
 

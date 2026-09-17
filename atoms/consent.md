@@ -212,13 +212,13 @@ Operation 58: IF a state filter's value IS NOT IN state THEN [Read] MUST answer 
 Operation 59: IF a time range's end precedes the time range's start THEN [Read] MUST answer invalid-query.
 Operation 60: [Read] MUST exclude a consent record carrying no value for a time range's field.
 Deleted: Operation 61. Capability requirement 1 owns it.
-Deleted: Operation 62. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 63. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 62. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 63. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term at_time: the instant a [Check] evaluates against — an [At Time]; a caller-supplied query input, resolving to now where the call supplies none.
 
@@ -365,9 +365,9 @@ Term store instance: one named consent store a call is routed to; consent_id uni
 
 Term store_name: the identifier naming one store instance — a [Store Name]; deployment routing, never an input and never a stored field.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the consent_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the consent_id here.
 
-Term transition: the atom's evaluation of one call against the consent store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the consent store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 ---
 

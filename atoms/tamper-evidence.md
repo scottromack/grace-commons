@@ -46,13 +46,13 @@ Term evidence_id: the opaque value naming one evidence — an [Evidence Id].
 
 Term record_set_ref: the opaque reference naming what was sealed — a [Record Set Ref]; the host owns what a record set is.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the evidence_id, the cryptographic material and record set match here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the evidence_id, the cryptographic material and record set match here.
 
-Term transition: the atom's evaluation of one call against the seal store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the seal store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity by record set would collapse a legitimate re-seal — a stronger mechanism after a deprecation, a second anchor over the same records — into an overwrite, and identity by time would lose two concurrent seals (Identity 6 through 8). Each evidence is its own audit record, so an auditor reconstructs a record set's integrity history as a sequence of them.
@@ -133,7 +133,7 @@ Deleted: Operation 21. Capability requirement 1 owns it.
 Operation 22: The host MUST supply the cryptographic material at the atom's seam.
 Operation 22a: The host MUST supply record set match at the atom's seam.
 Operation 22b: The atom MUST NOT judge record set match.
-Deleted: Operation 23. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 23. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Operation 24: The transition MUST NOT mint entropy.
 Operation 25: The business caller MUST NOT supply sealed_at.
 Operation 26: The implementation MUST own the mechanism.

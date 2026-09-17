@@ -70,9 +70,9 @@ Term event id: the opaque value naming one audit event — an [Allocation Event 
 
 Term event class: allocation | release | adjustment | state change — the four kinds of entry the audit log carries.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the pool_id and the event ids here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the pool_id and the event ids here.
 
-Term transition: the atom's evaluation of one call against the pool store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the pool store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
 A pool's *name* is a deployment concept — a flight, a ward, a primary connection pool — and names get re-tagged, re-categorized and reused across regions. Identity by name would silently merge two pools that share a label and split one that was renamed, and either mistake merges or splits arithmetic (Identity 9).
@@ -249,14 +249,14 @@ Operation 58: A refused action MUST leave the pool as the call found the pool.
 Operation 59: A refused action MUST NOT append an audit event.
 Operation 60: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Deleted: Operation 61. Capability requirement 1 owns it.
-Deleted: Operation 62. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 63. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 62. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 63. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Operation 64. Clock dependence 1 owns it.
 ```
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term capacity: the declared maximum a pool admits — a [Capacity]; a whole count, set at declaration and changed only by [Adjust Capacity].
 

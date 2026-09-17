@@ -79,7 +79,7 @@ journal_fence none 5: A surface MUST report a duplicate as EXACTLY ONE OF the cl
 journal_fence none 6: A surface MAY report the intents key ONLY IF the act kind declares a service_identity.
 ```
 
-Three surfaces make journal_fence none 2 checkable and read §*Which closing stands* for both keys: [Read Invocation]'s two binding_duplicate fields (read_invocation 7, read_invocation 8), [Reconcile] step 5's scan over the delta (reconcile step 5.2 through 5.4), and Generation acceptance check 2.
+Three surfaces make journal_fence none 2 checkable and read the section titled *Which closing stands* for both keys: [Read Invocation]'s two binding_duplicate fields (read_invocation 7, read_invocation 8), [Reconcile] step 5's scan over the delta (reconcile step 5.2 through 5.4), and Generation acceptance check 2.
 
 Term quiescence: no invocation in flight and no sweep run mid-pass.
 
@@ -92,7 +92,7 @@ No auditor can enumerate which writers were paused, so the guarantee is over rec
 
 ### Composition state
 
-Five elements, each carrying the Contract classification of [`execution-contract.md`](../execution-contract.md) §Composition state. Four are derived indexes rebuilt from one sequence-range read filtered to the bound kinds' records, whose kind and act_key the composition writes itself. One is extraction-pending. act_section is not composition state.
+Five elements, each carrying the Contract classification of the section titled Composition state in [`execution-contract.md`](../execution-contract.md). Four are derived indexes rebuilt from one sequence-range read filtered to the bound kinds' records, whose kind and act_key the composition writes itself. One is extraction-pending. act_section is not composition state.
 
 - **open_invocations**
   Term open_invocations: map from `(kind, act_key)` to the set of intent records (intent_event_id, invocation_id, the payload) of every invocation of the act that has opened and not yet closed, refused, been abandoned or been escalated. Derived index.
@@ -162,7 +162,7 @@ Five elements, each carrying the Contract classification of [`execution-contract
   - journal-unavailable — instance finding, no kind: the journal could not be read or written this run ([Reconcile] step 1).
   - store-unavailable — instance finding, kind present: the kind's adopter's store answered unavailable to probe ([Reconcile] step 3).
   - closure-at-risk — act finding: the act's remaining window is below what one more cadence and one more run need ([Reconcile] step 5). Generation acceptance check 3's `service_identity = none` branch reads it.
-  - binding_duplicate — act finding: two closings or two open intents on one act (§*Which closing stands*). A report under `journal_fence = none`; no check reads it.
+  - binding_duplicate — act finding: two closings or two open intents on one act (the section titled *Which closing stands*). A report under `journal_fence = none`; no check reads it.
   - unbound-kind — act finding: an open intent of a kind the instance no longer binds.
 
   WHY: no constituent witnesses a surfacing, so no rebuild exists. One record spanning two outages would exempt every intent in the healthy gap (findings 10, findings 11). A store outage is per kind; a journal outage stops every kind (findings 5).
@@ -251,7 +251,7 @@ The critical section is released on the holder's return, well inside journal_wri
 - **compensation_window**
   Term compensation_window: the duration within which the sweep closes an act whose invocation died, from the intent's recorded_at. Conditions 1 and 2; rearranged, the at-risk threshold of [Reconcile] step 5. *Default:* none.
 - **clock_offset_allowance**
-  Term clock_offset_allowance: the allowance for comparing a reading from one clock with a stamp or instant from another; §*Where the allowance goes* owns where it is spent. *Default:* none.
+  Term clock_offset_allowance: the allowance for comparing a reading from one clock with a stamp or instant from another; the section titled *Where the allowance goes* owns where it is spent. *Default:* none.
 - **intent_candidates_cap**
   Term intent_candidates_cap: the most store_candidates an `<kind>.escalated` record names, each under reference_length_cap; past it, the count and the range. Sizes the compensation envelope (Invariant 6). *Default:* none.
 - **retention_period**
@@ -286,7 +286,7 @@ Primitive policy 18: The sweep MUST read now once per run at the sweep's own sea
 
 Term invocation_id: injected at the adopter's seam alongside now, fresh per invocation, unique across every node of the instance for the journal's lifetime; opaque, byte-identity.
 
-Term now: the seam-injected reading — at the adopter's seam per invocation, at the sweep's seam once per run, at the operator's seam once per [Resolve] call alongside operator_run_id, at the reader's seam once per [Read Invocation] call; each as `execution-contract.md` §Logic confinement declares it, never read inside the transition.
+Term now: the seam-injected reading — at the adopter's seam per invocation, at the sweep's seam once per run, at the operator's seam once per [Resolve] call alongside operator_run_id, at the reader's seam once per [Read Invocation] call; each as the section titled Logic Confinement Principle in `execution-contract.md` declares it, never read inside the transition.
 
 Term operator_run_id: injected at the operator's seam once per [Resolve] call; the critical section holder for [Resolve].
 
@@ -814,7 +814,7 @@ read_invocation 15: An adopter that decides a write on [Read Invocation]'s answe
 ```
 
 WHY:
-The rebuild's comparisons are against the substrate's stamps, so the reader is a seam (read_invocation 1). Closings are capped because the degraded Invariant 2 admits them in plurality. Without read_invocation 11 the cheapest implementation answers not-known for a key whose intent and outcome are sitting in the journal. read_invocation 12 is also what a wholly purged act answers — the destroyed payload carried the key — the one admitted exception to §*Lawful destruction is answered before absence*; read_record by event_id still answers *Purged*.
+The rebuild's comparisons are against the substrate's stamps, so the reader is a seam (read_invocation 1). Closings are capped because the degraded Invariant 2 admits them in plurality. Without read_invocation 11 the cheapest implementation answers not-known for a key whose intent and outcome are sitting in the journal. read_invocation 12 is also what a wholly purged act answers — the destroyed payload carried the key — the one admitted exception to the section titled *Lawful destruction is answered before absence* in `pressure-testing.md`; read_record by event_id still answers *Purged*.
 
 ### Wiring decision
 
@@ -1006,11 +1006,11 @@ Seven clocks meet on this page: the adopter's seam ([Open] step 3), the sweep's 
 
 **Minted — three instants.**
 
-Term commit_fence deadline: minted by the critical section host as the act's expires_at, judged by the adopter's constituent store, value `expires_at − clock_offset_allowance`; bound at *Bindings*, §commit.
+Term commit_fence deadline: minted by the critical section host as the act's expires_at, judged by the adopter's constituent store, value `expires_at − clock_offset_allowance`; bound at *Bindings*, the section titled commit.
 
-Term journal_fence lease terminus: minted by the critical section host as the writer's expires_at, judged by the substrate, value `expires_at − clock_offset_allowance`; bound at *Composes*, §journal_fence.
+Term journal_fence lease terminus: minted by the critical section host as the writer's expires_at, judged by the substrate, value `expires_at − clock_offset_allowance`; bound at *Composes*, the section titled journal_fence.
 
-Term journal_fence per-write terminus: minted by the writer's own seam at the write's issue, judged by the substrate, value `issue + journal_write_bound − clock_offset_allowance`; bound at *Composes*, §journal_fence.
+Term journal_fence per-write terminus: minted by the writer's own seam at the write's issue, judged by the substrate, value `issue + journal_write_bound − clock_offset_allowance`; bound at *Composes*, the section titled journal_fence.
 
 **Applied — every other cross-seam comparison on this page:** [Open] step 3's age of an open intent; the retention drop on every read of open_invocations; [Resolve]'s too-young guard; the sequence_high_water advance; the sweep's edges and window; [Read Invocation]'s rebuild.
 
@@ -1303,10 +1303,10 @@ Sweep never 2: The sweep MUST NOT write under a human's credential.
 ```
 Clock semantics 3: The composition MUST NOT time the lease.
 Deleted: Clock semantics 2. Composes 1 owns it.
-Deleted: Clock semantics 1. `execution-contract.md` §Logic confinement owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
-WHY: a clock read inside [Resolve] breaks the Contract's logic confinement (`execution-contract.md` §Logic confinement); `-buggy-opclock` shows the cost (Invariant 5: an act abandoned whose commit then lands).
+WHY: a clock read inside [Resolve] breaks the Contract's logic confinement (the section titled Logic Confinement Principle in `execution-contract.md`); `-buggy-opclock` shows the cost (Invariant 5: an act abandoned whose commit then lands).
 
 ### Cross-store consistency under partial failure
 
@@ -1466,7 +1466,7 @@ Not Open 4: [Close] MUST land recording-failure(outcome) at step 1 for a pair no
 Not Open 5: [Refuse] MUST land recording-failure(refusal, constituent_code) at step 1 for a pair no [Open] returned.
 ```
 
-WHY: on a multi-node instance a local absence is not a miss, and a retained handle is the composition-owned state [`execution-contract.md`](../execution-contract.md) §Logic Confinement Principle forbids. Not Open 4 and Not Open 5 are a false positive in the safe direction: no intent record exists, so nothing will look at the id. They are two rules rather than one because each action lands the arm its own signature block declares — [Close] carries `recording-failure(outcome)` and [Refuse] carries `recording-failure(refusal, constituent_code)` — and a single rule naming both landed an arm [Refuse] does not have (Closed vocabulary 22, council read 50).
+WHY: on a multi-node instance a local absence is not a miss, and a retained handle is the composition-owned state the section titled Logic Confinement Principle in [`execution-contract.md`](../execution-contract.md) forbids. Not Open 4 and Not Open 5 are a false positive in the safe direction: no intent record exists, so nothing will look at the id. They are two rules rather than one because each action lands the arm its own signature block declares — [Close] carries `recording-failure(outcome)` and [Refuse] carries `recording-failure(refusal, constituent_code)` — and a single rule naming both landed an arm [Refuse] does not have (Closed vocabulary 22, council read 50).
 
 #### Not Known
 
@@ -1487,7 +1487,7 @@ Projection: finding
 
 #### Binding Duplicate
 
-The one token three surfaces agree on — [Read Invocation]'s two fields, [Reconcile] step 5's scan, Generation acceptance check 2 — answering two keys. Closings key: two closing records naming one invocation_id that neither supersede one another nor are superseded; holds under every binding. Intents key: two intents open at once on one `(kind, act_key)`; holds only if the kind declares a service_identity. §*Which closing stands* owns both keys.
+The one token three surfaces agree on — [Read Invocation]'s two fields, [Reconcile] step 5's scan, Generation acceptance check 2 — answering two keys. Closings key: two closing records naming one invocation_id that neither supersede one another nor are superseded; holds under every binding. Intents key: two intents open at once on one `(kind, act_key)`; holds only if the kind declares a service_identity. The section titled *Which closing stands* owns both keys.
 
 Kind:       Type
 Role:       the conformance finding two writers leave
@@ -1559,7 +1559,7 @@ last gate: 2026-09-10 — twelfth gate, fresh reader, on the draft — 6 foundat
 
 open:
 - 2026-09-10-a · refining · Composition state, `findings` · the register carries truth no constituent store replays, and it is classified extraction-pending with no atom yet owning it, so this page owns a durability contract that belongs to one → land the **Condition Register** atom, a durable register of named conditions each opening at a first sighting, advancing at every later one and ceasing when a pass no longer sees it; until it lands the contract in Composition state is the declaration and the debt is flagged rather than normalized
-- 2026-09-10-b · refining · §Where the allowance goes · a deployment declaring `journal_fence` whose `journal_write_bound` carries no headroom fences out writes that take the full disclosed bound, and the model does not distinguish that state because it carries the fence and not the disclosure → disclose `journal_write_bound` with `clock_offset_allowance` of headroom over the substrate's own worst case, and carry the liveness cost as NOT MODELED until a model of the disclosures exists
+- 2026-09-10-b · refining · the section titled Where the allowance goes · a deployment declaring `journal_fence` whose `journal_write_bound` carries no headroom fences out writes that take the full disclosed bound, and the model does not distinguish that state because it carries the fence and not the disclosure → disclose `journal_write_bound` with `clock_offset_allowance` of headroom over the substrate's own worst case, and carry the liveness cost as NOT MODELED until a model of the disclosures exists
 ```
 
 ## Decisions
@@ -1569,10 +1569,10 @@ Directional changes only. Everything smaller lives in the commit that made it: `
 - **2026-09-10 — Rewritten in GRACE lang v0.28; nothing but language changed.** *Chose:* labelled rules, rationale under `WHY:`, the Ledger and invariant numbers unchanged. *Over:* the prose draft. *Because:* the migration plan.
 - **2026-09-10 — Instance start in controlled form.** *Chose:* five terms, five one-line conditions, the round-trips as bindings. *Over:* inline inequalities marked `STRICTLY`. *Because:* arithmetic lives in term declarations, and a named term gives each expression one owner for the prose-versus-model diff.
 - **2026-09-10 — Lease is the atom; what a fence costs stays here.** *Chose:* [`atoms/lease.md`](../atoms/lease.md) owning the critical section's lease and both fences as one concept; the binding and the three payments here. *Over:* an atom covering the critical section alone. *Because:* the atom declines what carrying an instant costs; lease-owned findings went 3 → 1 → 0 across the extraction.
-- **2026-09-10 — One owner for the conditions of instance start, and there are five.** *Chose:* §*Instance start*, cited by number. *Over:* four sites. *Because:* they drifted three ways at once, and the `max` floor matters: over 432 tuples the old floor admits 324 and breaches on 15, the new admits 288 and breaches on none.
-- **2026-09-10 — One owner for where the allowance is spent.** *Chose:* §*Where the allowance goes* — applied or minted, three instants, three payments. *Over:* three sites, one asserting the opposite of another. *Because:* the bare instant is the construction the Lease atom declares non-conforming; mint, then size for the minting.
+- **2026-09-10 — One owner for the conditions of instance start, and there are five.** *Chose:* the section titled *Instance start*, cited by number. *Over:* four sites. *Because:* they drifted three ways at once, and the `max` floor matters: over 432 tuples the old floor admits 324 and breaches on 15, the new admits 288 and breaches on none.
+- **2026-09-10 — One owner for where the allowance is spent.** *Chose:* the section titled *Where the allowance goes* — applied or minted, three instants, three payments. *Over:* three sites, one asserting the opposite of another. *Because:* the bare instant is the construction the Lease atom declares non-conforming; mint, then size for the minting.
 - **2026-09-10 — The findings register is extraction-pending.** *Chose:* classify against a forthcoming Condition Register, the two obligations and five conditions named. *Over:* declaring the totality claim false. *Because:* an unclassified register ends up in process memory and loses the outage span a check reads.
-- **2026-09-10 — The intents key branches on service_identity; the first does not.** *Chose:* the branch once, at §*Which closing stands*. *Over:* an unbranched key. *Because:* unbranched, [Open] step 3's own report-only instruction was a conformance failure for a whole retention period.
+- **2026-09-10 — The intents key branches on service_identity; the first does not.** *Chose:* the branch once, at the section titled *Which closing stands*. *Over:* an unbranched key. *Because:* unbranched, [Open] step 3's own report-only instruction was a conformance failure for a whole retention period.
 - **2026-09-10 — not-open is a precondition on the caller.** *Chose:* the pair [Open] returned, on the action's call stack. *Over:* a retained handle, or deleting the code. *Because:* the handle is the state the execution contract forbids, and the code is the one name an adopter has for the condition.
 - **2026-09-10 — The fence earns Invariant 8; the lease gate does not.** *Chose:* the duplicate surfaces count open intents per `(kind, act_key)`; the read gains read_bound. *Over:* gating the intent write as the remedy. *Because:* the gated fenceless configuration admits a second live intent and the ungated fenced one does not.
 - **2026-09-10 — The sweep's lease is stated, not maximised.** *Chose:* `closure_latency + journal_write_bound`. *Over:* a `max` with a start check. *Because:* the check reduced to `0 > journal_write_bound` whenever closure_latency reached completion_bound.

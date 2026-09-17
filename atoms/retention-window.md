@@ -49,13 +49,13 @@ Term record_ref: the opaque reference naming what is retained — a [Record Ref]
 
 Term policy_ref: the opaque reference naming which rules apply — a [Policy Ref]; the policy registry is a separate concept.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the retention_id and the resolved policy scalars here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the retention_id and the resolved policy scalars here.
 
-Term transition: the atom's evaluation of one call against the retention store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the retention store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity by record and policy together would collapse the policy-transition case the regime actually produces — an old retention completing while a new one runs over the same record — and identity by time would lose two concurrent placements (Identity 6 through 9). One retention, one id, is what lets an auditor read a record's policy history as a sequence.
@@ -147,9 +147,9 @@ Operation 21: [Purge] MUST read one now per call.
 Operation 22: [Purge] MUST judge eligibility and stamp purged_at against that one now.
 Deleted: Operation 23. Capability requirement 1 owns it.
 Operation 24: The host MUST resolve the policy at the atom's seam.
-Deleted: Operation 25. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 25. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Operation 26: The transition MUST NOT read the policy registry.
-Deleted: Operation 27. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 27. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Operation 28: A reader MUST derive purge eligible from retention_until and the injected now.
 ```
 

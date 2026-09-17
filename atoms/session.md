@@ -66,9 +66,9 @@ Term principal_ref: the opaque reference naming the authenticated principal — 
 
 Term issued_by_ref: the opaque reference naming the mechanism that issued the session — an [Issued By Ref].
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the session_token and the token's random material here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the session_token and the token's random material here.
 
-Term transition: the atom's evaluation of one call against the session store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the session store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
 The token is both identity and bearer credential, and that is deliberate rather than a shortcut: it is how session systems actually work — the cookie *is* the session identifier — and it makes [Validate] a lookup rather than a join. A separate opaque id beside the token would add indirection and buy nothing at this atom's scope (Identity 7).
@@ -97,7 +97,7 @@ State 14: The atom MUST NOT hold a concurrency bound per principal_ref.
 Term status: active | revoked — the stored status; in force, or cancelled and terminal. expired is not a value of it.
 
 WHY:
-The stored state space is two values because lapsing needs no third. [Expired] is a *read projection*, so the store holds what was decided and derives what the clock decides (State 1, State 8, Expiry 1 through 5). That is what removes the stored-flag-that-lags-the-clock failure mode `pressure-testing.md` §Formal-model authoring pitfalls names.
+The stored state space is two values because lapsing needs no third. [Expired] is a *read projection*, so the store holds what was decided and derives what the clock decides (State 1, State 8, Expiry 1 through 5). That is what removes the stored-flag-that-lags-the-clock failure mode the section titled Formal-model authoring pitfalls in `pressure-testing.md` names.
 
 #### Expiry
 
@@ -220,8 +220,8 @@ Operation 39: [Read] MUST NOT write.
 Operation 40: A liveness query MUST rest on the effective_status.
 Operation 41: A liveness query MUST NOT rest on the stored status alone.
 Deleted: Operation 42. Capability requirement 1 owns it.
-Deleted: Operation 43. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 44. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 43. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 44. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Operation 45: The atom MUST NOT offer an expire action.
 Operation 46: The atom MUST NOT offer an extend action.
 Operation 47: The atom MUST NOT offer an un-revoke action.
@@ -229,9 +229,9 @@ Operation 48: IF the default session duration EQUALS blank THEN [Issue] MUST ans
 Operation 49: The transition MUST NOT generate the session_token's random material.
 ```
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term session_duration: the window a [Issue] call asks for — a [Session Duration]; consumed to compute the expiry deadline, never stored under this name.
 

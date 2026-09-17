@@ -49,13 +49,13 @@ Term action_ref: the opaque reference naming what was attested — an [Action Re
 
 Term actor_ref: the opaque reference naming who attested — an [Actor Ref]; the actor registry is a separate concept.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the attestation_id and the cryptographic material here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the attestation_id and the cryptographic material here.
 
-Term transition: the atom's evaluation of one call against the attestation store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the attestation store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity by action and actor together would collapse the re-attestation the regime produces — a retry after a partial failure, a second proof after a key rotation, a step in a multi-action sequence — and identity by time would lose two concurrent attestations (Identity 6 through 9). One attestation, one id, is what makes per-event audit reconstruction tractable.
@@ -135,7 +135,7 @@ Operation 20: [Verify] MUST NOT write.
 Operation 21: [Verify] MUST read the actor registry's public material for the actor_ref.
 Deleted: Operation 22. Capability requirement 1 owns it.
 Operation 23: The host MUST supply the cryptographic material at the atom's seam.
-Deleted: Operation 24. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 24. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Operation 25: The transition MUST NOT mint entropy.
 Operation 26: The business caller MUST NOT supply attested_at.
 ```

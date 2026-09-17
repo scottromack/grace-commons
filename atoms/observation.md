@@ -82,9 +82,9 @@ Term reference: subject_ref, recorded_by, amended_by OR retracted_by — every o
 
 Term store instance: one named observation store a call is routed to; observation_id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the observation_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the observation_id here.
 
-Term transition: the atom's evaluation of one call against the observation store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the observation store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
 Identity 9 and Identity 10 state the two scopes that a multi-site deployment gets wrong in opposite directions. subject_ref is portable by design — the same subject appears in one store and another — and observation_id is not, so a cross-instance query that treats two ids from two stores as comparable is reading coincidence. Identity 16 is what makes the boundary visible in the signature: no action takes a [Store Name], so a caller cannot address two instances in one call and a composition that needs to must do its own routing.
@@ -215,14 +215,14 @@ Operation 49: IF a state filter's value IS NOT IN the states THEN [Read] MUST an
 Operation 50: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 51: [Read] MUST NOT write.
 Deleted: Operation 52. Capability requirement 1 owns it.
-Deleted: Operation 53. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 54. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 53. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 54. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Operation 55: An ordering rule MUST NOT rest on a causal claim.
 ```
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term states: recorded | amended | retracted — a [State], and the whole state space.
 

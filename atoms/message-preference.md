@@ -199,8 +199,8 @@ Operation 36: [Read] MUST NOT refuse a blank input.
 Operation 37: [Current For] MUST NOT write.
 Operation 38: [Read] MUST NOT write.
 Deleted: Operation 39. Capability requirement 1 owns it.
-Deleted: Operation 40. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 41. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 40. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 41. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Operation 42. Clock dependence 1 owns it.
 Deleted: Operation 43. Clock dependence 2 owns it.
 ```
@@ -211,9 +211,9 @@ Term currently in effect: a preference record whose status EQUALS active OR in s
 
 Term supersession: the one operation in which a [Set] call stands a principal's prior preference record in deleted and records the new preference record.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term guard: a transition's precondition test; reads the stored preference record and the call's inputs, and writes nothing.
 
@@ -362,9 +362,9 @@ Term declared channel set: the named delivery surfaces a preference record in th
 
 Term degenerate: a declared channel set that is empty, that repeats a channel name, OR that carries a blank channel name.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the preference_id and the declared channel set here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the preference_id and the declared channel set here.
 
-Term transition: the atom's evaluation of one call against the preference store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the preference store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
 The channel vocabulary is the deployment's, and the atom's job is to consume the resolution and prove the consumption — not to absorb a registry. So the set arrives at the seam like the clock and the id, the transition validates against it, and the transition stamps what it validated against onto the record (Instance 10, Instance 12). Two things follow, and both are the point. The audit surface is self-contained per record: one record, one stamped set, no cross-record join and no configuration artifact (Invariant 5.1, Invariant 10.1, Check 5.1). And a channel-set change is visible only forward — records made after the change carry the new set, historical records keep the set in force at their own creation, which is what keeps them verifiable forever.

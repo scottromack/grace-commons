@@ -48,13 +48,13 @@ Term subject_ref: the opaque reference naming who holds the grant — a [Subject
 
 Term action_scope: the opaque reference naming what the grant covers — an [Action Scope]; matched exactly, and the composing system owns the vocabulary.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the grant_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the grant_id here.
 
-Term transition: the atom's evaluation of one call against the grant store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the grant store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Many grants over one pair is the deliberate opposite of [Subscription](./subscription.md)'s at-most-one, and the reason is the audit question each atom answers: a second subscription means a duplicate notification, while a second grant means a second authorization with its own issuer, date and reason (Identity 7). Collapsing them by identifying on the pair would make revoking one revoke all, and would erase which grant authorized which access (Identity 6, Identity 8).
@@ -136,8 +136,8 @@ Operation 20: [Check] MUST NOT write.
 Operation 21: [Check] MUST match a subject_ref exactly.
 Operation 22: [Check] MUST match an action_scope exactly.
 Deleted: Operation 23. Capability requirement 1 owns it.
-Deleted: Operation 24. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 25. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 24. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 25. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 Term pair: one subject_ref with one action_scope — what [Check] matches over.

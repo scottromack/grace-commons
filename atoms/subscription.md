@@ -57,9 +57,9 @@ Term subscriber_ref: the opaque reference naming who holds the subscription — 
 
 Term event_scope: the opaque reference naming the class of events covered — an [Event Scope]; matched exactly.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the subscription_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the subscription_id here.
 
-Term transition: the atom's evaluation of one call against the subscription store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the subscription store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term id entropy: the random material a subscription_id is drawn from; 128 bits where a deployment declares none.
 
@@ -149,15 +149,15 @@ Operation 23: [Subscribers For] MUST NOT order the answer.
 Operation 24: [Subscribed] MUST NOT write.
 Operation 25: [Subscribers For] MUST NOT write.
 Deleted: Operation 26. Capability requirement 1 owns it.
-Deleted: Operation 27. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 28. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 27. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 28. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 Term pair: one subscriber_ref with one event_scope — what at-most-one ranges over.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 The case space, and the rule that owns each case:
 

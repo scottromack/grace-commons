@@ -75,9 +75,9 @@ Term custodian_ref: the opaque reference naming who holds the artifact — a [Cu
 
 Term store instance: one named chain store a call is routed to; chain_id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the chain_id and the entry_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the chain_id and the entry_id here.
 
-Term transition: the atom's evaluation of one call against the chain store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the chain store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
 Identity by artifact would be the natural-looking choice and it destroys the thing the atom is for. A returned-and-reprocessed batch, a re-introduced exhibit, a reissued instrument — each is a *second episode* of the same artifact, and merging the two histories under one identity makes the gap between them invisible. So the chain owns identity and the artifact reference is a field (Identity 9, Identity 10).
@@ -208,15 +208,15 @@ Operation 51: [Read] MUST NOT answer storage-failure.
 Operation 52: IF the store refuses a read THEN [Read] MUST NOT answer a partial entry sequence.
 Operation 53: [Read] MUST NOT answer archived.
 Deleted: Operation 54. Capability requirement 1 owns it.
-Deleted: Operation 55. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 56. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 55. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 56. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Operation 57. Clock dependence 2 owns it.
 Operation 58: An ordering rule MUST NOT rest on recorded_at.
 ```
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term genesis_type: the call input selecting a genesis entry's event_type — a [Genesis Type]; an input name, never a stored field.
 

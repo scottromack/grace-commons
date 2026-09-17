@@ -44,12 +44,12 @@ Identity 10: A composing pattern MUST own how many log instances a deployment ru
 
 Term event_id: the opaque value naming one event — an [Event Id]; allocated once, never again.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the event_id here.
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the event_id here.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term transition: the atom's evaluation of one call against the log, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the log, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 WHY:
 Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is sequence_number's alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
@@ -130,7 +130,7 @@ Operation 16: [Read] MUST answer an empty sequence for a well-formed query match
 Operation 17: [Read] MUST NOT write.
 Operation 18: The implementation MUST own the query's shape.
 Deleted: Operation 19. Capability requirement 1 owns it.
-Deleted: Operation 20. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 20. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Operation 21: The business caller MUST NOT supply recorded_at.
 ```
 

@@ -50,13 +50,13 @@ Term task_ref: the opaque reference naming the unit of work — a [Task Ref]; th
 
 Term assignee_ref: the opaque reference naming the responsible actor — an [Assignee Ref]; the actor registry is a separate concept.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the assignment_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the assignment_id here.
 
-Term transition: the atom's evaluation of one call against the assignment store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the assignment store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
 Identity by task would make a reassignment overwrite its predecessor, which destroys the answer to *who held this before*; identity by the task-and-assignee pair would collapse a re-assignment of the same actor after an intervening recall, which destroys *how many times* (Identity 6, Identity 7). One binding, one id, is what makes Invariant 9.1's chain recoverable.
@@ -160,8 +160,8 @@ Operation 30: [History For] MUST NOT write.
 Operation 30a: [Reassign] MUST read one now per call.
 Operation 30b: [Reassign] MUST stamp transferred_at and assigned_at against that one now.
 Deleted: Operation 31. Capability requirement 1 owns it.
-Deleted: Operation 32. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 33. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 32. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 33. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 Term new_assignee_ref: the opaque reference naming the successor a reassignment hands the task to — a [New Assignee Ref].
@@ -303,7 +303,7 @@ External check 3: An auditor MUST read a task's completion from the host's task 
 External check 4: An auditor MUST read the serialization evidence from the deployment's own concurrency probe (Invariant 7.3, Invariant 7.4, Assign race 1).
 ```
 
-NOTE: Invariant 7.3 and Invariant 7.4 forbid a reader *observing* a state. Records written after the fact cannot show what was observable between two writes, so no conformance check clears them and External check 4 names the probe that can — the records-alone gap `open-questions.md` §*Generation trust* docks, with its first load-bearing resident (council read 14).
+NOTE: Invariant 7.3 and Invariant 7.4 forbid a reader *observing* a state. Records written after the fact cannot show what was observable between two writes, so no conformance check clears them and External check 4 names the probe that can — the records-alone gap the section titled *Generation trust* in `open-questions.md` docks, with its first load-bearing resident (council read 14).
 
 NOTE: EVERY check names the rule the check tests. The assignment store answers *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.
 
@@ -341,7 +341,7 @@ Reassign atomicity 4: An implementation that cannot withdraw a landed write MUST
 ```
 
 WHY:
-The dangerous half is the quiet one: old marked transferred, successor never written, task unassigned, and the caller told the handoff succeeded. Invariant 1.1 is satisfied vacuously by that state; Reassign atomicity 2 forbids the crash residue and Invariant 7.4 forbids any reader seeing the gap, whether transient or stable — and an implementation without rollback owes a repair pass rather than a note in a runbook (`execution-contract.md` §Multi-write atomicity).
+The dangerous half is the quiet one: old marked transferred, successor never written, task unassigned, and the caller told the handoff succeeded. Invariant 1.1 is satisfied vacuously by that state; Reassign atomicity 2 forbids the crash residue and Invariant 7.4 forbids any reader seeing the gap, whether transient or stable — and an implementation without rollback owes a repair pass rather than a note in a runbook (the section titled Multi-write atomicity in `execution-contract.md`).
 
 ### The assign race
 

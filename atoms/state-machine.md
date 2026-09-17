@@ -80,9 +80,9 @@ Term instance_metadata: the opaque payload the caller supplies at [Instantiate] 
 
 Term store instance: one named workflow store a call is routed to; instance_id uniqueness ranges over one store instance.
 
-Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading, the instance_id and the transition_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the instance_id and the transition_id here.
 
-Term transition: the atom's evaluation of one call against the workflow store, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the atom's evaluation of one call against the workflow store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term declared transition: one from_state, action, to_state and optional guard in the declaration — a move the workflow may make. Distinct from the transition above, which is the atom's evaluation of a call.
 
@@ -201,15 +201,15 @@ Operation 48: [Read Declaration] MUST NOT normalize the declaration.
 Operation 49: [Read Declaration] MUST NOT reorder the declaration.
 Operation 50: A reading action MUST NOT write.
 Deleted: Operation 51. Capability requirement 1 owns it.
-Deleted: Operation 52. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 53. `execution-contract.md` §Logic confinement owns it.
-Deleted: Operation 54. `execution-contract.md` §Logic confinement owns it.
+Deleted: Operation 52. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 53. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 54. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Operation 55: An ordering rule MUST NOT rest on fired_at.
 ```
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term business caller: the party whose action the call carries, as `execution-contract.md` §Logic confinement declares it; never the source of an injected value.
+Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 Term addressed action: any action carrying an instance_id — every action but [Instantiate].
 

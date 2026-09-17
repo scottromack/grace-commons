@@ -57,7 +57,7 @@ Term composition: this pattern's wiring of [Subscription](../atoms/subscription.
 Term constituents: [Subscription](../atoms/subscription.md), [Notification](../atoms/notification.md).
 
 WHY:
-Composes 7 is one rule where the prose carried two. The prose named the two deleted invariants *preservation claims* and distinguished them from the six that emerge — which is the right distinction and the reason the migration could act on it cleanly. [`execution-contract.md`](../execution-contract.md) §Conformance settles both: conformance extends recursively and no composing layer is obligated to re-verify what a constituent's own conformance establishes, so asserting it twice more was a citing spec restating a rule it cites (Authority 6, council read 53, council read 55).
+Composes 7 is one rule where the prose carried two. The prose named the two deleted invariants *preservation claims* and distinguished them from the six that emerge — which is the right distinction and the reason the migration could act on it cleanly. The section titled Conformance in [`execution-contract.md`](../execution-contract.md) settles both: conformance extends recursively and no composing layer is obligated to re-verify what a constituent's own conformance establishes, so asserting it twice more was a citing spec restating a rule it cites (Authority 6, council read 53, council read 55).
 
 Composes 5 and Composes 6 are what the preservation claims carried *beyond* the blanket, and none of it is inherited: the read-only posture toward the subscription store and the refusal to reach past `create` are this composition's own restraint, not a guarantee either atom makes about a caller.
 
@@ -75,7 +75,7 @@ Composition state 4: A deployment needing a fanout deduplicated MUST compose Dup
 ```
 
 WHY:
-The contract classification is *conforming, no stored composition state* (`execution-contract.md` §Composition state). The subscription store owns who subscribes and the notification store owns what was created; the composition is a stateless interpreter over both. Composition state 3 is the Contract's record-coordination rule applied by name — a composition that must record that its own sequences occurred composes [Event Log](../atoms/event-log.md) rather than growing a store of its own — and this composition routes the concept out rather than holding it.
+The contract classification is *conforming, no stored composition state* (the section titled Composition state in `execution-contract.md`). The subscription store owns who subscribes and the notification store owns what was created; the composition is a stateless interpreter over both. Composition state 3 is the Contract's record-coordination rule applied by name — a composition that must record that its own sequences occurred composes [Event Log](../atoms/event-log.md) rather than growing a store of its own — and this composition routes the concept out rather than holding it.
 
 ### Capability requirement
 
@@ -83,16 +83,16 @@ The contract classification is *conforming, no stored composition state* (`execu
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one fanout id at the seam.
 Capability requirement 3: The host MUST draw a fanout id meeting the entropy floor.
-Deleted: Capability requirement 4. `execution-contract.md` §Logic confinement owns it.
+Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Capability requirement 5: The transition MUST NOT mint an id.
 Capability requirement 6: A deployment MUST disclose the deployment's read latency bound.
 Capability requirement 7: The deployment MUST declare the clock offset allowance.
 ```
 
-Term seam: the composition's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects one clock reading and one fanout id here.
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as `execution-contract.md` §Logic confinement declares it; never read inside the transition, never supplied by the business caller.
+Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one fanout id here.
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term transition: the composition's evaluation of one [Fanout] call against the two stores, as `execution-contract.md` §Logic confinement declares it.
+Term transition: the composition's evaluation of one [Fanout] call against the two stores, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 Term entropy floor: 128 bits of entropy per id, or a generator whose coordination gives the same uniqueness — an [Entropy Floor]; this composition's own bound on the host.
 
@@ -215,7 +215,7 @@ Invariant 1 through 5 and Invariant 8 emerge from the composition; neither const
   Deleted: Invariant 6. Composes 7 owns it.
   Deleted: Invariant 7. Composes 7 owns it.
   ```
-  WHY: the two deleted invariants asserted that [Notification](../atoms/notification.md)'s and [Subscription](../atoms/subscription.md)'s own invariants hold over this composition's instances. The prose named them *preservation claims* and set them apart from the six that emerge, which is the right distinction and the reason they could be collapsed cleanly: `execution-contract.md` §Conformance already establishes recursive conformance, so restating it twice was a citing spec restating a rule it cites (Authority 6). What they carried beyond the blanket is Composes 5 and Composes 6.
+  WHY: the two deleted invariants asserted that [Notification](../atoms/notification.md)'s and [Subscription](../atoms/subscription.md)'s own invariants hold over this composition's instances. The prose named them *preservation claims* and set them apart from the six that emerge, which is the right distinction and the reason they could be collapsed cleanly: the section titled Conformance in `execution-contract.md` already establishes recursive conformance, so restating it twice was a citing spec restating a rule it cites (Authority 6). What they carried beyond the blanket is Composes 5 and Composes 6.
 - **Invariant 8 — Fanout invocation uniqueness.**
   ```
   Invariant 8.1: Two admitted fanouts answering a result MUST NOT share a fanout_id.
@@ -427,7 +427,7 @@ Term record verbs: call, answer, take, read, write, record, validate, compare, n
 Term actors: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; a subscriber; a notification record; a subscription record.
 
 
-Term cited: `execution-contract.md` §Conformance — recursive conformance and the inherited guarantee. `execution-contract.md` §Composition state — the no-stored-state classification and the record-coordination rule. `execution-contract.md` §Logic confinement — the seam and the transition.
+Term cited: the section titled Conformance in `execution-contract.md` — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the no-stored-state classification and the record-coordination rule. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
 #### Fanout
 
@@ -585,7 +585,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-08-28 — fired_at is a lower bound on the instant the set was fixed.** *Chose:* the seam reading the invocation began under, with check 1's window widened by a disclosed `max_read_latency`. *Over:* a stamp "taken immediately before the query" described as the instant the set was fixed. *Because:* the store fixes the set when it executes the read, an instant the composition never observes; the earlier wording named a moment nothing on the page can see and let check 1 convict a subscribe that landed inside the read's latency.
 
 - **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except two invariants the Execution Contract already owns.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Action wiring`, `Wiring decision`, `Clock semantics` and `Indeterminate outcome` as the wiring surfaces, the six surviving invariant numbers unchanged, and the acceptance section's own two-tier split carried across as `Check` and `External check`. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. Two families are worth naming: the *Retry semantics* section is `Indeterminate outcome` — the family [Approval Step](../atoms/approval-step.md), [Medication Order](../atoms/medication-order.md) and [Party Identity](../atoms/party-identity.md) already carry — so it was taken rather than minted, which puts that family at four specs and makes this the first composition to hold it. And *Logic confinement* is `Capability requirement`, the standard family, because what the section states is what the host must supply.
-- **2026-09-14 — Two preservation claims are one citation.** *Chose:* `Composes 7`, with `Invariant 6` and `Invariant 7` tombstoned to it. *Over:* keeping them. *Because:* the prose already drew the line the ruling needs — *Invariant 1 through 5 and 8 emerge from the composition; Invariants 6 and 7 are preservation claims* — and [`execution-contract.md`](../execution-contract.md) §Conformance settles a preservation claim by reference, so restating it twice was a citing spec restating a rule it cites (Authority 6, council read 53, council read 55). What the two carried beyond the blanket survives as `Composes 5` and `Composes 6`: reading the subscription store only through `subscribers_for` and refusing to reach past `create` are this composition's own restraint and are not guarantees either atom makes about a caller.
+- **2026-09-14 — Two preservation claims are one citation.** *Chose:* `Composes 7`, with `Invariant 6` and `Invariant 7` tombstoned to it. *Over:* keeping them. *Because:* the prose already drew the line the ruling needs — *Invariant 1 through 5 and 8 emerge from the composition; Invariants 6 and 7 are preservation claims* — and the section titled Conformance in [`execution-contract.md`](../execution-contract.md) settles a preservation claim by reference, so restating it twice was a citing spec restating a rule it cites (Authority 6, council read 53, council read 55). What the two carried beyond the blanket survives as `Composes 5` and `Composes 6`: reading the subscription store only through `subscribers_for` and refusing to reach past `create` are this composition's own restraint and are not guarantees either atom makes about a caller.
 - **2026-09-14 — Five of the Ledger's six open lines are closed by the migration.** *Chose:* to close `2026-08-27-g`, `-h`, `-i`, `-k` and `-l` in the rewrite and strike them from the Ledger's open list, leaving `-j`. *Over:* migrating the language and leaving six known defects standing behind it. *Because:* all five were language or ownership defects a rewrite is the natural moment to fix — an unconditional coverage claim that needed the crash bound (`Wiring decision 3`, `Non-goal 3`, `Invariant 1`'s WHY), an acceptance preamble opening universally where two checks need a composed Event Log (now conditional, and stated in the preamble), Notification's own acceptance classified both record-clearable and external (classified once, as `External check 5`), invalid-request's provenance stated two ways (stated once, in `Primitive policy`'s WHY), and the two constituents' divergent non-empty definitions left unnamed (named in `Indeterminate outcome`'s WHY — Subscription admits a whitespace-only ref and caps nothing, Notification refuses both). `-j` stays open because it is a design choice rather than a defect: an Event Log entry carrying the full created and failed lists is unbounded in N against Event Log's payload cap, and bounding, chunking or digesting it is the maintainer's to pick. The `status:`, `formal:` and `last gate:` lines are untouched (council read 56).
 
 NOTE: End of Notification Fanout.
