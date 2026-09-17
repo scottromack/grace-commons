@@ -121,13 +121,13 @@ Capability requirement 9: The deployment MUST canonicalize an opaque reference.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
-Capability requirement 13: The deployment MUST own the clock's skew.
-Capability requirement 14: The deployment MUST own the clock's monotonicity.
-Deleted: Clock semantics 4. Capability requirement 13 owns it.
+Deleted: Capability requirement 13. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 14. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 5. Capability requirement 14 owns it.
+Deleted: Clock semantics 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 6. Non-goal 26 owns it.
 ```
 

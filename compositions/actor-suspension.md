@@ -260,7 +260,7 @@ Capability requirement 42: A deployment MUST refuse an issuance for a suspended 
 Capability requirement 43: The composition MUST NOT gate an issuance.
 Capability requirement 44: A deployment MUST run the sweep at process restart.
 Capability requirement 45: A deployment MUST run the sweep PER reconciliation cadence.
-Capability requirement 46: The deployment MUST own the clock's honesty.
+Deleted: Capability requirement 46. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one invocation_id here.
@@ -977,7 +977,7 @@ Clock semantics 9: The composition MUST NOT compare a constituent's stamp agains
 Clock semantics 10: A check comparing two seams' stamps MUST run under the clock offset allowance.
 Clock semantics 11: A check comparing two seams' stamps MUST answer inconclusive inside the clock offset allowance.
 Clock semantics 12: The sweep MUST compare an intent's stamp against the sweep's own clock reading.
-Deleted: Clock semantics 13. Capability requirement 1 and Capability requirement 46 own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Clock semantics 13. Capability requirement 1 and the section titled Logic Confinement Principle in `execution-contract.md` own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 14. Non-goal 19 owns it.
 ```
 

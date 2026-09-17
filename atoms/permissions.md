@@ -87,10 +87,10 @@ There is no stored denial, because absence is denial (Invariant 7.1) — an expl
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST own the clock's monotonicity.
-Capability requirement 3: The deployment MUST own the clock's timezone handling.
-Deleted: Clock semantics 1. Capability requirement 2 owns it.
-Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 3. Non-goal 17 owns it.
 ```
 
@@ -206,7 +206,7 @@ The two storage failures are not the same failure. A failed [Grant] leaves a rec
   Invariant 9.1: IF revoked_at DOES NOT EQUAL blank THEN granted_at MUST NOT EXCEED revoked_at.
   Invariant 9.2: A grant MUST stand in force at an instant ONLY IF the grant is live at the instant.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2 through 3).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (the section titled Logic Confinement Principle in `execution-contract.md`).
 - **Invariant 10 — Grant store durability.**
   ```
   Invariant 10.1: The atom MUST NOT delete a grant record.
@@ -247,7 +247,7 @@ The mechanic is identical across all five. What differs: the scope vocabulary (a
 Three scenarios the atom must survive in regulated contexts:
 
 - **Regulator audit — who has access to what.** A HIPAA auditor asks *"which staff have access to full patient records?"* The auditor queries the grant store for all [Active] grants covering the patient-records scope. The grant store answers from stored fields alone — [Subject Ref], [Action Scope], [Granted At], [Status] — with no recourse to developer narration. Invariants 1, 6, and 7 are the structural answer: evaluation is self-contained; every active grant is observable; absence of a grant means denial.
-- **Disputed access — was this actor permitted at the time of the action?** An actor claims they were not authorized to access a resource at a specific time. The investigator queries the grant store for grants where `subject_ref = actor_ref` and `action_scope = contested_scope` with `granted_at ≤ time_of_action` and (`revoked_at IS NULL OR revoked_at > time_of_action`). The timestamp-based form is preferred over `status = active` because [Status] reflects current state, not historical state — a grant revoked after the time of action has `status = revoked` now but was active then; the timestamp condition captures it correctly. A grant matching those criteria is the structural answer: the actor held an [Active] grant at the time of the action. Invariant 1.1 and Invariant 9.2 are what make the reconstruction answerable from the records; Invariant 9.1's ordering is best-effort under a clock that moves backward, so the reconstruction is as good as the deployment's clock discipline (Capability requirement 2).
+- **Disputed access — was this actor permitted at the time of the action?** An actor claims they were not authorized to access a resource at a specific time. The investigator queries the grant store for grants where `subject_ref = actor_ref` and `action_scope = contested_scope` with `granted_at ≤ time_of_action` and (`revoked_at IS NULL OR revoked_at > time_of_action`). The timestamp-based form is preferred over `status = active` because [Status] reflects current state, not historical state — a grant revoked after the time of action has `status = revoked` now but was active then; the timestamp condition captures it correctly. A grant matching those criteria is the structural answer: the actor held an [Active] grant at the time of the action. Invariant 1.1 and Invariant 9.2 are what make the reconstruction answerable from the records; Invariant 9.1's ordering is best-effort under a clock that moves backward, so the reconstruction is as good as the deployment's clock discipline (the section titled Logic Confinement Principle in `execution-contract.md`).
 - **Privilege escalation investigation — unauthorized access attempt.** A security incident suggests an actor accessed a resource beyond their grant. The investigator runs the same reconstruction the disputed-access scenario uses — the grants live at the time of the incident (live at an instant) — because [Check] answers only about now and the atom offers no query over a past instant (Invariant 6.1, Invariant 9.2). An empty reconstruction confirms no grant was in force — any access that occurred did so by circumventing the authorization surface, which is the security incident's scope, not the atom's. The grant store's integrity determines whether the authorization record can be trusted; composing with Tamper Evidence makes that determination structural.
 
 ---

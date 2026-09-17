@@ -124,8 +124,8 @@ Capability requirement 9: The store MUST acknowledge a write ONLY IF the write c
 Capability requirement 10: The store MUST commit an admitted amend's two writes together.
 Capability requirement 11: The deployment MUST canonicalize an opaque reference.
 Capability requirement 12: The deployment MUST declare the length bound.
-Capability requirement 13: The deployment MUST own the clock's skew.
-Capability requirement 14: The deployment MUST own the clock's monotonicity.
+Deleted: Capability requirement 13. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 14. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 WHY:
@@ -553,8 +553,8 @@ Deleted: Clock semantics 3. Operation 4 owns it for ordered_at, and the `resolve
 Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Clock semantics 5: The atom MUST NOT bound a supplied event instant.
-Deleted: Clock semantics 6. Capability requirement 13 owns it.
-Deleted: Clock semantics 7. Capability requirement 14 owns it.
+Deleted: Clock semantics 6. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 7. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 8. Non-goal 25 owns it.
 ```
 

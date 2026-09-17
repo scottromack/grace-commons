@@ -44,6 +44,10 @@ The overwhelming majority of async, consistency, timing, and correctness problem
 
 **6. Async at the edge only.** All asynchronous, network, storage, and external work is confined to adapters. The pipeline itself — Steps 1 through 4 — is synchronous. Async enters core and complexity grows nonlinearly; Grace Commons eliminates the category by construction.
 
+**7. The clock's guarantees are the deployment's.** A specification reads the clock once per invocation, as rule 3 says, and trusts nothing about it beyond that reading. What the clock guarantees — that its readings never go backward (monotonicity), that no one has set them (honesty), that they agree across nodes (synchronization), how far two clocks may drift apart (skew), and the timezone a reading is taken in — the deployment owns, for every specification it runs. A specification that relies on one of these cites this rule; it does not restate it.
+
+**One home for a shared obligation.** An obligation the deployment owes every specification is written once, here, and each specification cites it — rule 3's single clock reading was the first such obligation, and rule 7's guarantees the second. Twenty-five specifications once restated the clock's guarantees as sixty capability requirements.
+
 **Current status.** The Beacon reference implementation satisfies rules 1, 2, 3, and 6 fully — against rule 3 as it stood when Beacon was built: Beacon reads the clock at Step 3, predating the 2026-07-12 placement revision (clock read at the top of Step 2, shared by G and T — see Pipeline). The injection principle holds in Beacon; the step-placement update rides the same projector build phase as rules 4 and 5. Rule 4 (explicit construction / `createEvent` before `appendEvent`) and rule 5 (compiler-emitted invariant assertions) are targeted for the projector build phase — the gap is tracked as methodology debt #7 in [`roadmap.md`](./roadmap.md) §Methodology debts (the projector / verification-harness deliverable). The principle is stated here as a first-class commitment, not a retrospective description of the demo.
 
 ---

@@ -88,10 +88,10 @@ Four states and exactly one terminal stamp each, because the audit question is *
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST own the clock's monotonicity.
-Capability requirement 3: The deployment MUST own the clock's timezone handling.
-Deleted: Clock semantics 1. Capability requirement 2 owns it.
-Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 3. Non-goal 16 owns it.
 ```
 
@@ -228,7 +228,7 @@ The three terminal transitions share one precondition pair — known, and pendin
   Invariant 8.2: IF failed_at DOES NOT EQUAL blank THEN created_at MUST NOT EXCEED failed_at.
   Invariant 8.3: IF expired_at DOES NOT EQUAL blank THEN created_at MUST NOT EXCEED expired_at.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (the section titled Logic Confinement Principle in `execution-contract.md`).
 - **Invariant 9 — Notification durability.**
   ```
   Invariant 9.1: The atom MUST NOT delete a notification record.
@@ -284,7 +284,7 @@ This atom's acceptance is what an external auditor can clear from the notificati
 Check 1.1: An auditor MUST read EVERY notification's notification_id, recipient_ref, payload, created_at and status from the store (State 2).
 Check 2.1: An auditor MUST reconstruct a notification's status at a past instant from created_at and the terminal stamp (Invariant 2.4).
 Check 2.2: An auditor MUST read the reconstruction as deterministic on stored fields (Invariant 1.2).
-Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1, Capability requirement 2).
+Check 2.3: An auditor MUST read the reconstruction's wall-clock truth as best-effort (Invariant 8.1, the section titled Logic Confinement Principle in `execution-contract.md`).
 Check 3.1: An auditor MUST find no notification carrying two terminal stamps (Invariant 3.1).
 Check 3.2: An auditor MUST find no pending notification carrying a terminal stamp (Invariant 3.2).
 Check 4.1: An auditor MUST find EVERY terminal stamp matching the notification's status (Invariant 4.2, Invariant 4.4, Invariant 4.6).

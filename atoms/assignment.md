@@ -94,10 +94,10 @@ Recalled and transferred are two terminal values of the [Status] rather than one
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST own the clock's monotonicity.
-Capability requirement 3: The deployment MUST own the clock's timezone handling.
-Deleted: Clock semantics 1. Capability requirement 2 owns it.
-Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 3. State 13 owns it.
 ```
 
@@ -229,7 +229,7 @@ Reassign is one commit and not a recall followed by an assign, which is the whol
   Invariant 8.2: IF transferred_at DOES NOT EQUAL blank THEN assigned_at MUST NOT EXCEED transferred_at.
   Invariant 8.3: The atom MUST stamp EVERY timestamp once.
   ```
-  WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (Capability requirement 2 through 3).
+  WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (the section titled Logic Confinement Principle in `execution-contract.md`).
 - **Invariant 9 — Complete responsibility history.**
   ```
   Invariant 9.1: The assignments carrying one task_ref MUST record EVERY actor who held the task.

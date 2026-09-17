@@ -108,12 +108,12 @@ State 10 states the gap that makes backdating undetectable here rather than leav
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST own the clock's monotonicity.
-Capability requirement 3: The deployment MUST own the clock's honesty.
-Capability requirement 4: The deployment MUST own the clock's synchronization.
-Deleted: Clock semantics 1. Capability requirement 2 owns it.
-Deleted: Clock semantics 2. Capability requirement 3 owns it.
-Deleted: Clock semantics 3. Capability requirement 4 owns it.
+Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 4. State 10 owns it.
 Deleted: Clock semantics 5. Non-goal 23 owns it.
 ```

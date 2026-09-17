@@ -93,12 +93,12 @@ A cancelled subscription stays in the store because the record of who was listen
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST own the clock's monotonicity.
-Capability requirement 3: The deployment MUST own the clock's timezone handling.
-Capability requirement 4: The deployment MUST own the clock's honesty.
-Deleted: Clock semantics 1. Capability requirement 2 owns it.
-Deleted: Clock semantics 2. Capability requirement 3 owns it.
-Deleted: Clock semantics 3. Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 3. Capability requirement 1 and the section titled Logic Confinement Principle in `execution-contract.md` own it: the seam supplies now, and the reading's honesty is the deployment's.
 ```
 
 WHY:
@@ -222,7 +222,7 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
   ```
   Invariant 9.1: IF cancelled_at DOES NOT EQUAL blank THEN subscribed_at MUST NOT EXCEED cancelled_at.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Capability requirement 2).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (the section titled Logic Confinement Principle in `execution-contract.md`).
 
 ## Examples
 

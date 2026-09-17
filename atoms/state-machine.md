@@ -117,9 +117,9 @@ State 14 is stated as a rule rather than left to the implementation because the 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST own the clock's monotonicity.
-Capability requirement 3: The deployment MUST own the clock's honesty.
-Capability requirement 4: The deployment MUST own the clock's synchronization.
+Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 WHY:
@@ -510,9 +510,9 @@ Every admitted fire couples three durable mutations — the entry, the counter r
 
 ```
 Clock semantics 4: A fired_at MUST NOT bound a later history entry's fired_at.
-Deleted: Clock semantics 1. Capability requirement 2 owns it.
-Deleted: Clock semantics 2. Capability requirement 3 owns it.
-Deleted: Clock semantics 3. Capability requirement 4 owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 5. Non-goal 22 owns it.
 ```
 

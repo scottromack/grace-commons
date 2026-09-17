@@ -134,12 +134,12 @@ An audit event has two surfaces with different lifetimes, and the split is struc
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST own the clock's monotonicity.
-Capability requirement 3: The deployment MUST own the clock's timezone handling.
-Capability requirement 4: The deployment MUST own the clock's honesty.
-Deleted: Clock semantics 1. Capability requirement 2 owns it.
-Deleted: Clock semantics 2. Capability requirement 3 owns it.
-Deleted: Clock semantics 3. Capability requirement 1 and Capability requirement 4 own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 3. Capability requirement 1 and the section titled Logic Confinement Principle in `execution-contract.md` own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 4. Clock dependence 1 owns it.
 Deleted: Clock semantics 5. Clock dependence 2 owns it.
 Deleted: Clock semantics 6. Non-goal 29 owns it.

@@ -117,13 +117,13 @@ Capability requirement 6: The store MUST refuse a write carrying an invitation_t
 Capability requirement 7: The store MUST acknowledge a write ONLY IF the write commits.
 Capability requirement 8: The deployment MUST canonicalize an opaque reference.
 Capability requirement 9: The deployment MUST deliver the invitation_token to the invitee.
-Capability requirement 10: The deployment MUST own the clock's skew.
-Capability requirement 11: The deployment MUST own the clock's monotonicity.
-Deleted: Clock semantics 4. Capability requirement 10 owns it.
+Deleted: Capability requirement 10. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 11. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 5. Capability requirement 11 owns it.
+Deleted: Clock semantics 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 6. Non-goal 25 owns it.
 Deleted: Clock semantics 7. Non-goal 26 owns it.
 ```

@@ -121,9 +121,9 @@ Capability requirement 3: The deployment MUST supply the session_token's random 
 Capability requirement 4: The session_token's random material MUST NOT fall below the token entropy.
 Capability requirement 5: The deployment MUST own the session_token's format.
 Capability requirement 6: The deployment MUST own whether the store holds a session_token raw.
-Capability requirement 7: The deployment MUST own the clock's monotonicity.
-Capability requirement 8: The deployment MUST own the clock's honesty.
-Capability requirement 9: The deployment MUST own the clock's synchronization.
+Deleted: Capability requirement 7. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 8. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 9. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Configuration 1. Capability requirement 2 owns it.
 Deleted: Configuration 2. Operation 48 owns it.
 Deleted: Configuration 3. Capability requirement 3 owns it.
@@ -131,9 +131,9 @@ Deleted: Configuration 4. Operation 49 owns it.
 Deleted: Configuration 5. Capability requirement 4 owns it.
 Deleted: Configuration 6. Capability requirement 5 owns it.
 Deleted: Configuration 7. Capability requirement 6 owns it.
-Deleted: Clock semantics 1. Capability requirement 7 owns it.
-Deleted: Clock semantics 2. Capability requirement 8 owns it.
-Deleted: Clock semantics 3. Capability requirement 9 owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 4. Clock dependence 1 owns it.
 Deleted: Clock semantics 5. Clock dependence 2 owns it.
 Deleted: Clock semantics 6. Non-goal 25 owns it.
@@ -350,7 +350,7 @@ Revocation takes the token as the whole authorization, and the atom exposes no w
   Invariant 11.1: [Validate] MUST NOT answer valid for a lapsed session.
   Invariant 11.2: A lapsed session MUST stand lapsed at EVERY later now.
   ```
-  WHY: the expiry analogue of Invariant 4, and the asymmetry is the point — revocation is an absorbing *stored* state, a lapse is an absorbing *derived* condition. Invariant 11.2 rests on the deadline's immutability (Invariant 2.1) and on the deployment's clock discipline (Capability requirement 7); both paths that foreclose a valid answer are stated so the verification surface is symmetric.
+  WHY: the expiry analogue of Invariant 4, and the asymmetry is the point — revocation is an absorbing *stored* state, a lapse is an absorbing *derived* condition. Invariant 11.2 rests on the deadline's immutability (Invariant 2.1) and on the deployment's clock discipline (the section titled Logic Confinement Principle in `execution-contract.md`); both paths that foreclose a valid answer are stated so the verification surface is symmetric.
 - **Invariant 12 — Expiry is derived, never written.**
   ```
   Invariant 12.1: A session MUST NOT carry a stored expired status.

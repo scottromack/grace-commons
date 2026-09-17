@@ -83,10 +83,10 @@ Deletion is the only way out and it is terminal: the atom keeps no memory of wha
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST own the clock's monotonicity.
-Capability requirement 3: The deployment MUST own the clock's timezone handling.
-Deleted: Clock semantics 1. Capability requirement 2 owns it.
-Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 3. Non-goal 16 owns it.
 ```
 
@@ -199,7 +199,7 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
   Invariant 7.2: IF completed_at DOES NOT EQUAL blank THEN added_at MUST NOT EXCEED completed_at.
   Invariant 7.3: IF last_edited_at DOES NOT EQUAL blank AND completed_at DOES NOT EQUAL blank THEN last_edited_at MUST NOT EXCEED completed_at.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Capability requirement 2 through 3).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock quality (the section titled Logic Confinement Principle in `execution-contract.md`).
 - **Invariant 8 — Id stability.**
   ```
   Invariant 8.1: [Add] MUST set the id.
@@ -289,7 +289,7 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Capability requirement 2).
+External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Invariant 7.1 through 7.3).
 External check 2: An auditor needing a transition's atomicity confirmed MUST read the implementation's own transactional boundary (Concurrency 2).
 External check 3: An auditor needing a second client's calls accounted for MUST read the deployment's own concurrency-resolution pattern (Concurrency 3).
 ```

@@ -102,8 +102,8 @@ Two states and no third: a storage tier is an orthogonal axis a Storage Tier pat
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The deployment MUST own the clock's honesty.
-Capability requirement 3: The deployment MUST own the clock's monotonicity.
+Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 ```
 
 WHY:
@@ -348,8 +348,8 @@ Where the atom breaks down: when the obligation is a function of the record's co
 
 ```
 Clock semantics 3: Two readers judging purge eligible under skewed clocks MAY disagree near retention_until.
-Deleted: Clock semantics 1. Capability requirement 2 owns it.
-Deleted: Clock semantics 2. Capability requirement 3 owns it.
+Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
 Deleted: Clock semantics 4. Non-goal 13 owns it.
 ```
 
