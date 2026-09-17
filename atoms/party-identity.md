@@ -46,9 +46,9 @@ This is a freestanding atom in the EOS sense: its own state machine, its own fiv
 Identity 1: The atom MUST identify a party by the party_id.
 Identity 2: The atom MUST identify a verification event by the verification_id.
 Identity 3: The atom MUST identify a state change event by the state_change_id.
-Identity 4: The atom MUST assign an identifier from the id material the seam supplies.
-Identity 5: The atom MUST NOT generate an identifier.
-Identity 6: The atom MUST NOT change an identifier.
+Identity 4: The atom MUST take an assigned id from the id material the seam supplies.
+Identity 5: The atom MUST NOT generate an assigned id.
+Identity 6: The atom MUST NOT change an assigned id.
 Identity 7: Two parties MUST NOT share a party_id.
 Identity 8: Two verification events MUST NOT share a verification_id.
 Identity 9: Two state change events MUST NOT share a state_change_id.
@@ -70,15 +70,15 @@ Term verification event: the record of one identity check — its method, result
 
 Term state change event: the record of one transition — the prior state, the new state, the acting reference, the instant and, where the action carries one, the reason — appended to a party and never changed.
 
-Term identifier: party_id, verification_id OR state_change_id — every opaque name this atom assigns.
+Term assigned id: party_id, verification_id OR state_change_id — every opaque name this atom assigns.
 
 Term enrollment field: name | date_of_birth | document_type | document_ref | enrolled_at | enrolling_actor_ref — what a party carries from enrollment and never changes.
 
 Term acting reference: enrolling_actor_ref, verifying_actor_ref, suspending_actor_ref, reinstating_actor_ref OR closing_actor_ref — the reference an action records for who acted.
 
-Term reference: an identifier, an acting reference, document_ref OR evidence_ref — every opaque reference this atom records.
+Term reference: an assigned id, an acting reference, document_ref OR evidence_ref — every opaque reference this atom records.
 
-Term store instance: one named party store a call is routed to; identifier uniqueness ranges over one instance.
+Term store instance: one named party store a call is routed to; assigned id uniqueness ranges over one instance.
 
 Term seam: the atom's I/O boundary as `execution-contract.md` §Logic confinement declares it; the host injects the clock reading and the id material here.
 
@@ -104,7 +104,7 @@ State 7: EVERY state change event a reasoned action appended MUST carry a reason
 ```
 
 WHY:
-State 2 and State 3 say something a reader can miss: the histories live *on* the party rather than in stores of their own, which is why one [Read] answers a whole biography and why every acceptance check below is runnable against one surface. Each event is still individually addressable by its own identifier, so a composing attestation binds to one suspension rather than to a position in a list.
+State 2 and State 3 say something a reader can miss: the histories live *on* the party rather than in stores of their own, which is why one [Read] answers a whole biography and why every acceptance check below is runnable against one surface. Each event is still individually addressable by its own assigned id, so a composing attestation binds to one suspension rather than to a position in a list.
 
 State 6 and State 7 are the reason a reason is optional in the record and mandatory in three of four writers. A verify-driven transition carries no reason because [Verify] has no reason to carry — the evidence *is* the justification, and it is on the verification event. A suspension, a reinstatement and a closure are judgments, and a judgment with no stated basis is the thing an auditor came to read.
 
@@ -306,8 +306,8 @@ Operation 59 is this atom's one departure from its siblings on instants. [Approv
   ```
   Invariant 8.1: EVERY transitioning action MUST append a state change event.
   Invariant 8.2: A party's state change log length MUST NOT fall.
-  Deleted: Invariant 9. Identity 6 owns identifier stability.
-  Deleted: Invariant 10. Identity 7, Identity 8 and Identity 9 own identifier uniqueness.
+  Deleted: Invariant 9. Identity 6 owns assigned id stability.
+  Deleted: Invariant 10. Identity 7, Identity 8 and Identity 9 own assigned id uniqueness.
   ```
 - **Invariant 11 — Action atomicity.**
   ```
@@ -544,7 +544,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment; the implementation; the store; the store instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a losing party action; a refused action; an identifier; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; the store instance's party count; a party's verification event list length; a party's state change log length.
+Term actors: the atom; the deployment; the implementation; the store; the store instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a losing party action; a refused action; an assigned id; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; the store instance's party count; a party's verification event list length; a party's state change log length.
 
 Term records: party — one external party, carrying party_id, name, date_of_birth, document_type, document_ref, enrolled_at, enrolling_actor_ref, a state, a state change log and a verification event list. verification event — one identity check, carrying verification_id, verifying_actor_ref, verification_method, verification_result, evidence_ref and verified_at. state change event — one transition, carrying state_change_id, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a reason.
 
@@ -558,7 +558,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: party, party_id, verification event, state change event, identifier, enrollment field, acting reference, reference, store instance, seam, transition, now, party action, transitioning action, state, state rejection, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
+Term terms: party, party_id, verification event, state change event, assigned id, enrollment field, acting reference, reference, store instance, seam, transition, now, party action, transitioning action, state, state rejection, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
 
 Term cited: `execution-contract.md` §Logic confinement — the seam and the transition.
 
@@ -997,7 +997,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-13 — The EOS strip test: no domain tag, no rename, and the coupling is in the attributes rather than the name.** *Chose:* leave the atom untagged and unrenamed, and record where the domain actually touches it. *Over:* a `domain:` tag, or a reframe of the kind [Observation](./observation.md) took. *Because:* the test asks whether stripping the domain leaves a freestanding neutral primitive, and here it does. Every invariant is neutral — records are never removed, a terminal absorbs, events are append-only and immutable, a standing rests on recorded evidence since the last revocation. None of them is derivable only from banking or healthcare; the same shape governs a licence, an accreditation, a calibration status. The *name* is already the stripped form: party is legal and commercial vocabulary rather than one industry's, which is why the atom is not called Customer Identity or Patient Identity. What is domain-flavoured is the enrollment attribute set — name, date_of_birth, document_type, document_ref — which is natural-person identity-document vocabulary, and the atom already treats two of the four as opaque strings it never interprets. The honest boundary is that this atom is a neutral standing-and-evidence primitive carrying one concrete attribute schema, and the question of whether that schema should be an opaque attribute bag belongs on the docket rather than in a rename.
 - **2026-09-13 — Insertion order is authoritative and a recorded instant is advisory, stated as its own rule family.** *Chose:* an `Ordering` family, with Ordering 4 and Ordering 5 forbidding a reading or a reconstruction from turning on an instant. *Over:* the prose's paragraph saying the same thing beside the state machine. *Because:* Operation 18's *most recent suspend* is the atom's central guarantee and it is decidable two ways, one of which is unsound — under clock skew a later event can carry an earlier instant, and two readers would then disagree about whether a party may be reinstated. A rule family is what makes the sound reading the one a generator implements.
-- **2026-09-13 — Invariant 9 and Invariant 10 are tombstoned; Identity owns identifier stability and uniqueness.** *Chose:* Identity 6 through 9 as the single owners. *Over:* keeping the invariants, which restated them. *Because:* Authority 3. Checked before removing: the corpus cites Party Identity Invariants 1, 4, 5 and 11 — from [Customer Onboarding](../compositions/customer-onboarding.md) and the coverage matrix — and cites neither 9 nor 10, so the tombstones break no citation.
+- **2026-09-13 — Invariant 9 and Invariant 10 are tombstoned; Identity owns assigned id stability and uniqueness.** *Chose:* Identity 6 through 9 as the single owners. *Over:* keeping the invariants, which restated them. *Because:* Authority 3. Checked before removing: the corpus cites Party Identity Invariants 1, 4, 5 and 11 — from [Customer Onboarding](../compositions/customer-onboarding.md) and the coverage matrix — and cites neither 9 nor 10, so the tombstones break no citation.
 - **2026-09-13 — no-passed-verification-since-suspend stays a purpose-built rejection arm.** *Chose:* the arm the prose already carried. *Over:* folding it into not-suspended or invalid-request, which is what the corpus's closed answer set usually pressures a rare condition into. *Because:* this one is not rare and not adjacent to anything — it is the atom's central guarantee failing, and a caller receiving it knows exactly what to do next, which is to record a check. It is worth naming as the corpus's counter-example: the docket row on answers charged to the nearest arm is about conditions that could not justify the cost of their own name, and this is what paying that cost looks like.
 
 NOTE: End of Party Identity.
