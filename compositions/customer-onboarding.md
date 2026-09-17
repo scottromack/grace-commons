@@ -126,7 +126,7 @@ Composition state 21: An unrebuildable entry MUST NOT stand as a miss.
 Composition state 22: The composition MUST alert on an unrebuildable entry.
 Composition state 23: The rebuild of the party-to-case index MUST select the initiated events AND the retention renewed events.
 Composition state 24: The rebuild of the party-to-case index MUST take the case_id AND the enrollment_path from the latest selected payload PER party_id.
-Composition state 25: The rebuild of the party-to-case index MUST stand a case active ONLY IF no party closed event names the case_id.
+Composition state 25: The rebuild of the party-to-case index MUST write the case's active flag set to true ONLY IF no party closed event names the case_id.
 Composition state 26: The rebuild of the case-to-monitoring index MUST take the party_id from the latest binding-bearing payload PER case_id.
 Composition state 27: The rebuild of the case-to-monitoring index MUST take the opened_at from the initiated payload.
 Composition state 28: The rebuild of the case-to-monitoring index MUST take the next review due from the latest schedule-bearing payload PER case_id.
@@ -157,6 +157,10 @@ Composition state 50: The composition MUST NOT duplicate a constituent's store.
 Term case-to-monitoring index: case_to_monitoring — the composition's index from a case_id to the case's party_id, opened_at and [Next Review Due]; the auditor's first query surface for monitoring continuity.
 
 Term party-to-case index: party_to_case — the composition's index from a party_id to the party's case_id, enrollment_path and active flag; the gate's first read and the join an auditor makes from an activity record to an onboarding case.
+
+Term active flag: true | false — whether a case is open: true from the case's initiated record, false once a landed party closed record names the case (Composition state 25, Action wiring 130).
+
+Term active case: a case whose active flag EQUALS true.
 
 Term case-to-retentions index: case_to_retentions — the composition's index from a case_id to the current placement and the post closure placement.
 
@@ -499,7 +503,7 @@ Action wiring 19: An admitted initiation MUST record an initiated outcome carryi
 Action wiring 20: An admitted initiation MUST answer the case_id.
 Action wiring 21: The composition MUST read the case-to-monitoring index at [Record Verification].
 Action wiring 22: IF no case EXISTS for the case_id THEN [Record Verification] MUST answer not-known.
-Action wiring 23: IF the case stands inactive THEN [Record Verification] MUST answer not-active.
+Action wiring 23: IF the case's active flag EQUALS false THEN [Record Verification] MUST answer not-active.
 Action wiring 24: An admitted verification MUST record a verification intent.
 Action wiring 25: An admitted verification MUST call Party Identity's verify with the party_id, the verifying_actor_ref, the method, the verification_result AND the evidence_ref.
 Action wiring 26: IF Party Identity answers already-closed for a verify THEN [Record Verification] MUST answer already-closed.
@@ -515,7 +519,7 @@ Action wiring 35: An admitted verification MUST answer recorded.
 Action wiring 36: A reader MUST NOT read recorded as a verified state.
 Action wiring 37: The composition MUST read the case-to-monitoring index at [Trigger Monitoring Review].
 Action wiring 38: IF no case EXISTS for the case_id THEN [Trigger Monitoring Review] MUST answer not-known.
-Action wiring 39: IF the case stands inactive THEN [Trigger Monitoring Review] MUST answer not-active.
+Action wiring 39: IF the case's active flag EQUALS false THEN [Trigger Monitoring Review] MUST answer not-active.
 Action wiring 40: The composition MUST read the party through Party Identity's declared read at [Trigger Monitoring Review].
 Action wiring 41: IF the read stands unanswered THEN [Trigger Monitoring Review] MUST answer state-unavailable.
 Action wiring 42: IF Party Identity answers invalid-query THEN [Trigger Monitoring Review] MUST answer invalid-request.
@@ -592,7 +596,7 @@ Action wiring 110: A lost invocation's recovery MUST stand as a fresh [Clear Rev
 Action wiring 111: An admitted clearance MUST answer cleared.
 Action wiring 112: The composition MUST read the case-to-monitoring index at [Close Party].
 Action wiring 113: IF no case EXISTS for the case_id THEN [Close Party] MUST answer not-known.
-Action wiring 114: IF the case stands inactive THEN [Close Party] MUST answer not-active.
+Action wiring 114: IF the case's active flag EQUALS false THEN [Close Party] MUST answer not-active.
 Action wiring 115: An admitted closure MUST record a closure intent.
 Action wiring 116: An admitted closure MUST call Party Identity's close with the party_id, the closing_actor_ref AND the reason.
 Action wiring 117: IF Party Identity answers already-closed for a close AND no party closed event names the case THEN the invocation MUST complete the earlier closure.
@@ -608,7 +612,7 @@ Action wiring 126: IF Retention Window answers storage-failure for a closure THE
 Action wiring 127: An admitted closure MUST record a party closed outcome carrying the case_id, the party_id, the state_change_id, the post closure placement, the reason, the closed_at AND the open triggers at close.
 Action wiring 128: IF the party closed record fails THEN [Close Party] MUST answer recording-failure carrying outcome.
 Action wiring 129: An admitted closure MUST populate the case-to-retentions index's post closure placement ONLY AFTER the landed party closed record.
-Action wiring 130: An admitted closure MUST clear the case's active flag ONLY AFTER the landed party closed record.
+Action wiring 130: An admitted closure MUST write the case's active flag set to false ONLY AFTER the landed party closed record.
 Action wiring 131: An admitted closure MUST empty the open-trigger set ONLY AFTER the landed party closed record.
 Action wiring 132: An admitted closure MUST answer closed.
 Action wiring 133: A caller MUST NOT retry a committing call across an invocation.
@@ -636,13 +640,13 @@ Term unanswered read: a constituent read the host's I/O did not complete, which 
 
 Term admitted initiation: an [Initiate Onboarding] call whose boundary predicate passed, whose party stands admissible and whose intent landed.
 
-Term admitted verification: a [Record Verification] call whose boundary predicate passed, whose case stands active and whose intent landed.
+Term admitted verification: a [Record Verification] call whose boundary predicate passed, whose case's active flag EQUALS true and whose intent landed.
 
-Term admitted trigger: a [Trigger Monitoring Review] call whose boundary predicate passed, whose case stands active and whose pre-check admitted the trigger_type against the party's state.
+Term admitted trigger: a [Trigger Monitoring Review] call whose boundary predicate passed, whose case's active flag EQUALS true and whose pre-check admitted the trigger_type against the party's state.
 
 Term admitted clearance: a [Clear Review] call whose boundary predicate passed, whose case carries an open trigger and whose intent landed.
 
-Term admitted closure: a [Close Party] call whose boundary predicate passed, whose case stands active and whose intent landed.
+Term admitted closure: a [Close Party] call whose boundary predicate passed, whose case's active flag EQUALS true and whose intent landed.
 
 Term transitioning verification: an admitted verification Party Identity answered with a state_change_id.
 
@@ -1178,7 +1182,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.41 (2026-09-14).
 
 Term value sets: admissible states = unverified. suspendable states = verified | suspended. verification results = passed | failed. trigger vocabulary = periodic-review-due | a member of the adverse trigger types. adverse trigger types = sanctions-match | pep-status-change | adverse-media, extended by the deployment. intent = customer-onboarding.initiation-intended | customer-onboarding.verification-intended | customer-onboarding.clearance-intended | customer-onboarding.closure-intended | customer-onboarding.monitoring-triggered | customer-onboarding.recovery-intended. outcome = customer-onboarding.initiated | customer-onboarding.verification-recorded | customer-onboarding.party-suspended | customer-onboarding.trigger-on-suspended-party | customer-onboarding.trigger-voided | customer-onboarding.retention-renewed | customer-onboarding.review-cleared | customer-onboarding.party-reinstated | customer-onboarding.party-closed. enrollment_path = direct | external-onboarding.
 
-Term terms: composition, constituents, party retention instance, service identity, direct path, external path, case-to-monitoring index, party-to-case index, case-to-retentions index, case-to-open-triggers index, index, current placement, post closure placement, audit horizon, aged-out event, rebuild, miss, unrebuildable entry, binding-bearing payload, schedule-bearing payload, placement-bearing payload, landed record, owed record, seam, transition, monitoring interval, scheduler tolerance, renewal floor, binding floor, closure floor, onboarding completion bound, active relationship policy, post closure policy, post closure minimum, adverse trigger types, periodic trigger type, trigger set cap, field cap, blank, boundary predicate, opaque input, actor reference, trigger vocabulary, verification results, truncation marker, set digest, intent, outcome, committing call, landed intent, open marker, outcome traversal, yielded invocation, recovery marker, recovery outcome, party state, admissible states, suspendable states, unanswered read, admitted initiation, admitted verification, admitted trigger, admitted clearance, admitted closure, transitioning verification, adverse trigger, periodic trigger, suspending trigger, renewing trigger, completing closure, committing closure, composed suspend reason, closed triggers, open triggers at close, scoped retry, prior placement, renewed placement, regulated activity, reconciliation, young marker, elapsed placement, quiescent case, quiescent verified party, quiescent suspended party, quiescent closed case, continuous chain, unelapsed placement, post closure floor, clearance window, surfaced orphan, clearing actor, `placement's cover`, trigger outcome, orphan, indeterminate committing call, enrollment failure, position, intended_at, intent_event_id, opened_at, triggered_at, suspended_at, renewed_at, cleared_at, reinstated_at, closed_at.
+Term terms: composition, constituents, party retention instance, service identity, direct path, external path, case-to-monitoring index, party-to-case index, case-to-retentions index, case-to-open-triggers index, index, current placement, post closure placement, audit horizon, aged-out event, rebuild, miss, unrebuildable entry, binding-bearing payload, schedule-bearing payload, placement-bearing payload, landed record, owed record, seam, transition, monitoring interval, scheduler tolerance, renewal floor, binding floor, closure floor, onboarding completion bound, active relationship policy, post closure policy, post closure minimum, adverse trigger types, periodic trigger type, trigger set cap, field cap, blank, boundary predicate, opaque input, actor reference, trigger vocabulary, verification results, truncation marker, set digest, intent, outcome, committing call, landed intent, open marker, outcome traversal, yielded invocation, recovery marker, recovery outcome, party state, admissible states, suspendable states, unanswered read, admitted initiation, admitted verification, admitted trigger, admitted clearance, admitted closure, transitioning verification, adverse trigger, periodic trigger, suspending trigger, renewing trigger, completing closure, committing closure, composed suspend reason, closed triggers, open triggers at close, scoped retry, prior placement, renewed placement, regulated activity, reconciliation, young marker, elapsed placement, quiescent case, quiescent verified party, quiescent suspended party, quiescent closed case, continuous chain, unelapsed placement, post closure floor, clearance window, surfaced orphan, clearing actor, `placement's cover`, trigger outcome, orphan, indeterminate committing call, enrollment failure, position, intended_at, intent_event_id, opened_at, triggered_at, suspended_at, renewed_at, cleared_at, reinstated_at, closed_at, active flag, active case.
 
 Term cited: `execution-contract.md` §Conformance — the recursive inheritance of a constituent's guarantees. `execution-contract.md` §Substrate composition invocation — the substrate relation and its instance topology. `execution-contract.md` §Composition state — the derived-index classification and its obligations. `execution-contract.md` §Logic confinement — the seam. `execution-contract.md` §Step 1 failure — the name an unanswered constituent read takes. `spec-format.md` §Structural-relation invariant templates — referential integrity.
 
