@@ -117,9 +117,9 @@ State 14 is stated as a rule rather than left to the implementation because the 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 ```
 
 WHY:
@@ -201,9 +201,9 @@ Operation 48: [Read Declaration] MUST NOT normalize the declaration.
 Operation 49: [Read Declaration] MUST NOT reorder the declaration.
 Operation 50: A reading action MUST NOT write.
 Deleted: Operation 51. Capability requirement 1 owns it.
-Deleted: Operation 52. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 53. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 54. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 52. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 53. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
 Operation 55: An ordering rule MUST NOT rest on fired_at.
 ```
 
@@ -510,9 +510,9 @@ Every admitted fire couples three durable mutations — the entry, the counter r
 
 ```
 Clock semantics 4: A fired_at MUST NOT bound a later history entry's fired_at.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 5. Non-goal 22 owns it.
 ```
 

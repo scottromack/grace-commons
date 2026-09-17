@@ -135,7 +135,7 @@ Operation 20: [Verify] MUST NOT write.
 Operation 21: [Verify] MUST read the actor registry's public material for the actor_ref.
 Deleted: Operation 22. Capability requirement 1 owns it.
 Operation 23: The host MUST supply the cryptographic material at the atom's seam.
-Deleted: Operation 24. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 24. Execution Contract Logic confinement 3 owns it.
 Operation 25: The transition MUST NOT mint entropy.
 Operation 26: The business caller MUST NOT supply attested_at.
 ```

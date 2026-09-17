@@ -2845,6 +2845,30 @@ def check_stripped_links(root: Path) -> list[Finding]:
     return out
 
 
+CONTRACT_CITE = re.compile(r"\bExecution Contract ((?:[A-Z][a-z]+)(?: [a-z]+)*) (\d+)\b")
+CONTRACT_LABEL = re.compile(r"\*\*((?:[A-Z][a-z]+)(?: [a-z]+)*) (\d+):")
+
+
+def check_contract_labels(root: Path) -> list[Finding]:
+    """X-contract-label: a citation `Execution Contract <Family> <N>` names a
+    label `execution-contract.md` carries (council read 124). The contract's
+    rules are labelled prose, so no rule block resolves them."""
+    try:
+        labels = {f"{m.group(1)} {m.group(2)}" for m in
+                  CONTRACT_LABEL.finditer((root / "execution-contract.md").read_text(encoding="utf-8"))}
+    except OSError:
+        return []
+    out: list[Finding] = []
+    for sub in ("atoms", "compositions"):
+        for md in sorted((root / sub).glob("*.md")):
+            for i, raw in enumerate(md.read_text(encoding="utf-8").splitlines(), start=1):
+                for m in CONTRACT_CITE.finditer(CODE_SPAN.sub("", raw)):
+                    if f"{m.group(1)} {m.group(2)}" not in labels:
+                        out.append(Finding(md, i, "X-contract-label",
+                            f"'{m.group(0)}' names no label execution-contract.md carries"))
+    return out
+
+
 def check_composes_list(patterns: dict[Path, Pattern]) -> list[Finding]:
     out: list[Finding] = []
     for p in patterns.values():
@@ -3082,6 +3106,7 @@ def main(argv: list[str]) -> int:
     findings += check_section_classification(root)
     findings += check_range_form(root)
     findings += check_stripped_links(root)
+    findings += check_contract_labels(root)
     findings += check_composes_list(patterns)
     findings += check_constituents_agree(patterns)
     findings += check_invariant_numbers(root, patterns)

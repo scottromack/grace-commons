@@ -32,23 +32,25 @@ Every Grace Commons atom compiles into a single explicit state machine. Every tr
 
 The overwhelming majority of async, consistency, timing, and correctness problems in software originate from behavioral logic leaking into the wrong layers. Grace Commons enforces a strict confinement discipline across all conforming implementations. The three primitives and the four-step pipeline below are its concrete expression.
 
-**1. Core is pure.** All atom and composition logic is synchronous, deterministic, and side-effect-free. No IO, no time sources, no randomness, no cryptography inside core logic. If it feels like it should be async, it belongs outside core.
+Each rule carries a label, and a specification citing one names it with the contract's name first — `Execution Contract Logic confinement 3` — as a cross-specification citation does (GRACE-lang Hard invariant 28).
 
-**2. Single seam rule.** Every mutation crosses exactly one transactional boundary. No business logic is permitted in route handlers, middleware, or adapters. The composition layer is the seam; handlers are plumbing.
+**Logic confinement 1: Core is pure.** All atom and composition logic is synchronous, deterministic, and side-effect-free. No IO, no time sources, no randomness, no cryptography inside core logic. If it feels like it should be async, it belongs outside core.
 
-**3. Explicit inputs only.** Time (`clock_t`), identifiers (`id_t`), and cryptographic material are injected as explicit inputs — never generated inside G or T. A transition function that calls `Date.now()` or `crypto.randomUUID()` internally is non-deterministic by construction. The pipeline makes both reads explicit direct effects — the clock at the top of Step 2 (one reading per invocation, shared by G and T), entropy at the top of Step 3, before T runs.
+**Logic confinement 2: Single seam rule.** Every mutation crosses exactly one transactional boundary. No business logic is permitted in route handlers, middleware, or adapters. The composition layer is the seam; handlers are plumbing.
 
-**4. Behavior as data transformation.** Prefer explicit construction over hidden work inside transactional functions. The pattern is: construct the value outside the boundary, pass it in, append it. Hidden side effects inside transactions are where correctness guarantees degrade silently.
+**Logic confinement 3: Explicit inputs only.** Time (`clock_t`), identifiers (`id_t`), and cryptographic material are injected as explicit inputs — never generated inside G or T. A transition function that calls `Date.now()` or `crypto.randomUUID()` internally is non-deterministic by construction. The pipeline makes both reads explicit direct effects — the clock at the top of Step 2 (one reading per invocation, shared by G and T), entropy at the top of Step 3, before T runs.
 
-**5. Local, checkable invariants.** Every critical rule is asserted in the smallest possible scope. Distributed or implicit assumptions — "appendEvent always ensures X" — are replaced with named invariants in the spec and named assertions in the compiled test suite.
+**Logic confinement 4: Behavior as data transformation.** Prefer explicit construction over hidden work inside transactional functions. The pattern is: construct the value outside the boundary, pass it in, append it. Hidden side effects inside transactions are where correctness guarantees degrade silently.
 
-**6. Async at the edge only.** All asynchronous, network, storage, and external work is confined to adapters. The pipeline itself — Steps 1 through 4 — is synchronous. Async enters core and complexity grows nonlinearly; Grace Commons eliminates the category by construction.
+**Logic confinement 5: Local, checkable invariants.** Every critical rule is asserted in the smallest possible scope. Distributed or implicit assumptions — "appendEvent always ensures X" — are replaced with named invariants in the spec and named assertions in the compiled test suite.
 
-**7. The clock's guarantees are the deployment's.** A specification reads the clock once per invocation, as rule 3 says, and trusts nothing about it beyond that reading. What the clock guarantees — that its readings never go backward (monotonicity), that no one has set them (honesty), that they agree across nodes (synchronization), how far two clocks may drift apart (skew), and the timezone a reading is taken in — the deployment owns, for every specification it runs. A specification that relies on one of these cites this rule; it does not restate it.
+**Logic confinement 6: Async at the edge only.** All asynchronous, network, storage, and external work is confined to adapters. The pipeline itself — Steps 1 through 4 — is synchronous. Async enters core and complexity grows nonlinearly; Grace Commons eliminates the category by construction.
 
-**One home for a shared obligation.** An obligation the deployment owes every specification is written once, here, and each specification cites it — rule 3's single clock reading was the first such obligation, and rule 7's guarantees the second. Twenty-five specifications once restated the clock's guarantees as sixty capability requirements.
+**Logic confinement 7: The clock's guarantees are the deployment's.** A specification reads the clock once per invocation, as Logic confinement 3 says, and trusts nothing about it beyond that reading. What the clock guarantees — that its readings never go backward (monotonicity), that no one has set them (honesty), that they agree across nodes (synchronization), how far two clocks may drift apart (skew), and the timezone a reading is taken in — the deployment owns, for every specification it runs. A specification that relies on one of these cites Logic confinement 7 by its label; it does not restate it.
 
-**Current status.** The Beacon reference implementation satisfies rules 1, 2, 3, and 6 fully — against rule 3 as it stood when Beacon was built: Beacon reads the clock at Step 3, predating the 2026-07-12 placement revision (clock read at the top of Step 2, shared by G and T — see Pipeline). The injection principle holds in Beacon; the step-placement update rides the same projector build phase as rules 4 and 5. Rule 4 (explicit construction / `createEvent` before `appendEvent`) and rule 5 (compiler-emitted invariant assertions) are targeted for the projector build phase — the gap is tracked as methodology debt #7 in [`roadmap.md`](./roadmap.md) §Methodology debts (the projector / verification-harness deliverable). The principle is stated here as a first-class commitment, not a retrospective description of the demo.
+**One home for a shared obligation.** An obligation the deployment owes every specification is written once, here, and each specification cites it — Logic confinement 3's single clock reading was the first such obligation, and Logic confinement 7's guarantees the second. Twenty-five specifications once restated the clock's guarantees as sixty capability requirements.
+
+**Current status.** The Beacon reference implementation satisfies Logic confinement 1, 2, 3 and 6 fully — against Logic confinement 3 as it stood when Beacon was built: Beacon reads the clock at Step 3, predating the 2026-07-12 placement revision (clock read at the top of Step 2, shared by G and T — see Pipeline). The injection principle holds in Beacon; the step-placement update rides the same projector build phase as Logic confinement 4 and 5. Logic confinement 4 (explicit construction / `createEvent` before `appendEvent`) and Logic confinement 5 (compiler-emitted invariant assertions) are targeted for the projector build phase — the gap is tracked as methodology debt #7 in [`roadmap.md`](./roadmap.md) §Methodology debts (the projector / verification-harness deliverable). The principle is stated here as a first-class commitment, not a retrospective description of the demo.
 
 ---
 
@@ -430,13 +432,13 @@ There is also no divergence path. A test cannot encode behavior the spec does no
 
 A runtime implementation of a Grace Commons atom is conforming when all of the following hold:
 
-1. Every transition executes the four-step pipeline in order (Read → Guard → Transition+Write → Project) with no additional steps and no reordering.
-2. `clock_t` is read as a direct effect at the top of Step 2 and injected into both G and T as a parameter; `id_t` is read as a direct effect at Step 3 and injected into T. Neither G nor T calls the clock or entropy source internally.
-3. No persistent state mutation occurs outside Step 3's `store.write`.
-4. Every rejection reason named in the atom's Decision points is reachable and typed. No rejection reason exists that is not named in the spec.
-5. Every named invariant in I holds over the record set after any valid sequence of transitions, including sequences interleaved by other conforming callers under the implementation's serialization guarantees.
-6. Q returns results consistent with the record set produced by the state machine's transition history. A query that disagrees with the durable record set is a conformance failure.
-7. For regulated atoms: the Generation acceptance checks pass against the record set produced by any conforming run.
+- **Conformance 1:** Every transition executes the four-step pipeline in order (Read → Guard → Transition+Write → Project) with no additional steps and no reordering.
+- **Conformance 2:** `clock_t` is read as a direct effect at the top of Step 2 and injected into both G and T as a parameter; `id_t` is read as a direct effect at Step 3 and injected into T. Neither G nor T calls the clock or entropy source internally.
+- **Conformance 3:** No persistent state mutation occurs outside Step 3's `store.write`.
+- **Conformance 4:** Every rejection reason named in the atom's Decision points is reachable and typed. No rejection reason exists that is not named in the spec.
+- **Conformance 5:** Every named invariant in I holds over the record set after any valid sequence of transitions, including sequences interleaved by other conforming callers under the implementation's serialization guarantees.
+- **Conformance 6:** Q returns results consistent with the record set produced by the state machine's transition history. A query that disagrees with the durable record set is a conformance failure.
+- **Conformance 7:** For regulated atoms: the Generation acceptance checks pass against the record set produced by any conforming run.
 
 A composition is conforming when all of its constituents — atoms and substrate compositions, recursively (§Substrate composition invocation) — are conforming and the application-level invariants hold over the joint record set produced by the wiring layer.
 

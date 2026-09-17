@@ -117,12 +117,12 @@ The boundary instant is on the dead side: now reaching expires_at reads [Expired
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Clock dependence 1 owns it.
 Deleted: Clock semantics 5. Clock dependence 2 owns it.
 Deleted: Clock semantics 6. Non-goal 28 owns it.
@@ -210,8 +210,8 @@ Operation 52: [Read] MUST NOT write.
 Operation 53: A liveness query MUST rest on the effective_status.
 Operation 54: A liveness query MUST NOT rest on the stored status alone.
 Deleted: Operation 55. Capability requirement 1 owns it.
-Deleted: Operation 56. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 57. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 56. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
 Operation 58: The atom MUST NOT offer an expire action.
 Operation 59: The atom MUST NOT offer a re-scope action.
 Operation 60: The atom MUST NOT offer an extend action.

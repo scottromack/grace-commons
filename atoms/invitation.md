@@ -117,13 +117,13 @@ Capability requirement 6: The store MUST refuse a write carrying an invitation_t
 Capability requirement 7: The store MUST acknowledge a write ONLY IF the write commits.
 Capability requirement 8: The deployment MUST canonicalize an opaque reference.
 Capability requirement 9: The deployment MUST deliver the invitation_token to the invitee.
-Deleted: Capability requirement 10. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 11. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 10. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 11. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 5. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 6. Non-goal 25 owns it.
 Deleted: Clock semantics 7. Non-goal 26 owns it.
 ```
@@ -204,8 +204,8 @@ Operation 41: An admitted read MUST answer EVERY matching invitation.
 Operation 42: An admitted read MUST answer the effective status PER matching invitation.
 Operation 43: [Read] MUST NOT record a field.
 Operation 44: [Read] MUST NOT refuse a filter.
-Deleted: Operation 45. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 46. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 45. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 46. Execution Contract Logic confinement 3 owns it.
 ```
 
 Term resolving write: [Accept] | [Decline] | [Revoke] — every write taking a pending invitation to a stored terminal.

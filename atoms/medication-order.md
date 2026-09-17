@@ -124,8 +124,8 @@ Capability requirement 9: The store MUST acknowledge a write ONLY IF the write c
 Capability requirement 10: The store MUST commit an admitted amend's two writes together.
 Capability requirement 11: The deployment MUST canonicalize an opaque reference.
 Capability requirement 12: The deployment MUST declare the length bound.
-Deleted: Capability requirement 13. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 14. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
 ```
 
 WHY:
@@ -259,8 +259,8 @@ Operation 74: An admitted read MUST answer the matching orders by ordered_at asc
 Operation 75: An admitted read MUST answer EVERY field group the order carries.
 Operation 76: An admitted read MUST answer an empty sequence where no order matches.
 Operation 77: [Read] MUST NOT record a field.
-Deleted: Operation 78. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 79. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 78. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 79. Execution Contract Logic confinement 3 owns it.
 ```
 
 Term order action: [Amend] | [Verify] | [Hold] | [Reinstate] | [Dispense] | [Administer] | [Complete] | [Cancel] | [Discontinue] — every action naming an order by order_id, including a refused one.
@@ -550,11 +550,11 @@ Atomic writes 4 names the store the transaction spans, and the words are load-be
 ```
 Clock semantics 4: The atom MUST bound a supplied ordered_at from above by the future bound.
 Deleted: Clock semantics 3. Operation 4 owns it for ordered_at, and the `resolved dispensed_at`, `resolved administered_at` and `resolved completed_at` declarations own it for the event instants.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
 Clock semantics 5: The atom MUST NOT bound a supplied event instant.
-Deleted: Clock semantics 6. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 7. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 6. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 7. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 8. Non-goal 25 owns it.
 ```
 

@@ -1471,8 +1471,8 @@ WHY: two sealings reading the same sealed_through would produce two evidence_id 
 
 ```
 Clock source 1: The composition MUST NOT read now other than for the seal_cadence timer and the scan's once-per-run reading.
-Deleted: Clock source 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock source 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock source 2. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock source 3. Execution Contract Logic confinement 3 owns it.
 Clock source 4: The deployment MUST supply a monotonically non-decreasing clock.
 ```
 

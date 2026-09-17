@@ -121,13 +121,13 @@ Nothing about delivery lives here: what was sent, to whom, and whether the princ
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST disclose the supersession gap bound.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. Capability requirement 1 and the section titled Logic Confinement Principle in `execution-contract.md` own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 4. Capability requirement 5 owns it.
 ```
 
@@ -199,8 +199,8 @@ Operation 36: [Read] MUST NOT refuse a blank input.
 Operation 37: [Current For] MUST NOT write.
 Operation 38: [Read] MUST NOT write.
 Deleted: Operation 39. Capability requirement 1 owns it.
-Deleted: Operation 40. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 41. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 40. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 41. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 42. Clock dependence 1 owns it.
 Deleted: Operation 43. Clock dependence 2 owns it.
 ```
@@ -244,7 +244,7 @@ The two queries refuse nothing, and the asymmetry with the three writes is delib
 
 [Not Active] covers both [Suspended] and [Deleted] on a suspend, because a [Suspended] record never returns to [Active] and the caller's next move is the same either way; a caller that must tell them apart calls [Read] (Operation 18, Operation 19, Invariant 2.3). On a delete the split does matter — a [Suspended] record deletes cleanly and a [Deleted] one is [Already Deleted] — so delete carries the second code and suspend does not.
 
-The clock enters once, at the seam, and is spent on exactly one thing: stamping set_at, suspended_at and deleted_at inside a committed transition. No guard consults it, so no rejection in the taxonomy depends on it, and a skewed clock can only make a stored timestamp advisory — never admit or refuse a call (Operation 39 through 43, the section titled Logic Confinement Principle in `execution-contract.md`).
+The clock enters once, at the seam, and is spent on exactly one thing: stamping set_at, suspended_at and deleted_at inside a committed transition. No guard consults it, so no rejection in the taxonomy depends on it, and a skewed clock can only make a stored timestamp advisory — never admit or refuse a call (Operation 39 through 43, Execution Contract Logic confinement 7).
 
 ### Invariants
 

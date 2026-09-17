@@ -38,6 +38,7 @@ from lint import (  # noqa: E402
     check_heading_standard,
     check_range_form,
     check_stripped_links,
+    check_contract_labels,
     check_composes_list,
     check_constituents_agree,
     check_invariant_numbers,
@@ -1484,6 +1485,26 @@ def check_code_span_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing) + readers
 
 
+def check_contract_labels_synthetic(problems: list[str]) -> int:
+    """X-contract-label (council read 124): a spec citing the contract by a
+    label it carries is silent; a label it does not carry fires, and a code
+    span is ignored. Returns the fixture count."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        (root / "execution-contract.md").write_text(
+            "**Logic confinement 3: Explicit inputs only.** Time is injected.\n", encoding="utf-8")
+        (root / "atoms" / "a.md").write_text(
+            "Deleted: Operation 4. Execution Contract Logic confinement 3 owns it.\n"
+            "Deleted: Operation 5. Execution Contract Logic confinement 9 owns it.\n"
+            "A quoted `Execution Contract Logic confinement 8` is text.\n", encoding="utf-8")
+        lines = {f.line for f in check_contract_labels(root)}
+    if lines != {2}:
+        problems.append(f"X-contract-label: fired on lines {sorted(lines)}, wanted [2]")
+    return 3
+
+
 def check_generated_views_synthetic(problems: list[str]) -> int:
     """The links the generated views read (council read 93). F-stripped-link
     fires on a bracket-stripped link and is silent on a link and a code span;
@@ -1785,6 +1806,13 @@ def main(argv: list[str]) -> int:
         print(f"F-constituents: {n_const} synthetic fixtures hold (three agreeing homes and a lone list "
               "silent; an extra list item, a declaration naming more, and a serve rule naming more "
               "fire) \u2713")
+
+    contract_problems: list[str] = []
+    n_contract = check_contract_labels_synthetic(contract_problems)
+    failures.extend(contract_problems)
+    if not contract_problems:
+        print(f"X-contract-label: {n_contract} synthetic fixtures hold (a carried contract label "
+              "silent, a missing one fires, a code span ignored) \u2713")
 
     view_problems: list[str] = []
     n_view = check_generated_views_synthetic(view_problems)

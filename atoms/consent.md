@@ -123,9 +123,9 @@ Stored state 4: The implementation MUST serialize a lazy stored state write for 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 ```
 
 WHY:
@@ -212,8 +212,8 @@ Operation 58: IF a state filter's value IS NOT IN state THEN [Read] MUST answer 
 Operation 59: IF a time range's end precedes the time range's start THEN [Read] MUST answer invalid-query.
 Operation 60: [Read] MUST exclude a consent record carrying no value for a time range's field.
 Deleted: Operation 61. Capability requirement 1 owns it.
-Deleted: Operation 62. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 63. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 62. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 63. Execution Contract Logic confinement 3 owns it.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
@@ -487,9 +487,9 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ```
 Clock semantics 5: [Grant] MUST guard a supplied expires_at against now.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. Capability requirement 1 and the section titled Logic Confinement Principle in `execution-contract.md` own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 4. Clock dependence 1 owns it.
 Deleted: Clock semantics 7. Operation 10 owns it: `now` is never supplied by the business caller, so a granted_at stamped from the injected now is never a caller-supplied instant.
 Clock semantics 6: [Revoke] MUST guard a supplied revoked_at against now.

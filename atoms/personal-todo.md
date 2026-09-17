@@ -83,10 +83,10 @@ Deletion is the only way out and it is terminal: the atom keeps no memory of wha
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Non-goal 16 owns it.
 ```
 
@@ -140,8 +140,8 @@ Operation 22: IF the store refuses the write THEN [Complete] MUST answer storage
 Operation 23: IF the store refuses the write THEN [Delete] MUST answer storage-failure.
 Operation 24: A refused call MUST leave the unit as the call found the unit.
 Deleted: Operation 25. Capability requirement 1 owns it.
-Deleted: Operation 26. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 27. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
 ```
 
 Term new_description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
@@ -199,7 +199,7 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
   Invariant 7.2: IF completed_at DOES NOT EQUAL blank THEN added_at MUST NOT EXCEED completed_at.
   Invariant 7.3: IF last_edited_at DOES NOT EQUAL blank AND completed_at DOES NOT EQUAL blank THEN last_edited_at MUST NOT EXCEED completed_at.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock quality (the section titled Logic Confinement Principle in `execution-contract.md`).
+  WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Execution Contract Logic confinement 7).
 - **Invariant 8 — Id stability.**
   ```
   Invariant 8.1: [Add] MUST set the id.

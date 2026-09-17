@@ -1303,7 +1303,7 @@ Sweep never 2: The sweep MUST NOT write under a human's credential.
 ```
 Clock semantics 3: The composition MUST NOT time the lease.
 Deleted: Clock semantics 2. Composes 1 owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
 ```
 
 WHY: a clock read inside [Resolve] breaks the Contract's logic confinement (the section titled Logic Confinement Principle in `execution-contract.md`); `-buggy-opclock` shows the cost (Invariant 5: an act abandoned whose commit then lands).

@@ -134,12 +134,12 @@ An audit event has two surfaces with different lifetimes, and the split is struc
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. Capability requirement 1 and the section titled Logic Confinement Principle in `execution-contract.md` own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 4. Clock dependence 1 owns it.
 Deleted: Clock semantics 5. Clock dependence 2 owns it.
 Deleted: Clock semantics 6. Non-goal 29 owns it.
@@ -249,8 +249,8 @@ Operation 58: A refused action MUST leave the pool as the call found the pool.
 Operation 59: A refused action MUST NOT append an audit event.
 Operation 60: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Deleted: Operation 61. Capability requirement 1 owns it.
-Deleted: Operation 62. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 63. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 62. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 63. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 64. Clock dependence 1 owns it.
 ```
 

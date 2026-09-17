@@ -95,10 +95,10 @@ There is no aggregate *is this record held* field, because an aggregate is a sec
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Non-goal 17 owns it.
 ```
 
@@ -159,8 +159,8 @@ Operation 32: [Read] MUST NOT answer an active hold under a released_at filter.
 Operation 33: [Read] MUST NOT answer a hold carrying no case_ref under a case_ref filter.
 Operation 34: [Read] MUST NOT write.
 Deleted: Operation 35. Capability requirement 1 owns it.
-Deleted: Operation 36. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 37. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 36. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 37. Execution Contract Logic confinement 3 owns it.
 Operation 38: The business caller MAY supply placed_at.
 Operation 39: The business caller MAY supply released_at.
 Operation 40: The atom MUST judge a supplied placed_at against the injected now.

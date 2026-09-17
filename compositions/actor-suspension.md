@@ -217,9 +217,9 @@ WHY:
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 3 owns it.
 Capability requirement 4: The transition MUST NOT mint an invocation_id.
-Deleted: Capability requirement 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 5. Execution Contract Logic confinement 3 owns it.
 Capability requirement 6: The composition MUST NOT accept an invocation_id as an input.
 Capability requirement 7: The composition MUST NOT mint a grant_id.
 Capability requirement 8: The composition MUST NOT mint a session_token.
@@ -260,7 +260,7 @@ Capability requirement 42: A deployment MUST refuse an issuance for a suspended 
 Capability requirement 43: The composition MUST NOT gate an issuance.
 Capability requirement 44: A deployment MUST run the sweep at process restart.
 Capability requirement 45: A deployment MUST run the sweep PER reconciliation cadence.
-Deleted: Capability requirement 46. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 46. Execution Contract Logic confinement 7 owns it.
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one invocation_id here.
@@ -968,16 +968,16 @@ Atomic writes 12 is the limit on all of it: an unresolved member is *named*, not
 Clock semantics 6: A reader MUST read the substrate's insertion order as the authoritative order.
 Deleted: Clock semantics 2. Identity 16, Action wiring 48 and Action wiring 84 own it: intended_at, suspended_at and reinstated_at are every timestamp this composition stamps, and each takes the injected now.
 Deleted: Clock semantics 1. Capability requirement 1 owns it.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 4. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 5. Execution Contract Logic confinement 3 owns it.
 Clock semantics 7: A reader MUST read a stamp this composition wrote as advisory.
 Deleted: Clock semantics 8. Composes 31 owns it.
 Clock semantics 9: The composition MUST NOT compare a constituent's stamp against a write.
 Clock semantics 10: A check comparing two seams' stamps MUST run under the clock offset allowance.
 Clock semantics 11: A check comparing two seams' stamps MUST answer inconclusive inside the clock offset allowance.
 Clock semantics 12: The sweep MUST compare an intent's stamp against the sweep's own clock reading.
-Deleted: Clock semantics 13. Capability requirement 1 and the section titled Logic Confinement Principle in `execution-contract.md` own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Clock semantics 13. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 14. Non-goal 19 owns it.
 ```
 

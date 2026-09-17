@@ -121,13 +121,13 @@ Capability requirement 9: The deployment MUST canonicalize an opaque reference.
 Capability requirement 10: The registry MUST return the resource to availability on a releasing action.
 Capability requirement 11: The registry MUST NOT return the resource to availability on an admitted confirm.
 Capability requirement 12: A deployment firing [Expire] on a cadence MUST resolve EVERY lapsed commitment WITHIN the reclamation window.
-Deleted: Capability requirement 13. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 14. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 13. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 14. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 5. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 6. Non-goal 26 owns it.
 ```
 
@@ -197,8 +197,8 @@ Operation 32: A refused resolving action MUST leave the commitment in held.
 Operation 33: A resolving action MUST NOT accept a resource.
 Operation 34: A resolving action MUST NOT accept a requester.
 Operation 35: A resolving action MUST NOT accept a duration.
-Deleted: Operation 36. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 37. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 36. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 37. Execution Contract Logic confinement 3 owns it.
 ```
 
 Term resolving action: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.

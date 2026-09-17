@@ -117,9 +117,9 @@ next_sequence_number is persistent state and the one piece of this atom that a v
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 ```
 
 WHY:
@@ -208,8 +208,8 @@ Operation 51: [Read] MUST NOT answer storage-failure.
 Operation 52: IF the store refuses a read THEN [Read] MUST NOT answer a partial entry sequence.
 Operation 53: [Read] MUST NOT answer archived.
 Deleted: Operation 54. Capability requirement 1 owns it.
-Deleted: Operation 55. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 56. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 55. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 56. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 57. Clock dependence 2 owns it.
 Operation 58: An ordering rule MUST NOT rest on recorded_at.
 ```
@@ -487,9 +487,9 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 
 ```
 Clock semantics 4: A guard MUST NOT rest on recorded_at.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 5. Clock dependence 1 owns it.
 Deleted: Clock semantics 6. Non-goal 23 owns it.
 ```

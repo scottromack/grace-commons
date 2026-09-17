@@ -211,9 +211,9 @@ Composition state 36 through 43 are the cardinality and modality the relations c
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply a case_id at the seam PER admitted initiation.
 Capability requirement 3: The host MUST supply a trigger_id at the seam PER admitted trigger.
-Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 3 owns it.
 Capability requirement 5: The transition MUST NOT mint an id.
-Deleted: Capability requirement 6. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 6. Execution Contract Logic confinement 3 owns it.
 Capability requirement 7: The composition MUST NOT mint a party_id.
 Capability requirement 8: The composition MUST NOT mint a verification_id.
 Capability requirement 9: The composition MUST NOT mint a state_change_id.
@@ -251,7 +251,7 @@ Capability requirement 40: A deployment MUST run a review scheduler outside the 
 Capability requirement 41: The composition MUST NOT fire a review.
 Capability requirement 42: A deployment under the Bank Secrecy Act and Anti-Money Laundering rules MUST alert on an owed record.
 Capability requirement 43: A deployment MUST NOT set the monitoring interval PER party at this composition.
-Deleted: Capability requirement 44. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 44. Execution Contract Logic confinement 7 owns it.
 ```
 
 Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading, one case_id and one trigger_id here.
@@ -1112,12 +1112,12 @@ Clock semantics 4: The next review due MUST NOT EXCEED the placement's cover.
 Deleted: Clock semantics 2. Action wiring 146 through 152 own it, one outcome at a time.
 Deleted: Clock semantics 1. Capability requirement 1 owns it.
 Deleted: Clock semantics 3. Action wiring 153 owns it.
-Deleted: Clock semantics 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 6. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 5. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 6. Execution Contract Logic confinement 3 owns it.
 Clock semantics 7: A reader MUST read insertion order as authoritative.
 Clock semantics 8: A reader MUST read a timestamp as advisory.
 Clock semantics 9: A reader MUST read a divergence between a trigger's triggered_at and the trigger's suspended_at as a conformance failure.
-Deleted: Clock semantics 10. Capability requirement 1 and the section titled Logic Confinement Principle in `execution-contract.md` own it: the seam supplies now, and the reading's honesty is the deployment's.
+Deleted: Clock semantics 10. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 11. Non-goal 21 owns it.
 ```
 
@@ -1128,7 +1128,7 @@ Action wiring 146 through 153 stamp from the one reading an invocation shares (t
 
 Clock semantics 4 is the cap that makes Capability requirement 20's duration obligation sufficient. Every schedule advance is capped below the current placement's cover, because an advance that ignored the placement — a verification pass months after intake, a clearance after a long suspension — would push the first renewal past the placement's end no matter how the interval and the duration compared. The composition stores the deadline and never a derived *review due* or *overdue* flag (Composition state 48, Composition state 49): whether a review is due is a read-time projection against an injected reading at the moment the question is asked, so nothing lags the clock.
 
-Rule 7 of the section titled Logic Confinement Principle in `execution-contract.md` and Non-goal 21 name the residual honestly. Where review deadlines or onboarding timestamps have legal force — FATF and BSA/AML require recording when Customer Due Diligence was performed — the deployment injects a reading from a trustworthy clock, and a composed Trusted Timestamping pattern supplies the verifiable anchor that binds insertion order to wall time. Under injection the residual risk is a deployment that injects a dishonest reading, not an internal race, and this composition detects neither.
+Execution Contract Logic confinement 7 and Non-goal 21 name the residual honestly. Where review deadlines or onboarding timestamps have legal force — FATF and BSA/AML require recording when Customer Due Diligence was performed — the deployment injects a reading from a trustworthy clock, and a composed Trusted Timestamping pattern supplies the verifiable anchor that binds insertion order to wall time. Under injection the residual risk is a deployment that injects a dishonest reading, not an internal race, and this composition detects neither.
 
 ### Concurrency
 

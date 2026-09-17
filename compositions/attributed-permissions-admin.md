@@ -154,9 +154,9 @@ Composition state 27 and Composition state 28 are the retention scope this compo
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one nonce at the seam PER issuance.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 3 owns it.
 Capability requirement 4: The transition MUST NOT mint a nonce.
-Deleted: Capability requirement 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 5. Execution Contract Logic confinement 3 owns it.
 Capability requirement 6: The composition MUST NOT mint a grant handle.
 Capability requirement 7: The composition MUST NOT mint an attestation handle.
 Capability requirement 8: The composition MUST NOT generate cryptographic material.
@@ -766,8 +766,8 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 Clock semantics 5: The request instant MUST stand informational within a proposal.
 Deleted: Clock semantics 2. Identity 8 owns it: a proposal carries the request instant (Identity 7), and the request instant is the invocation's seam reading.
 Deleted: Clock semantics 1. Capability requirement 1 owns it.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 4. Execution Contract Logic confinement 3 owns it.
 Clock semantics 6: The nonce MUST carry a proposal's uniqueness.
 Clock semantics 7: The request instant MUST NOT carry a proposal's uniqueness.
 Deleted: Clock semantics 8. Clock dependence 1 owns it.

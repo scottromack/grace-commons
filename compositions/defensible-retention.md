@@ -156,9 +156,9 @@ Composition state 27 through 32 declare the two relations the gate actually eval
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 3 owns it.
 Capability requirement 4: The transition MUST NOT mint an invocation_id.
-Deleted: Capability requirement 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 5. Execution Contract Logic confinement 3 owns it.
 Capability requirement 6: The composition MUST NOT accept an invocation_id as an input.
 Capability requirement 7: The composition MUST NOT mint a retention_id.
 Capability requirement 8: The composition MUST NOT mint a hold_id.
@@ -819,7 +819,7 @@ The ordering is the load-bearing half. Every outcome follows its committing call
 ```
 Clock semantics 4: The composition MUST judge elapsed retention against the injected now.
 Deleted: Clock semantics 2. Action wiring 8 owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
 Deleted: Clock semantics 3. Action wiring 60 owns it.
 Clock semantics 5: The composition MUST judge a sibling set member's eligibility against the injected now.
 Deleted: Clock semantics 6. Composes 18 owns it.

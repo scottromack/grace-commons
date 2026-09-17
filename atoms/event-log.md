@@ -130,7 +130,7 @@ Operation 16: [Read] MUST answer an empty sequence for a well-formed query match
 Operation 17: [Read] MUST NOT write.
 Operation 18: The implementation MUST own the query's shape.
 Deleted: Operation 19. Capability requirement 1 owns it.
-Deleted: Operation 20. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 20. Execution Contract Logic confinement 3 owns it.
 Operation 21: The business caller MUST NOT supply recorded_at.
 ```
 

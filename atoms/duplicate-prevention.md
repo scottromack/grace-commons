@@ -95,8 +95,8 @@ Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen.
 Operation 6: [Check] MUST answer seen for an identity under guard.
 Operation 7: [Check] MUST answer not-seen for an identity that is not under guard.
 Deleted: Operation 8. Capability requirement 1 owns it.
-Deleted: Operation 9. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 10. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 9. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 10. Execution Contract Logic confinement 3 owns it.
 Operation 11: The containing pattern MUST supply window duration.
 Operation 12: The containing pattern MUST own the response to an answer.
 ```

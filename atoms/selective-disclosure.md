@@ -108,12 +108,12 @@ State 10 states the gap that makes backdating undetectable here rather than leav
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. State 10 owns it.
 Deleted: Clock semantics 5. Non-goal 23 owns it.
 ```
@@ -168,9 +168,9 @@ Operation 28: An admitted read MUST NOT answer a disclosure record failing a sup
 Operation 29: [Read] MUST NOT write.
 Operation 30: [Read] MUST NOT answer storage-failure.
 Deleted: Operation 31. Capability requirement 1 owns it.
-Deleted: Operation 32. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 33. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 34. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 32. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 34. Execution Contract Logic confinement 3 owns it.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.

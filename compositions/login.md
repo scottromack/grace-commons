@@ -121,8 +121,8 @@ With failed-login auditing enabled — the default and the regulated posture —
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 3 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 3 owns it.
 Capability requirement 4: The composition MUST NOT mint an id.
 Capability requirement 5: The composition MUST NOT generate cryptographic material.
 Capability requirement 6: A deployment MUST set the default session duration.

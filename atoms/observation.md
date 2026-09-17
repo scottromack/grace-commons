@@ -123,13 +123,13 @@ The consequence is stated rather than hidden: a caller whose clock runs ahead of
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST declare the clock_offset_allowance.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Capability requirement 5 owns it.
 Deleted: Clock semantics 5. State 13 owns it.
 Deleted: Clock semantics 6. State 14 owns it.
@@ -215,8 +215,8 @@ Operation 49: IF a state filter's value IS NOT IN the states THEN [Read] MUST an
 Operation 50: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
 Operation 51: [Read] MUST NOT write.
 Deleted: Operation 52. Capability requirement 1 owns it.
-Deleted: Operation 53. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 54. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 53. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 54. Execution Contract Logic confinement 3 owns it.
 Operation 55: An ordering rule MUST NOT rest on a causal claim.
 ```
 

@@ -83,7 +83,7 @@ The contract classification is *conforming, no stored composition state* (the se
 Capability requirement 1: The deployment MUST supply now at the seam.
 Capability requirement 2: The host MUST supply one fanout id at the seam.
 Capability requirement 3: The host MUST draw a fanout id meeting the entropy floor.
-Deleted: Capability requirement 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 4. Execution Contract Logic confinement 3 owns it.
 Capability requirement 5: The transition MUST NOT mint an id.
 Capability requirement 6: A deployment MUST disclose the deployment's read latency bound.
 Capability requirement 7: The deployment MUST declare the clock offset allowance.

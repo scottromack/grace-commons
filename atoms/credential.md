@@ -126,13 +126,13 @@ Capability requirement 11: The store MUST acknowledge a write ONLY IF the write 
 Capability requirement 12: The store MUST commit an admitted rotate's two writes together.
 Capability requirement 13: The deployment MUST canonicalize an opaque reference.
 Capability requirement 14: The deployment MUST declare the length bound.
-Deleted: Capability requirement 15. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 16. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 5. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 15. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 16. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 5. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 6. Non-goal 27 owns it.
 Deleted: Clock semantics 7. Non-goal 28 owns it.
 ```
@@ -225,8 +225,8 @@ Operation 52: An admitted read MUST answer the effective status PER matching cre
 Operation 53: [Read] MUST NOT answer a verifier.
 Operation 54: [Read] MUST NOT record a field.
 Operation 55: [Read] MUST NOT refuse a filter.
-Deleted: Operation 56. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 57. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 56. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
 ```
 
 Term transitioning write: [Rotate] | [Revoke] — every call that would take an effective-active credential to a stored terminal, including a refused one.

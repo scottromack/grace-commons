@@ -102,8 +102,8 @@ Two states and no third: a storage tier is an orthogonal axis a Storage Tier pat
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Deleted: Capability requirement 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 ```
 
 WHY:
@@ -147,9 +147,9 @@ Operation 21: [Purge] MUST read one now per call.
 Operation 22: [Purge] MUST judge eligibility and stamp purged_at against that one now.
 Deleted: Operation 23. Capability requirement 1 owns it.
 Operation 24: The host MUST resolve the policy at the atom's seam.
-Deleted: Operation 25. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
 Operation 26: The transition MUST NOT read the policy registry.
-Deleted: Operation 27. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
 Operation 28: A reader MUST derive purge eligible from retention_until and the injected now.
 ```
 
@@ -348,8 +348,8 @@ Where the atom breaks down: when the obligation is a function of the record's co
 
 ```
 Clock semantics 3: Two readers judging purge eligible under skewed clocks MAY disagree near retention_until.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. Non-goal 13 owns it.
 ```
 

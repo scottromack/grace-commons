@@ -118,8 +118,8 @@ Capability requirement 4: The store MUST acknowledge a write ONLY IF the write c
 Capability requirement 5: The store MUST commit an admitted verify's two records together.
 Capability requirement 6: The deployment MUST canonicalize an opaque reference.
 Capability requirement 7: The deployment MUST declare the length bound.
-Deleted: Capability requirement 8. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Capability requirement 9. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
+Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
 ```
 
 WHY:
@@ -212,8 +212,8 @@ Operation 53: An admitted read MUST answer the matching parties in insertion ord
 Operation 54: An admitted read MUST answer an empty sequence where no party matches.
 Operation 55: [Read] MUST NOT record a field.
 Operation 56: [Read] MUST NOT answer storage-failure.
-Deleted: Operation 57. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Operation 58. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Operation 57. Execution Contract Logic confinement 3 owns it.
+Deleted: Operation 58. Execution Contract Logic confinement 3 owns it.
 Operation 59: The atom MUST NOT accept a caller-supplied instant.
 ```
 
@@ -464,10 +464,10 @@ Atomic writes 4: The implementation MUST NOT repair a dangling transition.
 
 ```
 Clock semantics 5: A recorded instant MUST NOT carry an ordering.
-Deleted: Clock semantics 3. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 1. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 2. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
-Deleted: Clock semantics 4. The section titled Logic Confinement Principle in `execution-contract.md` owns it.
+Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
+Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
+Deleted: Clock semantics 4. Execution Contract Logic confinement 7 owns it.
 ```
 
 WHY:
