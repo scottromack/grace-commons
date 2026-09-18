@@ -209,6 +209,15 @@ RULE_SYMBOL = re.compile(r"[§→{}|<>–/*]")
 RETIRED_NOUNS = ((re.compile(r"\barguments?\b"), "argument", "input"),)
 
 
+def bare_name_text(stmt: str, names: list[str]) -> str:
+    """The statement with every declared name blanked: a name's own words are the
+    name's, so *allocated after* is no watch word (council read 136)."""
+    for n in names:
+        if " " in n:
+            stmt = stmt.replace(n, " ")
+    return stmt
+
+
 def condition_form(text: str, inputs: set[str], in_rule: bool) -> list[str]:
     """Why a rule or declaration leaves the condition operators, if it does."""
     bare = CODE_SPAN.sub(" ", text)
@@ -822,7 +831,8 @@ def scan(path: Path) -> list[Finding]:
                             f"{r.label}: a second declared record verb after 'and' — one "
                             f"obligation per sentence (Rule shape 3, Hard invariant 5)")
                         break
-        if re.search(r"\b(until|while|unless)\b", stmt) or re.search(r"\b(after|before)\b", stmt):
+        watched = re.search(r"\b(until|while|unless|after|before)\b", bare_name_text(stmt, multiword))
+        if watched:
             add(r.line, "W-watch-word", f"{r.label}: lower-case after/before/until/while/unless — an ordering or duration the tails do not carry (§18 watch list)")
         if verbs is not None:
             for vm in re.finditer(r"\b(MUST NOT|MUST|MAY)\s+(\S+)", stmt):
@@ -961,7 +971,12 @@ def scan(path: Path) -> list[Finding]:
              "must","not","may","every","this","that","one","two","its"}
     _bucket: dict[str, list] = {}
     for r in rules:
-        toks = [w for w in re.findall(r"[a-z_]{4,}", r.text.lower()) if w not in _STOP]
+        # a declared name counts as one token, whatever its words: *retention
+        # until* is a name, not a retention and an until (council read 136)
+        text_one = r.text.lower()
+        for n in multiword:
+            text_one = text_one.replace(n, n.replace(" ", "_"))
+        toks = [w for w in re.findall(r"[a-z_]{4,}", text_one) if w not in _STOP]
         if len(toks) < 3:
             continue
         fam = LABEL_PARTS.match(r.label)

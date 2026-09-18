@@ -95,7 +95,16 @@ for the nouns:
 python3 tools/grace/nouns.py                 # per-spec counts and the most common misses
 python3 tools/grace/nouns.py --spec lease    # every miss in one spec, by line
 python3 tools/grace/nouns.py --json          # the whole reading
+python3 tools/grace/nouns.py --record "<this unit>"        # this reading becomes the baseline
 ```
+
+Every run prints its move against
+[`nouns-baseline.json`](nouns-baseline.json), the totals the last unit closed
+at, so a unit's register entry copies its baseline from the instrument rather
+than from the last entry — which is how the clause went missing three units
+running before council read 136, and the same cure `W-stale-census` gave the
+family counts at council read 33. `--record` names the unit whose close the
+file now holds; a reading taken without it moves nothing.
 
 It tags each labelled rule with NLTK's averaged-perceptron tagger and matches
 each noun phrase against the names the spec declares (`Term` lines, category

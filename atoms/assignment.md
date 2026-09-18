@@ -32,25 +32,25 @@ Work gets handed to people, and the handing has to be answerable: who holds this
 ### Identity model
 
 ```
-Identity 1: The atom MUST identify an assignment by the assignment_id.
-Identity 2: The host MUST allocate an assignment_id at the atom's seam.
-Identity 3: The transition MUST NOT allocate an assignment_id.
-Identity 4: The business caller MUST NOT supply an assignment_id.
-Identity 5: The atom MUST NOT reuse an assignment_id.
-Identity 6: The atom MUST NOT identify an assignment by the task_ref.
-Identity 7: The atom MUST NOT identify an assignment by the task_ref with the assignee_ref.
+Identity 1: The atom MUST identify an assignment by the assignment id.
+Identity 2: The host MUST allocate an assignment id at the atom's seam.
+Identity 3: The transition MUST NOT allocate an assignment id.
+Identity 4: The business caller MUST NOT supply an assignment id.
+Identity 5: The atom MUST NOT reuse an assignment id.
+Identity 6: The atom MUST NOT identify an assignment by the task ref.
+Identity 7: The atom MUST NOT identify an assignment by the task ref with the assignee ref.
 Identity 8: Two assignments over one task MUST carry two assignment_ids.
 ```
 
 Term assignment: one binding of a unit of work to a responsible actor — an [Assignment].
 
-Term assignment_id: the opaque value naming one assignment — an [Assignment Id].
+Term assignment id: the opaque value naming one assignment — an [Assignment Id].
 
-Term task_ref: the opaque reference naming the unit of work — a [Task Ref]; the host owns what a task is.
+Term task ref: the opaque reference naming the unit of work — a [Task Ref]; the host owns what a task is.
 
-Term assignee_ref: the opaque reference naming the responsible actor — an [Assignee Ref]; the actor registry is a separate concept.
+Term assignee ref: the opaque reference naming the responsible actor — an [Assignee Ref]; the actor registry is a separate concept.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the assignment_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the assignment id here.
 
 Term transition: the atom's evaluation of one call against the assignment store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -65,12 +65,12 @@ Identity by task would make a reassignment overwrite its predecessor, which dest
 
 ```
 State 1: EVERY assignment MUST stand in EXACTLY ONE OF active, recalled, transferred.
-State 2: EVERY assignment MUST carry assignment_id, task_ref, assignee_ref, assigned_at and status.
-State 3: A recalled assignment MUST carry recalled_at.
-State 4: A transferred assignment MUST carry transferred_at.
-State 5: [Assign] MUST stamp assigned_at from the injected now.
-State 6: [Recall] MUST stamp recalled_at from the injected now.
-State 7: [Reassign] MUST stamp transferred_at from the injected now.
+State 2: EVERY assignment MUST carry assignment id, task ref, assignee ref, assigned at and status.
+State 3: A recalled assignment MUST carry recalled at.
+State 4: A transferred assignment MUST carry transferred at.
+State 5: [Assign] MUST stamp assigned at from the injected now.
+State 6: [Recall] MUST stamp recalled at from the injected now.
+State 7: [Reassign] MUST stamp transferred at from the injected now.
 State 8: The atom MUST NOT offer a transition out of recalled.
 State 9: The atom MUST NOT offer a transition out of transferred.
 State 10: The atom MUST NOT delete an assignment.
@@ -81,11 +81,11 @@ State 13: The atom MUST NOT re-derive a stamp from a later reading.
 
 Term status: active | recalled | transferred — in force, withdrawn with nobody after, or handed on to a successor.
 
-Term assigned_at: the instant the assignment was created — an [Assigned At].
+Term assigned at: the instant the assignment was created — an [Assigned At].
 
-Term recalled_at: the instant the assignment was withdrawn — a [Recalled At].
+Term recalled at: the instant the assignment was withdrawn — a [Recalled At].
 
-Term transferred_at: the instant the assignment was handed on — a [Transferred At].
+Term transferred at: the instant the assignment was handed on — a [Transferred At].
 
 WHY:
 Recalled and transferred are two terminal values of the [Status] rather than one because they answer different audit questions: recalled means the task is nobody's, transferred means it is somebody else's, and a single *closed* state would make an auditor infer the difference from the presence of a successor (State 8, State 9). Nothing is deleted, so the chain of responsibility is the store rather than a reconstruction (State 10).
@@ -129,73 +129,73 @@ history_for(task_ref)
 ```
 Operation 1: [Assign] MUST record EXACTLY ONE assignment per successful call.
 Operation 2: [Assign] MUST stand the assignment in active.
-Operation 3: [Assign] MUST answer assignment_id.
-Operation 4: IF task_ref EQUALS blank THEN [Assign] MUST answer invalid-request.
-Operation 5: IF assignee_ref EQUALS blank THEN [Assign] MUST answer invalid-request.
-Operation 6: IF an active assignment EXISTS for the task_ref THEN [Assign] MUST answer already-assigned.
+Operation 3: [Assign] MUST answer assignment id.
+Operation 4: IF task ref EQUALS blank THEN [Assign] MUST answer invalid-request.
+Operation 5: IF assignee ref EQUALS blank THEN [Assign] MUST answer invalid-request.
+Operation 6: IF an active assignment EXISTS for the task ref THEN [Assign] MUST answer already-assigned.
 Operation 7: IF the store refuses the write THEN [Assign] MUST answer storage-failure.
-Operation 8: IF no assignment EXISTS for the assignment_id THEN [Recall] MUST answer not-known.
+Operation 8: IF no assignment EXISTS for the assignment id THEN [Recall] MUST answer not-known.
 Operation 9: IF the assignment's status EQUALS recalled THEN [Recall] MUST answer not-active.
 Operation 10: IF the assignment's status EQUALS transferred THEN [Recall] MUST answer not-active.
 Operation 11: [Recall] MUST stand the assignment in recalled.
-Operation 12: [Recall] MUST leave the task_ref with no active assignment.
+Operation 12: [Recall] MUST leave the task ref with no active assignment.
 Operation 13: IF the store refuses the write THEN [Recall] MUST answer storage-failure.
-Operation 14: IF no assignment EXISTS for the assignment_id THEN [Reassign] MUST answer not-known.
+Operation 14: IF no assignment EXISTS for the assignment id THEN [Reassign] MUST answer not-known.
 Operation 15: IF the assignment's status EQUALS recalled THEN [Reassign] MUST answer not-active.
 Operation 16: IF the assignment's status EQUALS transferred THEN [Reassign] MUST answer not-active.
-Operation 17: IF new_assignee_ref EQUALS blank THEN [Reassign] MUST answer invalid-request.
+Operation 17: IF new assignee ref EQUALS blank THEN [Reassign] MUST answer invalid-request.
 Operation 18: [Reassign] MUST stand the old assignment in transferred.
-Operation 19: [Reassign] MUST record EXACTLY ONE active assignment for the task_ref.
+Operation 19: [Reassign] MUST record EXACTLY ONE active assignment for the task ref.
 Operation 20: [Reassign] MUST commit the two writes together.
-Operation 21: [Reassign] MUST answer the new assignment_id.
+Operation 21: [Reassign] MUST answer the new assignment id.
 Operation 22: IF the store refuses either write THEN [Reassign] MUST answer storage-failure.
 Operation 23: [Reassign] MUST withdraw both writes on storage-failure.
 Operation 24: A refused call MUST leave the store as the call found the store.
-Operation 25: [Active For] MUST answer the active assignment for the task_ref.
-Operation 26: [Active For] MUST answer none for a task_ref with no active assignment.
-Operation 27: [History For] MUST answer EVERY assignment carrying the task_ref.
-Operation 28: [History For] MUST order the answer by assigned_at.
+Operation 25: [Active For] MUST answer the active assignment for the task ref.
+Operation 26: [Active For] MUST answer none for a task ref with no active assignment.
+Operation 27: [History For] MUST answer EVERY assignment carrying the task ref.
+Operation 28: [History For] MUST order the answer by assigned at.
 Operation 29: [Active For] MUST NOT write.
 Operation 30: [History For] MUST NOT write.
 Operation 30a: [Reassign] MUST read one now per call.
-Operation 30b: [Reassign] MUST stamp transferred_at and assigned_at against that one now.
+Operation 30b: [Reassign] MUST stamp transferred at and assigned at against that one now.
 Deleted: Operation 31. Capability requirement 1 owns it.
 Deleted: Operation 32. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
 ```
 
-Term new_assignee_ref: the opaque reference naming the successor a reassignment hands the task to — a [New Assignee Ref].
+Term new assignee ref: the opaque reference naming the successor a reassignment hands the task to — a [New Assignee Ref].
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the assignment store |
 |---|---|---|---|
-| [Assign] | refs present, task unassigned, store accepts | assignment_id | one assignment lands in [Active] (Operation 1, Operation 2) |
-| [Assign] | blank task_ref or assignee_ref | [Invalid Request] | none (Operation 4, Operation 5) |
+| [Assign] | refs present, task unassigned, store accepts | assignment id | one assignment lands in [Active] (Operation 1, Operation 2) |
+| [Assign] | blank task ref or assignee ref | [Invalid Request] | none (Operation 4, Operation 5) |
 | [Assign] | task already has a live assignment | [Already Assigned] | none (Operation 6) |
 | [Recall] | assignment is live | ok | [Active] → [Recalled]; the task is nobody's (Operation 11, Operation 12) |
 | [Recall] | assignment is recalled or transferred | [Not Active] | none (Operation 9, Operation 10) |
-| [Reassign] | assignment live, successor present, store accepts | the new assignment_id | old → [Transferred] and a new [Active] one, in one commit (Operation 18 through 21) |
-| [Reassign] | blank new_assignee_ref | [Invalid Request] | none (Operation 17) |
+| [Reassign] | assignment live, successor present, store accepts | the new assignment id | old → [Transferred] and a new [Active] one, in one commit (Operation 18 through 21) |
+| [Reassign] | blank new assignee ref | [Invalid Request] | none (Operation 17) |
 | [Reassign] | assignment is recalled or transferred | [Not Active] | none (Operation 15, Operation 16) |
 | [Reassign] | either write refused | [Storage Failure] | none — both withdrawn, the old stays [Active] (Operation 22, Operation 23) |
 | any | id names nothing | [Not Known] | none (Operation 8, Operation 14) |
 | [Active For] | task has a live assignment | that assignment | none — the call reads (Operation 25, Operation 29) |
 | [Active For] | task is unassigned | none | none (Operation 26) |
-| [History For] | any task | every assignment for it, by assigned_at | none (Operation 27, Operation 28, Operation 30) |
+| [History For] | any task | every assignment for it, by assigned at | none (Operation 27, Operation 28, Operation 30) |
 
 WHY:
-Reassign is one commit and not a recall followed by an assign, which is the whole reason the operation exists: the two-call version leaves a window where the task is nobody's, and a system that reports coverage during that window reports a gap that never should have opened (Operation 20, Invariant 7.1). Its failure arm is the expensive one — two writes, and a partial landing leaves the task unassigned after a call the caller believes succeeded — so the withdrawal is stated rather than assumed (Operation 23, Reassign atomicity 1 through 4). Both stamps come from one clock reading, the discipline [Retention Window](./retention-window.md) states for its purge: two readings would drift the successor's assigned_at from the predecessor's transferred_at, and Check 2.3 reads a handoff by that equality (Operation 30a, Operation 30b).
+Reassign is one commit and not a recall followed by an assign, which is the whole reason the operation exists: the two-call version leaves a window where the task is nobody's, and a system that reports coverage during that window reports a gap that never should have opened (Operation 20, Invariant 7.1). Its failure arm is the expensive one — two writes, and a partial landing leaves the task unassigned after a call the caller believes succeeded — so the withdrawal is stated rather than assumed (Operation 23, Reassign atomicity 1 through 4). Both stamps come from one clock reading, the discipline [Retention Window](./retention-window.md) states for its purge: two readings would drift the successor's assigned at from the predecessor's transferred at, and Check 2.3 reads a handoff by that equality (Operation 30a, Operation 30b).
 
 ### Invariants
 
 - **Invariant 1 — At most one Active assignment per task.**
   ```
-  Invariant 1.1: Two active assignments MUST NOT share a task_ref.
+  Invariant 1.1: Two active assignments MUST NOT share a task ref.
   ```
 - **Invariant 2 — Assignment immutability.**
   ```
-  Invariant 2.1: A recorded assignment's assignment_id, task_ref, assignee_ref and assigned_at MUST NOT change.
+  Invariant 2.1: A recorded assignment's assignment id, task ref, assignee ref and assigned at MUST NOT change.
   ```
 - **Invariant 3 — Status monotonicity.**
   ```
@@ -209,32 +209,32 @@ Reassign is one commit and not a recall followed by an assign, which is the whol
   ```
 - **Invariant 5 — Id stability.**
   ```
-  Invariant 5.1: [Assign] MUST set the assignment_id.
-  Invariant 5.2: An assignment_id MUST NOT change.
+  Invariant 5.1: [Assign] MUST set the assignment id.
+  Invariant 5.2: An assignment id MUST NOT change.
   ```
 - **Invariant 6 — No id reuse.**
   ```
-  Invariant 6.1: Two assignments MUST NOT share an assignment_id.
+  Invariant 6.1: Two assignments MUST NOT share an assignment id.
   ```
 - **Invariant 7 — Reassign atomicity.**
   ```
-  Invariant 7.1: A task_ref MUST carry EXACTLY ONE active assignment once [Reassign] lands.
+  Invariant 7.1: A task ref MUST carry EXACTLY ONE active assignment once [Reassign] lands.
   Invariant 7.2: The reassigned assignment MUST stand in transferred once [Reassign] lands.
-  Invariant 7.3: A reader MUST NOT observe two active assignments for one task_ref.
-  Invariant 7.4: A reader MUST NOT observe the task_ref unassigned once the first write lands AND no second write EXISTS.
+  Invariant 7.3: A reader MUST NOT observe two active assignments for one task ref.
+  Invariant 7.4: A reader MUST NOT observe the task ref unassigned once the first write lands AND no second write EXISTS.
   ```
 - **Invariant 8 — Timestamp ordering.**
   ```
-  Invariant 8.1: IF recalled_at DOES NOT EQUAL blank THEN assigned_at MUST NOT EXCEED recalled_at.
-  Invariant 8.2: IF transferred_at DOES NOT EQUAL blank THEN assigned_at MUST NOT EXCEED transferred_at.
+  Invariant 8.1: IF recalled at DOES NOT EQUAL blank THEN assigned at MUST NOT EXCEED recalled at.
+  Invariant 8.2: IF transferred at DOES NOT EQUAL blank THEN assigned at MUST NOT EXCEED transferred at.
   Invariant 8.3: The atom MUST stamp EVERY timestamp once.
   ```
   WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (Execution Contract Logic confinement 7).
 - **Invariant 9 — Complete responsibility history.**
   ```
-  Invariant 9.1: The assignments carrying one task_ref MUST record EVERY actor who held the task.
-  Invariant 9.2: The assignments carrying one task_ref MUST record when each holding began.
-  Invariant 9.3: The assignments carrying one task_ref MUST record how each holding ended.
+  Invariant 9.1: The assignments carrying one task ref MUST record EVERY actor who held the task.
+  Invariant 9.2: The assignments carrying one task ref MUST record when each holding began.
+  Invariant 9.3: The assignments carrying one task ref MUST record how each holding ended.
   ```
 - **Invariant 10 — Assignment store durability.**
   ```
@@ -250,7 +250,7 @@ The same atom, four domains, identical mechanic.
 
 ### Project management — task handoff mid-sprint
 
-A sprint board has a task *"implement login flow"* (task_ref: `task_t44`). The engineering manager assigns it to a developer: `assign(task_t44, dev_alice) → assignment_id a1`. Alice picks it up. Mid-sprint, Alice is pulled onto a production incident; the manager reassigns: `reassign(a1, dev_bob) → a2`. Alice's assignment (`a1`) moves to [Transferred]; Bob's (`a2`) is now [Active]. The sprint retrospective can reconstruct: Alice held the task from day 1 to day 4; Bob held it from day 4 to completion. At no point was the task unassigned.
+A sprint board has a task *"implement login flow"* (task ref: `task_t44`). The engineering manager assigns it to a developer: `assign(task_t44, dev_alice) → assignment_id a1`. Alice picks it up. Mid-sprint, Alice is pulled onto a production incident; the manager reassigns: `reassign(a1, dev_bob) → a2`. Alice's assignment (`a1`) moves to [Transferred]; Bob's (`a2`) is now [Active]. The sprint retrospective can reconstruct: Alice held the task from day 1 to day 4; Bob held it from day 4 to completion. At no point was the task unassigned.
 
 ### Customer support — ticket escalation
 
@@ -285,12 +285,12 @@ This atom's acceptance is what an external auditor can clear from the assignment
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find no task_ref carrying two active assignments (Invariant 1.1).
-Check 2.1: An auditor MUST reconstruct a task's chain of responsibility from the assignments carrying the task_ref (Invariant 9.1, Invariant 9.2, Invariant 9.3).
-Check 2.2: An auditor MUST read a recalled assignment as the task standing unassigned at recalled_at (Operation 12).
-Check 2.3: An auditor MUST read a transferred assignment as a successor whose status EQUALS active at transferred_at (Invariant 7.1, Invariant 7.2).
+Check 1.1: An auditor MUST find no task ref carrying two active assignments (Invariant 1.1).
+Check 2.1: An auditor MUST reconstruct a task's chain of responsibility from the assignments carrying the task ref (Invariant 9.1, Invariant 9.2, Invariant 9.3).
+Check 2.2: An auditor MUST read a recalled assignment as the task standing unassigned at recalled at (Operation 12).
+Check 2.3: An auditor MUST read a transferred assignment as a successor whose status EQUALS active at transferred at (Invariant 7.1, Invariant 7.2).
 Check 3.1: An auditor MUST find no assignment whose status moved out of a terminal status (Invariant 3.2, Invariant 4.1, Invariant 4.2).
-Check 4.1: An auditor MUST find no assignment whose assigned_at EXCEEDS the assignment's terminal stamp (Invariant 8.1, Invariant 8.2).
+Check 4.1: An auditor MUST find no assignment whose assigned at EXCEEDS the assignment's terminal stamp (Invariant 8.1, Invariant 8.2).
 Check 5.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
 ```
 
@@ -325,7 +325,7 @@ Non-goal 12: The atom MUST NOT recall an assignment on the task's completion.
 ```
 
 WHY:
-The atom binds and records; every judgment around the binding is somebody else's. Acceptance, deadlines, authority and attribution each compose (Non-goal 1 through 8). A workload cap is a Capacity Constraint pattern reading the assignee's live count before the assign, which this atom deliberately does not count (Non-goal 9). Team assignment — where any member may act — is a different concept and not a wider assignee_ref (Non-goal 10). Completion is the task system's event: the composing pattern decides whether a finished task leaves its assignment standing as an attribution record or is recalled to close the lifecycle, and both are ordinary (Non-goal 12, Composition note 4).
+The atom binds and records; every judgment around the binding is somebody else's. Acceptance, deadlines, authority and attribution each compose (Non-goal 1 through 8). A workload cap is a Capacity Constraint pattern reading the assignee's live count before the assign, which this atom deliberately does not count (Non-goal 9). Team assignment — where any member may act — is a different concept and not a wider assignee ref (Non-goal 10). Completion is the task system's event: the composing pattern decides whether a finished task leaves its assignment standing as an attribution record or is recalled to close the lifecycle, and both are ordinary (Non-goal 12, Composition note 4).
 
 Where the atom breaks down: when responsibility is genuinely shared at the same time; when an assignment must end on its own without anyone withdrawing it; when the assigner must be authorized before assigning; when the assignee must consent before holding.
 
@@ -335,8 +335,8 @@ Where the atom breaks down: when responsibility is genuinely shared at the same 
 
 ```
 Reassign atomicity 1: The implementation MUST commit the transferred write and the active write together.
-Reassign atomicity 2: A crash inside [Reassign] MUST NOT leave the task_ref unassigned.
-Reassign atomicity 3: A crash inside [Reassign] MUST NOT leave two active assignments for one task_ref.
+Reassign atomicity 2: A crash inside [Reassign] MUST NOT leave the task ref unassigned.
+Reassign atomicity 3: A crash inside [Reassign] MUST NOT leave two active assignments for one task ref.
 Reassign atomicity 4: An implementation that cannot withdraw a landed write MUST NOT accept a further call BEFORE the implementation repairs the partial state.
 ```
 
@@ -347,8 +347,8 @@ The dangerous half is the quiet one: old marked transferred, successor never wri
 
 ```
 Assign race 1: The implementation MUST make the active-assignment check and the write one transition.
-Assign race 2: The implementation MUST NOT record two active assignments for one task_ref under concurrent calls.
-Assign race 3: The second concurrent [Assign] for one task_ref MUST answer already-assigned.
+Assign race 2: The implementation MUST NOT record two active assignments for one task ref under concurrent calls.
+Assign race 3: The second concurrent [Assign] for one task ref MUST answer already-assigned.
 ```
 
 ## Composition notes
@@ -372,7 +372,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; an assigner; an assignee; an auditor; a reader; the store; an assignment; a task; a call; a crash.
 
-Term records: assignment — one binding, carrying assignment_id, task_ref, assignee_ref, assigned_at, status and, once it ends, recalled_at or transferred_at.
+Term records: assignment — one binding, carrying assignment id, task ref, assignee ref, assigned at, status and, once it ends, recalled at or transferred at.
 
 Term record verbs: identify, allocate, supply, reuse, carry, stand, stamp, offer, delete, hold, record, answer, leave, write, read, commit, withdraw, order, set, change, move, take, share, observe, shrink, make, repair, accept, require, expire, check, cap, bind, recall, compose, own, attest, declare, find, reconstruct, re-derive, exceed.
 
@@ -384,7 +384,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: assignment, assignment_id, task_ref, assignee_ref, seam, transition, business caller, now, status, assigned_at, recalled_at, transferred_at, new_assignee_ref.
+Term terms: assignment, assignment id, task ref, assignee ref, seam, transition, business caller, now, status, assigned at, recalled at, transferred at, new assignee ref.
 
 #### Assignment
 

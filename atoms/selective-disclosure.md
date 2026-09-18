@@ -44,48 +44,48 @@ The authority field is where the atom earns its name. Three types and no others 
 ### Identity model
 
 ```
-Identity 1: The atom MUST identify a disclosure record by the disclosure_id.
-Identity 2: The host MUST allocate a disclosure_id at the seam.
-Identity 3: The transition MUST NOT allocate a disclosure_id.
-Identity 4: The atom MUST NOT change a disclosure_id.
-Identity 5: Two disclosure records in one store instance MUST NOT share a disclosure_id.
+Identity 1: The atom MUST identify a disclosure record by the disclosure id.
+Identity 2: The host MUST allocate a disclosure id at the seam.
+Identity 3: The transition MUST NOT allocate a disclosure id.
+Identity 4: The atom MUST NOT change a disclosure id.
+Identity 5: Two disclosure records in one store instance MUST NOT share a disclosure id.
 Identity 6: The deployment MUST route EVERY call to one store instance.
-Identity 7: The atom MUST NOT identify a disclosure record by the subject_ref.
-Identity 8: The atom MUST admit a second disclosure record carrying a recorded subject_ref.
-Identity 9: The atom MUST match a subject_ref exactly.
+Identity 7: The atom MUST NOT identify a disclosure record by the subject ref.
+Identity 8: The atom MUST admit a second disclosure record carrying a recorded subject ref.
+Identity 9: The atom MUST match a subject ref exactly.
 Identity 10: The atom MUST match a recipient exactly.
-Identity 11: The atom MUST NOT normalize a subject_ref.
-Identity 12: The atom MUST NOT confirm that a subject_ref names a known subject.
+Identity 11: The atom MUST NOT normalize a subject ref.
+Identity 12: The atom MUST NOT confirm that a subject ref names a known subject.
 Identity 13: The atom MUST NOT interpret a scope.
 Identity 14: The atom MUST NOT interpret a recipient.
-Identity 15: The deployment MUST choose a disclosure_id format that sorts in lexicographic byte order.
+Identity 15: The deployment MUST choose a disclosure id format that sorts in lexicographic byte order.
 ```
 
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
 
-Term disclosure_id: the opaque value naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, fresh per call by the seam's construction.
+Term disclosure id: the opaque value naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, fresh per call by the seam's construction.
 
-Term subject_ref: the opaque reference naming the data subject whose data was disclosed — a [Subject Ref]; a property of the record, never the record's identity.
+Term subject ref: the opaque reference naming the data subject whose data was disclosed — a [Subject Ref]; a property of the record, never the record's identity.
 
 Term recipient: the opaque string naming the party the data reached — a [Recipient].
 
 Term scope: the opaque string naming what subset of the subject's data was disclosed — a [Scope]; recorded as the caller declares it.
 
-Term store instance: one named disclosure store a call is routed to; disclosure_id uniqueness ranges over one instance.
+Term store instance: one named disclosure store a call is routed to; disclosure id uniqueness ranges over one instance.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the disclosure_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the disclosure id here.
 
 Term transition: the atom's evaluation of one call against the disclosure store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
 The id is the injected `id_t`, fresh by construction at the seam, which is what makes Identity 5 hold at the action level without the transition owning a generator or a collision path. Lexicographic sortability (Identity 15) is not cosmetic: it is the stable tiebreaker [Read]'s total order rests on, so a deployment choosing an unsortable id format breaks the read contract rather than merely the aesthetics — ULID, UUID v7 and a zero-padded integer string all satisfy it.
 
-subject_ref is deliberately not an identity (Identity 7, Identity 8). One subject has many disclosures; each is its own accountability record, and collapsing them under a subject key would make the store answer *what is true of this subject* rather than *what happened to this subject's data*, which is the question the regulation asks.
+subject ref is deliberately not an identity (Identity 7, Identity 8). One subject has many disclosures; each is its own accountability record, and collapsing them under a subject key would make the store answer *what is true of this subject* rather than *what happened to this subject's data*, which is the question the regulation asks.
 
 ### State
 
 ```
-State 1: EVERY disclosure record MUST carry disclosure_id, subject_ref, recipient, scope, authority_type, authority_reference and disclosed_at.
+State 1: EVERY disclosure record MUST carry disclosure id, subject ref, recipient, scope, authority_type, authority_reference and disclosed at.
 State 2: The atom MUST NOT offer a state machine over a disclosure record.
 State 3: The atom MUST NOT offer an optional field on a disclosure record.
 State 4: The atom MUST NOT offer an edit surface.
@@ -122,7 +122,7 @@ WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 WHY:
-Clock skew between a caller and the seam can push a disclosed_at the caller believes is current past the injected reading, and Operation 7 rejects it. That is the correct rejection: the temporal invariant is enforced against the injected now, not against the caller's belief about the time.
+Clock skew between a caller and the seam can push a disclosed at the caller believes is current past the injected reading, and Operation 7 rejects it. That is the correct rejection: the temporal invariant is enforced against the injected now, not against the caller's belief about the time.
 
 ### Operations
 
@@ -137,32 +137,32 @@ read(filters)
 ```
 
 ```
-Operation 1: IF subject_ref EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 1: IF subject ref EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 2: IF recipient EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 3: IF scope EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 4: IF authority EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 5: IF authority_type EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 6: IF authority_reference EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 7: IF the resolved disclosed_at EXCEEDS now THEN [Record] MUST answer invalid-request.
+Operation 7: IF the resolved disclosed at EXCEEDS now THEN [Record] MUST answer invalid-request.
 Operation 8: [Record] MUST answer unknown-authority-type ONLY IF EVERY field-level precondition passes.
 Operation 9: IF authority_type IS NOT IN the authority types THEN [Record] MUST answer unknown-authority-type.
 Operation 10: An admitted record MUST record EXACTLY ONE disclosure record.
-Operation 11: An admitted record MUST take the disclosure record's disclosure_id from the injected disclosure_id.
-Operation 12: An admitted record MUST stamp the disclosure record's disclosed_at from the resolved disclosed_at.
-Operation 13: An admitted record MUST answer the disclosure_id.
+Operation 11: An admitted record MUST take the disclosure record's disclosure id from the injected disclosure id.
+Operation 12: An admitted record MUST stamp the disclosure record's disclosed at from the resolved disclosed at.
+Operation 13: An admitted record MUST answer the disclosure id.
 Operation 14: IF the store refuses the write THEN [Record] MUST answer storage-failure.
 Operation 15: [Record] MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 16: A refused [Record] MUST NOT record a disclosure record.
 Operation 17: A refused [Record] MUST leave the store as the call found the store.
-Operation 18: An admitted read MUST answer the matching disclosure records in disclosed_at ascending order.
-Operation 19: An admitted read MUST order two disclosure records sharing a disclosed_at by disclosure_id ascending.
+Operation 18: An admitted read MUST answer the matching disclosure records in disclosed at ascending order.
+Operation 19: An admitted read MUST order two disclosure records sharing a disclosed at by disclosure id ascending.
 Operation 20: IF no disclosure record matches THEN an admitted read MUST answer an empty record sequence.
 Operation 21: An admitted read carrying no filter MUST answer EVERY disclosure record in the store instance.
 Operation 22: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
-Operation 23: IF a disclosure_id, subject_ref OR recipient filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
+Operation 23: IF a disclosure id, subject ref OR recipient filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 24: IF an authority_type filter's value IS NOT IN the authority types THEN [Read] MUST answer invalid-query.
-Operation 25: IF a disclosed_at range's before precedes the range's after THEN [Read] MUST answer invalid-query.
-Operation 26: An admitted read MUST match a disclosed_at range as a closed interval.
+Operation 25: IF a disclosed at range's before precedes the range's after THEN [Read] MUST answer invalid-query.
+Operation 26: An admitted read MUST match a disclosed at range as a closed interval.
 Operation 27: An admitted read MUST answer EVERY disclosure record matching the supplied filters.
 Operation 28: An admitted read MUST NOT answer a disclosure record failing a supplied filter.
 Operation 29: [Read] MUST NOT write.
@@ -185,29 +185,29 @@ Term authority types: the three members of authority_type, cited here from that 
 
 Term authority_reference: the opaque string naming the specific authority — an [Authority Reference]; a consent record's id, a legal hold's id, or a regulatory citation.
 
-Term disclosed_at: the instant the disclosure happened — a [Disclosed At]; caller-supplied or resolved to now, and never later than now.
+Term disclosed at: the instant the disclosure happened — a [Disclosed At]; caller-supplied or resolved to now, and never later than now.
 
-Term resolved disclosed_at: the disclosed_at the record carries — the supplied value where one exists, and now otherwise.
+Term resolved disclosed at: the disclosed at the record carries — the supplied value where one exists, and now otherwise.
 
 Term field-level precondition: Operation 1 through 7 — every check [Record] makes before the authority type is read.
 
-Term filter axes: disclosure_id | subject_ref | recipient | authority_type | disclosed_at — the five axes [Read] accepts, and no others.
+Term filter axes: disclosure id | subject ref | recipient | authority_type | disclosed at — the five axes [Read] accepts, and no others.
 
-Term admitted record: a [Record] call whose fields, resolved disclosed_at and authority_type the guards all admit.
+Term admitted record: a [Record] call whose fields, resolved disclosed at and authority_type the guards all admit.
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
 | # | Condition | [Record] answers |
 |---|---|---|
-| 1 | a field is blank, or the resolved disclosed_at follows now | invalid-request |
+| 1 | a field is blank, or the resolved disclosed at follows now | invalid-request |
 | 2 | every field passes, authority_type stands outside the authority types | unknown-authority-type |
 | 3 | every precondition passes, the store refuses the write | storage-failure |
 | 4 | every precondition passes, the store accepts the write | `recorded(disclosure_id)` |
 
 WHY:
-Operation 8 is the precedence rule, and it is load-bearing rather than tidy. Without it a call carrying both a blank subject_ref and a misspelled authority type could answer either way, and a caller repairing the authority type would then discover the blank field on the next attempt — two round trips to learn what one answer already knew. The same shape governs Operation 15: storage-failure means *the call was good and the store was not*, so landing it while a precondition is unchecked would tell the caller to retry something that will never succeed.
+Operation 8 is the precedence rule, and it is load-bearing rather than tidy. Without it a call carrying both a blank subject ref and a misspelled authority type could answer either way, and a caller repairing the authority type would then discover the blank field on the next attempt — two round trips to learn what one answer already knew. The same shape governs Operation 15: storage-failure means *the call was good and the store was not*, so landing it while a precondition is unchecked would tell the caller to retry something that will never succeed.
 
-Operation 7 is the atom's one genuine execution-time validation — the residual the logic-confinement discipline marks rather than derives away. A disclosure cannot be recorded as having happened later than the moment of recording, and that determination can only be made against the injected reading. The guard is a pure function of the resolved disclosed_at and now, and it writes nothing when it fails.
+Operation 7 is the atom's one genuine execution-time validation — the residual the logic-confinement discipline marks rather than derives away. A disclosure cannot be recorded as having happened later than the moment of recording, and that determination can only be made against the injected reading. The guard is a pure function of the resolved disclosed at and now, and it writes nothing when it fails.
 
 Operation 22 refuses an unrecognized filter key rather than ignoring it, which is the difference between an answer and a coincidence: a silently ignored key returns a result set that does not match what the caller asked, and a compliance answer no one can trust the shape of is worse than a rejection. Operation 20 draws the opposite line on the same surface — a well-formed query matching nothing is a meaningful answer (*no disclosures of this kind were recorded*), not a failure.
 
@@ -226,14 +226,14 @@ Operation 22 refuses an unrecognized filter key rather than ignoring it, which i
   WHY: a record failing either arm cannot answer *under what authority was this disclosure made*, which is the one question the atom exists to answer. An unrecognized type or an empty reference is a conformance failure rather than a degraded record, because a disclosure accounting that cannot name its basis is not an accounting.
 - **Invariant 3 — Field completeness.**
   ```
-  Invariant 3.1: EVERY disclosure record MUST carry a disclosed_at.
-  Invariant 3.2: EVERY disclosure record's subject_ref, recipient, scope and authority_reference MUST stand non-blank.
+  Invariant 3.1: EVERY disclosure record MUST carry a disclosed at.
+  Invariant 3.2: EVERY disclosure record's subject ref, recipient, scope and authority_reference MUST stand non-blank.
   ```
 - **Invariant 4 — Temporal soundness.**
   ```
-  Invariant 4.1: EVERY disclosure record's disclosed_at MUST NOT follow the now the record's creation read.
+  Invariant 4.1: EVERY disclosure record's disclosed at MUST NOT follow the now the record's creation read.
   ```
-  WHY: a record whose disclosed_at is later than the instant it was written claims the system recorded a disclosure that had not happened yet. The constraint is enforced against the resolved value — caller-supplied or defaulted — by Operation 7's guard, before the write.
+  WHY: a record whose disclosed at is later than the instant it was written claims the system recorded a disclosure that had not happened yet. The constraint is enforced against the resolved value — caller-supplied or defaulted — by Operation 7's guard, before the write.
 - **Invariant 5 — No disclosure unrecorded.**
   ```
   Invariant 5.1: EVERY transmission of a subject's data to a party beside the subject MUST produce a disclosure record.
@@ -244,7 +244,7 @@ Operation 22 refuses an unrecognized filter key rather than ignoring it, which i
   ```
   Invariant 6.1: The atom MUST NOT remove a disclosure record from the store.
   Invariant 6.2: A storage-failure rejection MUST leave no partial record in the store.
-  Invariant 6.3: An answered disclosure_id MUST name a durably persisted disclosure record.
+  Invariant 6.3: An answered disclosure id MUST name a durably persisted disclosure record.
   ```
   WHY: append-only is the structural guarantee that a subject's disclosure history is complete from the records alone. A deletion or an edit would break that guarantee in a way no auditor could detect from the store — which is exactly the gap [Tamper Evidence](./tamper-evidence.md) closes cryptographically and this atom closes only by specification.
 
@@ -254,7 +254,7 @@ Operation 22 refuses an unrecognized filter key rather than ignoring it, which i
 
 ### Consent-authorized disclosure to a research partner
 
-A hospital shares a de-identified summary with a research institution under a signed consent. Immediately after transmission the calling system records it: `record(subject_ref: "patient-88213", recipient: "Northgate Research Institute", scope: "medical-record:summary", authority: {type: consent, reference: "consent-3301"})` → `recorded("01HQ3M...")`, with the host injecting `now: 2026-03-04T14:02:11Z` and the fresh id at the seam. No disclosed_at was supplied, so the record carries the injected reading (`Term resolved disclosed_at`).
+A hospital shares a de-identified summary with a research institution under a signed consent. Immediately after transmission the calling system records it: `record(subject_ref: "patient-88213", recipient: "Northgate Research Institute", scope: "medical-record:summary", authority: {type: consent, reference: "consent-3301"})` → `recorded("01HQ3M...")`, with the host injecting `now: 2026-03-04T14:02:11Z` and the fresh id at the seam. No disclosed at was supplied, so the record carries the injected reading (`Term resolved disclosed_at`).
 
 ### Regulatory-mandate disclosure to a public health authority
 
@@ -266,11 +266,11 @@ A communicable-disease report goes to a state health department under a reportin
 
 ### The Article 15 answer
 
-A data subject exercises their access right. `read({subject_ref: "patient-88213"})` answers three records in disclosed_at ascending order — the regulatory report first at 09:15, then the consent disclosure at 14:02, then the compelled one — each carrying its recipient, scope, authority type and authority reference. `read({subject_ref: "patient-88213", authority_type: "consent"})` narrows to one. The regulatory question is answered from the store alone.
+A data subject exercises their access right. `read({subject_ref: "patient-88213"})` answers three records in disclosed at ascending order — the regulatory report first at 09:15, then the consent disclosure at 14:02, then the compelled one — each carrying its recipient, scope, authority type and authority reference. `read({subject_ref: "patient-88213", authority_type: "consent"})` narrows to one. The regulatory question is answered from the store alone.
 
 ### Rejection paths
 
-`record("", "Northgate Research Institute", "medical-record:summary", {type: consent, reference: "consent-3301"})` → invalid-request. An empty subject_ref EQUALS blank (Operation 1, String 5).
+`record("", "Northgate Research Institute", "medical-record:summary", {type: consent, reference: "consent-3301"})` → invalid-request. An empty subject ref EQUALS blank (Operation 1, String 5).
 
 `record("patient-88213", "Northgate", "summary", {type: "legitimate-interest", reference: "policy-7"})` → unknown-authority-type. The value stands outside the three (Operation 9). The same call with a blank scope answers invalid-request instead — the field-level checks complete first, so the caller learns the blank field before the bad type (Operation 8).
 
@@ -287,7 +287,7 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** A GDPR supervisory authority reviewing an Article 15 complaint asks which recipients received the complainant's data in 2026. `read({subject_ref: X, disclosed_at: {after: "2026-01-01", before: "2026-12-31"}})` answers the complete set in order, each with its authority. Invariant 3 is what makes the answer usable — every field on every record, so no entry has to be explained (Check 2.1, Check 2.2).
-- **Disputed disclosure.** A data subject denies ever consenting to a research disclosure. The store yields the record and its `authority_reference: "consent-3301"`. That is where this atom's answer stops: it proves the calling system *claimed* that consent as the basis, and the [Consent](./consent.md) store is what proves the consent was granted, in scope and unrevoked at disclosed_at. The split is deliberate and it is named rather than hidden (External check 1, Non-goal 7).
+- **Disputed disclosure.** A data subject denies ever consenting to a research disclosure. The store yields the record and its `authority_reference: "consent-3301"`. That is where this atom's answer stops: it proves the calling system *claimed* that consent as the basis, and the [Consent](./consent.md) store is what proves the consent was granted, in scope and unrevoked at disclosed at. The split is deliberate and it is named rather than hidden (External check 1, Non-goal 7).
 - **Breach forensics.** An investigator reconstructing what left the system during an exposure window reads the store unfiltered across the window and groups by recipient. The store is monotonic (State 8, State 9), so a second read during a long investigation can only add records — nothing an earlier read showed can have quietly left. What the investigator cannot learn here is whether a transmission happened that nobody recorded; that is Invariant 5's gap, cleared against egress logs rather than against this store (External check 2).
 
 ---
@@ -299,18 +299,18 @@ This atom's acceptance is what an external auditor can clear from the disclosure
 ### Conformance checks
 
 ```
-Check 2.1: An auditor MUST find disclosure_id, subject_ref, recipient, scope, authority_type, authority_reference and disclosed_at on EVERY disclosure record (State 1, Invariant 3.1).
-Check 2.2: An auditor MUST find EVERY disclosure record's subject_ref, recipient, scope and authority_reference non-blank (Invariant 3.2).
+Check 2.1: An auditor MUST find disclosure id, subject ref, recipient, scope, authority_type, authority_reference and disclosed at on EVERY disclosure record (State 1, Invariant 3.1).
+Check 2.2: An auditor MUST find EVERY disclosure record's subject ref, recipient, scope and authority_reference non-blank (Invariant 3.2).
 Check 2.3: An auditor MUST find EVERY disclosure record whose authority_type IS IN the authority types (Invariant 2.1).
 Check 3.1: An auditor MUST find a re-read disclosure record's fields unchanged from the prior read (Invariant 1.1).
 Check 3.2: An auditor MUST find no disclosure record absent from a later unfiltered read (Invariant 6.1, State 9).
 Check 4.1: An auditor MUST find [Record] answering unknown-authority-type for an authority_type that IS NOT IN the authority types (Operation 9).
 Check 4.2: An auditor MUST find no disclosure record recorded by a refused [Record] (Operation 16).
-Check 5.1: An auditor MUST find a subject_ref query answering EVERY disclosure record carrying the subject_ref (Operation 27).
+Check 5.1: An auditor MUST find a subject ref query answering EVERY disclosure record carrying the subject ref (Operation 27).
 Check 5.2: An auditor MUST find an authority_type query answering ONLY the disclosure records carrying the authority_type (Operation 28).
 Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
-Check 6.1: An auditor MUST find [Record] answering invalid-request for a disclosed_at following now (Operation 7).
-Check 6.2: An auditor MUST find no disclosure record's disclosed_at following the record's creation instant (Invariant 4.1).
+Check 6.1: An auditor MUST find [Record] answering invalid-request for a disclosed at following now (Operation 7).
+Check 6.2: An auditor MUST find no disclosure record's disclosed at following the record's creation instant (Invariant 4.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -320,14 +320,14 @@ NOTE: EVERY check names the rule the check tests.
 ```
 External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing authority store (Non-goal 7, Non-goal 8).
 External check 2: A deployment needing Invariant 5.1 cleared MUST read the egress record beside the disclosure store.
-External check 3: A deployment needing a backdated disclosed_at detected MUST read the composing Event Log's receipt instant (State 10).
-External check 4: A deployment needing EVERY issued disclosure_id found in the store MUST capture the recorded answers (Invariant 6.3).
+External check 3: A deployment needing a backdated disclosed at detected MUST read the composing Event Log's receipt instant (State 10).
+External check 4: A deployment needing EVERY issued disclosure id found in the store MUST capture the recorded answers (Invariant 6.3).
 ```
 
 WHY:
-External check 4 is a check that left the conformance list. Finding every issued disclosure_id needs the ids, and only a test or audit environment capturing the recorded answers can enumerate them — a production auditor reading the store cannot, because the store is exactly what would be missing one. The store-alone assurance comes from the other direction through Check 3.2: no record present at an earlier read has since vanished. This is the split council read 22 forced on Capability, applied before a reader had to force it.
+External check 4 is a check that left the conformance list. Finding every issued disclosure id needs the ids, and only a test or audit environment capturing the recorded answers can enumerate them — a production auditor reading the store cannot, because the store is exactly what would be missing one. The store-alone assurance comes from the other direction through Check 3.2: no record present at an earlier read has since vanished. This is the split council read 22 forced on Capability, applied before a reader had to force it.
 
-The three external checks are the audit boundary stated rather than left to be discovered, and each names where the question goes. Authority *legitimacy* is unclearable here by construction: a record carrying `{type: consent, reference: "consent-3301"}` proves the calling system claimed that consent, and whether the consent was granted, in scope and unrevoked at disclosed_at lives in [Consent](./consent.md)'s store — as does semantic agreement between the type and the reference, which this atom cannot judge on an opaque string. Invariant 5.1 is unclearable from inside because a gap is invisible to a query that sees only what was recorded; the store is the positive evidence and the negative evidence lives at the egress boundary. Backdating is unclearable because the atom stores the declared instant and no separate creation instant; the composing [Event Log](./event-log.md) entry carries the receipt instant, and a disclosed_at materially earlier than it is the audit signal. [Audit Trail](../compositions/audit-trail.md) is where that comparison is surfaced.
+The three external checks are the audit boundary stated rather than left to be discovered, and each names where the question goes. Authority *legitimacy* is unclearable here by construction: a record carrying `{type: consent, reference: "consent-3301"}` proves the calling system claimed that consent, and whether the consent was granted, in scope and unrevoked at disclosed at lives in [Consent](./consent.md)'s store — as does semantic agreement between the type and the reference, which this atom cannot judge on an opaque string. Invariant 5.1 is unclearable from inside because a gap is invisible to a query that sees only what was recorded; the store is the positive evidence and the negative evidence lives at the egress boundary. Backdating is unclearable because the atom stores the declared instant and no separate creation instant; the composing [Event Log](./event-log.md) entry carries the receipt instant, and a disclosed at materially earlier than it is the audit signal. [Audit Trail](../compositions/audit-trail.md) is where that comparison is surfaced.
 
 ## Non-goals
 
@@ -352,7 +352,7 @@ Non-goal 17: A deployment needing a rewrite detected MUST compose Tamper Evidenc
 Non-goal 18: The atom MUST NOT bound a disclosure record's retention.
 Non-goal 19: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 20: The atom MUST NOT decide whether a disclosure to the subject stands as a disclosure.
-Non-goal 21: The atom MUST NOT bound disclosed_at from below.
+Non-goal 21: The atom MUST NOT bound disclosed at from below.
 Non-goal 22: The atom MUST NOT offer a filter axis over an authority_reference.
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
@@ -364,7 +364,7 @@ Non-goal 5 and Non-goal 6 are where a structurally valid record can still fail t
 
 Non-goal 20 leaves a live policy question open rather than settling it. An Article 15 response is itself a transmission of the subject's data — to the subject — and whether it belongs in the accounting is a regulatory interpretation the compliance team makes. [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) settles it for the access-request case by recording the response as an accountable disclosure to the requester; outside that composition it stays open.
 
-Non-goal 21 is deliberate asymmetry. disclosed_at is bounded above because a future disclosure has not happened, and unbounded below because a disclosure recognized long after the fact — a breach discovered in an audit, a transmission found in a log review — is exactly the case the accounting must be able to capture.
+Non-goal 21 is deliberate asymmetry. disclosed at is bounded above because a future disclosure has not happened, and unbounded below because a disclosure recognized long after the fact — a breach discovered in an audit, a transmission found in a log review — is exactly the case the accounting must be able to capture.
 
 ---
 
@@ -373,9 +373,9 @@ Non-goal 21 is deliberate asymmetry. disclosed_at is bounded above because a fut
 ### Concurrency
 
 ```
-Concurrency 1: The atom MUST NOT serialize two [Record] calls against one subject_ref.
+Concurrency 1: The atom MUST NOT serialize two [Record] calls against one subject ref.
 Concurrency 2: A [Record] call's answer MUST NOT rest on a concurrent [Record] call's answer.
-Concurrency 3: The implementation MUST issue EXACTLY ONE disclosure_id per admitted record.
+Concurrency 3: The implementation MUST issue EXACTLY ONE disclosure id per admitted record.
 ```
 
 WHY:
@@ -393,7 +393,7 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Term string input: subject_ref, recipient, scope, authority_reference OR a filter's value — every caller-supplied string this atom accepts.
+Term string input: subject ref, recipient, scope, authority_reference OR a filter's value — every caller-supplied string this atom accepts.
 
 
 WHY:
@@ -448,7 +448,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; the store; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a rejection; a string input; an opaque reference; the store instance's record count; a field-level precondition.
 
-Term records: disclosure record — one recorded disclosure, carrying disclosure_id, subject_ref, recipient, scope, authority_type, authority_reference and disclosed_at.
+Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject ref, recipient, scope, authority_type, authority_reference and disclosed at.
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, sort, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, fall, call, produce, choose, capture.
 
@@ -460,7 +460,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: disclosure record, disclosure_id, subject_ref, recipient, scope, store instance, seam, transition, now, business caller, authority, authority_type, authority types, authority_reference, disclosed_at, resolved disclosed_at, field-level precondition, filter axes, admitted record, string input, blank.
+Term terms: disclosure record, disclosure id, subject ref, recipient, scope, store instance, seam, transition, now, business caller, authority, authority_type, authority types, authority_reference, disclosed at, resolved disclosed at, field-level precondition, filter axes, admitted record, string input, blank.
 
 #### Record
 
@@ -623,12 +623,12 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/selective-disclosure.md`.
 
-- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the two actions as a signature block, Invariant 1 through 6 keeping their numbers, every success effect conditioned on a declared admitted record or admitted read so no effect binds a refused call (Hard invariant 16), the disclosed_at resolution routed through a declared resolved disclosed_at so no rule restates the default, the rejection precedence carried by `Operation 8` and `Operation 15` rather than by a prose *rejection priority* line repeated in three sections, the six acceptance areas opened into `Check 2.1 through 6.2` with the three named audit gaps raised to `External check 1 through 3`, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Correction`), the Composition notes prose raised to `Composition note 1 through 9` with the named compositions moved into the WHY. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into selective-disclosure` found nothing in the corpus citing this atom by label, so the rewrite carried no frozen-number risk. 73.9 KB → 49.9 KB.
+- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the two actions as a signature block, Invariant 1 through 6 keeping their numbers, every success effect conditioned on a declared admitted record or admitted read so no effect binds a refused call (Hard invariant 16), the disclosed at resolution routed through a declared resolved disclosed at so no rule restates the default, the rejection precedence carried by `Operation 8` and `Operation 15` rather than by a prose *rejection priority* line repeated in three sections, the six acceptance areas opened into `Check 2.1 through 6.2` with the three named audit gaps raised to `External check 1 through 3`, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Correction`), the Composition notes prose raised to `Composition note 1 through 9` with the named compositions moved into the WHY. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into selective-disclosure` found nothing in the corpus citing this atom by label, so the rewrite carried no frozen-number risk. 73.9 KB → 49.9 KB.
 
-- **2026-09-12 — A filter's match semantics is a rule, not an assumption.** *Chose:* `Operation 27` (an admitted read answers every matching record) and `Operation 28` (an admitted read answers no record failing a filter). *Over:* the prose, which spelled out matching for the authority_type axis alone and left the other four to be inferred from the word *matching* in the action description. *Because:* the migration's Check 5.1 tests that a subject_ref query answers every record carrying the reference, and no rule in the spec owned that proposition — a check resting on an unowned invariant, the class the docket has been collecting since council read 12. The gap was invisible to both tools and surfaced only when each check was made to name the rule it tests, which is the discipline earning its keep rather than a finding against the atom.
+- **2026-09-12 — A filter's match semantics is a rule, not an assumption.** *Chose:* `Operation 27` (an admitted read answers every matching record) and `Operation 28` (an admitted read answers no record failing a filter). *Over:* the prose, which spelled out matching for the authority_type axis alone and left the other four to be inferred from the word *matching* in the action description. *Because:* the migration's Check 5.1 tests that a subject ref query answers every record carrying the reference, and no rule in the spec owned that proposition — a check resting on an unowned invariant, the class the docket has been collecting since council read 12. The gap was invisible to both tools and surfaced only when each check was made to name the rule it tests, which is the discipline earning its keep rather than a finding against the atom.
 
 - **2026-09-12 — Reference-level filtering is a non-goal, not an operation.** *Chose:* `Non-goal 22`. *Over:* an `Operation` rule saying [Read] must not offer the axis. *Because:* `Term filter axes` enumerates five axes and `Operation 22` rejects anything outside them, so the operation-level rule was entailed twice over (Authority 3); what is not entailed is the design claim — reference search is a composing-layer concept — and that belongs with the other surface refusals.
 
-- **2026-09-12 — Six defects the tools passed, found by a self-read before a council read.** *Chose:* `Invariant 1.1` rewritten from a garbled sentence that barely parsed; `Concurrency 2` restored to the prose's claim — two concurrent calls are *independent*, which is what the spec said, not *non-blocking*, which is what I had written; `Correction 4` given a declared correction narrative, because naming the corrected record is unsatisfiable unless a field holds the naming and the prose named two; `Identity 15` changed from the deployment *allocating* an id (contradicting `Identity 2`, where the host allocates) to the deployment choosing the id *format*; `Operation 20`'s lower-case `where` replaced by an admitted `IF … THEN`; the former first conformance check moved to `External check 4`. *Over:* shipping a file both checkers called clean. *Because:* zero tool findings has never once predicted zero council findings, and three of the six were changes in meaning rather than infelicities. The last is the repeatable one: a check asking an auditor to find *every issued* disclosure_id cannot be cleared from the store, because the store is exactly what would be missing one — the same split council read 22 forced on Capability, applied here before a reader had to force it.
+- **2026-09-12 — Six defects the tools passed, found by a self-read before a council read.** *Chose:* `Invariant 1.1` rewritten from a garbled sentence that barely parsed; `Concurrency 2` restored to the prose's claim — two concurrent calls are *independent*, which is what the spec said, not *non-blocking*, which is what I had written; `Correction 4` given a declared correction narrative, because naming the corrected record is unsatisfiable unless a field holds the naming and the prose named two; `Identity 15` changed from the deployment *allocating* an id (contradicting `Identity 2`, where the host allocates) to the deployment choosing the id *format*; `Operation 20`'s lower-case `where` replaced by an admitted `IF … THEN`; the former first conformance check moved to `External check 4`. *Over:* shipping a file both checkers called clean. *Because:* zero tool findings has never once predicted zero council findings, and three of the six were changes in meaning rather than infelicities. The last is the repeatable one: a check asking an auditor to find *every issued* disclosure id cannot be cleared from the store, because the store is exactly what would be missing one — the same split council read 22 forced on Capability, applied here before a reader had to force it.
 
 NOTE: End of Selective Disclosure.

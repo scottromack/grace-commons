@@ -17,6 +17,12 @@ whole first, then by any declared name inside the phrase.
     python3 tools/grace/nouns.py                 # per-spec counts and the most common misses
     python3 tools/grace/nouns.py --spec lease    # every miss in one spec, by line
     python3 tools/grace/nouns.py --json          # the whole reading, for another tool
+    python3 tools/grace/nouns.py --record "<this unit>"        # this reading becomes the baseline
+
+Every run prints its move against `nouns-baseline.json`, the totals the last
+unit closed at, so a register entry copies its baseline from the instrument
+instead of from the last entry (council read 136: the clause went missing three
+units running, which is council read 33's lesson about hand-copied counts).
 
 Advisory by design: a tagger decides what is a noun, so the count is good to a
 few percent and never gates. It needs `nltk` and the tagger model:
@@ -256,6 +262,38 @@ def environment(nltk) -> str:
     return f"nltk {nltk.__version__}, averaged_perceptron_tagger_eng weights {digest}"
 
 
+BASELINE = Path(__file__).resolve().parent / "nouns-baseline.json"
+
+
+def baseline() -> dict | None:
+    """The totals the last unit closed at, or None when the file is absent."""
+    try:
+        return json.loads(BASELINE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def move(phrases: int, none: int, base: dict | None) -> str:
+    """One line naming where the counts started, and what this reading moved them by."""
+    if not base:
+        return "baseline: none recorded — run --record to set one"
+    dn, dp = none - base["none"], phrases - base["phrases"]
+    sign = lambda d: f"{d:+d}" if d else "unchanged"
+    return (f"baseline {base['unit']}: {base['none']} of {base['phrases']} — "
+            f"unresolved {sign(dn)}, noun phrases {sign(dp)}")
+
+
+def record(argv: list[str], phrases: int, none: int) -> None:
+    """Make this reading the baseline the next unit measures from."""
+    i = argv.index("--record")
+    unit = argv[i + 1] if i + 1 < len(argv) else "unnamed"
+    import datetime
+    BASELINE.write_text(json.dumps(
+        {"unit": unit, "recorded": datetime.date.today().isoformat(),
+         "phrases": phrases, "none": none}, indent=1) + "\n", encoding="utf-8")
+    print(f"recorded: {none} of {phrases} as {unit}'s close")
+
+
 def main(argv: list[str]) -> int:
     try:
         import nltk
@@ -281,6 +319,10 @@ def main(argv: list[str]) -> int:
     print(f"{rep['rules']} rules in {len(paths)} spec(s); {total} noun phrases: "
           f"{rep['whole']} resolve whole, {rep['inner']} only through a declared name inside, "
           f"{rep['none']} to nothing (Closed vocabulary 4) — under {rep['environment']}")
+    if not only:
+        print(move(total, rep["none"], baseline()))
+        if "--record" in argv:
+            record(argv, total, rep["none"])
     if only:
         for phrase, lines in sorted(rep["specs"][only]["misses"].items(), key=lambda x: -len(x[1])):
             print(f"  {phrase}: " + ", ".join(str(n) for n in lines))

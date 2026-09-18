@@ -40,21 +40,21 @@ Two design commitments carry the rest. **Drained is not a state** — allocated 
 ### Identity model
 
 ```
-Identity 1: The atom MUST identify a pool by the pool_id.
+Identity 1: The atom MUST identify a pool by the pool id.
 Identity 2: The atom MUST identify an audit event by the event id.
-Identity 3: The host MUST allocate a pool_id at the seam.
+Identity 3: The host MUST allocate a pool id at the seam.
 Identity 4: The host MUST allocate an event id at the seam.
-Identity 5: The transition MUST NOT allocate a pool_id.
+Identity 5: The transition MUST NOT allocate a pool id.
 Identity 6: The transition MUST NOT allocate an event id.
-Identity 7: The atom MUST NOT change a pool_id.
+Identity 7: The atom MUST NOT change a pool id.
 Identity 8: The atom MUST NOT change an event id.
 Identity 9: The atom MUST NOT identify a pool by a pool's name.
-Identity 10: The atom MUST match a pool_id exactly.
-Identity 11: The atom MUST NOT normalize a pool_id.
-Identity 12: The atom MUST NOT order a pool_id.
+Identity 10: The atom MUST match a pool id exactly.
+Identity 11: The atom MUST NOT normalize a pool id.
+Identity 12: The atom MUST NOT order a pool id.
 Identity 13: [Declare Pool] MUST NOT write over a pool the store already holds.
 Identity 14: IF a colliding write EXISTS THEN the store MUST refuse the colliding write.
-Identity 15: The deployment MUST draw a pool_id unique across the system's life.
+Identity 15: The deployment MUST draw a pool id unique across the system's life.
 Identity 16: The deployment MUST draw an event id unique across the system's life.
 Identity 17: The deployment MUST NOT reuse an event id across the event classes.
 Identity 18: The atom MUST NOT hold a per-unit identity.
@@ -62,15 +62,15 @@ Identity 18: The atom MUST NOT hold a per-unit identity.
 
 Term pool: one bounded resource with a declared maximum and a running total — the record this atom holds.
 
-Term pool_id: the opaque value naming one pool — a [Pool Id]; host-allocated at the seam, compared by exact byte identity.
+Term pool id: the opaque value naming one pool — a [Pool Id]; host-allocated at the seam, compared by exact byte identity.
 
-Term colliding write: a [Declare Pool] write whose injected pool_id a live pool already carries.
+Term colliding write: a [Declare Pool] write whose injected pool id a live pool already carries.
 
 Term event id: the opaque value naming one audit event — an [Allocation Event Id], a [Release Event Id], an [Adjustment Event Id] or a [State Change Id], by the event's class.
 
 Term event class: allocation | release | adjustment | state change — the four kinds of entry the audit log carries.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the pool_id and the event ids here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading, the pool id and the event ids here.
 
 Term transition: the atom's evaluation of one call against the pool store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -85,7 +85,7 @@ Identity 13 and Identity 14 are the create-only discipline: an injected id that 
 
 ```
 State 1: EVERY pool MUST stand in EXACTLY ONE OF open, suspended, closed.
-State 2: EVERY pool MUST carry pool_id, capacity, allocated, a pool state, declared_at, declaring_actor_ref and declaration_reason.
+State 2: EVERY pool MUST carry pool id, capacity, allocated, a pool state, declared at, declaring actor ref and declaration reason.
 State 3: EVERY pool MUST carry an audit log.
 State 4: A pool MUST NOT carry available.
 State 5: The atom MUST NOT offer a transition out of closed.
@@ -96,12 +96,12 @@ State 9: The atom MUST NOT re-order a pool's audit log.
 State 10: The atom MUST NOT insert an audit event BEFORE a prior audit event.
 State 11: The atom MUST order a pool's audit log by insertion.
 State 12: A reader MUST read a pool's audit log by insertion order.
-State 13: A reader MUST NOT read a pool's audit log by recorded_at order.
-State 14: EVERY audit event MUST carry an event id, the pool_id, an event class and a recorded_at.
-State 15: EVERY allocation event MUST carry count, allocated_before, allocated_after and allocating_actor_ref.
-State 16: EVERY release event MUST carry count, allocated_before, allocated_after and releasing_actor_ref.
-State 17: EVERY adjustment event MUST carry prior_capacity, new_capacity, adjusting_actor_ref and a reason.
-State 18: EVERY state-change event MUST carry prior_state, new_state, acting_actor_ref and a reason.
+State 13: A reader MUST NOT read a pool's audit log by recorded at order.
+State 14: EVERY audit event MUST carry an event id, the pool id, an event class and a recorded at.
+State 15: EVERY allocation event MUST carry count, allocated before, allocated after and allocating actor ref.
+State 16: EVERY release event MUST carry count, allocated before, allocated after and releasing actor ref.
+State 17: EVERY adjustment event MUST carry prior capacity, new capacity, adjusting actor ref and a reason.
+State 18: EVERY state-change event MUST carry prior state, new state, acting actor ref and a reason.
 State 19: The atom MUST NOT change a declaration field.
 State 20: The atom MUST NOT change an audit event's audit-identifier surface.
 State 21: The atom MUST NOT hold a per-allocation lifecycle.
@@ -109,22 +109,22 @@ State 22: The atom MUST NOT hold a cross-pool bound.
 State 23: The atom MUST NOT interpret a unit.
 ```
 
-Term declaration field: pool_id | declared_at | declaring_actor_ref | declaration_reason — set at [Declare Pool] and never changed.
+Term declaration field: pool id | declared at | declaring actor ref | declaration reason — set at [Declare Pool] and never changed.
 
-Term allocated_before: the running total an audit event found — an [Allocated Before].
+Term allocated before: the running total an audit event found — an [Allocated Before].
 
-Term allocated_after: the running total an audit event left — an [Allocated After]; the requested total on an allocation event, the released total on a release event.
+Term allocated after: the running total an audit event left — an [Allocated After]; the requested total on an allocation event, the released total on a release event.
 
-Term recorded_at: the instant an audit event was written — a [Recorded At]; stamped from the injected now, and advisory rather than authoritative for order.
+Term recorded at: the instant an audit event was written — a [Recorded At]; stamped from the injected now, and advisory rather than authoritative for order.
 
-Term audit-identifier surface: an audit event's event id, pool_id, event class, arithmetic fields, state fields and recorded_at — everything the atom never rewrites and the arithmetic chain rests on.
+Term audit-identifier surface: an audit event's event id, pool id, event class, arithmetic fields, state fields and recorded at — everything the atom never rewrites and the arithmetic chain rests on.
 
 Term attribution surface: an audit event's actor reference and reason — what makes a record personally identifying, and what a composed erasure mechanism may scrub.
 
 WHY:
 Drained is not a state, and that is the sharpest boundary in the atom. allocated reaching capacity is a number reaching another number: observable through [Query], enforced by the allocate guard, and derivable at any moment. A state, by contrast, is something an actor decided — suspend, resume, close. Promoting an arithmetic condition to a state would put a policy name on a computation and invite a transition nobody performs (State 6).
 
-Order is insertion order, not timestamp order. recorded_at comes from the seam's clock and under skew it is not monotonic, so every *after*, *between* and *most recent* in this spec means by insertion (State 11 through 13). A deployment that needs order bound to verifiable wall time composes a trusted-timestamping pattern; without it, timestamps are metadata and insertion is the truth.
+Order is insertion order, not timestamp order. recorded at comes from the seam's clock and under skew it is not monotonic, so every *after*, *between* and *most recent* in this spec means by insertion (State 11 through 13). A deployment that needs order bound to verifiable wall time composes a trusted-timestamping pattern; without it, timestamps are metadata and insertion is the truth.
 
 An adjustment event names [Prior Capacity] against [New Capacity]; a state-change event names [Prior State] against [New State]; an allocation or release event names [Allocated Before] against [Allocated After] with the [Count] between them. Each is a before and an after on one row, which is what lets an auditor clear the bound at a single event.
 
@@ -149,7 +149,7 @@ WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 WHY:
-The clock has exactly one job here — stamping declared_at and each event's recorded_at — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock dependence 1, Clock semantics 5).
+The clock has exactly one job here — stamping declared at and each event's recorded at — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock dependence 1, Clock semantics 5).
 
 ### Operations
 
@@ -192,11 +192,11 @@ Operation 1: [Declare Pool] MUST record EXACTLY ONE pool per successful call.
 Operation 2: [Declare Pool] MUST stand the pool in open.
 Operation 3: [Declare Pool] MUST set allocated to zero.
 Operation 4: [Declare Pool] MUST set capacity to the supplied capacity.
-Operation 5: [Declare Pool] MUST stamp declared_at from the injected now.
-Operation 6: [Declare Pool] MUST answer the pool_id.
+Operation 5: [Declare Pool] MUST stamp declared at from the injected now.
+Operation 6: [Declare Pool] MUST answer the pool id.
 Operation 7: IF capacity IS NOT IN the whole counts THEN [Declare Pool] MUST answer invalid-request.
-Operation 8: IF the pool_id names no pool THEN an addressed action MUST answer not-known.
-Operation 9: An addressed action MUST answer not-known ONLY IF the pool_id names no pool.
+Operation 8: IF the pool id names no pool THEN an addressed action MUST answer not-known.
+Operation 9: An addressed action MUST answer not-known ONLY IF the pool id names no pool.
 Operation 10: IF the pool state EQUALS suspended THEN [Allocate] MUST answer suspended.
 Operation 11: IF the pool state EQUALS closed THEN [Allocate] MUST answer closed.
 Operation 12: IF count IS NOT IN the positive counts THEN [Allocate] MUST answer invalid-request.
@@ -217,10 +217,10 @@ Operation 26: [Release] MUST NOT change capacity.
 Operation 27: [Release] MUST NOT change the pool's state.
 Operation 28: [Release] MUST NOT match a count against a prior allocation's count.
 Operation 29: IF the pool state EQUALS closed THEN [Adjust Capacity] MUST answer closed.
-Operation 30: IF new_capacity IS NOT IN the whole counts THEN [Adjust Capacity] MUST answer invalid-request.
-Operation 31: IF new_capacity EQUALS capacity THEN [Adjust Capacity] MUST answer invalid-request.
-Operation 32: IF allocated EXCEEDS new_capacity THEN [Adjust Capacity] MUST answer over-allocated.
-Operation 33: [Adjust Capacity] MUST set capacity to new_capacity.
+Operation 30: IF new capacity IS NOT IN the whole counts THEN [Adjust Capacity] MUST answer invalid-request.
+Operation 31: IF new capacity EQUALS capacity THEN [Adjust Capacity] MUST answer invalid-request.
+Operation 32: IF allocated EXCEEDS new capacity THEN [Adjust Capacity] MUST answer over-allocated.
+Operation 33: [Adjust Capacity] MUST set capacity to new capacity.
 Operation 34: [Adjust Capacity] MUST append an adjustment event.
 Operation 35: [Adjust Capacity] MUST answer the adjustment event id.
 Operation 36: [Adjust Capacity] MUST NOT change allocated.
@@ -266,7 +266,7 @@ Term available: `capacity − allocated` — an [Available]; computed wherever i
 
 Term count: the units one [Allocate] or [Release] call operates on — a [Count]; a positive count.
 
-Term whole count: a count of zero or more; what capacity and new_capacity must be.
+Term whole count: a count of zero or more; what capacity and new capacity must be.
 
 Term positive count: a count of one or more; what count must be, which is why a zero-unit call is refused rather than admitted as a no-op.
 
@@ -274,11 +274,11 @@ Term requested total: `allocated + count` — the running total an [Allocate] ca
 
 Term released total: `allocated − count` — the running total a [Release] call would reach.
 
-Term new_capacity: the maximum an [Adjust Capacity] call asks for — a [New Capacity]; a whole count, and refused where it equals the current capacity.
+Term new capacity: the maximum an [Adjust Capacity] call asks for — a [New Capacity]; a whole count, and refused where it equals the current capacity.
 
 Term pool state: open | suspended | closed — accepting allocations, halted, or terminal. A [State].
 
-Term addressed action: any action carrying a pool_id — every action but [Declare Pool].
+Term addressed action: any action carrying a pool id — every action but [Declare Pool].
 
 Term state-changing action: [Suspend Pool] | [Resume Pool] | [Close Pool] — the three that move a pool's state.
 
@@ -286,26 +286,26 @@ Term writing action: every action but [Query].
 
 Term pool snapshot: capacity, allocated, available and the pool state together — what [Query] answers, and deliberately not the declaration fields or the audit log.
 
-Term audit event: one entry on a pool's log — an allocation, a release, an adjustment or a state change, each carrying its own event id and a recorded_at.
+Term audit event: one entry on a pool's log — an allocation, a release, an adjustment or a state change, each carrying its own event id and a recorded at.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the pool |
 |---|---|---|---|
-| [Declare Pool] | capacity a whole count, fields valid, store accepts | the new pool_id | pool lands in [Open], allocated zero (Operation 1 through 5) |
-| [Allocate] | [Open], count positive, requested total within capacity | the allocation_event_id | allocated rises, one event appended (Operation 15 through 17) |
+| [Declare Pool] | capacity a whole count, fields valid, store accepts | the new pool id | pool lands in [Open], allocated zero (Operation 1 through 5) |
+| [Allocate] | [Open], count positive, requested total within capacity | the allocation event id | allocated rises, one event appended (Operation 15 through 17) |
 | [Allocate] | [Open], requested total past capacity | [Over Capacity] | none (Operation 13) |
 | [Allocate] | [Suspended] | [Suspended] | none (Operation 10) |
 | [Allocate] | [Closed] | [Closed] | none (Operation 11) |
-| [Release] | any state, count positive and within allocated | the release_event_id | allocated falls, one event appended (Operation 20, Operation 23) |
+| [Release] | any state, count positive and within allocated | the release event id | allocated falls, one event appended (Operation 20, Operation 23) |
 | [Release] | count past allocated | [Over Release] | none (Operation 22) |
-| [Adjust Capacity] | [Open] or [Suspended], new value differs and covers allocated | the adjustment_event_id | capacity replaced, one event appended (Operation 33, Operation 34) |
+| [Adjust Capacity] | [Open] or [Suspended], new value differs and covers allocated | the adjustment event id | capacity replaced, one event appended (Operation 33, Operation 34) |
 | [Adjust Capacity] | new value equals current | [Invalid Request] | none (Operation 31) |
 | [Adjust Capacity] | new value below allocated | [Over Allocated] | none (Operation 32) |
 | [Adjust Capacity] | [Closed] | [Closed] | none (Operation 29) |
-| [Suspend Pool] | [Open] | the state_change_id | → [Suspended] (Operation 41) |
-| [Resume Pool] | [Suspended] | the state_change_id | → [Open] (Operation 44) |
-| [Close Pool] | [Open] or [Suspended] | the state_change_id | → [Closed] (Operation 46) |
+| [Suspend Pool] | [Open] | the state change id | → [Suspended] (Operation 41) |
+| [Resume Pool] | [Suspended] | the state change id | → [Open] (Operation 44) |
+| [Close Pool] | [Open] or [Suspended] | the state change id | → [Closed] (Operation 46) |
 | any state change | already in the target state, or [Closed] | [Not Open], [Not Suspended], [Already Closed] | none (Operation 39 through 45) |
 | any addressed action | id names nothing | [Not Known] | none (Operation 8) |
 | any writing action | store refuses | [Storage Failure] | none (Operation 57 through 59) |
@@ -314,7 +314,7 @@ The case space, and the rule that owns each case:
 WHY:
 The rejection order is fixed and each step is defended. [Not Known] comes first because every later check presupposes a record to inspect — an unknown pool has no state, no total and no bound to compare against (Operation 8, Operation 9). State-validity comes before field-format because state is a property of the *target* and format is local to the *call*: a [Closed] pool does not accept the action at all, and saying so before validating per-call fields is the quieter path for the common case of an operator draining a decommissioned pool. The cost is real and accepted — a malformed count against a closed pool reads [Closed], and the caller learns about the count on retry. Field-format comes before the arithmetic because the arithmetic is meaningless on a malformed integer: `allocate(count = -5)` must answer [Invalid Request] and not slip past a bound check that a negative count satisfies by accident (Operation 12). The store write is last, so every in-memory check precedes any durable effect (Operation 60).
 
-The three arithmetic guards are the atom, and all three are comparisons the grammar carries directly: the requested total against capacity, count against allocated, allocated against new_capacity (Operation 13, Operation 22, Operation 32). Only the sum needs a name, and it has one.
+The three arithmetic guards are the atom, and all three are comparisons the grammar carries directly: the requested total against capacity, count against allocated, allocated against new capacity (Operation 13, Operation 22, Operation 32). Only the sum needs a name, and it has one.
 
 Nothing clamps. A downward adjustment below the running total is refused rather than fitted, and a release beyond the total is refused rather than floored — because clamping would keep the invariant true while destroying the caller's ability to learn it was about to be broken. Freeing units to fit a smaller bound is a policy decision the caller makes explicitly, with [Release] calls, before adjusting again (Operation 37, Operation 38).
 
@@ -345,7 +345,7 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
   ```
   Invariant 4.1: EVERY pool's allocated MUST NOT EXCEED the capacity.
   Invariant 4.2: [Allocate] MUST refuse a call whose requested total EXCEEDS capacity.
-  Invariant 4.3: [Adjust Capacity] MUST refuse a call whose allocated EXCEEDS the new_capacity.
+  Invariant 4.3: [Adjust Capacity] MUST refuse a call whose allocated EXCEEDS the new capacity.
   Invariant 4.4: Invariant 4.1 MUST rest on the host obligations Concurrency 1, Crash atomicity 1 and Arithmetic 1 name.
   ```
   WHY: the load-bearing arithmetic invariant, and the one a composing pattern may rely on without re-implementing the bound — contingent on three host obligations the atom names and cannot itself supply: serialized execution per pool, crash-atomic multi-record writes, and integer arithmetic that does not lose the sum. A deployment missing any of the three can observe the invariant fail despite every precondition holding; that is a deployment-side gap, and its audit posture must say so.
@@ -359,7 +359,7 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
   ```
   Invariant 6.1: EVERY pool's capacity MUST stand as a whole count.
   Invariant 6.2: [Declare Pool] MUST refuse a capacity outside the whole counts.
-  Invariant 6.3: [Adjust Capacity] MUST refuse a new_capacity outside the whole counts.
+  Invariant 6.3: [Adjust Capacity] MUST refuse a new capacity outside the whole counts.
   ```
 - **Invariant 7 — Declaration fields immutable.**
   ```
@@ -384,21 +384,21 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
 - **Invariant 10 — State changes are auditable.**
   ```
   Invariant 10.1: EVERY state change MUST append a state-change event.
-  Invariant 10.2: EVERY state-change event MUST carry prior_state, new_state, acting_actor_ref and a reason.
+  Invariant 10.2: EVERY state-change event MUST carry prior state, new state, acting actor ref and a reason.
   ```
 - **Invariant 11 — Capacity adjustments are auditable.**
   ```
   Invariant 11.1: EVERY capacity change MUST append an adjustment event.
-  Invariant 11.2: EVERY adjustment event MUST carry prior_capacity, new_capacity, adjusting_actor_ref and a reason.
+  Invariant 11.2: EVERY adjustment event MUST carry prior capacity, new capacity, adjusting actor ref and a reason.
   ```
 - **Invariant 12 — Id stability.**
   ```
-  Invariant 12.1: A recorded pool_id MUST NOT change.
+  Invariant 12.1: A recorded pool id MUST NOT change.
   Invariant 12.2: A recorded event id MUST NOT change.
   ```
 - **Invariant 13 — No id reuse.**
   ```
-  Invariant 13.1: Two pools MUST NOT share a pool_id.
+  Invariant 13.1: Two pools MUST NOT share a pool id.
   Invariant 13.2: Two audit events MUST NOT share an event id.
   Invariant 13.3: Invariant 13.2 MUST rest on the generator the deployment declares.
   ```
@@ -445,9 +445,9 @@ A primary pool of 200 connections, allocated on checkout and released on return.
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit — was the cabin ever oversold?** The auditor walks the pool's allocation events and checks each one's own snapshot: allocated_after equals allocated_before plus count, and allocated_after does not exceed the capacity in effect at that index. No replay from the beginning is required, because every event carries its own before and after — which is the whole reason the snapshots are on the record (Check 3.1, Check 3.2).
+- **Regulator audit — was the cabin ever oversold?** The auditor walks the pool's allocation events and checks each one's own snapshot: allocated after equals allocated before plus count, and allocated after does not exceed the capacity in effect at that index. No replay from the beginning is required, because every event carries its own before and after — which is the whole reason the snapshots are on the record (Check 3.1, Check 3.2).
 - **Disputed drawdown — the customer says the line was cut without notice.** Every capacity change is an adjustment event naming prior capacity, new capacity, the acting reference and a stated reason (Invariant 11.2). What the store cannot show is the *rejected* draws the customer attempted, because rejections write nothing here; a deployment under PCI DSS (Payment Card Industry Data Security Standard) Requirement 10.2.4 wires [Event Log](./event-log.md) around the call surface for that (External check 1, Non-goal 26).
-- **Breach investigation — which pools were manipulated during the window?** The auditor filters audit events by recorded_at inside the window and reads each one's actor reference. Two limits are stated rather than discovered: recorded_at is advisory under clock skew and insertion order is authoritative (State 13), and where the deployment has scrubbed the attribution surface under a composed erasure the arithmetic still verifies while the actor no longer resolves (Invariant 8.4, Invariant 8.5).
+- **Breach investigation — which pools were manipulated during the window?** The auditor filters audit events by recorded at inside the window and reads each one's actor reference. Two limits are stated rather than discovered: recorded at is advisory under clock skew and insertion order is authoritative (State 13), and where the deployment has scrubbed the attribution surface under a composed erasure the arithmetic still verifies while the actor no longer resolves (Invariant 8.4, Invariant 8.5).
 
 ---
 
@@ -458,18 +458,18 @@ This atom's acceptance is what an external auditor can clear from the pool recor
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY pool's pool_id, capacity, allocated, pool state and declaration fields present (Invariant 7.1, State 2).
+Check 1.1: An auditor MUST find EVERY pool's pool id, capacity, allocated, pool state and declaration fields present (Invariant 7.1, State 2).
 Check 2.1: An auditor MUST reconstruct a pool's capacity, allocated and pool state at an audit event by replaying an unbroken audit log forward from the declaration (Invariant 9.1, State 11).
 Check 2.2: An auditor MUST read a purged audit event as a break in the replay (Invariant 9.4).
 Check 2.3: A deployment needing a replay across a purge MUST retain an anchor carrying the capacity, the allocated and the pool state at the purge boundary (Invariant 9.4).
-Check 3.1: An auditor MUST find EVERY allocation event's allocated_after equal to the requested total (Invariant 4.2).
-Check 3.2: An auditor MUST find EVERY allocation event's allocated_after no higher than the capacity the replay holds at the audit event (Invariant 4.1, Check 2.1).
-Check 4.1: An auditor MUST find EVERY release event's allocated_after equal to the released total (Invariant 5.2).
-Check 4.2: An auditor MUST find no release event's allocated_after below zero (Invariant 5.1).
-Check 5.1: An auditor MUST find an acting_actor_ref and a reason on EVERY state-change event (Invariant 10.2).
-Check 5.2: An auditor MUST find an adjusting_actor_ref and a reason on EVERY adjustment event (Invariant 11.2).
-Check 5.3: An auditor MUST find an allocating_actor_ref on EVERY allocation event (State 15).
-Check 5.4: An auditor MUST find a releasing_actor_ref on EVERY release event (State 16).
+Check 3.1: An auditor MUST find EVERY allocation event's allocated after equal to the requested total (Invariant 4.2).
+Check 3.2: An auditor MUST find EVERY allocation event's allocated after no higher than the capacity the replay holds at the audit event (Invariant 4.1, Check 2.1).
+Check 4.1: An auditor MUST find EVERY release event's allocated after equal to the released total (Invariant 5.2).
+Check 4.2: An auditor MUST find no release event's allocated after below zero (Invariant 5.1).
+Check 5.1: An auditor MUST find an acting actor ref and a reason on EVERY state-change event (Invariant 10.2).
+Check 5.2: An auditor MUST find an adjusting actor ref and a reason on EVERY adjustment event (Invariant 11.2).
+Check 5.3: An auditor MUST find an allocating actor ref on EVERY allocation event (State 15).
+Check 5.4: An auditor MUST find a releasing actor ref on EVERY release event (State 16).
 Check 6.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
 ```
 
@@ -515,7 +515,7 @@ Non-goal 21: The atom MUST NOT seal a pool against modification.
 Non-goal 22: A deployment needing court-admissible records MUST compose Tamper Evidence.
 Non-goal 23: The atom MUST NOT bound how long a pool is kept.
 Non-goal 24: A deployment needing a retention bound MUST compose Retention Window.
-Non-goal 25: The atom MUST NOT distinguish a purged pool_id from an undeclared pool_id.
+Non-goal 25: The atom MUST NOT distinguish a purged pool id from an undeclared pool id.
 Non-goal 26: The atom MUST NOT record a refused call.
 Non-goal 27: A deployment needing refusal visibility MUST compose Event Log.
 Non-goal 28: The atom MUST NOT hold a multi-dimensional capacity.
@@ -544,7 +544,7 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 ### Concurrency
 
 ```
-Concurrency 1: The host MUST serialize concurrent calls on one pool_id.
+Concurrency 1: The host MUST serialize concurrent calls on one pool id.
 Concurrency 2: The implementation MUST make the arithmetic guard and the write one transition.
 Concurrency 3: A store enforcing a compare-and-set on allocated MAY discharge Concurrency 2.
 Concurrency 4: The atom MUST NOT order two contending calls fairly.
@@ -633,7 +633,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; an operator; an auditor; a reader; the store; a pool; a pool state; an audit event; an audit log; a crash; a write; an action; a rejection; a string field; the pool count.
 
-Term records: pool — one bounded resource, carrying pool_id, capacity, allocated, a pool state, the declaration fields and an audit log; audit event — one entry on that log, carrying an event id, the pool_id, an event class, a recorded_at and the fields the event's class names.
+Term records: pool — one bounded resource, carrying pool id, capacity, allocated, a pool state, the declaration fields and an audit log; audit event — one entry on that log, carrying an event id, the pool id, an event class, a recorded at and the fields the event's class names.
 
 Term record verbs: identify, offer, share, re-order, retain, allocate, change, match, normalize, order, write, refuse, draw, reuse, hold, record, stand, set, stamp, answer, append, raise, lower, admit, release, fit, interpret, leave, insert, remove, carry, read, supply, rest, fall, commit, scrub, reconstruct, replay, bound, find, equal, purge, evict, expire, attest, move, merge, split, notify, seal, compose, gate, distinguish, serialize, make, discharge, compute, own, declare, call, name, store, case-fold, exceed.
 
@@ -645,7 +645,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.36 (2026-09-12).
 
-Term terms: pool, pool_id, event id, event class, seam, transition, now, business caller, capacity, allocated, available, count, whole count, positive count, requested total, released total, new_capacity, pool state, addressed action, state-changing action, writing action, pool snapshot, audit event, declaration field, allocated_before, allocated_after, recorded_at, colliding write, integer width, audit-identifier surface, attribution surface, reason cap, control character, zero-width character, bidi-override character, maximum length.
+Term terms: pool, pool id, event id, event class, seam, transition, now, business caller, capacity, allocated, available, count, whole count, positive count, requested total, released total, new capacity, pool state, addressed action, state-changing action, writing action, pool snapshot, audit event, declaration field, allocated before, allocated after, recorded at, colliding write, integer width, audit-identifier surface, attribution surface, reason cap, control character, zero-width character, bidi-override character, maximum length.
 
 #### Declare Pool
 

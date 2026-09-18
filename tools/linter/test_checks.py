@@ -1188,6 +1188,43 @@ def check_condition_form_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing)
 
 
+def check_name_atomicity_synthetic(problems: list[str]) -> int:
+    """A declared name's words are the name's, in every reader `check.py` has
+    (council read 136): *allocated after* is no watch word, and *retention
+    until* is one token to the duplicate detector. Returns the count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.60 (2026-09-18).\n\n"
+            "Term record verbs: carry, derive.\n\n"
+            "Term allocated after: the balance the event leaves.\n\n"
+            "Term retention until: the instant the retention ends.\n\n"
+            "## Structure\n\n### Operations\n\n")
+    def run(rules: str, code: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rules + "\n```\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == code]
+    n = 0
+    if not run("State 1: An event MUST carry allocated after.", "W-watch-word"):
+        n += 1
+    else:
+        problems.append("W-watch-word: fired on the declared name 'allocated after'")
+    if run("State 1: An event MUST carry the count after the write.", "W-watch-word"):
+        n += 1
+    else:
+        problems.append("W-watch-word: a bare 'after' did not fire")
+    pair = ("Operation 1: A reader MUST derive purge eligible from retention until and the injected now.\n"
+            "Invariant 1.1: A reader MUST derive purge eligible from the retention's state, retention "
+            "until and the injected now.")
+    if not run(pair, "W-duplicate-proposition"):
+        n += 1
+    else:
+        problems.append("W-duplicate-proposition: fired on two rules differing by a declared name")
+    return n
+
+
 def check_two_obligations_synthetic(problems: list[str]) -> int:
     """W-two-obligations (tools/grace/check.py): a second declared record verb
     after *and* fires, and a declared name whose first word is a verb does not
@@ -1956,6 +1993,13 @@ def main(argv: list[str]) -> int:
               "a value set, a write with *stand*, a state tested as a value and DOES NOT EXCEED silent; NOT EXISTS on a value and on a thing, `is blank`, *stands in* and NOT EXCEEDS in a condition, EXISTS in a set, an "
               "input tested with EXISTS, = and != in a condition, = in a write and != in a "
               "declaration fire) \u2713")
+
+    atomicity_problems: list[str] = []
+    n_atom = check_name_atomicity_synthetic(atomicity_problems)
+    failures.extend(atomicity_problems)
+    if not atomicity_problems:
+        print(f"name atomicity in check.py: {n_atom} synthetic fixtures hold (a declared name is no "
+              "watch word and counts as one token; a bare watch word still fires) \u2713")
 
     two_ob_problems: list[str] = []
     n_two = check_two_obligations_synthetic(two_ob_problems)
