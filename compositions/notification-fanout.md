@@ -129,14 +129,14 @@ fanout(event_scope, payload)
   refuses invalid-request | subscribers-unavailable
 ```
 
-Term fanout result: fanout_id, created, failed and fired_at — what fanout answers.
+Term fanout result: fanout id, created, failed and fired at — what fanout answers.
 
 ```
 Action wiring 1: An admitted fanout MUST call Subscription's subscribers_for with the event_scope.
-Action wiring 2: An admitted fanout MUST take the fired_at from the seam's clock reading.
-Action wiring 3: An admitted fanout MUST take the fanout_id from the seam's id.
+Action wiring 2: An admitted fanout MUST take the fired at from the seam's clock reading.
+Action wiring 3: An admitted fanout MUST take the fanout id from the seam's id.
 Action wiring 4: IF the subscription store answers unavailable THEN [Fanout] MUST answer subscribers-unavailable.
-Action wiring 5: A subscribers-unavailable answer MUST NOT carry a fanout_id.
+Action wiring 5: A subscribers-unavailable answer MUST NOT carry a fanout id.
 Action wiring 6: A subscribers-unavailable answer MUST NOT follow a create.
 Action wiring 7: An admitted fanout MUST call Notification's create EXACTLY ONE time per subscriber_ref the subscribers_for answer carries.
 Action wiring 8: An admitted fanout MUST call Notification's create with the payload.
@@ -144,7 +144,7 @@ Action wiring 9: An admitted fanout MUST NOT call Notification's create for a su
 Action wiring 10: IF Notification's create answers a notification_id THEN an admitted fanout MUST record the notification_id in the created list.
 Action wiring 11: IF Notification's create answers otherwise THEN an admitted fanout MUST record the subscriber_ref in the failed list.
 Action wiring 12: An admitted fanout MUST call Notification's create for EVERY remaining subscriber_ref the failed create did not name.
-Action wiring 13: An admitted fanout MUST answer the fanout_id, the created list, the failed list AND the fired_at.
+Action wiring 13: An admitted fanout MUST answer the fanout id, the created list, the failed list AND the fired at.
 Action wiring 14: An admitted fanout MUST answer an empty created list AND an empty failed list for an empty subscribers_for answer.
 Action wiring 15: An admitted fanout MUST NOT commit two creates under one transaction.
 Action wiring 16: An admitted fanout MUST NOT order the created list.
@@ -218,9 +218,9 @@ Invariant 1 through 5 and Invariant 8 emerge from the composition; neither const
   WHY: the two deleted invariants asserted that [Notification](../atoms/notification.md)'s and [Subscription](../atoms/subscription.md)'s own invariants hold over this composition's instances. The prose named them *preservation claims* and set them apart from the six that emerge, which is the right distinction and the reason they could be collapsed cleanly: Execution Contract Conformance 8 already establishes recursive conformance, so restating it twice was a citing spec restating a rule it cites (Authority 6). What they carried beyond the blanket is Composes 5 and Composes 6.
 - **Invariant 8 — Fanout invocation uniqueness.**
   ```
-  Invariant 8.1: Two admitted fanouts answering a result MUST NOT share a fanout_id.
-  Invariant 8.2: The composition MUST call a constituent ONLY AFTER taking a fanout_id.
-  Invariant 8.3: An admitted fanout answering a result MUST answer a fanout_id.
+  Invariant 8.1: Two admitted fanouts answering a result MUST NOT share a fanout id.
+  Invariant 8.2: The composition MUST call a constituent ONLY AFTER taking a fanout id.
+  Invariant 8.3: An admitted fanout answering a result MUST answer a fanout id.
   ```
   WHY: the uniqueness rests on `Capability requirement 3`'s entropy floor, which is the composition's own dependency on its host because neither constituent supplies it — Subscription declares the same floor for its own ids and Notification declares none.
 
@@ -280,11 +280,11 @@ The caller inspects the [Failed] list and retries `Notification.create(dev_b, pa
 
 An administrator publishes a revised data-handling policy. Every compliance officer with an Active subscription to `policy:updated` events must receive a notification. `fanout("policy:updated", {policy_id: p12, effective_date: "2025-09-01"})` fires. Three officers are Active; three Notification records are created. Each officer's delivery outcome is tracked independently: officer_a delivered, officer_b failed (email bounce), officer_c expired (no delivery attempt within the window).
 
-An auditor later asks: *was every subscribed compliance officer notified of policy p12?* The auditor queries the notification store for records where `payload.policy_id = p12`. Three records appear — one per officer — with their respective delivery outcomes. The Subscription store shows each officer held an Active subscription for the `policy:updated` scope. Invariant 1 gives the structural answer: the [Created] set accounts for all subscribers returned by the fanout query. For a precise binding to the exact fanout invocation — confirming no Active subscriber at that specific moment was omitted — a composed Event Log recording the fanout with fired_at provides the timestamp needed to apply Subscription's historical-state filter; without it, Active-status confirmation is over the general period rather than the exact fanout moment.
+An auditor later asks: *was every subscribed compliance officer notified of policy p12?* The auditor queries the notification store for records where `payload.policy_id = p12`. Three records appear — one per officer — with their respective delivery outcomes. The Subscription store shows each officer held an Active subscription for the `policy:updated` scope. Invariant 1 gives the structural answer: the [Created] set accounts for all subscribers returned by the fanout query. For a precise binding to the exact fanout invocation — confirming no Active subscriber at that specific moment was omitted — a composed Event Log recording the fanout with fired at provides the timestamp needed to apply Subscription's historical-state filter; without it, Active-status confirmation is over the general period rather than the exact fanout moment.
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit — demonstrate all subscribers were notified of a compliance event.** An auditor asks: *show all notification records created by the policy:updated fanout on 2025-08-15 and whether each was delivered.* The auditor queries the notification store for records where `created_at` falls on 2025-08-15 and the payload references the relevant policy. For each returned record, `status_of` shows the delivery outcome. Invariants 1 and 4 are the structural guarantees. Note on completeness: the Subscription store *does* support historical reconstruction of who was Active at any given moment — Subscription Subscription Invariant 9 (timestamp ordering) plus the immutable `subscribed_at` / `cancelled_at` fields make the filter `subscribed_at ≤ T` AND (`status = active` OR `cancelled_at > T`) exact to within Subscription Invariant 9's best-effort clock caveat. The actual completeness gap is different: the auditor needs to know the *exact fanout time* — the moment of the `subscribers_for` query — to apply the filter. The Subscription store doesn't record fanout invocations; that timestamp lives in Event Log, not Subscription. A composed Event Log recording the fanout invocation with its fired_at timestamp (see Generation acceptance check 1) is therefore required to bind the audit to a specific fanout invocation among potentially many for the same scope. Without it, the auditor can identify who was notified from the notification records, but cannot pin the audit to one specific fanout.
+- **Regulator audit — demonstrate all subscribers were notified of a compliance event.** An auditor asks: *show all notification records created by the policy:updated fanout on 2025-08-15 and whether each was delivered.* The auditor queries the notification store for records where `created_at` falls on 2025-08-15 and the payload references the relevant policy. For each returned record, `status_of` shows the delivery outcome. Invariants 1 and 4 are the structural guarantees. Note on completeness: the Subscription store *does* support historical reconstruction of who was Active at any given moment — Subscription Subscription Invariant 9 (timestamp ordering) plus the immutable `subscribed_at` / `cancelled_at` fields make the filter `subscribed_at ≤ T` AND (`status = active` OR `cancelled_at > T`) exact to within Subscription Invariant 9's best-effort clock caveat. The actual completeness gap is different: the auditor needs to know the *exact fanout time* — the moment of the `subscribers_for` query — to apply the filter. The Subscription store doesn't record fanout invocations; that timestamp lives in Event Log, not Subscription. A composed Event Log recording the fanout invocation with its fired at timestamp (see Generation acceptance check 1) is therefore required to bind the audit to a specific fanout invocation among potentially many for the same scope. Without it, the auditor can identify who was notified from the notification records, but cannot pin the audit to one specific fanout.
 - **Disputed notification — subscriber claims they were never notified.** An officer claims no notification of policy p12 arrived. The investigator queries the notification store for records where `recipient_ref = officer_ref` and `payload.policy_id = p12`. If a record exists in any state, the store confirms the delivery attempt and its outcome. If the record shows `failed_at` or `expired_at`, the store confirms delivery did not succeed; the [Failed] list from the fanout result (logged via Event Log if composed) identifies this as a named failure, not a silent omission. If no record exists, either the officer had no Active subscription at fanout time (query the subscription store) or their create failed to record — the boundary-classified write failure, again a named failure in the [Failed] list, not a gap. The subscription and notification stores together answer the question.
 - **Breach investigation — identify all notifications that may have carried sensitive payload data.** A security incident requires identifying every notification created by fanouts referencing policy p12. The investigator queries the notification store for records where `payload.policy_id = p12` and applies the historical-status reconstruction logic from Notification's regulated adversarial scenarios (`created_at ≤ breach_time` and status was Pending during the window). The notification store answers the exposure scope from stored fields alone.
 
@@ -297,8 +297,8 @@ A derived implementation is acceptable when an external auditor, given the subsc
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST read a fanout's event_scope and fired_at from the composed Event Log entry (Invariant 8.3).
-Check 1.2: An auditor MUST reconstruct the active subscriber set at the fired_at from Subscription's historical-state filter (Invariant 1.2).
+Check 1.1: An auditor MUST read a fanout's event_scope and fired at from the composed Event Log entry (Invariant 8.3).
+Check 1.2: An auditor MUST reconstruct the active subscriber set at the fired at from Subscription's historical-state filter (Invariant 1.2).
 Check 1.3: An auditor MUST find EVERY reconstructed subscriber_ref in EXACTLY ONE OF the created list, the failed list (Invariant 1.2).
 Check 1.4: An auditor MUST find the created list's count AND the failed list's count summing to the reconstructed set's count (Invariant 1.2).
 Check 1.5: An auditor MUST read a count mismatch inside the boundary window as boundary-adjacent (Capability requirement 6, Capability requirement 7).
@@ -312,9 +312,9 @@ Check 5.1: An auditor MUST find no subscription record written by the compositio
 
 NOTE: EVERY check names the rule the check tests.
 
-Term clock offset allowance: clock_offset_allowance — the declared envelope within which the composition's fired_at may be compared with a stamp Subscription wrote at its own seam.
+Term clock offset allowance: clock_offset_allowance — the declared envelope within which the composition's fired at may be compared with a stamp Subscription wrote at its own seam.
 
-Term boundary window: the interval the read latency bound and the clock offset allowance together span around a fired_at — a [Boundary Window].
+Term boundary window: the interval the read latency bound and the clock offset allowance together span around a fired at — a [Boundary Window].
 
 ### External checks
 
@@ -366,14 +366,14 @@ Non-goal 10 is the boundary with the delivery layer. This composition creates re
 ### Clock semantics
 
 ```
-Clock semantics 1: The fired_at MUST stand as a lower bound on the instant the subscription store fixed the subscriber set.
-Clock semantics 2: The composition MUST NOT claim the fired_at as the instant the subscription store fixed the subscriber set.
-Clock semantics 3: The composition MUST NOT claim the fired_at equal to a notification record's created_at.
-Clock semantics 4: The composition MUST answer the fired_at to the caller.
+Clock semantics 1: The fired at MUST stand as a lower bound on the instant the subscription store fixed the subscriber set.
+Clock semantics 2: The composition MUST NOT claim the fired at as the instant the subscription store fixed the subscriber set.
+Clock semantics 3: The composition MUST NOT claim the fired at equal to a notification record's created_at.
+Clock semantics 4: The composition MUST answer the fired at to the caller.
 ```
 
 WHY:
-The set is fixed when the subscription store executes the read, which the composition never observes — `subscribers_for` takes and returns no instant — and validation, dispatch and read latency stand between the seam reading and that execution. An earlier draft called fired_at *the instant the subscriber set is fixed*, which named a moment nothing on this page can see. Clock semantics 4 is why the field is returned at all: the caller cannot observe that instant either, so asking a caller to log its own invocation time would pin the wrong one and silently widen the very window Check 1 bounds.
+The set is fixed when the subscription store executes the read, which the composition never observes — `subscribers_for` takes and returns no instant — and validation, dispatch and read latency stand between the seam reading and that execution. An earlier draft called fired at *the instant the subscriber set is fixed*, which named a moment nothing on this page can see. Clock semantics 4 is why the field is returned at all: the caller cannot observe that instant either, so asking a caller to log its own invocation time would pin the wrong one and silently widen the very window Check 1 bounds.
 
 ### Indeterminate outcome
 
@@ -582,7 +582,7 @@ open:
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/notification-fanout.md`.
 
 - **2026-08-28 — A retry of an indeterminate create is at-least-once, and the page says so.** *Chose:* withdraw the `pending_for` reconciliation and the retry-side Duplicate Prevention claim; scope Invariant 4 to observed records; name Idempotent Reservation over `Notification.create` as the deployment's route to at-most-once. *Over:* keeping a reconciliation that read Pending-only ids and matched on payload. *Because:* `pending_for` cannot see a record the delivery layer has moved on, a payload is not a fanout identity, and a guard first consulted at retry never saw the original create — the reconciliation promised what no read of the bare atoms can deliver.
-- **2026-08-28 — fired_at is a lower bound on the instant the set was fixed.** *Chose:* the seam reading the invocation began under, with check 1's window widened by a disclosed `max_read_latency`. *Over:* a stamp "taken immediately before the query" described as the instant the set was fixed. *Because:* the store fixes the set when it executes the read, an instant the composition never observes; the earlier wording named a moment nothing on the page can see and let check 1 convict a subscribe that landed inside the read's latency.
+- **2026-08-28 — fired at is a lower bound on the instant the set was fixed.** *Chose:* the seam reading the invocation began under, with check 1's window widened by a disclosed `max_read_latency`. *Over:* a stamp "taken immediately before the query" described as the instant the set was fixed. *Because:* the store fixes the set when it executes the read, an instant the composition never observes; the earlier wording named a moment nothing on the page can see and let check 1 convict a subscribe that landed inside the read's latency.
 
 - **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except two invariants the Execution Contract already owns.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Action wiring`, `Wiring decision`, `Clock semantics` and `Indeterminate outcome` as the wiring surfaces, the six surviving invariant numbers unchanged, and the acceptance section's own two-tier split carried across as `Check` and `External check`. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. Two families are worth naming: the *Retry semantics* section is `Indeterminate outcome` — the family [Approval Step](../atoms/approval-step.md), [Medication Order](../atoms/medication-order.md) and [Party Identity](../atoms/party-identity.md) already carry — so it was taken rather than minted, which puts that family at four specs and makes this the first composition to hold it. And *Logic confinement* is `Capability requirement`, the standard family, because what the section states is what the host must supply.
 - **2026-09-14 — Two preservation claims are one citation.** *Chose:* `Composes 7`, with `Invariant 6` and `Invariant 7` tombstoned to it. *Over:* keeping them. *Because:* the prose already drew the line the ruling needs — *Invariant 1 through 5 and 8 emerge from the composition; Invariants 6 and 7 are preservation claims* — and Execution Contract Conformance 8 settles a preservation claim by reference, so restating it twice was a citing spec restating a rule it cites (Authority 6, council read 53, council read 55). What the two carried beyond the blanket survives as `Composes 5` and `Composes 6`: reading the subscription store only through `subscribers_for` and refusing to reach past `create` are this composition's own restraint and are not guarantees either atom makes about a caller.

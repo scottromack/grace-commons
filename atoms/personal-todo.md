@@ -55,12 +55,12 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 
 ```
 State 1: EVERY known unit MUST stand in EXACTLY ONE OF pending, done.
-State 2: EVERY unit MUST carry id, description and added_at.
-State 3: A unit MAY carry last_edited_at.
-State 4: A done unit MUST carry completed_at.
-State 5: [Add] MUST stamp added_at from the injected now.
-State 6: [Edit] MUST stamp last_edited_at from the injected now.
-State 7: [Complete] MUST stamp completed_at from the injected now.
+State 2: EVERY unit MUST carry id, description and added at.
+State 3: A unit MAY carry last edited at.
+State 4: A done unit MUST carry completed at.
+State 5: [Add] MUST stamp added at from the injected now.
+State 6: [Edit] MUST stamp last edited at from the injected now.
+State 7: [Complete] MUST stamp completed at from the injected now.
 State 8: [Delete] MUST take the unit out of the list.
 State 9: The atom MUST NOT offer a done-to-pending transition.
 State 10: The atom MUST NOT hold a deleted unit.
@@ -68,11 +68,11 @@ State 10: The atom MUST NOT hold a deleted unit.
 
 Term unit state: pending | done — recorded and unfinished, or finished and unremoved.
 
-Term added_at: the instant the unit was recorded — an [Added At].
+Term added at: the instant the unit was recorded — an [Added At].
 
-Term last_edited_at: the instant the unit's description last changed — a [Last Edited At]; absent until an edit lands.
+Term last edited at: the instant the unit's description last changed — a [Last Edited At]; absent until an edit lands.
 
-Term completed_at: the instant the unit was finished — a [Completed At].
+Term completed at: the instant the unit was finished — a [Completed At].
 
 Term active set: the units whose unit state EQUALS pending together with the units whose unit state EQUALS done — what uniqueness ranges over.
 
@@ -122,11 +122,11 @@ Operation 5: IF the store refuses the write THEN [Add] MUST answer storage-failu
 Operation 6: [Add] MUST NOT record a unit on storage-failure.
 Operation 7: IF no unit EXISTS for the id THEN [Edit] MUST answer not-known.
 Operation 8: IF the unit state EQUALS done THEN [Edit] MUST answer not-editable.
-Operation 9: IF the unit state EQUALS pending AND the normalized new_description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
-Operation 9a: IF the unit state EQUALS pending AND the normalized new_description fails the description policy THEN [Edit] MUST answer invalid-description.
-Operation 10: IF the unit state EQUALS pending AND the normalized new_description EQUALS the unit's description THEN [Edit] MUST answer ok.
-Operation 11: [Edit] MUST NOT write for a new_description equal to the unit's description.
-Operation 12: [Edit] MUST NOT stamp last_edited_at for a new_description equal to the unit's description.
+Operation 9: IF the unit state EQUALS pending AND the normalized new description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
+Operation 9a: IF the unit state EQUALS pending AND the normalized new description fails the description policy THEN [Edit] MUST answer invalid-description.
+Operation 10: IF the unit state EQUALS pending AND the normalized new description EQUALS the unit's description THEN [Edit] MUST answer ok.
+Operation 11: [Edit] MUST NOT write for a new description equal to the unit's description.
+Operation 12: [Edit] MUST NOT stamp last edited at for a new description equal to the unit's description.
 Operation 13: [Edit] MUST replace the unit's description.
 Operation 14: [Edit] MUST leave the unit standing in pending.
 Operation 15: IF no unit EXISTS for the id THEN [Complete] MUST answer not-known.
@@ -144,7 +144,7 @@ Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
 ```
 
-Term new_description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
+Term new description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
 
 The case space, and the rule that owns each case:
 
@@ -153,10 +153,10 @@ The case space, and the rule that owns each case:
 | [Add] | description valid, no active match, store accepts | id | one unit lands in [Pending] (Operation 1, Operation 2) |
 | [Add] | description empty or over the cap | [Invalid Description] | none (Description 4, Description 5) |
 | [Add] | description matches a live unit | [Duplicate Active] | none (Operation 4) |
-| [Edit] | valid, different, no active match, store accepts | ok | description and last_edited_at change (Operation 13, State 6) |
+| [Edit] | valid, different, no active match, store accepts | ok | description and last edited at change (Operation 13, State 6) |
 | [Edit] | same normalized text | ok | none — no write, no stamp (Operation 10 through 12) |
 | [Edit] | unit is done | [Not Editable] | none (Operation 8) |
-| [Complete] | unit is pending | ok | [Pending] → [Done], completed_at stamped (Operation 17, State 7) |
+| [Complete] | unit is pending | ok | [Pending] → [Done], completed at stamped (Operation 17, State 7) |
 | [Complete] | unit is done | [Not Pending] | none (Operation 16) |
 | [Delete] | unit is pending or done | ok | the unit leaves; the id is retired (Operation 19, Operation 20, Identity 5) |
 | any | id names nothing | [Not Known] | none (Operation 7, Operation 15, Operation 18) |
@@ -187,7 +187,7 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
 - **Invariant 5 — Edit preserves state.**
   ```
   Invariant 5.1: An edited unit MUST stand in pending.
-  Invariant 5.2: [Edit] MUST NOT change a field other than description and last_edited_at.
+  Invariant 5.2: [Edit] MUST NOT change a field other than description and last edited at.
   ```
 - **Invariant 6 — Active-set description uniqueness.**
   ```
@@ -195,9 +195,9 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
   ```
 - **Invariant 7 — Timestamp monotonicity.**
   ```
-  Invariant 7.1: IF last_edited_at DOES NOT EQUAL blank THEN added_at MUST NOT EXCEED last_edited_at.
-  Invariant 7.2: IF completed_at DOES NOT EQUAL blank THEN added_at MUST NOT EXCEED completed_at.
-  Invariant 7.3: IF last_edited_at DOES NOT EQUAL blank AND completed_at DOES NOT EQUAL blank THEN last_edited_at MUST NOT EXCEED completed_at.
+  Invariant 7.1: IF last edited at DOES NOT EQUAL blank THEN added at MUST NOT EXCEED last edited at.
+  Invariant 7.2: IF completed at DOES NOT EQUAL blank THEN added at MUST NOT EXCEED completed at.
+  Invariant 7.3: IF last edited at DOES NOT EQUAL blank AND completed at DOES NOT EQUAL blank THEN last edited at MUST NOT EXCEED completed at.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Execution Contract Logic confinement 7).
 - **Invariant 8 — Id stability.**
@@ -269,18 +269,18 @@ An implementation is acceptable when an external auditor, given the list and the
 
 ```
 Check 1.1: An auditor MUST find EVERY known unit whose unit state EQUALS EXACTLY ONE OF pending, done (Invariant 1.1).
-Check 1.2: An auditor MUST find EVERY unit carrying id, description AND added_at (State 2).
-Check 1.3: An auditor MUST find EVERY done unit carrying completed_at (State 4).
+Check 1.2: An auditor MUST find EVERY unit carrying id, description AND added at (State 2).
+Check 1.3: An auditor MUST find EVERY done unit carrying completed at (State 4).
 Check 2.1: An auditor MUST find no deleted unit whose id IS IN the list (Invariant 4.1).
 Check 2.2: An auditor MUST find no two units sharing an id (Identity 5).
 Check 2.3: An auditor MUST find a unit's id unchanged across an edit (Invariant 8.3).
 Check 3.1: An auditor MUST find no two units in the active set sharing a normalized description (Invariant 6.1).
 Check 3.2: An auditor MUST find an edited unit whose unit state EQUALS pending (Invariant 5.1).
-Check 3.3: An auditor MUST find an edit changing no field beside description AND last_edited_at (Invariant 5.2).
-Check 3.4: An auditor MUST find no last_edited_at stamped for an edit answering ok on an unchanged description (Operation 12).
-Check 4.1: An auditor MUST find EVERY unit's added_at not exceeding the unit's last_edited_at (Invariant 7.1).
-Check 4.2: An auditor MUST find EVERY unit's added_at not exceeding the unit's completed_at (Invariant 7.2).
-Check 4.3: An auditor MUST find EVERY unit's last_edited_at not exceeding the unit's completed_at (Invariant 7.3).
+Check 3.3: An auditor MUST find an edit changing no field beside description AND last edited at (Invariant 5.2).
+Check 3.4: An auditor MUST find no last edited at stamped for an edit answering ok on an unchanged description (Operation 12).
+Check 4.1: An auditor MUST find EVERY unit's added at not exceeding the unit's last edited at (Invariant 7.1).
+Check 4.2: An auditor MUST find EVERY unit's added at not exceeding the unit's completed at (Invariant 7.2).
+Check 4.3: An auditor MUST find EVERY unit's last edited at not exceeding the unit's completed at (Invariant 7.3).
 Check 5.1: An auditor MUST find a refused call leaving the unit as the call found the unit (Operation 24).
 ```
 
@@ -295,9 +295,9 @@ External check 3: An auditor needing a second client's calls accounted for MUST 
 ```
 
 WHY:
-`Check 4.1` through `Check 4.3` are the three that have to be read as the invariants state them rather than as a chain. Each is conditional on the field existing — a pending unit carries no completed_at and an unedited one carries no last_edited_at — so an auditor comparing three timestamps as `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a list with nothing wrong with it. The invariants were written as three conditionals for exactly that reason and the checks keep the shape.
+`Check 4.1` through `Check 4.3` are the three that have to be read as the invariants state them rather than as a chain. Each is conditional on the field existing — a pending unit carries no completed at and an unedited one carries no last edited at — so an auditor comparing three timestamps as `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a list with nothing wrong with it. The invariants were written as three conditionals for exactly that reason and the checks keep the shape.
 
-`Check 3.4` is the one a reader would not think to run. An edit whose normalized description equals the unit's current description answers ok and writes **nothing** — no description change and no stamp — so the auditable evidence of a correct no-op is the *absence* of a last_edited_at movement, which is the only check here whose passing condition is that nothing happened.
+`Check 3.4` is the one a reader would not think to run. An edit whose normalized description equals the unit's current description answers ok and writes **nothing** — no description change and no stamp — so the auditable evidence of a correct no-op is the *absence* of a last edited at movement, which is the only check here whose passing condition is that nothing happened.
 
 The external set is three lines because this atom assumes almost nothing it cannot show. What it does assume is the two things no records can carry: that the clock moves forward, which every timestamp check above is best-effort under, and that each transition is atomic, without which `Invariant 1.1` is reachable-false — a crash mid-write leaving a unit in neither state. Both are named here rather than left to a reader to notice they were never proved.
 
@@ -323,7 +323,7 @@ Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted t
 ```
 
 WHY:
-Each of these is a field somebody will want to add here and each is a pattern: priority and ordering, due dates, dependencies and recurrence compose *(all forthcoming)*, and the moment one of them lands inside this atom the atom stops being the thing every larger system contains (Non-goal 9 through 12). Deletion keeps no memory by design, which is what makes the recency behaviour a composition rather than a mode (Non-goal 4, Non-goal 5). Only last_edited_at survives an edit — prior text is gone, and a system that needs the trail composes a history pattern (Non-goal 13).
+Each of these is a field somebody will want to add here and each is a pattern: priority and ordering, due dates, dependencies and recurrence compose *(all forthcoming)*, and the moment one of them lands inside this atom the atom stops being the thing every larger system contains (Non-goal 9 through 12). Deletion keeps no memory by design, which is what makes the recency behaviour a composition rather than a mode (Non-goal 4, Non-goal 5). Only last edited at survives an edit — prior text is gone, and a system that needs the trail composes a history pattern (Non-goal 13).
 
 Where the atom breaks down: any system with more than one actor; a system where *finished* is not binary; a system where the description is not a property worth constraining; a host that cannot make a transition atomic.
 
@@ -371,7 +371,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a person; a unit; a call; the store; the list; an auditor.
 
-Term records: unit — one thing to do, carrying id, description, added_at, a unit state and, once they land, last_edited_at and completed_at.
+Term records: unit — one thing to do, carrying id, description, added at, a unit state and, once they land, last edited at and completed at.
 
 Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find.
 
@@ -383,7 +383,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: now, unit, id, seam, transition, business caller, description, description cap, unit state, added_at, last_edited_at, completed_at, active set, new_description.
+Term terms: now, unit, id, seam, transition, business caller, description, description cap, unit state, added at, last edited at, completed at, active set, new description.
 
 #### Add
 

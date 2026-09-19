@@ -243,6 +243,7 @@ def unpartnered_reservations(text: str) -> list[tuple[str, str]]:
     return out
 
 
+SNAKE_WORD = re.compile(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b")
 LABEL = re.compile(r"^((?:[A-Za-z_][\w'’-]*)(?: [A-Za-z_][\w'’-]*){0,4} [\d½]+(?:\.\d+)?[a-z]?):\s*(.*)$")
 LABEL_PARTS = re.compile(r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)| (?P<major>\d+)\.(?P<minor>\d+)| (?P<num>\d+))(?P<letter>[a-z]?)$")
 PREFIX = re.compile(r"^(WHY|NOTE|UX|PROVISIONAL):")
@@ -482,6 +483,44 @@ def scan(path: Path) -> list[Finding]:
 
     def add(line: int, code: str, msg: str) -> None:
         findings.append(Finding(path, line, code, msg))
+
+    # D-wire-spelling: a fenced block that is not rule text is a wire surface —
+    # a signature, an event schema, a record shape — and carries the code
+    # spelling, never the term entry's English name (council read 138; the
+    # defect it found had stood in one signature since `A signature has one
+    # owner`, because nothing read a fenced block for English).
+    projections: dict[str, str] = {}
+    heading = None
+    for ln in lines:
+        m = re.match(r"^####\s+(.*?)\s*$", ln)
+        if m:
+            heading = m.group(1).strip()
+            continue
+        m = re.match(r"^\s*Projection:\s*(.*)$", ln)
+        if m and heading:
+            for tok in SNAKE_WORD.findall(m.group(1)):
+                projections.setdefault(heading.strip("[]").lower(), tok)
+    if projections:
+        k = 0
+        while k < len(lines):
+            if not lines[k].lstrip().startswith("```"):
+                k += 1
+                continue
+            j = k + 1
+            while j < len(lines) and not lines[j].lstrip().startswith("```"):
+                j += 1
+            first = next((b for b in lines[k + 1:j] if b.strip()), "").strip()
+            # A wire block names itself: a signature opens `name(input, …)`, a
+            # record or event shape opens `{`. The Ledger and the rule blocks are
+            # fenced too and are prose, where a term entry's name belongs.
+            if re.match(r"^[a-z_]+\(", first) or first.startswith("{"):
+                for off, body in enumerate(lines[k + 1:j], start=k + 2):
+                    for english, wire in projections.items():
+                        if " " in english and re.search(r"\b" + re.escape(english) + r"\b", body.lower()):
+                            add(off, "D-wire-spelling",
+                                f"'{english}' inside a wire block; write the projection `{wire}` "
+                                f"(the wire is written where the wire belongs): {body.strip()[:60]}")
+            k = j + 1
 
     # D-decl-form: every line that opens like a declaration is one, in the one form
     in_fence = False

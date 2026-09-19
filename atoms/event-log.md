@@ -30,21 +30,21 @@ A composing pattern records facts about state changes, and the same need recurs 
 ### Identity model
 
 ```
-Identity 1: The atom MUST identify an event by the event_id.
-Identity 2: The host MUST allocate an event_id at the atom's seam.
-Identity 3: The transition MUST NOT allocate an event_id.
-Identity 4: The business caller MUST NOT supply an event_id.
-Identity 5: The atom MUST NOT reuse an event_id.
-Identity 6: The atom MUST NOT reassign an event_id.
+Identity 1: The atom MUST identify an event by the event id.
+Identity 2: The host MUST allocate an event id at the atom's seam.
+Identity 3: The transition MUST NOT allocate an event id.
+Identity 4: The business caller MUST NOT supply an event id.
+Identity 5: The atom MUST NOT reuse an event id.
+Identity 6: The atom MUST NOT reassign an event id.
 Identity 7: The atom MUST compare event_ids by equality.
-Identity 8: The atom MUST NOT order events by event_id.
+Identity 8: The atom MUST NOT order events by event id.
 Identity 9: The atom MUST NOT identify an event by the event's data.
 Identity 10: A composing pattern MUST own how many log instances a deployment runs.
 ```
 
-Term event_id: the opaque value naming one event — an [Event Id]; allocated once, never again.
+Term event id: the opaque value naming one event — an [Event Id]; allocated once, never again.
 
-Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the event_id here.
+Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the event id here.
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 Term transition: the atom's evaluation of one call against the log, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
@@ -52,42 +52,42 @@ Term transition: the atom's evaluation of one call against the log, as the secti
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 WHY:
-Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is sequence_number's alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
+Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is sequence number's alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
 
 ### State
 
 ```
 State 1: The log MUST hold events in EXACTLY ONE total order.
-State 2: EVERY event MUST carry event_id, sequence_number, recorded_at and data.
+State 2: EVERY event MUST carry event id, sequence number, recorded at and data.
 State 3: The log MUST carry log_name.
-State 4: The log MUST carry next_sequence_number.
-State 5: A fresh log instance MUST begin next_sequence_number at one.
-State 6: [Append] MUST raise next_sequence_number by one.
-State 7: A durable implementation MUST preserve next_sequence_number across a restart.
+State 4: The log MUST carry next sequence number.
+State 5: A fresh log instance MUST begin next sequence number at one.
+State 6: [Append] MUST raise next sequence number by one.
+State 7: A durable implementation MUST preserve next sequence number across a restart.
 State 8: The atom MUST NOT offer a delete surface.
 State 9: The atom MUST NOT offer an edit surface.
 ```
 
 Term event: one recorded fact in the log — an [Event]; fixed in place once landed.
 
-Term sequence_number: the strictly rising integer an event carries — a [Sequence Number]; the log's order and nothing else.
+Term sequence number: the strictly rising integer an event carries — a [Sequence Number]; the log's order and nothing else.
 
-Term recorded_at: the wall-time instant an event was appended, stamped from the injected clock — a [Recorded At]; an annotation, never the order.
+Term recorded at: the wall-time instant an event was appended, stamped from the injected clock — a [Recorded At]; an annotation, never the order.
 
 Term data: the opaque payload a composing pattern supplies — [Data]; the atom stores the payload and reads nothing in it.
 
 Term log_name: the name telling one log instance from another — a [Log Name].
 
-Term next_sequence_number: the sequence_number the next landed event carries — a [Next Sequence Number]; part of the instance's persistent state.
+Term next sequence number: the sequence number the next landed event carries — a [Next Sequence Number]; part of the instance's persistent state.
 
 Term durability mechanism: a write-ahead log, or another mechanism making a committed write survive a crash.
 
-Term landed: an event a successful [Append] wrote; a consumed sequence_number under which nothing was written is not landed.
+Term landed: an event a successful [Append] wrote; a consumed sequence number under which nothing was written is not landed.
 
-Term event field: event_id | sequence_number | recorded_at | data.
+Term event field: event id | sequence number | recorded at | data.
 
 WHY:
-A volatile instance that restarts next_sequence_number at one has broken Invariant 4 for the life of the instance while every individual append looks correct — which is why durability of that one datum is stated here and not left to a deployment note (State 7). There is no delete and no edit, and their absence is a rule rather than an omission, because *the log only grows* is the property every composing pattern rests on (State 8, State 9).
+A volatile instance that restarts next sequence number at one has broken Invariant 4 for the life of the instance while every individual append looks correct — which is why durability of that one datum is stated here and not left to a deployment note (State 7). There is no delete and no edit, and their absence is a rule rather than an omission, because *the log only grows* is the property every composing pattern rests on (State 8, State 9).
 
 ### Capability requirement
 
@@ -112,29 +112,29 @@ read(query)
 
 ```
 Operation 1: [Append] MUST write the event at the tail.
-Operation 2: [Append] MUST stamp recorded_at from the injected clock.
-Operation 3: [Append] MUST carry next_sequence_number into the event.
-Operation 4: [Append] MUST answer event_id.
+Operation 2: [Append] MUST stamp recorded at from the injected clock.
+Operation 3: [Append] MUST carry next sequence number into the event.
+Operation 4: [Append] MUST answer event id.
 Operation 5: IF data EXCEEDS the payload cap THEN [Append] MUST answer invalid-payload.
 Operation 6: [Append] MUST accept empty data.
 Operation 7: [Append] MUST NOT refuse for contention.
 Operation 8: [Append] MUST NOT refuse for ordering.
 Operation 9: IF the store refuses the write THEN [Append] MUST answer storage-failure.
-Operation 10: [Append] MUST NOT answer event_id with storage-failure.
+Operation 10: [Append] MUST NOT answer event id with storage-failure.
 Operation 11: A caller MUST read storage-failure as the event not landing.
 Operation 12: The host MUST serialize EVERY append to one log instance.
 Operation 13: [Read] MUST answer EVERY landed event the query matches.
-Operation 14: [Read] MUST order the answer by sequence_number, rising.
+Operation 14: [Read] MUST order the answer by sequence number, rising.
 Operation 15: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 16: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
 Operation 17: [Read] MUST NOT write.
 Operation 18: The implementation MUST own the query's shape.
 Deleted: Operation 19. Capability requirement 1 owns it.
 Deleted: Operation 20. Execution Contract Logic confinement 3 owns it.
-Operation 21: The business caller MUST NOT supply recorded_at.
+Operation 21: The business caller MUST NOT supply recorded at.
 ```
 
-Term query: what a read asks for — a [Query]: a sequence_number range, a wall-time range, a payload predicate, or a combination.
+Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, a payload predicate, or a combination.
 
 Term payload cap: the per-instance bound on data's size; 64 kilobytes where a deployment declares none.
 
@@ -142,9 +142,9 @@ The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the log |
 |---|---|---|---|
-| [Append] | data within the cap, store accepts | event_id | one event lands at the tail, next_sequence_number rises (Operation 1, Operation 3, State 6) |
+| [Append] | data within the cap, store accepts | event id | one event lands at the tail, next sequence number rises (Operation 1, Operation 3, State 6) |
 | [Append] | data over the cap | [Invalid Payload] | none — the precondition failed before the write (Operation 5) |
-| [Append] | store refuses the write | [Storage Failure] | nothing lands; a sequence_number may be consumed (Operation 9, Sequence gap 1) |
+| [Append] | store refuses the write | [Storage Failure] | nothing lands; a sequence number may be consumed (Operation 9, Sequence gap 1) |
 | [Read] | query well-formed, events match | the events, ascending | none — the call reads (Operation 13, Operation 17) |
 | [Read] | query well-formed, nothing matches | empty sequence | none (Operation 16) |
 | [Read] | query malformed | [Invalid Query] | none (Operation 15) |
@@ -165,30 +165,30 @@ An append refuses for one reason before the write and one reason at it, and for 
   ```
 - **Invariant 3 — Total order.**
   ```
-  Invariant 3.1: Two distinct landed events MUST NOT share a sequence_number.
+  Invariant 3.1: Two distinct landed events MUST NOT share a sequence number.
   Invariant 3.2: EVERY two distinct landed events MUST stand in EXACTLY ONE order.
   ```
 - **Invariant 4 — Sequence-number monotonicity.**
   ```
-  Invariant 4.1: A landed event MUST carry a sequence_number above EVERY sequence_number landed earlier.
+  Invariant 4.1: A landed event MUST carry a sequence number above EVERY sequence number landed earlier.
   ```
   WHY: the invariant is over landed events, which is what leaves room for the gap a storage failure consumes (Sequence gap 1 through 4).
 - **Invariant 5 — Read consistency.**
   ```
   Invariant 5.1: A read MUST answer EVERY landed event the read's query matches.
-  Invariant 5.2: A read MUST answer the events by sequence_number, rising.
-  Invariant 5.3: A read MUST NOT answer an event for a consumed sequence_number no event landed under.
+  Invariant 5.2: A read MUST answer the events by sequence number, rising.
+  Invariant 5.3: A read MUST NOT answer an event for a consumed sequence number no event landed under.
   ```
 - **Invariant 6 — No id reuse.**
   ```
-  Invariant 6.1: Two events in the log MUST NOT share an event_id.
+  Invariant 6.1: Two events in the log MUST NOT share an event id.
   ```
 - **Invariant 7 — Wall-time best-effort monotonicity.**
   ```
-  Invariant 7.1: IF the clock is non-decreasing THEN recorded_at MUST NOT fall in append order.
-  Invariant 7.2: sequence_number IS AUTHORITATIVE FOR the log's order.
+  Invariant 7.1: IF the clock is non-decreasing THEN recorded at MUST NOT fall in append order.
+  Invariant 7.2: sequence number IS AUTHORITATIVE FOR the log's order.
   ```
-  WHY: under an unreliable or adversarial clock recorded_at is an annotation that may lie, and nothing in the atom rests on it — which is the whole reason the two data are separate (Invariant 7.2).
+  WHY: under an unreliable or adversarial clock recorded at is an annotation that may lie, and nothing in the atom rests on it — which is the whole reason the two data are separate (Invariant 7.2).
 
 Append-only and event immutability together give the *immutable journal* property, the one that tells an Event Log from a mutable record set. Total order and monotonicity give *replay*. Read consistency gives *durable visibility*. No id reuse forecloses identity collisions across time.
 
@@ -238,19 +238,19 @@ An implementation is acceptable when an external auditor, given one log instance
 ```
 Check 1.1: An auditor MUST find EVERY event of an earlier read in a later read of one log instance (Invariant 1.1).
 Check 1.2: An auditor MUST find a re-read event's EVERY event field unchanged (Invariant 2.1).
-Check 2.1: An auditor MUST find no two landed events sharing a sequence_number (Invariant 3.1).
-Check 2.2: An auditor MUST find no two events sharing an event_id (Invariant 6.1).
-Check 2.3: An auditor MUST find a landed event's sequence_number above EVERY sequence_number an earlier landed event carries (Invariant 4.1).
+Check 2.1: An auditor MUST find no two landed events sharing a sequence number (Invariant 3.1).
+Check 2.2: An auditor MUST find no two events sharing an event id (Invariant 6.1).
+Check 2.3: An auditor MUST find a landed event's sequence number above EVERY sequence number an earlier landed event carries (Invariant 4.1).
 Check 2.4: An auditor MUST read a gap in the sequence_numbers as an event that did not land (Sequence gap 3).
-Check 3.1: An auditor MUST find a read answering the events by sequence_number, rising (Invariant 5.2).
+Check 3.1: An auditor MUST find a read answering the events by sequence number, rising (Invariant 5.2).
 Check 3.2: An auditor MUST find two reads of one query answering alike (Invariant 5.1).
 Check 3.3: An auditor MUST find a read answering an empty sequence for a well-formed query matching nothing (Operation 16).
 Check 3.4: An auditor MUST find a read answering invalid-query for a malformed query (Operation 15).
-Check 3.5: An auditor MUST find no read answering an event for a consumed sequence_number no event landed under (Invariant 5.3).
-Check 4.1: An auditor MUST find EVERY event carrying event_id, sequence_number, recorded_at AND data (State 2).
-Check 4.2: An auditor MUST find a fresh log instance beginning next_sequence_number at one (State 5).
-Check 5.1: An auditor MUST read a falling recorded_at as a clock finding (Invariant 7.2).
-Check 5.2: An auditor MUST NOT read a falling recorded_at as an order finding (Invariant 7.2).
+Check 3.5: An auditor MUST find no read answering an event for a consumed sequence number no event landed under (Invariant 5.3).
+Check 4.1: An auditor MUST find EVERY event carrying event id, sequence number, recorded at AND data (State 2).
+Check 4.2: An auditor MUST find a fresh log instance beginning next sequence number at one (State 5).
+Check 5.1: An auditor MUST read a falling recorded at as a clock finding (Invariant 7.2).
+Check 5.2: An auditor MUST NOT read a falling recorded at as an order finding (Invariant 7.2).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -267,7 +267,7 @@ External check 6: An auditor needing the payload cap confirmed MUST read the dep
 ```
 
 WHY:
-`Check 2.4`, `Check 5.1` and `Check 5.2` are the three that stop an auditor filing against a correct log, and each of them is a place where the obvious reading is wrong. A gap in the sequence numbers is not a lost event — `Sequence gap 1` permits an implementation to consume a number on a failed write, so an auditor counting rows against numbers reports a defect the atom has none of. A recorded_at that falls is a clock fault and never an ordering fault, because sequence_number **is authoritative** for the order and recorded_at is an annotation this atom rests nothing on.
+`Check 2.4`, `Check 5.1` and `Check 5.2` are the three that stop an auditor filing against a correct log, and each of them is a place where the obvious reading is wrong. A gap in the sequence numbers is not a lost event — `Sequence gap 1` permits an implementation to consume a number on a failed write, so an auditor counting rows against numbers reports a defect the atom has none of. A recorded at that falls is a clock fault and never an ordering fault, because sequence number **is authoritative** for the order and recorded at is an annotation this atom rests nothing on.
 
 The external set is where the real limit sits, and it is larger than a reader expects from a log. **Append-only is not tamper-evidence.** Every check above passes over a log an adversary with store access rewrote, because the atom compares the log against itself; detecting that the store was rewritten is [Tamper Evidence](./tamper-evidence.md)'s and is named here rather than implied. The same holds for who wrote an event and for whether the instance survived a restart at all — `External check 1` is the one a deployment loses silently, since a volatile instance satisfies every conformance check above and loses the journal the composing patterns replay.
 
@@ -325,10 +325,10 @@ WHY:
 ### Sequence-number gaps on storage failure
 
 ```
-Sequence gap 1: An implementation MAY consume a sequence_number on a failed write.
-Sequence gap 2: The next landed event MUST carry a sequence_number above a consumed sequence_number.
+Sequence gap 1: An implementation MAY consume a sequence number on a failed write.
+Sequence gap 2: The next landed event MUST carry a sequence number above a consumed sequence number.
 Sequence gap 3: A consumer MUST NOT read a gap as a lost event.
-Sequence gap 4: An implementation avoiding a gap MUST take EXACTLY ONE OF allocating a sequence_number ONLY AFTER the write lands, returning a consumed sequence_number to the pool.
+Sequence gap 4: An implementation avoiding a gap MUST take EXACTLY ONE OF allocating a sequence number ONLY AFTER the write lands, returning a consumed sequence number to the pool.
 ```
 
 WHY:
@@ -356,11 +356,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation (also: a durable implementation); the deployment; the store; an event; a read; an append; an auditor.
 
-Term records: event — one recorded fact, carrying event_id, sequence_number, recorded_at and data; the log carries log_name and next_sequence_number.
+Term records: event — one recorded fact, carrying event id, sequence number, recorded at and data; the log carries log_name and next sequence number.
 
 Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match, find.
 
-Term value sets: event field = event_id | sequence_number | recorded_at | data.
+Term value sets: event field = event id | sequence number | recorded at | data.
 
 Term bounds: payload cap (the per-instance bound on data's size).
 
@@ -368,7 +368,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed — written by a successful append.
 
-Term terms: durability mechanism, event_id, seam, transition, business caller, event, sequence_number, recorded_at, data, log_name, next_sequence_number, landed, event field, query, payload cap.
+Term terms: durability mechanism, event id, seam, transition, business caller, event, sequence number, recorded at, data, log_name, next sequence number, landed, event field, query, payload cap.
 
 #### Event Log
 

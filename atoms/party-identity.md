@@ -133,7 +133,7 @@ enroll(name, date_of_birth, document_type, document_ref, enrolling_actor_ref)
   refuses invalid-request | storage-failure
 
 verify(party_id, verifying_actor_ref, verification_method, verification_result, evidence_ref)
-  answers verification result
+  answers verification_result
   refuses not-known | already-closed | invalid-request | storage-failure
 
 suspend(party_id, suspending_actor_ref, reason)

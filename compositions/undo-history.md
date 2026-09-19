@@ -164,7 +164,7 @@ Term forward action: [Add] | [Edit] | [Complete] | [Delete] — every action app
 
 Term no-op edit: an [Edit] whose normalized new description equals the unit's current description — an accepted write of nothing, as [Personal Todo](../atoms/personal-todo.md) declares it.
 
-Term undone set: the undone_event_id of every undo event in the event log instance.
+Term undone set: the undone event id of every undo event in the event log instance.
 
 Term undo target: the most recent forward event whose event_id IS NOT IN the undone set.
 
@@ -259,7 +259,7 @@ Each of these emerges from the composition. None belongs to a single constituent
   ```
 - **Invariant 3 — An undo targets the most recent surviving forward event.**
   ```
-  Invariant 3.1: EVERY undo event's undone_event_id MUST name the undo target the undo found.
+  Invariant 3.1: EVERY undo event's undone event id MUST name the undo target the undo found.
   ```
 - **Invariant 4 — Personal Todo's invariants hold over the derived state.**
   ```
@@ -273,7 +273,7 @@ Each of these emerges from the composition. None belongs to a single constituent
   Invariant 5.2: The composition MUST NOT remove an event.
   Invariant 5.3: The composition MUST NOT rewrite an event.
   ```
-  WHY: [Event Log](../atoms/event-log.md)'s `Composition note 5` obliges a composing pattern to cite its invariants by number, because `Composition note 4` freezes those numbers against the citations. This composition rests on six of the seven, each named in the qualified form because this spec carries an Invariant 1 through 7 of its own, so the unqualified form is wrong for every one of the six: Event Log Invariant 1 (append-only) and Event Log Invariant 2 (event immutability), which Invariant 5.2 and Invariant 5.3 mirror from this side; Event Log Invariant 3 (total order) and Event Log Invariant 4 (sequence-number monotonicity), without which Replay 1's *in sequence_number order* names nothing; Event Log Invariant 5 (read consistency), which bounds the replay's input to exactly the landed events; and Event Log Invariant 6 (no id reuse), which is what lets an undone_event_id name one event for the life of the log (Invariant 3.1, Check 3.3). It does not rest on Event Log Invariant 7: recorded_at is an annotation this composition never orders by.
+  WHY: [Event Log](../atoms/event-log.md)'s `Composition note 5` obliges a composing pattern to cite its invariants by number, because `Composition note 4` freezes those numbers against the citations. This composition rests on six of the seven, each named in the qualified form because this spec carries an Invariant 1 through 7 of its own, so the unqualified form is wrong for every one of the six: Event Log Invariant 1 (append-only) and Event Log Invariant 2 (event immutability), which Invariant 5.2 and Invariant 5.3 mirror from this side; Event Log Invariant 3 (total order) and Event Log Invariant 4 (sequence-number monotonicity), without which Replay 1's *in sequence_number order* names nothing; Event Log Invariant 5 (read consistency), which bounds the replay's input to exactly the landed events; and Event Log Invariant 6 (no id reuse), which is what lets an undone event id name one event for the life of the log (Invariant 3.1, Check 3.3). It does not rest on Event Log Invariant 7: recorded_at is an annotation this composition never orders by.
 - **Invariant 6 — Identity is preserved across a delete and its undo.**
   ```
   Invariant 6.1: An undone delete's unit MUST carry the unit's original id, instants and Personal Todo state.
@@ -320,9 +320,9 @@ Check 1.1: An auditor MUST find EXACTLY ONE event PER state-changing admitted ac
 Check 1.2: An auditor MUST find an admitted action behind EVERY event of the event log instance (Invariant 1.2).
 Check 2.1: An auditor MUST find the derived state equal to a fresh replay of the event log instance (Invariant 2.1).
 Check 2.2: An auditor MUST run the replay against the event log instance and NOT against a materialized derived state (Replay 17).
-Check 3.1: An auditor MUST find EVERY undo event's undone_event_id naming a forward event (Invariant 3.1).
-Check 3.2: An auditor MUST find no undo event's undone_event_id naming an undo event (Action wiring 19).
-Check 3.3: An auditor MUST find no two undo events naming one undone_event_id (Invariant 3.1).
+Check 3.1: An auditor MUST find EVERY undo event's undone event id naming a forward event (Invariant 3.1).
+Check 3.2: An auditor MUST find no undo event's undone event id naming an undo event (Action wiring 19).
+Check 3.3: An auditor MUST find no two undo events naming one undone event id (Invariant 3.1).
 Check 4.1: An auditor MUST find EVERY Personal Todo invariant holding over one replayed derived state (Invariant 4.1).
 Check 5.1: An auditor MUST find no event absent from a later read of the event log instance (Invariant 5.2).
 Check 5.2: An auditor MUST find a re-read event unchanged (Invariant 5.3).
@@ -489,7 +489,7 @@ Projection: undone_event_type
 
 #### Undone Set
 
-The undone_event_id of every undo event in the event log instance — what the replay skips by.
+The undone event id of every undo event in the event log instance — what the replay skips by.
 
 Kind: Type
 Projection: undone_set

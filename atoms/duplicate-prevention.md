@@ -49,14 +49,14 @@ The atom stores a value and compares a value; what counts as *the same thing see
 ### State
 
 ```
-State 1: The host MUST hold EXACTLY ONE recorded_at per guarded identity.
+State 1: The host MUST hold EXACTLY ONE recorded at per guarded identity.
 State 2: The host MUST derive under guard from the elapsed term at the moment a question is asked.
 State 3: The atom MUST NOT hold state beyond the recorded set.
 ```
 
-Term recorded set: the identities under guard, each held with the identity's recorded_at — the [Recorded Set].
+Term recorded set: the identities under guard, each held with the identity's recorded at — the [Recorded Set].
 
-Term recorded_at: the instant an identity was placed under guard, stamped from the injected now — a [Recorded At].
+Term recorded at: the instant an identity was placed under guard, stamped from the injected now — a [Recorded At].
 
 Term window duration: the length a containing pattern chooses for a guard — a [Window Duration]; the value the elapsed term is measured against. The [Window] the length sizes is the interval, and carries no separate name in a rule.
 
@@ -88,7 +88,7 @@ check(identity)
 
 ```
 Operation 1: [Record] MUST place an identity that is not under guard under guard.
-Operation 2: [Record] MUST stamp recorded_at from the injected now.
+Operation 2: [Record] MUST stamp recorded at from the injected now.
 Operation 3: [Record] MUST answer ok.
 Operation 4: [Record] MUST NOT refuse.
 Operation 5: [Check] MUST answer EXACTLY ONE OF seen, not-seen.
@@ -105,8 +105,8 @@ The case space, and the rule that owns each case:
 
 | Call | Identity under guard? | Answer | Effect on the recorded set |
 |---|---|---|---|
-| [Record] | no | ok | enters under guard, recorded_at from the injected now (Operation 1, Operation 2) |
-| [Record] | yes | ok | unchanged — the original recorded_at stands (Invariant 2.1, Invariant 2.2) |
+| [Record] | no | ok | enters under guard, recorded at from the injected now (Operation 1, Operation 2) |
+| [Record] | yes | ok | unchanged — the original recorded at stands (Invariant 2.1, Invariant 2.2) |
 | [Check] | yes | [Seen] | none — the call reads (Operation 6, Invariant 3.1) |
 | [Check] | no | [Not Seen] | none — the call reads (Operation 7, Invariant 3.1) |
 
@@ -128,7 +128,7 @@ Both calls are total. The containing pattern has already acted when it records �
 - **Invariant 2 — Single-recording.**
   ```
   Invariant 2.1: [Record] MUST NOT extend the guard of an identity under guard.
-  Invariant 2.2: [Record] MUST preserve the recorded_at of an identity under guard.
+  Invariant 2.2: [Record] MUST preserve the recorded at of an identity under guard.
   Invariant 2.3: [Record] MUST open a fresh guard for an identity that is not under guard.
   Deleted: Invariant 1. Operation 6 and Operation 7 own it.
   ```
@@ -177,10 +177,10 @@ An implementation is acceptable when an external auditor, given the recorded set
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EXACTLY ONE recorded_at PER identity the recorded set holds (State 1).
-Check 1.2: An auditor MUST find an identity's recorded_at unchanged across a second record inside the identity's window (Invariant 2.2).
+Check 1.1: An auditor MUST find EXACTLY ONE recorded at PER identity the recorded set holds (State 1).
+Check 1.2: An auditor MUST find an identity's recorded at unchanged across a second record inside the identity's window (Invariant 2.2).
 Check 1.3: An auditor MUST find no guard extended by a second record (Invariant 2.1).
-Check 1.4: An auditor MUST find a fresh recorded_at for a record against an identity that is not under guard (Invariant 2.3).
+Check 1.4: An auditor MUST find a fresh recorded at for a record against an identity that is not under guard (Invariant 2.3).
 Check 2.1: An auditor MUST find the recorded set unchanged across a check (Invariant 3.1).
 Check 2.2: An auditor MUST find two checks of one identity under one now answering alike (Invariant 3.2).
 Check 3.1: An auditor MUST find EVERY check answering EXACTLY ONE OF seen, not-seen (Operation 5).
@@ -295,7 +295,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host (also: a host, a lazy host); the transition; a containing pattern (also: the containing pattern, a pattern); a business caller; an implementation (also: a fail-open implementation, a fail-closed implementation); the deployment (also: a deployment); an identity; a guarded entry; an entry; a check; an auditor.
 
-Term records: recorded set — the identities under guard, one recorded_at per entry.
+Term records: recorded set — the identities under guard, one recorded at per entry.
 
 Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, require, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct, find.
 
@@ -307,7 +307,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); under guard — recorded, and the guard's term not yet elapsed.
 
-Term terms: identity, matching rule, recorded set, recorded_at, window duration, elapsed term, under guard, now, transition, seam, business caller.
+Term terms: identity, matching rule, recorded set, recorded at, window duration, elapsed term, under guard, now, transition, seam, business caller.
 
 #### Identity
 

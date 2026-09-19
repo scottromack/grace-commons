@@ -1225,6 +1225,45 @@ def check_name_atomicity_synthetic(problems: list[str]) -> int:
     return n
 
 
+def check_wire_spelling_synthetic(problems: list[str]) -> int:
+    """D-wire-spelling (tools/grace/check.py): a wire block carries the
+    projection, never the term entry's English name (council read 138). A
+    signature and a record shape fire; the Ledger and a rule block, fenced the
+    same way, are prose and stay silent. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.60 (2026-09-18).\n\n"
+            "Term record verbs: verify.\n\n## Terms\n\n"
+            "#### Verification Result\n\nWhat the check found.\n\n"
+            "Projection: verification_result\n\n## Structure\n\n")
+    tail = "\n```\nOperation 1: A reader MUST verify the party.\n```\n"
+    def run(block: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + block + "```\n" + tail, encoding="utf-8")
+            return [x for x in scan(f) if x.code == "D-wire-spelling"]
+    n = 0
+    cases = [
+        ("a signature answering English", "verify(party_id)\n  answers verification result\n", True),
+        ("a signature answering the wire", "verify(party_id)\n  answers verification_result\n", False),
+        ("a record shape in English", '{type: "verify", verification result}\n', True),
+        ("a record shape on the wire", '{type: "verify", verification_result}\n', False),
+        ("a Ledger row naming the term entry",
+         "- 2026-08-28-k · refining · Verification Result term entry · number the checks\n", False),
+        ("a rule block naming the term entry",
+         "Operation 2: A reader MUST carry the verification result.\n", False),
+    ]
+    for why, block, should_fire in cases:
+        fired = bool(run(block))
+        if fired == should_fire:
+            n += 1
+        else:
+            problems.append(f"D-wire-spelling: {why} {'did not fire' if should_fire else 'fired'}")
+    return n
+
+
 def check_two_obligations_synthetic(problems: list[str]) -> int:
     """W-two-obligations (tools/grace/check.py): a second declared record verb
     after *and* fires, and a declared name whose first word is a verb does not
@@ -2000,6 +2039,14 @@ def main(argv: list[str]) -> int:
     if not atomicity_problems:
         print(f"name atomicity in check.py: {n_atom} synthetic fixtures hold (a declared name is no "
               "watch word and counts as one token; a bare watch word still fires) \u2713")
+
+    wire_problems: list[str] = []
+    n_wire = check_wire_spelling_synthetic(wire_problems)
+    failures.extend(wire_problems)
+    if not wire_problems:
+        print(f"D-wire-spelling: {n_wire} synthetic fixtures hold (an English name in a signature "
+              "and in a record shape fire; the wire spelling in both, a Ledger row and a rule block "
+              "stay silent) \u2713")
 
     two_ob_problems: list[str] = []
     n_two = check_two_obligations_synthetic(two_ob_problems)

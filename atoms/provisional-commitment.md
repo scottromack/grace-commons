@@ -62,7 +62,7 @@ Term commitment: the record this atom holds — one resource held for one reques
 
 Term id: the opaque value naming one commitment — an [Id]; assigned from the id material the seam supplies and never reused.
 
-Term property: resource | requester | placed_at | expires_at — what a commitment carries that is not the commitment's identity.
+Term property: resource | requester | placed at | expires at — what a commitment carries that is not the commitment's identity.
 
 Term reference: id, resource OR requester — every opaque reference this atom records.
 
@@ -79,17 +79,17 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 WHY:
 Identity 5 ranges over a store instance's whole lifetime, which is what makes id reuse a case of sharing rather than a rule of its own — the reason the shipped Invariant 9 is a tombstone below.
 
-Identity 6 is the load-bearing one. Identifying a commitment by `(resource, requester)` would muddle a re-hold: a requester re-holding the same resource after an earlier release is a *different* commitment with its own trail. Identifying by placed_at loses precision under concurrent placement. Opaque ids keep one commitment to one id, which is what makes per-event audit reconstruction tractable.
+Identity 6 is the load-bearing one. Identifying a commitment by `(resource, requester)` would muddle a re-hold: a requester re-holding the same resource after an earlier release is a *different* commitment with its own trail. Identifying by placed at loses precision under concurrent placement. Opaque ids keep one commitment to one id, which is what makes per-event audit reconstruction tractable.
 
 Identity 10 and Identity 11 state the other boundary. The atom holds references it was handed and does not reach into stores it has no knowledge of; a commitment naming a resource the registry has never heard of is still a valid commitment here, and wrong at the deployment layer.
 
 ### State
 
 ```
-State 1: EVERY commitment MUST carry id, resource, requester, placed_at, expires_at and a state.
-State 2: EVERY confirmed commitment MUST carry confirmed_at.
-State 3: EVERY released commitment MUST carry released_at.
-State 4: EVERY expired commitment MUST carry expired_at.
+State 1: EVERY commitment MUST carry id, resource, requester, placed at, expires at and a state.
+State 2: EVERY confirmed commitment MUST carry confirmed at.
+State 3: EVERY released commitment MUST carry released at.
+State 4: EVERY expired commitment MUST carry expired at.
 State 5: A held commitment MUST NOT carry a terminal instant.
 State 6: The atom MUST NOT record the duration under the duration's own name.
 State 7: The atom MUST NOT hold a state for a resource carrying no commitment.
@@ -100,11 +100,11 @@ State 11: The atom MUST NOT offer a commitment removal surface.
 ```
 
 WHY:
-State 6 is a small thing worth stating. duration sizes the window and is then gone: what persists is placed_at and expires_at, both immutable. Keeping duration as a field would make the window recomputable, and a recomputable window is one a later edit can move without touching expires_at.
+State 6 is a small thing worth stating. duration sizes the window and is then gone: what persists is placed at and expires at, both immutable. Keeping duration as a field would make the window recomputable, and a recomputable window is one a later edit can move without touching expires at.
 
 State 7 is the boundary a reader keeps looking for. There is no *unheld* state in this atom's record — unheld describes the resource, not the commitment, and it belongs to the registry. The lifecycle this atom holds begins at [Place Hold].
 
-State 8 through 10 are the three surfaces a reader keeps expecting to find. A confirmed commitment is not unconfirmed, an expired one is not reactivated, and a window is not extended — a longer hold is a new commitment with a new id, placed after the original is released. Mutating expires_at would retroactively change when [Expire] became legal, which breaks the honored window for a hold that has already settled.
+State 8 through 10 are the three surfaces a reader keeps expecting to find. A confirmed commitment is not unconfirmed, an expired one is not reactivated, and a window is not extended — a longer hold is a new commitment with a new id, placed after the original is released. Mutating expires at would retroactively change when [Expire] became legal, which breaks the honored window for a hold that has already settled.
 
 ### Capability requirement
 
@@ -171,8 +171,8 @@ Operation 6: [Place Hold] MUST answer resource-unavailable ONLY IF EVERY well-fo
 Operation 7: [Place Hold] MUST NOT answer not-known.
 Operation 8: An admitted place hold MUST assign a fresh id.
 Operation 9: An admitted place hold MUST record resource and requester.
-Operation 10: An admitted place hold MUST record now as placed_at.
-Operation 11: An admitted place hold MUST record the window bound as expires_at.
+Operation 10: An admitted place hold MUST record now as placed at.
+Operation 11: An admitted place hold MUST record the window bound as expires at.
 Operation 12: An admitted place hold MUST stand the commitment in held.
 Operation 13: An admitted place hold MUST answer the id.
 Operation 14: IF the id names no commitment THEN a resolving action MUST answer not-known.
@@ -185,9 +185,9 @@ Operation 20: A resolving action MUST answer a window rejection ONLY IF the comm
 Operation 21: An admitted confirm MUST stand the commitment in confirmed.
 Operation 22: An admitted release MUST stand the commitment in released.
 Operation 23: An admitted expire MUST stand the commitment in expired.
-Operation 24: An admitted confirm MUST record now as confirmed_at.
-Operation 25: An admitted release MUST record now as released_at.
-Operation 26: An admitted expire MUST record now as expired_at.
+Operation 24: An admitted confirm MUST record now as confirmed at.
+Operation 25: An admitted release MUST record now as released at.
+Operation 26: An admitted expire MUST record now as expired at.
 Operation 27: A resolving action MUST commit the state change and the recorded instant in one transition.
 Operation 28: IF the store refuses the write THEN an action MUST answer storage-failure.
 Operation 29: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
@@ -207,19 +207,19 @@ Term well-formedness check: Operation 1, Operation 2, Operation 3 and Operation 
 
 Term duration bounds: the implementation's admitted range for a duration; every admitted value exceeds zero.
 
-Term window bound: placed_at raised by the duration — the value an admitted place hold records as expires_at.
+Term window bound: placed at raised by the duration — the value an admitted place hold records as expires at.
 
 Term window reading: open | lapsed — how a held commitment's window reads against now.
 
-Term open: the window reading of a held commitment whose expires_at exceeds now.
+Term open: the window reading of a held commitment whose expires at exceeds now.
 
-Term lapsed: the window reading of a held commitment whose expires_at does not exceed now; the boundary instant — expires_at equal to now — reads lapsed.
+Term lapsed: the window reading of a held commitment whose expires at does not exceed now; the boundary instant — expires at equal to now — reads lapsed.
 
 Term window rejection: window-elapsed | window-not-elapsed.
 
 Term terminal state: confirmed | released | expired.
 
-Term terminal instant: confirmed_at | released_at | expired_at.
+Term terminal instant: confirmed at | released at | expired at.
 
 Term admitted place hold: a [Place Hold] call that passes every precondition and whose store write commits.
 
@@ -233,12 +233,12 @@ Term admitted resolving action: an admitted confirm, an admitted release OR an a
 
 Term releasing action: an admitted release OR an admitted expire.
 
-Term reclamation lag: the span between a commitment's expires_at and the admitted expire that settles the commitment.
+Term reclamation lag: the span between a commitment's expires at and the admitted expire that settles the commitment.
 
 WHY:
 Operation 6, Operation 16, Operation 20 and Operation 29 are the rejection priority, written as guards rather than as an order — nothing may be inferred from rule order (GRACE-lang Timing 13). For a resolving action the effect is not-known before not-held before the window rejection before storage-failure; for [Place Hold] it is invalid-request before resource-unavailable before storage-failure. A caller who reads not-held therefore knows the id resolved, and one who reads window-elapsed knows the commitment is still held.
 
-Operation 17 through 19 are the honored window, and the boundary is the whole of the disagreement they settle. The lapsed declaration puts the boundary instant on the closed side, so at expires_at equal to now a confirm is refused and an expire is admitted. One instant, one legal transition, no overlap.
+Operation 17 through 19 are the honored window, and the boundary is the whole of the disagreement they settle. The lapsed declaration puts the boundary instant on the closed side, so at expires at equal to now a confirm is refused and an expire is admitted. One instant, one legal transition, no overlap.
 
 [Release] and [Expire] are two actions rather than one because they differ in which side of the window they are legal on and in what the record then says happened. An auditor asking *did this requester give the resource back, or did the requester simply not answer* reads the terminal state and gets a different answer for each. The return of the resource itself is not here — it is Capability requirement 10, because this atom cannot see availability (Non-goal 11) and a MUST whose subject cannot evaluate it is decoration.
 
@@ -280,11 +280,11 @@ Logic confinement is the Contract's (the section titled Logic Confinement Princi
   WHY: this is what an auditor comes for, and it is structural rather than procedural. Invariant 7.1 and Invariant 7.2 are the two halves of one guarantee — no resolution recorded after the declared window, no expiry recorded before it — and together they make the query *show me every hold resolved outside its window* return the empty set by construction. Invariant 7.3 is what makes the pair total: every held commitment reads one way or the other at every instant, so there is no gap between the window closing and expiry becoming legal.
 - **Invariant 8 — Resolution instants follow placement.**
   ```
-  Invariant 8.1: A commitment's confirmed_at MUST NOT precede the commitment's placed_at.
-  Invariant 8.2: A commitment's released_at MUST NOT precede the commitment's placed_at.
+  Invariant 8.1: A commitment's confirmed at MUST NOT precede the commitment's placed at.
+  Invariant 8.2: A commitment's released at MUST NOT precede the commitment's placed at.
   Deleted: Invariant 9. Identity 5 owns id reuse for every id, resolved or not.
   ```
-  WHY: the family floors the two *resolution* instants and not expired_at, whose floor is the stronger one Invariant 7.2 already carries — an expiry may not precede expires_at, which by Invariant 6.1 exceeds placed_at. The family was titled *Transition instants* in a draft, which promised a floor on all three and delivered two (council read 38).
+  WHY: the family floors the two *resolution* instants and not expired at, whose floor is the stronger one Invariant 7.2 already carries — an expiry may not precede expires at, which by Invariant 6.1 exceeds placed at. The family was titled *Transition instants* in a draft, which promised a floor on all three and delivered two (council read 38).
 - **Invariant 10 — Commitment store durability.**
   ```
   Invariant 10.1: The atom MUST NOT remove a commitment from the store.
@@ -292,11 +292,11 @@ Logic confinement is the Contract's (the section titled Logic Confinement Princi
   Invariant 10.3: A storage-failure rejection MUST leave no partial commitment in the store.
   ```
 
-Term degenerate window: a commitment whose expires_at does not exceed the commitment's placed_at.
+Term degenerate window: a commitment whose expires at does not exceed the commitment's placed at.
 
-Term late resolution: a commitment whose state EQUALS confirmed and whose expires_at does not exceed the commitment's confirmed_at, OR one whose state EQUALS released and whose expires_at does not exceed the commitment's released_at.
+Term late resolution: a commitment whose state EQUALS confirmed and whose expires at does not exceed the commitment's confirmed at, OR one whose state EQUALS released and whose expires at does not exceed the commitment's released at.
 
-Term premature expiry: a commitment whose state EQUALS expired and whose expired_at precedes the commitment's expires_at.
+Term premature expiry: a commitment whose state EQUALS expired and whose expired at precedes the commitment's expires at.
 
 Term re-hold: a [Place Hold] naming a resource and a requester a resolved commitment already names.
 
@@ -338,8 +338,8 @@ What differs across the five: resource semantics, window length, the regulatory 
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** *Show me every hold confirmed or released after its declared window.* The query is Check 3.1 and returns the empty set by construction — Invariant 7.1 makes a late resolution unrecordable rather than merely unlikely.
-- **Data subject request.** Erasure against the personal data behind requester. The atom alone cannot satisfy it while keeping the trail; a composing Cryptographic Shredding or Erasure Tombstone pattern redacts the reference and leaves id, placed_at, expires_at, the state and the terminal instant intact, so the lifecycle stays auditable and the personal data does not persist.
-- **Breach investigation.** The universe of resources committed between 02:00 and 04:00 UTC. Every commitment carries placed_at, so the answer is a filter over the store with no log replay behind it; the terminal state and its instant then say which holds resolved and which lapsed. This atom offers no read action of its own — the store is read by the deployment or by an auditor, not through a surface here — and ordering *within* the window needs the composing [Event Log](./event-log.md) (External check 2).
+- **Data subject request.** Erasure against the personal data behind requester. The atom alone cannot satisfy it while keeping the trail; a composing Cryptographic Shredding or Erasure Tombstone pattern redacts the reference and leaves id, placed at, expires at, the state and the terminal instant intact, so the lifecycle stays auditable and the personal data does not persist.
+- **Breach investigation.** The universe of resources committed between 02:00 and 04:00 UTC. Every commitment carries placed at, so the answer is a filter over the store with no log replay behind it; the terminal state and its instant then say which holds resolved and which lapsed. This atom offers no read action of its own — the store is read by the deployment or by an auditor, not through a surface here — and ordering *within* the window needs the composing [Event Log](./event-log.md) (External check 2).
 
 ---
 
@@ -358,14 +358,14 @@ Check 2.2: An auditor MUST find no commitment whose state IS NOT IN the terminal
 Check 3.1: An auditor MUST find no late resolution in the store (Invariant 7.1).
 Check 3.2: An auditor MUST find no premature expiry in the store (Invariant 7.2).
 Check 3.3: An auditor MUST find no degenerate window in the store (Invariant 6.1).
-Check 4.1: An auditor MUST find no commitment's confirmed_at preceding the commitment's placed_at (Invariant 8.1).
-Check 4.2: An auditor MUST find no commitment's released_at preceding the commitment's placed_at (Invariant 8.2).
+Check 4.1: An auditor MUST find no commitment's confirmed at preceding the commitment's placed at (Invariant 8.1).
+Check 4.2: An auditor MUST find no commitment's released at preceding the commitment's placed at (Invariant 8.2).
 Check 5.1: An auditor MUST find a re-read commitment's properties unchanged across an admitted resolving action (Invariant 5.1).
 Check 5.2: An auditor MUST find no id on two commitments (Identity 5).
 Check 6.1: An auditor MUST find no commitment absent from a later read (Invariant 10.1).
 Check 6.2: An auditor MUST find the store instance's commitment count no lower on a later read (Invariant 10.2).
 Check 7.1: An auditor MUST find a resource and a requester on EVERY commitment (State 1).
-Check 7.2: An auditor MUST find a placed_at and an expires_at on EVERY commitment (State 1).
+Check 7.2: An auditor MUST find a placed at and an expires at on EVERY commitment (State 1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -384,7 +384,7 @@ External check 6: A deployment needing the composing patterns named MUST read th
 WHY:
 External check 1 is the sharpest boundary here and the one a deployment can quietly fail. An expired commitment attests that an expiry was *recorded*; whether the registry then made the resource available again is the registry's fact, and a deployment that writes the terminal state without freeing the resource conforms to every rule above and defeats the point. The atom cannot see availability and so cannot check it, which is exactly why this is stated rather than assumed.
 
-External check 5 is the audit consequence of the eager-or-lazy choice (Non-goal 13). Under lazy expiry a lapsed commitment stays held until something touches it, so the resource is reclaimed at access time rather than at expires_at; the record is correct either way, and only the deployment's own declaration says how long the gap may be.
+External check 5 is the audit consequence of the eager-or-lazy choice (Non-goal 13). Under lazy expiry a lapsed commitment stays held until something touches it, so the resource is reclaimed at access time rather than at expires at; the record is correct either way, and only the deployment's own declaration says how long the gap may be.
 
 ---
 
@@ -504,11 +504,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the deployment; the implementation; the registry; the store; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; a data subject; an investigator; a reader; a commitment; a held commitment; a confirmed commitment; a released commitment; an expired commitment; an action; a resolving action; a refused action; a losing resolving action; a losing [Place Hold]; a rejection; a crash; a re-hold; an opaque reference; the store instance's commitment count.
 
-Term records: commitment — one resource held for one requester for a bounded window, carrying id, resource, requester, placed_at, expires_at, a state and, where set, confirmed_at, released_at or expired_at.
+Term records: commitment — one resource held for one requester for a bounded window, carrying id, resource, requester, placed at, expires at, a state and, where set, confirmed at, released at or expired at.
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, leave, own, admit, offer, hold, return, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, route, consult, append, place, produce, map, attest, fall, precede, sample, consume, supply, release, run, acknowledge, canonicalize, declare, compose, wire, remove, bind, decide, define, bound, surface, pass, reach, accept, pause, call, guarantee, trim, case-fold.
 
-Term value sets: state = held | confirmed | released | expired. terminal state = confirmed | released | expired. terminal instant = confirmed_at | released_at | expired_at. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placed_at | expires_at.
+Term value sets: state = held | confirmed | released | expired. terminal state = confirmed | released | expired. terminal instant = confirmed at | released at | expired at. window reading = open | lapsed. window rejection = window-elapsed | window-not-elapsed. property = resource | requester | placed at | expires at.
 
 Term bounds: duration bounds, window bound.
 
@@ -804,6 +804,6 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-13 — The resource return is the registry's obligation, not the atom's.** *Chose:* Capability requirement 10 and Capability requirement 11. *Over:* an `Operation` obliging the atom to return the resource, which a draft of this migration carried. *Because:* the atom cannot see availability (Non-goal 11) and External check 1's own WHY says so, which made the rule either false or unfalsifiable — a MUST whose subject cannot evaluate it is decoration. The asymmetry was the tell: the negative half (*an admitted confirm MUST NOT return it*) was specifiable and the positive half was not.
 - **2026-09-13 — Single-resolution is stated as at-most-one, and the at-least-one half is a non-goal.** *Chose:* `Invariant 2.1` and `Invariant 2.2` alone, with `Non-goal 25` naming the limit and `Capability requirement 12` where a deployment may close it. *Over:* a third rule reading *EXACTLY ONE resolving action MUST commit*. *Because:* its marginal content over the other two was liveness, which an atom that licenses lazy expiry cannot deliver — and the model says the same: `INVARIANT Safety` with no temporal property, and `Inv_SingleResolution` checking only that a written resolution matches the state. The spec claimed *exactly*; the model checked *at most*. GRACE's `MUST` has no temporal scope to tell them apart, which is now a docket row.
 - **2026-09-13 — Invariant 4 and Invariant 9 are tombstoned; Identity owns id stability and id reuse.** *Chose:* Identity 4 and Identity 5 as the single owners. *Over:* keeping the invariants, which restated them. *Because:* Authority 3 — and Identity 5 is the stronger claim, since two commitments never share an id whether or not either has resolved.
-- **2026-06-23 — Expiry stays a stored terminal reached by an explicit expire event; the derived-expiry refactor is withdrawn for this atom.** *Chose:* stored `Expired` with expired_at, the window-not-elapsed rejection and confirm's window-elapsed guard restored. *Over:* the corpus-wide derive-expiry-at-read-time move applied two days earlier. *Because:* this atom's lapse has a side effect — expire releases the resource, and in a pool-backed composition returns a capacity slot — which Reserve from Pool and Idempotent Reservation call and map; derived expiry is for side-effect-free lapses only.
+- **2026-06-23 — Expiry stays a stored terminal reached by an explicit expire event; the derived-expiry refactor is withdrawn for this atom.** *Chose:* stored `Expired` with expired at, the window-not-elapsed rejection and confirm's window-elapsed guard restored. *Over:* the corpus-wide derive-expiry-at-read-time move applied two days earlier. *Because:* this atom's lapse has a side effect — expire releases the resource, and in a pool-backed composition returns a capacity slot — which Reserve from Pool and Idempotent Reservation call and map; derived expiry is for side-effect-free lapses only.
 
 NOTE: End of Provisional Commitment.
