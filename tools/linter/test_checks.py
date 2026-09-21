@@ -1250,6 +1250,8 @@ def check_wire_spelling_synthetic(problems: list[str]) -> int:
         ("a signature answering the wire", "verify(party_id)\n  answers verification_result\n", False),
         ("a record shape in English", '{type: "verify", verification result}\n', True),
         ("a record shape on the wire", '{type: "verify", verification_result}\n', False),
+        ("a braced shape inline in English", "Term row: {verification result, proof}.\n", True),
+        ("a braced shape inline on the wire", "Term row: {verification_result, proof}.\n", False),
         ("a Ledger row naming the term entry",
          "- 2026-08-28-k · refining · Verification Result term entry · number the checks\n", False),
         ("a rule block naming the term entry",
@@ -2080,8 +2082,8 @@ def main(argv: list[str]) -> int:
     n_wire = check_wire_spelling_synthetic(wire_problems)
     failures.extend(wire_problems)
     if not wire_problems:
-        print(f"D-wire-spelling: {n_wire} synthetic fixtures hold (an English name in a signature "
-              "and in a record shape fire; the wire spelling in both, a Ledger row and a rule block "
+        print(f"D-wire-spelling: {n_wire} synthetic fixtures hold (an English name in a signature, a record shape and a braced shape inline "
+              "fire; the wire spelling in each, a Ledger row and a rule block "
               "stay silent) \u2713")
 
     borrowed_problems: list[str] = []

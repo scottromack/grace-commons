@@ -59,7 +59,7 @@ Identity is allocated at the seam and handed in, which forecloses a caller that 
 ```
 State 1: The log MUST hold events in EXACTLY ONE total order.
 State 2: EVERY event MUST carry event id, sequence number, recorded at and data.
-State 3: The log MUST carry log_name.
+State 3: The log MUST carry log name.
 State 4: The log MUST carry next sequence number.
 State 5: A fresh log instance MUST begin next sequence number at one.
 State 6: [Append] MUST raise next sequence number by one.
@@ -76,7 +76,7 @@ Term recorded at: the wall-time instant an event was appended, stamped from the 
 
 Term data: the opaque payload a composing pattern supplies — [Data]; the atom stores the payload and reads nothing in it.
 
-Term log_name: the name telling one log instance from another — a [Log Name].
+Term log name: the name telling one log instance from another — a [Log Name].
 
 Term next sequence number: the sequence number the next landed event carries — a [Next Sequence Number]; part of the instance's persistent state.
 
@@ -356,7 +356,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation (also: a durable implementation); the deployment; the store; an event; a read; an append; an auditor.
 
-Term records: event — one recorded fact, carrying event id, sequence number, recorded at and data; the log carries log_name and next sequence number.
+Term records: event — one recorded fact, carrying event id, sequence number, recorded at and data; the log carries log name and next sequence number.
 
 Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match, find.
 
@@ -368,7 +368,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed — written by a successful append.
 
-Term terms: durability mechanism, event id, seam, transition, business caller, event, sequence number, recorded at, data, log_name, next sequence number, landed, event field, query, payload cap.
+Term terms: durability mechanism, event id, seam, transition, business caller, event, sequence number, recorded at, data, log name, next sequence number, landed, event field, query, payload cap.
 
 #### Event Log
 

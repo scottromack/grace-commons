@@ -85,7 +85,7 @@ subject ref is deliberately not an identity (Identity 7, Identity 8). One subjec
 ### State
 
 ```
-State 1: EVERY disclosure record MUST carry disclosure id, subject ref, recipient, scope, authority_type, authority_reference and disclosed at.
+State 1: EVERY disclosure record MUST carry disclosure id, subject ref, recipient, scope, authority type, authority reference and disclosed at.
 State 2: The atom MUST NOT offer a state machine over a disclosure record.
 State 3: The atom MUST NOT offer an optional field on a disclosure record.
 State 4: The atom MUST NOT offer an edit surface.
@@ -141,11 +141,11 @@ Operation 1: IF subject ref EQUALS blank THEN [Record] MUST answer invalid-reque
 Operation 2: IF recipient EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 3: IF scope EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 4: IF authority EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 5: IF authority_type EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 6: IF authority_reference EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 5: IF authority type EQUALS blank THEN [Record] MUST answer invalid-request.
+Operation 6: IF authority reference EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 7: IF the resolved disclosed at EXCEEDS now THEN [Record] MUST answer invalid-request.
 Operation 8: [Record] MUST answer unknown-authority-type ONLY IF EVERY field-level precondition passes.
-Operation 9: IF authority_type IS NOT IN the authority types THEN [Record] MUST answer unknown-authority-type.
+Operation 9: IF authority type IS NOT IN the authority types THEN [Record] MUST answer unknown-authority-type.
 Operation 10: An admitted record MUST record EXACTLY ONE disclosure record.
 Operation 11: An admitted record MUST take the disclosure record's disclosure id from the injected disclosure id.
 Operation 12: An admitted record MUST stamp the disclosure record's disclosed at from the resolved disclosed at.
@@ -160,7 +160,7 @@ Operation 20: IF no disclosure record matches THEN an admitted read MUST answer 
 Operation 21: An admitted read carrying no filter MUST answer EVERY disclosure record in the store instance.
 Operation 22: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 23: IF a disclosure id, subject ref OR recipient filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
-Operation 24: IF an authority_type filter's value IS NOT IN the authority types THEN [Read] MUST answer invalid-query.
+Operation 24: IF an authority type filter's value IS NOT IN the authority types THEN [Read] MUST answer invalid-query.
 Operation 25: IF a disclosed at range's before precedes the range's after THEN [Read] MUST answer invalid-query.
 Operation 26: An admitted read MUST match a disclosed at range as a closed interval.
 Operation 27: An admitted read MUST answer EVERY disclosure record matching the supplied filters.
@@ -177,13 +177,13 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; carries authority_type and authority_reference and nothing else.
+Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; carries authority type and authority reference and nothing else.
 
-Term authority_type: consent | legal-hold | regulatory — an [Authority Type], set at record and never changed.
+Term authority type: consent | legal-hold | regulatory — an [Authority Type], set at record and never changed.
 
-Term authority types: the three members of authority_type, cited here from that declaration (Closed vocabulary 15).
+Term authority types: the three members of authority type, cited here from that declaration (Closed vocabulary 15).
 
-Term authority_reference: the opaque string naming the specific authority — an [Authority Reference]; a consent record's id, a legal hold's id, or a regulatory citation.
+Term authority reference: the opaque string naming the specific authority — an [Authority Reference]; a consent record's id, a legal hold's id, or a regulatory citation.
 
 Term disclosed at: the instant the disclosure happened — a [Disclosed At]; caller-supplied or resolved to now, and never later than now.
 
@@ -191,16 +191,16 @@ Term resolved disclosed at: the disclosed at the record carries — the supplied
 
 Term field-level precondition: Operation 1 through 7 — every check [Record] makes before the authority type is read.
 
-Term filter axes: disclosure id | subject ref | recipient | authority_type | disclosed at — the five axes [Read] accepts, and no others.
+Term filter axes: disclosure id | subject ref | recipient | authority type | disclosed at — the five axes [Read] accepts, and no others.
 
-Term admitted record: a [Record] call whose fields, resolved disclosed at and authority_type the guards all admit.
+Term admitted record: a [Record] call whose fields, resolved disclosed at and authority type the guards all admit.
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
 | # | Condition | [Record] answers |
 |---|---|---|
 | 1 | a field is blank, or the resolved disclosed at follows now | invalid-request |
-| 2 | every field passes, authority_type stands outside the authority types | unknown-authority-type |
+| 2 | every field passes, authority type stands outside the authority types | unknown-authority-type |
 | 3 | every precondition passes, the store refuses the write | storage-failure |
 | 4 | every precondition passes, the store accepts the write | `recorded(disclosure_id)` |
 
@@ -220,14 +220,14 @@ Operation 22 refuses an unrecognized filter key rather than ignoring it, which i
   ```
 - **Invariant 2 — Authority completeness.**
   ```
-  Invariant 2.1: EVERY disclosure record's authority_type MUST stand in the authority types.
-  Invariant 2.2: EVERY disclosure record's authority_reference MUST stand non-blank.
+  Invariant 2.1: EVERY disclosure record's authority type MUST stand in the authority types.
+  Invariant 2.2: EVERY disclosure record's authority reference MUST stand non-blank.
   ```
   WHY: a record failing either arm cannot answer *under what authority was this disclosure made*, which is the one question the atom exists to answer. An unrecognized type or an empty reference is a conformance failure rather than a degraded record, because a disclosure accounting that cannot name its basis is not an accounting.
 - **Invariant 3 — Field completeness.**
   ```
   Invariant 3.1: EVERY disclosure record MUST carry a disclosed at.
-  Invariant 3.2: EVERY disclosure record's subject ref, recipient, scope and authority_reference MUST stand non-blank.
+  Invariant 3.2: EVERY disclosure record's subject ref, recipient, scope and authority reference MUST stand non-blank.
   ```
 - **Invariant 4 — Temporal soundness.**
   ```
@@ -299,15 +299,15 @@ This atom's acceptance is what an external auditor can clear from the disclosure
 ### Conformance checks
 
 ```
-Check 2.1: An auditor MUST find disclosure id, subject ref, recipient, scope, authority_type, authority_reference and disclosed at on EVERY disclosure record (State 1, Invariant 3.1).
-Check 2.2: An auditor MUST find EVERY disclosure record's subject ref, recipient, scope and authority_reference non-blank (Invariant 3.2).
-Check 2.3: An auditor MUST find EVERY disclosure record whose authority_type IS IN the authority types (Invariant 2.1).
+Check 2.1: An auditor MUST find disclosure id, subject ref, recipient, scope, authority type, authority reference and disclosed at on EVERY disclosure record (State 1, Invariant 3.1).
+Check 2.2: An auditor MUST find EVERY disclosure record's subject ref, recipient, scope and authority reference non-blank (Invariant 3.2).
+Check 2.3: An auditor MUST find EVERY disclosure record whose authority type IS IN the authority types (Invariant 2.1).
 Check 3.1: An auditor MUST find a re-read disclosure record's fields unchanged from the prior read (Invariant 1.1).
 Check 3.2: An auditor MUST find no disclosure record absent from a later unfiltered read (Invariant 6.1, State 9).
-Check 4.1: An auditor MUST find [Record] answering unknown-authority-type for an authority_type that IS NOT IN the authority types (Operation 9).
+Check 4.1: An auditor MUST find [Record] answering unknown-authority-type for an authority type that IS NOT IN the authority types (Operation 9).
 Check 4.2: An auditor MUST find no disclosure record recorded by a refused [Record] (Operation 16).
 Check 5.1: An auditor MUST find a subject ref query answering EVERY disclosure record carrying the subject ref (Operation 27).
-Check 5.2: An auditor MUST find an authority_type query answering ONLY the disclosure records carrying the authority_type (Operation 28).
+Check 5.2: An auditor MUST find an authority type query answering ONLY the disclosure records carrying the authority type (Operation 28).
 Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
 Check 6.1: An auditor MUST find [Record] answering invalid-request for a disclosed at following now (Operation 7).
 Check 6.2: An auditor MUST find no disclosure record's disclosed at following the record's creation instant (Invariant 4.1).
@@ -338,8 +338,8 @@ Non-goal 3: The atom MUST NOT transmit a subject's data.
 Non-goal 4: The atom MUST NOT confirm that a scope names what a transmission carried.
 Non-goal 5: The atom MUST NOT bound a scope's vocabulary.
 Non-goal 6: The atom MUST NOT bound a recipient's vocabulary.
-Non-goal 7: The atom MUST NOT confirm that an authority_reference names a live authority.
-Non-goal 8: The atom MUST NOT confirm that an authority_reference agrees with the authority_type.
+Non-goal 7: The atom MUST NOT confirm that an authority reference names a live authority.
+Non-goal 8: The atom MUST NOT confirm that an authority reference agrees with the authority type.
 Non-goal 9: A deployment needing an authority's legitimacy confirmed MUST compose the authority's own pattern.
 Non-goal 10: The atom MUST NOT decide who may call an action.
 Non-goal 11: A deployment needing an authorization decision MUST compose Permissions.
@@ -353,7 +353,7 @@ Non-goal 18: The atom MUST NOT bound a disclosure record's retention.
 Non-goal 19: A deployment needing a retention bound MUST compose Retention Window.
 Non-goal 20: The atom MUST NOT decide whether a disclosure to the subject stands as a disclosure.
 Non-goal 21: The atom MUST NOT bound disclosed at from below.
-Non-goal 22: The atom MUST NOT offer a filter axis over an authority_reference.
+Non-goal 22: The atom MUST NOT offer a filter axis over an authority reference.
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
@@ -393,7 +393,7 @@ String 6: The atom MUST read an absent string input as blank.
 String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
-Term string input: subject ref, recipient, scope, authority_reference OR a filter's value — every caller-supplied string this atom accepts.
+Term string input: subject ref, recipient, scope, authority reference OR a filter's value — every caller-supplied string this atom accepts.
 
 
 WHY:
@@ -410,7 +410,7 @@ Correction 3: A caller correcting a disclosure record MUST call [Record] again.
 Correction 4: A correcting disclosure record's correction narrative MUST name the corrected disclosure record.
 ```
 
-Term correction narrative: the scope OR the authority_reference a correcting disclosure record carries — the two fields that hold prose.
+Term correction narrative: the scope OR the authority reference a correcting disclosure record carries — the two fields that hold prose.
 
 WHY:
 A record capturing the wrong scope or the wrong recipient stands permanently, and the correction is a new record that narrates the relationship to it. An auditor reading both sees the full history including the correction, which is what regulated record-keeping asks for — the same posture [Legal Hold](./legal-hold.md) takes on a case-reference update. Immutability of the original is the structural guarantee that records cannot be silently altered after the fact, so exempting a correction would exempt the very edit the guarantee exists to prevent.
@@ -423,7 +423,7 @@ A record capturing the wrong scope or the wrong recipient stands permanently, an
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST own the authorization of a call.
 Composition note 3: A composing pattern MUST own the attestation binding the recording actor.
-Composition note 4: A composing pattern MUST own the legitimacy of an authority_reference.
+Composition note 4: A composing pattern MUST own the legitimacy of an authority reference.
 Composition note 5: A composing pattern MUST own the tamper seal over the disclosure store.
 Composition note 6: A composing pattern MUST own the retention of the disclosure store.
 Composition note 7: A composing pattern MUST own at-most-once recording.
@@ -448,11 +448,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; the store; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a rejection; a string input; an opaque reference; the store instance's record count; a field-level precondition.
 
-Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject ref, recipient, scope, authority_type, authority_reference and disclosed at.
+Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject ref, recipient, scope, authority type, authority reference and disclosed at.
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, sort, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, fall, call, produce, choose, capture.
 
-Term value sets: authority_type = consent | legal-hold | regulatory.
+Term value sets: authority type = consent | legal-hold | regulatory.
 
 Term bounds: empty.
 
@@ -460,7 +460,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: disclosure record, disclosure id, subject ref, recipient, scope, store instance, seam, transition, now, business caller, authority, authority_type, authority types, authority_reference, disclosed at, resolved disclosed at, field-level precondition, filter axes, admitted record, string input, blank.
+Term terms: disclosure record, disclosure id, subject ref, recipient, scope, store instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosed at, resolved disclosed at, field-level precondition, filter axes, admitted record, string input, blank.
 
 #### Record
 
@@ -625,7 +625,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the two actions as a signature block, Invariant 1 through 6 keeping their numbers, every success effect conditioned on a declared admitted record or admitted read so no effect binds a refused call (Hard invariant 16), the disclosed at resolution routed through a declared resolved disclosed at so no rule restates the default, the rejection precedence carried by `Operation 8` and `Operation 15` rather than by a prose *rejection priority* line repeated in three sections, the six acceptance areas opened into `Check 2.1 through 6.2` with the three named audit gaps raised to `External check 1 through 3`, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Correction`), the Composition notes prose raised to `Composition note 1 through 9` with the named compositions moved into the WHY. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into selective-disclosure` found nothing in the corpus citing this atom by label, so the rewrite carried no frozen-number risk. 73.9 KB → 49.9 KB.
 
-- **2026-09-12 — A filter's match semantics is a rule, not an assumption.** *Chose:* `Operation 27` (an admitted read answers every matching record) and `Operation 28` (an admitted read answers no record failing a filter). *Over:* the prose, which spelled out matching for the authority_type axis alone and left the other four to be inferred from the word *matching* in the action description. *Because:* the migration's Check 5.1 tests that a subject ref query answers every record carrying the reference, and no rule in the spec owned that proposition — a check resting on an unowned invariant, the class the docket has been collecting since council read 12. The gap was invisible to both tools and surfaced only when each check was made to name the rule it tests, which is the discipline earning its keep rather than a finding against the atom.
+- **2026-09-12 — A filter's match semantics is a rule, not an assumption.** *Chose:* `Operation 27` (an admitted read answers every matching record) and `Operation 28` (an admitted read answers no record failing a filter). *Over:* the prose, which spelled out matching for the authority type axis alone and left the other four to be inferred from the word *matching* in the action description. *Because:* the migration's Check 5.1 tests that a subject ref query answers every record carrying the reference, and no rule in the spec owned that proposition — a check resting on an unowned invariant, the class the docket has been collecting since council read 12. The gap was invisible to both tools and surfaced only when each check was made to name the rule it tests, which is the discipline earning its keep rather than a finding against the atom.
 
 - **2026-09-12 — Reference-level filtering is a non-goal, not an operation.** *Chose:* `Non-goal 22`. *Over:* an `Operation` rule saying [Read] must not offer the axis. *Because:* `Term filter axes` enumerates five axes and `Operation 22` rejects anything outside them, so the operation-level rule was entailed twice over (Authority 3); what is not entailed is the design claim — reference search is a composing-layer concept — and that belongs with the other surface refusals.
 

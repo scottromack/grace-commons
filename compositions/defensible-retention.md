@@ -491,7 +491,7 @@ Reconciliation 10: IF another intent over the act carries a matched outcome THEN
 Reconciliation 11: IF the act committed AND the open marker stands as the act's only open marker THEN the sweep MUST emit a recovery outcome.
 Reconciliation 12: IF several open markers name one committed act THEN the sweep MUST emit EXACTLY ONE recovery outcome.
 Reconciliation 13: A recovery outcome MUST carry the earliest open marker's invocation_id.
-Reconciliation 14: A recovery outcome MUST carry every candidate marker's actor_ref as attributed_to.
+Reconciliation 14: A recovery outcome MUST carry every candidate marker's actor_ref as attributed to.
 Reconciliation 15: A recovery outcome MUST carry the recovery marker.
 Reconciliation 16: A recovery outcome MUST carry the acting human's actor_ref.
 Reconciliation 17: The sweep MUST NOT emit a recovery outcome BEFORE recording a recovery intent.
@@ -521,7 +521,7 @@ Term recovery outcome: the outcome the sweep emits for a committed act whose own
 
 Term intent_abandoned: the closing the sweep writes over an open marker whose act it does not recover (Reconciliation 9, Reconciliation 10, Reconciliation 27).
 
-Term attributed_to: the actor_ref of every candidate marker, carried by a recovery outcome (Reconciliation 14).
+Term attributed to: the actor_ref of every candidate marker, carried by a recovery outcome (Reconciliation 14).
 
 WHY:
 The sweep is four comparisons and two edges. **Intent against outcome** is the general one: an intent with no outcome names an invocation whose fate the records do not yet state, and the sweep decides it from durable constituent state rather than from anything the dead invocation remembered. **Retention against trail**, **hold against trail** and **pending sibling against store** are the three particular ones, and only the last commits anything — which is why it alone is preceded by a recovery intent as well as attested under the service identity.
@@ -916,7 +916,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
 Term value sets: hold check mode = strict | advisory. hold check result = empty | the blocking hold ids with the blocking count. intent = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. outcome = retention_placed | hold_placed | hold_released | record_purged. sibling disposition = purged | pending.
 
-Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, blank, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, late hold, position, invocation_id, intended_at, intent_abandoned, attributed_to.
+Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, blank, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, late hold, position, invocation_id, intended_at, intent_abandoned, attributed to.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam.
 

@@ -116,7 +116,7 @@ Composition state 3: The composition MUST store a suspension log.
 Composition state 4: The suspension-state index MUST carry the actor's lifecycle state PER suspended actor.
 Composition state 5: A suspended actor's lifecycle state MUST stand as EXACTLY ONE OF active, suspending, suspended.
 Composition state 6: A suspending entry MUST carry the cascade's invocation_id, intent_event_id, operator AND reason.
-Composition state 7: A suspended entry MUST carry the outcome's event_id as suspension_event_id.
+Composition state 7: A suspended entry MUST carry the outcome's event_id as suspension event id.
 Composition state 8: The composition MUST classify the suspension-state index above the mark as derived index.
 Composition state 9: The composition MUST classify the suspension-state index below the mark as truth-bearing.
 Composition state 10: The composition MUST classify an aged-out entry as extraction-pending.
@@ -350,7 +350,7 @@ Identity 4: The composition MUST NOT reuse an invocation_id.
 Identity 5: An intent MUST carry the invocation_id.
 Identity 6: An outcome MUST carry the intent's invocation_id.
 Identity 7: A resume intent MUST carry the cascade's invocation_id.
-Identity 8: A resume intent MUST carry the resuming call's own invocation_id as resume_invocation_id.
+Identity 8: A resume intent MUST carry the resuming call's own invocation_id as resume invocation id.
 Identity 9: A recovery intent MUST carry the cascade's invocation_id.
 Identity 10: The composition MUST pair an outcome to a cascade by the invocation_id.
 Identity 11: The composition MUST NOT pair an outcome to a cascade by a payload resemblance.
@@ -367,13 +367,13 @@ Identity 20: A suspension-state entry MUST carry the invocation_id.
 
 Term invocation_id: the id the seam allocates for one state-changing invocation; an intent and the outcome paired to it carry the same one (Identity 1 through 10).
 
-Term resume_invocation_id: the resuming call's own invocation_id, carried by a resume intent beside the cascade's (Identity 8).
+Term resume invocation id: the resuming call's own invocation_id, carried by a resume intent beside the cascade's (Identity 8).
 
 Term intended_at: the instant an intent records (Identity 16).
 
 Term intent_event_id: the event_id the substrate answers for a cascade's intent (Composition state 6).
 
-Term suspension_event_id: the event_id the substrate answers for a suspended outcome (Composition state 7).
+Term suspension event id: the event_id the substrate answers for a suspended outcome (Composition state 7).
 
 Term suspended_at: the instant a suspended outcome records (Action wiring 48).
 
@@ -386,7 +386,7 @@ Term outcome: the record_action call naming what an invocation did — `actor.su
 Term committing call: `Permissions.revoke` | `Session.revoke` | `Credential.revoke` — a constituent call that writes outside the audit instance, and is irreversible once it commits.
 
 WHY:
-Identity 6 through 12 make the invocation_id the one field every pairing runs on, and Identity 15 is what it buys: one outcome per act, whoever wrote it. Three writers can reach an act — the original invocation, a caller's resume and the sweep — and all three write under the *cascade's* key rather than their own, so a resume's own seam id rides beside as resume_invocation_id and never displaces the key the checks pair on. Identity 13 and Identity 14 close the other end: a second suspension intent would be a second plan for one actor, which the sweep would pair twice and complete twice, and which Check 3.1 convicts.
+Identity 6 through 12 make the invocation_id the one field every pairing runs on, and Identity 15 is what it buys: one outcome per act, whoever wrote it. Three writers can reach an act — the original invocation, a caller's resume and the sweep — and all three write under the *cascade's* key rather than their own, so a resume's own seam id rides beside as resume invocation id and never displaces the key the checks pair on. Identity 13 and Identity 14 close the other end: a second suspension intent would be a second plan for one actor, which the sweep would pair twice and complete twice, and which Check 3.1 convicts.
 
 Identity 11 is the frozen rule *Intents pair with outcomes by an invocation identity* stated where it bites. Resemblance would be available here — an actor, an operator, a plan — and it chooses where a key decides, which is exactly the failure a second concurrent suspension of one actor would expose.
 
@@ -460,7 +460,7 @@ reinstate_actor(actor_ref, reinstated_by_ref, credential, reason)
 
 Term suspension result: suspended, revoked_grants, revoked_sessions, revoked_credentials, unresolved_members, event_id and an optional resumed_by — what suspend_actor answers.
 
-Term suspension record: state, an optional intent_event_id, an optional open_members, an optional suspended_at, an optional suspended_by_ref, an optional reason, an optional revoked_grants, an optional revoked_sessions, an optional revoked_credentials, an optional unresolved_members, an optional enumeration_availability and an optional suspension_event_id — what suspension_report answers.
+Term suspension record: state, an optional intent_event_id, an optional open_members, an optional suspended_at, an optional suspended_by_ref, an optional reason, an optional revoked_grants, an optional revoked_sessions, an optional revoked_credentials, an optional unresolved_members, an optional enumeration_availability and an optional suspension event id — what suspension_report answers.
 
 Term reinstatement result: reinstated and event_id — what reinstate_actor answers.
 
@@ -541,11 +541,11 @@ Action wiring 69: [Suspension Report] MUST NOT take the actor's critical section
 Action wiring 70: IF the actor's lifecycle state EQUALS active THEN [Suspension Report] MUST answer active.
 Action wiring 71: IF the actor's lifecycle state EQUALS suspending THEN [Suspension Report] MUST answer the state, the intent_event_id, the operator, the reason AND the open members.
 Action wiring 72: A suspending answer's open members MUST derive from the plan against the constituents' declared reads.
-Action wiring 73: IF the actor's lifecycle state EQUALS suspended THEN [Suspension Report] MUST answer the state, the suspended_at, the operator, the reason, the suspension_event_id AND the revoked set.
-Action wiring 74: The composition MUST read the revoked set from the outcome the suspension_event_id names at [Suspension Report].
+Action wiring 73: IF the actor's lifecycle state EQUALS suspended THEN [Suspension Report] MUST answer the state, the suspended_at, the operator, the reason, the suspension event id AND the revoked set.
+Action wiring 74: The composition MUST read the revoked set from the outcome the suspension event id names at [Suspension Report].
 Action wiring 75: IF the outcome stands aged out THEN [Suspension Report] MUST answer the enumeration availability as unavailable.
 Action wiring 76: IF the outcome stands aged out THEN [Suspension Report] MUST NOT answer an empty revoked set.
-Action wiring 77: IF the outcome stands aged out THEN [Suspension Report] MUST answer the state, the suspended_at, the operator AND the suspension_event_id from the suspension-state index.
+Action wiring 77: IF the outcome stands aged out THEN [Suspension Report] MUST answer the state, the suspended_at, the operator AND the suspension event id from the suspension-state index.
 Action wiring 78: The composition MUST read the suspension-state index at [Reinstate Actor].
 Action wiring 79: The composition MUST run the tail read at [Reinstate Actor].
 Action wiring 80: IF the actor's lifecycle state EQUALS active THEN [Reinstate Actor] MUST answer already-active carrying active.
@@ -813,7 +813,7 @@ Check 1.3: An auditor MUST find no effective-active planned credential PER suspe
 Check 1.4: An auditor MUST read a post-snapshot member as outside the plan (Invariant 1.12).
 Check 1.5: An auditor MUST read a suspended actor carrying a stored-active planned member as a conformance failure (Invariant 1.1).
 Check 1.6: An auditor MUST take an aged-out actor's lifecycle state from the suspension-state index (Composition state 10).
-Check 2.1: An auditor MUST find EXACTLY ONE suspended outcome PER suspension_event_id (Invariant 2.1).
+Check 2.1: An auditor MUST find EXACTLY ONE suspended outcome PER suspension event id (Invariant 2.1).
 Check 2.2: An auditor MUST confirm Audit Trail's verify_record answers verified for the outcome (Invariant 2.6).
 Check 2.3: An auditor MUST find the outcome's intent earlier in the log under the same invocation_id (Invariant 2.7).
 Check 2.4: An auditor MUST compare the outcome's revoked set against the intent's plan PER member (Invariant 2.8).
@@ -1041,7 +1041,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.41 (2026-09-15).
 
 Term value sets: lifecycle state = active | suspending | suspended. intent = actor.suspension_intended | actor.resume_intended | actor.recovery_intended. outcome = actor.suspended | actor.reinstated. surface = permissions | session | credential. enumeration availability = available | unavailable-past-horizon. already-active reason = active | suspending. benign terminal answer = not-active | already-terminal.
 
-Term terms: composition, constituents, credential arm, service identity, operator, resumer, suspension-state index, high-water mark, suspension log, mirrored log entry, refusal log entry, tail read, audit horizon, aged-out event, rebuild, miss, aged-out entry, aged-out log entry, aged-out actor, aged-out outcome, aged-out open cascade, post-snapshot member, admitted suspension, admitted reinstatement, plan, revoked set, open cascade, seam, transition, unified actor namespace, critical section, suspension completion bound, completion window, closure floor, access retention floor, planned set cap, maximal outcome, clock offset allowance, blank, boundary predicate, opaque input, operator reference, resume prefix, completion prefix, intent, outcome, committing call, landed intent, append step, retention step, read-back, owed outcome, stored active, effective active, snapshot, fresh cascade, resume, cascade, benign terminal answer, non-benign refusal, open members, unresolved members, closed plan, recovery marker, enumeration availability, sweep, pre-check, young intent, plan-unavailable marker, accounted cascade, accounted member, escalated finding, orphan, indeterminate committing call, position, not-suspended state, suspension result, suspension record, reinstatement result, invocation_id, resume_invocation_id, intended_at, intent_event_id, suspension_event_id, suspended_at, reinstated_at.
+Term terms: composition, constituents, credential arm, service identity, operator, resumer, suspension-state index, high-water mark, suspension log, mirrored log entry, refusal log entry, tail read, audit horizon, aged-out event, rebuild, miss, aged-out entry, aged-out log entry, aged-out actor, aged-out outcome, aged-out open cascade, post-snapshot member, admitted suspension, admitted reinstatement, plan, revoked set, open cascade, seam, transition, unified actor namespace, critical section, suspension completion bound, completion window, closure floor, access retention floor, planned set cap, maximal outcome, clock offset allowance, blank, boundary predicate, opaque input, operator reference, resume prefix, completion prefix, intent, outcome, committing call, landed intent, append step, retention step, read-back, owed outcome, stored active, effective active, snapshot, fresh cascade, resume, cascade, benign terminal answer, non-benign refusal, open members, unresolved members, closed plan, recovery marker, enumeration availability, sweep, pre-check, young intent, plan-unavailable marker, accounted cascade, accounted member, escalated finding, orphan, indeterminate committing call, position, not-suspended state, suspension result, suspension record, reinstatement result, invocation_id, resume invocation id, intended_at, intent_event_id, suspension event id, suspended_at, reinstated_at.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. [Credential](../atoms/credential.md) — the effective-active reading and the per-pair bound.
 

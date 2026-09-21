@@ -528,6 +528,15 @@ def scan(path: Path) -> list[Finding]:
             for tok in SNAKE_WORD.findall(m.group(1)):
                 projections.setdefault(heading.strip("[]").lower(), tok)
     if projections:
+        # a braced shape names a record's fields on the wire wherever it sits,
+        # fenced or inline on a declaration line (council read 140)
+        for off, ln in enumerate(lines, start=1):
+            for shape in re.findall(r"\{[^}]*\}", CODE_SPAN.sub(" ", ln)):
+                for english, wire in projections.items():
+                    if " " in english and re.search(r"\b" + re.escape(english) + r"\b", shape.lower()):
+                        add(off, "D-wire-spelling",
+                            f"'{english}' inside a braced shape; write the projection `{wire}` "
+                            f"(the wire is written where the wire belongs): {shape[:60]}")
         k = 0
         while k < len(lines):
             if not lines[k].lstrip().startswith("```"):

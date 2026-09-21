@@ -164,7 +164,7 @@ Term active case: a case whose active flag EQUALS true.
 
 Term case-to-retentions index: case_to_retentions — the composition's index from a case_id to the current placement and the post closure placement.
 
-Term case-to-open-triggers index: case_to_open_triggers — the composition's index from a case_id to the open adverse triggers standing against the case, each carrying a trigger_id, a trigger_type, a trigger_ref and a triggered_at.
+Term case-to-open-triggers index: case_to_open_triggers — the composition's index from a case_id to the open adverse triggers standing against the case, each carrying a trigger_id, a trigger_type, a trigger_ref and a triggered at.
 
 Term index: the case-to-monitoring index, the party-to-case index, the case-to-retentions index, OR the case-to-open-triggers index.
 
@@ -376,17 +376,17 @@ Term intent_event_id: the event_id the substrate answers for an intent, carried 
 
 Term opened_at: the instant an initiated outcome records (Action wiring 146).
 
-Term triggered_at: the instant a monitoring triggered outcome records (Action wiring 147).
+Term triggered at: the instant a monitoring triggered outcome records (Action wiring 147).
 
 Term suspended_at: the instant a party suspended outcome records (Action wiring 148).
 
-Term renewed_at: the instant a retention renewed outcome records (Action wiring 149).
+Term renewed at: the instant a retention renewed outcome records (Action wiring 149).
 
-Term cleared_at: the instant a review cleared outcome records (Action wiring 150).
+Term cleared at: the instant a review cleared outcome records (Action wiring 150).
 
 Term reinstated_at: the instant a party reinstated outcome records (Action wiring 151).
 
-Term closed_at: the instant a party closed outcome records — a committing closure's injected now, or the instant Party Identity's read answers for a completing closure (Action wiring 118, Action wiring 152).
+Term closed at: the instant a party closed outcome records — a committing closure's injected now, or the instant Party Identity's read answers for a completing closure (Action wiring 118, Action wiring 152).
 
 Term intent: the record_action call naming what an invocation is about to do, written before any committing call — `customer-onboarding.initiation-intended` | `customer-onboarding.verification-intended` | `customer-onboarding.clearance-intended` | `customer-onboarding.closure-intended` | `customer-onboarding.monitoring-triggered` | `customer-onboarding.recovery-intended`.
 
@@ -526,7 +526,7 @@ Action wiring 42: IF Party Identity answers invalid-query THEN [Trigger Monitori
 Action wiring 43: The composition MUST read an invalid-query answer as the composition's own defect.
 Action wiring 44: IF the trigger_type belongs to the adverse trigger types AND the party's state IS NOT IN the suspendable states THEN [Trigger Monitoring Review] MUST answer not-verified carrying the state.
 Action wiring 45: A periodic trigger MUST NOT refuse a party's state.
-Action wiring 46: An admitted trigger MUST record a monitoring triggered outcome carrying the case_id, the party id, the trigger_id, the trigger_type, the trigger_ref AND the triggered_at.
+Action wiring 46: An admitted trigger MUST record a monitoring triggered outcome carrying the case_id, the party id, the trigger_id, the trigger_type, the trigger_ref AND the triggered at.
 Action wiring 47: An admitted periodic trigger against an unsuspended party MUST carry the next review due on the monitoring triggered record.
 Action wiring 48: An admitted trigger against a suspended party MUST NOT carry a next review due on the monitoring triggered record.
 Action wiring 49: An adverse trigger MUST NOT carry a next review due on the monitoring triggered record.
@@ -553,7 +553,7 @@ Action wiring 69: A periodic trigger MUST renew the placement whatever the curre
 Action wiring 70: IF Retention Window answers storage-failure for a renewal THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
 Action wiring 71: IF Retention Window answers invalid-policy for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 72: IF Retention Window answers policy-not-found for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
-Action wiring 73: A renewing trigger MUST record a retention renewed outcome carrying the case_id, the party id, the enrollment_path, the trigger_id, the prior placement, the renewed placement, the policy ref AND the renewed_at.
+Action wiring 73: A renewing trigger MUST record a retention renewed outcome carrying the case_id, the party id, the enrollment_path, the trigger_id, the prior placement, the renewed placement, the policy ref AND the renewed at.
 Action wiring 74: IF the retention renewed record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying outcome.
 Action wiring 75: A renewing trigger MUST repoint the case-to-retentions index ONLY AFTER the landed retention renewed record.
 Action wiring 76: A periodic trigger against an unsuspended party MUST advance the next review due whatever the renewal's answer.
@@ -572,7 +572,7 @@ Action wiring 86: IF Party Identity answers already-closed for a clearance verif
 Action wiring 87: IF Party Identity answers not-known for a clearance verify THEN [Clear Review] MUST answer not-known.
 Action wiring 88: IF Party Identity answers invalid-request for a clearance verify THEN [Clear Review] MUST answer invalid-request.
 Action wiring 89: IF Party Identity answers storage-failure for a clearance verify THEN [Clear Review] MUST answer recording-failure carrying intent.
-Action wiring 90: An admitted clearance MUST record a review cleared outcome carrying the case_id, the party id, the verification id, the closed triggers, the reason AND the cleared_at.
+Action wiring 90: An admitted clearance MUST record a review cleared outcome carrying the case_id, the party id, the verification id, the closed triggers, the reason AND the cleared at.
 Action wiring 91: A review cleared outcome MUST NOT carry a next review due.
 Action wiring 92: IF the review cleared record fails THEN [Clear Review] MUST answer recording-failure carrying outcome.
 Action wiring 93: IF the review cleared record fails THEN the invocation MUST NOT call Party Identity's reinstate.
@@ -600,7 +600,7 @@ Action wiring 114: IF the case's active flag EQUALS false THEN [Close Party] MUS
 Action wiring 115: An admitted closure MUST record a closure intent.
 Action wiring 116: An admitted closure MUST call Party Identity's close with the party id, the closing_actor_ref AND the reason.
 Action wiring 117: IF Party Identity answers already-closed for a close AND no party closed event names the case THEN the invocation MUST complete the earlier closure.
-Action wiring 118: A completing closure MUST read the state change id AND the closed_at from Party Identity's declared read.
+Action wiring 118: A completing closure MUST read the state change id AND the closed at from Party Identity's declared read.
 Action wiring 119: IF Party Identity answers already-closed for a close AND a party closed event names the case THEN [Close Party] MUST answer not-active.
 Action wiring 120: IF Party Identity answers not-known for a close THEN [Close Party] MUST answer not-known.
 Action wiring 121: IF Party Identity answers invalid-request for a close THEN [Close Party] MUST answer invalid-request.
@@ -609,7 +609,7 @@ Action wiring 123: An admitted closure MUST call Retention Window's place_under_
 Action wiring 124: IF Retention Window answers invalid-policy for a closure THEN [Close Party] MUST answer invalid-request.
 Action wiring 125: IF Retention Window answers policy-not-found for a closure THEN [Close Party] MUST answer invalid-request.
 Action wiring 126: IF Retention Window answers storage-failure for a closure THEN [Close Party] MUST answer recording-failure carrying outcome.
-Action wiring 127: An admitted closure MUST record a party closed outcome carrying the case_id, the party id, the state change id, the post closure placement, the reason, the closed_at AND the open triggers at close.
+Action wiring 127: An admitted closure MUST record a party closed outcome carrying the case_id, the party id, the state change id, the post closure placement, the reason, the closed at AND the open triggers at close.
 Action wiring 128: IF the party closed record fails THEN [Close Party] MUST answer recording-failure carrying outcome.
 Action wiring 129: An admitted closure MUST populate the case-to-retentions index's post closure placement ONLY AFTER the landed party closed record.
 Action wiring 130: An admitted closure MUST write the case's active flag set to false ONLY AFTER the landed party closed record.
@@ -697,17 +697,17 @@ Action wiring 139 through 145 are the gate's fail-closed shape. The cheapest-com
 
 ```
 Action wiring 146: An initiated outcome MUST carry the injected now as opened_at.
-Action wiring 147: A monitoring triggered outcome MUST carry the injected now as triggered_at.
+Action wiring 147: A monitoring triggered outcome MUST carry the injected now as triggered at.
 Action wiring 148: A party suspended outcome MUST carry the injected now as suspended_at.
-Action wiring 149: A retention renewed outcome MUST carry the injected now as renewed_at.
-Action wiring 150: A review cleared outcome MUST carry the injected now as cleared_at.
+Action wiring 149: A retention renewed outcome MUST carry the injected now as renewed at.
+Action wiring 150: A review cleared outcome MUST carry the injected now as cleared at.
 Action wiring 151: A party reinstated outcome MUST carry the injected now as reinstated_at.
-Action wiring 152: A committing closure MUST carry the injected now as closed_at on the party closed outcome.
+Action wiring 152: A committing closure MUST carry the injected now as closed at on the party closed outcome.
 Action wiring 153: An invocation MUST derive the next review due from the injected now.
 ```
 
 WHY:
-Action wiring 146 through 153 are where each outcome's instant comes from, stated per outcome because one universal claim was false. The spec once said an invocation stamps *every* timestamp from its own reading, and a completing closure does not: it finishes a closure Party Identity already committed, so the closed_at it records is the one Action wiring 118 reads back. Action wiring 152 is scoped to the committing closure for that reason.
+Action wiring 146 through 153 are where each outcome's instant comes from, stated per outcome because one universal claim was false. The spec once said an invocation stamps *every* timestamp from its own reading, and a completing closure does not: it finishes a closure Party Identity already committed, so the closed at it records is the one Action wiring 118 reads back. Action wiring 152 is scoped to the committing closure for that reason.
 
 ### Wiring decision
 
@@ -1116,7 +1116,7 @@ Deleted: Clock semantics 5. Execution Contract Logic confinement 3 owns it.
 Deleted: Clock semantics 6. Execution Contract Logic confinement 3 owns it.
 Clock semantics 7: A reader MUST read insertion order as authoritative.
 Clock semantics 8: A reader MUST read a timestamp as advisory.
-Clock semantics 9: A reader MUST read a divergence between a trigger's triggered_at and the trigger's suspended_at as a conformance failure.
+Clock semantics 9: A reader MUST read a divergence between a trigger's triggered at and the trigger's suspended_at as a conformance failure.
 Deleted: Clock semantics 10. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 11. Non-goal 21 owns it.
 ```
@@ -1182,7 +1182,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.41 (2026-09-14).
 
 Term value sets: admissible states = unverified. suspendable states = verified | suspended. verification results = passed | failed. trigger vocabulary = periodic-review-due | a member of the adverse trigger types. adverse trigger types = sanctions-match | pep-status-change | adverse-media, extended by the deployment. intent = customer-onboarding.initiation-intended | customer-onboarding.verification-intended | customer-onboarding.clearance-intended | customer-onboarding.closure-intended | customer-onboarding.monitoring-triggered | customer-onboarding.recovery-intended. outcome = customer-onboarding.initiated | customer-onboarding.verification-recorded | customer-onboarding.party-suspended | customer-onboarding.trigger-on-suspended-party | customer-onboarding.trigger-voided | customer-onboarding.retention-renewed | customer-onboarding.review-cleared | customer-onboarding.party-reinstated | customer-onboarding.party-closed. enrollment_path = direct | external-onboarding.
 
-Term terms: composition, constituents, party retention instance, service identity, direct path, external path, case-to-monitoring index, party-to-case index, case-to-retentions index, case-to-open-triggers index, index, current placement, post closure placement, audit horizon, aged-out event, rebuild, miss, unrebuildable entry, binding-bearing payload, schedule-bearing payload, placement-bearing payload, landed record, owed record, seam, transition, monitoring interval, scheduler tolerance, renewal floor, binding floor, closure floor, onboarding completion bound, active relationship policy, post closure policy, post closure minimum, adverse trigger types, periodic trigger type, trigger set cap, field cap, blank, boundary predicate, opaque input, actor reference, trigger vocabulary, verification results, truncation marker, set digest, intent, outcome, committing call, landed intent, open marker, outcome traversal, yielded invocation, recovery marker, recovery outcome, party state, admissible states, suspendable states, unanswered read, admitted initiation, admitted verification, admitted trigger, admitted clearance, admitted closure, transitioning verification, adverse trigger, periodic trigger, suspending trigger, renewing trigger, completing closure, committing closure, composed suspend reason, closed triggers, open triggers at close, scoped retry, prior placement, renewed placement, regulated activity, reconciliation, young marker, elapsed placement, quiescent case, quiescent verified party, quiescent suspended party, quiescent closed case, continuous chain, unelapsed placement, post closure floor, clearance window, surfaced orphan, clearing actor, `placement's cover`, trigger outcome, orphan, indeterminate committing call, enrollment failure, position, intended_at, intent_event_id, opened_at, triggered_at, suspended_at, renewed_at, cleared_at, reinstated_at, closed_at, active flag, active case.
+Term terms: composition, constituents, party retention instance, service identity, direct path, external path, case-to-monitoring index, party-to-case index, case-to-retentions index, case-to-open-triggers index, index, current placement, post closure placement, audit horizon, aged-out event, rebuild, miss, unrebuildable entry, binding-bearing payload, schedule-bearing payload, placement-bearing payload, landed record, owed record, seam, transition, monitoring interval, scheduler tolerance, renewal floor, binding floor, closure floor, onboarding completion bound, active relationship policy, post closure policy, post closure minimum, adverse trigger types, periodic trigger type, trigger set cap, field cap, blank, boundary predicate, opaque input, actor reference, trigger vocabulary, verification results, truncation marker, set digest, intent, outcome, committing call, landed intent, open marker, outcome traversal, yielded invocation, recovery marker, recovery outcome, party state, admissible states, suspendable states, unanswered read, admitted initiation, admitted verification, admitted trigger, admitted clearance, admitted closure, transitioning verification, adverse trigger, periodic trigger, suspending trigger, renewing trigger, completing closure, committing closure, composed suspend reason, closed triggers, open triggers at close, scoped retry, prior placement, renewed placement, regulated activity, reconciliation, young marker, elapsed placement, quiescent case, quiescent verified party, quiescent suspended party, quiescent closed case, continuous chain, unelapsed placement, post closure floor, clearance window, surfaced orphan, clearing actor, `placement's cover`, trigger outcome, orphan, indeterminate committing call, enrollment failure, position, intended_at, intent_event_id, opened_at, triggered at, suspended_at, renewed at, cleared at, reinstated_at, closed at, active flag, active case.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Step 1 failure in `execution-contract.md` — the name an unanswered constituent read takes. The section titled Structural-relation invariant templates in `spec-format.md` — referential integrity.
 
