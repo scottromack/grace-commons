@@ -37,7 +37,7 @@ Identity 4: The atom MUST NOT reuse a hold id.
 Identity 5: The atom MUST NOT reassign a hold id.
 Identity 6: A hold id MUST sort in lexicographic byte order.
 Identity 7: The atom MUST NOT identify a hold by the record ref.
-Identity 8: Two holds over one record MUST carry two hold_ids.
+Identity 8: Two holds over one record MUST carry two hold ids.
 ```
 
 Term hold: one recorded preservation obligation over one record — the record this atom writes.

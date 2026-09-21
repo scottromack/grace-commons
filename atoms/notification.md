@@ -36,7 +36,7 @@ Identity 3: The transition MUST NOT allocate a notification id.
 Identity 4: The business caller MUST NOT supply a notification id.
 Identity 5: The atom MUST NOT reuse a notification id.
 Identity 6: The atom MUST NOT identify a notification by the recipient ref with the payload.
-Identity 7: Two notifications carrying one recipient ref and one payload MUST carry two notification_ids.
+Identity 7: Two notifications carrying one recipient ref and one payload MUST carry two notification ids.
 ```
 
 Term notification: one delivery record — one recipient, one payload, one outcome.

@@ -149,7 +149,7 @@ Five elements, each carrying the Contract classification of the section titled C
       findings 10a: The register MUST close the record with last seen at the previous run.
   findings 11: The register MUST open a new record for a recurrence.
   findings 12: The register MUST hold one record per standing condition.
-  findings 13: A reader MUST NOT rely on an order across act_keys.
+  findings 13: A reader MUST NOT rely on an order across act keys.
   ```
   Term act finding: {finding, kind, act_key, invocation_id, first_seen, run_id}; deduplicates on (invocation id, finding); carries no last seen and no span.
 

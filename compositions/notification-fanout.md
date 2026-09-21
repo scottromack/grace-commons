@@ -205,7 +205,7 @@ Invariant 1 through 5 and Invariant 8 emerge from the composition; neither const
   ```
 - **Invariant 4 — At most one notification per subscriber per fanout.**
   ```
-  Invariant 4.1: An admitted fanout MUST NOT record two notification_ids for one subscriber ref.
+  Invariant 4.1: An admitted fanout MUST NOT record two notification ids for one subscriber ref.
   Invariant 4.2: The composition MUST NOT claim a record the composition did not observe.
   ```
   WHY: Invariant 4.2 is the scope and it is deliberate. An indeterminate create may have committed a record whose id never came back, nothing in [Notification](../atoms/notification.md)'s declared surface lets anyone find it afterwards, and a retry can therefore produce a second record. That residual is the caller's (Indeterminate outcome 4) and is not a breach of an invariant that never claimed to see the unseen.
@@ -306,7 +306,7 @@ Check 1.6: An auditor MUST read a count mismatch outside the boundary window as 
 Check 2.1: An auditor MUST find EVERY notification record of one fanout carrying one payload (Invariant 2.1).
 Check 3.1: An auditor MUST find EVERY notification record of a fanout carrying the record's own status (Invariant 3.2).
 Check 3.2: An auditor MUST find no notification record of a fanout referencing another notification record (Invariant 3.3).
-Check 4.1: An auditor MUST find no two notification_ids of one fanout naming one subscriber ref (Invariant 4.1).
+Check 4.1: An auditor MUST find no two notification ids of one fanout naming one subscriber ref (Invariant 4.1).
 Check 5.1: An auditor MUST find no subscription record written by the composition (Invariant 5.1).
 ```
 

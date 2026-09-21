@@ -315,7 +315,7 @@ Half a cancel breaks Invariant 2.1 or Invariant 9.1 while every field looks indi
 
 ```
 Cancel capability 1: A caller holding the subscription id MUST reach [Cancel].
-Cancel capability 2: The atom MUST NOT enumerate subscription_ids.
+Cancel capability 2: The atom MUST NOT enumerate subscription ids.
 Cancel capability 3: A deployment needing richer authorization MUST compose Permissions.
 ```
 
@@ -326,7 +326,7 @@ Knowing the id is the whole authorization, which is honest only because the id i
 
 ```
 Lost ledger 1: The atom MUST NOT recover a subscription id.
-Lost ledger 2: A composing pattern MUST own the durability of the subscription_ids the pattern recorded.
+Lost ledger 2: A composing pattern MUST own the durability of the subscription ids the pattern recorded.
 Lost ledger 3: A deployment losing a subscription id MUST read the subscription as permanently active.
 Lost ledger 4: A deployment needing recovery from a lost subscription id MUST compose an administrative-recovery pattern.
 ```
@@ -351,7 +351,7 @@ Operation 6 reads the active set and [Subscribe] then writes; two concurrent cal
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Composition note 2: A composing pattern MUST call [Subscribers For] when an event fires.
 Composition note 3: A composing pattern MUST record the subscription id at subscribe time.
-Composition note 3a: A composing pattern MUST own the durability of the subscription_ids the pattern recorded.
+Composition note 3a: A composing pattern MUST own the durability of the subscription ids the pattern recorded.
 Composition note 3b: A composing pattern losing a subscription id MUST read the subscription as uncancellable.
 Composition note 4: A composing pattern MUST own the subscriber's deprovisioning cascade.
 Composition note 5: A composing pattern MUST own scope semantics beyond exact match.

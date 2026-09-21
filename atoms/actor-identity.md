@@ -38,7 +38,7 @@ Identity 5: The atom MUST NOT reuse an attestation id.
 Identity 6: The atom MUST NOT identify an attestation by the action ref.
 Identity 7: The atom MUST NOT identify an attestation by the actor ref.
 Identity 8: The atom MUST NOT identify an attestation by attested at.
-Identity 9: Two attestations over one action by one actor MUST carry two attestation_ids.
+Identity 9: Two attestations over one action by one actor MUST carry two attestation ids.
 ```
 
 Term attestation: one recorded binding of an actor to an action — an [Attestation].

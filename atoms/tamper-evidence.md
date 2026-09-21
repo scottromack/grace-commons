@@ -37,7 +37,7 @@ Identity 4: The business caller MUST NOT supply an evidence id.
 Identity 5: The atom MUST NOT reuse an evidence id.
 Identity 6: The atom MUST NOT identify evidence by the record set ref.
 Identity 7: The atom MUST NOT identify evidence by sealed at.
-Identity 8: Two seals over one record set MUST carry two evidence_ids.
+Identity 8: Two seals over one record set MUST carry two evidence ids.
 ```
 
 Term evidence: one recorded commitment over a record set — an [Evidence]; carries the proof and nothing that changes.

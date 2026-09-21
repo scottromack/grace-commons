@@ -38,7 +38,7 @@ Identity 5: The atom MUST NOT reuse a retention id.
 Identity 6: The atom MUST NOT identify a retention by the record ref.
 Identity 7: The atom MUST NOT identify a retention by the policy ref.
 Identity 8: The atom MUST NOT identify a retention by retained at.
-Identity 9: Two retentions over one record MUST carry two retention_ids.
+Identity 9: Two retentions over one record MUST carry two retention ids.
 ```
 
 Term retention: one recorded obligation over one record under one policy — a [Retention Window] instance's record.

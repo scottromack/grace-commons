@@ -36,7 +36,7 @@ Identity 3: The transition MUST NOT allocate an event id.
 Identity 4: The business caller MUST NOT supply an event id.
 Identity 5: The atom MUST NOT reuse an event id.
 Identity 6: The atom MUST NOT reassign an event id.
-Identity 7: The atom MUST compare event_ids by equality.
+Identity 7: The atom MUST compare event ids by equality.
 Identity 8: The atom MUST NOT order events by event id.
 Identity 9: The atom MUST NOT identify an event by the event's data.
 Identity 10: A composing pattern MUST own how many log instances a deployment runs.
@@ -241,7 +241,7 @@ Check 1.2: An auditor MUST find a re-read event's EVERY event field unchanged (I
 Check 2.1: An auditor MUST find no two landed events sharing a sequence number (Invariant 3.1).
 Check 2.2: An auditor MUST find no two events sharing an event id (Invariant 6.1).
 Check 2.3: An auditor MUST find a landed event's sequence number above EVERY sequence number an earlier landed event carries (Invariant 4.1).
-Check 2.4: An auditor MUST read a gap in the sequence_numbers as an event that did not land (Sequence gap 3).
+Check 2.4: An auditor MUST read a gap in the sequence numbers as an event that did not land (Sequence gap 3).
 Check 3.1: An auditor MUST find a read answering the events by sequence number, rising (Invariant 5.2).
 Check 3.2: An auditor MUST find two reads of one query answering alike (Invariant 5.1).
 Check 3.3: An auditor MUST find a read answering an empty sequence for a well-formed query matching nothing (Operation 16).

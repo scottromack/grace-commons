@@ -39,7 +39,7 @@ Identity 4: The business caller MUST NOT supply an assignment id.
 Identity 5: The atom MUST NOT reuse an assignment id.
 Identity 6: The atom MUST NOT identify an assignment by the task ref.
 Identity 7: The atom MUST NOT identify an assignment by the task ref with the assignee ref.
-Identity 8: Two assignments over one task MUST carry two assignment_ids.
+Identity 8: Two assignments over one task MUST carry two assignment ids.
 ```
 
 Term assignment: one binding of a unit of work to a responsible actor — an [Assignment].

@@ -300,7 +300,7 @@ Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inh
 - **Invariant 6 — History total order.**
   ```
   Invariant 6.1: Two history entries in one workflow MUST NOT share a sequence number.
-  Invariant 6.2: A workflow's sequence_numbers MUST stand from one to the workflow's history entry count.
+  Invariant 6.2: A workflow's sequence numbers MUST stand from one to the workflow's history entry count.
   Invariant 6.3: A workflow's history order MUST rest on sequence number alone.
   ```
 - **Invariant 7 — Replay determinism.**
@@ -426,7 +426,7 @@ Check 2.2: An auditor MUST find no two declared transitions in one declaration s
 Check 3.1: An auditor MUST find EVERY workflow whose current state EQUALS EXACTLY ONE member of the workflow's states (Invariant 2.1).
 Check 4.1: An auditor MUST find a workflow whose current state IS IN the terminal states carrying no history entry following the entry that reached the terminal state (Invariant 4.1).
 Check 4.2: An auditor MUST find no declared transition whose from state IS IN the terminal states (Invariant 4.2).
-Check 5.1: An auditor MUST find a workflow's sequence_numbers standing from one to the workflow's history entry count (Invariant 6.2).
+Check 5.1: An auditor MUST find a workflow's sequence numbers standing from one to the workflow's history entry count (Invariant 6.2).
 Check 5.2: An auditor MUST reconstruct a workflow's history order from sequence number alone (Invariant 6.3).
 Check 5.3: An auditor MUST find a re-read history entry's fields unchanged from the prior read (Invariant 5.2).
 Check 6.1: An auditor MUST reach the workflow's current state by replaying the workflow's history from the initial state (Invariant 7.3).

@@ -308,7 +308,7 @@ archived and already-archived are two answers to one state because they tell a r
 - **Invariant 5 — Dense total order within a chain.**
   ```
   Invariant 5.1: Two entries in one chain MUST NOT share a sequence number.
-  Invariant 5.2: A chain's sequence_numbers MUST stand from one to the chain's entry count.
+  Invariant 5.2: A chain's sequence numbers MUST stand from one to the chain's entry count.
   Invariant 5.3: A chain's order MUST rest on sequence number alone.
   ```
 - **Invariant 6 — Archived is terminal and absorbing.**
@@ -396,7 +396,7 @@ Check 2.2: An auditor MUST find EVERY genesis entry standing at sequence number 
 Check 3.1: An auditor MUST replay a chain in sequence number ascending order against a current custodian cursor (Invariant 4.1).
 Check 3.2: An auditor MUST find EVERY transferred entry's from custodian ref equal to the cursor the replay carried in (Invariant 4.3).
 Check 3.3: An auditor MUST find EVERY custodian-guarded entry's custodian ref equal to the cursor at that entry (Invariant 4.2).
-Check 4.1: An auditor MUST find a chain's sequence_numbers standing from one to the chain's entry count (Invariant 5.2).
+Check 4.1: An auditor MUST find a chain's sequence numbers standing from one to the chain's entry count (Invariant 5.2).
 Check 4.2: An auditor MUST reconstruct a chain's order from sequence number alone (Invariant 5.3).
 Check 5.1: An auditor MUST find no entry in an archived chain following the archived entry's sequence number (Invariant 6.2).
 Check 6.1: An auditor MUST find a re-read entry's fields unchanged from the prior read (Invariant 1.1).
