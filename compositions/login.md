@@ -485,7 +485,7 @@ Term record verbs: call, answer, read, write, append, store, key, hold, remove, 
 
 Term actors: the composition; the constituents; the substrate; the host; the transition; a deployment; an auditor; a caller; a principal; the sweep; a session; a credential; an event.
 
-Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Substrate composition invocation in `execution-contract.md` — what naming a composition as a constituent means at runtime. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Substrate composition invocation in `execution-contract.md` — what naming a composition as a constituent means at runtime. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition. record_action: Audit Trail.
 
 #### Revoke Sessions For Credential
 

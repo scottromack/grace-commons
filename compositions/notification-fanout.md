@@ -427,7 +427,7 @@ Term record verbs: call, answer, take, read, write, record, validate, compare, n
 Term actors: the composition; the constituents; the host; the transition; a deployment; an auditor; a caller; a subscriber; a notification record; a subscription record.
 
 
-Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the no-stored-state classification and the record-coordination rule. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the no-stored-state classification and the record-coordination rule. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition. pending_for: Notification.
 
 #### Fanout
 
