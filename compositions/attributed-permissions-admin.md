@@ -68,7 +68,7 @@ Composes 18: The composition MUST NOT record an administrative act carrying no a
 Composes 19: The composition MUST NOT claim coverage of a write made outside the composition's surface.
 Composes 20: The composition MUST enumerate an attestation through Actor Identity's declared enumeration.
 Composes 21: The composition MUST filter an enumerated attestation in the composition's own code.
-Composes 22: The composition MUST NOT query Actor Identity by an action_ref.
+Composes 22: The composition MUST NOT query Actor Identity by an action ref.
 Composes 23: The composition MUST mint one attestation PER administered grant.
 Composes 24: The composition MUST NOT share one attestation across two administered grants.
 ```
@@ -254,7 +254,7 @@ Primitive policy 17: The composition MUST NOT query Permissions BEFORE a revocat
 
 Term boundary predicate: the composition's own validation of an input at an action's boundary, judged before any constituent call.
 
-Term opaque input: subject_ref | action_scope | grantor_ref | grantor_credential | grant_id | revoker_ref | revoker_credential.
+Term opaque input: subject ref | action scope | grantor_ref | grantor_credential | grant id | revoker_ref | revoker_credential.
 
 Term administered opaque input: an opaque input an administrative action carries — as against one the evaluation passthrough relays.
 
@@ -312,15 +312,15 @@ permitted(subject_ref, action_scope)
   answers permitted | denied
 ```
 
-Term grant issuance result: grant_id and attestation_id — what issue_grant answers.
+Term grant issuance result: grant id and attestation id — what issue_grant answers.
 
-Term grant revocation result: ok and attestation_id — what revoke_grant answers.
+Term grant revocation result: ok and attestation id — what revoke_grant answers.
 
 Term permission revocation result: ok, revoked_grant_ids and attestation_ids — what revoke_permission answers.
 
 Term attribution record: grant_record, issuance_attestation_id, issuance_verify_result, an optional revocation_attestation_id and an optional revocation_verify_result — what verify_grant_attribution answers.
 
-Term issuance orphan position: pre-grant | `post-grant(grant_id)` — where an issuance attestation was left without its grant: before the grant, or after it carrying the grant_id.
+Term issuance orphan position: pre-grant | `post-grant(grant_id)` — where an issuance attestation was left without its grant: before the grant, or after it carrying the grant id.
 
 Term revocation orphan position: pre-revoke | post-revoke — where a revocation attestation was left without its revocation: before it or after it.
 
@@ -380,9 +380,9 @@ Action wiring 52: A caller MUST NOT read a revoked count as the terminal conditi
 Action wiring 53: The composition MUST NOT claim an atomicity across the enumerated set.
 Action wiring 54: A post-enumeration grant MUST stand outside the invocation.
 Action wiring 55: The composition MUST read the grant through Permissions' declared read at [Verify Grant Attribution].
-Action wiring 56: IF no grant EXISTS for the grant_id THEN [Verify Grant Attribution] MUST answer not-known.
+Action wiring 56: IF no grant EXISTS for the grant id THEN [Verify Grant Attribution] MUST answer not-known.
 Action wiring 57: The composition MUST read the grant attribution entry at [Verify Grant Attribution].
-Action wiring 58: IF no grant attribution entry EXISTS for the grant_id THEN [Verify Grant Attribution] MUST answer attribution-inconsistency.
+Action wiring 58: IF no grant attribution entry EXISTS for the grant id THEN [Verify Grant Attribution] MUST answer attribution-inconsistency.
 Action wiring 59: [Verify Grant Attribution] MUST read the revocation attribution entry ONLY IF the grant's status EQUALS revoked.
 Action wiring 60: IF no revocation attribution entry EXISTS for a revoked grant THEN [Verify Grant Attribution] MUST answer attribution-inconsistency.
 Action wiring 61: The composition MUST call Actor Identity's verify PER named attestation at [Verify Grant Attribution].

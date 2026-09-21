@@ -80,18 +80,18 @@ The composition's one state is the derived state the replay builds from the log,
 #### Replay
 
 ```
-Replay 1: The replay MUST read EVERY event of the event log instance in sequence_number order.
+Replay 1: The replay MUST read EVERY event of the event log instance in sequence number order.
 Replay 2: The replay MUST build the undone set from EVERY undo event.
 Replay 3: The replay MUST skip an undo event.
-Replay 4: The replay MUST skip an event whose event_id IS IN the undone set.
+Replay 4: The replay MUST skip an event whose event id IS IN the undone set.
 Replay 5: The replay MUST apply a surviving event to the derived state under construction.
 Replay 6: The replay MUST introduce a unit at the add event's id in pending.
-Replay 7: The replay MUST record the add event's recorded_at as the unit's added_at.
+Replay 7: The replay MUST record the add event's recorded at as the unit's added at.
 Replay 8: The replay MUST record the add event's description on the unit.
 Replay 9: The replay MUST replace the unit's description with the edit event's new description.
-Replay 10: The replay MUST record the edit event's recorded_at as the unit's last_edited_at.
+Replay 10: The replay MUST record the edit event's recorded at as the unit's last edited at.
 Replay 11: The replay MUST move the unit at the complete event's id to done.
-Replay 12: The replay MUST record the complete event's recorded_at as the unit's completed_at.
+Replay 12: The replay MUST record the complete event's recorded at as the unit's completed at.
 Replay 13: The replay MUST remove the unit at the delete event's id from the derived state.
 Replay 14: The replay MUST produce one derived state PER event log instance.
 Replay 15: The implementation MAY materialize the derived state.
@@ -101,7 +101,7 @@ Replay 17: An auditor MUST NOT read a materialized derived state in preference t
 
 Term replay: the named rebuild procedure Replay 1 through 13 state — the composition's only route from the event log instance to the derived state.
 
-Term surviving event: a forward event whose event_id IS NOT IN the undone set.
+Term surviving event: a forward event whose event id IS NOT IN the undone set.
 
 WHY:
 Replay 5 rests on something worth stating: a surviving event was recorded only because its action succeeded, so Personal Todo's preconditions held when it was written and hold again at every replay step. The replay never has to validate — it is re-running a history that was valid when it happened. Event Log Invariant 5 is what bounds the replay to exactly that set.
@@ -153,7 +153,7 @@ Action wiring 13: A no-op edit MUST NOT change the derived state.
 Action wiring 14: A no-op edit MUST answer ok.
 Action wiring 15: An admitted undo MUST target the undo target.
 Action wiring 16: IF no undo target EXISTS THEN [Undo] MUST answer nothing-to-undo.
-Action wiring 17: An admitted undo MUST append an undo event naming the undo target's event_id.
+Action wiring 17: An admitted undo MUST append an undo event naming the undo target's event id.
 Action wiring 18: An admitted undo MUST answer the undo target's event type.
 Action wiring 19: [Undo] MUST NOT target an undo event.
 Action wiring 20: [Read History] MUST answer Event Log's read for the query.
@@ -166,7 +166,7 @@ Term no-op edit: an [Edit] whose normalized new description equals the unit's cu
 
 Term undone set: the undone event id of every undo event in the event log instance.
 
-Term undo target: the most recent forward event whose event_id IS NOT IN the undone set.
+Term undo target: the most recent forward event whose event id IS NOT IN the undone set.
 
 Term admitted add: an [Add] call whose preconditions pass and whose append commits.
 
@@ -218,7 +218,7 @@ The result: Invariant 6.1 falls out of the replay rather than being designed in 
 
 ```
 Event schema 1: The composition MUST append an event carrying EXACTLY ONE OF the five schemas.
-Event schema 2: Event Log MUST assign event_id and recorded_at at the log's own seam.
+Event schema 2: Event Log MUST assign event id and recorded at at the log's own seam.
 Event schema 3: The composition MUST NOT change an appended event.
 Event schema 4: An admitted delete MUST record the unit's snapshot on the delete event.
 Event schema 5: An admitted edit MUST record the unit's prior description on the edit event.
@@ -273,7 +273,7 @@ Each of these emerges from the composition. None belongs to a single constituent
   Invariant 5.2: The composition MUST NOT remove an event.
   Invariant 5.3: The composition MUST NOT rewrite an event.
   ```
-  WHY: [Event Log](../atoms/event-log.md)'s `Composition note 5` obliges a composing pattern to cite its invariants by number, because `Composition note 4` freezes those numbers against the citations. This composition rests on six of the seven, each named in the qualified form because this spec carries an Invariant 1 through 7 of its own, so the unqualified form is wrong for every one of the six: Event Log Invariant 1 (append-only) and Event Log Invariant 2 (event immutability), which Invariant 5.2 and Invariant 5.3 mirror from this side; Event Log Invariant 3 (total order) and Event Log Invariant 4 (sequence-number monotonicity), without which Replay 1's *in sequence_number order* names nothing; Event Log Invariant 5 (read consistency), which bounds the replay's input to exactly the landed events; and Event Log Invariant 6 (no id reuse), which is what lets an undone event id name one event for the life of the log (Invariant 3.1, Check 3.3). It does not rest on Event Log Invariant 7: recorded_at is an annotation this composition never orders by.
+  WHY: [Event Log](../atoms/event-log.md)'s `Composition note 5` obliges a composing pattern to cite its invariants by number, because `Composition note 4` freezes those numbers against the citations. This composition rests on six of the seven, each named in the qualified form because this spec carries an Invariant 1 through 7 of its own, so the unqualified form is wrong for every one of the six: Event Log Invariant 1 (append-only) and Event Log Invariant 2 (event immutability), which Invariant 5.2 and Invariant 5.3 mirror from this side; Event Log Invariant 3 (total order) and Event Log Invariant 4 (sequence-number monotonicity), without which Replay 1's *in sequence number order* names nothing; Event Log Invariant 5 (read consistency), which bounds the replay's input to exactly the landed events; and Event Log Invariant 6 (no id reuse), which is what lets an undone event id name one event for the life of the log (Invariant 3.1, Check 3.3). It does not rest on Event Log Invariant 7: recorded at is an annotation this composition never orders by.
 - **Invariant 6 — Identity is preserved across a delete and its undo.**
   ```
   Invariant 6.1: An undone delete's unit MUST carry the unit's original id, instants and Personal Todo state.
@@ -381,7 +381,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the composition; the deployment; the implementation; the seam; a caller; a user; an auditor; a reader; the replay; an event; a forward event; an undo event; a surviving event; a unit; an action; a forward action; a refused action; an admitted action; a no-op edit; the derived state; the event log instance; the undone set; the undo target; a snapshot; a query.
 
-Term records: event — one appended record in the event log instance, carrying event_id, recorded_at, a type and the type's own fields.
+Term records: event — one appended record in the event log instance, carrying event id, recorded at, a type and the type's own fields.
 
 Term record verbs: serve, derive, store, call, change, replace, append, assign, read, skip, apply, introduce, remove, move, record, answer, validate, refuse, recompute, capture, restore, preserve, hold, carry, stand, commit, leave, name, mirror, bound, compose, wire, decide, define, guarantee, confirm, reach, walk, target, generate, materialize, rebuild, equal, follow, reverse, surface, claim, build, produce, rewrite, find, run, reconstruct, offer, undo, reapply.
 
@@ -473,7 +473,7 @@ Projection: no_op_edit
 
 #### Undone Event Id
 
-The event_id an undo event names — the [Undo Target] it took back. Every one of these forms the [Undone Set].
+The event id an undo event names — the [Undo Target] it took back. Every one of these forms the [Undone Set].
 
 Kind:       Field
 Field of:   the undo event
@@ -496,7 +496,7 @@ Projection: undone_set
 
 #### Undo Target
 
-The most recent forward event whose event_id is not in the [Undone Set]. What an [Undo] takes back, and what [Nothing To Undo] says does not exist.
+The most recent forward event whose event id is not in the [Undone Set]. What an [Undo] takes back, and what [Nothing To Undo] says does not exist.
 
 Kind: Type
 Projection: undo_target

@@ -1264,6 +1264,42 @@ def check_wire_spelling_synthetic(problems: list[str]) -> int:
     return n
 
 
+def check_borrowed_names_synthetic(problems: list[str]) -> int:
+    """A borrowed name's words are the name's too (council read 139): a name a
+    constituent declares, and a name on this page's `Term cited:` line, are no
+    more watch words than a local one. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.60 (2026-09-18).\n\n"
+            "Term record verbs: read.\n\n")
+    owner = ("Term qualifiers: migrated — rewritten in GRACE lang v0.60 (2026-09-18).\n\n"
+             "Term record verbs: read.\n\n"
+             "Term retention until: the instant the retention ends.\n\n")
+    def run(extra: str, rule: str):
+        with tempfile.TemporaryDirectory() as d:
+            a = Path(d) / "atoms"; a.mkdir()
+            (a / "owner.md").write_text(owner, encoding="utf-8")
+            f = a / "synthetic.md"
+            f.write_text(head + extra + "## Structure\n\n```\n" + rule + "\n```\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == "W-watch-word"]
+    rule = "Operation 1: A reader MUST read the retention until."
+    cases = [
+        ("a constituent's name", "Term constituents: [Owner](./owner.md).\n\n", rule, False),
+        ("a cited name", "Term cited: retention until: Owner.\n\n", rule, False),
+        ("no declaration anywhere", "", rule, True),
+        ("a bare watch word", "Term constituents: [Owner](./owner.md).\n\n",
+         "Operation 1: A reader MUST read the record until the sweep runs.", True),
+    ]
+    n = 0
+    for why, extra, r, should_fire in cases:
+        if bool(run(extra, r)) == should_fire:
+            n += 1
+        else:
+            problems.append(f"W-watch-word: {why} {'did not fire' if should_fire else 'fired'}")
+    return n
+
+
 def check_two_obligations_synthetic(problems: list[str]) -> int:
     """W-two-obligations (tools/grace/check.py): a second declared record verb
     after *and* fires, and a declared name whose first word is a verb does not
@@ -2047,6 +2083,14 @@ def main(argv: list[str]) -> int:
         print(f"D-wire-spelling: {n_wire} synthetic fixtures hold (an English name in a signature "
               "and in a record shape fire; the wire spelling in both, a Ledger row and a rule block "
               "stay silent) \u2713")
+
+    borrowed_problems: list[str] = []
+    n_borrowed = check_borrowed_names_synthetic(borrowed_problems)
+    failures.extend(borrowed_problems)
+    if not borrowed_problems:
+        print(f"borrowed names in check.py: {n_borrowed} synthetic fixtures hold (a constituent's "
+              "name and a cited name are no watch words; the same words undeclared, and a bare watch "
+              "word, still fire) \u2713")
 
     two_ob_problems: list[str] = []
     n_two = check_two_obligations_synthetic(two_ob_problems)

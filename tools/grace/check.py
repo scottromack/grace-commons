@@ -470,6 +470,33 @@ def declared_names(text: str) -> set[str]:
             names.update(x.strip() for x in re.split(r",|;| and ", body.split(" — ")[0].rstrip(".")))
     return {n for n in names if _NAME_SHAPE.fullmatch(n)}
 
+def borrowed_names(path: Path, text: str) -> set[str]:
+    """The names this specification uses and another declares — the sixth time
+    the corpus has taught one reader that a declared name's words are the name's
+    (council read 139), and the first where the declaration is elsewhere.
+
+    Two paths make a borrowed name legitimate, and both are read here: the
+    `Term cited:` line, whose run form closes each list with its owner
+    (Closed vocabulary 16), and the specifications named on `Term constituents:`,
+    read one level — a constituent's own constituents reach through its cited
+    line rather than through this one."""
+    names: set[str] = set()
+    m = re.search(r"^Term cited:(.*)$", text, re.M)
+    if m:
+        body = CODE_SPAN.sub(" ", m.group(1))
+        for run in re.split(r":\s*[A-Z][\w ]*?\.(?=\s|$)", body):
+            names.update(x.strip() for x in re.split(r",|;| and ", run) if x.strip())
+    m = re.search(r"^Term constituents:(.*)$", text, re.M)
+    if m:
+        for link in re.findall(r"\]\(([^)]+\.md)", m.group(1)):
+            other = (path.parent / link).resolve()
+            try:
+                names |= declared_names(other.read_text(encoding="utf-8"))
+            except OSError:
+                continue
+    return {n for n in names if _NAME_SHAPE.fullmatch(n)}
+
+
 def scan(path: Path) -> list[Finding]:
     text = path.read_text(encoding="utf-8")
     blank_guarded = set(BLANK_GUARD.findall(text))
@@ -741,7 +768,8 @@ def scan(path: Path) -> list[Finding]:
     verbs = declared_verbs(text)
     # a declared name's own words are not verbs: *and hold reason* names a term,
     # not a second obligation (council read 135)
-    multiword = sorted((n for n in declared_names(text) if " " in n), key=len, reverse=True)
+    multiword = sorted((n for n in (declared_names(text) | borrowed_names(path, text)) if " " in n),
+                       key=len, reverse=True)
     link_lines = set(LINK_LINE.findall(text))
     for r in rules:
         body = CODE_SPAN.sub("QUOTED", r.text)  # a code span quotes text; never the rule's own tokens

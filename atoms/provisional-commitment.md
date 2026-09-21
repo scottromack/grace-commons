@@ -416,7 +416,7 @@ Non-goal 22: The atom MUST NOT offer a multi-commitment transaction.
 Non-goal 23: The atom MUST NOT surface a rejection to an audit trail.
 Non-goal 24: The atom MUST NOT hold a resource fungible below the commitment's grain.
 Non-goal 25: The atom MUST NOT guarantee that a lapsed commitment resolves.
-Non-goal 26: A deployment needing two racing transitions ordered MUST read the composing Event Log sequence_number.
+Non-goal 26: A deployment needing two racing transitions ordered MUST read the composing Event Log sequence number.
 ```
 
 WHY:
@@ -518,7 +518,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: commitment, id, property, reference, registry, store instance, seam, transition, now, resolving action, well-formedness check, duration bounds, window bound, window reading, open, lapsed, window rejection, terminal state, terminal instant, admitted place hold, admitted confirm, admitted release, admitted expire, admitted resolving action, releasing action, string input, blank, reclamation lag, capacity decision, degenerate window, late resolution, premature expiry, re-hold.
 
-Term cited: sequence_number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
+Term cited: sequence number: Event Log. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
 Term composing pattern: [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [Actor Identity](./actor-identity.md), [Permissions](./permissions.md), a capacity constraint pattern, a reversal pattern.
 

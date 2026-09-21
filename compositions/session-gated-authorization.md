@@ -59,7 +59,7 @@ Term constituents: [Session](../atoms/session.md), [Permissions](../atoms/permis
 WHY:
 Composes 5 is the enclosure the other rules rest on. A deployment that exposes `Session.validate` or `Permissions.permitted` beside [Check Permitted] gives a caller a route to the permission store that never passes the gate, and every guarantee below is a guarantee about the route through [Check Permitted] alone. Non-goal 9 states what a deployment owes when it exposes both anyway.
 
-Composes 6 and Composes 7 name the two constituent obligations this composition exists to discharge, and they are not the same kind of obligation. [Permissions](../atoms/permissions.md)'s `Composition note 3` **assigns** ownership — *a composing pattern MUST own the binding between the authenticated caller and the subject_ref* — and Invariant 2 is this composition owning it, which is what a composition note is for. [Session](../atoms/session.md)'s `Composition note 4` **states the rule itself** — *IF Validate gives an invalid answer THEN a composing pattern MUST NOT call Permissions* — and Session's own WHY names this composition as the pattern that carries it. So the gate as stated is Session's and is cited here rather than restated (Authority 5, Authority 6); what this composition adds over it is the closure Invariant 1.1 carries — Permissions unreachable unless a validate answered at all, which Session never says. Atoms may bind compositions; a composition cites what the composition inherits and owns what the composition adds (the section titled Decisions, council read 53).
+Composes 6 and Composes 7 name the two constituent obligations this composition exists to discharge, and they are not the same kind of obligation. [Permissions](../atoms/permissions.md)'s `Composition note 3` **assigns** ownership — *a composing pattern MUST own the binding between the authenticated caller and the subject ref* — and Invariant 2 is this composition owning it, which is what a composition note is for. [Session](../atoms/session.md)'s `Composition note 4` **states the rule itself** — *IF Validate gives an invalid answer THEN a composing pattern MUST NOT call Permissions* — and Session's own WHY names this composition as the pattern that carries it. So the gate as stated is Session's and is cited here rather than restated (Authority 5, Authority 6); what this composition adds over it is the closure Invariant 1.1 carries — Permissions unreachable unless a validate answered at all, which Session never says. Atoms may bind compositions; a composition cites what the composition inherits and owns what the composition adds (the section titled Decisions, council read 53).
 
 ---
 
@@ -81,8 +81,8 @@ The contract classification is *conforming, no stored composition state* (the se
 
 ```
 Primitive policy 1: A deployment MUST pin the length bound.
-Primitive policy 2: [Check Permitted] MUST answer invalid-request for a blank session_token.
-Primitive policy 3: [Check Permitted] MUST answer invalid-request for a blank action_scope.
+Primitive policy 2: [Check Permitted] MUST answer invalid-request for a blank session token.
+Primitive policy 3: [Check Permitted] MUST answer invalid-request for a blank action scope.
 Primitive policy 4: [Check Permitted] MUST answer invalid-request for an input EXCEEDS the length bound.
 Primitive policy 5: The composition MUST compare an input byte-exact.
 Primitive policy 6: [Check Permitted] MUST NOT trim an input.
@@ -92,7 +92,7 @@ Primitive policy 9: [Check Permitted] MUST NOT call a constituent for an input t
 ```
 
 WHY:
-invalid-request is composition-introduced: neither wired constituent operation declares it, and Primitive policy 9 is why neither is consulted when it fires. That matters for a reason the outcome set makes plain — [Permissions](../atoms/permissions.md) answers an empty `subject_ref` or action_scope with denied under its own default-deny posture, so a composition that let a malformed argument through would report *the answer is no* where the truth is *the request was not well-formed enough to ask*. Primitive policy 2 through 4 keep the three outcome classes distinct, which is Invariant 3's discipline applied to inputs rather than to answers.
+invalid-request is composition-introduced: neither wired constituent operation declares it, and Primitive policy 9 is why neither is consulted when it fires. That matters for a reason the outcome set makes plain — [Permissions](../atoms/permissions.md) answers an empty `subject_ref` or action scope with denied under its own default-deny posture, so a composition that let a malformed argument through would report *the answer is no* where the truth is *the request was not well-formed enough to ask*. Primitive policy 2 through 4 keep the three outcome classes distinct, which is Invariant 3's discipline applied to inputs rather than to answers.
 
 ### Action wiring
 
@@ -105,16 +105,16 @@ check_permitted(session_token, action_scope)
 ```
 Action wiring 1: The composition MUST validate the inputs against the boundary predicate.
 Action wiring 2: The composition MUST call Session's validate ONLY AFTER the inputs clear the boundary predicate.
-Action wiring 3: The composition MUST call Session's validate with the session_token.
+Action wiring 3: The composition MUST call Session's validate with the session token.
 Deleted: Action wiring 4. Wiring decision 1 owns it.
-Action wiring 5: An admitted gate MUST call Permissions' permitted with the valid answer's principal_ref.
-Action wiring 6: An admitted gate MUST call Permissions' permitted with the action_scope.
-Action wiring 7: [Check Permitted] MUST NOT accept a principal_ref.
-Action wiring 8: [Check Permitted] MUST NOT call Permissions' permitted with a caller-supplied subject_ref.
+Action wiring 5: An admitted gate MUST call Permissions' permitted with the valid answer's principal ref.
+Action wiring 6: An admitted gate MUST call Permissions' permitted with the action scope.
+Action wiring 7: [Check Permitted] MUST NOT accept a principal ref.
+Action wiring 8: [Check Permitted] MUST NOT call Permissions' permitted with a caller-supplied subject ref.
 Action wiring 9: IF Session's validate gives an invalid answer THEN [Check Permitted] MUST answer session-invalid naming the invalid answer's reason.
 Action wiring 10: An admitted gate MUST answer Permissions' permitted answer.
 Action wiring 11: [Check Permitted] MUST NOT change Permissions' permitted answer.
-Action wiring 12: [Check Permitted] MUST NOT answer the valid answer's expires_at.
+Action wiring 12: [Check Permitted] MUST NOT answer the valid answer's expires at.
 Action wiring 13: The composition MUST call Session's validate for EVERY call.
 Action wiring 14: [Check Permitted] MUST NOT read a validate answer a prior call received.
 Action wiring 15: [Check Permitted] MUST NOT write.
@@ -125,7 +125,7 @@ Term boundary predicate: the composition's own input check — an input EQUALS b
 
 Term length bound: the cap a deployment pins for an opaque input — a [Length Bound]; the value is the deployment's, the existence is this composition's contract.
 
-Term valid answer: Session's validate answer carrying a principal_ref and an expires_at.
+Term valid answer: Session's validate answer carrying a principal ref and an expires at.
 
 Term invalid answer: Session's validate answer carrying expired, revoked OR not-known.
 
@@ -155,7 +155,7 @@ The decision the composition exists to make: the session gates the permission ch
 
 - **Invariant 1 — Session gates authorization.**
   ```
-  Invariant 1.1: The composition MUST NOT call Permissions' permitted for a session_token Session's validate gave no valid answer for.
+  Invariant 1.1: The composition MUST NOT call Permissions' permitted for a session token Session's validate gave no valid answer for.
   Deleted: Invariant 1.2. Session Composition note 4 owns it.
   Deleted: Invariant 1.3. Session Composition note 4 owns it.
   Deleted: Invariant 1.4. Session Composition note 4 owns it.
@@ -163,8 +163,8 @@ The decision the composition exists to make: the session gates the permission ch
   WHY: [Session](../atoms/session.md)'s `Composition note 4` already forbids a composing pattern to call Permissions on an invalid answer, and `Composes 7` cites it — so the three deleted rules, which enumerated that prohibition over `expired`, revoked and not-known, restated a rule this spec cites rather than owns (Authority 6). Invariant 1.1 is not that rule. `Composition note 4` fires on an invalid answer *given*; Invariant 1.1 fires on no valid answer *given*, which also covers the call that never asked. The two do not normalize identically (Authority 4), and the gap between them is exactly what this composition adds: Session forbids acting on a bad answer, and the closure forbids acting on no answer at all. A deployment that skipped `validate` entirely would satisfy `Composition note 4` and breach Invariant 1.1.
 - **Invariant 2 — Principal binding.**
   ```
-  Invariant 2.1: EVERY subject_ref Permissions' permitted receives MUST equal the valid answer's principal_ref.
-  Invariant 2.2: The composition MUST NOT query a principal_ref beside the session's own.
+  Invariant 2.1: EVERY subject ref Permissions' permitted receives MUST equal the valid answer's principal ref.
+  Invariant 2.2: The composition MUST NOT query a principal ref beside the session's own.
   ```
   WHY: this one is emergent in the sense the summary claims, and [Permissions](../atoms/permissions.md)'s `Composition note 3` is why — the atom assigns the binding to a composing pattern and declines to own it, so the rule exists here because no atom holds it. That is the shape Composes 6 discharges, and it is a different shape from Invariant 1's.
 - **Invariant 3 — Denial is not rejection.**
@@ -280,10 +280,10 @@ This composition introduces no per-call event log, so the acceptance bar has two
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find Session's state naming a disputed session_token's status at the disputed instant (Invariant 1.1).
-Check 1.2: An auditor MUST find no permitted answer for a session_token Session's state shows expired at the disputed instant (Invariant 1.1, Session Composition note 4).
-Check 1.3: An auditor MUST find no permitted answer for a session_token Session's state shows revoked at the disputed instant (Invariant 1.1, Session Composition note 4).
-Check 2.1: An auditor MUST find Session's state naming the principal_ref a disputed permitted answer rests on (Invariant 2.1).
+Check 1.1: An auditor MUST find Session's state naming a disputed session token's status at the disputed instant (Invariant 1.1).
+Check 1.2: An auditor MUST find no permitted answer for a session token Session's state shows expired at the disputed instant (Invariant 1.1, Session Composition note 4).
+Check 1.3: An auditor MUST find no permitted answer for a session token Session's state shows revoked at the disputed instant (Invariant 1.1, Session Composition note 4).
+Check 2.1: An auditor MUST find Session's state naming the principal ref a disputed permitted answer rests on (Invariant 2.1).
 Check 2.2: An auditor MUST find Permissions' state carrying an active grant for the disputed pair at the disputed instant (Invariant 4.1).
 Check 3.1: An auditor MUST find EVERY answer of the composition that EQUALS EXACTLY ONE OF permitted, denied, invalid-request, session-invalid (Invariant 3.1, Invariant 3.2).
 ```
@@ -314,9 +314,9 @@ Non-goal 1: The composition MUST NOT issue a session.
 Non-goal 2: The composition MUST NOT terminate a session.
 Non-goal 3: The composition MUST NOT grant a permission.
 Non-goal 4: The composition MUST NOT revoke a permission.
-Non-goal 5: The composition MUST NOT expand an action_scope.
-Non-goal 6: The composition MUST NOT match an action_scope by prefix.
-Non-goal 7: The composition MUST NOT aggregate a principal_ref's sessions.
+Non-goal 5: The composition MUST NOT expand an action scope.
+Non-goal 6: The composition MUST NOT match an action scope by prefix.
+Non-goal 7: The composition MUST NOT aggregate a principal ref's sessions.
 Non-goal 8: A deployment caching a validate answer across calls MUST NOT claim conformance.
 Non-goal 9: A deployment exposing a constituent's surface beside [Check Permitted] MUST declare the exposure.
 Non-goal 10: The composition MUST NOT record an authorization decision.
@@ -340,7 +340,7 @@ Non-goal 7 is worth stating because the opposite reads as helpful. A principal m
 ```
 Concurrency 1: The composition MUST answer from the validate answer the call received.
 Concurrency 2: The composition MUST NOT detect a revocation that follows the validate answer.
-Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound Session's session_duration.
+Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound Session's session duration.
 ```
 
 WHY:
@@ -353,7 +353,7 @@ The gate is point-in-time at the instant `Session.validate` runs. A revocation l
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
 Deleted: Composition note 2. Composition state 4 owns it.
-Composition note 3: A deployment MUST own the action_scope vocabulary.
+Composition note 3: A deployment MUST own the action scope vocabulary.
 Composition note 4: A deployment MUST NOT read this composition as a session lifecycle surface.
 ```
 
@@ -399,7 +399,7 @@ Projection: session-invalid
 
 #### Invalid Request
 
-The composition's own boundary rejection from [Check Permitted] — returned when session_token or action_scope fails the Primitive-policies predicate (null, empty, whitespace-only, or over the deployment-pinned length cap). Composition-introduced: neither wired constituent operation produces it, and neither constituent is consulted when it fires.
+The composition's own boundary rejection from [Check Permitted] — returned when session token or action scope fails the Primitive-policies predicate (null, empty, whitespace-only, or over the deployment-pinned length cap). Composition-introduced: neither wired constituent operation produces it, and neither constituent is consulted when it fires.
 
 Kind:       Member
 Member of:  the check-permitted rejection

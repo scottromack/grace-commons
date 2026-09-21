@@ -85,7 +85,7 @@ Term task_id: the Personal Todo id a call names a task by (Action wiring 6).
 
 Term actor_ref: the opaque reference a call carries for the actor making it; the composition checks it and never authenticates it (Non-goal 12).
 
-Term responsible actor: the assignee_ref of the active assignment Assignment's active_for answers for a task_id — none if Assignment answers none.
+Term responsible actor: the assignee ref of the active assignment Assignment's active_for answers for a task_id — none if Assignment answers none.
 
 Term visible tasks: EVERY task of the Personal Todo instance IF the actor_ref holds tasks:view — none otherwise.
 
@@ -102,7 +102,7 @@ Action wiring 2: IF Permissions' permitted answers denied THEN the composition M
 Action wiring 3: The composition MUST NOT call a constituent for a denied answer.
 Action wiring 4: The composition MUST call Permissions' permitted with the call's actor_ref.
 Action wiring 5: An admitted add MUST call Personal Todo's add with the description.
-Action wiring 6: An admitted edit MUST call Personal Todo's edit with the task_id and the new_description.
+Action wiring 6: An admitted edit MUST call Personal Todo's edit with the task_id and the new description.
 Action wiring 7: An admitted complete MUST call Personal Todo's complete with the task_id.
 Action wiring 8: An admitted complete MUST NOT recall the task's active assignment.
 Action wiring 9: An admitted delete MUST call Assignment's recall for the task's active assignment.
@@ -112,8 +112,8 @@ Action wiring 12: IF the recall answers storage-failure THEN an admitted delete 
 Action wiring 13: An admitted assign MUST answer not-known for a task_id the Personal Todo instance does not carry.
 Action wiring 14: An admitted assign MUST call Assignment's assign ONLY AFTER the task_id's existence check clears.
 Action wiring 15: An admitted assign MUST accept a task_id whose unit state EQUALS done.
-Action wiring 16: An admitted reassign MUST call Assignment's reassign with the assignment_id and the new_assignee_ref.
-Action wiring 17: An admitted recall MUST call Assignment's recall with the assignment_id.
+Action wiring 16: An admitted reassign MUST call Assignment's reassign with the assignment id and the new assignee ref.
+Action wiring 17: An admitted recall MUST call Assignment's recall with the assignment id.
 Action wiring 18: The composition MUST answer the constituent's answer.
 Action wiring 19: The composition MUST NOT answer an empty task set for a denied tasks:view.
 ```
