@@ -143,7 +143,7 @@ Operation 3: IF scope EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 4: IF authority EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 5: IF authority type EQUALS blank THEN [Record] MUST answer invalid-request.
 Operation 6: IF authority reference EQUALS blank THEN [Record] MUST answer invalid-request.
-Operation 7: IF the resolved disclosed at EXCEEDS now THEN [Record] MUST answer invalid-request.
+Operation 7: IF now PRECEDES the resolved disclosed at THEN [Record] MUST answer invalid-request.
 Operation 8: [Record] MUST answer unknown-authority-type ONLY IF EVERY field-level precondition passes.
 Operation 9: IF authority type IS NOT IN the authority types THEN [Record] MUST answer unknown-authority-type.
 Operation 10: An admitted record MUST record EXACTLY ONE disclosure record.
@@ -161,7 +161,7 @@ Operation 21: An admitted read carrying no filter MUST answer EVERY disclosure r
 Operation 22: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 23: IF a disclosure id, subject ref OR recipient filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 24: IF an authority type filter's value IS NOT IN the authority types THEN [Read] MUST answer invalid-query.
-Operation 25: IF a disclosed at range's before precedes the range's after THEN [Read] MUST answer invalid-query.
+Operation 25: IF a disclosed at range's before PRECEDES the range's after THEN [Read] MUST answer invalid-query.
 Operation 26: An admitted read MUST match a disclosed at range as a closed interval.
 Operation 27: An admitted read MUST answer EVERY disclosure record matching the supplied filters.
 Operation 28: An admitted read MUST NOT answer a disclosure record failing a supplied filter.

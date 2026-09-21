@@ -155,11 +155,11 @@ Composition state 27 through 32 declare the two relations the gate actually eval
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 2: The host MUST supply one invocation_id at the seam PER state-changing invocation.
+Capability requirement 2: The host MUST supply one invocation id at the seam PER state-changing invocation.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 3 owns it.
-Capability requirement 4: The transition MUST NOT mint an invocation_id.
+Capability requirement 4: The transition MUST NOT mint an invocation id.
 Deleted: Capability requirement 5. Execution Contract Logic confinement 3 owns it.
-Capability requirement 6: The composition MUST NOT accept an invocation_id as an input.
+Capability requirement 6: The composition MUST NOT accept an invocation id as an input.
 Capability requirement 7: The composition MUST NOT mint a retention id.
 Capability requirement 8: The composition MUST NOT mint a hold id.
 Capability requirement 9: The composition MUST NOT mint an event_id.
@@ -192,12 +192,12 @@ Capability requirement 35: A deployment MUST serialize a hold placement and a pu
 Capability requirement 36: The deployment MUST declare the clock offset allowance.
 ```
 
-Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one invocation_id here.
+Term seam: the composition's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects one clock reading and one invocation id here.
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-Term invocation_id: the id the seam allocates for one state-changing invocation; an intent and the outcome matched to it carry the same one (Capability requirement 2, Reconciliation 6).
+Term invocation id: the id the seam allocates for one state-changing invocation; an intent and the outcome matched to it carry the same one (Capability requirement 2, Reconciliation 6).
 
-Term intended_at: the instant an intent records (Action wiring 8).
+Term intended at: the instant an intent records (Action wiring 8).
 
 Term transition: the composition's evaluation of one call against the constituents, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
@@ -280,7 +280,7 @@ Audit arm 1: The composition MUST retry a recording-failure carrying step-2.
 Audit arm 2: The composition MUST retry a recording-failure carrying step-3.
 Audit arm 3: The composition MUST NOT retry a recording-failure carrying step-4.
 Audit arm 4: The composition MUST read a recording-failure carrying step-4 as a landed record.
-Audit arm 5: The composition MUST read a landed record back by the invocation_id.
+Audit arm 5: The composition MUST read a landed record back by the invocation id.
 Audit arm 6: The composition MUST alert on a landed record carrying no retention.
 Audit arm 7: The composition MUST answer invalid-credential for an invocation record the substrate refuses on a credential.
 Audit arm 8: The composition MUST read an invalid-credential on a sweep record as a deployment fault.
@@ -332,12 +332,12 @@ Term position: intent | outcome — the record a write lands: the intent or the 
 ```
 Action wiring 1: The composition MUST NOT record an intent BEFORE the boundary predicate passes.
 Action wiring 2: The composition MUST NOT make a committing call BEFORE recording an intent.
-Action wiring 3: An intent MUST carry the invocation_id.
-Action wiring 4: An outcome MUST carry the invocation_id.
-Action wiring 5: A gate record MUST carry the invocation_id.
+Action wiring 3: An intent MUST carry the invocation id.
+Action wiring 4: An outcome MUST carry the invocation id.
+Action wiring 5: A gate record MUST carry the invocation id.
 Action wiring 6: An intent MUST carry the invocation's inputs.
 Action wiring 7: An intent MUST NOT carry a constituent-minted id.
-Action wiring 8: An intent MUST carry the injected now as intended_at.
+Action wiring 8: An intent MUST carry the injected now as intended at.
 Action wiring 9: An admitted placement MUST call Retention Window's place_under_retention with the record ref AND the policy ref.
 Action wiring 10: An admitted placement MUST read the retention's retention until AND purge deadline from Retention Window's declared Outputs.
 Action wiring 11: An admitted placement MUST record a retention placed outcome carrying the retention id, the record ref, the policy ref, the retention until AND the purge deadline.
@@ -483,33 +483,33 @@ Reconciliation 2: The sweep MUST run PER reconciliation cadence.
 Reconciliation 3: The sweep MUST NOT store a record of the sweep's own.
 Reconciliation 4: The sweep MUST NOT examine a young marker.
 Reconciliation 5: The sweep MUST read an intent carrying no outcome as an open marker.
-Reconciliation 6: The sweep MUST match an intent to an outcome by the invocation_id.
+Reconciliation 6: The sweep MUST match an intent to an outcome by the invocation id.
 Reconciliation 7: The sweep MUST NOT match an intent to an outcome by an input.
 Reconciliation 8: The sweep MUST read the constituent store for the act an open marker names.
-Reconciliation 9: IF the act did not commit THEN the sweep MUST close the open marker as intent_abandoned.
-Reconciliation 10: IF another intent over the act carries a matched outcome THEN the sweep MUST close the open marker as intent_abandoned.
+Reconciliation 9: IF the act did not commit THEN the sweep MUST close the open marker as intent abandoned.
+Reconciliation 10: IF another intent over the act carries a matched outcome THEN the sweep MUST close the open marker as intent abandoned.
 Reconciliation 11: IF the act committed AND the open marker stands as the act's only open marker THEN the sweep MUST emit a recovery outcome.
 Reconciliation 12: IF several open markers name one committed act THEN the sweep MUST emit EXACTLY ONE recovery outcome.
-Reconciliation 13: A recovery outcome MUST carry the earliest open marker's invocation_id.
+Reconciliation 13: A recovery outcome MUST carry the earliest open marker's invocation id.
 Reconciliation 14: A recovery outcome MUST carry every candidate marker's actor_ref as attributed to.
 Reconciliation 15: A recovery outcome MUST carry the recovery marker.
 Reconciliation 16: A recovery outcome MUST carry the acting human's actor_ref.
 Reconciliation 17: The sweep MUST NOT emit a recovery outcome BEFORE recording a recovery intent.
 Reconciliation 18: The sweep MUST NOT make a committing call BEFORE recording a recovery intent.
 Reconciliation 19: The sweep MUST call Retention Window's purge PER pending sibling.
-Reconciliation 20: The sweep MUST serialize a leg over the act's invocation_id.
+Reconciliation 20: The sweep MUST serialize a leg over the act's invocation id.
 Reconciliation 21: The sweep MUST read the act's outcome again under the serialization.
 Reconciliation 22: The sweep MUST NOT emit a recovery outcome for an act already carrying an outcome.
 Reconciliation 23: The sweep MUST NOT examine an aged-out event.
 Reconciliation 24: The sweep MUST read a constituent store's own state for an act an aged-out event names.
 Reconciliation 25: The sweep MUST escalate an open marker the compensation window did not close.
 Reconciliation 26: The sweep MUST NOT emit a datum no constituent store carries.
-Reconciliation 27: IF a constituent store carries no datum a recovery outcome needs THEN the sweep MUST close the open marker as intent_abandoned.
+Reconciliation 27: IF a constituent store carries no datum a recovery outcome needs THEN the sweep MUST close the open marker as intent abandoned.
 ```
 
-Term open marker: an intent carrying no outcome under the intent's own invocation_id — an invocation that committed nothing, committed and failed to record, or died between the two.
+Term open marker: an intent carrying no outcome under the intent's own invocation id — an invocation that committed nothing, committed and failed to record, or died between the two.
 
-Term young marker: an open marker whose intended_at stands within the retention completion bound of the injected now.
+Term young marker: an open marker whose intended at stands within the retention completion bound of the injected now.
 
 Term aged-out event: an event whose age exceeds the audit horizon.
 
@@ -519,7 +519,7 @@ Term recovery marker: the marker a recovery outcome carries so a reader tells a 
 
 Term recovery outcome: the outcome the sweep emits for a committed act whose own invocation did not record one.
 
-Term intent_abandoned: the closing the sweep writes over an open marker whose act it does not recover (Reconciliation 9, Reconciliation 10, Reconciliation 27).
+Term intent abandoned: the closing the sweep writes over an open marker whose act it does not recover (Reconciliation 9, Reconciliation 10, Reconciliation 27).
 
 Term attributed to: the actor_ref of every candidate marker, carried by a recovery outcome (Reconciliation 14).
 
@@ -528,7 +528,7 @@ The sweep is four comparisons and two edges. **Intent against outcome** is the g
 
 Reconciliation 6 and Reconciliation 7 are the pairing, and the pairing has to be exact because every state-changing action here is repeatable with identical arguments. Two operators can issue the same purge concurrently, and the page's own advice on a transient arm is to retry — so two intents can describe one act, and a sweep pairing by argument resemblance would re-emit a destruction record for an invocation that committed nothing. Where the records genuinely cannot say which intent committed the act, Reconciliation 12 through 14 say so rather than guess: one outcome, the earliest marker's id, every candidate named.
 
-Reconciliation 4 and Reconciliation 23 are the two edges. Below the retention completion bound an invocation may still be between its committing call and its outcome, and a re-emission fired there lands a second outcome for one act — which the invocation_id match cannot prevent, because the invocation has not written yet. Above the audit horizon the intent's payload is destroyed, so there is no marker to read and the constituent store's own state is the only answer.
+Reconciliation 4 and Reconciliation 23 are the two edges. Below the retention completion bound an invocation may still be between its committing call and its outcome, and a re-emission fired there lands a second outcome for one act — which the invocation id match cannot prevent, because the invocation has not written yet. Above the audit horizon the intent's payload is destroyed, so there is no marker to read and the constituent store's own state is the only answer.
 
 Reconciliation 26 and Reconciliation 27 are the re-derivability test stated as an obligation. A re-emitted outcome is built from what the constituent stores and the surviving trail still carry; where a datum lived only in the outcome that never landed, the sweep does not invent it — the marker closes as abandoned and the liveness arm degrades to *surfaced*, which is what the records can actually support.
 
@@ -573,7 +573,7 @@ Each emerges from the composition; none belongs to one constituent.
   WHY: Invariant 4.3 is the half a reader forgets. Recording only the passings would leave an auditor unable to tell a gate that never fired from a gate that was never wired, and the two event classes together are what make the gate's behaviour readable in both directions.
 - **Invariant 5 — Audit completeness modulo the substrate's partial-attestation contract.**
   ```
-  Invariant 5.1: EVERY outcome MUST follow an intent carrying the outcome's invocation_id.
+  Invariant 5.1: EVERY outcome MUST follow an intent carrying the outcome's invocation id.
   Invariant 5.2: An intent carrying no outcome MUST stand as an open marker.
   Invariant 5.3: The composition MUST NOT read an open marker as a conformance failure.
   Invariant 5.4: A gate record MUST NOT follow an intent.
@@ -634,7 +634,7 @@ Each emerges from the composition; none belongs to one constituent.
 
 A multinational bank governs its general-ledger transaction records with this instance. The deployment sets `hold_check_mode = strict` and configures the audit instance with a nine-year policy against a seven-year business policy, so the evidence floor sits inside the audit horizon.
 
-1. **Retention placed.** `place_record_under_retention("txn-2026-0441", "sox_7_year", "records_system", credential)`. The boundary predicate passes; a retention_placement_intended record lands carrying `invocation_id: inv-a1`, the two references and intended_at; `RetentionWindow.place_under_retention` answers `ret-0441` with `retention_until = 2033-05-10`; a retention_placed outcome lands carrying `inv-a1`, the retention and both deadlines. Returns `ret-0441`.
+1. **Retention placed.** `place_record_under_retention("txn-2026-0441", "sox_7_year", "records_system", credential)`. The boundary predicate passes; a retention_placement_intended record lands carrying `invocation_id: inv-a1`, the two references and intended at; `RetentionWindow.place_under_retention` answers `ret-0441` with `retention_until = 2033-05-10`; a retention_placed outcome lands carrying `inv-a1`, the retention and both deadlines. Returns `ret-0441`.
 
 2. **Litigation anticipated.** Three years later: `place_hold("txn-2026-0441", "counsel_morgan", credential, "Litigation hold — anticipated class action re Q3 2026 operations", "matter-2029-morgan")`. Intent, then `LegalHold.place` answering `hold-0441-a`, then the hold_placed outcome. Returns `hold-0441-a`.
 
@@ -722,12 +722,12 @@ Check 3.7: An auditor MUST find no retention over a destroyed record carrying a 
 Check 4.1: An auditor MUST reconstruct a retention's lifecycle from the retention placed outcome, the hold outcomes AND the record purged outcome (Invariant 8.1).
 Check 4.2: An auditor MUST join a hold to a retention by the record ref (Composition state 29).
 Check 5.1: An auditor MUST find an intent preceding EVERY outcome in the substrate's own sequence (Invariant 5.1).
-Check 5.2: An auditor MUST find an outcome's intent carrying the outcome's invocation_id (Invariant 5.1).
+Check 5.2: An auditor MUST find an outcome's intent carrying the outcome's invocation id (Invariant 5.1).
 Check 5.3: An auditor MUST find an outcome's intent carrying the outcome's actor_ref (Composes 15).
 Check 5.4: An auditor MUST read an outcome carrying no intent as a conformance failure (Invariant 5.1).
 Check 5.5: An auditor MUST read an intent carrying no outcome as an open marker (Invariant 5.2).
 Check 5.6: An auditor MUST read a gate record carrying no intent as conformant (Invariant 5.4).
-Check 5.7: An auditor MUST find no two outcomes sharing one invocation_id (Invariant 5.6).
+Check 5.7: An auditor MUST find no two outcomes sharing one invocation id (Invariant 5.6).
 Check 5.8: An auditor MUST read an outcome carrying the recovery marker as the sweep's own (Reconciliation 15).
 Check 6.1: An auditor MUST find the evidence floor not exceeding the audit horizon (Capability requirement 11).
 Check 6.2: An auditor MUST find the rebuild reading Retention Window's store for an entry a purged placement event covers (Composition state 13).
@@ -752,7 +752,7 @@ External check 7: An auditor needing the serialization confirmed MUST read the d
 ```
 
 WHY:
-Check 2.6, Check 3.7, Check 5.7 and Check 5.8 are the four the prose's own acceptance did not carry, and each tests a rule rather than a phrasing. `Invariant 9.1` — the cross-retention gate, this composition's second load-bearing claim — was named by no check at all, which is the shape `cites.py --unchecked` exists to find: the guarantee was expensive to state and trivial to test, since every retention over a destroyed record is in the constituent's store and the destruction's own instant is on the outcome. Check 2.6 is the substrate's own purged verdict read before absence: an outcome the audit instance lawfully destroyed answers `failed-verification(purged)`, and an auditor told only to look for `verified` would read a lawful destruction as tampering. Check 5.7 and Check 5.8 are what `Action wiring 71` and `Action wiring 72` earn — once an owed record has exactly one writer, *two outcomes under one invocation_id* is a records-alone failure and the recovery marker says which writer wrote the one that landed.
+Check 2.6, Check 3.7, Check 5.7 and Check 5.8 are the four the prose's own acceptance did not carry, and each tests a rule rather than a phrasing. `Invariant 9.1` — the cross-retention gate, this composition's second load-bearing claim — was named by no check at all, which is the shape `cites.py --unchecked` exists to find: the guarantee was expensive to state and trivial to test, since every retention over a destroyed record is in the constituent's store and the destruction's own instant is on the outcome. Check 2.6 is the substrate's own purged verdict read before absence: an outcome the audit instance lawfully destroyed answers `failed-verification(purged)`, and an auditor told only to look for `verified` would read a lawful destruction as tampering. Check 5.7 and Check 5.8 are what `Action wiring 71` and `Action wiring 72` earn — once an owed record has exactly one writer, *two outcomes under one invocation id* is a records-alone failure and the recovery marker says which writer wrote the one that landed.
 
 External check 1 is this composition's most consequential externally-clearable gap, and the reason is not reporting hygiene. `Check 6.1` states the ordering and can be run wherever both durations are readable; where a business duration sits behind a policy ref this composition does not resolve — the ordinary case, since policy reconciliation is out of scope — the comparison needs the host's policy register. A violation is not a defect in a report: it destroys the placement evidence for a long-lived retention *before* that retention elapses, which is the failure `Invariant 9` exists to forbid, arriving through the layer that records it. What is checkable here is the structural defence rather than the ordering — `Check 6.2` confirms the past-horizon rebuild falls back to the constituent's store, which over-includes and can therefore only refuse.
 
@@ -871,7 +871,7 @@ Concurrency 4: Two sweeps MUST NOT emit two outcomes for one act.
 WHY:
 The gate reads the hold store and the destruction lands a rule later, so a hold placed between the two leaves a record destroyed under a hold that existed — a structural exposure to `Invariant 1` that no ordering inside this composition can close, because the placement is a second writer on a second path. `Capability requirement 34` and `Capability requirement 35` are where the closure lives, and Concurrency 3 says plainly that it is not here: a deployment under FRCP Rule 37(e) exposure treats the pair as a hard serialization requirement rather than an optimization.
 
-Concurrency 4 is the sweep's own version of the same hazard, and it is closed here rather than delegated: `Reconciliation 20` and `Reconciliation 21` serialize a leg over the act's invocation_id and re-read the act's outcome under that serialization, so the look-then-write a compensator performs cannot run twice over one act.
+Concurrency 4 is the sweep's own version of the same hazard, and it is closed here rather than delegated: `Reconciliation 20` and `Reconciliation 21` serialize a leg over the act's invocation id and re-read the act's outcome under that serialization, so the look-then-write a compensator performs cannot run twice over one act.
 
 ---
 
@@ -916,7 +916,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
 Term value sets: hold check mode = strict | advisory. hold check result = empty | the blocking hold ids with the blocking count. intent = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. outcome = retention_placed | hold_placed | hold_released | record_purged. sibling disposition = purged | pending.
 
-Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, blank, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, late hold, position, invocation_id, intended_at, intent_abandoned, attributed to.
+Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, blank, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, late hold, position, invocation id, intended at, intent abandoned, attributed to.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam.
 
@@ -1062,6 +1062,6 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except two rejection surfaces the prose misnamed.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Identity`, `Audit arm`, `Action wiring`, `Wiring decision` and `Reconciliation` as the wiring surfaces, with `Concurrency`, `Clock semantics` and `Atomic writes` as the edge-case families; the ten invariant numbers unchanged; the acceptance section's own two tiers carried across as `Check` and `External check`. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into defensible-retention` finds nothing in the corpus citing this composition by label, so the rewrite carried no frozen-number risk. **No family was minted.** Every one of the sixteen is standard or already recurring, and two of them move: `Audit arm`, which [Login](./login.md) minted one migration earlier, reaches two specs and so meets Principle 2's recurrence half; `Reconciliation` reaches three and so stands as a promotion candidate under `GRACE-lang.md` Standard label 4. `Identity` is the grammar's own standard family taken for the first time by a composition — thirty specs carry it, all of them atoms that mint ids, and this composition mints none: what it owns is an equality the gate evaluates, which is the same question one layer out.
 - **2026-09-14 — A constituent's storage failure surfaces as itself, and this composition's own recording failure carries its position.** *Chose:* storage-failure exported unchanged from all four state-changing actions, and `recording-failure(intent | outcome)` on every one of them. *Over:* the prose's mapping of a constituent storage-failure onto recording-failure, and a bare recording-failure on the three non-destructive actions. *Because:* the first renamed a failure to *write a record* into a failure to *record it*, which is a different fact and a different repair; the second put one token on both sides of the commit, so a caller who retried on it could not know whether anything had committed — which the corpus's own rule requires the exported code to answer.
-- **2026-09-14 — The owed destruction record has exactly one writer.** *Chose:* an invocation retries its outcome until the retention completion bound and then yields; past the bound the record belongs to the sweep, which serializes its leg on the act's invocation_id and re-reads the act's outcome under that serialization. *Over:* an out-of-band retry and a sweep both owing the same record with nothing between them. *Because:* two writers over one destruction land two record_purged events for one act, and the trail then protects both — the one failure a compensating write cannot undo.
+- **2026-09-14 — The owed destruction record has exactly one writer.** *Chose:* an invocation retries its outcome until the retention completion bound and then yields; past the bound the record belongs to the sweep, which serializes its leg on the act's invocation id and re-reads the act's outcome under that serialization. *Over:* an out-of-band retry and a sweep both owing the same record with nothing between them. *Because:* two writers over one destruction land two record_purged events for one act, and the trail then protects both — the one failure a compensating write cannot undo.
 
 NOTE: End of Defensible Retention.

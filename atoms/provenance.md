@@ -201,7 +201,7 @@ Operation 44: A refused action MUST NOT take a sequence number.
 Operation 45: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 46: [Read] MUST answer the chain's entries in sequence number ascending order.
 Operation 47: [Read] MUST answer an empty entry sequence for a well-formed query no entry matches.
-Operation 48: IF a query range's end precedes the range's start THEN [Read] MUST answer invalid-query.
+Operation 48: IF a query range's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 49: IF a query's event type IS NOT IN the event types THEN [Read] MUST answer invalid-query.
 Operation 50: [Read] MUST NOT write.
 Operation 51: [Read] MUST NOT answer storage-failure.

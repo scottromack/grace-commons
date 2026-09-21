@@ -157,9 +157,9 @@ Operation 12: IF the lifecycle record's state EQUALS active THEN [Restore] MUST 
 Operation 13: IF the lifecycle record's state DOES NOT EQUAL deleted THEN [Purge] MUST answer not-deleted.
 Operation 14: A transitioning action MUST answer a state rejection ONLY IF record id DOES NOT EQUAL blank.
 Operation 15: A transitioning action MUST answer invalid-request on an attribution fault ONLY IF EVERY state check passes.
-Operation 16: IF the resolved transition instant EXCEEDS now THEN a transitioning action MUST answer invalid-request.
-Operation 17: IF the resolved restored at precedes the lifecycle record's deleted at THEN [Restore] MUST answer invalid-request.
-Operation 18: IF the resolved purged at precedes the lifecycle record's deleted at THEN [Purge] MUST answer invalid-request.
+Operation 16: IF now PRECEDES the resolved transition instant THEN a transitioning action MUST answer invalid-request.
+Operation 17: IF the resolved restored at PRECEDES the lifecycle record's deleted at THEN [Restore] MUST answer invalid-request.
+Operation 18: IF the resolved purged at PRECEDES the lifecycle record's deleted at THEN [Purge] MUST answer invalid-request.
 Operation 19: An admitted soft delete MUST stand the lifecycle record in deleted.
 Operation 20: An admitted restore MUST stand the lifecycle record in active.
 Operation 21: An admitted purge MUST stand the lifecycle record in purged.
@@ -185,7 +185,7 @@ Operation 40: An admitted read MUST match an instant-range filter against ONLY t
 Operation 41: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 42: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 43: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
-Operation 44: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
+Operation 44: IF a range filter's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 45: [Read] MUST NOT write.
 Deleted: Operation 46. Capability requirement 1 owns it.
 Deleted: Operation 47. Execution Contract Logic confinement 3 owns it.
@@ -279,8 +279,8 @@ Operation 38 is the scope rule an auditor must read before trusting an empty ans
   WHY: the load-bearing one. An anonymous purge, a whitespace-only reason or a missing instant each defeat the record that legal proceedings, regulatory inspections and GDPR compliance demonstrations require. A reason is mandatory on purge and optional on deletion because destruction is the act that must justify itself.
 - **Invariant 6 — Temporal ordering within a transition.**
   ```
-  Invariant 6.1: A purged lifecycle record's purged at MUST NOT precede the record's deleted at.
-  Invariant 6.2: A recorded restored at MUST NOT precede the deleted at the restore found.
+  Invariant 6.1: A purged lifecycle record's purged at MUST NOT PRECEDE the record's deleted at.
+  Invariant 6.2: A recorded restored at MUST NOT PRECEDE the deleted at the restore found.
   Invariant 6.3: The atom MUST NOT order two deletion epochs from the stored fields.
   ```
   WHY: Invariant 6.3 is an honest limit rather than a gap. After a soft delete following a restore, deleted at is replaced and the stored restored at from the prior cycle then precedes it — which looks inverted and is correct, because the two fields describe different epochs. The stored fields bound each transition against the deletion current *at that moment*, and cross-epoch ordering is recoverable only from a composed [Event Log](./event-log.md).

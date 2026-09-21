@@ -1302,6 +1302,43 @@ def check_borrowed_names_synthetic(problems: list[str]) -> int:
     return n
 
 
+def check_operand_type_synthetic(problems: list[str]) -> int:
+    """One operator, one operand type (Earned vocabulary 18, council read 146):
+    EXCEEDS between instants fires, EXCEEDS between durations does not, and a
+    lower-case *precedes* fires because PRECEDES is an operator. Returns the
+    fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-21).\n\n"
+            "Term record verbs: read.\n\n## Structure\n\n")
+    def run(rule: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == "D-condition-form"]
+    cases = [
+        ("EXCEEDS between instants",
+         "Operation 1: IF the resolved placed at EXCEEDS now THEN a reader MUST read the store.", True),
+        ("EXCEEDS between durations",
+         "Operation 1: IF the session duration EXCEEDS the zero duration THEN a reader MUST read the store.", False),
+        ("PRECEDES between instants",
+         "Operation 1: IF now PRECEDES the resolved placed at THEN a reader MUST read the store.", False),
+        ("lower-case precedes",
+         "Operation 1: IF now precedes the resolved placed at THEN a reader MUST read the store.", True),
+        ("DOES NOT PRECEDE",
+         "Operation 1: IF now DOES NOT PRECEDE the resolved placed at THEN a reader MUST read the store.", False),
+    ]
+    n = 0
+    for why, rule, should_fire in cases:
+        if bool(run(rule)) == should_fire:
+            n += 1
+        else:
+            problems.append(f"D-condition-form: {why} {'did not fire' if should_fire else 'fired'}")
+    return n
+
+
 def check_two_obligations_synthetic(problems: list[str]) -> int:
     """W-two-obligations (tools/grace/check.py): a second declared record verb
     after *and* fires, and a declared name whose first word is a verb does not
@@ -2093,6 +2130,14 @@ def main(argv: list[str]) -> int:
         print(f"borrowed names in check.py: {n_borrowed} synthetic fixtures hold (a constituent's "
               "name and a cited name are no watch words; the same words undeclared, and a bare watch "
               "word, still fire) \u2713")
+
+    operand_problems: list[str] = []
+    n_operand = check_operand_type_synthetic(operand_problems)
+    failures.extend(operand_problems)
+    if not operand_problems:
+        print(f"operand type in check.py: {n_operand} synthetic fixtures hold (EXCEEDS between instants "
+              "and a lower-case precedes fire; EXCEEDS between durations, PRECEDES and DOES NOT PRECEDE "
+              "stay silent) \u2713")
 
     two_ob_problems: list[str] = []
     n_two = check_two_obligations_synthetic(two_ob_problems)

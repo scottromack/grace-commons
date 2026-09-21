@@ -164,7 +164,7 @@ Operation 2: IF approver ref EQUALS blank THEN [Submit] MUST answer invalid-requ
 Operation 3: IF submitter ref EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 4: IF scope EQUALS blank THEN [Submit] MUST answer invalid-request.
 Operation 5: IF a supplied reason EQUALS blank THEN [Submit] MUST answer invalid-request.
-Operation 6: IF the resolved submitted at EXCEEDS now THEN [Submit] MUST answer invalid-request.
+Operation 6: IF now PRECEDES the resolved submitted at THEN [Submit] MUST answer invalid-request.
 Operation 7: An admitted submit MUST record EXACTLY ONE step.
 Operation 8: An admitted submit MUST stand the step in pending.
 Operation 9: An admitted submit MUST answer the step id.
@@ -176,8 +176,8 @@ Operation 14: A resolving action MUST answer not-pending ONLY IF the step id nam
 Operation 15: IF the deciding reference EQUALS blank THEN a resolving action MUST answer invalid-request.
 Operation 16: IF reason EQUALS blank THEN [Reject] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN [Withdraw] MUST answer invalid-request.
-Operation 18: IF the resolved decision instant EXCEEDS now THEN a resolving action MUST answer invalid-request.
-Operation 19: IF the resolved decision instant precedes the step's submitted at THEN a resolving action MUST answer invalid-request.
+Operation 18: IF now PRECEDES the resolved decision instant THEN a resolving action MUST answer invalid-request.
+Operation 19: IF the resolved decision instant PRECEDES the step's submitted at THEN a resolving action MUST answer invalid-request.
 Operation 20: A resolving action MUST answer invalid-request on an attribution fault ONLY IF the step's state EQUALS pending.
 Operation 21: IF decided by DOES NOT EQUAL approver ref THEN a deciding action MUST answer unauthorized.
 Operation 22: IF withdrawn by DOES NOT EQUAL submitter ref THEN [Withdraw] MUST answer unauthorized.
@@ -205,7 +205,7 @@ Operation 43: An admitted read MUST match an instant-range filter against ONLY t
 Operation 44: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 45: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 46: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
-Operation 47: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
+Operation 47: IF a range filter's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 48: [Read] MUST NOT write.
 Deleted: Operation 49. Capability requirement 1 owns it.
 Deleted: Operation 50. Execution Contract Logic confinement 3 owns it.
@@ -309,7 +309,7 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
   WHY: the load-bearing one. An anonymous decision, a whitespace-only attribution, a missing instant or a rejection with no stated reason each defeat the audit trail SOX §404 control evidence and FDA Part 11 electronic-signature requirements rest on. A rejection in particular is not operationally meaningful without its reason — the record would show that something was refused and leave the submitter, and a later auditor, with no account of why.
 - **Invariant 7 — Temporal ordering.**
   ```
-  Invariant 7.1: A terminal step's terminal instant MUST NOT precede the step's submitted at.
+  Invariant 7.1: A terminal step's terminal instant MUST NOT PRECEDE the step's submitted at.
   ```
   WHY: a step cannot be documented as decided or withdrawn before it was submitted. The bound holds on the value persisted, whether caller-supplied or resolved to now, and is enforced before the transition commits (Operation 19).
 - **Invariant 8 — Submission attribution completeness.**

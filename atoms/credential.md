@@ -174,7 +174,7 @@ Operation 1: IF principal ref EQUALS blank THEN [Register] MUST answer invalid-r
 Operation 2: IF credential material EQUALS blank THEN [Register] MUST answer invalid-request.
 Operation 3: IF credential type EQUALS blank THEN [Register] MUST answer invalid-request.
 Operation 4: IF the credential type names no derivation function THEN [Register] MUST answer invalid-request.
-Operation 5: IF a supplied expires at DOES NOT EXCEED now THEN [Register] MUST answer invalid-request.
+Operation 5: IF now DOES NOT PRECEDE a supplied expires at THEN [Register] MUST answer invalid-request.
 Operation 6: IF an effective-active credential EXISTS for the pair THEN [Register] MUST answer duplicate-active-credential.
 Operation 7: [Register] MUST answer duplicate-active-credential ONLY IF EVERY well-formedness check passes.
 Operation 8: A lapsed credential MUST NOT block a register for the credential's pair.

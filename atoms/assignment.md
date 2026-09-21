@@ -290,7 +290,7 @@ Check 2.1: An auditor MUST reconstruct a task's chain of responsibility from the
 Check 2.2: An auditor MUST read a recalled assignment as the task standing unassigned at recalled at (Operation 12).
 Check 2.3: An auditor MUST read a transferred assignment as a successor whose status EQUALS active at transferred at (Invariant 7.1, Invariant 7.2).
 Check 3.1: An auditor MUST find no assignment whose status moved out of a terminal status (Invariant 3.2, Invariant 4.1, Invariant 4.2).
-Check 4.1: An auditor MUST find no assignment whose assigned at EXCEEDS the assignment's terminal stamp (Invariant 8.1, Invariant 8.2).
+Check 4.1: An auditor MUST find no assignment whose terminal stamp PRECEDES the assignment's assigned at (Invariant 8.1, Invariant 8.2).
 Check 5.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
 ```
 

@@ -81,11 +81,11 @@ Composition state 3: The composition MUST derive the visible tasks from Personal
 Composition state 4: The composition MUST NOT materialize a derived query.
 ```
 
-Term task_id: the Personal Todo id a call names a task by (Action wiring 6).
+Term task id: the Personal Todo id a call names a task by (Action wiring 6).
 
 Term actor_ref: the opaque reference a call carries for the actor making it; the composition checks it and never authenticates it (Non-goal 12).
 
-Term responsible actor: the assignee ref of the active assignment Assignment's active_for answers for a task_id — none if Assignment answers none.
+Term responsible actor: the assignee ref of the active assignment Assignment's active_for answers for a task id — none if Assignment answers none.
 
 Term visible tasks: EVERY task of the Personal Todo instance IF the actor_ref holds tasks:view — none otherwise.
 
@@ -102,16 +102,16 @@ Action wiring 2: IF Permissions' permitted answers denied THEN the composition M
 Action wiring 3: The composition MUST NOT call a constituent for a denied answer.
 Action wiring 4: The composition MUST call Permissions' permitted with the call's actor_ref.
 Action wiring 5: An admitted add MUST call Personal Todo's add with the description.
-Action wiring 6: An admitted edit MUST call Personal Todo's edit with the task_id and the new description.
-Action wiring 7: An admitted complete MUST call Personal Todo's complete with the task_id.
+Action wiring 6: An admitted edit MUST call Personal Todo's edit with the task id and the new description.
+Action wiring 7: An admitted complete MUST call Personal Todo's complete with the task id.
 Action wiring 8: An admitted complete MUST NOT recall the task's active assignment.
 Action wiring 9: An admitted delete MUST call Assignment's recall for the task's active assignment.
 Action wiring 10: An admitted delete MUST call Personal Todo's delete ONLY AFTER the recall commits.
 Action wiring 11: IF the recall answers storage-failure THEN an admitted delete MUST answer storage-failure.
 Action wiring 12: IF the recall answers storage-failure THEN an admitted delete MUST NOT call Personal Todo's delete.
-Action wiring 13: An admitted assign MUST answer not-known for a task_id the Personal Todo instance does not carry.
-Action wiring 14: An admitted assign MUST call Assignment's assign ONLY AFTER the task_id's existence check clears.
-Action wiring 15: An admitted assign MUST accept a task_id whose unit state EQUALS done.
+Action wiring 13: An admitted assign MUST answer not-known for a task id the Personal Todo instance does not carry.
+Action wiring 14: An admitted assign MUST call Assignment's assign ONLY AFTER the task id's existence check clears.
+Action wiring 15: An admitted assign MUST accept a task id whose unit state EQUALS done.
 Action wiring 16: An admitted reassign MUST call Assignment's reassign with the assignment id and the new assignee ref.
 Action wiring 17: An admitted recall MUST call Assignment's recall with the assignment id.
 Action wiring 18: The composition MUST answer the constituent's answer.
@@ -135,7 +135,7 @@ Term admitted recall: a [Recall Assignment] call whose tasks:recall check answer
 WHY:
 Action wiring 1 through 3 are the whole gate, stated once for seven actions rather than seven times. Every action's shape is identical — check, then call — and the rules below name only what each action does *after* the gate clears.
 
-Action wiring 13 and Action wiring 14 pick up the referential-integrity delegation [Assignment](../atoms/assignment.md)'s `Composition note 2` hands to a composing pattern. Personal Todo retires an id permanently, so a deleted task_id can never return to legitimize a dangling assignment, which is what makes Invariant 3's *no active assignment on a deleted task* standing rather than delete-time only.
+Action wiring 13 and Action wiring 14 pick up the referential-integrity delegation [Assignment](../atoms/assignment.md)'s `Composition note 2` hands to a composing pattern. Personal Todo retires an id permanently, so a deleted task id can never return to legitimize a dangling assignment, which is what makes Invariant 3's *no active assignment on a deleted task* standing rather than delete-time only.
 
 Action wiring 19 is a refusal to be helpful. An empty answer is a fact about the task set; a denied read is a fact about the caller, and a composition that returned the first for the second would make the two indistinguishable and would vary by deployment.
 
@@ -190,7 +190,7 @@ Each of these needs two or all three constituents working together. None is avai
 - **Invariant 3 — Cascade-on-delete.**
   ```
   Invariant 3.1: EVERY deleted task MUST carry no active assignment.
-  Invariant 3.2: The composition MUST NOT leave an active assignment naming a task_id the Personal Todo instance does not carry.
+  Invariant 3.2: The composition MUST NOT leave an active assignment naming a task id the Personal Todo instance does not carry.
   ```
 - **Invariant 4 — Responsibility queryability.**
   ```
@@ -261,14 +261,14 @@ The closing claim above is the acceptance bar and this section distributes it: *
 
 ```
 Check 1.1: An auditor MUST find EVERY assignment of a deleted task whose status EQUALS EXACTLY ONE OF recalled, transferred (Invariant 3.1).
-Check 1.2: An auditor MUST find no active assignment naming a task_id the Personal Todo store does not carry (Invariant 3.2).
-Check 2.1: An auditor MUST find no task_id carrying two active assignments in the Assignment store (Invariant 2.1).
+Check 1.2: An auditor MUST find no active assignment naming a task id the Personal Todo store does not carry (Invariant 3.2).
+Check 2.1: An auditor MUST find no task id carrying two active assignments in the Assignment store (Invariant 2.1).
 Check 3.1: An auditor MUST find a task's responsible actor from the Assignment store (Invariant 4.1).
 Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment store (Invariant 4.2).
 Check 4.1: An auditor MUST find an actor_ref's grant history in the Permissions store (Invariant 5.1).
-Check 4.2: An auditor MUST find a grant record for a task_id the Personal Todo store does not carry (Invariant 5.2).
+Check 4.2: An auditor MUST find a grant record for a task id the Personal Todo store does not carry (Invariant 5.2).
 Check 5.1: An auditor MUST find [Responsible Actor] answering unassigned for a task carrying no active assignment (Composition state 2).
-Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task_id the Personal Todo store does not carry (Composition state 2).
+Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task id the Personal Todo store does not carry (Composition state 2).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -330,7 +330,7 @@ WHY:
 ### Concurrency
 
 ```
-Concurrency 1: The composition MUST rest on the host's serialization for two calls naming one task_id.
+Concurrency 1: The composition MUST rest on the host's serialization for two calls naming one task id.
 Concurrency 2: The composition MUST answer Assignment's already-assigned to the loser of two assigns.
 Concurrency 3: The composition MUST answer Personal Todo's not-known to the loser of two deletes.
 Concurrency 4: The composition MUST check permitted at a call's start.
@@ -365,7 +365,7 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: composition, constituents, responsible actor, visible tasks, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall, task_id, actor_ref.
+Term terms: composition, constituents, responsible actor, visible tasks, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall, task id, actor_ref.
 
 Term record verbs: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, recheck, rest, leave, wrap, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply.
 
@@ -375,7 +375,7 @@ Term cited: Execution Contract Conformance 8 — recursive conformance and the i
 
 #### Add Task
 
-The composition action that adds a task to the shared list — gates on [Tasks Add] via Permissions, then delegates to Personal Todo's `add`. Returns the new task_id, or [Permission Denied] before any delegated Personal Todo rejection.
+The composition action that adds a task to the shared list — gates on [Tasks Add] via Permissions, then delegates to Personal Todo's `add`. Returns the new task id, or [Permission Denied] before any delegated Personal Todo rejection.
 
 Kind: Operation
 

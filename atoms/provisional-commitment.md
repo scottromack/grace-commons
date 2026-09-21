@@ -280,8 +280,8 @@ Logic confinement is the Contract's (the section titled Logic Confinement Princi
   WHY: this is what an auditor comes for, and it is structural rather than procedural. Invariant 7.1 and Invariant 7.2 are the two halves of one guarantee — no resolution recorded after the declared window, no expiry recorded before it — and together they make the query *show me every hold resolved outside its window* return the empty set by construction. Invariant 7.3 is what makes the pair total: every held commitment reads one way or the other at every instant, so there is no gap between the window closing and expiry becoming legal.
 - **Invariant 8 — Resolution instants follow placement.**
   ```
-  Invariant 8.1: A commitment's confirmed at MUST NOT precede the commitment's placed at.
-  Invariant 8.2: A commitment's released at MUST NOT precede the commitment's placed at.
+  Invariant 8.1: A commitment's confirmed at MUST NOT PRECEDE the commitment's placed at.
+  Invariant 8.2: A commitment's released at MUST NOT PRECEDE the commitment's placed at.
   Deleted: Invariant 9. Identity 5 owns id reuse for every id, resolved or not.
   ```
   WHY: the family floors the two *resolution* instants and not expired at, whose floor is the stronger one Invariant 7.2 already carries — an expiry may not precede expires at, which by Invariant 6.1 exceeds placed at. The family was titled *Transition instants* in a draft, which promised a floor on all three and delivered two (council read 38).

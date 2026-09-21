@@ -129,7 +129,7 @@ Operation 4: IF record ref EQUALS blank THEN [Place] MUST answer invalid-request
 Operation 5: IF placed by EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 6: IF hold reason EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 7: IF a supplied case ref EQUALS blank THEN [Place] MUST answer invalid-request.
-Operation 8: IF a supplied placed at EXCEEDS now THEN [Place] MUST answer invalid-request.
+Operation 8: IF now PRECEDES a supplied placed at THEN [Place] MUST answer invalid-request.
 Operation 9: IF the caller supplies no placed at THEN [Place] MUST stamp placed at from the injected now.
 Operation 10: [Place] MUST accept a placed at below now.
 Operation 11: IF the store refuses the write THEN [Place] MUST answer storage-failure.
@@ -139,7 +139,7 @@ Operation 14: IF the hold state EQUALS released THEN [Release] MUST answer alrea
 Operation 15: IF released by EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 16: IF release reason EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 17: IF the resolved released at falls below the hold's placed at THEN [Release] MUST answer invalid-request.
-Operation 18: IF a supplied released at EXCEEDS now THEN [Release] MUST answer invalid-request.
+Operation 18: IF now PRECEDES a supplied released at THEN [Release] MUST answer invalid-request.
 Operation 18a: IF the caller supplies no released at THEN [Release] MUST stamp released at from the injected now.
 Operation 19: [Release] MUST stand the hold in released.
 Operation 20: [Release] MUST NOT reach another hold over the record.
@@ -310,7 +310,7 @@ Check 2.4: An auditor MUST find hold id not blank on EVERY hold (Identity 2, Ins
 Check 2.2: An auditor MUST find placed at set on EVERY hold (Invariant 7.3).
 Check 3.1: An auditor MUST find released by and release reason not blank on EVERY released hold (Invariant 5.1, Invariant 5.2).
 Check 3.2: An auditor MUST find released at set on EVERY released hold (Invariant 5.3).
-Check 3.3: An auditor MUST find no released hold whose placed at EXCEEDS the hold's released at (Invariant 6.1).
+Check 3.3: An auditor MUST find no released hold whose the hold's released at PRECEDES placed at (Invariant 6.1).
 Check 4.1: An auditor MUST find a second hold over one record still active once the first hold is released (Invariant 4.1).
 Check 5.1: An auditor MUST find already-released answered for a release against a released hold (Operation 14, Invariant 3.1).
 Check 5.2: An auditor MUST find a released hold's fields unchanged by that refused release (Invariant 1.1).

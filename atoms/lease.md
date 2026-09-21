@@ -133,7 +133,7 @@ A key frees by release or by the current holder's instant passing. The bound is 
 ```
 Fence 1: [Take] MUST return expires_at as an absolute instant on the granting host's clock.
 Fence 2: A holder MAY pass a fence to a third party.
-Fence 3: IF a work item's effect instant EXCEEDS the fence THEN the fenced party MUST refuse the work item.
+Fence 3: IF the fence PRECEDES a work item's effect instant THEN the fenced party MUST refuse the work item.
 Fence 4: The fenced party MUST judge the fence on the fenced party's own clock.
 Fence 5: A fence MUST NOT EXCEED the fence ceiling.
 Fence 6: The fenced party MUST compare the fence bare.

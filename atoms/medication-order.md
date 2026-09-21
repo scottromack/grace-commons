@@ -184,7 +184,7 @@ read(query)
 ```
 Operation 1: IF a required string input EQUALS blank THEN an action MUST answer a blank-input rejection.
 Operation 2: IF the dose DOES NOT EXCEED zero THEN [Order] MUST answer invalid-order.
-Operation 3: IF a supplied ordered at EXCEEDS the future bound THEN [Order] MUST answer invalid-order.
+Operation 3: IF the future bound PRECEDES a supplied ordered at THEN [Order] MUST answer invalid-order.
 Operation 4: IF ordered at EQUALS blank THEN [Order] MUST record now as ordered at.
 Operation 5: An admitted order MUST assign a fresh order id.
 Operation 6: An admitted order MUST record EVERY supplied core field.

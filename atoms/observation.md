@@ -169,7 +169,7 @@ Operation 3: IF observation type EQUALS blank THEN [Record] MUST answer invalid-
 Operation 4: IF unit EQUALS blank THEN [Record] MUST answer invalid-observation.
 Operation 5: IF the observation type carries no value constraint THEN a content-checking action MUST answer invalid-observation.
 Operation 6: IF value fails the observation type's value constraint THEN a content-checking action MUST answer invalid-observation.
-Operation 7: IF the resolved recorded at EXCEEDS the future bound THEN [Record] MUST answer invalid-observation.
+Operation 7: IF the future bound PRECEDES the resolved recorded at THEN [Record] MUST answer invalid-observation.
 Operation 8: An admitted record MUST record EXACTLY ONE observation.
 Operation 9: An admitted record MUST stand the observation in recorded.
 Operation 10: An admitted record MUST answer the observation id.
@@ -212,7 +212,7 @@ Operation 46: IF no observation matches THEN an admitted read MUST answer an emp
 Operation 47: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 48: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 49: IF a state filter's value IS NOT IN the states THEN [Read] MUST answer invalid-query.
-Operation 50: IF a range filter's end precedes the range's start THEN [Read] MUST answer invalid-query.
+Operation 50: IF a range filter's end PRECEDES the range's start THEN [Read] MUST answer invalid-query.
 Operation 51: [Read] MUST NOT write.
 Deleted: Operation 52. Capability requirement 1 owns it.
 Deleted: Operation 53. Execution Contract Logic confinement 3 owns it.

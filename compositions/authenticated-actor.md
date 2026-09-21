@@ -148,7 +148,7 @@ Primitive policy 3: The composition MUST answer invalid-request for a blank cred
 Primitive policy 4: The composition MUST answer invalid-request for a blank credential type.
 Primitive policy 5: The composition MUST answer invalid-request for a blank action ref.
 Primitive policy 6: The composition MUST answer invalid-request for a blank attest_credential.
-Primitive policy 7: The composition MUST answer invalid-request for an expires at the clock reading does not precede.
+Primitive policy 7: The composition MUST answer invalid-request for an expires at the clock reading DOES NOT PRECEDE.
 Primitive policy 8: The composition MUST compare an opaque input byte-exact.
 Primitive policy 9: The composition MUST NOT normalize an opaque input.
 Primitive policy 10: The composition MUST NOT case-fold an opaque input.
@@ -273,7 +273,7 @@ Each emerges from the composition; none belongs to one constituent. Each carries
 - **Invariant 1 — Revocation cascade, attest-surface closure.**
   ```
   Invariant 1.1: The composition MUST NOT produce an attestation for a principal ref carrying no effective-active gating credential at the gate read.
-  Invariant 1.2: The gate read MUST precede the attestation write inside one held critical section.
+  Invariant 1.2: The gate read MUST PRECEDE the attestation write inside one held critical section.
   Invariant 1.3: A revoked gating credential MUST close the principal's attest surface for EVERY later call.
   ```
   WHY: rests on [Credential](../atoms/credential.md)'s revocation-absorbing terminal, which is what makes *every later call* true rather than merely likely, and on [Actor Identity](../atoms/actor-identity.md)'s attestation immutability, which is what makes closure forward-only. The one declared residue is Concurrency 3.

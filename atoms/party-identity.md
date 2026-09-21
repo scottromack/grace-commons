@@ -158,7 +158,7 @@ Term verification result: verification id and an optional state change id — wh
 ```
 Operation 1: IF a required string input EQUALS blank THEN an action MUST answer invalid-request.
 Operation 2: IF the date of birth parses as no calendar date THEN [Enroll] MUST answer invalid-request.
-Operation 3: IF the date of birth EXCEEDS now THEN [Enroll] MUST answer invalid-request.
+Operation 3: IF now PRECEDES the date of birth THEN [Enroll] MUST answer invalid-request.
 Operation 4: An admitted enroll MUST assign a fresh party id.
 Operation 5: An admitted enroll MUST record EVERY enrollment field.
 Operation 6: An admitted enroll MUST record now as enrolled at.

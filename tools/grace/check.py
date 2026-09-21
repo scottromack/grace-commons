@@ -218,6 +218,32 @@ def bare_name_text(stmt: str, names: list[str]) -> str:
     return stmt
 
 
+INSTANT_WORD = re.compile(r"\b(now|[a-z][a-z ]*? at|[a-z][a-z ]*? instant|instant|deadline|terminus)\b")
+EXCEEDS_RX = re.compile(r"\b(?:DOES NOT EXCEED|EXCEEDS)\b")
+PRECEDES_RX = re.compile(r"\b(?:DOES NOT PRECEDE|PRECEDES)\b")
+LOWER_PRECEDE = re.compile(r"\b(precedes|precede)\b")
+
+
+def operand_type(text: str) -> list[str]:
+    """One operator, one operand type (Earned vocabulary 18, council read 146).
+
+    EXCEEDS compares quantities and lengths; PRECEDES compares instants. Each
+    comparison is read for the shape of the operand beside it, so a duration
+    keeps EXCEEDS (`completion bound EXCEEDS lease spend`) and an instant takes
+    PRECEDES (`now PRECEDES the resolved submitted at`)."""
+    bare = CODE_SPAN.sub(" ", text)
+    out = []
+    for m in EXCEEDS_RX.finditer(bare):
+        near = bare[max(0, m.start() - 70):m.start()] + " " + bare[m.end():m.end() + 45]
+        if INSTANT_WORD.search(near) and "duration" not in near and "bound EXCEEDS" not in bare[max(0, m.start()-12):m.end()]:
+            out.append(f"`{m.group(0)}` between instants; compare two instants with PRECEDES "
+                       f"(Earned vocabulary 18)")
+    for m in LOWER_PRECEDE.finditer(bare):
+        out.append(f"`{m.group(0)}` in lower case; PRECEDES is a condition operator "
+                   f"(Earned vocabulary 18)")
+    return out
+
+
 def condition_form(text: str, inputs: set[str], in_rule: bool) -> list[str]:
     """Why a rule or declaration leaves the condition operators, if it does."""
     bare = CODE_SPAN.sub(" ", text)
@@ -229,6 +255,8 @@ def condition_form(text: str, inputs: set[str], in_rule: bool) -> list[str]:
         if m.group(1) in inputs:
             out.append(f"`{m.group(1)}` is an input, a value, tested with EXISTS; "
                        f"write `{m.group(1)} EQUALS blank` (Earned vocabulary 8)")
+    if in_rule:
+        out.extend(operand_type(text))
     return out
 
 
@@ -380,7 +408,9 @@ ADVISORY = {"W-or-word", "W-watch-word", "W-term-unused", "W-lowercase-after",
 DECL_ARITH = re.compile(r"[−+×÷]|\bmax\(|\bmin\(")
 DECL_TOKEN = re.compile(r"[a-z_][a-z0-9_]*")
 DECL_SKIP = {"max", "min", "of", "the", "a", "an", "and", "or", "per", "less", "true", "false"}
-RESERVED_VERBS = {"EXCEED"}
+# the reserved grammar verbs a modal may take: an ordering claim is a grammar
+# claim, not a record verb the specification declares (council read 146)
+RESERVED_VERBS = {"EXCEED", "PRECEDE"}
 
 
 @dataclass

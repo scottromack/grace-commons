@@ -152,7 +152,7 @@ read_declaration(instance_id)
 ```
 Operation 1: [Instantiate] MUST answer invalid-request ONLY IF the declaration is well-formed.
 Operation 2: IF a supplied actor ref EQUALS blank THEN an action MUST answer invalid-request.
-Operation 3: IF the resolved instantiated at EXCEEDS now THEN [Instantiate] MUST answer invalid-request.
+Operation 3: IF now PRECEDES the resolved instantiated at THEN [Instantiate] MUST answer invalid-request.
 Operation 4: An admitted instantiate MUST record EXACTLY ONE workflow.
 Operation 5: An admitted instantiate MUST stand the workflow in the initial state.
 Operation 6: An admitted instantiate MUST set next sequence number to one.
@@ -168,8 +168,8 @@ Operation 15: IF no declared transition matches the current state and action THE
 Operation 16: [Fire] MUST answer invalid-transition ONLY IF the current state IS NOT IN the terminal states.
 Operation 17: IF the matched transition carries a guard AND guard satisfied EQUALS blank THEN [Fire] MUST answer guard-not-satisfied.
 Operation 18: [Fire] MUST answer guard-not-satisfied ONLY IF a declared transition matches.
-Operation 19: IF the resolved fired at EXCEEDS now THEN [Fire] MUST answer invalid-request.
-Operation 20: IF the resolved fired at precedes the workflow's instantiated at THEN [Fire] MUST answer invalid-request.
+Operation 19: IF now PRECEDES the resolved fired at THEN [Fire] MUST answer invalid-request.
+Operation 20: IF the resolved fired at PRECEDES the workflow's instantiated at THEN [Fire] MUST answer invalid-request.
 Operation 21: An admitted fire MUST append EXACTLY ONE history entry.
 Operation 22: An admitted fire MUST take the history entry's sequence number from next sequence number.
 Operation 23: An admitted fire MUST raise next sequence number by one.
@@ -194,7 +194,7 @@ Operation 41: An admitted history MUST NOT answer a history entry failing a supp
 Operation 42: IF no history entry matches THEN an admitted history MUST answer an empty entry sequence.
 Operation 43: IF a filter's axis IS NOT IN the filter axes THEN [History] MUST answer invalid-query.
 Operation 44: IF a string filter's value EQUALS blank THEN [History] MUST answer invalid-query.
-Operation 45: IF a range filter's end precedes the range's start THEN [History] MUST answer invalid-query.
+Operation 45: IF a range filter's end PRECEDES the range's start THEN [History] MUST answer invalid-query.
 Operation 46: [History] MUST answer invalid-query ONLY IF the instance id names a workflow.
 Operation 47: [Read Declaration] MUST answer the workflow's declaration.
 Operation 48: [Read Declaration] MUST NOT normalize the declaration.

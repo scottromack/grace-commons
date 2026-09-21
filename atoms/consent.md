@@ -157,8 +157,8 @@ Operation 3: [Grant] MUST answer the consent id.
 Operation 4: IF subject ref EQUALS blank THEN [Grant] MUST answer invalid-request.
 Operation 5: IF purpose EQUALS blank THEN [Grant] MUST answer invalid-request.
 Operation 6: IF granted by EQUALS blank THEN [Grant] MUST answer invalid-request.
-Operation 7: [Grant] MAY record an expires at ONLY IF expires at EXCEEDS now.
-Operation 8: IF now EXCEEDS expires at THEN [Grant] MUST answer invalid-request.
+Operation 7: [Grant] MAY record an expires at ONLY IF now PRECEDES expires at.
+Operation 8: IF expires at PRECEDES now THEN [Grant] MUST answer invalid-request.
 Operation 9: IF expires at EQUALS now THEN [Grant] MUST answer invalid-request.
 Operation 10: [Grant] MUST stamp granted at from the injected now.
 Operation 11: [Grant] MUST record metadata the call supplied.
@@ -174,8 +174,8 @@ Operation 20: [Revoke] MUST resolve revoked at from the call.
 Operation 21: [Revoke] MUST resolve revoked at from the injected now ONLY IF the call supplied a blank revoked at.
 Operation 22: IF the consent record's state EQUALS granted AND revoked by EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 23: IF the consent record's state EQUALS granted AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Operation 24: IF the consent record's state EQUALS granted AND the resolved revoked at EXCEEDS now THEN [Revoke] MUST answer invalid-request.
-Operation 25: IF the consent record's state EQUALS granted AND granted at EXCEEDS the resolved revoked at THEN [Revoke] MUST answer invalid-request.
+Operation 24: IF the consent record's state EQUALS granted AND now PRECEDES the resolved revoked at THEN [Revoke] MUST answer invalid-request.
+Operation 25: IF the consent record's state EQUALS granted AND the resolved revoked at PRECEDES granted at THEN [Revoke] MUST answer invalid-request.
 Operation 26: [Revoke] MUST stand the consent record in revoked.
 Operation 27: [Revoke] MUST record revoked by on the consent record.
 Operation 28: [Revoke] MUST record the reason as the revocation reason.
@@ -209,7 +209,7 @@ Operation 55: IF the query carries a filter key outside the supported filter axe
 Operation 56: [Read] MUST NOT ignore a filter key outside the supported filter axes.
 Operation 57: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
 Operation 58: IF a state filter's value IS NOT IN state THEN [Read] MUST answer invalid-query.
-Operation 59: IF a time range's end precedes the time range's start THEN [Read] MUST answer invalid-query.
+Operation 59: IF a time range's end PRECEDES the time range's start THEN [Read] MUST answer invalid-query.
 Operation 60: [Read] MUST exclude a consent record carrying no value for a time range's field.
 Deleted: Operation 61. Capability requirement 1 owns it.
 Deleted: Operation 62. Execution Contract Logic confinement 3 owns it.
@@ -427,7 +427,7 @@ Check 7.1: An auditor MUST find EVERY revoked and expired consent record still a
 Check 8.1: An auditor MUST find two [Check] calls carrying one consent id's pair and one at time answering alike (Invariant 10.4).
 Check 8.2: An auditor MUST find a [Check] carrying an at time answering alike across a later [Grant] for the pair (Invariant 10.3).
 Check 8.3: An auditor MUST find a [Check] carrying an at time answering alike across a later [Revoke] for the pair (Invariant 10.3).
-Check 8.4: An auditor MUST find [Check] answering from the latest consent record the at time does not precede (Invariant 10.1).
+Check 8.4: An auditor MUST find [Check] answering from the latest consent record the at time DOES NOT PRECEDE (Invariant 10.1).
 Check 8.5: An auditor MUST find [Check] answering from the greatest consent id of two consent records sharing a subject ref, a purpose and a granted at (Invariant 10.2).
 ```
 
