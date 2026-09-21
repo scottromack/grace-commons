@@ -47,16 +47,16 @@ Not a transaction, not the adopter's store, not an audit journal, not a class. A
 Composes 1: A record MUST carry only stamps of the substrate (recorded at) or of the constituent (through probe).
 ```
 
-### `journal_fence` (optional)
+### Journal fence (optional)
 
 A fence on the composition's own journal writes, standing to the journal as commit fence stands to the adopter's store: a conveyance, a clock, an edge.
 
 ```
-journal_fence 1: A deployment declaring journal_fence MUST declare the conveyance: a deadline parameter on record_action, or a host-applied request-scoped deadline on every record_action of the instance.
-journal_fence 2: The section titled Where the allowance goes IS AUTHORITATIVE FOR the fence's instants.
-NOTE: watch addressable sections — a section title as the subject of an authority claim (journal_fence 2, Allowance 2, Instance start 1, Which closing stands 1, Invariant 2.6).
-journal_fence 3: The substrate MUST land a fenced-out write on the position's existing recording-failure arm.
-journal_fence 4: A sweep run MUST absorb a fenced-out closing write into skipped and leave the intent open.
+journal fence 1: A deployment declaring journal_fence MUST declare the conveyance: a deadline parameter on record_action, or a host-applied request-scoped deadline on every record_action of the instance.
+journal fence 2: The section titled Where the allowance goes IS AUTHORITATIVE FOR the fence's instants.
+NOTE: watch addressable sections — a section title as the subject of an authority claim (journal fence 2, Allowance 2, Instance start 1, Which closing stands 1, Invariant 2.6).
+journal fence 3: The substrate MUST land a fenced-out write on the position's existing recording-failure arm.
+journal fence 4: A sweep run MUST absorb a fenced-out closing write into skipped and leave the intent open.
 ```
 
 Term position's existing arm: `recording-failure(intent)` at [Open]; `recording-failure(outcome)` at [Close]; `recording-failure(refusal, constituent_code)` at [Refuse]; `recording-failure(resolution)` at [Resolve].
@@ -66,20 +66,20 @@ Term journal_fence instant: the earlier of the writer's lease terminus and the w
 WHY:
 record_action carries no deadline parameter, so the first conveyance is unavailable in this library. Without the per-write instant a write may land after journal write bound and inside the lease — after the read-back, which then retries and appends the duplicate (`-buggy-perwrite`, rejected).
 
-### Under `journal_fence = none` — the case in this library today
+### Under journal fence set to none — the case in this library today
 
 ```
-journal_fence none 1: WHEN journal_fence EQUALS none:
-    journal_fence none 1a: A late append beside another writer's closing MUST leave both records.
-    journal_fence none 1b: The composition MUST set binding duplicate on the act.
-journal_fence none 2: The composition MUST surface a binding duplicate.
-journal_fence none 3: The composition MUST report a binding duplicate.
-journal_fence none 4: The composition MUST resolve a binding duplicate.
-journal_fence none 5: A surface MUST report a duplicate as EXACTLY ONE OF the closings key, the intents key.
-journal_fence none 6: A surface MAY report the intents key ONLY IF the act kind declares a service identity.
+journal fence none 1: WHEN journal_fence EQUALS none:
+    journal fence none 1a: A late append beside another writer's closing MUST leave both records.
+    journal fence none 1b: The composition MUST set binding duplicate on the act.
+journal fence none 2: The composition MUST surface a binding duplicate.
+journal fence none 3: The composition MUST report a binding duplicate.
+journal fence none 4: The composition MUST resolve a binding duplicate.
+journal fence none 5: A surface MUST report a duplicate as EXACTLY ONE OF the closings key, the intents key.
+journal fence none 6: A surface MAY report the intents key ONLY IF the act kind declares a service identity.
 ```
 
-Three surfaces make journal_fence none 2 checkable and read the section titled *Which closing stands* for both keys: [Read Invocation]'s two binding duplicate fields (read_invocation 7, read_invocation 8), [Reconcile] step 5's scan over the delta (reconcile step 5.2 through 5.4), and Generation acceptance check 2.
+Three surfaces make journal fence none 2 checkable and read the section titled *Which closing stands* for both keys: [Read Invocation]'s two binding duplicate fields (read invocation 7, read invocation 8), [Reconcile] step 5's scan over the delta (reconcile step 5.2 through 5.4), and Generation acceptance check 2.
 
 Term quiescence: no invocation in flight and no sweep run mid-pass.
 
@@ -370,7 +370,7 @@ Action wiring 6: An adopter's action MUST NOT write to the journal for the act o
 
 ---
 
-#### `open`
+#### Open contract
 
 ```
 open(kind, act_key, actor_ref, credential, intent_data)
@@ -447,7 +447,7 @@ The service identity closes acts and never opens them (check 5). Step 3 reads th
 
 ---
 
-#### `close`
+#### Close contract
 
 ```
 close(kind, act_key, invocation_id, intent_event_id, actor_ref, credential, outcome_action_ref, outcome_data)
@@ -515,11 +515,11 @@ Steps:
    ```
 
 WHY:
-Check 2 reads an outcome without recovery whose actor_ref differs from its intent's as a conformance failure (close 1). Every route from an id to an event id reads the intent's payload, which [Resolve] takes an argument to avoid (close 3). close step 1.2 cannot tell a yielded invocation from one never opened; step 0 is the caller's precondition. close step 2.3: an abandonment or escalation says the act was not accounted for, and the correction is [Resolve]'s `supersedes` path. close step 2.4 lands on the position's own arm because the act has committed and the caller's next move is fixed. Step 2 under a fence cannot land a write; without one it is load-bearing — a paused invocation passes step 1, wakes after the sweep closed the act, and the re-read stops a second outcome — and still a mitigation, since a pause between step 2 and the write appends beside the sweep's record (journal_fence none 1). close step 3.3's act is escalated as outcome-unrecordable.
+Check 2 reads an outcome without recovery whose actor_ref differs from its intent's as a conformance failure (close 1). Every route from an id to an event id reads the intent's payload, which [Resolve] takes an argument to avoid (close 3). close step 1.2 cannot tell a yielded invocation from one never opened; step 0 is the caller's precondition. close step 2.3: an abandonment or escalation says the act was not accounted for, and the correction is [Resolve]'s `supersedes` path. close step 2.4 lands on the position's own arm because the act has committed and the caller's next move is fixed. Step 2 under a fence cannot land a write; without one it is load-bearing — a paused invocation passes step 1, wakes after the sweep closed the act, and the re-read stops a second outcome — and still a mitigation, since a pause between step 2 and the write appends beside the sweep's record (journal fence none 1). close step 3.3's act is escalated as outcome-unrecordable.
 
 ---
 
-#### `refuse`
+#### Refuse contract
 
 ```
 refuse(kind, act_key, invocation_id, intent_event_id, actor_ref, credential, reason, constituent_code)
@@ -573,7 +573,7 @@ Read before remaining and a lease-expired invocation reports already-accounted f
 
 ---
 
-#### `yield`
+#### Yield contract
 
 ```
 yield(kind, act_key, invocation_id)
@@ -589,7 +589,7 @@ yield 4: [Yield] MUST NOT close the intent.
 
 ---
 
-#### `resolve`
+#### Resolve contract
 
 ```
 resolve(kind, act_key, invocation_id, intent_event_id, actor_ref, credential, disposition)
@@ -639,7 +639,7 @@ Audit Trail projects no read that validates a credential without appending, so v
 
 ---
 
-#### `reconcile`
+#### Reconcile contract
 
 ```
 reconcile()
@@ -779,7 +779,7 @@ reconcile 7: Two sweep runs MUST serialize on the critical section per act and o
 
 ---
 
-#### `read_invocation`
+#### Read Invocation contract
 
 ```
 read_invocation(kind, act_key, optional invocation_id)
@@ -794,27 +794,27 @@ Term invocation entry: invocation id; state; the entry-level binding duplicate, 
 Reads the act's invocations — each intent and whichever closing record names it — through the same rebuild, for an adopter's re-entry arm and for an auditor.
 
 ```
-read_invocation 1: [Read Invocation] MUST perform the rebuild under now injected at the reader's own seam.
-read_invocation 2: [Read Invocation] MUST return one entry per invocation id, at most read cap of the most recent, with more set to true where the act has older ones.
-read_invocation 3: WHEN invocation id is given:
-    read_invocation 3a: [Read Invocation] MUST return one entry.
-read_invocation 4: records MUST carry the intent, the recovery_intended records and the closing records.
-read_invocation 5: [Read Invocation] MUST cap the recovery_intended records and the closing records at the most recent read cap, with more set to true beyond.
-read_invocation 6: [Read Invocation] MUST NOT exclude a superseded record from records.
-read_invocation 7: The entry-level binding duplicate MUST report the closings key.
-read_invocation 8: The act-level binding duplicate MUST report the intents key.
-read_invocation 9: WHEN service identity EQUALS none:
-    read_invocation 9a: The act-level binding duplicate MUST read false.
-read_invocation 10: [Read Invocation] MUST read the entry's state from the table in the section titled Which closing stands.
-read_invocation 11: [Read Invocation] MUST transcribe the range read's unavailable arm as journal-unavailable.
-read_invocation 12: [Read Invocation] MUST answer not-known for an act key with no readable intent.
-read_invocation 13: [Read Invocation] MUST NOT take a critical section.
-read_invocation 14: [Read Invocation] MUST NOT write.
-read_invocation 15: An adopter that decides a write on [Read Invocation]'s answer MUST decide the write under the critical section through [Open]'s pre-check.
+read invocation 1: [Read Invocation] MUST perform the rebuild under now injected at the reader's own seam.
+read invocation 2: [Read Invocation] MUST return one entry per invocation id, at most read cap of the most recent, with more set to true where the act has older ones.
+read invocation 3: WHEN invocation id is given:
+    read invocation 3a: [Read Invocation] MUST return one entry.
+read invocation 4: records MUST carry the intent, the recovery_intended records and the closing records.
+read invocation 5: [Read Invocation] MUST cap the recovery_intended records and the closing records at the most recent read cap, with more set to true beyond.
+read invocation 6: [Read Invocation] MUST NOT exclude a superseded record from records.
+read invocation 7: The entry-level binding duplicate MUST report the closings key.
+read invocation 8: The act-level binding duplicate MUST report the intents key.
+read invocation 9: WHEN service identity EQUALS none:
+    read invocation 9a: The act-level binding duplicate MUST read false.
+read invocation 10: [Read Invocation] MUST read the entry's state from the table in the section titled Which closing stands.
+read invocation 11: [Read Invocation] MUST transcribe the range read's unavailable arm as journal-unavailable.
+read invocation 12: [Read Invocation] MUST answer not-known for an act key with no readable intent.
+read invocation 13: [Read Invocation] MUST NOT take a critical section.
+read invocation 14: [Read Invocation] MUST NOT write.
+read invocation 15: An adopter that decides a write on [Read Invocation]'s answer MUST decide the write under the critical section through [Open]'s pre-check.
 ```
 
 WHY:
-The rebuild's comparisons are against the substrate's stamps, so the reader is a seam (read_invocation 1). Closings are capped because the degraded Invariant 2 admits them in plurality. Without read_invocation 11 the cheapest implementation answers not-known for a key whose intent and outcome are sitting in the journal. read_invocation 12 is also what a wholly purged act answers — the destroyed payload carried the key — the one admitted exception to the section titled *Lawful destruction is answered before absence* in `pressure-testing.md`; read_record by event id still answers *Purged*.
+The rebuild's comparisons are against the substrate's stamps, so the reader is a seam (read invocation 1). Closings are capped because the degraded Invariant 2 admits them in plurality. Without read invocation 11 the cheapest implementation answers not-known for a key whose intent and outcome are sitting in the journal. read invocation 12 is also what a wholly purged act answers — the destroyed payload carried the key — the one admitted exception to the section titled *Lawful destruction is answered before absence* in `pressure-testing.md`; read_record by event id still answers *Purged*.
 
 ### Wiring decision
 
@@ -948,7 +948,7 @@ An unbound kind has no probe, no completion bound and no retention period, so no
 
 ```
 Instance start 1: This section IS AUTHORITATIVE FOR the conditions of instance start.
-NOTE: watch addressable sections (journal_fence 2).
+NOTE: watch addressable sections (journal fence 2).
 Instance start 2: The instance MUST check EVERY condition at start for EVERY bound act kind.
 Instance start 3: IF any condition fails for any bound kind THEN the instance MUST NOT start.
 ```
@@ -991,7 +991,7 @@ WHY:
 ```
 Allowance 1: clock offset allowance IS AUTHORITATIVE FOR every comparison in Recoverable Invocation between a reading taken at one seam and a stamp or instant minted at another.
 Allowance 2: This section IS AUTHORITATIVE FOR where the allowance is spent.
-NOTE: watch addressable sections (journal_fence 2).
+NOTE: watch addressable sections (journal fence 2).
 Allowance 3: A writer MUST classify EVERY cross-seam comparison in Recoverable Invocation as EXACTLY ONE OF applied, minted.
 Allowance 4: An applied comparison MUST take the allowance at the reading.
 Allowance 5: An applied comparison MUST NOT decide a write.
@@ -1035,7 +1035,7 @@ One act may carry more than one closing record; a [Binding Duplicate] is what is
 
 ```
 Which closing stands 1: This section IS AUTHORITATIVE FOR which of an act's closing records is the act's.
-NOTE: watch addressable sections (journal_fence 2).
+NOTE: watch addressable sections (journal fence 2).
 Which closing stands 2: A closing record MAY supersede another closing record ONLY IF the closing record names the other in supersedes.
 Which closing stands 3: resolved by MUST NOT trigger supersession.
 Which closing stands 4: EVERY surface MUST read supersession transitively.
@@ -1084,7 +1084,7 @@ An escalated entry becomes resolved when an operator's abandonment names it, and
   Invariant 2.4: IF journal_fence EQUALS none THEN two unsuperseded closing records MUST NOT name one invocation id at quiescence.
   Invariant 2.5: PROVISIONAL: Invariant 2.1 DEGRADES TO Invariant 2.4.
   Invariant 2.6: The section titled Which closing stands IS AUTHORITATIVE FOR which closing is the act's.
-  NOTE: watch addressable sections (journal_fence 2).
+  NOTE: watch addressable sections (journal fence 2).
   ```
   *Rests on:* act section (Configuration) with lease-as-terminus semantics; the journal_fence (Composes) with its margin and per-write instant; the return-based read-your-writes clause (Capability requirement 7); [Close] step 2's proceed-as-landed; [Reconcile] step 2's re-read under the critical section and sweep closed ids. *Defended in-line:* the load-bearing wiring decision; the model's six rejected twins bearing on this invariant — `-buggy-death`, `-buggy-reread`, `-buggy-journal`, `-buggy-visible`, `-buggy-skew`, `-buggy-perwrite` — each landing two closings for one act; a seventh, `-buggy-supersede`, lands two unsuperseded closings by omitting the name from a resolution over an escalation.
 
