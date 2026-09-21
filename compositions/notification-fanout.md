@@ -312,7 +312,7 @@ Check 5.1: An auditor MUST find no subscription record written by the compositio
 
 NOTE: EVERY check names the rule the check tests.
 
-Term clock offset allowance: clock_offset_allowance — the declared envelope within which the composition's fired at may be compared with a stamp Subscription wrote at its own seam.
+Term clock offset allowance: clock offset allowance — the declared envelope within which the composition's fired at may be compared with a stamp Subscription wrote at its own seam.
 
 Term boundary window: the interval the read latency bound and the clock offset allowance together span around a fired at — a [Boundary Window].
 

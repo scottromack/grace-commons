@@ -168,7 +168,7 @@ Capability requirement 11: The evidence floor MUST NOT EXCEED the audit horizon.
 Capability requirement 12: A deployment MUST declare the longest hold the deployment admits.
 Capability requirement 13: IF a deployment admits an unbounded hold THEN the deployment MUST wire a horizon alert.
 Capability requirement 14: A deployment MUST set a field cap PER payload field.
-Capability requirement 15: A field cap MUST NOT EXCEED the audit instance's payload_cap.
+Capability requirement 15: A field cap MUST NOT EXCEED the audit instance's payload cap.
 Capability requirement 16: A deployment MUST set the hold ids cap.
 Capability requirement 17: A deployment MUST provision the service identity as a registered actor.
 Capability requirement 18: A deployment MUST rotate the service identity's credential.
@@ -203,7 +203,7 @@ Term transition: the composition's evaluation of one call against the constituen
 
 Term evidence floor: the longest retention policy in use on the business retention instance taken with the longest hold the deployment admits — what audit_trail_retention_policy must outlast — the age a placement event's payload must survive to.
 
-Term closure floor: the retention completion bound taken with the reconciliation_cadence and the audit write latency — the longest interval in which the sweep can close an open marker.
+Term closure floor: the retention completion bound taken with the reconciliation cadence and the audit write latency — the longest interval in which the sweep can close an open marker.
 
 Term retention completion bound: retention_completion_bound — the deployment's declared maximum duration between an invocation's intent record and the invocation's outcome record, read against the injected now the intent carries.
 
@@ -836,7 +836,7 @@ Clock semantics 16: The gate MUST NOT read a clock.
 Deleted: Clock semantics 17. Capability requirement 36 owns it.
 ```
 
-Term clock offset allowance: clock_offset_allowance — the deployment's declared envelope between two seams' readings of one request — what a reader allows before reading a divergence as a clock finding.
+Term clock offset allowance: clock offset allowance — the deployment's declared envelope between two seams' readings of one request — what a reader allows before reading a divergence as a clock finding.
 
 Term constituent commit: the instant a committing call's write lands in the constituent's own store.
 
@@ -908,9 +908,9 @@ Term record verbs: serve, change, inherit, read, hold, reach, call, gate, select
 
 Term records: empty.
 
-Term bounds: retention completion bound (retention_completion_bound), compensation window (compensation_window), audit horizon (audit_trail_retention_policy), evidence floor, closure floor, clock offset allowance (clock_offset_allowance), field cap, hold ids cap (hold_ids_cap), audit write latency.
+Term bounds: retention completion bound (retention_completion_bound), compensation window (compensation window), audit horizon (audit_trail_retention_policy), evidence floor, closure floor, clock offset allowance (clock offset allowance), field cap, hold ids cap (hold_ids_cap), audit write latency.
 
-Term cadences: reconciliation cadence (reconciliation_cadence), seal cadence.
+Term cadences: reconciliation cadence (reconciliation cadence), seal cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 

@@ -212,7 +212,7 @@ Term retention scope: the deployment's declaration of what a purge covers — th
 
 Term purge record: the retention layer's own record that a named attestation was lawfully destroyed.
 
-Term clock offset allowance: clock_offset_allowance — the declared envelope within which the two constituents' stamps, each written at its own seam, may be compared.
+Term clock offset allowance: clock offset allowance — the declared envelope within which the two constituents' stamps, each written at its own seam, may be compared.
 
 Term length cap: the composition's declared maximum length of an opaque input.
 
@@ -830,7 +830,7 @@ Term record verbs: serve, change, inherit, read, hold, reach, call, select, quer
 
 Term records: empty.
 
-Term bounds: issuance completion bound (issue_grant_completion_bound), revocation completion bound (revoke_grant_completion_bound), pair-scoped completion bound (revoke_permission_completion_bound), clock offset allowance (clock_offset_allowance), length cap, retention horizon.
+Term bounds: issuance completion bound (issue_grant_completion_bound), revocation completion bound (revoke_grant_completion_bound), pair-scoped completion bound (revoke_permission_completion_bound), clock offset allowance (clock offset allowance), length cap, retention horizon.
 
 Term cadences: empty.
 

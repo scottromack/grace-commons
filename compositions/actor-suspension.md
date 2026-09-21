@@ -251,7 +251,7 @@ Capability requirement 33: The suspension completion bound MUST NOT EXCEED a lea
 Capability requirement 34: A lease expiry MUST stand as the holder's terminus.
 Capability requirement 35: A deployment MUST NOT start an instance carrying no critical section.
 Capability requirement 36: A deployment MUST set the planned set cap.
-Capability requirement 37: The maximal outcome MUST NOT EXCEED the audit instance's payload_cap.
+Capability requirement 37: The maximal outcome MUST NOT EXCEED the audit instance's payload cap.
 Capability requirement 38: The deployment MUST declare the clock offset allowance.
 Capability requirement 39: A deployment MUST hold the composition's stores at the constituent stores' durability.
 Capability requirement 40: A deployment MUST gate an issuance on the suspension-state index.
@@ -284,7 +284,7 @@ Term planned set cap: planned_set_cap — the most members one suspension may pl
 
 Term maximal outcome: the largest record the act can write — the sweep's compensating outcome carrying a full planned set's revoked set, the unresolved members, the recovery marker, the operator, the plan-unavailable marker, the intent_event_id and the invocation_id.
 
-Term clock offset allowance: clock_offset_allowance — the declared envelope within which a stamp this composition wrote at its seam may be compared with a stamp a constituent wrote at its own.
+Term clock offset allowance: clock offset allowance — the declared envelope within which a stamp this composition wrote at its seam may be compared with a stamp a constituent wrote at its own.
 
 WHY:
 Capability requirement 12 through 15 are the enumeration's declaring source, and they are the composition's largest audit gap stated as an obligation rather than a claim. This composition enumerates grants by subject ref, sessions by principal ref and credentials by Credential's own principal ref — three namespaces — and the enumeration is complete only where all three coincide with the actor_ref. A deployment satisfies that through [Authenticated Actor](./authenticated-actor.md)'s binding or by convention; whether it actually did is External check 1, because verifying that two opaque namespaces coincide is not a records-alone question at this layer. A divergent namespace under-enumerates *silently*, which is why the knob is a declaration the deployment makes rather than a default the composition assumes.
@@ -1033,9 +1033,9 @@ Term record verbs: serve, change, inherit, read, hold, reach, call, select, quer
 
 Term records: empty.
 
-Term bounds: suspension completion bound (suspension_completion_bound), completion window (completion_window), outcome write latency (outcome_write_latency), closure floor, audit horizon (audit_trail_retention_policy), access retention floor, planned set cap (planned_set_cap), clock offset allowance (clock_offset_allowance), maximal outcome.
+Term bounds: suspension completion bound (suspension_completion_bound), completion window (completion_window), outcome write latency (outcome_write_latency), closure floor, audit horizon (audit_trail_retention_policy), access retention floor, planned set cap (planned_set_cap), clock offset allowance (clock offset allowance), maximal outcome.
 
-Term cadences: reconciliation cadence (reconciliation_cadence), seal cadence.
+Term cadences: reconciliation cadence (reconciliation cadence), seal cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.41 (2026-09-15).
 

@@ -664,7 +664,7 @@ Term resolved administered at: the administered at the order carries — the sup
 
 Term resolved completed at: the completed at the order carries — the supplied value where one exists, and now otherwise.
 
-Term clock offset allowance: clock_offset_allowance — the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
+Term clock offset allowance: clock offset allowance — the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
 
 Term reason field: amendment reason | hold reason | cancellation reason | discontinuation reason — every field recording why an action was taken.
 

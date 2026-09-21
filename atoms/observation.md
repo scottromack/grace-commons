@@ -126,7 +126,7 @@ Capability requirement 1: The deployment MUST supply now at the seam.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
-Capability requirement 5: The deployment MUST declare the clock_offset_allowance.
+Capability requirement 5: The deployment MUST declare the clock offset allowance.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
@@ -236,9 +236,9 @@ Term state rejection: already-amended OR already-retracted — the refusals that
 
 Term value constraint: the bound a deployment declares for one observation type — what a valid value for that measurement is; declared by the deployment, applied by the atom, and defined by neither the atom nor this grammar.
 
-Term clock_offset_allowance: the non-negative duration a deployment declares as the margin between a caller's clock and the seam's; `0` means no tolerance.
+Term clock offset allowance: the non-negative duration a deployment declares as the margin between a caller's clock and the seam's; `0` means no tolerance.
 
-Term future bound: now raised by the clock_offset_allowance — the ceiling a resolved recorded at is checked against (Operation 7).
+Term future bound: now raised by the clock offset allowance — the ceiling a resolved recorded at is checked against (Operation 7).
 
 Term resolved recorded at: the recorded at the observation carries — the supplied value where one exists, and now otherwise.
 
@@ -555,13 +555,13 @@ Term record verbs: identify, allocate, change, carry, stand, answer, record, set
 
 Term value sets: state = recorded | amended | retracted.
 
-Term bounds: clock_offset_allowance (the margin a deployment declares between a caller's clock and the seam's); value constraint (the bound a deployment declares per observation type).
+Term bounds: clock offset allowance (the margin a deployment declares between a caller's clock and the seam's); value constraint (the bound a deployment declares per observation type).
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: observation, observation id, subject ref, recorded by, observation type, unit, reference, store instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, state rejection, value constraint, clock_offset_allowance, future bound, resolved recorded at, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, per-observation critical section, string input, blank, uncommitted crash, dangling amend.
+Term terms: observation, observation id, subject ref, recorded by, observation type, unit, reference, store instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, state rejection, value constraint, clock offset allowance, future bound, resolved recorded at, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, per-observation critical section, string input, blank, uncommitted crash, dangling amend.
 
 #### Record
 
@@ -878,7 +878,7 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/clinical-observation.md`.
 
-- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section with its semantics — taken before the state check, released on return or death, a lease's expiry the invocation's terminus, a stalled invocation re-reading the state under the critical section and landing [Already Amended]; a deployment-declared clock_offset_allowance under which the future-dated check on a caller-supplied [Recorded At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction, beside a caller told to read the original and retry; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 7 says never exists, could relink one dangling shape but not the other — the successor's content is nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an act the caller's retry could already have landed; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone* — with *Recovery commits under a declared service identity … and what cannot be re-derived is re-run*, frozen 2026-08-29).
+- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section with its semantics — taken before the state check, released on return or death, a lease's expiry the invocation's terminus, a stalled invocation re-reading the state under the critical section and landing [Already Amended]; a deployment-declared clock offset allowance under which the future-dated check on a caller-supplied [Recorded At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction, beside a caller told to read the original and retry; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 7 says never exists, could relink one dangling shape but not the other — the successor's content is nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an act the caller's retry could already have landed; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone* — with *Recovery commits under a declared service identity … and what cannot be re-derived is re-run*, frozen 2026-08-29).
 
 - **2026-09-13 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the four actions as a signature block, Invariant 1 through 9 keeping their numbers, every success effect conditioned on a declared admitted record, admitted amend, admitted retract or admitted read (Hard invariant 16), [Amend] and [Retract] unified under a declared chain action so their shared guards are stated once, the per-action *rejection priority* paragraph collapsed to one seven-row case space, the arithmetic in `recorded_at ≤ now + clock_offset_allowance` routed through a declared future bound so no rule carries a sum (Closed vocabulary 9), the five acceptance areas opened into `Check 1.1 through 6.1` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and four edge-case families. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into clinical-observation` found nothing citing this atom by label. 61.2 KB → 60.7 KB, the smallest reduction of the migration — this atom's prose carried almost no restatement, and what came out was one repeated precedence paragraph.
 
