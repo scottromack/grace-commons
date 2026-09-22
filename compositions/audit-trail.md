@@ -85,11 +85,11 @@ Term extraction-pending: an element carrying truth no constituent store replays,
 
 Term rebuild-on-miss: a read of a derived index that runs the element's rebuild procedure on a missing entry and concludes nothing from the miss itself.
 
-Term retention_state: the state of the event's retention record — `Retained` | `Purged`; absent where no retention record exists.
+Term retention state: the state of the event's retention record — `Retained` | `Purged`; absent where no retention record exists.
 
-Term live: an event whose retention_state DOES NOT EQUAL `Purged`.
+Term live: an event whose retention state DOES NOT EQUAL `Purged`.
 
-Term purged: an event whose retention_state EQUALS `Purged`.
+Term purged: an event whose retention state EQUALS `Purged`.
 
 ```
 Composition state 1: EVERY derived index MUST sit outside every action's atomicity surface.
@@ -112,10 +112,10 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   Term event to attestation: map from event id to the attestation id Actor Identity produced at record time; the auditor's traversal from an event to its attribution. The classification splits by retention state, because the rebuild's source does not survive the cascade.
   ```
   event to attestation 1: [Record Action] step 5 MUST populate event to attestation with the event's event id mapped to the attestation id.
-  event to attestation 2: WHEN retention_state DOES NOT EQUAL Purged:
+  event to attestation 2: WHEN retention state DOES NOT EQUAL Purged:
       event to attestation 2a: The composition MUST classify the entry as derived index.
       event to attestation 2b: The rebuild MUST take, for EVERY event the full enumeration returns, the event's event id as the key and the payload's attestation id as the value.
-  event to attestation 3: WHEN retention_state EQUALS Purged:
+  event to attestation 3: WHEN retention state EQUALS Purged:
       event to attestation 3a: The composition MUST classify the entry as extraction-pending against Erasure Tombstone.
       event to attestation 3b: The destruction record MUST carry the pair (event id, attestation id).
       event to attestation 3c: The pair MUST carry the durability obligation of Durability 6.
@@ -700,7 +700,7 @@ Steps:
    read record step 4.1: [Read Record] step 4 MUST assemble and return the audit record.
    read record step 4.2: [Read Record] step 4 MUST report coverage status per event.
    read record step 4.3: [Read Record] step 4 MUST return the covering seal's full range.
-   read record step 4.4: WHEN retention_state EQUALS Purged:
+   read record step 4.4: WHEN retention state EQUALS Purged:
        read record step 4.4a: [Read Record] step 4 MUST read action ref, actor ref and attested at from the attestation store through the pair.
        read record step 4.4b: [Read Record] step 4 MUST NOT read the who, the what and the when from the event payload.
        read record step 4.4c: [Read Record] step 4 MUST return no data.
@@ -749,7 +749,7 @@ Steps:
 1. **Retention state first.**
    ```
    verify record step 1.1: [Verify Record] step 1 MUST read the retention record through event to retention.
-   verify record step 1.2: IF retention_state EQUALS Purged THEN [Verify Record] step 1 MUST land failed-verification(purged).
+   verify record step 1.2: IF retention state EQUALS Purged THEN [Verify Record] step 1 MUST land failed-verification(purged).
    verify record step 1.3: [Verify Record] MUST NOT run step 3 for a purged event.
    ```
    WHY: under a shredding-class mechanism the log entry is still there, so not-known was never the risk; what the cascade destroys is the payload and the proof, and every downstream check is payload-dependent — step 3 would re-check a proof the cascade destroyed and could only answer a non-`verified` arm. Reading the retention first answers out of the record the composition still has, and keeps it from reporting its own lawful destruction as an attestation failure.
@@ -1162,9 +1162,9 @@ WHY: reconciliation is itself a [Record Action] against the attestation, log and
   Invariant 1.5: WHEN quiescence EXISTS:
       Invariant 1.5a: For EVERY event id recorded through [Record Action], event to attestation's entry MUST reference a recorded attestation carrying a readable action ref and actor ref.
       Invariant 1.5b: EVERY attestation in the store MUST fall in EXACTLY ONE OF the binding set, compensated attestations.
-  Invariant 1.6: WHEN retention_state DOES NOT EQUAL Purged:
+  Invariant 1.6: WHEN retention state DOES NOT EQUAL Purged:
       Invariant 1.6a: The attestation's action ref and actor ref MUST match the event payload's, byte for byte.
-  Invariant 1.7: WHEN retention_state EQUALS Purged:
+  Invariant 1.7: WHEN retention state EQUALS Purged:
       Invariant 1.7a: The attestation the pair names MUST exist with readable surviving fields.
       Invariant 1.7b: An auditor MUST evaluate Invariant 1.5a against the attestation store's surviving fields alone.
       Invariant 1.7c: An auditor MUST NOT read the who, the what and the when from the destruction record.
@@ -1182,7 +1182,7 @@ WHY: reconciliation is itself a [Record Action] against the attestation, log and
   Invariant 2.2: The scan MUST reconcile EVERY unretained event WITHIN compensation window of the event's recorded at by placing the missing retention.
   Invariant 2.3: The reconciliation path MAY place a retention ONLY IF true miss EXISTS for the event id.
   Invariant 2.4: WHEN quiescence EXISTS:
-      Invariant 2.4a: For EVERY event id recorded through [Record Action], event to retention's entry MUST reference EXACTLY ONE recorded retention of either retention_state.
+      Invariant 2.4a: For EVERY event id recorded through [Record Action], event to retention's entry MUST reference EXACTLY ONE recorded retention of either retention state.
   ```
   *Rests on:* [Record Action] steps 3, 4 and 5; the liveness arm on [Record Action] itself (Compensation 1 through 5); the composition's own event to retention pre-check under the per-act critical section and below record edge (Third half 2 through 7, Concurrency 6), which supplies the idempotence Retention Window's Invariant 5 nowhere declares; the third half as the arm's detector (Third half 1); [Purge Event] step 0½ as the arm that keeps the cascade out of the window (purge event step 0½.2); Retention Window Invariants 1 (membership exclusivity), 5 (record ref and policy ref immutability, and the new-retention-on-re-retention-under-a-different-policy rule that makes the pre-check necessary) and 10 (retention store durability); Event Log Invariant 1.
 
@@ -1546,7 +1546,7 @@ Term cadences: seal cadence, reconciliation cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); `(compensation-window)` — carried beside a [Verify Record] outcome on a separate channel.
 
-Term terms: (each declared where it is used) audit log, attestation store, retention store, seal store, surviving fields, open-upper-bound read, full enumeration, derived index, extraction-pending, rebuild-on-miss, retention_state, live, purged, purged events, covering seal, closed entry, sealed through, unsealed tail, reconciled, resolved policy, time arm, chained mechanism, verify-time presentation, mechanism class, independently trusted substrate, standing false negative, shredding-class, tombstone-by-mutation, `Event Log's data field`, `finding's creation`, serialized envelope, reference headroom, whole closure, section kind, `act's completion bound`, lease, holder, proceed as landed, pre-check, closure sum, full constructed payload, reserved namespace, reconciliation path, subject-kind discriminator, read-back, high-water mark, mid-record expiry, non-storage refusal, slice, tail position, audit record, coverage status, pair, partly-purged coverage, `Legal Hold`, hold, mid-cascade expiry, `cascade-failure(step-3)`, completed cascade, divergence, record edge, purge edge, horizon, purge age, attestation age, event age, binding set, orphan, true miss, owed narration, quiescence, `recorded through [Record Action]`, audit edge, composition-built query, insert-only map, closed-state marker, reconciled policy, held critical section, truth-bearing write, `who / what / when`, seal disposal, re-sealing, store outage, compliance alert, verification surface outage, event standing, residual finding, seal stamps, extraction-pending fact, invocation, later write, malformed reference, step-3 storage failure, step-4 storage failure, standing finding, open entry, external evidence; and now, the seam-injected reading (Clock source 1; the section titled Logic Confinement Principle in `execution-contract.md`).
+Term terms: (each declared where it is used) audit log, attestation store, retention store, seal store, surviving fields, open-upper-bound read, full enumeration, derived index, extraction-pending, rebuild-on-miss, retention state, live, purged, purged events, covering seal, closed entry, sealed through, unsealed tail, reconciled, resolved policy, time arm, chained mechanism, verify-time presentation, mechanism class, independently trusted substrate, standing false negative, shredding-class, tombstone-by-mutation, `Event Log's data field`, `finding's creation`, serialized envelope, reference headroom, whole closure, section kind, `act's completion bound`, lease, holder, proceed as landed, pre-check, closure sum, full constructed payload, reserved namespace, reconciliation path, subject-kind discriminator, read-back, high-water mark, mid-record expiry, non-storage refusal, slice, tail position, audit record, coverage status, pair, partly-purged coverage, `Legal Hold`, hold, mid-cascade expiry, `cascade-failure(step-3)`, completed cascade, divergence, record edge, purge edge, horizon, purge age, attestation age, event age, binding set, orphan, true miss, owed narration, quiescence, `recorded through [Record Action]`, audit edge, composition-built query, insert-only map, closed-state marker, reconciled policy, held critical section, truth-bearing write, `who / what / when`, seal disposal, re-sealing, store outage, compliance alert, verification surface outage, event standing, residual finding, seal stamps, extraction-pending fact, invocation, later write, malformed reference, step-3 storage failure, step-4 storage failure, standing finding, open entry, external evidence; and now, the seam-injected reading (Clock source 1; the section titled Logic Confinement Principle in `execution-contract.md`).
 
 #### Record Action
 

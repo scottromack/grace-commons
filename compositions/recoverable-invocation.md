@@ -95,7 +95,7 @@ No auditor can enumerate which writers were paused, so the guarantee is over rec
 Five elements, each carrying the Contract classification of the section titled Composition state in [`execution-contract.md`](../execution-contract.md). Four are derived indexes rebuilt from one sequence-range read filtered to the bound kinds' records, whose kind and act key the composition writes itself. One is extraction-pending. act section is not composition state.
 
 - **open invocations**
-  Term open invocations: map from `(kind, act_key)` to the set of intent records (intent_event_id, invocation id, the payload) of every invocation of the act that has opened and not yet closed, refused, been abandoned or been escalated. Derived index.
+  Term open invocations: map from `(kind, act_key)` to the set of intent records (intent event id, invocation id, the payload) of every invocation of the act that has opened and not yet closed, refused, been abandoned or been escalated. Derived index.
   ```
   open invocations 1: IF service identity DOES NOT EQUAL none THEN two open intents MUST NOT share one (kind, act key).
   open invocations 2: IF service identity EQUALS none THEN several open intents MAY share one (kind, act key).
@@ -274,7 +274,7 @@ Primitive policy 7: The composition MUST validate actor_ref and credential as no
 Primitive policy 8: The adopter MUST NOT call [Open] BEFORE capping actor_ref under reference length cap.
 Primitive policy 9: intent_data MUST carry the invocation's parameters and pairing datum.
 Primitive policy 10: intent_data MUST NOT carry a field the substrate or the constituent stamps or mints.
-Primitive policy 11: The composition MUST write invocation id, intent_event_id, kind and act key into EVERY record the composition appends.
+Primitive policy 11: The composition MUST write invocation id, intent event id, kind and act key into EVERY record the composition appends.
 Primitive policy 12: [Open] MUST size intent_data and the kind's largest record against outcome envelope and the substrate's payload cap as the substrate measures a payload.
 Primitive policy 13: [Open] MUST refuse invalid-request for an act whose largest record would not fit.
 Primitive policy 14: An action signature MUST NOT take now.
@@ -314,7 +314,7 @@ Primitive policy 21: WHEN the intent-position read-back finds the record:
 Primitive policy 22: WHEN the intent-position read-back finds nothing:
     Primitive policy 22a: The action MUST land invalid-request.
 Primitive policy 23: IF position EQUALS intent THEN recording-failure(step-2) and recording-failure(step-3) MUST land recording-failure(intent).
-Primitive policy 24: IF position EQUALS intent THEN the action MUST read intent_event_id back for recording-failure(step-4).
+Primitive policy 24: IF position EQUALS intent THEN the action MUST read intent event id back for recording-failure(step-4).
 Primitive policy 25: IF position EQUALS intent THEN the action MUST proceed with a hard alert for recording-failure(step-4).
 Primitive policy 26: The action MUST NOT retry after recording-failure(step-4).
 Primitive policy 27: IF position EQUALS outcome THEN the action MUST read event id back by invocation id for recording-failure(step-4) and for a retention-source invalid-request.
@@ -378,7 +378,7 @@ open(kind, act_key, actor_ref, credential, intent_data)
   refuses invalid-credential | invalid-request | act-in-flight(invocation_id) | act-landed(outcome_event_id) | section-unavailable | journal-unavailable | recording-failure(intent)
 ```
 
-Term open result: invocation id and intent_event_id — what open answers.
+Term open result: invocation id and intent event id — what open answers.
 
 Term resolve refusal: purged | malformed | too-young | already-abandoned | candidates-over-cap — the reasons [Resolve] gives for an invalid request.
 
@@ -432,13 +432,13 @@ Steps:
    open step 4.2: WHEN journal write bound EXCEEDS remaining:
        open step 4.2a: [Open] MUST release.
        open step 4.2b: [Open] MUST land section-unavailable.
-   open step 4.3: [Open] MUST write AuditTrail.record_action(action ref set to `<kind>.intended`, actor_ref, credential, data set to intent payload), answering intent_event_id.
+   open step 4.3: [Open] MUST write AuditTrail.record_action(action ref set to `<kind>.intended`, actor_ref, credential, data set to intent payload), answering intent event id.
    open step 4.4: Step 4's arms MUST follow the intent position of the rejection-mapping rule.
    ```
 5. **Populate and return.**
    ```
    open step 5.1: [Open] MUST populate open invocations at (kind, act key) with the intent.
-   open step 5.2: [Open] MUST return invocation id and intent_event_id.
+   open step 5.2: [Open] MUST return invocation id and intent event id.
    open step 5.3: [Open] MUST hold the critical section at return.
    ```
 
@@ -462,7 +462,7 @@ Writes the act's outcome record after the bound commit has returned, under the c
 ```
 close 1: The adopter MUST pass [Close] the actor_ref [Open] was given for the invocation.
 close 2: The composition MUST NOT retain state between [Open] and [Close].
-close 3: [Close] and [Refuse] MUST take intent_event_id.
+close 3: [Close] and [Refuse] MUST take intent event id.
 close 4: The adopter's action MUST decide not-open from the invocation's own [Open] result ([Not Open]).
 ```
 
@@ -555,7 +555,7 @@ Steps:
    ```
 3. **Refusal record.**
    ```
-   refuse step 3.1: [Refuse] MUST write `<kind>.refused` carrying invocation id, intent_event_id, kind, act key, reason and constituent_code under the caller's credential.
+   refuse step 3.1: [Refuse] MUST write `<kind>.refused` carrying invocation id, intent event id, kind, act key, reason and constituent_code under the caller's credential.
    refuse step 3.2: The refusal record's arms MUST follow the intent position.
    refuse step 3.3: [Refuse] MUST read the refusal back by invocation id for recording-failure(step-4) and for a retention-source invalid-request.
    refuse step 3.4: [Refuse] MUST NOT retry after step-4 or the retention-source invalid-request.
@@ -610,7 +610,7 @@ resolve 7: IF journal write bound EXCEEDS remaining THEN [Resolve] MUST NOT writ
 resolve 8: [Resolve] MUST re-read the act's records under the critical section.
 resolve 9: An outcome or a refusal naming the invocation id MUST land already-accounted(closing_event_id).
 resolve 10: An invocation id with no readable intent record MUST land not-known.
-resolve 11: [Resolve] MUST read the intent by read_record(intent_event_id).
+resolve 11: [Resolve] MUST read the intent by read_record(intent event id).
 resolve 12: An intent whose payload the substrate reports Purged MUST land invalid-request(purged).
 resolve 13: EVERY closing [Resolve] writes over an existing record MUST carry supersedes set to that record's event id.
 resolve 14: WHEN no closing stands:
@@ -635,7 +635,7 @@ resolve 28: A candidate list exceeding intent candidates cap MUST land invalid-r
 ```
 
 WHY:
-Audit Trail projects no read that validates a credential without appending, so validation before the take had no call to make; both substitutes broke it (an early record_action appends before the critical section; a direct `attest` mints an orphan attestation on every typo). resolve 11 is why [Resolve] takes intent_event_id: every route from an invocation id to an event id reads the payload the purge destroyed, and without the id a lawfully destroyed record answers not-known. resolved by names the operator, not a record; without resolve 13 a lawful resolution read as a binding duplicate (`-buggy-supersede`, rejected). The transitive rule is a prose repair the model does not confirm. resolve 19: a reading nothing bounds must not decide a destructive record (`-buggy-opclock` violates Invariant 5 against `probe-reportonly-clean`). resolve 23: a retry after `step-4` appends the duplicate in a deployment that has the fence and needs no pause to do it. resolve 27: the five causes imply three moves — fix and retry, nothing to do, wait and re-issue unchanged.
+Audit Trail projects no read that validates a credential without appending, so validation before the take had no call to make; both substitutes broke it (an early record_action appends before the critical section; a direct `attest` mints an orphan attestation on every typo). resolve 11 is why [Resolve] takes intent event id: every route from an invocation id to an event id reads the payload the purge destroyed, and without the id a lawfully destroyed record answers not-known. resolved by names the operator, not a record; without resolve 13 a lawful resolution read as a binding duplicate (`-buggy-supersede`, rejected). The transitive rule is a prose repair the model does not confirm. resolve 19: a reading nothing bounds must not decide a destructive record (`-buggy-opclock` violates Invariant 5 against `probe-reportonly-clean`). resolve 23: a retry after `step-4` appends the duplicate in a deployment that has the fence and needs no pause to do it. resolve 27: the five causes imply three moves — fix and retry, nothing to do, wait and re-issue unchanged.
 
 ---
 
@@ -710,12 +710,12 @@ Without reconcile 1 a journal outage returns zero counts and step 5 surfaces not
    ```
    reconcile step 3.1: The run MUST call the adopter's bound probe(act key, intent payload).
    reconcile step 3.2: WHEN probe EQUALS committed(outcome_action_ref, outcome_data):
-       reconcile step 3.2a: The run MUST write `<kind>.recovery_intended` under the service identity with data carrying invocation id, intent_event_id, act key and plan set to outcome.
+       reconcile step 3.2a: The run MUST write `<kind>.recovery_intended` under the service identity with data carrying invocation id, intent event id, act key and plan set to outcome.
        reconcile step 3.2b: The run MUST write the outcome record outcome_action_ref under the service identity with data set to recovered outcome payload.
        reconcile step 3.2c: The run MUST count closed.
    reconcile step 3.3: A later run MAY write a second recovery_intended for the act.
    reconcile step 3.4: WHEN probe EQUALS not-committed AND commit fence EQUALS declared AND the intent is past abandon edge:
-       reconcile step 3.4a: The run MUST write `<kind>.abandoned` under the service identity with data carrying invocation id, intent_event_id, act key and cause set to not-committed.
+       reconcile step 3.4a: The run MUST write `<kind>.abandoned` under the service identity with data carrying invocation id, intent event id, act key and cause set to not-committed.
        reconcile step 3.4b: The run MUST count abandoned.
    reconcile step 3.5: WHEN probe EQUALS not-committed AND commit fence EQUALS none:
        reconcile step 3.5a: The run MUST write `<kind>.escalated` with cause set to not-observed.
@@ -725,7 +725,7 @@ Without reconcile 1 a journal outage returns zero counts and step 5 surfaces not
        reconcile step 3.6b: The run MUST count skipped.
    reconcile step 3.7: The sweep MUST NOT re-run an act.
    reconcile step 3.8: WHEN probe EQUALS undecidable(candidates):
-       reconcile step 3.8a: The run MUST write `<kind>.escalated` under the service identity with data carrying invocation id, intent_event_id, act key, cause set to undecidable and store candidates set to candidates.
+       reconcile step 3.8a: The run MUST write `<kind>.escalated` under the service identity with data carrying invocation id, intent event id, act key, cause set to undecidable and store candidates set to candidates.
        reconcile step 3.8b: The run MUST surface the act on compliance surface.
        reconcile step 3.8c: The run MUST count escalated.
    reconcile step 3.9: store candidates MUST NOT carry more than intent candidates cap references.
@@ -1225,7 +1225,7 @@ A derived implementation of Recoverable Invocation is acceptable when an auditor
 
 ```
 Check 1.1: EVERY outcome record whose intent is inside the horizon MUST follow, in the journal's sequence, an intent record with the same invocation id attested under the actor the outcome names — the outcome's own actor_ref where recovery is absent, the outcome's acting actor ref where recovery EQUALS true.
-Check 1.2: An auditor MUST decide inside the horizon by read_record(intent_event_id) answering Retained.
+Check 1.2: An auditor MUST decide inside the horizon by read_record(intent event id) answering Retained.
 Check 1.3: An auditor MUST NOT decide inside the horizon by arithmetic on the outcome's stamp or by the presence of an answer.
 Check 1.4: An auditor MUST answer purged, never absent, for an outcome whose intent the substrate reports Purged.
 Check 2.1: For EVERY aged intent inside the horizon, two closing records of any of the four kinds MUST NOT name the intent's invocation id.
@@ -1356,7 +1356,7 @@ Term position: intent | outcome | refusal | resolution — the record a write la
 
 Term intent payload: intent_data with invocation id, kind and act key added.
 
-Term outcome payload: outcome_data with invocation id, intent_event_id, kind and act key added.
+Term outcome payload: outcome_data with invocation id, intent event id, kind and act key added.
 
 Term recovered outcome payload: the outcome payload with recovery set to true and acting actor ref set to the intent's actor_ref added.
 
@@ -1378,7 +1378,7 @@ Term external evidence: evidence outside the records — documentation, configur
 
 Term recording-failure(step-4): the substrate's code for an append that committed and a retention placement that did not; the record is appended.
 
-Term bounds: completion bound, commit round trip, probe round trip, journal write bound, read bound, closure latency, run bound, compensation window, clock offset allowance, retention period, intent_candidates_cap, read cap.
+Term bounds: completion bound, commit round trip, probe round trip, journal write bound, read bound, closure latency, run bound, compensation window, clock offset allowance, retention period, intent candidates cap, read cap.
 
 Term cadences: reconciliation cadence.
 
@@ -1456,7 +1456,7 @@ Projection: section_unavailable
 
 #### Not Open
 
-[Close]'s and [Refuse]'s step 0 refusal, and theirs alone: an invocation id and intent_event_id pair the adopter's action did not receive from its own [Open]. An adopter's programming error, not a protocol state; nothing is written.
+[Close]'s and [Refuse]'s step 0 refusal, and theirs alone: an invocation id and intent event id pair the adopter's action did not receive from its own [Open]. An adopter's programming error, not a protocol state; nothing is written.
 
 ```
 Not Open 1: The composition MUST NOT decide not-open.
@@ -1470,7 +1470,7 @@ WHY: on a multi-node instance a local absence is not a miss, and a retained hand
 
 #### Not Known
 
-The read's answer for an act with no readable intent at all, at [Read Invocation] and at [Resolve]. Absence, not destruction: a lawfully purged intent is answered `invalid-request(purged)` at [Resolve], which takes intent_event_id for exactly that reason. [Read Invocation] is the one surface that cannot make the distinction and says so.
+The read's answer for an act with no readable intent at all, at [Read Invocation] and at [Resolve]. Absence, not destruction: a lawfully purged intent is answered `invalid-request(purged)` at [Resolve], which takes intent event id for exactly that reason. [Read Invocation] is the one surface that cannot make the distinction and says so.
 
 Kind:       Member
 Member of:  the read rejections and the resolve rejections

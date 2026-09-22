@@ -74,7 +74,7 @@ Term assigned id: party id, verification id OR state change id — every opaque 
 
 Term enrollment field: name | date of birth | document type | document ref | enrolled at | enrolling actor ref — what a party carries from enrollment and never changes.
 
-Term acting reference: enrolling actor ref, verifying actor ref, suspending_actor_ref, reinstating_actor_ref OR closing_actor_ref — the reference an action records for who acted.
+Term acting reference: enrolling actor ref, verifying actor ref, suspending actor ref, reinstating_actor_ref OR closing_actor_ref — the reference an action records for who acted.
 
 Term reference: an assigned id, an acting reference, document ref OR evidence ref — every opaque reference this atom records.
 

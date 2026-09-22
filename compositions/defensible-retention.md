@@ -143,7 +143,7 @@ Term pending sibling: a sibling set member whose own purge has not landed.
 WHY:
 The two indexes carry no truth of their own, and the rebuild is what makes that claim checkable rather than asserted. Every fact either holds lives in a constituent: the `{record_ref, retention_id}` binding is immutable audit content on a retention_placed event **and** a field of Retention Window's own retention record, and retention until and purge deadline are that record's declared Outputs.
 
-**The rebuild's totality is bounded, and the bound has to be on the page because one of these indexes is read by an auditor and the other is not read by the gate at all.** The traversal reads retention_placed payloads, and the substrate destroys a payload in its entirety at the audit horizon. What survives a purged event is its `event_id`, `sequence_number` and `recorded_at`, plus the attestation's `action_ref`, actor_ref and `attested_at` — reachable through the destruction record's `(event_id, attestation_id)` pair the substrate's purge cascade captures before the delegation runs. What does **not** survive is this composition's binding: it lived only in Event Log's `data`, which the cascade destroys whole. So past the horizon the traversal can still recognize a purged event as this composition's, and cannot read the binding — and an index entry needs the binding, not the recognition (Composition state 12 through 14).
+**The rebuild's totality is bounded, and the bound has to be on the page because one of these indexes is read by an auditor and the other is not read by the gate at all.** The traversal reads retention_placed payloads, and the substrate destroys a payload in its entirety at the audit horizon. What survives a purged event is its `event_id`, `sequence_number` and `recorded_at`, plus the attestation's `action_ref`, actor ref and `attested_at` — reachable through the destruction record's `(event_id, attestation_id)` pair the substrate's purge cascade captures before the delegation runs. What does **not** survive is this composition's binding: it lived only in Event Log's `data`, which the cascade destroys whole. So past the horizon the traversal can still recognize a purged event as this composition's, and cannot read the binding — and an index entry needs the binding, not the recognition (Composition state 12 through 14).
 
 Composition state 13 is the second declared source and the reason the split costs nothing where it matters. Retention Window's store carries the same binding as constituent record content rather than as audit payload, and its retained and purged sets are queryable through the atom's declared read. What the store cannot supply is the *placed-through-this-composition* filter the audit traversal supplies, so the store-sourced rebuild **over-includes** — and over-inclusion on a destruction gate can only refuse (Composition state 16, Composition state 17). `Invariant 2`'s scope claim is what degrades; `Invariant 9`'s protection is not, because `Composition state 18` and `Composition state 19` keep the gate reading the store in every state rather than reading an index at all.
 
@@ -225,7 +225,7 @@ Capability requirement 34 and Capability requirement 35 are one serialization ob
 ```
 Primitive policy 1: The composition MUST answer invalid-request for a blank record ref.
 Primitive policy 2: The composition MUST answer invalid-request for a blank policy ref.
-Primitive policy 3: The composition MUST answer invalid-request for a blank actor_ref.
+Primitive policy 3: The composition MUST answer invalid-request for a blank actor ref.
 Primitive policy 4: The composition MUST answer invalid-request for a blank placed by.
 Primitive policy 5: The composition MUST answer invalid-request for a blank released by.
 Primitive policy 6: The composition MUST answer invalid-request for a blank reason.
@@ -250,7 +250,7 @@ Primitive policy 22: The composition MUST NOT read a truncated hold id list as a
 
 Term boundary predicate: the composition's own validation of an input at an action's boundary, judged before any constituent call.
 
-Term opaque input: record ref | policy ref | actor_ref | placed by | released by | hold id | retention id | case ref.
+Term opaque input: record ref | policy ref | actor ref | placed by | released by | hold id | retention id | case ref.
 
 WHY:
 Primitive policy 14 and Primitive policy 15 are why a substrate invalid-request over a payload is a deployment fault here and never a live arm. The composition sizes the **largest** record an invocation can write — the outcome, not the intent, and the compensation record a sweep would write for it, which is larger than either because it carries the acting human and the candidate list besides. Sizing the intent alone is the failure mode the corpus names: the intent fits, the constituent commits, and the outcome that would bind it cannot be written. The set-valued fields resolve to the same bound rather than to caps of their own — the sibling set is enumerated before the outcome is sized, and the hold id list is truncated with its count carried (Primitive policy 20, Primitive policy 21).
@@ -491,9 +491,9 @@ Reconciliation 10: IF another intent over the act carries a matched outcome THEN
 Reconciliation 11: IF the act committed AND the open marker stands as the act's only open marker THEN the sweep MUST emit a recovery outcome.
 Reconciliation 12: IF several open markers name one committed act THEN the sweep MUST emit EXACTLY ONE recovery outcome.
 Reconciliation 13: A recovery outcome MUST carry the earliest open marker's invocation id.
-Reconciliation 14: A recovery outcome MUST carry every candidate marker's actor_ref as attributed to.
+Reconciliation 14: A recovery outcome MUST carry every candidate marker's actor ref as attributed to.
 Reconciliation 15: A recovery outcome MUST carry the recovery marker.
-Reconciliation 16: A recovery outcome MUST carry the acting human's actor_ref.
+Reconciliation 16: A recovery outcome MUST carry the acting human's actor ref.
 Reconciliation 17: The sweep MUST NOT emit a recovery outcome BEFORE recording a recovery intent.
 Reconciliation 18: The sweep MUST NOT make a committing call BEFORE recording a recovery intent.
 Reconciliation 19: The sweep MUST call Retention Window's purge PER pending sibling.
@@ -521,7 +521,7 @@ Term recovery outcome: the outcome the sweep emits for a committed act whose own
 
 Term intent abandoned: the closing the sweep writes over an open marker whose act it does not recover (Reconciliation 9, Reconciliation 10, Reconciliation 27).
 
-Term attributed to: the actor_ref of every candidate marker, carried by a recovery outcome (Reconciliation 14).
+Term attributed to: the actor ref of every candidate marker, carried by a recovery outcome (Reconciliation 14).
 
 WHY:
 The sweep is four comparisons and two edges. **Intent against outcome** is the general one: an intent with no outcome names an invocation whose fate the records do not yet state, and the sweep decides it from durable constituent state rather than from anything the dead invocation remembered. **Retention against trail**, **hold against trail** and **pending sibling against store** are the three particular ones, and only the last commits anything — which is why it alone is preceded by a recovery intent as well as attested under the service identity.
@@ -723,7 +723,7 @@ Check 4.1: An auditor MUST reconstruct a retention's lifecycle from the retentio
 Check 4.2: An auditor MUST join a hold to a retention by the record ref (Composition state 29).
 Check 5.1: An auditor MUST find an intent preceding EVERY outcome in the substrate's own sequence (Invariant 5.1).
 Check 5.2: An auditor MUST find an outcome's intent carrying the outcome's invocation id (Invariant 5.1).
-Check 5.3: An auditor MUST find an outcome's intent carrying the outcome's actor_ref (Composes 15).
+Check 5.3: An auditor MUST find an outcome's intent carrying the outcome's actor ref (Composes 15).
 Check 5.4: An auditor MUST read an outcome carrying no intent as a conformance failure (Invariant 5.1).
 Check 5.5: An auditor MUST read an intent carrying no outcome as an open marker (Invariant 5.2).
 Check 5.6: An auditor MUST read a gate record carrying no intent as conformant (Invariant 5.4).
@@ -890,7 +890,7 @@ Composition note 9: A deployment MUST surface an active hold over a destroyed re
 ```
 
 WHY:
-Composition note 3 through 5 are the three obligations [Legal Hold](../atoms/legal-hold.md)'s `Composition note 3` and `Composition note 4` assign to a composing pattern, passed down with the receiver named rather than dropped. This composition takes an actor_ref and a credential at every boundary and the substrate verifies the credential, which establishes *who is calling* and never *who may call* — the second is a [Permissions](../atoms/permissions.md) question and the deployment wires it. Naming the receiver is the most a composition can do with an obligation it declines; leaving it unnamed is how an obligation falls between two layers with no rule anywhere holding it.
+Composition note 3 through 5 are the three obligations [Legal Hold](../atoms/legal-hold.md)'s `Composition note 3` and `Composition note 4` assign to a composing pattern, passed down with the receiver named rather than dropped. This composition takes an actor ref and a credential at every boundary and the substrate verifies the credential, which establishes *who is calling* and never *who may call* — the second is a [Permissions](../atoms/permissions.md) question and the deployment wires it. Naming the receiver is the most a composition can do with an obligation it declines; leaving it unnamed is how an obligation falls between two layers with no rule anywhere holding it.
 
 Composition note 8 and Composition note 9 are the advisory path's other end. The composition records the override and declines to release the hold (`Wiring decision 6`), so the deployment's own authority owns both the release and the dashboard signal until it lands.
 

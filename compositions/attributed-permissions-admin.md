@@ -254,7 +254,7 @@ Primitive policy 17: The composition MUST NOT query Permissions BEFORE a revocat
 
 Term boundary predicate: the composition's own validation of an input at an action's boundary, judged before any constituent call.
 
-Term opaque input: subject ref | action scope | grantor_ref | grantor_credential | grant id | revoker_ref | revoker_credential.
+Term opaque input: subject ref | action scope | grantor ref | grantor credential | grant id | revoker ref | revoker credential.
 
 Term administered opaque input: an opaque input an administrative action carries — as against one the evaluation passthrough relays.
 

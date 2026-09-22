@@ -90,9 +90,9 @@ Term credential arm: revoke_credential_on_suspend standing true with a Credentia
 
 Term service identity: application_actor_ref and application_credential — the composition's own registered actor and credential, and the attested emitter of every record the sweep writes and the named revoker of every revocation the sweep makes.
 
-Term operator: suspended_by_ref — the principal a [Suspend Actor] call names as performing the suspension, and the principal whose credential the call carries.
+Term operator: suspended by ref — the principal a [Suspend Actor] call names as performing the suspension, and the principal whose credential the call carries.
 
-Term resumer: the suspended_by_ref of a [Suspend Actor] call that finds the actor suspending — the principal whose credential the resume record verifies and whom the resumed cascade's constituent revocations name.
+Term resumer: the suspended by ref of a [Suspend Actor] call that finds the actor suspending — the principal whose credential the resume record verifies and whom the resumed cascade's constituent revocations name.
 
 WHY:
 Composes 7 through 9 name the substrate relation. [Audit Trail](./audit-trail.md) is a composition, not an atom, so Event Log, Actor Identity, Tamper Evidence and the audit instance's own Retention Window are reached *through* it and this composition holds no instance of any of them. Actor Identity is the one constituent this composition never calls directly: it is the attestation surface, reached inside every record_action, and Composes 23 is the limit that matters — an attestation is immutable, so the suspension attests *over* the registry and changes nothing in it.
@@ -165,7 +165,7 @@ Composition state 52: A revoked set member absent from the plan MUST stand as a 
 Composition state 53: The composition MUST NOT duplicate a constituent's store.
 ```
 
-Term suspension-state index: actor_suspension_state — the composition's index from an actor_ref to the actor's lifecycle state and the record that put the actor there; the surface the issuance gate reads and [Suspension Report] answers from.
+Term suspension-state index: actor_suspension_state — the composition's index from an actor ref to the actor's lifecycle state and the record that put the actor there; the surface the issuance gate reads and [Suspension Report] answers from.
 
 Term high-water mark: index_high_water — the log position through which the sweep has reconciled the suspension-state index with the trail; every intent at or below it carries an index entry or an outcome naming the intent's invocation id.
 
@@ -243,7 +243,7 @@ Capability requirement 25: A deployment MUST set the reconciliation cadence.
 Capability requirement 26: A deployment MUST disclose the outcome write latency.
 Capability requirement 27: A deployment MAY start an instance ONLY IF the completion window EXCEEDS the closure floor.
 Capability requirement 28: A deployment MUST NOT start an instance carrying an undeclared suspension completion bound.
-Capability requirement 29: The host MUST supply a critical section PER actor_ref.
+Capability requirement 29: The host MUST supply a critical section PER actor ref.
 Capability requirement 30: A critical section MUST release on the holder's return.
 Capability requirement 31: A critical section MUST release on the holder's death.
 Capability requirement 32: A leased critical section's lease MUST NOT EXCEED the suspension completion bound.
@@ -268,9 +268,9 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 
 Term transition: the composition's evaluation of one call against the constituents, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-Term unified actor namespace: unified_actor_namespace — the deployment's declaration that the actor_ref this composition suspends is the same identity value under which the actor holds grants as subject ref, sessions as principal ref and credentials as Credential's own principal ref.
+Term unified actor namespace: unified_actor_namespace — the deployment's declaration that the actor ref this composition suspends is the same identity value under which the actor holds grants as subject ref, sessions as principal ref and credentials as Credential's own principal ref.
 
-Term critical section: per_actor_serialization — the host-supplied mutual exclusion keyed by actor_ref, taken at the state gate and held through the index write, taken by a resume, and taken by the sweep for every actor the sweep examines.
+Term critical section: per_actor_serialization — the host-supplied mutual exclusion keyed by actor ref, taken at the state gate and held through the index write, taken by a resume, and taken by the sweep for every actor the sweep examines.
 
 Term suspension completion bound: suspension_completion_bound — the deployment's declared maximum duration between an invocation's intent and the invocation's outcome, read against the seam-injected now the intent carries.
 
@@ -287,7 +287,7 @@ Term maximal outcome: the largest record the act can write — the sweep's compe
 Term clock offset allowance: clock offset allowance — the declared envelope within which a stamp this composition wrote at its seam may be compared with a stamp a constituent wrote at its own.
 
 WHY:
-Capability requirement 12 through 15 are the enumeration's declaring source, and they are the composition's largest audit gap stated as an obligation rather than a claim. This composition enumerates grants by subject ref, sessions by principal ref and credentials by Credential's own principal ref — three namespaces — and the enumeration is complete only where all three coincide with the actor_ref. A deployment satisfies that through [Authenticated Actor](./authenticated-actor.md)'s binding or by convention; whether it actually did is External check 1, because verifying that two opaque namespaces coincide is not a records-alone question at this layer. A divergent namespace under-enumerates *silently*, which is why the knob is a declaration the deployment makes rather than a default the composition assumes.
+Capability requirement 12 through 15 are the enumeration's declaring source, and they are the composition's largest audit gap stated as an obligation rather than a claim. This composition enumerates grants by subject ref, sessions by principal ref and credentials by Credential's own principal ref — three namespaces — and the enumeration is complete only where all three coincide with the actor ref. A deployment satisfies that through [Authenticated Actor](./authenticated-actor.md)'s binding or by convention; whether it actually did is External check 1, because verifying that two opaque namespaces coincide is not a records-alone question at this layer. A divergent namespace under-enumerates *silently*, which is why the knob is a declaration the deployment makes rather than a default the composition assumes.
 
 Capability requirement 27 is the liveness arithmetic written out rather than abbreviated. An actor orphaned at an instant is invisible to the sweep until the completion bound has passed, the next run is at most a cadence later, and the completing outcome takes a write latency to land — so a window shorter than that sum is a promise the deployment cannot keep, and the rule refuses the instance rather than the finding. *Cadence no longer than the window* was the earlier form and it is satisfied by a deployment that breaches on every orphan: a five-minute bound, a five-minute cadence and a six-minute window pass it and close nothing in time. The hold term needs no fourth knob, because a stalled-but-alive invocation keeps the sweep off an actor for at most its lease and Capability requirement 32 makes the lease the bound, so hold time already sits inside the first term.
 
@@ -301,7 +301,7 @@ Capability requirement 40 through 43 are the issuance gate, and they are the dep
 
 ```
 Primitive policy 1: An action MUST call a constituent ONLY AFTER the boundary predicate.
-Primitive policy 2: The boundary predicate MUST refuse a blank actor_ref.
+Primitive policy 2: The boundary predicate MUST refuse a blank actor ref.
 Primitive policy 3: The boundary predicate MUST refuse a blank operator reference.
 Primitive policy 4: The boundary predicate MUST refuse a blank credential.
 Primitive policy 5: The boundary predicate MUST refuse a blank reason.
@@ -327,9 +327,9 @@ Primitive policy 22: The composition MUST carry the revoked set on an outcome in
 
 Term boundary predicate: the composition's own validation of an input at an action's boundary, judged before any constituent call.
 
-Term opaque input: actor_ref | suspended_by_ref | reinstated_by_ref | credential | grant id | session token | credential id.
+Term opaque input: actor ref | suspended by ref | reinstated by ref | credential | grant id | session token | credential id.
 
-Term operator reference: suspended_by_ref | reinstated_by_ref.
+Term operator reference: suspended by ref | reinstated by ref.
 
 Term resume prefix: `"suspension-resume:"` — what a resumed cascade's constituent reason opens with, so the constituent's own record traces to the plan.
 
@@ -354,7 +354,7 @@ Identity 8: A resume intent MUST carry the resuming call's own invocation id as 
 Identity 9: A recovery intent MUST carry the cascade's invocation id.
 Identity 10: The composition MUST pair an outcome to a cascade by the invocation id.
 Identity 11: The composition MUST NOT pair an outcome to a cascade by a payload resemblance.
-Identity 12: The composition MUST NOT pair an outcome to a cascade by the actor_ref.
+Identity 12: The composition MUST NOT pair an outcome to a cascade by the actor ref.
 Identity 13: A resumed cascade MUST NOT record a second suspension intent.
 Identity 14: A swept cascade MUST NOT record a second suspension intent.
 Identity 15: EXACTLY ONE outcome MUST stand PER invocation id.
@@ -460,7 +460,7 @@ reinstate_actor(actor_ref, reinstated_by_ref, credential, reason)
 
 Term suspension result: suspended, revoked_grants, revoked_sessions, revoked_credentials, unresolved_members, event_id and an optional resumed_by — what suspend_actor answers.
 
-Term suspension record: state, an optional intent event id, an optional open_members, an optional suspended at, an optional suspended_by_ref, an optional reason, an optional revoked_grants, an optional revoked_sessions, an optional revoked_credentials, an optional unresolved_members, an optional enumeration_availability and an optional suspension event id — what suspension_report answers.
+Term suspension record: state, an optional intent event id, an optional open_members, an optional suspended at, an optional suspended by ref, an optional reason, an optional revoked_grants, an optional revoked_sessions, an optional revoked_credentials, an optional unresolved_members, an optional enumeration_availability and an optional suspension event id — what suspension_report answers.
 
 Term reinstatement result: reinstated and event_id — what reinstate_actor answers.
 
@@ -989,7 +989,7 @@ Clock semantics 10 and Clock semantics 11 put the clock offset allowance where i
 ### Concurrency
 
 ```
-Concurrency 1: A deployment MUST serialize a state-changing call over one actor_ref.
+Concurrency 1: A deployment MUST serialize a state-changing call over one actor ref.
 Concurrency 2: The state gate MUST stand inside the actor's critical section.
 Concurrency 3: Two calls MUST NOT write an intent for one actor.
 Concurrency 4: The sweep MUST NOT run against an actor a call holds.
