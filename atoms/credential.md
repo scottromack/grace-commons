@@ -117,7 +117,7 @@ Capability requirement 2: The deployment MUST supply the id material at the seam
 Capability requirement 3: The deployment MUST supply the derivation registry at the seam.
 Capability requirement 4: The deployment MUST declare a derivation function PER credential type the deployment serves.
 Capability requirement 5: The deployment MUST declare a one-way derivation function.
-Capability requirement 6: The deployment MUST NOT declare two credential_types differing only by a foldable difference.
+Capability requirement 6: The deployment MUST NOT declare two credential types differing only by a foldable difference.
 Capability requirement 7: The deployment MUST declare the default expires at.
 Capability requirement 8: The store MUST run the effective-active check and the register write for one pair as one critical section.
 Capability requirement 9: The store MUST release the critical section on the caller's return.
@@ -200,7 +200,7 @@ Operation 27: IF the credential id names no credential THEN a transitioning writ
 Operation 28: IF no effective-active credential EXISTS for the credential id THEN [Rotate] MUST answer not-active.
 Operation 29: IF no effective-active credential EXISTS for the credential id THEN [Revoke] MUST answer already-terminal.
 Operation 30: A transitioning write MUST answer a standing rejection ONLY IF the credential id names a credential.
-Operation 31: IF new_credential_material EQUALS blank THEN [Rotate] MUST answer invalid-request.
+Operation 31: IF new credential material EQUALS blank THEN [Rotate] MUST answer invalid-request.
 Operation 32: IF revoked by ref EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 33: IF reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 34: A transitioning write MUST answer invalid-request ONLY IF EVERY standing check passes.
@@ -577,6 +577,10 @@ Term terms: credential, credential id, pair, property, reference, store instance
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
 Term composing pattern: [Party Identity](./party-identity.md), [Session](./session.md), [Permissions](./permissions.md), [Actor Identity](./actor-identity.md), [Capability](./capability.md), [Event Log](./event-log.md), [Tamper Evidence](./tamper-evidence.md), [Login](../compositions/login.md), [External Onboarding](../compositions/external-onboarding.md), a compromise disclosure pattern.
+
+Term credential types: credential_types — the credential kinds a deployment declares.
+
+Term new credential material: new_credential_material — the material [Rotate] installs in place of the old.
 
 #### Register
 

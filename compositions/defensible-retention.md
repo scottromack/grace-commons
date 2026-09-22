@@ -162,7 +162,7 @@ Deleted: Capability requirement 5. Execution Contract Logic confinement 3 owns i
 Capability requirement 6: The composition MUST NOT accept an invocation id as an input.
 Capability requirement 7: The composition MUST NOT mint a retention id.
 Capability requirement 8: The composition MUST NOT mint a hold id.
-Capability requirement 9: The composition MUST NOT mint an event_id.
+Capability requirement 9: The composition MUST NOT mint an event id.
 Capability requirement 10: A deployment MUST configure the audit instance with an audit retention policy.
 Capability requirement 11: The evidence floor MUST NOT EXCEED the audit horizon.
 Capability requirement 12: A deployment MUST declare the longest hold the deployment admits.
@@ -831,7 +831,7 @@ Clock semantics 11: A reader MUST read a record purged outcome's purged at as th
 Clock semantics 12: A reader MUST NOT read a retention's purged at as the authoritative destruction instant.
 Clock semantics 13: A reader MUST read a divergence exceeding the clock offset allowance as a clock finding.
 Clock semantics 14: The composition MUST NOT read a supplied placed at as the entry instant.
-Clock semantics 15: A reader MUST read a hold placed outcome's recorded_at as the entry instant.
+Clock semantics 15: A reader MUST read a hold placed outcome's recorded at as the entry instant.
 Clock semantics 16: The gate MUST NOT read a clock.
 Deleted: Clock semantics 17. Capability requirement 36 owns it.
 ```
@@ -908,9 +908,9 @@ Term record verbs: serve, change, inherit, read, hold, reach, call, gate, select
 
 Term records: empty.
 
-Term bounds: retention completion bound (retention_completion_bound), compensation window (compensation window), audit horizon (audit_trail_retention_policy), evidence floor, closure floor, clock offset allowance (clock offset allowance), field cap, hold ids cap (hold_ids_cap), audit write latency.
+Term bounds: retention completion bound (retention_completion_bound), compensation window, audit horizon (audit_trail_retention_policy), evidence floor, closure floor, clock offset allowance, field cap, hold ids cap (hold_ids_cap), audit write latency.
 
-Term cadences: reconciliation cadence (reconciliation cadence), seal cadence.
+Term cadences: reconciliation cadence, seal cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
@@ -918,7 +918,7 @@ Term value sets: hold check mode = strict | advisory. hold check result = empty 
 
 Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, blank, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, late hold, position, invocation id, intended at, intent abandoned, attributed to.
 
-Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. verify_record, purge_event: Audit Trail.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. verify_record, purge_event, event id, recorded at: Audit Trail.
 
 Term composing patterns: Policy Reconciliation *(forthcoming)*; Hold-Aware Audit Retention *(forthcoming)*; Override Authorization *(forthcoming)*; Reverse Index *(forthcoming)*; Failed-Attempt Log *(forthcoming)*; a cryptographic shredding pattern *(forthcoming)*; [Permissions](../atoms/permissions.md).
 

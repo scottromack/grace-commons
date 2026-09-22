@@ -117,15 +117,15 @@ Composition state 12: An empty open-trigger set MUST NOT stand as a miss.
 Composition state 13: A false active flag MUST NOT stand as a miss.
 Composition state 14: An absent post closure placement MUST NOT stand as a miss.
 Composition state 15: A rebuild MUST select an event over an open-ended sequence range.
-Composition state 16: A rebuild MUST select an event by the event's action_ref.
-Composition state 17: A rebuild MUST read an event's action_ref through Audit Trail's read_record.
+Composition state 16: A rebuild MUST select an event by the event's action ref.
+Composition state 17: A rebuild MUST read an event's action ref through Audit Trail's read_record.
 Composition state 18: A rebuild MUST NOT read an aged-out event's payload.
 Composition state 19: A rebuild MUST recognize an aged-out event PER event.
 Composition state 20: An entry whose binding-bearing events stand aged out MUST stand unrebuildable.
 Composition state 21: An unrebuildable entry MUST NOT stand as a miss.
 Composition state 22: The composition MUST alert on an unrebuildable entry.
 Composition state 23: The rebuild of the party-to-case index MUST select the initiated events AND the retention renewed events.
-Composition state 24: The rebuild of the party-to-case index MUST take the case id AND the enrollment_path from the latest selected payload PER party id.
+Composition state 24: The rebuild of the party-to-case index MUST take the case id AND the enrollment path from the latest selected payload PER party id.
 Composition state 25: The rebuild of the party-to-case index MUST write the case's active flag set to true ONLY IF no party closed event names the case id.
 Composition state 26: The rebuild of the case-to-monitoring index MUST take the party id from the latest binding-bearing payload PER case id.
 Composition state 27: The rebuild of the case-to-monitoring index MUST take the opened at from the initiated payload.
@@ -156,7 +156,7 @@ Composition state 50: The composition MUST NOT duplicate a constituent's store.
 
 Term case-to-monitoring index: case_to_monitoring — the composition's index from a case id to the case's party id, opened at and [Next Review Due]; the auditor's first query surface for monitoring continuity.
 
-Term party-to-case index: party_to_case — the composition's index from a party id to the party's case id, enrollment_path and active flag; the gate's first read and the join an auditor makes from an activity record to an onboarding case.
+Term party-to-case index: party_to_case — the composition's index from a party id to the party's case id, enrollment path and active flag; the gate's first read and the join an auditor makes from an activity record to an onboarding case.
 
 Term active flag: true | false — whether a case is open: true from the case's initiated record, false once a landed party closed record names the case (Composition state 25, Action wiring 130).
 
@@ -164,7 +164,7 @@ Term active case: a case whose active flag EQUALS true.
 
 Term case-to-retentions index: case_to_retentions — the composition's index from a case id to the current placement and the post closure placement.
 
-Term case-to-open-triggers index: case_to_open_triggers — the composition's index from a case id to the open adverse triggers standing against the case, each carrying a trigger id, a trigger_type, a trigger ref and a triggered at.
+Term case-to-open-triggers index: case_to_open_triggers — the composition's index from a case id to the open adverse triggers standing against the case, each carrying a trigger id, a trigger type, a trigger ref and a triggered at.
 
 Term index: the case-to-monitoring index, the party-to-case index, the case-to-retentions index, OR the case-to-open-triggers index.
 
@@ -176,13 +176,13 @@ Term audit horizon: the age past which the audit instance has destroyed an event
 
 Term aged-out event: an event whose age exceeds the audit horizon.
 
-Term rebuild: the composition's named regeneration of an index — select this composition's events over an open-ended sequence range, keep the events the index names by action_ref, and take the index's fields from their payloads in Event Log order.
+Term rebuild: the composition's named regeneration of an index — select this composition's events over an open-ended sequence range, keep the events the index names by action ref, and take the index's fields from their payloads in Event Log order.
 
 Term miss: an index read the composition answers by rebuilding rather than by the stored value.
 
 Term unrebuildable entry: an index entry every one of whose binding-bearing events stands aged out.
 
-Term binding-bearing payload: an initiated payload OR a retention renewed payload — the two that carry a case's case id, party id and enrollment_path.
+Term binding-bearing payload: an initiated payload OR a retention renewed payload — the two that carry a case's case id, party id and enrollment path.
 
 Term schedule-bearing payload: an initiated payload, a verification recorded payload carrying a next review due, a monitoring triggered payload carrying a next review due, OR a party reinstated payload.
 
@@ -197,7 +197,7 @@ WHY:
 
 Composition state 10 through 14 define *miss* per index, which the prose left to a reader's judgment. The distinction that matters is between an entry that says nothing and an entry that says *nothing yet*: an empty open-trigger set is the answer *no investigation stands*, a false active flag is the answer *this case closed*, and an absent post closure placement is the answer *this case has not closed* — none of them a gap a rebuild should fill. A missing entry, or an entry carrying no value for the field being read, is the gap.
 
-Composition state 18 through 22 are the horizon's edge, stated once for every index. Past the horizon the substrate has destroyed an event's `data` in its entirety while the attestation keeps action_ref, actor ref and `attested_at` readable, so an enumeration still *recognizes* an aged-out customer-onboarding event by class and can no longer read the case id, party id or ids its payload carried. Recognition is therefore per event through the substrate's own read, not a property of the range read. What that costs is the one-active-case relation: a party whose entry is unrebuildable reads as never onboarded, and [Initiate Onboarding] would open a second active case for a party that already has one, with both cases thereafter legitimate-looking. case id has no second source — Party Identity holds the party, not the case — so the cure is the ordering obligation in Capability requirement rather than a fallback read, and Composition state 22's alert is what keeps the loss visible instead of silent.
+Composition state 18 through 22 are the horizon's edge, stated once for every index. Past the horizon the substrate has destroyed an event's `data` in its entirety while the attestation keeps action ref, actor ref and `attested_at` readable, so an enumeration still *recognizes* an aged-out customer-onboarding event by class and can no longer read the case id, party id or ids its payload carried. Recognition is therefore per event through the substrate's own read, not a property of the range read. What that costs is the one-active-case relation: a party whose entry is unrebuildable reads as never onboarded, and [Initiate Onboarding] would open a second active case for a party that already has one, with both cases thereafter legitimate-looking. case id has no second source — Party Identity holds the party, not the case — so the cure is the ordering obligation in Capability requirement rather than a fallback read, and Composition state 22's alert is what keeps the loss visible instead of silent.
 
 Composition state 23 and Composition state 24 are why the loss is bounded by a *review cadence* rather than by the relationship. Every renewal re-carries the binding, so an active case always has a binding-bearing event younger than one monitoring interval, and a closed case needs its last renewal or its closure event to survive the post-closure floor. An earlier draft compared the horizon against one placement's duration, which bounds nothing: the relationship is a chain of placements as long as the customer stays, and the page's own walkthrough — a nine-year horizon over an eleven-year relationship — satisfied that comparison and still lost the binding two years before closure.
 
@@ -218,7 +218,7 @@ Capability requirement 7: The composition MUST NOT mint a party id.
 Capability requirement 8: The composition MUST NOT mint a verification id.
 Capability requirement 9: The composition MUST NOT mint a state change id.
 Capability requirement 10: The composition MUST NOT mint a retention id.
-Capability requirement 11: The composition MUST NOT mint an event_id.
+Capability requirement 11: The composition MUST NOT mint an event id.
 Capability requirement 12: The composition MUST NOT generate cryptographic material.
 Capability requirement 13: A deployment MUST configure the audit instance with an audit retention policy.
 Capability requirement 14: The binding floor MUST NOT EXCEED the audit horizon.
@@ -279,7 +279,7 @@ Term post closure minimum: the applicable regulatory floor on a closed party's r
 
 Term adverse trigger types: adverse_trigger_types — the deployment's set of trigger_type values that drive suspension; canonically sanctions-match | pep-status-change | adverse-media.
 
-Term periodic trigger type: periodic-review-due — the one non-adverse trigger_type.
+Term periodic trigger type: periodic-review-due — the one non-adverse trigger type.
 
 Term trigger set cap: trigger_set_cap — the deployment's declared maximum number of open triggers a payload carries in full.
 
@@ -307,7 +307,7 @@ Primitive policy 3: The boundary predicate MUST refuse a blank actor reference.
 Primitive policy 4: The boundary predicate MUST refuse a blank method.
 Primitive policy 5: The boundary predicate MUST refuse a blank evidence ref.
 Primitive policy 6: The boundary predicate MUST refuse a blank reason.
-Primitive policy 7: The boundary predicate MUST refuse a trigger_type outside the trigger vocabulary.
+Primitive policy 7: The boundary predicate MUST refuse a trigger type outside the trigger vocabulary.
 Primitive policy 8: The boundary predicate MUST refuse a verification result outside the verification results.
 Primitive policy 9: The boundary predicate MUST refuse a composed suspend reason exceeding Party Identity's reason cap.
 Primitive policy 10: The composition MUST NOT normalize an opaque input.
@@ -361,7 +361,7 @@ Identity 9: An intent MUST carry the case id.
 Identity 10: An intent MUST carry the invocation's inputs.
 Identity 11: An intent MUST NOT carry a constituent-minted id.
 Identity 12: An intent MUST carry the injected now as intended at.
-Identity 13: An outcome MUST carry the intent's event_id as intent event id.
+Identity 13: An outcome MUST carry the intent's event id as intent event id.
 Identity 14: The composition MUST pair an outcome to an intent by the intent event id.
 Identity 15: The composition MUST NOT pair an outcome to an intent by a payload resemblance.
 Identity 16: The composition MUST NOT pair an outcome to an intent by the case id.
@@ -372,7 +372,7 @@ Identity 19: A party id MUST NOT identify a case.
 
 Term intended at: the instant an intent records (Identity 12).
 
-Term intent event id: the event_id the substrate answers for an intent, carried by the outcome paired to it (Identity 13, Identity 14).
+Term intent event id: the event id the substrate answers for an intent, carried by the outcome paired to it (Identity 13, Identity 14).
 
 Term opened at: the instant an initiated outcome records (Action wiring 146).
 
@@ -499,7 +499,7 @@ Action wiring 15: IF Retention Window answers invalid-policy for an initiation T
 Action wiring 16: IF Retention Window answers policy-not-found for an initiation THEN [Initiate Onboarding] MUST answer invalid-request.
 Action wiring 17: IF Retention Window answers storage-failure for an external path initiation THEN [Initiate Onboarding] MUST answer recording-failure carrying intent.
 Action wiring 18: IF Retention Window answers storage-failure for a direct path initiation THEN [Initiate Onboarding] MUST answer recording-failure carrying outcome.
-Action wiring 19: An admitted initiation MUST record an initiated outcome carrying the case id, the party id, the enrollment_path, the current placement, the opened at AND the next review due.
+Action wiring 19: An admitted initiation MUST record an initiated outcome carrying the case id, the party id, the enrollment path, the current placement, the opened at AND the next review due.
 Action wiring 20: An admitted initiation MUST answer the case id.
 Action wiring 21: The composition MUST read the case-to-monitoring index at [Record Verification].
 Action wiring 22: IF no case EXISTS for the case id THEN [Record Verification] MUST answer not-known.
@@ -524,9 +524,9 @@ Action wiring 40: The composition MUST read the party through Party Identity's d
 Action wiring 41: IF the read stands unanswered THEN [Trigger Monitoring Review] MUST answer state-unavailable.
 Action wiring 42: IF Party Identity answers invalid-query THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 43: The composition MUST read an invalid-query answer as the composition's own defect.
-Action wiring 44: IF the trigger_type belongs to the adverse trigger types AND the party's state IS NOT IN the suspendable states THEN [Trigger Monitoring Review] MUST answer not-verified carrying the state.
+Action wiring 44: IF the trigger type belongs to the adverse trigger types AND the party's state IS NOT IN the suspendable states THEN [Trigger Monitoring Review] MUST answer not-verified carrying the state.
 Action wiring 45: A periodic trigger MUST NOT refuse a party's state.
-Action wiring 46: An admitted trigger MUST record a monitoring triggered outcome carrying the case id, the party id, the trigger id, the trigger_type, the trigger ref AND the triggered at.
+Action wiring 46: An admitted trigger MUST record a monitoring triggered outcome carrying the case id, the party id, the trigger id, the trigger type, the trigger ref AND the triggered at.
 Action wiring 47: An admitted periodic trigger against an unsuspended party MUST carry the next review due on the monitoring triggered record.
 Action wiring 48: An admitted trigger against a suspended party MUST NOT carry a next review due on the monitoring triggered record.
 Action wiring 49: An adverse trigger MUST NOT carry a next review due on the monitoring triggered record.
@@ -543,7 +543,7 @@ Action wiring 59: IF Party Identity answers not-known for a suspend THEN [Trigge
 Action wiring 60: IF Party Identity answers invalid-request for a suspend THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 61: IF Party Identity answers storage-failure for a suspend THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
 Action wiring 62: IF the trigger voided record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
-Action wiring 63: A suspending trigger MUST record a party suspended outcome carrying the case id, the party id, the trigger id, the trigger_type, the trigger ref, the state change id AND the suspended at.
+Action wiring 63: A suspending trigger MUST record a party suspended outcome carrying the case id, the party id, the trigger id, the trigger type, the trigger ref, the state change id AND the suspended at.
 Action wiring 64: A suspending trigger MUST add the trigger to the open-trigger set whatever the party suspended record's answer.
 Action wiring 65: IF the party suspended record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying outcome.
 Action wiring 66: A periodic trigger MUST read the current placement's policy ref through Retention Window's declared read.
@@ -553,7 +553,7 @@ Action wiring 69: A periodic trigger MUST renew the placement whatever the curre
 Action wiring 70: IF Retention Window answers storage-failure for a renewal THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
 Action wiring 71: IF Retention Window answers invalid-policy for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 72: IF Retention Window answers policy-not-found for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
-Action wiring 73: A renewing trigger MUST record a retention renewed outcome carrying the case id, the party id, the enrollment_path, the trigger id, the prior placement, the renewed placement, the policy ref AND the renewed at.
+Action wiring 73: A renewing trigger MUST record a retention renewed outcome carrying the case id, the party id, the enrollment path, the trigger id, the prior placement, the renewed placement, the policy ref AND the renewed at.
 Action wiring 74: IF the retention renewed record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying outcome.
 Action wiring 75: A renewing trigger MUST repoint the case-to-retentions index ONLY AFTER the landed retention renewed record.
 Action wiring 76: A periodic trigger against an unsuspended party MUST advance the next review due whatever the renewal's answer.
@@ -642,7 +642,7 @@ Term admitted initiation: an [Initiate Onboarding] call whose boundary predicate
 
 Term admitted verification: a [Record Verification] call whose boundary predicate passed, whose case's active flag EQUALS true and whose intent landed.
 
-Term admitted trigger: a [Trigger Monitoring Review] call whose boundary predicate passed, whose case's active flag EQUALS true and whose pre-check admitted the trigger_type against the party's state.
+Term admitted trigger: a [Trigger Monitoring Review] call whose boundary predicate passed, whose case's active flag EQUALS true and whose pre-check admitted the trigger type against the party's state.
 
 Term admitted clearance: a [Clear Review] call whose boundary predicate passed, whose case carries an open trigger and whose intent landed.
 
@@ -650,9 +650,9 @@ Term admitted closure: a [Close Party] call whose boundary predicate passed, who
 
 Term transitioning verification: an admitted verification Party Identity answered with a state change id.
 
-Term adverse trigger: an admitted trigger whose trigger_type belongs to the adverse trigger types.
+Term adverse trigger: an admitted trigger whose trigger type belongs to the adverse trigger types.
 
-Term periodic trigger: an admitted trigger whose trigger_type EQUALS the periodic trigger type.
+Term periodic trigger: an admitted trigger whose trigger type EQUALS the periodic trigger type.
 
 Term suspending trigger: an adverse trigger whose suspend Party Identity admitted.
 
@@ -1020,7 +1020,7 @@ WHY:
 
 **Check 8.1 and Check 8.2 join by the intent's own id, and the distinction is load-bearing.** case id is per-case and three actions are repeatable against one case, so a case id-plus-actor match is satisfied by a single stale intent standing in front of an unbounded number of later outcomes — an implementation emitting one intent per case and skipping it thereafter would pass. Matching on the id the intent record minted admits no such reading. Because the substrate validates the caller's credential inside every record_action, the earlier intent *is* the records-alone proof that the acting actor was authenticated before the constituent write committed, which is what makes Invariant 8 verifiable rather than asserted.
 
-**Check 9.4 and Check 9.5 state where recognition lives past the horizon.** The substrate destroys an event's payload in its entirety while the attestation keeps action_ref, actor ref and `attested_at` readable, so an aged-out event is recognized *per event* through the substrate's own record read and not through the range read's payload — which is what bounds every reproduction above by the horizon rather than by the log's start.
+**Check 9.4 and Check 9.5 state where recognition lives past the horizon.** The substrate destroys an event's payload in its entirety while the attestation keeps action ref, actor ref and `attested_at` readable, so an aged-out event is recognized *per event* through the substrate's own record read and not through the range read's payload — which is what bounds every reproduction above by the horizon rather than by the log's start.
 
 External check 7 and External check 8 are the two obligations that make the gate a gate, and neither is records-alone: the read side is a property of every activity system the deployment runs, and the write side is a property of who else holds the Party Identity instance. Both are composition-bypass findings when they fail, and both are named here rather than assumed, because a spec that assumed them would be claiming a guarantee its own records cannot carry.
 
@@ -1174,23 +1174,27 @@ Term record verbs: serve, change, inherit, read, hold, reach, call, select, quer
 
 Term records: empty.
 
-Term bounds: onboarding completion bound (onboarding_completion_bound), compensation window (compensation window), audit horizon (audit_trail_retention_policy), monitoring interval (monitoring_interval), scheduler tolerance (scheduler_tolerance), renewal floor, binding floor, closure floor, field cap, trigger set cap (trigger_set_cap), `placement's cover`, post closure minimum, audit write latency.
+Term bounds: onboarding completion bound (onboarding_completion_bound), compensation window, audit horizon (audit_trail_retention_policy), monitoring interval (monitoring_interval), scheduler tolerance (scheduler_tolerance), renewal floor, binding floor, closure floor, field cap, trigger set cap (trigger_set_cap), `placement's cover`, post closure minimum, audit write latency.
 
-Term cadences: reconciliation cadence (reconciliation cadence), seal cadence.
+Term cadences: reconciliation cadence, seal cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.41 (2026-09-14).
 
-Term value sets: admissible states = unverified. suspendable states = verified | suspended. verification results = passed | failed. trigger vocabulary = periodic-review-due | a member of the adverse trigger types. adverse trigger types = sanctions-match | pep-status-change | adverse-media, extended by the deployment. intent = customer-onboarding.initiation-intended | customer-onboarding.verification-intended | customer-onboarding.clearance-intended | customer-onboarding.closure-intended | customer-onboarding.monitoring-triggered | customer-onboarding.recovery-intended. outcome = customer-onboarding.initiated | customer-onboarding.verification-recorded | customer-onboarding.party-suspended | customer-onboarding.trigger-on-suspended-party | customer-onboarding.trigger-voided | customer-onboarding.retention-renewed | customer-onboarding.review-cleared | customer-onboarding.party-reinstated | customer-onboarding.party-closed. enrollment_path = direct | external-onboarding.
+Term value sets: admissible states = unverified. suspendable states = verified | suspended. verification results = passed | failed. trigger vocabulary = periodic-review-due | a member of the adverse trigger types. adverse trigger types = sanctions-match | pep-status-change | adverse-media, extended by the deployment. intent = customer-onboarding.initiation-intended | customer-onboarding.verification-intended | customer-onboarding.clearance-intended | customer-onboarding.closure-intended | customer-onboarding.monitoring-triggered | customer-onboarding.recovery-intended. outcome = customer-onboarding.initiated | customer-onboarding.verification-recorded | customer-onboarding.party-suspended | customer-onboarding.trigger-on-suspended-party | customer-onboarding.trigger-voided | customer-onboarding.retention-renewed | customer-onboarding.review-cleared | customer-onboarding.party-reinstated | customer-onboarding.party-closed. enrollment path = direct | external-onboarding.
 
 Term terms: composition, constituents, party retention instance, service identity, direct path, external path, case-to-monitoring index, party-to-case index, case-to-retentions index, case-to-open-triggers index, index, current placement, post closure placement, audit horizon, aged-out event, rebuild, miss, unrebuildable entry, binding-bearing payload, schedule-bearing payload, placement-bearing payload, landed record, owed record, seam, transition, monitoring interval, scheduler tolerance, renewal floor, binding floor, closure floor, onboarding completion bound, active relationship policy, post closure policy, post closure minimum, adverse trigger types, periodic trigger type, trigger set cap, field cap, blank, boundary predicate, opaque input, actor reference, trigger vocabulary, verification results, truncation marker, set digest, intent, outcome, committing call, landed intent, open marker, outcome traversal, yielded invocation, recovery marker, recovery outcome, party state, admissible states, suspendable states, unanswered read, admitted initiation, admitted verification, admitted trigger, admitted clearance, admitted closure, transitioning verification, adverse trigger, periodic trigger, suspending trigger, renewing trigger, completing closure, committing closure, composed suspend reason, closed triggers, open triggers at close, scoped retry, prior placement, renewed placement, regulated activity, reconciliation, young marker, elapsed placement, quiescent case, quiescent verified party, quiescent suspended party, quiescent closed case, continuous chain, unelapsed placement, post closure floor, clearance window, surfaced orphan, clearing actor, `placement's cover`, trigger outcome, orphan, indeterminate committing call, enrollment failure, position, intended at, intent event id, opened at, triggered at, suspended at, renewed at, cleared at, reinstated at, closed at, active flag, active case.
 
-Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Step 1 failure in `execution-contract.md` — the name an unanswered constituent read takes. The section titled Structural-relation invariant templates in `spec-format.md` — referential integrity. read_record, verify_record, purge_event: Audit Trail.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Step 1 failure in `execution-contract.md` — the name an unanswered constituent read takes. The section titled Structural-relation invariant templates in `spec-format.md` — referential integrity. read_record, verify_record, purge_event, action ref, event id: Audit Trail.
 
 Term composing patterns: Risk Tiering / EDD *(forthcoming)*; Ownership Structure / Beneficial Owner *(forthcoming)*; Review Schedule *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Policy Reconciliation *(forthcoming)*; [Resolve a Person's Data Rights](./resolve-a-persons-data-rights.md); [External Onboarding](./external-onboarding.md); [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md); [Defensible Retention](./defensible-retention.md); [Duplicate Prevention](../atoms/duplicate-prevention.md); [Permissions](../atoms/permissions.md).
 
+Term trigger type: trigger_type — which kind of adverse trigger a record carries.
+
+Term enrollment path: enrollment_path — the path a case was enrolled by.
+
 #### Initiate Onboarding
 
-The composition's intake action: open a Customer Due Diligence case for a party — enrolling the party on the direct path, or admitting one External Onboarding already enrolled in `Unverified` state on the external path, with enrollment_path recording which — placing the first active-relationship retention, opening the monitoring schedule, and recording the case. Answers the case id.
+The composition's intake action: open a Customer Due Diligence case for a party — enrolling the party on the direct path, or admitting one External Onboarding already enrolled in `Unverified` state on the external path, with enrollment path recording which — placing the first active-relationship retention, opening the monitoring schedule, and recording the case. Answers the case id.
 
 Kind: Operation
 

@@ -476,10 +476,10 @@ Primitive policy 21: [Record Action] step 1 MUST measure the serialized envelope
 Primitive policy 22: [Record Action] step 1 MUST land invalid-request for an oversize payload, with nothing recorded.
 Primitive policy 23: An empty data MUST count as valid.
 Primitive policy 24: An unknown event id MUST yield not-known from the addressed action.
-Primitive policy 25: The composition MUST pass original_event_payload through to TamperEvidence.verify unchanged.
-Primitive policy 26: original_event_payload MUST match the verify-time presentation.
-Primitive policy 27: The caller MUST present a non-empty original_event_payload.
-Primitive policy 28: The composition MUST NOT canonicalize original_event_payload.
+Primitive policy 25: The composition MUST pass original event payload through to TamperEvidence.verify unchanged.
+Primitive policy 26: original event payload MUST match the verify-time presentation.
+Primitive policy 27: The caller MUST present a non-empty original event payload.
+Primitive policy 28: The composition MUST NOT canonicalize original event payload.
 ```
 
 Term malformed reference: an action ref or actor ref that EQUALS blank OR whose length EXCEEDS reference length cap.
@@ -641,7 +641,7 @@ Under interval or on-demand cadence, seals the current unsealed tail; [Record Ac
 seal now 1: [Seal Now] MUST read the tail position by the open-upper-bound read beginning at the slice's first sequence number.
 seal now 2: [Seal Now] MUST NOT read next sequence number.
 seal now 3: IF the open-upper-bound read returns no event THEN [Seal Now] MUST land [Nothing To Seal].
-seal now 4: [Seal Now] MUST call TamperEvidence.seal(slice_ref, mechanism credential) over the slice.
+seal now 4: [Seal Now] MUST call TamperEvidence.seal(slice ref, mechanism credential) over the slice.
 seal now 5: [Seal Now] MUST record the seal coverage entry for evidence id as the slice and advance sealed through to the tail position.
 seal now 6: [Seal Now] MUST land mechanism-failure(reason) as [Mechanism Failure] carrying the reason unchanged.
 seal now 7: [Seal Now] MUST pass invalid-request through unchanged.
@@ -787,7 +787,7 @@ Steps:
    WHY: Invariant 3 guarantees at most one covering seal. Under partly-purged coverage the record set cannot be re-presented, and nothing is known to be wrong with the event, so `failed-verification(seal-record-set-mismatch)` would be the composition manufacturing a finding out of its own lawful work; the answer stands for the rest of those events' retained lifetimes, and the remedy is Seal Lifecycle *(forthcoming)*. The lenient path reaches `verified` on the attestation check plus Event Log's per-event immutability, which is what the deployment declared.
 5. **Seal.**
    ```
-   verify record step 5.1: [Verify Record] step 5 MUST call TamperEvidence.verify(evidence id, original_event_payload).
+   verify record step 5.1: [Verify Record] step 5 MUST call TamperEvidence.verify(evidence id, original event payload).
    verify record step 5.2: [Verify Record] step 5 MUST land a failed-verification(reason) with the reason prefixed seal-.
    verify record step 5.3: [Verify Record] step 5 MUST route mechanism-verification-unavailable to step 6.
    verify record step 5.4: [Verify Record] step 5 MUST land Tamper Evidence's not-known as failed-verification(seal-not-known).
@@ -1547,6 +1547,10 @@ Term cadences: seal cadence, reconciliation cadence.
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); `(compensation-window)` — carried beside a [Verify Record] outcome on a separate channel.
 
 Term terms: (each declared where it is used) audit log, attestation store, retention store, seal store, surviving fields, open-upper-bound read, full enumeration, derived index, extraction-pending, rebuild-on-miss, retention state, live, purged, purged events, covering seal, closed entry, sealed through, unsealed tail, reconciled, resolved policy, time arm, chained mechanism, verify-time presentation, mechanism class, independently trusted substrate, standing false negative, shredding-class, tombstone-by-mutation, `Event Log's data field`, `finding's creation`, serialized envelope, reference headroom, whole closure, section kind, `act's completion bound`, lease, holder, proceed as landed, pre-check, closure sum, full constructed payload, reserved namespace, reconciliation path, subject-kind discriminator, read-back, high-water mark, mid-record expiry, non-storage refusal, slice, tail position, audit record, coverage status, pair, partly-purged coverage, `Legal Hold`, hold, mid-cascade expiry, `cascade-failure(step-3)`, completed cascade, divergence, record edge, purge edge, horizon, purge age, attestation age, event age, binding set, orphan, true miss, owed narration, quiescence, `recorded through [Record Action]`, audit edge, composition-built query, insert-only map, closed-state marker, reconciled policy, held critical section, truth-bearing write, `who / what / when`, seal disposal, re-sealing, store outage, compliance alert, verification surface outage, event standing, residual finding, seal stamps, extraction-pending fact, invocation, later write, malformed reference, step-3 storage failure, step-4 storage failure, standing finding, open entry, external evidence; and now, the seam-injected reading (Clock source 1; the section titled Logic Confinement Principle in `execution-contract.md`).
+
+Term original event payload: original_event_payload — the event's payload as appended, which [Verify Record] re-presents.
+
+Term slice ref: slice_ref — the reference naming the slice a seal covers.
 
 #### Record Action
 

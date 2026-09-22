@@ -396,7 +396,7 @@ Check 2.1: An auditor MUST find the credential-to-sessions map AND the session-t
 Check 2.2: An auditor MUST rebuild both maps from the substrate's login-family events (Composition state 7).
 Check 2.3: An auditor MUST find EVERY map write failure event's session token carrying EXACTLY ONE OF an entry in both maps, an invalid answer from Session's validate (Action wiring 11).
 Check 3.1: An auditor MUST find EVERY login call reaching an outcome carrying one login event log entry (Invariant 4.1).
-Check 3.2: An auditor MUST find EVERY login event log entry's outcome matching the mirrored event's action_ref (Composition state 10).
+Check 3.2: An auditor MUST find EVERY login event log entry's outcome matching the mirrored event's action ref (Composition state 10).
 Check 3.3: An auditor MUST rebuild a principal ref's session set from the login event log AND the orphan session revoked events naming the principal ref (Invariant 4.2).
 Check 4.1: An auditor MUST find EVERY cascade initiation event older than the login completion bound carrying EXACTLY ONE OF a completion event, an abandoned event (Reconciliation 12).
 Check 4.2: An auditor MUST find EVERY session revoked event naming a session the cascade set carried (Invariant 5.2).
@@ -485,7 +485,7 @@ Term record verbs: call, answer, read, write, append, store, key, hold, remove, 
 
 Term actors: the composition; the constituents; the substrate; the host; the transition; a deployment; an auditor; a caller; a principal; the sweep; a session; a credential; an event.
 
-Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Substrate composition invocation in `execution-contract.md` — what naming a composition as a constituent means at runtime. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition. record_action: Audit Trail.
+Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the derived-index and extraction-pending classifications. The section titled Substrate composition invocation in `execution-contract.md` — what naming a composition as a constituent means at runtime. The section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition. record_action, action ref: Audit Trail.
 
 #### Revoke Sessions For Credential
 

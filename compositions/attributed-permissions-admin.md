@@ -830,7 +830,7 @@ Term record verbs: serve, change, inherit, read, hold, reach, call, select, quer
 
 Term records: empty.
 
-Term bounds: issuance completion bound (issue_grant_completion_bound), revocation completion bound (revoke_grant_completion_bound), pair-scoped completion bound (revoke_permission_completion_bound), clock offset allowance (clock offset allowance), length cap, retention horizon.
+Term bounds: issuance completion bound (issue_grant_completion_bound), revocation completion bound (revoke_grant_completion_bound), pair-scoped completion bound (revoke_permission_completion_bound), clock offset allowance, length cap, retention horizon.
 
 Term cadences: empty.
 

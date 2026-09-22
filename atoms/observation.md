@@ -290,8 +290,8 @@ Operation 43 admits a limit rather than inventing an order. Two observations sha
   ```
 - **Invariant 3 — Amendment chains are linear.**
   ```
-  Invariant 3.1: An observation MUST NOT carry two successor_ids.
-  Invariant 3.2: An observation MUST NOT carry two predecessor_ids.
+  Invariant 3.1: An observation MUST NOT carry two successor ids.
+  Invariant 3.2: An observation MUST NOT carry two predecessor ids.
   ```
 - **Invariant 4 — Subject ref is inherited across an amendment chain.**
   ```
@@ -383,8 +383,8 @@ Check 2.1: An auditor MUST find a successor observation for EVERY amended observ
 Check 2.2: An auditor MUST find EVERY successor observation's predecessor id equal to the original's observation id (Operation 29).
 Check 2.3: An auditor MUST find EVERY observation in one amendment chain sharing one subject ref (Invariant 4.1).
 Check 2.4: An auditor MUST find EVERY observation in one amendment chain sharing one observation type (Invariant 5.1).
-Check 2.5: An auditor MUST find no observation carrying two successor_ids (Invariant 3.1).
-Check 2.6: An auditor MUST find no observation carrying two predecessor_ids (Invariant 3.2).
+Check 2.5: An auditor MUST find no observation carrying two successor ids (Invariant 3.1).
+Check 2.6: An auditor MUST find no observation carrying two predecessor ids (Invariant 3.2).
 Check 3.1: An auditor MUST find no observation whose state DOES NOT EQUAL retracted on a later read of an observation a prior read found retracted (Invariant 6.1).
 Check 4.1: An auditor MUST find no observation absent from a later read (Invariant 7.1).
 Check 5.1: An auditor MUST find EVERY observation's recorded by non-blank (Operation 2, String 5).
@@ -562,6 +562,10 @@ Term cadences: empty.
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
 Term terms: observation, observation id, subject ref, recorded by, observation type, unit, reference, store instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, state rejection, value constraint, clock offset allowance, future bound, resolved recorded at, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, per-observation critical section, string input, blank, uncommitted crash, dangling amend.
+
+Term successor ids: successor_ids — the ids of the observations that succeed this one.
+
+Term predecessor ids: predecessor_ids — the ids of the observations this one succeeds.
 
 #### Record
 

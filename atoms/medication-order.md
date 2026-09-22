@@ -350,8 +350,8 @@ Logic confinement is the Contract's (the section titled Logic Confinement Princi
   WHY: one of the two rules that carry this atom's domain. An order that has crossed the dispensing edge is corrected by discontinuing and re-ordering, because the medication is in someone else's custody and a record that edited itself would describe a bottle that does not exist.
 - **Invariant 4 — Amendment chains are linear.**
   ```
-  Invariant 4.1: An order MUST NOT carry two successor_ids.
-  Invariant 4.2: An order MUST NOT carry two predecessor_ids.
+  Invariant 4.1: An order MUST NOT carry two successor ids.
+  Invariant 4.2: An order MUST NOT carry two predecessor ids.
   ```
 - **Invariant 5 — A hold resumes where it paused.**
   ```
@@ -448,8 +448,8 @@ Check 1.2: An auditor MUST find no order whose state IS NOT IN the terminal stat
 Check 1.3: An auditor MUST find no order whose state DOES NOT EQUAL amended on a later read of an order a prior read found amended (Invariant 8.1).
 Check 2.1: An auditor MUST find a re-read order's core fields unchanged (Invariant 1.1).
 Check 2.2: An auditor MUST find EVERY successor order carrying the original's patient ref, prescriber ref and medication ref (Invariant 2.1).
-Check 2.3: An auditor MUST find no order carrying two successor_ids (Invariant 4.1).
-Check 2.4: An auditor MUST find no order carrying two predecessor_ids (Invariant 4.2).
+Check 2.3: An auditor MUST find no order carrying two successor ids (Invariant 4.1).
+Check 2.4: An auditor MUST find no order carrying two predecessor ids (Invariant 4.2).
 Check 2.5: An auditor MUST find a successor id naming an order on EVERY amended order (State 9).
 Check 2.6: An auditor MUST find a predecessor id naming an order on EVERY successor order (State 10).
 Check 3.1: An auditor MUST find no amended order that was dispensed (Invariant 3.1).
@@ -667,6 +667,10 @@ Term resolved completed at: the completed at the order carries — the supplied 
 Term clock offset allowance: clock offset allowance — the non-negative duration the deployment declares as the margin the future bound allows; zero declares no tolerance.
 
 Term reason field: amendment reason | hold reason | cancellation reason | discontinuation reason — every field recording why an action was taken.
+
+Term successor ids: successor_ids — the ids of the orders that succeed this one.
+
+Term predecessor ids: predecessor_ids — the ids of the orders this one succeeds.
 
 #### Order
 
