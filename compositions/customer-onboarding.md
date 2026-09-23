@@ -21,7 +21,7 @@ Customer Onboarding is a regulated composition (a spec that wires two or more at
 
 The composition's defining emergent guarantee (a property that appears only when atoms are combined — no single atom carries it) is verification-gates-activity: a single read-only query, [Activity Permitted], answers permitted if and only if the party has an onboarding case with Customer Onboarding **and** Party Identity reports the party in `Verified` state — a party verified outside the composition's own case surface does not pass. Activity systems consume this query rather than reading Party Identity directly, so the gate is implemented exactly once instead of re-implemented (or skipped) per activity system. Customer Onboarding is the layer that centralizes both that the `Verified` state was reached through an attributed, tamper-evident verification (recorded in the Audit Trail) and that the gate query is the single surface activity consumes. This is the structural form of the check-the-customer-before-business obligation that US banking law names Customer Due Diligence (CDD) under the Bank Secrecy Act / Anti-Money Laundering rules (BSA/AML).
 
-Beyond the gate, the composition guarantees four further emergent properties. Every `Unverified → Verified` transition produces a tamper-evident Audit Trail event carrying the verification identifiers. Every adverse monitoring trigger produces an Audit Trail event ordered before any suspension it precipitates, so no trigger-driven suspension exists in the records without its precipitating trigger ordered ahead of it. A party reinstated after an adverse trigger has a passed verification recorded after the most recent suspend, and the clearing actor — whose credential this composition verifies — attests that the fresh evidence was recorded before the reinstatement. The party record is under a live Retention Window placement at every instant of the relationship — renewed at each periodic review, because a placement is fixed-duration and nothing else renews it — and a closed party's record cannot be purged before its post-closure floor (the BSA/AML five-year period under 31 CFR (Title 31 of the Code of Federal Regulations) §1020.220) elapses.
+Beyond the gate, the composition guarantees four further emergent properties. Every `Unverified → Verified` transition produces a tamper-evident Audit Trail event carrying the verification identifiers. Every adverse monitoring trigger produces an Audit Trail event ordered before any suspension it precipitates, so no trigger-driven suspension exists in the records without its precipitating trigger ordered ahead of it. A party reinstated after an adverse trigger has a passed verification recorded after the most recent suspend, and the clearing actor — whose credential this composition verifies — attests that the fresh evidence was recorded before the reinstatement. The party record is under a live Retention Window placement at every instant of the relationship — renewal instant each periodic review, because a placement is fixed-duration and nothing else renews it — and a closed party's record cannot be purged before its post-closure floor (the BSA/AML five-year period under 31 CFR (Title 31 of the Code of Federal Regulations) §1020.220) elapses.
 
 Its most common uses are retail and commercial bank customer onboarding under BSA/AML, broker-dealer counterparty onboarding, payments-processor merchant onboarding, and crypto-exchange customer onboarding under the EU 5th Anti-Money Laundering Directive (AMLD5). Any system that must prove, from records alone, that every party with regulated activity was verified before that activity, that adverse triggers were acted on, and that closed-party records were retained for the mandated post-closure period, is a candidate for this composition.
 
@@ -67,7 +67,7 @@ Composes 18: The composition MUST call Party Identity's enroll ONLY IF the direc
 Composes 19: The composition MUST own EVERY verification transition on the Party Identity instance.
 Composes 20: A deployment MUST NOT admit a second writer of a verification transition on the Party Identity instance.
 Composes 21: The composition MUST place a party retention through Retention Window's place_under_retention.
-Composes 22: The composition MUST read a placement's policy ref, retained at, retention until AND purge eligibility through Retention Window's declared read.
+Composes 22: The composition MUST read a placement's policy reference, retention instant, retention deadline AND purge eligibility through Retention Window's declared read.
 Composes 23: The composition MUST read a party's state through Party Identity's declared read.
 Composes 24: The composition MUST read an audit record through Audit Trail's read_record.
 Composes 25: The composition MUST verify an audit record through Audit Trail's verify_record.
@@ -117,8 +117,8 @@ Composition state 12: An empty open-trigger set MUST NOT stand as a miss.
 Composition state 13: A false active flag MUST NOT stand as a miss.
 Composition state 14: An absent post closure placement MUST NOT stand as a miss.
 Composition state 15: A rebuild MUST select an event over an open-ended sequence range.
-Composition state 16: A rebuild MUST select an event by the event's action ref.
-Composition state 17: A rebuild MUST read an event's action ref through Audit Trail's read_record.
+Composition state 16: A rebuild MUST select an event by the event's action reference.
+Composition state 17: A rebuild MUST read an event's action reference through Audit Trail's read_record.
 Composition state 18: A rebuild MUST NOT read an aged-out event's payload.
 Composition state 19: A rebuild MUST recognize an aged-out event PER event.
 Composition state 20: An entry whose binding-bearing events stand aged out MUST stand unrebuildable.
@@ -128,7 +128,7 @@ Composition state 23: The rebuild of the party-to-case index MUST select the ini
 Composition state 24: The rebuild of the party-to-case index MUST take the case id AND the enrollment path from the latest selected payload PER party id.
 Composition state 25: The rebuild of the party-to-case index MUST write the case's active flag set to true ONLY IF no party closed event names the case id.
 Composition state 26: The rebuild of the case-to-monitoring index MUST take the party id from the latest binding-bearing payload PER case id.
-Composition state 27: The rebuild of the case-to-monitoring index MUST take the opened at from the initiated payload.
+Composition state 27: The rebuild of the case-to-monitoring index MUST take the opening instant from the initiated payload.
 Composition state 28: The rebuild of the case-to-monitoring index MUST take the next review due from the latest schedule-bearing payload PER case id.
 Composition state 29: The rebuild of the case-to-retentions index MUST take the current placement from the latest placement-bearing payload PER case id.
 Composition state 30: The rebuild of the case-to-retentions index MUST take the post closure placement from the party closed payload.
@@ -154,7 +154,7 @@ Composition state 49: The composition MUST NOT store an overdue flag.
 Composition state 50: The composition MUST NOT duplicate a constituent's store.
 ```
 
-Term case-to-monitoring index: case_to_monitoring — the composition's index from a case id to the case's party id, opened at and [Next Review Due]; the auditor's first query surface for monitoring continuity.
+Term case-to-monitoring index: case_to_monitoring — the composition's index from a case id to the case's party id, opening instant and [Next Review Due]; the auditor's first query surface for monitoring continuity.
 
 Term party-to-case index: party_to_case — the composition's index from a party id to the party's case id, enrollment path and active flag; the gate's first read and the join an auditor makes from an activity record to an onboarding case.
 
@@ -164,7 +164,7 @@ Term active case: a case whose active flag EQUALS true.
 
 Term case-to-retentions index: case_to_retentions — the composition's index from a case id to the current placement and the post closure placement.
 
-Term case-to-open-triggers index: case_to_open_triggers — the composition's index from a case id to the open adverse triggers standing against the case, each carrying a trigger id, a trigger type, a trigger ref and a triggered at.
+Term case-to-open-triggers index: case_to_open_triggers — the composition's index from a case id to the open adverse triggers standing against the case, each carrying a trigger id, a trigger type, a trigger ref and a trigger instant.
 
 Term index: the case-to-monitoring index, the party-to-case index, the case-to-retentions index, OR the case-to-open-triggers index.
 
@@ -176,7 +176,7 @@ Term audit horizon: the age past which the audit instance has destroyed an event
 
 Term aged-out event: an event whose age exceeds the audit horizon.
 
-Term rebuild: the composition's named regeneration of an index — select this composition's events over an open-ended sequence range, keep the events the index names by action ref, and take the index's fields from their payloads in Event Log order.
+Term rebuild: the composition's named regeneration of an index — select this composition's events over an open-ended sequence range, keep the events the index names by action reference, and take the index's fields from their payloads in Event Log order.
 
 Term miss: an index read the composition answers by rebuilding rather than by the stored value.
 
@@ -193,11 +193,11 @@ Term landed record: an audit record the substrate has appended and attested, wha
 Term owed record: an audit record this composition must write and the substrate has not appended.
 
 WHY:
-**All four indexes are derived, and Composition state 5 is a correction the migration makes rather than a restatement.** The prose flagged the monitoring schedule's opened at and [Next Review Due] as *extraction-pending* against a proposed Review Schedule atom, and in the next breath stated that every schedule-writing action stamps its result into its own audit event and that the current deadline is the latest such payload in Event Log order. Those two sentences cannot both be the classification. The section titled Composition state in `execution-contract.md` asks one question — *is every fact in this element fully derivable, at any time, from the constituents' stores through their declared read surfaces?* — and the spec's own rebuild answers yes. So the schedule is a derived index on the Contract's own test, bounded by the horizon exactly as the case binding is, and the same reading settles the open-trigger set: its whole lifecycle — raised, voided, cleared, swept at closure — rides audit events, so it is derived too, and the three-elements-derived / one-element-pending split the page carried was an inconsistency rather than a distinction. A Review Schedule atom may still be worth extracting; that is a concept the corpus may take up, and it is named in Non-goals rather than asserted here as a classification the rebuild contradicts.
+**All four indexes are derived, and Composition state 5 is a correction the migration makes rather than a restatement.** The prose flagged the monitoring schedule's opening instant and [Next Review Due] as *extraction-pending* against a proposed Review Schedule atom, and in the next breath stated that every schedule-writing action stamps its result into its own audit event and that the current deadline is the latest such payload in Event Log order. Those two sentences cannot both be the classification. The section titled Composition state in `execution-contract.md` asks one question — *is every fact in this element fully derivable, at any time, from the constituents' stores through their declared read surfaces?* — and the spec's own rebuild answers yes. So the schedule is a derived index on the Contract's own test, bounded by the horizon exactly as the case binding is, and the same reading settles the open-trigger set: its whole lifecycle — raised, voided, cleared, swept at closure — rides audit events, so it is derived too, and the three-elements-derived / one-element-pending split the page carried was an inconsistency rather than a distinction. A Review Schedule atom may still be worth extracting; that is a concept the corpus may take up, and it is named in Non-goals rather than asserted here as a classification the rebuild contradicts.
 
 Composition state 10 through 14 define *miss* per index, which the prose left to a reader's judgment. The distinction that matters is between an entry that says nothing and an entry that says *nothing yet*: an empty open-trigger set is the answer *no investigation stands*, a false active flag is the answer *this case closed*, and an absent post closure placement is the answer *this case has not closed* — none of them a gap a rebuild should fill. A missing entry, or an entry carrying no value for the field being read, is the gap.
 
-Composition state 18 through 22 are the horizon's edge, stated once for every index. Past the horizon the substrate has destroyed an event's `data` in its entirety while the attestation keeps action ref, actor ref and `attested_at` readable, so an enumeration still *recognizes* an aged-out customer-onboarding event by class and can no longer read the case id, party id or ids its payload carried. Recognition is therefore per event through the substrate's own read, not a property of the range read. What that costs is the one-active-case relation: a party whose entry is unrebuildable reads as never onboarded, and [Initiate Onboarding] would open a second active case for a party that already has one, with both cases thereafter legitimate-looking. case id has no second source — Party Identity holds the party, not the case — so the cure is the ordering obligation in Capability requirement rather than a fallback read, and Composition state 22's alert is what keeps the loss visible instead of silent.
+Composition state 18 through 22 are the horizon's edge, stated once for every index. Past the horizon the substrate has destroyed an event's `data` in its entirety while the attestation keeps action reference, actor reference and `attested_at` readable, so an enumeration still *recognizes* an aged-out customer-onboarding event by class and can no longer read the case id, party id or ids its payload carried. Recognition is therefore per event through the substrate's own read, not a property of the range read. What that costs is the one-active-case relation: a party whose entry is unrebuildable reads as never onboarded, and [Initiate Onboarding] would open a second active case for a party that already has one, with both cases thereafter legitimate-looking. case id has no second source — Party Identity holds the party, not the case — so the cure is the ordering obligation in Capability requirement rather than a fallback read, and Composition state 22's alert is what keeps the loss visible instead of silent.
 
 Composition state 23 and Composition state 24 are why the loss is bounded by a *review cadence* rather than by the relationship. Every renewal re-carries the binding, so an active case always has a binding-bearing event younger than one monitoring interval, and a closed case needs its last renewal or its closure event to survive the post-closure floor. An earlier draft compared the horizon against one placement's duration, which bounds nothing: the relationship is a chain of placements as long as the customer stays, and the page's own walkthrough — a nine-year horizon over an eleven-year relationship — satisfied that comparison and still lost the binding two years before closure.
 
@@ -242,9 +242,9 @@ Capability requirement 31: A field cap MUST NOT EXCEED the audit instance's payl
 Capability requirement 32: A deployment MUST set the trigger set cap.
 Capability requirement 33: The audit instance MUST serve an open-ended sequence range read.
 Capability requirement 34: The audit instance MUST serve read_record for an aged-out event.
-Capability requirement 35: The party retention instance MUST serve a placement read carrying the policy ref, the retained at, the retention until AND the purge eligibility.
+Capability requirement 35: The party retention instance MUST serve a placement read carrying the policy reference, the retention instant, the retention deadline AND the purge eligibility.
 Capability requirement 36: The Party Identity instance MUST serve a singleton read by party id.
-Capability requirement 37: A deployment MUST resolve a policy ref at Retention Window's seam.
+Capability requirement 37: A deployment MUST resolve a policy reference at Retention Window's seam.
 Capability requirement 38: The composition MUST NOT reconcile two policies.
 Capability requirement 39: An activity system MUST NOT read the Party Identity instance.
 Capability requirement 40: A deployment MUST run a review scheduler outside the composition.
@@ -305,7 +305,7 @@ Primitive policy 1: An action MUST call a constituent ONLY AFTER the boundary pr
 Primitive policy 2: The boundary predicate MUST refuse a blank opaque input.
 Primitive policy 3: The boundary predicate MUST refuse a blank actor reference.
 Primitive policy 4: The boundary predicate MUST refuse a blank method.
-Primitive policy 5: The boundary predicate MUST refuse a blank evidence ref.
+Primitive policy 5: The boundary predicate MUST refuse a blank evidence reference.
 Primitive policy 6: The boundary predicate MUST refuse a blank reason.
 Primitive policy 7: The boundary predicate MUST refuse a trigger type outside the trigger vocabulary.
 Primitive policy 8: The boundary predicate MUST refuse a verification result outside the verification results.
@@ -321,15 +321,15 @@ Primitive policy 17: The composition MUST NOT cap a reason beside Party Identity
 Primitive policy 18: The composition MUST truncate a payload field exceeding the field's cap.
 Primitive policy 19: A truncated payload field MUST carry the truncation marker.
 Primitive policy 20: The composition MUST carry an open-trigger set exceeding the trigger set cap as the trigger count AND the set digest.
-Primitive policy 21: The boundary predicate MUST refuse a blank retention policy ref.
+Primitive policy 21: The boundary predicate MUST refuse a blank retention policy reference.
 ```
 
 
 Term boundary predicate: the composition's own validation of an input at an action's boundary, judged before any constituent call.
 
-Term opaque input: party id | case id | trigger id | trigger ref | actor ref | verifying actor ref | closing actor ref | credential | retention policy ref.
+Term opaque input: party id | case id | trigger id | trigger ref | actor reference | verifying actor reference | closing actor reference | credential | retention policy reference.
 
-Term actor reference: actor ref | verifying actor ref | closing actor ref | enrolling actor ref.
+Term actor reference: actor reference | verifying actor reference | closing actor reference | enrolling actor reference.
 
 Term trigger vocabulary: the periodic trigger type OR a member of the adverse trigger types.
 
@@ -360,7 +360,7 @@ Identity 8: The composition MUST NOT reuse a trigger id.
 Identity 9: An intent MUST carry the case id.
 Identity 10: An intent MUST carry the invocation's inputs.
 Identity 11: An intent MUST NOT carry a constituent-minted id.
-Identity 12: An intent MUST carry the injected now as intended at.
+Identity 12: An intent MUST carry the injected now as intent instant.
 Identity 13: An outcome MUST carry the intent's event id as intent event id.
 Identity 14: The composition MUST pair an outcome to an intent by the intent event id.
 Identity 15: The composition MUST NOT pair an outcome to an intent by a payload resemblance.
@@ -370,23 +370,23 @@ Identity 18: A case MUST NOT identify a party.
 Identity 19: A party id MUST NOT identify a case.
 ```
 
-Term intended at: the instant an intent records (Identity 12).
+Term intent instant: the instant an intent records (Identity 12).
 
 Term intent event id: the event id the substrate answers for an intent, carried by the outcome paired to it (Identity 13, Identity 14).
 
-Term opened at: the instant an initiated outcome records (Action wiring 146).
+Term opening instant: the instant an initiated outcome records (Action wiring 146).
 
-Term triggered at: the instant a monitoring triggered outcome records (Action wiring 147).
+Term trigger instant: the instant a monitoring triggered outcome records (Action wiring 147).
 
-Term suspended at: the instant a party suspended outcome records (Action wiring 148).
+Term suspension instant: the instant a party suspended outcome records (Action wiring 148).
 
-Term renewed at: the instant a retention renewed outcome records (Action wiring 149).
+Term renewal instant: the instant a retention renewed outcome records (Action wiring 149).
 
-Term cleared at: the instant a review cleared outcome records (Action wiring 150).
+Term clearance instant: the instant a review cleared outcome records (Action wiring 150).
 
-Term reinstated at: the instant a party reinstated outcome records (Action wiring 151).
+Term reinstatement instant: the instant a party reinstated outcome records (Action wiring 151).
 
-Term closed at: the instant a party closed outcome records — a committing closure's injected now, or the instant Party Identity's read answers for a completing closure (Action wiring 118, Action wiring 152).
+Term closure instant: the instant a party closed outcome records — a committing closure's injected now, or the instant Party Identity's read answers for a completing closure (Action wiring 118, Action wiring 152).
 
 Term intent: the record_action call naming what an invocation is about to do, written before any committing call — `customer-onboarding.initiation-intended` | `customer-onboarding.verification-intended` | `customer-onboarding.clearance-intended` | `customer-onboarding.closure-intended` | `customer-onboarding.monitoring-triggered` | `customer-onboarding.recovery-intended`.
 
@@ -444,7 +444,7 @@ The substrate answers one taxonomy — invalid-credential, invalid-request, `rec
 
 Audit arm 5 through 7 are the one arm that is neither. The substrate's retention step refuses *after* the event is appended and attested, so the credential was verified and the call still failed: the invocation aborts with nothing committed, and the appended intent stands as an open marker the reconciliation will resolve. Re-recording it would double-append, which is why Audit arm 18 sends that arm to the substrate's own reconciliation rather than retrying it here.
 
-Audit arm 14 through 17 bound the retry at both ends. Inside the completion bound the owed record is the invocation's, because the reconciliation cannot see an invocation that has not written yet and a re-emission fired at it would land a second outcome for one act. Past it the record is the reconciliation's, and every compensating write is preceded by a traversal for an outcome already carrying this intent event id — matched by equality, never by resemblance of payload.
+Audit arm 14 through 17 bound the retry at both ends. Inside the completion bound the owed record is the invocation's, because the reconciliation cannot see an invocation that has not written yet and a re-emission firing instant it would land a second outcome for one act. Past it the record is the reconciliation's, and every compensating write is preceded by a traversal for an outcome already carrying this intent event id — matched by equality, never by resemblance of payload.
 
 The cost is stated rather than hidden: audit-event volume rises by roughly one event per state-changing invocation, so audit_trail_retention_policy governs proportionally more events and each seal covers proportionally more entries.
 
@@ -493,19 +493,19 @@ Action wiring 9: A direct path initiation MUST NOT carry a party id on the initi
 Action wiring 10: A direct path initiation MUST call Party Identity's enroll with the enrollment fields.
 Action wiring 11: IF Party Identity answers invalid-request for an enroll THEN [Initiate Onboarding] MUST answer enrollment-failed carrying invalid-request.
 Action wiring 12: IF Party Identity answers storage-failure for an enroll THEN [Initiate Onboarding] MUST answer enrollment-failed carrying storage-failure.
-Action wiring 13: An admitted initiation MUST call Retention Window's place_under_retention with the party id AND the retention policy ref.
-Action wiring 14: An admitted initiation MUST NOT substitute the active relationship policy for the retention policy ref.
+Action wiring 13: An admitted initiation MUST call Retention Window's place_under_retention with the party id AND the retention policy reference.
+Action wiring 14: An admitted initiation MUST NOT substitute the active relationship policy for the retention policy reference.
 Action wiring 15: IF Retention Window answers invalid-policy for an initiation THEN [Initiate Onboarding] MUST answer invalid-request.
 Action wiring 16: IF Retention Window answers policy-not-found for an initiation THEN [Initiate Onboarding] MUST answer invalid-request.
 Action wiring 17: IF Retention Window answers storage-failure for an external path initiation THEN [Initiate Onboarding] MUST answer recording-failure carrying intent.
 Action wiring 18: IF Retention Window answers storage-failure for a direct path initiation THEN [Initiate Onboarding] MUST answer recording-failure carrying outcome.
-Action wiring 19: An admitted initiation MUST record an initiated outcome carrying the case id, the party id, the enrollment path, the current placement, the opened at AND the next review due.
+Action wiring 19: An admitted initiation MUST record an initiated outcome carrying the case id, the party id, the enrollment path, the current placement, the opening instant AND the next review due.
 Action wiring 20: An admitted initiation MUST answer the case id.
 Action wiring 21: The composition MUST read the case-to-monitoring index at [Record Verification].
 Action wiring 22: IF no case EXISTS for the case id THEN [Record Verification] MUST answer not-known.
 Action wiring 23: IF the case's active flag EQUALS false THEN [Record Verification] MUST answer not-active.
 Action wiring 24: An admitted verification MUST record a verification intent.
-Action wiring 25: An admitted verification MUST call Party Identity's verify with the party id, the verifying actor ref, the method, the verification result AND the evidence ref.
+Action wiring 25: An admitted verification MUST call Party Identity's verify with the party id, the verifying actor reference, the method, the verification result AND the evidence reference.
 Action wiring 26: IF Party Identity answers already-closed for a verify THEN [Record Verification] MUST answer already-closed.
 Action wiring 27: IF Party Identity answers not-known for a verify THEN [Record Verification] MUST answer recording-failure carrying intent.
 Action wiring 28: IF Party Identity answers storage-failure for a verify THEN [Record Verification] MUST answer recording-failure carrying intent.
@@ -526,13 +526,13 @@ Action wiring 42: IF Party Identity answers invalid-query THEN [Trigger Monitori
 Action wiring 43: The composition MUST read an invalid-query answer as the composition's own defect.
 Action wiring 44: IF the trigger type belongs to the adverse trigger types AND the party's state IS NOT IN the suspendable states THEN [Trigger Monitoring Review] MUST answer not-verified carrying the state.
 Action wiring 45: A periodic trigger MUST NOT refuse a party's state.
-Action wiring 46: An admitted trigger MUST record a monitoring triggered outcome carrying the case id, the party id, the trigger id, the trigger type, the trigger ref AND the triggered at.
+Action wiring 46: An admitted trigger MUST record a monitoring triggered outcome carrying the case id, the party id, the trigger id, the trigger type, the trigger ref AND the trigger instant.
 Action wiring 47: An admitted periodic trigger against an unsuspended party MUST carry the next review due on the monitoring triggered record.
 Action wiring 48: An admitted trigger against a suspended party MUST NOT carry a next review due on the monitoring triggered record.
 Action wiring 49: An adverse trigger MUST NOT carry a next review due on the monitoring triggered record.
 Action wiring 50: IF the monitoring triggered record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
 Action wiring 51: IF the monitoring triggered record fails THEN the invocation MUST NOT make a committing call.
-Action wiring 52: An adverse trigger MUST call Party Identity's suspend with the party id, the actor ref AND the composed suspend reason.
+Action wiring 52: An adverse trigger MUST call Party Identity's suspend with the party id, the actor reference AND the composed suspend reason.
 Action wiring 53: IF Party Identity answers already-suspended for a suspend THEN the invocation MUST record a trigger on suspended party outcome.
 Action wiring 54: IF Party Identity answers already-suspended for a suspend THEN the invocation MUST add the trigger to the open-trigger set.
 Action wiring 55: IF Party Identity refuses a suspend outside already-suspended THEN the invocation MUST record a trigger voided outcome carrying the constituent's answer.
@@ -543,17 +543,17 @@ Action wiring 59: IF Party Identity answers not-known for a suspend THEN [Trigge
 Action wiring 60: IF Party Identity answers invalid-request for a suspend THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 61: IF Party Identity answers storage-failure for a suspend THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
 Action wiring 62: IF the trigger voided record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
-Action wiring 63: A suspending trigger MUST record a party suspended outcome carrying the case id, the party id, the trigger id, the trigger type, the trigger ref, the state change id AND the suspended at.
+Action wiring 63: A suspending trigger MUST record a party suspended outcome carrying the case id, the party id, the trigger id, the trigger type, the trigger ref, the state change id AND the suspension instant.
 Action wiring 64: A suspending trigger MUST add the trigger to the open-trigger set whatever the party suspended record's answer.
 Action wiring 65: IF the party suspended record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying outcome.
-Action wiring 66: A periodic trigger MUST read the current placement's policy ref through Retention Window's declared read.
-Action wiring 67: A periodic trigger MUST call Retention Window's place_under_retention with the party id AND the current placement's policy ref.
+Action wiring 66: A periodic trigger MUST read the current placement's policy reference through Retention Window's declared read.
+Action wiring 67: A periodic trigger MUST call Retention Window's place_under_retention with the party id AND the current placement's policy reference.
 Action wiring 68: A periodic trigger MUST renew the placement whatever the party's state.
 Action wiring 69: A periodic trigger MUST renew the placement whatever the current placement's remaining cover.
 Action wiring 70: IF Retention Window answers storage-failure for a renewal THEN [Trigger Monitoring Review] MUST answer recording-failure carrying intent.
 Action wiring 71: IF Retention Window answers invalid-policy for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
 Action wiring 72: IF Retention Window answers policy-not-found for a renewal THEN [Trigger Monitoring Review] MUST answer invalid-request.
-Action wiring 73: A renewing trigger MUST record a retention renewed outcome carrying the case id, the party id, the enrollment path, the trigger id, the prior placement, the renewed placement, the policy ref AND the renewed at.
+Action wiring 73: A renewing trigger MUST record a retention renewed outcome carrying the case id, the party id, the enrollment path, the trigger id, the prior placement, the renewed placement, the policy reference AND the renewal instant.
 Action wiring 74: IF the retention renewed record fails THEN [Trigger Monitoring Review] MUST answer recording-failure carrying outcome.
 Action wiring 75: A renewing trigger MUST repoint the case-to-retentions index ONLY AFTER the landed retention renewed record.
 Action wiring 76: A periodic trigger against an unsuspended party MUST advance the next review due whatever the renewal's answer.
@@ -566,25 +566,25 @@ Action wiring 80: The composition MUST read the case-to-monitoring index at [Cle
 Action wiring 81: IF no case EXISTS for the case id THEN [Clear Review] MUST answer not-known.
 Action wiring 82: IF the open-trigger set stands empty THEN [Clear Review] MUST answer no-open-trigger.
 Action wiring 83: An admitted clearance MUST record a clearance intent carrying the open-trigger set.
-Action wiring 84: An admitted clearance MUST call Party Identity's verify with the party id, the verifying actor ref, the method, passed AND the evidence ref.
+Action wiring 84: An admitted clearance MUST call Party Identity's verify with the party id, the verifying actor reference, the method, passed AND the evidence reference.
 Action wiring 85: An admitted clearance MUST NOT call Party Identity's verify with failed.
 Action wiring 86: IF Party Identity answers already-closed for a clearance verify THEN [Clear Review] MUST answer already-closed.
 Action wiring 87: IF Party Identity answers not-known for a clearance verify THEN [Clear Review] MUST answer not-known.
 Action wiring 88: IF Party Identity answers invalid-request for a clearance verify THEN [Clear Review] MUST answer invalid-request.
 Action wiring 89: IF Party Identity answers storage-failure for a clearance verify THEN [Clear Review] MUST answer recording-failure carrying intent.
-Action wiring 90: An admitted clearance MUST record a review cleared outcome carrying the case id, the party id, the verification id, the closed triggers, the reason AND the cleared at.
+Action wiring 90: An admitted clearance MUST record a review cleared outcome carrying the case id, the party id, the verification id, the closed triggers, the reason AND the clearance instant.
 Action wiring 91: A review cleared outcome MUST NOT carry a next review due.
 Action wiring 92: IF the review cleared record fails THEN [Clear Review] MUST answer recording-failure carrying outcome.
 Action wiring 93: IF the review cleared record fails THEN the invocation MUST NOT call Party Identity's reinstate.
 Action wiring 94: An admitted clearance MUST call Party Identity's reinstate ONLY AFTER the landed review cleared record.
-Action wiring 95: An admitted clearance MUST call Party Identity's reinstate with the party id, the actor ref AND the reason.
+Action wiring 95: An admitted clearance MUST call Party Identity's reinstate with the party id, the actor reference AND the reason.
 Action wiring 96: IF Party Identity answers no-passed-verification-since-suspend for a reinstate THEN [Clear Review] MUST answer verification-failed.
 Action wiring 97: IF Party Identity answers not-suspended for a reinstate THEN [Clear Review] MUST answer verification-failed.
 Action wiring 98: IF Party Identity answers already-closed for a reinstate THEN [Clear Review] MUST answer already-closed.
 Action wiring 99: IF Party Identity answers not-known for a reinstate THEN [Clear Review] MUST answer not-known.
 Action wiring 100: IF Party Identity answers invalid-request for a reinstate THEN [Clear Review] MUST answer invalid-request.
 Action wiring 101: IF Party Identity answers storage-failure for a reinstate THEN [Clear Review] MUST answer recording-failure carrying outcome.
-Action wiring 102: An admitted clearance MUST record a party reinstated outcome carrying the case id, the party id, the state change id, the reinstated at AND the next review due.
+Action wiring 102: An admitted clearance MUST record a party reinstated outcome carrying the case id, the party id, the state change id, the reinstatement instant AND the next review due.
 Action wiring 103: IF the party reinstated record fails THEN [Clear Review] MUST answer recording-failure carrying outcome.
 Action wiring 104: An admitted clearance MUST drop the closed triggers from the open-trigger set ONLY AFTER the landed party reinstated record.
 Action wiring 105: An admitted clearance MUST drop exactly the closed triggers the review cleared record names.
@@ -598,9 +598,9 @@ Action wiring 112: The composition MUST read the case-to-monitoring index at [Cl
 Action wiring 113: IF no case EXISTS for the case id THEN [Close Party] MUST answer not-known.
 Action wiring 114: IF the case's active flag EQUALS false THEN [Close Party] MUST answer not-active.
 Action wiring 115: An admitted closure MUST record a closure intent.
-Action wiring 116: An admitted closure MUST call Party Identity's close with the party id, the closing actor ref AND the reason.
+Action wiring 116: An admitted closure MUST call Party Identity's close with the party id, the closing actor reference AND the reason.
 Action wiring 117: IF Party Identity answers already-closed for a close AND no party closed event names the case THEN the invocation MUST complete the earlier closure.
-Action wiring 118: A completing closure MUST read the state change id AND the closed at from Party Identity's declared read.
+Action wiring 118: A completing closure MUST read the state change id AND the closure instant from Party Identity's declared read.
 Action wiring 119: IF Party Identity answers already-closed for a close AND a party closed event names the case THEN [Close Party] MUST answer not-active.
 Action wiring 120: IF Party Identity answers not-known for a close THEN [Close Party] MUST answer not-known.
 Action wiring 121: IF Party Identity answers invalid-request for a close THEN [Close Party] MUST answer invalid-request.
@@ -609,7 +609,7 @@ Action wiring 123: An admitted closure MUST call Retention Window's place_under_
 Action wiring 124: IF Retention Window answers invalid-policy for a closure THEN [Close Party] MUST answer invalid-request.
 Action wiring 125: IF Retention Window answers policy-not-found for a closure THEN [Close Party] MUST answer invalid-request.
 Action wiring 126: IF Retention Window answers storage-failure for a closure THEN [Close Party] MUST answer recording-failure carrying outcome.
-Action wiring 127: An admitted closure MUST record a party closed outcome carrying the case id, the party id, the state change id, the post closure placement, the reason, the closed at AND the open triggers at close.
+Action wiring 127: An admitted closure MUST record a party closed outcome carrying the case id, the party id, the state change id, the post closure placement, the reason, the closure instant AND the open triggers at close.
 Action wiring 128: IF the party closed record fails THEN [Close Party] MUST answer recording-failure carrying outcome.
 Action wiring 129: An admitted closure MUST populate the case-to-retentions index's post closure placement ONLY AFTER the landed party closed record.
 Action wiring 130: An admitted closure MUST write the case's active flag set to false ONLY AFTER the landed party closed record.
@@ -664,7 +664,7 @@ Term committing closure: an admitted closure Party Identity answered with a stat
 
 Term composed suspend reason: `"monitoring-trigger:" + trigger_type + ":" + trigger_ref` — the reason an adverse trigger passes to Party Identity's suspend.
 
-Term closed triggers: the trigger ids a review cleared record names as resolved by the clearance.
+Term closed triggers: the trigger ids a review cleared record names as resolving actor the clearance.
 
 Term open triggers at close: the trigger ids a party closed record names as closed-unresolved at the relationship's end.
 
@@ -685,7 +685,7 @@ Action wiring 41 through 43 are the state-unavailable repair. Party Identity's `
 
 Action wiring 46 through 51 are the audit-first discipline, which is what Invariant 3 rests on. The trigger record precedes the suspend, so no suspension exists in the records without its precipitating trigger ordered ahead of it, and a failed trigger record aborts before any transition is attempted. Action wiring 55 and Action wiring 56 are the arm that repair costs: a rejected `suspend` leaves a landed trigger and no suspension, which — unvoided — rebuilds as an open investigation against a party still `Verified`, which [Clear Review] would then *clear*, recording a fresh verification, attempting a reinstate the constituent refuses, and never landing the record whose absence keeps the trigger open forever. Every non-idempotent rejection arm therefore writes the void first.
 
-Action wiring 68 and Action wiring 69 are the renewal's unconditionality, and both halves matter. A suspended party's CDD record needs cover exactly as much as a verified one's, and the schedule freeze freezes the deadline rather than the renewal; and a placement is immutable per `retention_id`, so cover across a relationship longer than one duration is a chain of placements, continuous exactly when each link is placed before its predecessor's retention until. Action wiring 78 is the match key the recovery owed: a renewal recovery matches on the trigger id the trigger event minted, never on *a placement this invocation already made*, which names no key at all.
+Action wiring 68 and Action wiring 69 are the renewal's unconditionality, and both halves matter. A suspended party's CDD record needs cover exactly as much as a verified one's, and the schedule freeze freezes the deadline rather than the renewal; and a placement is immutable per `retention_id`, so cover across a relationship longer than one duration is a chain of placements, continuous exactly when each link is placed before its predecessor's retention deadline. Action wiring 78 is the match key the recovery owed: a renewal recovery matches on the trigger id the trigger event minted, never on *a placement this invocation already made*, which names no key at all.
 
 Action wiring 91 is the ordering the clearance turns on. The clearance record lands before the reinstate commits, so it must not carry the advanced deadline: a failed reinstate would otherwise leave the trail asserting an advance the freeze rule forbids for a party still `Suspended`, and the rebuild — latest schedule-bearing payload — would convict a map entry that was correct. The advance rides the reinstatement record, which lands only after the reinstate has committed.
 
@@ -696,18 +696,18 @@ Action wiring 117 and Action wiring 118 are the re-entry arm, and it is the alte
 Action wiring 139 through 145 are the gate's fail-closed shape. The cheapest-compliant reading — unavailable implies permit — is exactly the before-activity hole the gate exists to close, so an unreadable store and a case entry whose party the store no longer answers for both answer state-unavailable and never permitted. The gate compares no timestamp and reads no clock, so it is clock-independent by construction, which is why it is excluded from the serialization obligation: its two reads need not be atomic, because the state read is authoritative and any skew yields a spurious not-known or a conservative not-verified, never a false permitted.
 
 ```
-Action wiring 146: An initiated outcome MUST carry the injected now as opened at.
-Action wiring 147: A monitoring triggered outcome MUST carry the injected now as triggered at.
-Action wiring 148: A party suspended outcome MUST carry the injected now as suspended at.
-Action wiring 149: A retention renewed outcome MUST carry the injected now as renewed at.
-Action wiring 150: A review cleared outcome MUST carry the injected now as cleared at.
-Action wiring 151: A party reinstated outcome MUST carry the injected now as reinstated at.
-Action wiring 152: A committing closure MUST carry the injected now as closed at on the party closed outcome.
+Action wiring 146: An initiated outcome MUST carry the injected now as opening instant.
+Action wiring 147: A monitoring triggered outcome MUST carry the injected now as trigger instant.
+Action wiring 148: A party suspended outcome MUST carry the injected now as suspension instant.
+Action wiring 149: A retention renewed outcome MUST carry the injected now as renewal instant.
+Action wiring 150: A review cleared outcome MUST carry the injected now as clearance instant.
+Action wiring 151: A party reinstated outcome MUST carry the injected now as reinstatement instant.
+Action wiring 152: A committing closure MUST carry the injected now as closure instant on the party closed outcome.
 Action wiring 153: An invocation MUST derive the next review due from the injected now.
 ```
 
 WHY:
-Action wiring 146 through 153 are where each outcome's instant comes from, stated per outcome because one universal claim was false. The spec once said an invocation stamps *every* timestamp from its own reading, and a completing closure does not: it finishes a closure Party Identity already committed, so the closed at it records is the one Action wiring 118 reads back. Action wiring 152 is scoped to the committing closure for that reason.
+Action wiring 146 through 153 are where each outcome's instant comes from, stated per outcome because one universal claim was false. The spec once said an invocation stamps *every* timestamp from its own reading, and a completing closure does not: it finishes a closure Party Identity already committed, so the closure instant it records is the one Action wiring 118 reads back. Action wiring 152 is scoped to the committing closure for that reason.
 
 ### Wiring decision
 
@@ -763,8 +763,8 @@ Reconciliation 23: The reconciliation MUST alert on a suspended party carrying a
 Reconciliation 24: The reconciliation MUST alert on a landed trigger carrying no outcome.
 Reconciliation 25: The reconciliation MUST alert on a verified party carrying no verification record.
 Reconciliation 26: Two reconciliations MUST NOT run against one case.
-Reconciliation 27: The reconciliation MUST resolve a verification intent's commitment on the party id, the verifying actor ref, the evidence ref AND the intent's intended at.
-Reconciliation 28: The reconciliation MUST resolve a placement intent's commitment on the party id, the policy ref AND the intent's intended at.
+Reconciliation 27: The reconciliation MUST resolve a verification intent's commitment on the party id, the verifying actor reference, the evidence reference AND the intent's intent instant.
+Reconciliation 28: The reconciliation MUST resolve a placement intent's commitment on the party id, the policy reference AND the intent's intent instant.
 Reconciliation 29: The reconciliation MUST NOT resolve an enrolment intent's commitment.
 Reconciliation 30: The reconciliation MUST escalate an unresolved enrolment intent as a finding.
 Reconciliation 31: The reconciliation MUST NOT match a recovery on a payload resemblance.
@@ -774,12 +774,12 @@ Reconciliation 33: A caller MUST NOT invoke the reconciliation.
 
 Term reconciliation: the leg `Reconciliation 1` through `Reconciliation 33` state — this composition's own, over its open markers.
 
-Term young marker: an open marker whose intended at stands within the onboarding completion bound of the injected now.
+Term young marker: an open marker whose intent instant stands within the onboarding completion bound of the injected now.
 
-Term elapsed placement: a placement whose retention until does not exceed the injected now.
+Term elapsed placement: a placement whose retention deadline does not exceed the injected now.
 
 WHY:
-The reconciliation is a **declared, bounded scan, not an implicit retry**, and both edges are load-bearing. Below the onboarding completion bound it examines nothing, because an intent younger than the bound may belong to an invocation still between its constituent commit and its outcome record, and a re-emission fired at it would land a second outcome — or a second placement — for one act, which no traversal can see because the invocation has not written yet. Above it, the audit horizon: past the horizon an intent's payload is destroyed, and a case whose events aged out is the unrebuildable class Composition state names, never an orphan. That is the frozen rule *A reconciliation is bounded at both ends*.
+The reconciliation is a **declared, bounded scan, not an implicit retry**, and both edges are load-bearing. Below the onboarding completion bound it examines nothing, because an intent younger than the bound may belong to an invocation still between its constituent commit and its outcome record, and a re-emission firing instant it would land a second outcome — or a second placement — for one act, which no traversal can see because the invocation has not written yet. Above it, the audit horizon: past the horizon an intent's payload is destroyed, and a case whose events aged out is the unrebuildable class Composition state names, never an orphan. That is the frozen rule *A reconciliation is bounded at both ends*.
 
 Reconciliation 11 through 18 fix what the leg may commit. It writes records freely under the service identity, and it commits exactly two constituent calls — a post-closure placement and a renewal — because those are the two whose loss leaves a record under no retention obligation at all and whose replacement is a fresh placement rather than a changed state. It never enrolls, verifies, suspends, reinstates or closes: each of those is a state change a human authorized, and the reconciliation carries no such authorization. The route for those is a fresh invocation, which authenticates its own caller at its own intent — [Close Party]'s re-entry arm is the worked form.
 
@@ -806,7 +806,7 @@ Invariant 3.4: A reader MUST NOT read later in the log as a timestamp difference
 Invariant 4.1: A reinstated party MUST carry a passed verification standing later in the log than the party's most recent suspension.
 Invariant 4.2: A reinstated party MUST carry a landed review cleared record naming the verification id.
 Invariant 4.3: The clearing actor MUST attest the fresh evidence.
-Invariant 4.4: The composition MUST NOT claim the verifying actor ref stands authenticated.
+Invariant 4.4: The composition MUST NOT claim the verifying actor reference stands authenticated.
 Invariant 5.1: An active case's party record MUST stand under an unelapsed placement.
 Invariant 5.2: An active case's placements MUST stand as a continuous chain.
 Invariant 5.3: A closed case's party record MUST stand under the post closure placement.
@@ -837,17 +837,17 @@ Term quiescent suspended party: a party whose state EQUALS suspended whose case 
 
 Term quiescent closed case: a closed case carrying no invocation in flight.
 
-Term continuous chain: a sequence of placements over one party in which each link's retained at does not exceed the predecessor's retention until.
+Term continuous chain: a sequence of placements over one party in which each link's retention instant does not exceed the predecessor's retention deadline.
 
-Term post closure floor: the instant a closed case's post closure placement reaches the placement's retention until — the earliest lawful destruction of the party record on the post-closure side.
+Term post closure floor: the instant a closed case's post closure placement reaches the placement's retention deadline — the earliest lawful destruction of the party record on the post-closure side.
 
-Term unelapsed placement: a placement whose retention until exceeds the injected now.
+Term unelapsed placement: a placement whose retention deadline exceeds the injected now.
 
 Term clearance window: the interval between a clearance's reinstate committing and the clearance's party reinstated record landing.
 
 Term surfaced orphan: a state the composition has alerted on and the reconciliation owes a close.
 
-Term clearing actor: the actor ref a [Clear Review] call carries — the one actor whose credential the composition validates on that call.
+Term clearing actor: the actor reference a [Clear Review] call carries — the one actor whose credential the composition validates on that call.
 
 WHY:
 **Invariant 1 is two claims and the split is load-bearing.** Invariant 1.1 and Invariant 1.2 together are the biconditional, and the composition enforces both halves at the gate: step one refuses a party with no case, step three answers permitted only on verified, and every other state answers the parameterized refusal. Invariant 1.3 is the gating property, and it is the one structural obligation pushed to deployment — it holds exactly when activity systems consume [Activity Permitted] rather than reading Party Identity directly (Capability requirement 39). The *iff* is a property of the query's answer; the gate guarantee additionally requires the single-surface obligation to be honored, and a system that bypasses the gate is a composition-bypass finding rather than a valid path.
@@ -856,13 +856,13 @@ WHY:
 
 **Invariant 3's ordering is insertion order, not clock.** A trigger record and the suspension it precipitates are stamped from the *same* injected now and are expected to be identical rather than adjacent, so a timestamp difference between them would be a conformance failure — an implementation that read a clock twice instead of sharing the injected reading — and never the evidence of ordering. The Event Log's total order, reached transitively through Audit Trail, is what makes *later in the log* a records-alone fact.
 
-**Invariant 4 is narrower than it reads, and the narrow statement is the true one.** The clearing actor — whose credential this composition validates at the clearance intent — attests that fresh evidence naming verifying actor ref was recorded before the reinstatement. It is not a claim that verifying actor ref was authenticated: that reference is caller-supplied and this composition never checks it, which is Invariant 4.4 and Invariant 8.3 stated where a reader of Invariant 4 will look. Requiring the two references equal would collapse a real separation of duties — an analyst gathers the evidence, a manager clears the review — so the composition keeps the separation and states the limit instead of pretending to a verification it does not perform. Whether the named evidence-producer was who they claimed is External check 3.
+**Invariant 4 is narrower than it reads, and the narrow statement is the true one.** The clearing actor — whose credential this composition validates at the clearance intent — attests that fresh evidence naming verifying actor reference was recorded before the reinstatement. It is not a claim that verifying actor reference was authenticated: that reference is caller-supplied and this composition never checks it, which is Invariant 4.4 and Invariant 8.3 stated where a reader of Invariant 4 will look. Requiring the two references equal would collapse a real separation of duties — an analyst gathers the evidence, a manager clears the review — so the composition keeps the separation and states the limit instead of pretending to a verification it does not perform. Whether the named evidence-producer was who they claimed is External check 3.
 
 **Invariant 5's joint enforcement is declared rather than assumed.** Retention Window's no-early-purge is per-`retention_id`, and the atom explicitly does not jointly enforce overlapping retentions over one `record_ref` — its *Multiple simultaneous retentions* edge case hands exactly that to the composing layer. This composition exposes no purge surface (Invariant 5.5), so the obligation lands on the purging layer and Invariant 5.4 quantifies over *every* placement: the current one, every superseded link the renewal records name, and the post-closure one. Nothing structural forces the post-closure floor to end last — a long active-relationship policy can outlast a short post-closure one — which is exactly why the rule quantifies rather than naming which. A deployment purging through Defensible Retention discharges it structurally; a host purging directly against the Retention Window instance owes the same joint check itself.
 
 **Invariant 7 is safety at quiescence and liveness across one named window.** Inside the clearance window the reinstate has committed and its record has not landed, so a `Verified` party still carries the not-yet-dropped closed triggers — a surfaced orphan that closes when the record lands and the clearance drops exactly that set. The correspondence is quantified over *active* cases, because [Close Party] sweeps the set administratively and records the swept triggers on its closure event; a closed case's set is empty by that sweep, and the party's `Closed` state rather than this index is what gates it thereafter. The correspondence is what makes [No Open Trigger] a faithful *nothing to clear* signal.
 
-**Invariant 8's scope paragraph is the invariant, not a caveat on it.** Each action carries one credential and therefore validates one actor: actor ref at [Initiate Onboarding], [Clear Review] and [Trigger Monitoring Review], verifying actor ref at [Record Verification], closing actor ref at [Close Party]. The other references an action carries — enrolling actor ref on the direct path, verifying actor ref at [Clear Review] — are recorded and not authenticated. Invariant 8.4 through 8.7 say what a validation does *not* establish, because each is a reading the rule invites and none of them is true: a stolen credential validates, nothing binds the presentation to a channel or forecloses a replay, authorization is a composing Permissions matter this composition does not gate, and whether the customer's identity evidence is genuine is Party Identity's and the deployment's question.
+**Invariant 8's scope paragraph is the invariant, not a caveat on it.** Each action carries one credential and therefore validates one actor: actor reference at [Initiate Onboarding], [Clear Review] and [Trigger Monitoring Review], verifying actor reference at [Record Verification], closing actor reference at [Close Party]. The other references an action carries — enrolling actor reference on the direct path, verifying actor reference at [Clear Review] — are recorded and not authenticated. Invariant 8.4 through 8.7 say what a validation does *not* establish, because each is a reading the rule invites and none of them is true: a stolen credential validates, nothing binds the presentation to a channel or forecloses a replay, authorization is a composing Permissions matter this composition does not gate, and whether the customer's identity evidence is genuine is Party Identity's and the deployment's question.
 
 Invariant 1 with Invariant 2 gives the *substantiated-access* property — every party that can reach activity was verified through an attributed, tamper-evident process. Invariant 3 with Invariant 4 gives *defensible monitoring* — every suspension is caused-in-the-records and every reinstatement is evidenced-in-the-records. Invariant 5 with Invariant 6 closes the relationship lifecycle: the record is under retention throughout its active life and survives its mandated post-closure period, and was monitored throughout. Invariant 7 keeps the adverse-investigation index faithful to the constituent's state, and Invariant 8 is what makes every one of them an act a named, validated actor committed.
 
@@ -922,7 +922,7 @@ An operator whose credential was revoked calls `record_verification(case_5501, v
 
 ### Failure path — an unmatched intent
 
-A [Record Verification] invocation records its intent, calls `PartyIdentity.verify` — which commits `verif_2210` — and dies before its outcome record. The trail holds `customer-onboarding.verification-intended` with no outcome carrying its intent event id. Inside the completion bound the reconciliation does not examine it: the invocation may still be between its commit and its record. Past the bound the reconciliation traverses for an outcome carrying that intent event id, finds none, re-queries Party Identity on party id + verifying actor ref + evidence ref + the intent's intended at, finds `verif_2210`, records `customer-onboarding.recovery-intended` under the service identity, and emits `customer-onboarding.verification-recorded` carrying `recovery = true` with `officer_r3` named in the payload. An auditor reading the trail sees a recovered verification rather than a clean one — and Check 6.1 compares against the human in the payload rather than the attesting service actor, which is why a recovered action does not read as an authentication failure.
+A [Record Verification] invocation records its intent, calls `PartyIdentity.verify` — which commits `verif_2210` — and dies before its outcome record. The trail holds `customer-onboarding.verification-intended` with no outcome carrying its intent event id. Inside the completion bound the reconciliation does not examine it: the invocation may still be between its commit and its record. Past the bound the reconciliation traverses for an outcome carrying that intent event id, finds none, re-queries Party Identity on party id + verifying actor reference + evidence reference + the intent's intent instant, finds `verif_2210`, records `customer-onboarding.recovery-intended` under the service identity, and emits `customer-onboarding.verification-recorded` carrying `recovery = true` with `officer_r3` named in the payload. An auditor reading the trail sees a recovered verification rather than a clean one — and Check 6.1 compares against the human in the payload rather than the attesting service actor, which is why a recovered action does not read as an authentication failure.
 
 ### Failure path — verification committed, outcome record fails
 
@@ -932,7 +932,7 @@ A [Record Verification] call drives the `Unverified → Verified` transition and
 
 **Regulator audit — show me that every active customer was verified before regulated activity.** A FATF/BSA examiner queries the trail and the activity records. For every party with an activity record, the examiner confirms a `customer-onboarding.verification-recorded` event carrying a non-absent `state_change_id` exists, that `AuditTrail.verify_record` answers verified for it, and that it precedes the first activity record. The two halves of Invariant 1 answer two different questions and the examiner asks both: Invariant 1.1 and Invariant 1.2 are the composition's own biconditional — the gate answered permitted for exactly the parties this composition initiated and Party Identity reports `Verified` — while Invariant 1.3, that no activity path other than the gate exists, is the deployment's obligation and is cleared by the deployment's own evidence that its activity systems consume [Activity Permitted] (External check 7). Flattening the two loses the distinction between what the records prove and what the deployment must attest. Invariant 2 is the guarantee that the verifying transition is in the records, attributed and tamper-evident. A party with an activity record and no predating, verified verification record carrying a `state_change_id` is a conformance failure.
 
-**Disputed onboarding — the party claims they were never properly verified.** Counsel challenges the bank's claim that the identity was verified before the account opened. The investigator retrieves the case's `customer-onboarding.verification-recorded` events; each carries `verification_id`, `result` and, for the transition, `state_change_id`. The Party Identity verification record for each `verification_id` names verifying actor ref, method, evidence ref and `verified_at`. Party Identity's immutability and append-only invariants establish that no verification event was altered or back-inserted; the substrate's seal establishes that the composition's own record was not altered. The evidence ref points to the document record that supported the verification. Invariant 2 with Party Identity's own invariants is the rebuttal.
+**Disputed onboarding — the party claims they were never properly verified.** Counsel challenges the bank's claim that the identity was verified before the account opened. The investigator retrieves the case's `customer-onboarding.verification-recorded` events; each carries `verification_id`, `result` and, for the transition, `state_change_id`. The Party Identity verification record for each `verification_id` names verifying actor reference, method, evidence reference and `verified_at`. Party Identity's immutability and append-only invariants establish that no verification event was altered or back-inserted; the substrate's seal establishes that the composition's own record was not altered. The evidence reference points to the document record that supported the verification. Invariant 2 with Party Identity's own invariants is the rebuttal.
 
 **Breach or incident forensics — which parties were Verified during the compromise window, and were any verifications altered.** Given a window, the investigator replays each case's `customer-onboarding.initiated`, `customer-onboarding.verification-recorded`, `customer-onboarding.monitoring-triggered`, `customer-onboarding.party-suspended`, `customer-onboarding.trigger-on-suspended-party`, `customer-onboarding.trigger-voided`, `customer-onboarding.review-cleared`, `customer-onboarding.party-reinstated` and `customer-onboarding.party-closed` events in Event Log insertion order to determine each party's state at the window's bounds — the intake and closure classes included, without which the replay cannot place a case's start or reconstruct a closure at all — then runs `AuditTrail.verify_record` against representative events in each seal's coverage to bound any tampering window. Invariant 3 is load-bearing here: every suspension in the window has a precipitating trigger ordered ahead of it, and a suspension with no precipitating trigger — or a trigger inserted *after* its suspension — is itself a finding, which the append-only sealed log forecloses an attacker doing silently. Invariant 6 lets the investigator confirm that every `Verified`, active party in the window had an open monitoring entry. Where the window has legal force as wall-time rather than event-index bounds, a Trusted Timestamping composition supplies the anchor; absent it the reconstruction is event-index-authoritative. The newest events — the substrate's unsealed tail — carry per-event immutability and become seal-verifiable only after the next seal cadence, so the integrity bound on the most recent events is the substrate's configured unsealed-tail policy.
 
@@ -959,7 +959,7 @@ Check 3.2: An auditor MUST find a monitoring triggered record carrying the same 
 Check 4.1: An auditor MUST find a review cleared record naming a verification id earlier in the log PER party reinstated record (Invariant 4.2).
 Check 4.2: An auditor MUST confirm the named verification stands passed in Party Identity's store (Invariant 4.1).
 Check 4.3: An auditor MUST confirm the named verification stands later in the log than the party's most recent suspension (Invariant 4.1).
-Check 4.4: An auditor MUST confirm the review cleared record's attested actor ref matches the party reinstated record's attested actor ref (Invariant 4.3).
+Check 4.4: An auditor MUST confirm the review cleared record's attested actor reference matches the party reinstated record's attested actor reference (Invariant 4.3).
 Check 5.1: An auditor MUST find a post closure placement whose retention state EQUALS retained PER closed party outside lawful destruction (Invariant 5.3).
 Check 5.2: An auditor MUST read a closed party's record destroyed inside the post closure floor as a conformance failure (Invariant 5.6).
 Check 5.3: An auditor MUST find a current placement standing unelapsed PER quiescent active case (Invariant 5.1).
@@ -979,7 +979,7 @@ Check 7.6: An auditor MUST read a verified party carrying a reproduced open trig
 Check 8.1: An auditor MUST find an intent carrying the outcome's intent event id earlier in the log PER state-changing outcome (Invariant 8.1).
 Check 8.2: An auditor MUST confirm the found intent and the outcome name one case id (Identity 9).
 Check 8.3: An auditor MUST compare a recovery outcome against the human the outcome's data names (Audit arm 23).
-Check 8.4: An auditor MUST NOT compare a recovery outcome against the outcome's attesting actor ref (Audit arm 23).
+Check 8.4: An auditor MUST NOT compare a recovery outcome against the outcome's attesting actor reference (Audit arm 23).
 Check 8.5: An auditor MUST NOT read an intent carrying no outcome as a conformance failure (Reconciliation 7).
 Check 8.6: An auditor MUST resolve an intent carrying no outcome against the constituents' declared reads (Reconciliation 6).
 Check 9.1: An auditor MUST clear Party Identity's conformance checks over the Party Identity store (Composes 5).
@@ -994,8 +994,8 @@ Check 9.5: An auditor MUST NOT read an aged-out event's payload (Composition sta
 ```
 External check 1: The deployment MUST establish the verification method's adequacy for the party's risk tier (Non-goal 3).
 External check 2: The deployment MUST establish the screening list's currency at the screening's instant (Non-goal 1).
-External check 3: The deployment MUST establish the verifying actor ref's identity (Invariant 8.3).
-External check 4: The deployment MUST establish the enrolling actor ref's identity (Invariant 8.3).
+External check 3: The deployment MUST establish the verifying actor reference's identity (Invariant 8.3).
+External check 4: The deployment MUST establish the enrolling actor reference's identity (Invariant 8.3).
 External check 5: The deployment MUST establish an actor's authorization to record a verification (Invariant 8.6).
 External check 6: The deployment MUST establish the lawful basis of a non-obligatory downstream processing (Non-goal 11).
 External check 7: The deployment MUST establish that every activity system consumes [Activity Permitted] (Invariant 1.3).
@@ -1020,7 +1020,7 @@ WHY:
 
 **Check 8.1 and Check 8.2 join by the intent's own id, and the distinction is load-bearing.** case id is per-case and three actions are repeatable against one case, so a case id-plus-actor match is satisfied by a single stale intent standing in front of an unbounded number of later outcomes — an implementation emitting one intent per case and skipping it thereafter would pass. Matching on the id the intent record minted admits no such reading. Because the substrate validates the caller's credential inside every record_action, the earlier intent *is* the records-alone proof that the acting actor was authenticated before the constituent write committed, which is what makes Invariant 8 verifiable rather than asserted.
 
-**Check 9.4 and Check 9.5 state where recognition lives past the horizon.** The substrate destroys an event's payload in its entirety while the attestation keeps action ref, actor ref and `attested_at` readable, so an aged-out event is recognized *per event* through the substrate's own record read and not through the range read's payload — which is what bounds every reproduction above by the horizon rather than by the log's start.
+**Check 9.4 and Check 9.5 state where recognition lives past the horizon.** The substrate destroys an event's payload in its entirety while the attestation keeps action reference, actor reference and `attested_at` readable, so an aged-out event is recognized *per event* through the substrate's own record read and not through the range read's payload — which is what bounds every reproduction above by the horizon rather than by the log's start.
 
 External check 7 and External check 8 are the two obligations that make the gate a gate, and neither is records-alone: the read side is a property of every activity system the deployment runs, and the write side is a property of who else holds the Party Identity instance. Both are composition-bypass findings when they fail, and both are named here rather than assumed, because a spec that assumed them would be claiming a guarantee its own records cannot carry.
 
@@ -1053,7 +1053,7 @@ Non-goal 21: The composition MUST NOT detect a dishonest clock reading.
 ```
 
 WHY:
-Non-goal 1 and Non-goal 2 name the upstream boundary. What happens *during* verification — document OCR, biometric check, sanctions-database query, adverse-media search — produces the verification result, method and evidence ref this composition records. The composition is the lifecycle and the gate; the workflow is upstream, and Party Identity's own *Asynchronous verification workflows* edge case names the same seam from the constituent's side, which is why Non-goal 7 declines to model a pending state: the party simply stands `Unverified` until a passed result is recorded.
+Non-goal 1 and Non-goal 2 name the upstream boundary. What happens *during* verification — document OCR, biometric check, sanctions-database query, adverse-media search — produces the verification result, method and evidence reference this composition records. The composition is the lifecycle and the gate; the workflow is upstream, and Party Identity's own *Asynchronous verification workflows* edge case names the same seam from the constituent's side, which is why Non-goal 7 declines to model a pending state: the party simply stands `Unverified` until a passed result is recorded.
 
 **Non-goal 3 through 5 decline a delegation rather than bouncing it back, and that is the point.** Party Identity's own edge case hands enhanced-due-diligence orchestration to its composing layer; this composition *is* that composing layer and does not absorb it either, which for one revision left the responsibility unowned with each side pointing at the other. The named owner is a **Risk Tiering / EDD** composing pattern *(forthcoming)* that reads this composition's verification lifecycle and monitoring schedule and decides tiering, method adequacy and cadence. Party Identity's own pointer needs the matching correction when that atom is next touched.
 
@@ -1116,7 +1116,7 @@ Deleted: Clock semantics 5. Execution Contract Logic confinement 3 owns it.
 Deleted: Clock semantics 6. Execution Contract Logic confinement 3 owns it.
 Clock semantics 7: A reader MUST read insertion order as authoritative.
 Clock semantics 8: A reader MUST read a timestamp as advisory.
-Clock semantics 9: A reader MUST read a divergence between a trigger's triggered at and the trigger's suspended at as a conformance failure.
+Clock semantics 9: A reader MUST read a divergence between a trigger's trigger instant and the trigger's suspension instant as a conformance failure.
 Deleted: Clock semantics 10. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 11. Non-goal 21 owns it.
 ```
@@ -1146,7 +1146,7 @@ Concurrency 8: The reconciliation MUST NOT run against a case an invocation hold
 WHY:
 Concurrency 1 is the obligation every state rejection behind a pre-check depends on. [Trigger Monitoring Review] reads the party's state before it records the trigger, so the suspend's own state arms are unreachable under the serialization; should one fire anyway, Concurrency 6 names it for what it is — a breach of the host's obligation, not a routine arm — and the trigger is voided so the rebuilt open set never carries an investigation against a party nobody suspended. [Clear Review]'s [Verification Failed] is the same shape: a concurrent suspend between the fresh verification and the reinstate, or a concurrent reinstate, re-arms a precondition the action had just satisfied.
 
-Concurrency 2 through 4 exempt the gate, and the exemption is safe by construction rather than by luck. The gate reads its index and then the live state; between the two another writer may commit a transition, and every skew that read admits fails safe — a stale index yields a spurious [Party Not Known] and a stale state read yields a conservative [Not Verified], because the state read is authoritative and permitted requires it to answer verified at the instant it was read.
+Concurrency 2 through 4 exempt the gate, and the exemption is safe by construction rather than by luck. The gate reads its index and then the live state; between the two another writer may commit a transition, and every skew that read admits fails safe — a stale index yields a spurious [Party Not Known] and a stale state read yields a conservative [Not Verified], because the state read is authoritative and permitted requires it to answer verification instant the instant it was read.
 
 ---
 
@@ -1182,9 +1182,9 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.41 (2026-09-14).
 
 Term value sets: admissible states = unverified. suspendable states = verified | suspended. verification results = passed | failed. trigger vocabulary = periodic-review-due | a member of the adverse trigger types. adverse trigger types = sanctions-match | pep-status-change | adverse-media, extended by the deployment. intent = customer-onboarding.initiation-intended | customer-onboarding.verification-intended | customer-onboarding.clearance-intended | customer-onboarding.closure-intended | customer-onboarding.monitoring-triggered | customer-onboarding.recovery-intended. outcome = customer-onboarding.initiated | customer-onboarding.verification-recorded | customer-onboarding.party-suspended | customer-onboarding.trigger-on-suspended-party | customer-onboarding.trigger-voided | customer-onboarding.retention-renewed | customer-onboarding.review-cleared | customer-onboarding.party-reinstated | customer-onboarding.party-closed. enrollment path = direct | external-onboarding.
 
-Term terms: composition, constituents, party retention instance, service identity, direct path, external path, case-to-monitoring index, party-to-case index, case-to-retentions index, case-to-open-triggers index, index, current placement, post closure placement, audit horizon, aged-out event, rebuild, miss, unrebuildable entry, binding-bearing payload, schedule-bearing payload, placement-bearing payload, landed record, owed record, seam, transition, monitoring interval, scheduler tolerance, renewal floor, binding floor, closure floor, onboarding completion bound, active relationship policy, post closure policy, post closure minimum, adverse trigger types, periodic trigger type, trigger set cap, field cap, blank, boundary predicate, opaque input, actor reference, trigger vocabulary, verification results, truncation marker, set digest, intent, outcome, committing call, landed intent, open marker, outcome traversal, yielded invocation, recovery marker, recovery outcome, party state, admissible states, suspendable states, unanswered read, admitted initiation, admitted verification, admitted trigger, admitted clearance, admitted closure, transitioning verification, adverse trigger, periodic trigger, suspending trigger, renewing trigger, completing closure, committing closure, composed suspend reason, closed triggers, open triggers at close, scoped retry, prior placement, renewed placement, regulated activity, reconciliation, young marker, elapsed placement, quiescent case, quiescent verified party, quiescent suspended party, quiescent closed case, continuous chain, unelapsed placement, post closure floor, clearance window, surfaced orphan, clearing actor, `placement's cover`, trigger outcome, orphan, indeterminate committing call, enrollment failure, position, intended at, intent event id, opened at, triggered at, suspended at, renewed at, cleared at, reinstated at, closed at, active flag, active case.
+Term terms: composition, constituents, party retention instance, service identity, direct path, external path, case-to-monitoring index, party-to-case index, case-to-retentions index, case-to-open-triggers index, index, current placement, post closure placement, audit horizon, aged-out event, rebuild, miss, unrebuildable entry, binding-bearing payload, schedule-bearing payload, placement-bearing payload, landed record, owed record, seam, transition, monitoring interval, scheduler tolerance, renewal floor, binding floor, closure floor, onboarding completion bound, active relationship policy, post closure policy, post closure minimum, adverse trigger types, periodic trigger type, trigger set cap, field cap, blank, boundary predicate, opaque input, actor reference, trigger vocabulary, verification results, truncation marker, set digest, intent, outcome, committing call, landed intent, open marker, outcome traversal, yielded invocation, recovery marker, recovery outcome, party state, admissible states, suspendable states, unanswered read, admitted initiation, admitted verification, admitted trigger, admitted clearance, admitted closure, transitioning verification, adverse trigger, periodic trigger, suspending trigger, renewing trigger, completing closure, committing closure, composed suspend reason, closed triggers, open triggers at close, scoped retry, prior placement, renewed placement, regulated activity, reconciliation, young marker, elapsed placement, quiescent case, quiescent verified party, quiescent suspended party, quiescent closed case, continuous chain, unelapsed placement, post closure floor, clearance window, surfaced orphan, clearing actor, `placement's cover`, trigger outcome, orphan, indeterminate committing call, enrollment failure, position, intent instant, intent event id, opening instant, trigger instant, suspension instant, renewal instant, clearance instant, reinstatement instant, closure instant, active flag, active case.
 
-Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Step 1 failure in `execution-contract.md` — the name an unanswered constituent read takes. The section titled Structural-relation invariant templates in `spec-format.md` — referential integrity. read_record, verify_record, purge_event, action ref, event id: Audit Trail.
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the derived-index classification and its obligations. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Step 1 failure in `execution-contract.md` — the name an unanswered constituent read takes. The section titled Structural-relation invariant templates in `spec-format.md` — referential integrity. read_record, verify_record, purge_event, action reference, event id: Audit Trail.
 
 Term composing patterns: Risk Tiering / EDD *(forthcoming)*; Ownership Structure / Beneficial Owner *(forthcoming)*; Review Schedule *(forthcoming)*; Reverse Index *(forthcoming)*; Trusted Timestamping *(forthcoming)*; Policy Reconciliation *(forthcoming)*; [Resolve a Person's Data Rights](./resolve-a-persons-data-rights.md); [External Onboarding](./external-onboarding.md); [Propagate Consent Revocation Downstream](./propagate-consent-revocation-downstream.md); [Defensible Retention](./defensible-retention.md); [Duplicate Prevention](../atoms/duplicate-prevention.md); [Permissions](../atoms/permissions.md).
 

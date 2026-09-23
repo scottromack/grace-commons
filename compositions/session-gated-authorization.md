@@ -59,7 +59,7 @@ Term constituents: [Session](../atoms/session.md), [Permissions](../atoms/permis
 WHY:
 Composes 5 is the enclosure the other rules rest on. A deployment that exposes `Session.validate` or `Permissions.permitted` beside [Check Permitted] gives a caller a route to the permission store that never passes the gate, and every guarantee below is a guarantee about the route through [Check Permitted] alone. Non-goal 9 states what a deployment owes when it exposes both anyway.
 
-Composes 6 and Composes 7 name the two constituent obligations this composition exists to discharge, and they are not the same kind of obligation. [Permissions](../atoms/permissions.md)'s `Composition note 3` **assigns** ownership — *a composing pattern MUST own the binding between the authenticated caller and the subject ref* — and Invariant 2 is this composition owning it, which is what a composition note is for. [Session](../atoms/session.md)'s `Composition note 4` **states the rule itself** — *IF Validate gives an invalid answer THEN a composing pattern MUST NOT call Permissions* — and Session's own WHY names this composition as the pattern that carries it. So the gate as stated is Session's and is cited here rather than restated (Authority 5, Authority 6); what this composition adds over it is the closure Invariant 1.1 carries — Permissions unreachable unless a validate answered at all, which Session never says. Atoms may bind compositions; a composition cites what the composition inherits and owns what the composition adds (the section titled Decisions, council read 53).
+Composes 6 and Composes 7 name the two constituent obligations this composition exists to discharge, and they are not the same kind of obligation. [Permissions](../atoms/permissions.md)'s `Composition note 3` **assigns** ownership — *a composing pattern MUST own the binding between the authenticated caller and the subject reference* — and Invariant 2 is this composition owning it, which is what a composition note is for. [Session](../atoms/session.md)'s `Composition note 4` **states the rule itself** — *IF Validate gives an invalid answer THEN a composing pattern MUST NOT call Permissions* — and Session's own WHY names this composition as the pattern that carries it. So the gate as stated is Session's and is cited here rather than restated (Authority 5, Authority 6); what this composition adds over it is the closure Invariant 1.1 carries — Permissions unreachable unless a validate answered at all, which Session never says. Atoms may bind compositions; a composition cites what the composition inherits and owns what the composition adds (the section titled Decisions, council read 53).
 
 ---
 
@@ -107,14 +107,14 @@ Action wiring 1: The composition MUST validate the inputs against the boundary p
 Action wiring 2: The composition MUST call Session's validate ONLY AFTER the inputs clear the boundary predicate.
 Action wiring 3: The composition MUST call Session's validate with the session token.
 Deleted: Action wiring 4. Wiring decision 1 owns it.
-Action wiring 5: An admitted gate MUST call Permissions' permitted with the valid answer's principal ref.
+Action wiring 5: An admitted gate MUST call Permissions' permitted with the valid answer's principal reference.
 Action wiring 6: An admitted gate MUST call Permissions' permitted with the action scope.
-Action wiring 7: [Check Permitted] MUST NOT accept a principal ref.
-Action wiring 8: [Check Permitted] MUST NOT call Permissions' permitted with a caller-supplied subject ref.
+Action wiring 7: [Check Permitted] MUST NOT accept a principal reference.
+Action wiring 8: [Check Permitted] MUST NOT call Permissions' permitted with a caller-supplied subject reference.
 Action wiring 9: IF Session's validate gives an invalid answer THEN [Check Permitted] MUST answer session-invalid naming the invalid answer's reason.
 Action wiring 10: An admitted gate MUST answer Permissions' permitted answer.
 Action wiring 11: [Check Permitted] MUST NOT change Permissions' permitted answer.
-Action wiring 12: [Check Permitted] MUST NOT answer the valid answer's expires at.
+Action wiring 12: [Check Permitted] MUST NOT answer the valid answer's expiry instant.
 Action wiring 13: The composition MUST call Session's validate for EVERY call.
 Action wiring 14: [Check Permitted] MUST NOT read a validate answer a prior call received.
 Action wiring 15: [Check Permitted] MUST NOT write.
@@ -125,7 +125,7 @@ Term boundary predicate: the composition's own input check — an input EQUALS b
 
 Term length bound: the cap a deployment pins for an opaque input — a [Length Bound]; the value is the deployment's, the existence is this composition's contract.
 
-Term valid answer: Session's validate answer carrying a principal ref and an expires at.
+Term valid answer: Session's validate answer carrying a principal reference and an expiry instant.
 
 Term invalid answer: Session's validate answer carrying expired, revoked OR not-known.
 
@@ -163,8 +163,8 @@ The decision the composition exists to make: the session gates the permission ch
   WHY: [Session](../atoms/session.md)'s `Composition note 4` already forbids a composing pattern to call Permissions on an invalid answer, and `Composes 7` cites it — so the three deleted rules, which enumerated that prohibition over `expired`, revoked and not-known, restated a rule this spec cites rather than owns (Authority 6). Invariant 1.1 is not that rule. `Composition note 4` fires on an invalid answer *given*; Invariant 1.1 fires on no valid answer *given*, which also covers the call that never asked. The two do not normalize identically (Authority 4), and the gap between them is exactly what this composition adds: Session forbids acting on a bad answer, and the closure forbids acting on no answer at all. A deployment that skipped `validate` entirely would satisfy `Composition note 4` and breach Invariant 1.1.
 - **Invariant 2 — Principal binding.**
   ```
-  Invariant 2.1: EVERY subject ref Permissions' permitted receives MUST equal the valid answer's principal ref.
-  Invariant 2.2: The composition MUST NOT query a principal ref beside the session's own.
+  Invariant 2.1: EVERY subject reference Permissions' permitted receives MUST equal the valid answer's principal reference.
+  Invariant 2.2: The composition MUST NOT query a principal reference beside the session's own.
   ```
   WHY: this one is emergent in the sense the summary claims, and [Permissions](../atoms/permissions.md)'s `Composition note 3` is why — the atom assigns the binding to a composing pattern and declines to own it, so the rule exists here because no atom holds it. That is the shape Composes 6 discharges, and it is a different shape from Invariant 1's.
 - **Invariant 3 — Denial is not rejection.**
@@ -267,7 +267,7 @@ Internally: `Session.validate("tok_abc123") → valid(principal_ref: "usr_42", .
 
 **Regulator audit.** An auditor queries whether the system enforces access control at session-expiry boundaries — specifically, whether an expired session is permitted to evaluate any authorization query. By Invariant 1, any [Check Permitted] call with an expired session token returns `session-invalid(expired)` before Permissions is consulted. The session expiry state is verifiable from Session's own records; the composition's invariant is derivable from the action wiring alone, without inspecting runtime logs. If Audit Trail is composed in as a substrate, the individual [Check Permitted] records confirm the rejected outcome directly.
 
-**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revoked at time T; (b) any [Check Permitted] call after T with that session token returned `session-invalid(revoked)`, not permitted or denied. Session's state records the revocation timestamp. The composition's Invariant 1 establishes that Permissions was never reached after revocation. If Audit Trail is composed in, the dispute is answerable from records alone. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that an invalid session cannot produce a permitted or denied result.
+**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revocation instant time T; (b) any [Check Permitted] call after T with that session token returned `session-invalid(revoked)`, not permitted or denied. Session's state records the revocation timestamp. The composition's Invariant 1 establishes that Permissions was never reached after revocation. If Audit Trail is composed in, the dispute is answerable from records alone. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that an invalid session cannot produce a permitted or denied result.
 
 **Breach forensics.** An investigator determines that a session token was stolen and seeks to establish what permissions were exercised under it before revocation. This composition does not maintain an authorization event log; forensic coverage of individual [Check Permitted] calls requires [Audit Trail](./audit-trail.md) composed in as a substrate (see *Composition notes*). Without Audit Trail, the investigator can establish from Session's state that the session was active for a given window and was eventually revoked, and from Permissions' state what grants the principal held during that window — but cannot enumerate individual [Check Permitted] calls or their outcomes from the composition's own state. This is a known scope limitation that composition with Audit Trail resolves.
 
@@ -281,9 +281,9 @@ This composition introduces no per-call event log, so the acceptance bar has two
 
 ```
 Check 1.1: An auditor MUST find Session's state naming a disputed session token's status at the disputed instant (Invariant 1.1).
-Check 1.2: An auditor MUST find no permitted answer for a session token Session's state shows expired at the disputed instant (Invariant 1.1, Session Composition note 4).
-Check 1.3: An auditor MUST find no permitted answer for a session token Session's state shows revoked at the disputed instant (Invariant 1.1, Session Composition note 4).
-Check 2.1: An auditor MUST find Session's state naming the principal ref a disputed permitted answer rests on (Invariant 2.1).
+Check 1.2: An auditor MUST find no permitted answer for a session token Session's state shows lapse instant the disputed instant (Invariant 1.1, Session Composition note 4).
+Check 1.3: An auditor MUST find no permitted answer for a session token Session's state shows revocation instant the disputed instant (Invariant 1.1, Session Composition note 4).
+Check 2.1: An auditor MUST find Session's state naming the principal reference a disputed permitted answer rests on (Invariant 2.1).
 Check 2.2: An auditor MUST find Permissions' state carrying an active grant for the disputed pair at the disputed instant (Invariant 4.1).
 Check 3.1: An auditor MUST find EVERY answer of the composition that EQUALS EXACTLY ONE OF permitted, denied, invalid-request, session-invalid (Invariant 3.1, Invariant 3.2).
 ```
@@ -316,7 +316,7 @@ Non-goal 3: The composition MUST NOT grant a permission.
 Non-goal 4: The composition MUST NOT revoke a permission.
 Non-goal 5: The composition MUST NOT expand an action scope.
 Non-goal 6: The composition MUST NOT match an action scope by prefix.
-Non-goal 7: The composition MUST NOT aggregate a principal ref's sessions.
+Non-goal 7: The composition MUST NOT aggregate a principal reference's sessions.
 Non-goal 8: A deployment caching a validate answer across calls MUST NOT claim conformance.
 Non-goal 9: A deployment exposing a constituent's surface beside [Check Permitted] MUST declare the exposure.
 Non-goal 10: The composition MUST NOT record an authorization decision.
@@ -344,7 +344,7 @@ Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound 
 ```
 
 WHY:
-The gate is point-in-time at the instant `Session.validate` runs. A revocation landing after that instant and before Permissions answers leaves a call that clears the gate and returns permitted or denied on a session that is revoked by the time the caller reads the answer. This is stated rather than cured: curing it would need a lock across two atoms that declare no such surface, and the honest bound is the session's own duration (Concurrency 3).
+The gate is point-in-time at the instant `Session.validate` runs. A revocation landing after that instant and before Permissions answers leaves a call that clears the gate and returns permitted or denied on a session that is revoking actor the time the caller reads the answer. This is stated rather than cured: curing it would need a lock across two atoms that declare no such surface, and the honest bound is the session's own duration (Concurrency 3).
 
 ---
 

@@ -40,7 +40,7 @@ State 2: The host MUST derive free from a passed instant at the moment a questio
 State 3: The host MUST NOT store a transition for a passed instant.
 ```
 
-Term lease state: free | held — held by one holder until one instant.
+Term lease state: free | held — holding actor one holder until one instant.
 
 Term question: a [Take], a [Try Take], a [Remaining] or a [Release] call, and a waiter's standing waiting term — the occasions State 2 derives at.
 
@@ -97,7 +97,7 @@ A key frees by release or by the current holder's instant passing. The bound is 
 
 - **Invariant 1 — One holder.**
   ```
-  Invariant 1.1: A key MUST stand in EXACTLY ONE OF free, held by one holder.
+  Invariant 1.1: A key MUST stand in EXACTLY ONE OF free, holding actor one holder.
   Invariant 1.2: Two takes on one key with no intervening release and no intervening expiry MUST NOT succeed together.
   ```
 - **Invariant 2 — The terminus is the instant.**
@@ -154,7 +154,7 @@ Term allowance: the declared cross-seam allowance between the granting host's cl
 Term fenced party: the third party a fence is handed to.
 
 WHY:
-expires_at is the point of the atom ([Expires At]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. The ceiling is a ceiling and not an equation: a holder may hand over an earlier instant and keep more margin, never a later one (Fence 5, Check 6.1). Two fenced parties are two seams with two allowances, which is what makes minting each fence separately more than bookkeeping (Fence 8). Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
+expires_at is the point of the atom ([Expiry Instant]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. The ceiling is a ceiling and not an equation: a holder may hand over an earlier instant and keep more margin, never a later one (Fence 5, Check 6.1). Two fenced parties are two seams with two allowances, which is what makes minting each fence separately more than bookkeeping (Fence 8). Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
 
 ## Examples
 
@@ -173,7 +173,7 @@ This atom writes no records, so its acceptance checks are conformance checks aga
 ```
 Check 1.1: An auditor MUST confirm that two concurrent takes on one key, with no release and no expiry between the takes, yield EXACTLY ONE expires_at (Invariant 1.1, Invariant 1.2).
 Check 1.2: An auditor MUST confirm that the other take answers EXACTLY ONE OF unavailable, held (Operation 1, Operation 7).
-Check 2.1: An auditor MUST confirm that a key held by a party that never releases becomes takeable at the instant (Invariant 2.1).
+Check 2.1: An auditor MUST confirm that a key holding actor a party that never releases becomes takeable at the instant (Invariant 2.1).
 Check 2.2: An auditor MUST confirm that such a key does not become takeable earlier (Invariant 2.2).
 Check 3.1: An auditor MUST confirm that a host leaves the key of a killed holder held through the instant (Invariant 3.1).
 Check 3.2: An auditor MUST fail a host that frees the key of a killed holder earlier, whatever the host knows about the holder (Invariant 3.2).
@@ -243,7 +243,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Term terms: key, holder, lease state, question, waiting term, remaining term, arrival term, asking party, the holder, fence, fence ceiling, effect instant, allowance, fenced party, fence margin, and expires_at ([Expires At]).
+Term terms: key, holder, lease state, question, waiting term, remaining term, arrival term, asking party, the holder, fence, fence ceiling, effect instant, allowance, fenced party, fence margin, and expires_at ([Expiry Instant]).
 
 #### Lease
 
@@ -287,7 +287,7 @@ Ends the asking party's grant, or answers not-held if it has none. Never reaches
 
 Kind: Operation
 
-#### Expires At
+#### Expiry Instant
 
 The absolute instant, on the granting host's clock, at which a grant ends. Returned by a successful take; the value a holder mints a fence from.
 
@@ -305,7 +305,7 @@ Kind: Type
 [Try Take]: #try-take
 [Remaining]: #remaining
 [Release]: #release
-[Expires At]: #expires-at
+[Expiry Instant]: #expiry-instant
 [Fence]: #fence
 [Lease]: #lease
 

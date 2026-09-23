@@ -52,13 +52,13 @@ Term transition: the atom's evaluation of one call against the log, as the secti
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 WHY:
-Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is sequence number's alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
+Identity is allocation instant the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is sequence number's alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
 
 ### State
 
 ```
 State 1: The log MUST hold events in EXACTLY ONE total order.
-State 2: EVERY event MUST carry event id, sequence number, recorded at and data.
+State 2: EVERY event MUST carry event id, sequence number, recording instant and data.
 State 3: The log MUST carry log name.
 State 4: The log MUST carry next sequence number.
 State 5: A fresh log instance MUST begin next sequence number at one.
@@ -72,7 +72,7 @@ Term event: one recorded fact in the log — an [Event]; fixed in place once lan
 
 Term sequence number: the strictly rising integer an event carries — a [Sequence Number]; the log's order and nothing else.
 
-Term recorded at: the wall-time instant an event was appended, stamped from the injected clock — a [Recorded At]; an annotation, never the order.
+Term recording instant: the wall-time instant an event was appended, stamped from the injected clock — a [Recording Instant]; an annotation, never the order.
 
 Term data: the opaque payload a composing pattern supplies — [Data]; the atom stores the payload and reads nothing in it.
 
@@ -84,7 +84,7 @@ Term durability mechanism: a write-ahead log, or another mechanism making a comm
 
 Term landed: an event a successful [Append] wrote; a consumed sequence number under which nothing was written is not landed.
 
-Term event field: event id | sequence number | recorded at | data.
+Term event field: event id | sequence number | recording instant | data.
 
 WHY:
 A volatile instance that restarts next sequence number at one has broken Invariant 4 for the life of the instance while every individual append looks correct — which is why durability of that one datum is stated here and not left to a deployment note (State 7). There is no delete and no edit, and their absence is a rule rather than an omission, because *the log only grows* is the property every composing pattern rests on (State 8, State 9).
@@ -112,7 +112,7 @@ read(query)
 
 ```
 Operation 1: [Append] MUST write the event at the tail.
-Operation 2: [Append] MUST stamp recorded at from the injected clock.
+Operation 2: [Append] MUST stamp recording instant from the injected clock.
 Operation 3: [Append] MUST carry next sequence number into the event.
 Operation 4: [Append] MUST answer event id.
 Operation 5: IF data EXCEEDS the payload cap THEN [Append] MUST answer invalid-payload.
@@ -131,7 +131,7 @@ Operation 17: [Read] MUST NOT write.
 Operation 18: The implementation MUST own the query's shape.
 Deleted: Operation 19. Capability requirement 1 owns it.
 Deleted: Operation 20. Execution Contract Logic confinement 3 owns it.
-Operation 21: The business caller MUST NOT supply recorded at.
+Operation 21: The business caller MUST NOT supply recording instant.
 ```
 
 Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, a payload predicate, or a combination.
@@ -185,10 +185,10 @@ An append refuses for one reason before the write and one reason at it, and for 
   ```
 - **Invariant 7 — Wall-time best-effort monotonicity.**
   ```
-  Invariant 7.1: IF the clock is non-decreasing THEN recorded at MUST NOT fall in append order.
+  Invariant 7.1: IF the clock is non-decreasing THEN recording instant MUST NOT fall in append order.
   Invariant 7.2: sequence number IS AUTHORITATIVE FOR the log's order.
   ```
-  WHY: under an unreliable or adversarial clock recorded at is an annotation that may lie, and nothing in the atom rests on it — which is the whole reason the two data are separate (Invariant 7.2).
+  WHY: under an unreliable or adversarial clock recording instant is an annotation that may lie, and nothing in the atom rests on it — which is the whole reason the two data are separate (Invariant 7.2).
 
 Append-only and event immutability together give the *immutable journal* property, the one that tells an Event Log from a mutable record set. Total order and monotonicity give *replay*. Read consistency gives *durable visibility*. No id reuse forecloses identity collisions across time.
 
@@ -247,10 +247,10 @@ Check 3.2: An auditor MUST find two reads of one query answering alike (Invarian
 Check 3.3: An auditor MUST find a read answering an empty sequence for a well-formed query matching nothing (Operation 16).
 Check 3.4: An auditor MUST find a read answering invalid-query for a malformed query (Operation 15).
 Check 3.5: An auditor MUST find no read answering an event for a consumed sequence number no event landed under (Invariant 5.3).
-Check 4.1: An auditor MUST find EVERY event carrying event id, sequence number, recorded at AND data (State 2).
+Check 4.1: An auditor MUST find EVERY event carrying event id, sequence number, recording instant AND data (State 2).
 Check 4.2: An auditor MUST find a fresh log instance beginning next sequence number at one (State 5).
-Check 5.1: An auditor MUST read a falling recorded at as a clock finding (Invariant 7.2).
-Check 5.2: An auditor MUST NOT read a falling recorded at as an order finding (Invariant 7.2).
+Check 5.1: An auditor MUST read a falling recording instant as a clock finding (Invariant 7.2).
+Check 5.2: An auditor MUST NOT read a falling recording instant as an order finding (Invariant 7.2).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -267,7 +267,7 @@ External check 6: An auditor needing the payload cap confirmed MUST read the dep
 ```
 
 WHY:
-`Check 2.4`, `Check 5.1` and `Check 5.2` are the three that stop an auditor filing against a correct log, and each of them is a place where the obvious reading is wrong. A gap in the sequence numbers is not a lost event — `Sequence gap 1` permits an implementation to consume a number on a failed write, so an auditor counting rows against numbers reports a defect the atom has none of. A recorded at that falls is a clock fault and never an ordering fault, because sequence number **is authoritative** for the order and recorded at is an annotation this atom rests nothing on.
+`Check 2.4`, `Check 5.1` and `Check 5.2` are the three that stop an auditor filing against a correct log, and each of them is a place where the obvious reading is wrong. A gap in the sequence numbers is not a lost event — `Sequence gap 1` permits an implementation to consume a number on a failed write, so an auditor counting rows against numbers reports a defect the atom has none of. A recording instant that falls is a clock fault and never an ordering fault, because sequence number **is authoritative** for the order and recording instant is an annotation this atom rests nothing on.
 
 The external set is where the real limit sits, and it is larger than a reader expects from a log. **Append-only is not tamper-evidence.** Every check above passes over a log an adversary with store access rewrote, because the atom compares the log against itself; detecting that the store was rewritten is [Tamper Evidence](./tamper-evidence.md)'s and is named here rather than implied. The same holds for who wrote an event and for whether the instance survived a restart at all — `External check 1` is the one a deployment loses silently, since a volatile instance satisfies every conformance check above and loses the journal the composing patterns replay.
 
@@ -356,11 +356,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation (also: a durable implementation); the deployment; the store; an event; a read; an append; an auditor.
 
-Term records: event — one recorded fact, carrying event id, sequence number, recorded at and data; the log carries log name and next sequence number.
+Term records: event — one recorded fact, carrying event id, sequence number, recording instant and data; the log carries log name and next sequence number.
 
 Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match, find.
 
-Term value sets: event field = event id | sequence number | recorded at | data.
+Term value sets: event field = event id | sequence number | recording instant | data.
 
 Term bounds: payload cap (the per-instance bound on data's size).
 
@@ -368,7 +368,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed — written by a successful append.
 
-Term terms: durability mechanism, event id, seam, transition, business caller, event, sequence number, recorded at, data, log name, next sequence number, landed, event field, query, payload cap.
+Term terms: durability mechanism, event id, seam, transition, business caller, event, sequence number, recording instant, data, log name, next sequence number, landed, event field, query, payload cap.
 
 #### Event Log
 
@@ -378,13 +378,13 @@ Kind: Type
 
 #### Event
 
-A single recorded fact in an [Event Log] — one entry in the sequence, fixed in place once appended. It carries its [Event Id], [Sequence Number], [Recorded At], and [Data]; nothing about it changes after [Append].
+A single recorded fact in an [Event Log] — one entry in the sequence, fixed in place once appended. It carries its [Event Id], [Sequence Number], [Recording Instant], and [Data]; nothing about it changes after [Append].
 
 Kind: Type
 
 #### Append
 
-The behavior a composing pattern invokes to record a new [Event] at the tail of the log. It allocates the next [Sequence Number], stamps [Recorded At], and returns the [Event Id]. It is the only way data enters the log.
+The behavior a composing pattern invokes to record a new [Event] at the tail of the log. It allocates the next [Sequence Number], stamps [Recording Instant], and returns the [Event Id]. It is the only way data enters the log.
 
 Kind: Operation
 
@@ -404,13 +404,13 @@ Projection: event_id
 
 #### Sequence Number
 
-The strictly increasing integer assigned to each [Event] at [Append]. It fixes the [Event]'s place in the total order and is the authoritative basis for ordering — kept separate from [Recorded At] on purpose, because a clock can drift but the sequence never does.
+The strictly increasing integer assigned to each [Event] at [Append]. It fixes the [Event]'s place in the total order and is the authoritative basis for ordering — kept separate from [Recording Instant] on purpose, because a clock can drift but the sequence never does.
 
 Kind:       Field
 Field of:   Event
 Projection: sequence_number
 
-#### Recorded At
+#### Recording Instant
 
 The wall-time at which an [Event] was appended — an annotation of when, not the basis of order. Stamped from the host-injected clock on [Append]; best-effort monotonic, with [Sequence Number] authoritative if the clock misbehaves.
 
@@ -488,7 +488,7 @@ Projection: storage-failure
 [Read]: #read
 [Event Id]: #event-id
 [Sequence Number]: #sequence-number
-[Recorded At]: #recorded-at
+[Recording Instant]: #recording-instant
 [Data]: #data
 [Log Name]: #log-name
 [Next Sequence Number]: #next-sequence-number

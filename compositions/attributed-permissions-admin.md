@@ -68,7 +68,7 @@ Composes 18: The composition MUST NOT record an administrative act carrying no a
 Composes 19: The composition MUST NOT claim coverage of a write made outside the composition's surface.
 Composes 20: The composition MUST enumerate an attestation through Actor Identity's declared enumeration.
 Composes 21: The composition MUST filter an enumerated attestation in the composition's own code.
-Composes 22: The composition MUST NOT query Actor Identity by an action ref.
+Composes 22: The composition MUST NOT query Actor Identity by an action reference.
 Composes 23: The composition MUST mint one attestation PER administered grant.
 Composes 24: The composition MUST NOT share one attestation across two administered grants.
 ```
@@ -254,7 +254,7 @@ Primitive policy 17: The composition MUST NOT query Permissions BEFORE a revocat
 
 Term boundary predicate: the composition's own validation of an input at an action's boundary, judged before any constituent call.
 
-Term opaque input: subject ref | action scope | grantor ref | grantor credential | grant id | revoker ref | revoker credential.
+Term opaque input: subject reference | action scope | grantor ref | grantor credential | grant id | revoker ref | revoker credential.
 
 Term administered opaque input: an opaque input an administrative action carries — as against one the evaluation passthrough relays.
 

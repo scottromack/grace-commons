@@ -44,7 +44,7 @@ Identity 1: The atom MUST identify a subscription by the subscription id.
 Identity 2: The host MUST allocate a subscription id at the atom's seam.
 Identity 3: The transition MUST NOT allocate a subscription id.
 Identity 4: The atom MUST NOT reuse a subscription id.
-Identity 5: The atom MUST NOT identify a subscription by the subscriber ref and the event scope.
+Identity 5: The atom MUST NOT identify a subscription by the subscriber reference and the event scope.
 Identity 6: The deployment MUST draw a subscription id from a cryptographically secure source.
 Identity 7: The deployment MUST NOT draw a subscription id from the subscription's public properties.
 ```
@@ -53,7 +53,7 @@ Term subscription: one actor's standing interest in one class of events — the 
 
 Term subscription id: the opaque value naming one subscription — a [Subscription Id]; unguessable, and the capability [Cancel] accepts.
 
-Term subscriber ref: the opaque reference naming who holds the subscription — a [Subscriber Ref].
+Term subscriber reference: the opaque reference naming who holds the subscription — a [Subscriber Reference].
 
 Term event scope: the opaque reference naming the class of events covered — an [Event Scope]; matched exactly.
 
@@ -70,10 +70,10 @@ The id is the capability: knowing it is what lets a caller cancel, so it is draw
 
 ```
 State 1: EVERY subscription MUST stand in EXACTLY ONE OF active, cancelled.
-State 2: EVERY subscription MUST carry subscription id, subscriber ref, event scope, subscribed at and status.
-State 3: A cancelled subscription MUST carry cancelled at.
-State 4: [Subscribe] MUST stamp subscribed at from the injected now.
-State 5: [Cancel] MUST stamp cancelled at from the injected now.
+State 2: EVERY subscription MUST carry subscription id, subscriber reference, event scope, subscription instant and status.
+State 3: A cancelled subscription MUST carry cancellation instant.
+State 4: [Subscribe] MUST stamp subscription instant from the injected now.
+State 5: [Cancel] MUST stamp cancellation instant from the injected now.
 State 6: The atom MUST NOT offer a cancelled-to-active transition.
 State 7: The atom MUST NOT delete a subscription.
 State 8: The atom MUST NOT hold an event.
@@ -82,9 +82,9 @@ State 9: The atom MUST NOT hold a delivery.
 
 Term status: active | cancelled — in force, or withdrawn and terminal.
 
-Term subscribed at: the instant the subscription was recorded — a [Subscribed At].
+Term subscription instant: the instant the subscription was recorded — a [Subscription Instant].
 
-Term cancelled at: the instant the subscription was withdrawn — a [Cancelled At].
+Term cancellation instant: the instant the subscription was withdrawn — a [Cancellation Instant].
 
 WHY:
 A cancelled subscription stays in the store because the record of who was listening when is the audit surface — the atom answers *who now* from the active set and leaves *who then* reconstructable from both timestamps (State 7, Check 1.1). Nothing about events lives here: what fired, how often, and whether it arrived belong to [Event Log](./event-log.md) and [Notification](./notification.md) (State 8, State 9).
@@ -126,10 +126,10 @@ subscribers_for(event_scope)
 Operation 1: [Subscribe] MUST record EXACTLY ONE subscription per successful call.
 Operation 2: [Subscribe] MUST stand the subscription in active.
 Operation 3: [Subscribe] MUST answer subscription id.
-Operation 4: IF subscriber ref EQUALS blank THEN [Subscribe] MUST answer invalid-request.
+Operation 4: IF subscriber reference EQUALS blank THEN [Subscribe] MUST answer invalid-request.
 Operation 5: IF event scope EQUALS blank THEN [Subscribe] MUST answer invalid-request.
 Operation 6: IF an active subscription EXISTS for the pair THEN [Subscribe] MUST answer already-subscribed.
-Operation 7: The atom MUST NOT interpret subscriber ref beyond the presence check.
+Operation 7: The atom MUST NOT interpret subscriber reference beyond the presence check.
 Operation 8: The atom MUST NOT interpret event scope beyond the presence check.
 Operation 9: IF no subscription EXISTS for the subscription id THEN [Cancel] MUST answer not-known.
 Operation 10: IF the subscription's status EQUALS cancelled THEN [Cancel] MUST answer not-active.
@@ -141,8 +141,8 @@ Operation 15: A refused write MUST leave the store as the call found the store.
 Operation 16: [Subscribed] MUST answer EXACTLY ONE OF subscribed, not-subscribed.
 Operation 17: [Subscribed] MUST answer subscribed ONLY IF an active subscription EXISTS for the pair.
 Operation 18: [Subscribed] MUST NOT refuse a blank input.
-Operation 19: [Subscribers For] MUST answer the subscriber ref of EVERY active subscription matching the event scope.
-Operation 20: [Subscribers For] MUST NOT answer a cancelled subscription's subscriber ref.
+Operation 19: [Subscribers For] MUST answer the subscriber reference of EVERY active subscription matching the event scope.
+Operation 20: [Subscribers For] MUST NOT answer a cancelled subscription's subscriber reference.
 Operation 21: [Subscribers For] MUST match an event scope exactly.
 Operation 22: [Subscribers For] MUST answer an empty list for an event scope no active subscription matches.
 Operation 23: [Subscribers For] MUST NOT order the answer.
@@ -153,7 +153,7 @@ Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 28. Execution Contract Logic confinement 3 owns it.
 ```
 
-Term pair: one subscriber ref with one event scope — what at-most-one ranges over.
+Term pair: one subscriber reference with one event scope — what at-most-one ranges over.
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
@@ -164,15 +164,15 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the store |
 |---|---|---|---|
 | [Subscribe] | refs present, no live subscription for the pair, store accepts | subscription id | one subscription lands in [Active] (Operation 1, Operation 2) |
-| [Subscribe] | blank subscriber ref or event scope | [Invalid Request] | none (Operation 4, Operation 5) |
+| [Subscribe] | blank subscriber reference or event scope | [Invalid Request] | none (Operation 4, Operation 5) |
 | [Subscribe] | the pair already has a live subscription | [Already Subscribed] | none (Operation 6) |
-| [Cancel] | id names a live subscription | ok | [Active] → [Cancelled], cancelled at stamped (Operation 11, State 5) |
+| [Cancel] | id names a live subscription | ok | [Active] → [Cancelled], cancellation instant stamped (Operation 11, State 5) |
 | [Cancel] | id names a cancelled subscription | [Not Active] | none (Operation 10) |
 | [Cancel] | id names nothing | [Not Known] | none (Operation 9) |
 | either write | store refuses | [Storage Failure] | none (Operation 13 through 15) |
 | [Subscribed] | a live subscription matches the pair | subscribed | none — the call reads (Operation 17, Operation 24) |
 | [Subscribed] | nothing matches, blank arguments included | not-subscribed | none (Operation 18, Invariant 8.1) |
-| [Subscribers For] | live subscriptions match the scope | their subscriber ref values, unordered | none (Operation 19, Operation 23) |
+| [Subscribers For] | live subscriptions match the scope | their subscriber reference values, unordered | none (Operation 19, Operation 23) |
 | [Subscribers For] | scope never subscribed, or all cancelled | empty list | none — the two cases read alike (Operation 22) |
 
 WHY:
@@ -182,7 +182,7 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
 
 - **Invariant 1 — Subscription immutability.**
   ```
-  Invariant 1.1: A recorded subscription's subscription id, subscriber ref, event scope and subscribed at MUST NOT change.
+  Invariant 1.1: A recorded subscription's subscription id, subscriber reference, event scope and subscription instant MUST NOT change.
   ```
 - **Invariant 2 — Status monotonicity.**
   ```
@@ -192,7 +192,7 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
 - **Invariant 3 — Cancellation is terminal.**
   ```
   Invariant 3.1: [Cancel] MUST answer not-active for a cancelled subscription.
-  Invariant 3.2: [Subscribers For] MUST NOT answer a cancelled subscription's subscriber ref.
+  Invariant 3.2: [Subscribers For] MUST NOT answer a cancelled subscription's subscriber reference.
   ```
 - **Invariant 4 — New subscribe after cancel produces a new id.**
   ```
@@ -216,11 +216,11 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
 - **Invariant 8 — Absence means not-subscribed.**
   ```
   Invariant 8.1: [Subscribed] MUST answer not-subscribed ONLY IF no active subscription matches the pair.
-  Invariant 8.2: [Subscribers For] MUST NOT answer a subscriber ref whose subscription for the scope IS NOT IN the active set.
+  Invariant 8.2: [Subscribers For] MUST NOT answer a subscriber reference whose subscription for the scope IS NOT IN the active set.
   ```
 - **Invariant 9 — Timestamp ordering.**
   ```
-  Invariant 9.1: IF cancelled at DOES NOT EQUAL blank THEN subscribed at MUST NOT EXCEED cancelled at.
+  Invariant 9.1: IF cancellation instant DOES NOT EQUAL blank THEN subscription instant MUST NOT EXCEED cancellation instant.
   ```
   WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Execution Contract Logic confinement 7).
 
@@ -230,7 +230,7 @@ The same atom, three domains, identical mechanic.
 
 ### Shared Todo — assignment notification
 
-In a Shared Todo deployment, actors subscribe to assignment events scoped to themselves. `subscribe(dev_d, task:assigned:dev_d) → sub_42`. When manager M assigns a task to dev_d, the composition calls `subscribers_for(task:assigned:dev_d)` — dev_d's [Subscriber Ref] appears in the result; the composition then creates a Notification record for dev_d. When dev_d opts out of assignment emails, `cancel(sub_42)` — subsequent [Subscribers For] queries for that scope return an empty list; dev_d receives no further assignment notifications.
+In a Shared Todo deployment, actors subscribe to assignment events scoped to themselves. `subscribe(dev_d, task:assigned:dev_d) → sub_42`. When manager M assigns a task to dev_d, the composition calls `subscribers_for(task:assigned:dev_d)` — dev_d's [Subscriber Reference] appears in the result; the composition then creates a Notification record for dev_d. When dev_d opts out of assignment emails, `cancel(sub_42)` — subsequent [Subscribers For] queries for that scope return an empty list; dev_d receives no further assignment notifications.
 
 ### Support queue — escalation alerts
 
@@ -248,9 +248,9 @@ A developer attempts to subscribe twice to the same scope: `subscribe(dev_d, tas
 
 Three scenarios the subscription store must survive in regulated contexts:
 
-- **Regulator audit — who was subscribed to a scope at a given time.** A compliance auditor asks *"which actors were subscribed to `policy:updated` at the time the policy was updated on 2025-03-14T10:00Z?"* The auditor queries the subscription store for subscriptions where `event_scope = policy:updated` and (`status = active` or `cancelled_at > 2025-03-14T10:00Z`) and `subscribed_at ≤ 2025-03-14T10:00Z`. The subscription store answers from stored fields alone — [Subscriber Ref], [Event Scope], [Subscribed At], [Status], [Cancelled At] — with no recourse to developer narration. Invariants 1 and 9 make the timeline reconstruction exact.
-- **Disputed subscription — actor claims they were never subscribed.** Officer_a denies having subscribed to `escalation:queue-9`. The investigator queries the subscription store for subscriptions where `subscriber_ref = officer_a` and `event_scope = escalation:queue-9`. If a record exists with [Subscribed At] and the actor's reference, Invariant 1 (subscription immutability) is the structural answer: the record was created at that time with that [Subscriber Ref]; it does not change. If no record exists, the store confirms the actor was never subscribed. The subscription store is the single source of truth; no external corroboration is required.
-- **Breach investigation — exposure scope assessment.** A security incident requires identifying all actors who were subscribed to `data:export` at the time of the breach (2025-06-01T03:00Z). The investigator queries subscriptions where `event_scope = data:export` and `subscribed_at ≤ 2025-06-01T03:00Z` and (`status = active` or `cancelled_at > 2025-06-01T03:00Z`). The result set is the exposure scope — every actor who would have received notifications fired against that scope during the breach window. Invariant 6 (at-most-one-active) confirms no actor appears more than once in the Active set at any point in time.
+- **Regulator audit — who was subscribed to a scope at a given time.** A compliance auditor asks *"which actors were subscribed to `policy:updated` at the time the policy was updated on 2025-03-14T10:00Z?"* The auditor queries the subscription store for subscriptions where `event_scope = policy:updated` and (`status = active` or `cancelled_at > 2025-03-14T10:00Z`) and `subscribed_at ≤ 2025-03-14T10:00Z`. The subscription store answers from stored fields alone — [Subscriber Reference], [Event Scope], [Subscription Instant], [Status], [Cancellation Instant] — with no recourse to developer narration. Invariants 1 and 9 make the timeline reconstruction exact.
+- **Disputed subscription — actor claims they were never subscribed.** Officer_a denies having subscribed to `escalation:queue-9`. The investigator queries the subscription store for subscriptions where `subscriber_ref = officer_a` and `event_scope = escalation:queue-9`. If a record exists with [Subscription Instant] and the actor's reference, Invariant 1 (subscription immutability) is the structural answer: the record was creation instant that time with that [Subscriber Reference]; it does not change. If no record exists, the store confirms the actor was never subscribed. The subscription store is the single source of truth; no external corroboration is required.
+- **Breach investigation — exposure scope assessment.** A security incident requires identifying all actors who were subscribed to `data:export` at the time of the breach (2025-06-01T03:00Z). The investigator queries subscriptions where `event_scope = data:export` and `subscribed_at ≤ 2025-06-01T03:00Z` and (`status = active` or `cancelled_at > 2025-06-01T03:00Z`). The result set is the exposure scope — every actor who would have received notifications fired against that scope during the breach window. Invariant 6 (at-most-one-active) confirms no actor appears more than once in the Active set instant any point in time.
 
 ---
 
@@ -261,9 +261,9 @@ This atom's acceptance is what an external auditor can clear from the subscripti
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST reconstruct a scope's active subscriber set at a past instant from subscribed at, status and cancelled at (Invariant 1.1, Invariant 9.1).
+Check 1.1: An auditor MUST reconstruct a scope's active subscriber set instant a past instant from subscription instant, status and cancellation instant (Invariant 1.1, Invariant 9.1).
 Check 2.1: An auditor MUST find no two active subscriptions sharing a pair (Invariant 6.1).
-Check 3.1: An auditor MUST find cancelled at present on EVERY cancelled subscription (State 3).
+Check 3.1: An auditor MUST find cancellation instant present on EVERY cancelled subscription (State 3).
 Check 3.2: An auditor MUST find no cancelled subscription in a [Subscribers For] answer (Invariant 3.2).
 Check 4.1: An auditor MUST find a fresh subscription id on EVERY re-subscription of a pair (Invariant 4.1, Invariant 5.1).
 Check 5.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
@@ -303,9 +303,9 @@ Where the atom breaks down: when the audience cannot be named in advance — a r
 ### Atomicity of a cancel
 
 ```
-Cancel atomicity 1: The implementation MUST change status and cancelled at together.
-Cancel atomicity 2: A crash inside [Cancel] MUST NOT leave a cancelled status without cancelled at.
-Cancel atomicity 3: A crash inside [Cancel] MUST NOT leave cancelled at on an active subscription.
+Cancel atomicity 1: The implementation MUST change status and cancellation instant together.
+Cancel atomicity 2: A crash inside [Cancel] MUST NOT leave a cancelled status without cancellation instant.
+Cancel atomicity 3: A crash inside [Cancel] MUST NOT leave cancellation instant on an active subscription.
 ```
 
 WHY:
@@ -368,7 +368,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an actor; a subscriber; an auditor; the store; a subscription; a status; a crash.
 
-Term records: subscription — one standing interest, carrying subscription id, subscriber ref, event scope, subscribed at, status and, once withdrawn, cancelled at.
+Term records: subscription — one standing interest, carrying subscription id, subscriber reference, event scope, subscription instant, status and, once withdrawn, cancellation instant.
 
 Term record verbs: make, discharge, recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, leave, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, exceed.
 
@@ -380,41 +380,41 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: now, subscription, subscription id, subscriber ref, event scope, seam, transition, id entropy, status, subscribed at, cancelled at, pair, business caller.
+Term terms: now, subscription, subscription id, subscriber reference, event scope, seam, transition, id entropy, status, subscription instant, cancellation instant, pair, business caller.
 
 #### Subscribe
 
-The behavior that records a named actor's interest — creating a new [Active] subscription for a ([Subscriber Ref], [Event Scope]) pair with a fresh [Subscription Id] and stamping [Subscribed At]. Returns the [Subscription Id], or a rejection ([Invalid Request], [Already Subscribed], [Storage Failure]).
+The behavior that records a named actor's interest — creating a new [Active] subscription for a ([Subscriber Reference], [Event Scope]) pair with a fresh [Subscription Id] and stamping [Subscription Instant]. Returns the [Subscription Id], or a rejection ([Invalid Request], [Already Subscribed], [Storage Failure]).
 
 Kind: Operation
 
 #### Cancel
 
-The behavior that withdraws a subscription, moving it [Active] → [Cancelled] (terminal) and stamping [Cancelled At]. Knowledge of the [Subscription Id] is itself the capability. Returns ok, or a rejection ([Not Known], [Not Active], [Storage Failure]).
+The behavior that withdraws a subscription, moving it [Active] → [Cancelled] (terminal) and stamping [Cancellation Instant]. Knowledge of the [Subscription Id] is itself the capability. Returns ok, or a rejection ([Not Known], [Not Active], [Storage Failure]).
 
 Kind: Operation
 
 #### Subscribed
 
-The read-only point query — returns subscribed if any [Active] subscription matches the ([Subscriber Ref], [Event Scope]) pair, else not-subscribed. Both are first-class outcomes; no rejection is defined (Invariant 8).
+The read-only point query — returns subscribed if any [Active] subscription matches the ([Subscriber Reference], [Event Scope]) pair, else not-subscribed. Both are first-class outcomes; no rejection is defined (Invariant 8).
 
 Kind: Operation
 
 #### Subscribers For
 
-The read-only fanout query — returns the [Subscriber Ref] values of all [Active] subscriptions for an [Event Scope] (unordered; empty if none). The list a composing pattern needs when an event fires.
+The read-only fanout query — returns the [Subscriber Reference] values of all [Active] subscriptions for an [Event Scope] (unordered; empty if none). The list a composing pattern needs when an event fires.
 
 Kind: Operation
 
 #### Subscription Id
 
-The opaque, immutable identity of a subscription — host-allocated at the I/O seam from ≥128-bit cryptographically-secure random material (see the id entropy declaration), produced by [Subscribe], never reused (Invariant 5). It is the subscription's identity, and — being unpredictable — the bearer capability that gates [Cancel].
+The opaque, immutable identity of a subscription — host-allocation instant the I/O seam from ≥128-bit cryptographically-secure random material (see the id entropy declaration), produced by [Subscribe], never reused (Invariant 5). It is the subscription's identity, and — being unpredictable — the bearer capability that gates [Cancel].
 
 Kind:       Field
 Field of:   the subscription
 Projection: subscription_id
 
-#### Subscriber Ref
+#### Subscriber Reference
 
 The opaque reference to the subscribing actor. Set on [Subscribe], immutable (Invariant 1); the actor registry is a separate concept.
 
@@ -430,9 +430,9 @@ Kind:       Field
 Field of:   the subscription
 Projection: event_scope
 
-#### Subscribed At
+#### Subscription Instant
 
-The wall-time the subscription was recorded, injected at the seam on [Subscribe], immutable (Invariant 1). Its lower-bound relation to [Cancelled At] is best-effort (Invariant 9).
+The wall-time the subscription was recorded, injected at the seam on [Subscribe], immutable (Invariant 1). Its lower-bound relation to [Cancellation Instant] is best-effort (Invariant 9).
 
 Kind:       Field
 Field of:   the subscription
@@ -446,9 +446,9 @@ Kind:       Field
 Field of:   the subscription
 Projection: status
 
-#### Cancelled At
+#### Cancellation Instant
 
-The wall-time the subscription was cancelled, injected at the seam on [Cancel]. Absent while [Active]; set once and immutable thereafter; ≥ [Subscribed At] (best-effort, Invariant 9).
+The wall-time the subscription was cancelled, injected at the seam on [Cancel]. Absent while [Active]; set once and immutable thereafter; ≥ [Subscription Instant] (best-effort, Invariant 9).
 
 Kind:       Field
 Field of:   the subscription
@@ -456,7 +456,7 @@ Projection: cancelled_at
 
 #### Active
 
-The in-force state of a subscription: the subscriber appears in [Subscribers For] results for its [Event Scope]. The entry state on [Subscribe]. At most one [Active] subscription per ([Subscriber Ref], [Event Scope]) pair (Invariant 6).
+The in-force state of a subscription: the subscriber appears in [Subscribers For] results for its [Event Scope]. The entry state on [Subscribe]. At most one [Active] subscription per ([Subscriber Reference], [Event Scope]) pair (Invariant 6).
 
 Kind:      Member
 Member of: the subscription status
@@ -472,7 +472,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The rejection [Subscribe] returns when [Subscriber Ref] or [Event Scope] is null, undefined, or empty. (The read queries never return it — a bad query is a correct not-subscribed or empty answer.)
+The rejection [Subscribe] returns when [Subscriber Reference] or [Event Scope] is null, undefined, or empty. (The read queries never return it — a bad query is a correct not-subscribed or empty answer.)
 
 Kind:       Member
 Member of:  the Subscribe rejection
@@ -481,7 +481,7 @@ Projection: invalid-request
 
 #### Already Subscribed
 
-The rejection [Subscribe] returns when an [Active] subscription already exists for the ([Subscriber Ref], [Event Scope]) pair (Invariant 6) — the mechanism that prevents duplicate notifications.
+The rejection [Subscribe] returns when an [Active] subscription already exists for the ([Subscriber Reference], [Event Scope]) pair (Invariant 6) — the mechanism that prevents duplicate notifications.
 
 Kind:       Member
 Member of:  the Subscribe rejection
@@ -525,11 +525,11 @@ Projection: not-active
 [Subscribed]: #subscribed
 [Subscribers For]: #subscribers-for
 [Subscription Id]: #subscription-id
-[Subscriber Ref]: #subscriber-ref
+[Subscriber Reference]: #subscriber-reference
 [Event Scope]: #event-scope
-[Subscribed At]: #subscribed-at
+[Subscription Instant]: #subscription-instant
 [Status]: #status
-[Cancelled At]: #cancelled-at
+[Cancellation Instant]: #cancellation-instant
 [Active]: #active
 [Cancelled]: #cancelled
 [Invalid Request]: #invalid-request

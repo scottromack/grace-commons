@@ -36,7 +36,7 @@ Identity 3: The transition MUST NOT allocate a hold id.
 Identity 4: The atom MUST NOT reuse a hold id.
 Identity 5: The atom MUST NOT reassign a hold id.
 Identity 6: A hold id MUST sort in lexicographic byte order.
-Identity 7: The atom MUST NOT identify a hold by the record ref.
+Identity 7: The atom MUST NOT identify a hold by the record reference.
 Identity 8: Two holds over one record MUST carry two hold ids.
 ```
 
@@ -45,7 +45,7 @@ Term hold: one recorded preservation obligation over one record — the record t
 Term hold id: the opaque value naming one hold — a [Hold Id]; not blank, and sortable so [Read] can order deterministically.
 
 
-Term record ref: the opaque reference naming what is preserved — a [Record Ref]; the host owns whether the record exists.
+Term record reference: the opaque reference naming what is preserved — a [Record Reference]; the host owns whether the record exists.
 
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the hold id here.
 
@@ -53,7 +53,7 @@ Term transition: the atom's evaluation of one call against the hold store, as th
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, and never supplied by the business caller — placed at and released at are the caller's claims about when an obligation began and ended, judged against now and stored as claims (Operation 38 through 41).
+Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, and never supplied by the business caller — placement instant and release instant are the caller's claims about when an obligation began and ended, judged against now and stored as claims (Operation 38 through 41).
 
 WHY:
 Two authorities can demand preservation of one document — a plaintiff's litigation hold and a regulator's investigative demand — and they end on different days. Merging them into one obligation would release the record the moment the first ends, which is the spoliation the atom exists to foreclose (Identity 7, Identity 8, Invariant 4.1). The id sorts because [Read]'s order is part of the contract, not a convenience (Identity 6, Operation 18).
@@ -62,10 +62,10 @@ Two authorities can demand preservation of one document — a plaintiff's litiga
 
 ```
 State 1: EVERY hold MUST stand in EXACTLY ONE OF active, released.
-State 2: EVERY hold MUST carry hold id, record ref, placed by, hold reason, placed at and state.
-State 3: A hold MAY carry case ref.
-State 4: A released hold MUST carry released by, release reason and released at.
-State 5: An active hold MUST NOT carry released at.
+State 2: EVERY hold MUST carry hold id, record reference, placing actor, hold reason, placement instant and state.
+State 3: A hold MAY carry case reference.
+State 4: A released hold MUST carry releasing actor, release reason and release instant.
+State 5: An active hold MUST NOT carry release instant.
 State 7: The atom MUST NOT delete a hold.
 State 8: The atom MUST NOT hold an aggregate for a record.
 Deleted: State 6. Invariant 3.2 owns the absent re-activation.
@@ -74,22 +74,22 @@ Deleted: State 9. Non-goal 9 owns the case lifecycle.
 
 Term hold state: active | released — the obligation in effect, or documented as ended.
 
-Term placed by: the opaque reference naming who placed the hold — a [Placed By]; the attribution anchor for the preservation decision.
+Term placing actor: the opaque reference naming who placed the hold — a [Placing Actor]; the attribution anchor for the preservation decision.
 
 Term hold reason: the narrative ground the hold was placed on — a [Hold Reason].
 
-Term placed at: the instant the obligation was recorded — a [Placed At].
+Term placement instant: the instant the obligation was recorded — a [Placement Instant].
 
-Term case ref: the opaque reference naming the matter the hold sits under — a [Case Ref]; absent where no formal matter exists yet.
+Term case reference: the opaque reference naming the matter the hold sits under — a [Case Reference]; absent where no formal matter exists yet.
 
-Term released by: the opaque reference naming who ended the obligation — a [Released By].
+Term releasing actor: the opaque reference naming who ended the obligation — a [Releasing Actor].
 
 Term release reason: the ground the obligation ended on — a [Release Reason].
 
-Term released at: the instant the obligation was documented as ended — a [Released At].
+Term release instant: the instant the obligation was documented as ended — a [Release Instant].
 
 WHY:
-There is no aggregate *is this record held* field, because an aggregate is a second copy of the truth that drifts the moment a hold is placed or released; the question is answered by reading the active holds over the record (State 9, Operation 20). A released hold stays in the store because it is the proof the obligation was honoured and lawfully lifted — the evidence a court asks for, deleted by nobody (State 7, Invariant 8.1).
+There is no aggregate *is this record held* field, because an aggregate is a second copy of the truth that drifts the moment a hold is placed or released; the question is answered by reading the active holds over the record (State 9, Operation 20). A released hold stays in the store because it is the proof the obligation was honoured and lawfully lifted — the evidence a court asks for, deleting actor nobody (State 7, Invariant 8.1).
 
 ### Capability requirement
 
@@ -125,29 +125,29 @@ read(query)
 Operation 1: [Place] MUST record EXACTLY ONE hold per successful call.
 Operation 2: [Place] MUST stand the hold in active.
 Operation 3: [Place] MUST answer hold id.
-Operation 4: IF record ref EQUALS blank THEN [Place] MUST answer invalid-request.
-Operation 5: IF placed by EQUALS blank THEN [Place] MUST answer invalid-request.
+Operation 4: IF record reference EQUALS blank THEN [Place] MUST answer invalid-request.
+Operation 5: IF placing actor EQUALS blank THEN [Place] MUST answer invalid-request.
 Operation 6: IF hold reason EQUALS blank THEN [Place] MUST answer invalid-request.
-Operation 7: IF a supplied case ref EQUALS blank THEN [Place] MUST answer invalid-request.
-Operation 8: IF now PRECEDES a supplied placed at THEN [Place] MUST answer invalid-request.
-Operation 9: IF the caller supplies no placed at THEN [Place] MUST stamp placed at from the injected now.
-Operation 10: [Place] MUST accept a placed at below now.
+Operation 7: IF a supplied case reference EQUALS blank THEN [Place] MUST answer invalid-request.
+Operation 8: IF now PRECEDES a supplied placement instant THEN [Place] MUST answer invalid-request.
+Operation 9: IF the caller supplies no placement instant THEN [Place] MUST stamp placement instant from the injected now.
+Operation 10: [Place] MUST accept a placement instant below now.
 Operation 11: IF the store refuses the write THEN [Place] MUST answer storage-failure.
 Operation 12: IF hold id EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 13: IF no hold EXISTS for the hold id THEN [Release] MUST answer not-known.
 Operation 14: IF the hold state EQUALS released THEN [Release] MUST answer already-released.
-Operation 15: IF released by EQUALS blank THEN [Release] MUST answer invalid-request.
+Operation 15: IF releasing actor EQUALS blank THEN [Release] MUST answer invalid-request.
 Operation 16: IF release reason EQUALS blank THEN [Release] MUST answer invalid-request.
-Operation 17: IF the resolved released at falls below the hold's placed at THEN [Release] MUST answer invalid-request.
-Operation 18: IF now PRECEDES a supplied released at THEN [Release] MUST answer invalid-request.
-Operation 18a: IF the caller supplies no released at THEN [Release] MUST stamp released at from the injected now.
+Operation 17: IF the resolved release instant falls below the hold's placement instant THEN [Release] MUST answer invalid-request.
+Operation 18: IF now PRECEDES a supplied release instant THEN [Release] MUST answer invalid-request.
+Operation 18a: IF the caller supplies no release instant THEN [Release] MUST stamp release instant from the injected now.
 Operation 19: [Release] MUST stand the hold in released.
 Operation 20: [Release] MUST NOT reach another hold over the record.
 Operation 21: IF the store refuses the write THEN [Release] MUST answer storage-failure.
 Operation 22: [Release] MUST leave the hold standing in active on storage-failure.
 Operation 23: [Read] MUST answer the holds the query matches.
-Operation 24: [Read] MUST order the answer by placed at, rising.
-Operation 25: [Read] MUST order two holds sharing a placed at by hold id, rising.
+Operation 24: [Read] MUST order the answer by placement instant, rising.
+Operation 25: [Read] MUST order two holds sharing a placement instant by hold id, rising.
 Operation 26: [Read] MUST accept a filter on EVERY admitted axis.
 Operation 26a: [Read] MUST accept a query combining admitted axes.
 Operation 27: IF the query carries an axis outside the admitted axes THEN [Read] MUST answer invalid-query.
@@ -155,39 +155,39 @@ Operation 28: IF a filter value EQUALS blank THEN [Read] MUST answer invalid-que
 Operation 29: IF a hold state filter value falls outside the hold state set THEN [Read] MUST answer invalid-query.
 Operation 30: IF a range's end falls below the range's start THEN [Read] MUST answer invalid-query.
 Operation 31: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
-Operation 32: [Read] MUST NOT answer an active hold under a released at filter.
-Operation 33: [Read] MUST NOT answer a hold carrying no case ref under a case ref filter.
+Operation 32: [Read] MUST NOT answer an active hold under a release instant filter.
+Operation 33: [Read] MUST NOT answer a hold carrying no case reference under a case reference filter.
 Operation 34: [Read] MUST NOT write.
 Deleted: Operation 35. Capability requirement 1 owns it.
 Deleted: Operation 36. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 37. Execution Contract Logic confinement 3 owns it.
-Operation 38: The business caller MAY supply placed at.
-Operation 39: The business caller MAY supply released at.
-Operation 40: The atom MUST judge a supplied placed at against the injected now.
-Operation 41: The atom MUST judge a supplied released at against the injected now.
+Operation 38: The business caller MAY supply placement instant.
+Operation 39: The business caller MAY supply release instant.
+Operation 40: The atom MUST judge a supplied placement instant against the injected now.
+Operation 41: The atom MUST judge a supplied release instant against the injected now.
 ```
 
 Term query: what a read asks for — a [Query]; any combination of the admitted axes, and a query carrying none matches every hold.
 
-Term admitted axis: hold id | record ref | placed by | case ref | hold state | a placed at range | a released at range — the filter axes [Read] accepts, and no others.
+Term admitted axis: hold id | record reference | placing actor | case reference | hold state | a placement instant range | a release instant range — the filter axes [Read] accepts, and no others.
 
-Term resolved released at: the released at the release records — the caller's value where one is supplied, the injected now otherwise.
+Term resolved release instant: the release instant the release records — the caller's value where one is supplied, the injected now otherwise.
 
-Term held at an instant: placed at at or before the instant, and either the hold state EQUALS active or the hold carries a released at after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
+Term hold instant an instant: placement instant at or before the instant, and either the hold state EQUALS active or the hold carries a release instant after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the hold store |
 |---|---|---|---|
-| [Place] | refs and reason present, placed at not future, store accepts | hold id | one hold lands in [Active] (Operation 1, Operation 2) |
-| [Place] | blank record ref, placed by, reason, or supplied case ref | [Invalid Request] | none (Operation 4 through 7) |
-| [Place] | supplied placed at in the future | [Invalid Request] | none (Operation 8) |
-| [Place] | supplied placed at in the past | hold id | one hold lands, back-dated as supplied (Operation 10) |
+| [Place] | refs and reason present, placement instant not future, store accepts | hold id | one hold lands in [Active] (Operation 1, Operation 2) |
+| [Place] | blank record reference, placing actor, reason, or supplied case reference | [Invalid Request] | none (Operation 4 through 7) |
+| [Place] | supplied placement instant in the future | [Invalid Request] | none (Operation 8) |
+| [Place] | supplied placement instant in the past | hold id | one hold lands, back-dated as supplied (Operation 10) |
 | [Release] | hold active, attribution present, time in range | released | [Active] → [Released], release fields stamped (Operation 19, State 4) |
 | [Release] | blank hold id | [Invalid Request] | none — the caller passed nothing, not a missing hold (Operation 12) |
 | [Release] | id names nothing | [Not Known] | none (Operation 13) |
 | [Release] | hold already released | [Already Released] | none (Operation 14) |
-| [Release] | resolved released at before placed at, or supplied one in the future | [Invalid Request] | none (Operation 17, Operation 18) |
+| [Release] | resolved release instant before placement instant, or supplied one in the future | [Invalid Request] | none (Operation 17, Operation 18) |
 | either write | store refuses | [Storage Failure] | none — a release leaves the hold [Active] (Operation 11, Operation 21, Operation 22) |
 | [Read] | well-formed query | the matching holds, ordered | none — the call reads (Operation 23, Operation 34) |
 | [Read] | unknown axis, blank value, bad state, inverted range | [Invalid Query] | none — rejected rather than silently ignored (Operation 27 through 30) |
@@ -200,7 +200,7 @@ A blank hold id is refused before the store is consulted, because *you passed ga
 
 - **Invariant 1 — Hold immutability.**
   ```
-  Invariant 1.1: A recorded hold's hold id, record ref, placed by, hold reason, placed at and case ref MUST NOT change.
+  Invariant 1.1: A recorded hold's hold id, record reference, placing actor, hold reason, placement instant and case reference MUST NOT change.
   ```
 - **Invariant 2 — Membership exclusivity.**
   ```
@@ -215,24 +215,24 @@ A blank hold id is refused before the store is consulted, because *you passed ga
   ```
   Invariant 4.1: A release MUST NOT change another hold's state.
   Invariant 4.2: A hold's state MUST rest on that hold's own release alone.
-  Invariant 4.3: A record MUST read as held at an instant ONLY IF a hold over the record is held at an instant.
+  Invariant 4.3: A record MUST read as hold instant an instant ONLY IF a hold over the record is hold instant an instant.
   ```
 - **Invariant 5 — Release attribution is complete.**
   ```
-  Invariant 5.1: A released hold MUST carry a released by that is not blank.
+  Invariant 5.1: A released hold MUST carry a releasing actor that is not blank.
   Invariant 5.2: A released hold MUST carry a release reason that is not blank.
-  Invariant 5.3: A released hold MUST carry released at.
+  Invariant 5.3: A released hold MUST carry release instant.
   ```
   WHY: an anonymous or unexplained release defeats the audit trail a court reads — *who decided the duty had ended, and on what ground* is the question a spoliation dispute turns on.
 - **Invariant 6 — Temporal ordering.**
   ```
-  Invariant 6.1: A released hold's placed at MUST NOT EXCEED the hold's released at.
+  Invariant 6.1: A released hold's placement instant MUST NOT EXCEED the hold's release instant.
   ```
 - **Invariant 7 — Placement attribution is complete.**
   ```
-  Invariant 7.1: EVERY hold MUST carry a placed by that is not blank.
+  Invariant 7.1: EVERY hold MUST carry a placing actor that is not blank.
   Invariant 7.2: EVERY hold MUST carry a hold reason that is not blank.
-  Invariant 7.3: EVERY hold MUST carry placed at.
+  Invariant 7.3: EVERY hold MUST carry placement instant.
   ```
 - **Invariant 8 — Hold store durability.**
   ```
@@ -279,11 +279,11 @@ After hold-001 is [Released], counsel's paralegal system retries: `release("hold
 
 #### Regulator audit — HHS OCR HIPAA investigation
 
-HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) Office for Civil Rights (OCR) opens an investigation into a reported breach of PHI (Protected Health Information — individually identifiable health data covered by HIPAA, the Health Insurance Portability and Accountability Act, the US federal law governing healthcare data privacy). It issues a preservation demand to the covered entity for all records relating to the incident. The compliance team calls [Place] for each record in scope; each placement carries `case_ref: "ocr-hipaa-inv-2026-0334"`. Two months later, OCR requests the preservation record: query `read({case_ref: "ocr-hipaa-inv-2026-0334", state: Active})` returns every [Active] hold placed under this investigation. Every hold carries [Placed By] and [Hold Reason] strings, neither blank, and a [Placed At] timestamp that is set — immutable by Invariants 1 and 7. OCR confirms that preservation was initiated and that each hold is still [Active]. The covered entity has a documentable, auditable preservation response; no recourse to developer testimony is needed.
+HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) Office for Civil Rights (OCR) opens an investigation into a reported breach of PHI (Protected Health Information — individually identifiable health data covered by HIPAA, the Health Insurance Portability and Accountability Act, the US federal law governing healthcare data privacy). It issues a preservation demand to the covered entity for all records relating to the incident. The compliance team calls [Place] for each record in scope; each placement carries `case_ref: "ocr-hipaa-inv-2026-0334"`. Two months later, OCR requests the preservation record: query `read({case_ref: "ocr-hipaa-inv-2026-0334", state: Active})` returns every [Active] hold placed under this investigation. Every hold carries [Placing Actor] and [Hold Reason] strings, neither blank, and a [Placement Instant] timestamp that is set — immutable by Invariants 1 and 7. OCR confirms that preservation was initiated and that each hold is still [Active]. The covered entity has a documentable, auditable preservation response; no recourse to developer testimony is needed.
 
 #### Spoliation challenge — federal litigation
 
-Opposing counsel in federal litigation argues that the defendant destroyed documents after the duty to preserve was triggered under FRCP (Federal Rules of Civil Procedure — the rules governing civil lawsuits in US federal courts) Rule 37(e). Defendant's counsel queries `read({record_ref: "doc-contract-077"})` for all holds ever placed on the disputed document. The query returns the hold placed on the record, with `placed_at: 2026-02-14` — the date the preservation obligation was recognized. The opposing party claims the document was destroyed on `2026-02-10`. The hold record shows [Placed At] postdating the destruction. If a corresponding purge record from Retention Window shows `purged_at: 2026-02-10` and no [Active] hold existed at that time, the records faithfully document the chronology — the hold was placed after the purge. If the document was never purged and remains in the store, the hold records confirm ongoing preservation. Either way, the court has the complete record; the atom does not manufacture a defense but it does not hide the facts either.
+Opposing counsel in federal litigation argues that the defendant destroyed documents after the duty to preserve was triggered under FRCP (Federal Rules of Civil Procedure — the rules governing civil lawsuits in US federal courts) Rule 37(e). Defendant's counsel queries `read({record_ref: "doc-contract-077"})` for all holds ever placed on the disputed document. The query returns the hold placed on the record, with `placed_at: 2026-02-14` — the date the preservation obligation was recognized. The opposing party claims the document was destroyed on `2026-02-10`. The hold record shows [Placement Instant] postdating the destruction. If a corresponding purge record from Retention Window shows `purged_at: 2026-02-10` and no [Active] hold existed at that time, the records faithfully document the chronology — the hold was placed after the purge. If the document was never purged and remains in the store, the hold records confirm ongoing preservation. Either way, the court has the complete record; the atom does not manufacture a defense but it does not hide the facts either.
 
 #### Concurrent hold integrity — dual regulatory investigation
 
@@ -304,13 +304,13 @@ This atom's acceptance is what an external auditor can clear from the hold store
 
 ```
 Check 1.1: An auditor MUST find EVERY issued hold id in the store (Invariant 8.1, Invariant 8.2).
-Check 2.1: An auditor MUST find placed by and hold reason not blank on EVERY hold (Invariant 7.1, Invariant 7.2).
-Check 2.3: An auditor MUST find record ref not blank on EVERY hold (Operation 4).
+Check 2.1: An auditor MUST find placing actor and hold reason not blank on EVERY hold (Invariant 7.1, Invariant 7.2).
+Check 2.3: An auditor MUST find record reference not blank on EVERY hold (Operation 4).
 Check 2.4: An auditor MUST find hold id not blank on EVERY hold (Identity 2, Instance 2).
-Check 2.2: An auditor MUST find placed at set on EVERY hold (Invariant 7.3).
-Check 3.1: An auditor MUST find released by and release reason not blank on EVERY released hold (Invariant 5.1, Invariant 5.2).
-Check 3.2: An auditor MUST find released at set on EVERY released hold (Invariant 5.3).
-Check 3.3: An auditor MUST find no released hold whose the hold's released at PRECEDES placed at (Invariant 6.1).
+Check 2.2: An auditor MUST find placement instant set on EVERY hold (Invariant 7.3).
+Check 3.1: An auditor MUST find releasing actor and release reason not blank on EVERY released hold (Invariant 5.1, Invariant 5.2).
+Check 3.2: An auditor MUST find release instant set on EVERY released hold (Invariant 5.3).
+Check 3.3: An auditor MUST find no released hold whose the hold's release instant PRECEDES placement instant (Invariant 6.1).
 Check 4.1: An auditor MUST find a second hold over one record still active once the first hold is released (Invariant 4.1).
 Check 5.1: An auditor MUST find already-released answered for a release against a released hold (Operation 14, Invariant 3.1).
 Check 5.2: An auditor MUST find a released hold's fields unchanged by that refused release (Invariant 1.1).
@@ -326,7 +326,7 @@ Check 7.1: An auditor MUST identify which composing patterns a deployment wired 
 External check 1: An auditor MUST read whether a held record was purged from the composing pattern's purge records (Non-goal 1, Composition note 2).
 External check 2: An auditor MUST read who was permitted to place a hold from the composing Permissions records (Non-goal 7).
 External check 3: An auditor MUST read a hold record's integrity from the composing Tamper Evidence seals (Non-goal 11).
-External check 4: An auditor MUST read the matter a case ref names from the deployment's case-management system (Non-goal 9).
+External check 4: An auditor MUST read the matter a case reference names from the deployment's case-management system (Non-goal 9).
 ```
 
 NOTE: EVERY check names the rule the check tests. The hold store answers *what was preserved, by whom, and for how long*; whether the preservation was honoured at the purge surface is the composing pattern's record, because this atom deliberately enforces nothing (Non-goal 1).
@@ -336,7 +336,7 @@ NOTE: EVERY check names the rule the check tests. The hold store answers *what w
 ```
 Non-goal 1: The atom MUST NOT block a purge.
 Non-goal 2: A deployment needing an enforced hold MUST compose Defensible Retention.
-Non-goal 3: The atom MUST NOT read the record a record ref names.
+Non-goal 3: The atom MUST NOT read the record a record reference names.
 Non-goal 4: The atom MUST NOT refuse a hold over a destroyed record.
 Non-goal 5: The atom MUST NOT deduplicate two holds.
 Non-goal 6: A deployment needing at-most-once placement MUST compose Duplicate Prevention.
@@ -371,9 +371,9 @@ Concurrency 3: Two placements over one record MUST record two holds.
 ### Back-dating a placement
 
 ```
-Backdating 1: [Place] MUST accept a placed at below now.
-Backdating 2: [Place] MUST NOT accept a placed at above now.
-Backdating 3: The deployment MUST own the evidentiary weight of a back-dated placed at.
+Backdating 1: [Place] MUST accept a placement instant below now.
+Backdating 2: [Place] MUST NOT accept a placement instant above now.
+Backdating 3: The deployment MUST own the evidentiary weight of a back-dated placement instant.
 ```
 
 WHY:
@@ -424,7 +424,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an auditor; the store; a hold; a release; a placement; a query.
 
-Term records: hold — one preservation obligation, carrying hold id, record ref, placed by, hold reason, placed at, a hold state and, where they exist, case ref, released by, release reason and released at.
+Term records: hold — one preservation obligation, carrying hold id, record reference, placing actor, hold reason, placement instant, a hold state and, where they exist, case reference, releasing actor, release reason and release instant.
 
 Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, leave, read, order, write, change, rest, shrink, find, serialize, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, exceed, fall.
 
@@ -436,23 +436,23 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: store instance, hold, hold id, record ref, seam, transition, business caller, now, hold state, placed by, hold reason, placed at, case ref, released by, release reason, released at, query, resolved released at.
+Term terms: store instance, hold, hold id, record reference, seam, transition, business caller, now, hold state, placing actor, hold reason, placement instant, case reference, releasing actor, release reason, release instant, query, resolved release instant.
 
 #### Place
 
-The behavior that records a new preservation hold against a record. It assigns a fresh [Hold Id], stamps [Placed At], records [Record Ref], [Placed By], [Hold Reason], and [Case Ref] (if supplied), and returns the [Hold Id] (or a rejection). The hold enters [Active].
+The behavior that records a new preservation hold against a record. It assigns a fresh [Hold Id], stamps [Placement Instant], records [Record Reference], [Placing Actor], [Hold Reason], and [Case Reference] (if supplied), and returns the [Hold Id] (or a rejection). The hold enters [Active].
 
 Kind: Operation
 
 #### Release
 
-The behavior that documents the end of a preservation obligation, transitioning an [Active] hold to [Released] and recording [Released By], [Release Reason], and [Released At]. A [Released] hold cannot be released again ([Already Released]); releasing one hold never affects another on the same record (Invariant 4).
+The behavior that documents the end of a preservation obligation, transitioning an [Active] hold to [Released] and recording [Releasing Actor], [Release Reason], and [Release Instant]. A [Released] hold cannot be released again ([Already Released]); releasing one hold never affects another on the same record (Invariant 4).
 
 Kind: Operation
 
 #### Read
 
-The read-only behavior that returns the holds matching a [Query], ordered by [Placed At] ascending then [Hold Id] ascending. It changes nothing. Filters by [Hold Id], [Record Ref], [Placed By], [Case Ref], [State], or time range are combinable; the query `{record_ref: X, state: Active}` is the operational "is this record held?" check.
+The read-only behavior that returns the holds matching a [Query], ordered by [Placement Instant] ascending then [Hold Id] ascending. It changes nothing. Filters by [Hold Id], [Record Reference], [Placing Actor], [Case Reference], [State], or time range are combinable; the query `{record_ref: X, state: Active}` is the operational "is this record held?" check.
 
 Kind: Operation
 
@@ -464,15 +464,15 @@ Kind:       Field
 Field of:   the hold record
 Projection: hold_id
 
-#### Record Ref
+#### Record Reference
 
-The opaque reference to the record being held. Set on [Place], immutable, never validated against any storage layer. Multiple holds may name the same [Record Ref]; each is an independent hold.
+The opaque reference to the record being held. Set on [Place], immutable, never validated against any storage layer. Multiple holds may name the same [Record Reference]; each is an independent hold.
 
 Kind:       Field
 Field of:   the hold record
 Projection: record_ref
 
-#### Placed By
+#### Placing Actor
 
 The opaque reference to the actor placing the hold — the attribution anchor for the preservation decision. Set on [Place], immutable; empty or whitespace-only is rejected (Invariant 7).
 
@@ -488,17 +488,17 @@ Kind:       Field
 Field of:   the hold record
 Projection: hold_reason
 
-#### Placed At
+#### Placement Instant
 
-The timestamp the hold was placed — supplied or defaulted to the receiving node's wall clock; must not be future. Set on [Place], immutable. The lower bound for [Released At] (Invariant 6) and the ordering key for [Read].
+The timestamp the hold was placed — supplied or defaulted to the receiving node's wall clock; must not be future. Set on [Place], immutable. The lower bound for [Release Instant] (Invariant 6) and the ordering key for [Read].
 
 Kind:       Field
 Field of:   the hold record
 Projection: placed_at
 
-#### Case Ref
+#### Case Reference
 
-The optional opaque reference to the legal matter, investigation, or audit. Set on [Place] if supplied (then immutable); its absence is valid. A positive [Case Ref] filter excludes holds without one.
+The optional opaque reference to the legal matter, investigation, or audit. Set on [Place] if supplied (then immutable); its absence is valid. A positive [Case Reference] filter excludes holds without one.
 
 Kind:       Field
 Field of:   the hold record
@@ -512,9 +512,9 @@ Kind:       Field
 Field of:   the hold record
 Projection: state
 
-#### Released By
+#### Releasing Actor
 
-The opaque reference to the actor releasing the hold. Set at [Release], immutable; present on [Released] holds only. Non-null required (Invariant 5).
+The opaque reference to the actor releasing the hold. Set Instant [Release], immutable; present on [Released] holds only. Non-null required (Invariant 5).
 
 Kind:       Field
 Field of:   the hold record
@@ -522,15 +522,15 @@ Projection: released_by
 
 #### Release Reason
 
-The required, non-empty reason for the release — written from the [Reason] parameter at [Release]. Set at [Release], immutable; present on [Released] holds only (Invariant 5).
+The required, non-empty reason for the release — written from the [Reason] parameter at [Release]. Set Instant [Release], immutable; present on [Released] holds only (Invariant 5).
 
 Kind:       Field
 Field of:   the hold record
 Projection: release_reason
 
-#### Released At
+#### Release Instant
 
-The timestamp the hold was released — supplied or defaulted to wall clock; must not be future and must be ≥ [Placed At] (Invariant 6). Set at [Release], immutable; present on [Released] holds only.
+The timestamp the hold was released — supplied or defaulted to wall clock; must not be future and must be ≥ [Placement Instant] (Invariant 6). Set Instant [Release], immutable; present on [Released] holds only.
 
 Kind:       Field
 Field of:   the hold record
@@ -538,7 +538,7 @@ Projection: released_at
 
 #### Store Name
 
-The identifier of the store instance a hold belongs to. Multiple instances coexist; [Hold Id]s are unique within an instance, while [Record Ref] is host-scoped. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
+The identifier of the store instance a hold belongs to. Multiple instances coexist; [Hold Id]s are unique within an instance, while [Record Reference] is host-scoped. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
 
 Kind:       Field
 Field of:   the store instance
@@ -554,7 +554,7 @@ Projection:   reason
 
 #### Query
 
-The selection [Read] consumes — a filter over [Hold Id], [Record Ref], [Placed By], [Case Ref], [State], and/or a time range on [Placed At] or [Released At]. Supplied per call, not stored; a malformed one is rejected [Invalid Query].
+The selection [Read] consumes — a filter over [Hold Id], [Record Reference], [Placing Actor], [Case Reference], [State], and/or a time range on [Placement Instant] or [Release Instant]. Supplied per call, not stored; a malformed one is rejected [Invalid Query].
 
 Kind:         Parameter
 Parameter of: Read
@@ -570,7 +570,7 @@ Role:      Outcome
 
 #### Released
 
-The terminal state of a hold whose preservation obligation has ended. Carries [Released By], [Release Reason], and [Released At]; retained as audit evidence, no further transition (Invariant 3).
+The terminal state of a hold whose preservation obligation has ended. Carries [Releasing Actor], [Release Reason], and [Release Instant]; retained as audit evidence, no further transition (Invariant 3).
 
 Kind:      Member
 Member of: the hold state
@@ -578,7 +578,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The refusal [Place] or [Release] returns when request fields fail — an empty/whitespace [Record Ref], [Placed By], [Reason], [Case Ref], [Released By], or [Hold Id]; a future [Placed At]; or a [Released At] that is future or before [Placed At].
+The refusal [Place] or [Release] returns when request fields fail — an empty/whitespace [Record Reference], [Placing Actor], [Reason], [Case Reference], [Releasing Actor], or [Hold Id]; a future [Placement Instant]; or a [Release Instant] that is future or before [Placement Instant].
 
 Kind:       Member
 Member of:  the action rejection
@@ -630,15 +630,15 @@ Projection: invalid-query
 [Release]: #release
 [Read]: #read
 [Hold Id]: #hold-id
-[Record Ref]: #record-ref
-[Placed By]: #placed-by
+[Record Reference]: #record-reference
+[Placing Actor]: #placing-actor
 [Hold Reason]: #hold-reason
-[Placed At]: #placed-at
-[Case Ref]: #case-ref
+[Placement Instant]: #placement-instant
+[Case Reference]: #case-reference
 [State]: #state
-[Released By]: #released-by
+[Releasing Actor]: #releasing-actor
 [Release Reason]: #release-reason
-[Released At]: #released-at
+[Release Instant]: #release-instant
 [Store Name]: #store-name
 [Reason]: #reason
 [Query]: #query
@@ -654,13 +654,13 @@ Projection: invalid-query
 
 ## Standards references
 
-- **Federal Rules of Civil Procedure Rule 37(e)** — the primary U.S. federal standard for electronic discovery preservation. A party must take reasonable steps to preserve ESI (Electronically Stored Information — digital records subject to legal discovery) once litigation is reasonably anticipated; failure to preserve when an [Active] hold should have been in place exposes the party to sanctions including adverse inference instructions. The [Placed At] timestamp and [Hold Reason] field are the record of when and why the preservation obligation was recognized.
-- **Federal Rules of Civil Procedure Rule 26(b)** — proportionality doctrine for discovery preservation; not all records must be held, only those reasonably expected to be relevant. [Hold Reason] and [Case Ref] are the scoping fields that document proportionality.
+- **Federal Rules of Civil Procedure Rule 37(e)** — the primary U.S. federal standard for electronic discovery preservation. A party must take reasonable steps to preserve ESI (Electronically Stored Information — digital records subject to legal discovery) once litigation is reasonably anticipated; failure to preserve when an [Active] hold should have been in place exposes the party to sanctions including adverse inference instructions. The [Placement Instant] timestamp and [Hold Reason] field are the record of when and why the preservation obligation was recognized.
+- **Federal Rules of Civil Procedure Rule 26(b)** — proportionality doctrine for discovery preservation; not all records must be held, only those reasonably expected to be relevant. [Hold Reason] and [Case Reference] are the scoping fields that document proportionality.
 - **Sedona Conference Principles (3rd ed.)** — the leading authoritative guidance on electronic discovery preservation obligations. Principle 5: a party is not required to preserve every document; preservation must be proportionate. Principle 6: a party should consider adoption of a litigation hold policy. The [Hold Reason] field is the policy documentation surface.
 - **SOX §802 (18 U.S.C. §1519)** — criminal obstruction-of-justice provision for destruction of documents subject to federal investigation or proceedings. An [Active] Legal Hold covering the relevant records is the structural defense against §802 exposure.
 - **SEC Rule 17a-4(f)** — requires broker-dealers to preserve records in non-rewriteable, non-erasable format, accessible to regulators on demand. Legal Hold composes with Tamper Evidence to meet this standard; the hold record itself is a regulated record under 17a-4.
 - **HIPAA §164.530(j)** — documentation retention requirements; HHS investigations trigger preservation obligations over the PHI and administrative records involved. Legal Hold is the preservation mechanism.
-- **HIPAA Breach Notification Rule (45 CFR §164.400–414)** — breach investigations generate preservation obligations over the records relating to the incident. [Case Ref] references the OCR investigation case identifier.
+- **HIPAA Breach Notification Rule (45 CFR §164.400–414)** — breach investigations generate preservation obligations over the records relating to the incident. [Case Reference] references the OCR investigation case identifier.
 - **GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Article 17(3)(e)** — erasure right (right to be forgotten) does not apply when processing is necessary for the establishment, exercise, or defence of legal claims. An [Active] Legal Hold is the operational record that establishes the legal-claim exception to erasure. See [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md), whose `retained(legal-hold)` disposition is the records-alone form of this exception.
 - **21 CFR Part 11** — electronic records and signatures in FDA-regulated contexts. Preservation holds on regulated records (clinical trial data, manufacturing batch records) must be attributable and non-alterable. Composes with Actor Identity and Tamper Evidence.
 - **E-SIGN Act (Electronic Signatures in Global and National Commerce Act) / UETA (Uniform Electronic Transactions Act)** — electronic hold records carry the same legal force as paper hold notices where these acts apply.

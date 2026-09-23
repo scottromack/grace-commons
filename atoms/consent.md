@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Consent records a person's agreement to have their personal data used for one named purpose — "marketing emails," "behavioural analytics." Each record captures when the agreement was given, who collected it, and what it covers, and it captures how the agreement ends: the person withdraws it, or it runs out because a time limit was set at grant.
+Consent records a person's agreement to have their personal data used for one named purpose — "marketing emails," "behavioural analytics." Each record captures when the agreement was given, who collected it, and what it covers, and it captures how the agreement ends: the person withdraws it, or it runs out because a time limit was set instant grant.
 
 Every record is in one of three states — [Granted], [Revoked], [Expired]. The two ending states are permanent. Consent that has ended is not revived; the person gives fresh agreement instead, and that is a new record. Records are kept unchanged forever, and a withdrawal is logged as its own dated, attributed event rather than by editing the grant — so the proof that earlier use was permitted is never lost. Withdrawing ends future use; it does not rewrite the past.
 
@@ -33,7 +33,7 @@ Every system that processes personal data must answer one question before it act
 
 So the grant is scoped to one purpose per record. A system needing consent for three purposes holds three records, because a blanket authorization answers none of the questions a regulator asks. The grant ends in exactly two ways — the subject revokes, or a time bound elapses — and either way the ending state is permanent. A subject who revokes and later re-consents creates a new record; the prior one stays as evidence of the prior agreement and its termination. That is not a limitation, it is the evidentiary structure the regimes require.
 
-The atom is structurally distinct from [Permissions](./permissions.md) in a way that matters. Permissions governs what an internal actor may do inside the system — authorization pointing inward. Consent governs what the system may do to a data subject's data — authorization pointing outward, held by the subject rather than the operator. They are composing peers, not alternatives: a deployment may need a subject's consent for `marketing:email` *and* an actor's permission to fire the campaign.
+The atom is structurally distinct from [Permissions](./permissions.md) in a way that matters. Permissions governs what an internal actor may do inside the system — authorization pointing inward. Consent governs what the system may do to a data subject's data — authorization pointing outward, holding actor the subject rather than the operator. They are composing peers, not alternatives: a deployment may need a subject's consent for `marketing:email` *and* an actor's permission to fire the campaign.
 
 Revocation is a first-class action rather than a state flag, with its own timestamp, its own attribution and its own stated reason — GDPR Article 7(3) requires withdrawal to be as easy as granting, and [Revoke] is that requirement's specification. Expiry is the opposite: not an action but a condition. No actor triggers it and nothing polls for it; [Check] derives it from the record against the instant asked about.
 
@@ -47,39 +47,39 @@ Identity 2: The host MUST allocate a consent id at the seam.
 Identity 3: The transition MUST NOT allocate a consent id.
 Identity 4: The atom MUST NOT reuse a consent id.
 Identity 5: The atom MUST NOT change a consent id.
-Identity 6: The atom MUST NOT identify a consent record by the subject ref and the purpose.
+Identity 6: The atom MUST NOT identify a consent record by the subject reference and the purpose.
 Identity 7: EVERY consent id MUST stand non-blank.
 Identity 8: The deployment MUST draw a consent id that sorts in lexicographic byte-order.
-Identity 9: The atom MUST NOT interpret a subject ref.
+Identity 9: The atom MUST NOT interpret a subject reference.
 Identity 10: The atom MUST NOT interpret a purpose.
-Identity 11: The atom MUST NOT confirm that a subject ref names a known data subject.
+Identity 11: The atom MUST NOT confirm that a subject reference names a known data subject.
 ```
 
-Term consent id: the opaque value naming one consent record — a [Consent Id]; host-allocated at the seam, never reused.
+Term consent id: the opaque value naming one consent record — a [Consent Id]; host-allocation instant the seam, never reused.
 
-Term subject ref: the opaque reference naming the data subject whose agreement the record holds — a [Subject Ref].
+Term subject reference: the opaque reference naming the data subject whose agreement the record holds — a [Subject Reference].
 
 Term purpose: the opaque value naming the processing purpose the agreement covers — a [Purpose]; caller-declared vocabulary, matched exactly.
 
-Term granted by: the opaque reference naming the actor that recorded the subject's affirmative signal — a [Granted By].
+Term granting actor: the opaque reference naming the actor that recorded the subject's affirmative signal — a [Granting Actor].
 
 
 WHY:
 Identity by subject and purpose would be the natural-looking choice and it is wrong here: the atom deliberately admits several records over one pair, because re-consent after expiry is a new agreement and not an edit of the old one, and a regulator asking *what did this person agree to, and when* needs both rows (Identity 6, Non-goal 12). The id is the only identity anchor.
 
-The id carries a second job the other atoms' ids do not: it is the tiebreak key. Two records granted at the same instant are ordered by id, ascending in [Read] and descending in [Check], so the id must sort as bytes — a ULID (Universally Unique Lexicographically Sortable Identifier), a UUID v7 (version 7 of the Universally Unique Identifier, which is time-ordered), or a zero-padded integer string (Identity 8, Operation 50, Invariant 10.2).
+The id carries a second job the other atoms' ids do not: it is the tiebreak key. Two records grant instant the same instant are ordered by id, ascending in [Read] and descending in [Check], so the id must sort as bytes — a ULID (Universally Unique Lexicographically Sortable Identifier), a UUID v7 (version 7 of the Universally Unique Identifier, which is time-ordered), or a zero-padded integer string (Identity 8, Operation 50, Invariant 10.2).
 
 ### State
 
 ```
-State 2: A consent record's state MUST rest on granted at, revoked at and expires at against the evaluation instant.
-State 3: EVERY consent record MUST carry consent id, subject ref, purpose, granted by, granted at and state.
-State 4: A consent record MUST carry an expires at the [Grant] call supplied.
+State 2: A consent record's state MUST rest on grant instant, revocation instant and expiry instant against the evaluation instant.
+State 3: EVERY consent record MUST carry consent id, subject reference, purpose, granting actor, grant instant and state.
+State 4: A consent record MUST carry an expiry instant the [Grant] call supplied.
 State 5: A consent record MUST carry metadata the [Grant] call supplied.
-State 6: A consent record MUST NOT carry an expires at the [Grant] call omitted.
-State 7: A revoked consent record MUST carry revoked by, revocation reason and revoked at.
-State 8: A granted consent record MUST NOT carry revoked at.
-State 9: An expired consent record MUST NOT carry revoked at.
+State 6: A consent record MUST NOT carry an expiry instant the [Grant] call omitted.
+State 7: A revoked consent record MUST carry revoking actor, revocation reason and revocation instant.
+State 8: A granted consent record MUST NOT carry revocation instant.
+State 9: An expired consent record MUST NOT carry revocation instant.
 State 10: A revoked consent record MUST carry EVERY grant field.
 State 11: The atom MUST NOT offer a transition out of revoked.
 State 12: The atom MUST NOT offer a transition out of expired.
@@ -91,7 +91,7 @@ Deleted: State 1. Invariant 2.1 owns it.
 
 Term state: granted | revoked | expired — in effect, withdrawn, or run out; a [State], derived per Expiry 1 through 4 against the evaluation instant.
 
-Term grant field: consent id | subject ref | purpose | granted by | granted at | expires at | metadata — what [Grant] writes and Invariant 1.1 freezes.
+Term grant field: consent id | subject reference | purpose | granting actor | grant instant | expiry instant | metadata — what [Grant] writes and Invariant 1.1 freezes.
 
 #### Expiry
 
@@ -106,18 +106,18 @@ Expiry 7: The composing pattern MUST NOT poll for an elapsed consent record.
 ```
 
 WHY:
-Expiry is a condition, not an act. Nothing triggers it, nothing polls for it, and there is no `expire` action to call — [Check] derives it from [Expires At] against the instant asked about (Expiry 5, Expiry 6). That is also why revocation wins a tie: a record revoked before its bound elapses is [Revoked], because the earlier terminal event is the one that happened (Expiry 3, Invariant 6.2).
+Expiry is a condition, not an act. Nothing triggers it, nothing polls for it, and there is no `expire` action to call — [Check] derives it from [Expiry Instant] against the instant asked about (Expiry 5, Expiry 6). That is also why revocation wins a tie: a record revoked before its bound elapses is [Revoked], because the earlier terminal event is the one that happened (Expiry 3, Invariant 6.2).
 
 #### Stored state
 
 ```
-Stored state 1: The implementation MAY write the stored state at the instant expires at elapses.
-Stored state 2: The implementation MAY write the stored state at the first evaluation past expires at.
+Stored state 1: The implementation MAY write the stored state at the instant expiry instant elapses.
+Stored state 2: The implementation MAY write the stored state at the first evaluation past expiry instant.
 Stored state 3: The implementation MUST NOT answer a granted result for an elapsed consent record.
 Stored state 4: The implementation MUST serialize a lazy stored state write for one consent record.
 ```
 
-> **Clearly-marked residual (execution/render-time refactor — 2026-06-21).** The *authoritative* expiry determination is **derived** at read time: [Check] and [Read] both compute the state from [Expires At] and [Revoked At] against the evaluation instant, and [Check] is a pure query that never writes (Operation 36; there is no `expire` action — Expiry 5). The stored [State] field's [Expired] value is therefore a **materialized cache of the derived state, not the authority** — written for query convenience, and required by Invariant 2.2 to equal the derived state at the moment any result is returned. This stored write is the **residual** of this atom against the render-time target, which would carry no stored [Expired] write at all and derive the projection on every read, as Invitation does. It is *clearly marked here* rather than removed: dropping the stored [State] field is a structural change beyond this refactor, the eager/lazy design was introduced deliberately (Final Critique 4, to resolve the semantic-versus-stored contradiction), and because the cache must equal the derived value at read time it cannot serve as a flag that lags the clock in any conforming implementation. A future re-pass may collapse the stored [State] field to a pure read-time projection; that is an open design point, not done here.
+> **Clearly-marked residual (execution/render-time refactor — 2026-06-21).** The *authoritative* expiry determination is **derived** at read time: [Check] and [Read] both compute the state from [Expiry Instant] and [Revocation Instant] against the evaluation instant, and [Check] is a pure query that never writes (Operation 36; there is no `expire` action — Expiry 5). The stored [State] field's [Expired] value is therefore a **materialized cache of the derived state, not the authority** — written for query convenience, and required by Invariant 2.2 to equal the derived state at the moment any result is returned. This stored write is the **residual** of this atom against the render-time target, which would carry no stored [Expired] write at all and derive the projection on every read, as Invitation does. It is *clearly marked here* rather than removed: dropping the stored [State] field is a structural change beyond this refactor, the eager/lazy design was introduced deliberately (Final Critique 4, to resolve the semantic-versus-stored contradiction), and because the cache must equal the derived value at read time it cannot serve as a flag that lags the clock in any conforming implementation. A future re-pass may collapse the stored [State] field to a pure read-time projection; that is an open design point, not done here.
 
 ### Capability requirement
 
@@ -154,13 +154,13 @@ read(query)
 Operation 1: [Grant] MUST record EXACTLY ONE consent record per successful call.
 Operation 2: [Grant] MUST stand the consent record in granted.
 Operation 3: [Grant] MUST answer the consent id.
-Operation 4: IF subject ref EQUALS blank THEN [Grant] MUST answer invalid-request.
+Operation 4: IF subject reference EQUALS blank THEN [Grant] MUST answer invalid-request.
 Operation 5: IF purpose EQUALS blank THEN [Grant] MUST answer invalid-request.
-Operation 6: IF granted by EQUALS blank THEN [Grant] MUST answer invalid-request.
-Operation 7: [Grant] MAY record an expires at ONLY IF now PRECEDES expires at.
-Operation 8: IF expires at PRECEDES now THEN [Grant] MUST answer invalid-request.
-Operation 9: IF expires at EQUALS now THEN [Grant] MUST answer invalid-request.
-Operation 10: [Grant] MUST stamp granted at from the injected now.
+Operation 6: IF granting actor EQUALS blank THEN [Grant] MUST answer invalid-request.
+Operation 7: [Grant] MAY record an expiry instant ONLY IF now PRECEDES expiry instant.
+Operation 8: IF expiry instant PRECEDES now THEN [Grant] MUST answer invalid-request.
+Operation 9: IF expiry instant EQUALS now THEN [Grant] MUST answer invalid-request.
+Operation 10: [Grant] MUST stamp grant instant from the injected now.
 Operation 11: [Grant] MUST record metadata the call supplied.
 Operation 12: [Grant] MUST NOT interpret metadata.
 Operation 13: IF the store refuses the write THEN [Grant] MUST answer storage-failure.
@@ -170,16 +170,16 @@ Operation 16: IF the consent id names no consent record THEN [Revoke] MUST answe
 Operation 17: [Revoke] MUST answer not-known ONLY IF consent id DOES NOT EQUAL blank.
 Operation 18: IF the consent record's state EQUALS revoked THEN [Revoke] MUST answer already-revoked.
 Operation 19: IF the consent record's state EQUALS expired THEN [Revoke] MUST answer already-expired.
-Operation 20: [Revoke] MUST resolve revoked at from the call.
-Operation 21: [Revoke] MUST resolve revoked at from the injected now ONLY IF the call supplied a blank revoked at.
-Operation 22: IF the consent record's state EQUALS granted AND revoked by EQUALS blank THEN [Revoke] MUST answer invalid-request.
+Operation 20: [Revoke] MUST resolve revocation instant from the call.
+Operation 21: [Revoke] MUST resolve revocation instant from the injected now ONLY IF the call supplied a blank revocation instant.
+Operation 22: IF the consent record's state EQUALS granted AND revoking actor EQUALS blank THEN [Revoke] MUST answer invalid-request.
 Operation 23: IF the consent record's state EQUALS granted AND reason EQUALS blank THEN [Revoke] MUST answer invalid-request.
-Operation 24: IF the consent record's state EQUALS granted AND now PRECEDES the resolved revoked at THEN [Revoke] MUST answer invalid-request.
-Operation 25: IF the consent record's state EQUALS granted AND the resolved revoked at PRECEDES granted at THEN [Revoke] MUST answer invalid-request.
+Operation 24: IF the consent record's state EQUALS granted AND now PRECEDES the resolved revocation instant THEN [Revoke] MUST answer invalid-request.
+Operation 25: IF the consent record's state EQUALS granted AND the resolved revocation instant PRECEDES grant instant THEN [Revoke] MUST answer invalid-request.
 Operation 26: [Revoke] MUST stand the consent record in revoked.
-Operation 27: [Revoke] MUST record revoked by on the consent record.
+Operation 27: [Revoke] MUST record revoking actor on the consent record.
 Operation 28: [Revoke] MUST record the reason as the revocation reason.
-Operation 29: [Revoke] MUST record the resolved revoked at on the consent record.
+Operation 29: [Revoke] MUST record the resolved revocation instant on the consent record.
 Operation 30: [Revoke] MUST answer revoked.
 Operation 31: IF the store refuses the write THEN [Revoke] MUST answer storage-failure.
 Operation 32: A refused [Revoke] MUST leave the consent record in granted.
@@ -198,9 +198,9 @@ Operation 44: [Check] MUST answer granted ONLY IF a candidate record EXISTS AND 
 Operation 45: [Check] MUST evaluate the candidate record alone.
 Operation 46: IF at time DOES NOT EQUAL blank THEN [Check] MUST NOT evaluate a consent record against now.
 Operation 47: [Read] MUST answer EVERY consent record the query matches.
-Operation 48: [Read] MUST order the answer by granted at ascending.
+Operation 48: [Read] MUST order the answer by grant instant ascending.
 Operation 49: [Read] MUST NOT write.
-Operation 50: [Read] MUST order two consent records sharing a granted at by consent id ascending.
+Operation 50: [Read] MUST order two consent records sharing a grant instant by consent id ascending.
 Operation 51: [Read] MUST answer an empty sequence for a well-formed query no consent record matches.
 Operation 52: [Read] MUST accept EVERY combination of the supported filter axes.
 Operation 53: [Read] MUST answer EVERY consent record for a query carrying no filter.
@@ -222,45 +222,45 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term at time: the instant a [Check] evaluates against — an [At Time]; a caller-supplied query input, resolving to now where the call supplies none.
 
-Term grant guard: [Grant]'s preconditions — subject ref, purpose and granted by each present, and expires at, where supplied, exceeding now.
+Term grant guard: [Grant]'s preconditions — subject reference, purpose and granting actor each present, and expiry instant, where supplied, exceeding now.
 
-Term expires at: the optional instant a consent record's agreement runs out — an [Expires At]; set at [Grant], never stamped later.
+Term expiry instant: the optional instant a consent record's agreement runs out — an [Expiry Instant]; set instant [Grant], never stamped later.
 
 Term metadata: the optional opaque payload the atom stores unchanged — a [Metadata]; consent-form version, signal type, jurisdiction.
 
-Term revoked by: the opaque reference naming the actor that recorded the withdrawal — a [Revoked By].
+Term revoking actor: the opaque reference naming the actor that recorded the withdrawal — a [Revoking Actor].
 
 Term revocation reason: the stated ground for the withdrawal — a [Revocation Reason], carried from the call's [Reason].
 
 Term reason: the [Revoke] input the record keeps as revocation reason — a [Reason].
 
-Term revoked at: the instant the withdrawal takes effect — a [Revoked At]; caller-supplied or resolved from now.
+Term revocation instant: the instant the withdrawal takes effect — a [Revocation Instant]; caller-supplied or resolved from now.
 
-Term granted at: the instant the consent record was created — a [Granted At]; always stamped from now.
+Term grant instant: the instant the consent record was created — a [Grant Instant]; always stamped from now.
 
 Term evaluation instant: the instant a consent record's state is read against — the resolved at time in [Check], now everywhere else.
 
-Term withdrawn: the consent record carries a revoked at no later than the evaluation instant.
+Term withdrawn: the consent record carries a revocation instant no later than the evaluation instant.
 
-Term elapsed: the consent record carries an expires at no later than the evaluation instant.
+Term elapsed: the consent record carries an expiry instant no later than the evaluation instant.
 
-Term candidate record: among the consent records carrying the call's subject ref and purpose, the one whose granted at is the latest that the resolved at time does not precede; a tie on granted at resolves to the greatest consent id in lexicographic byte-order.
+Term candidate record: among the consent records carrying the call's subject reference and purpose, the one whose grant instant is the latest that the resolved at time does not precede; a tie on grant instant resolves to the greatest consent id in lexicographic byte-order.
 
-Term later write: a consent record written with a granted at, a revoked at or an expires at later than the resolved at time.
+Term later write: a consent record written with a grant instant, a revocation instant or an expiry instant later than the resolved at time.
 
 Term query: the filter set [Read] accepts — a [Query]; any combination of the supported filter axes.
 
-Term supported filter axes: consent id | subject ref | purpose | granted by | state | a time range on granted at | a time range on revoked at | a time range on expires at.
+Term supported filter axes: consent id | subject reference | purpose | granting actor | state | a time range on grant instant | a time range on revocation instant | a time range on expiry instant.
 
-Term reference filter: a consent id, subject ref, purpose or granted by filter on a query.
+Term reference filter: a consent id, subject reference, purpose or granting actor filter on a query.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the store |
 |---|---|---|---|
-| [Grant] | three references present, no expires at, store accepts | the new consent id | one record lands in [Granted] (Operation 1, Operation 2) |
-| [Grant] | as above with an expires at after [Now] | the new consent id | as above, with [Expires At] recorded (Operation 7) |
-| [Grant] | a blank reference, or an expires at at or before [Now] | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9) |
+| [Grant] | three references present, no expiry instant, store accepts | the new consent id | one record lands in [Granted] (Operation 1, Operation 2) |
+| [Grant] | as above with an expiry instant after [Now] | the new consent id | as above, with [Expiry Instant] recorded (Operation 7) |
+| [Grant] | a blank reference, or an expiry instant at or before [Now] | [Invalid Request] | none (Operation 4 through 6, Operation 8, Operation 9) |
 | [Revoke] | id names a record in [Granted], attribution present, times ordered | revoked | [Granted] → [Revoked], three fields stamped (Operation 26 through 29) |
 | [Revoke] | blank consent id | [Invalid Request] | none — checked before the store is consulted (Operation 15, Operation 17) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 16) |
@@ -268,10 +268,10 @@ The case space, and the rule that owns each case:
 | [Revoke] | id names a record in [Expired] | [Already Expired] | none (Operation 19) |
 | [Revoke] | record in [Granted], blank attribution or a time out of order | [Invalid Request] | none (Operation 22 through 25) |
 | either write | store refuses | [Storage Failure] | none (Operation 13, Operation 31 through 33) |
-| [Check] | the candidate record is withdrawn by [At Time] | revoked | none — the call reads (Operation 41, Operation 36) |
+| [Check] | the candidate record is withdrawing actor [At Time] | revoked | none — the call reads (Operation 41, Operation 36) |
 | [Check] | the candidate record is elapsed by [At Time], never withdrawn | expired | none (Operation 42, Operation 43) |
 | [Check] | the candidate record is neither | granted | none (Operation 44) |
-| [Check] | no record for the pair was granted by [At Time] | not-known | none (Operation 40) |
+| [Check] | no record for the pair was granting actor [At Time] | not-known | none (Operation 40) |
 | [Read] | a well-formed query | the matching records, oldest first | none (Operation 47, Operation 48) |
 | [Read] | a well-formed query matching nothing | an empty sequence | none (Operation 51) |
 | [Read] | a blank filter value, a bad state, an inverted range, an unknown key | [Invalid Query] | none (Operation 55 through 59) |
@@ -279,9 +279,9 @@ The case space, and the rule that owns each case:
 WHY:
 [Check] answers the question the caller asked — *what was the state at this instant* — and not *what is the stored state of the newest record*. That is the whole reason [At Time] exists, and why the evaluation runs against it rather than against [Now]: a regulator auditing whether processing on a past date was lawful and a system pre-flighting a campaign four weeks out depend on the same semantics (Operation 46, Invariant 10.1). A consent revoked or expired *later* than the instant asked about does not move the answer, which is what makes the store a faithful history rather than a current-state cache.
 
-The two tiebreaks run in opposite directions on purpose. [Check] must select the *latest* record among granted at ties, so it takes the greatest consent id; [Read] enumerates oldest-first, so it takes them ascending. Both need the id to sort as bytes (Identity 8, Operation 50, Invariant 10.2).
+The two tiebreaks run in opposite directions on purpose. [Check] must select the *latest* record among grant instant ties, so it takes the greatest consent id; [Read] enumerates oldest-first, so it takes them ascending. Both need the id to sort as bytes (Identity 8, Operation 50, Invariant 10.2).
 
-[Check] refuses nothing, and [Read] refuses only a malformed query — the asymmetry the corpus keeps meeting. A query with an unrecognized key is the one case where refusing beats ignoring: silently dropping a filter returns a result set the caller did not ask for and cannot tell apart from the one it did (Operation 55, Operation 56). A time-range filter on a field a state's records do not carry is not malformed — it is well-formed and matches nothing, because [Revoked At] lives only on revoked records and [Expires At] only on records granted with a bound (Operation 60).
+[Check] refuses nothing, and [Read] refuses only a malformed query — the asymmetry the corpus keeps meeting. A query with an unrecognized key is the one case where refusing beats ignoring: silently dropping a filter returns a result set the caller did not ask for and cannot tell apart from the one it did (Operation 55, Operation 56). A time-range filter on a field a state's records do not carry is not malformed — it is well-formed and matches nothing, because [Revocation Instant] lives only on revoked records and [Expiry Instant] only on records granted with a bound (Operation 60).
 
 Rejection order on [Revoke] is carried by the guards rather than by a numbered priority: a blank consent id is refused before the store is consulted, because a caller that passed garbage did not reference a missing record (Operation 15, Operation 17); the terminal-state answers are mutually exclusive by Invariant 2.1; and the attribution and temporal checks are conditioned on the record standing in [Granted], so a retry against an already-revoked record with a blank reason still answers [Already Revoked] (Operation 22 through 25).
 
@@ -294,7 +294,7 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
   ```
 - **Invariant 2 — Membership exclusivity.**
   ```
-  Invariant 2.1: EVERY consent record MUST stand in EXACTLY ONE OF granted, revoked, expired at the evaluation instant.
+  Invariant 2.1: EVERY consent record MUST stand in EXACTLY ONE OF granted, revoked, lapse instant the evaluation instant.
   Invariant 2.2: The stored state MUST equal the consent record's state at the instant a result reaches the caller.
   ```
 - **Invariant 3 — Terminal absorption.**
@@ -305,14 +305,14 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
   ```
 - **Invariant 4 — Revocation attribution is complete.**
   ```
-  Invariant 4.1: EVERY revoked consent record's revoked by MUST stand non-blank.
+  Invariant 4.1: EVERY revoked consent record's revoking actor MUST stand non-blank.
   Invariant 4.2: EVERY revoked consent record's revocation reason MUST stand non-blank.
-  Invariant 4.3: EVERY revoked consent record MUST carry a revoked at.
+  Invariant 4.3: EVERY revoked consent record MUST carry a revocation instant.
   ```
   WHY: an anonymous withdrawal, a whitespace-only ground, or a missing instant each defeats the one thing the record exists to demonstrate — that the data subject exercised the right, and that the system honoured it (Check 3.1).
 - **Invariant 5 — Temporal ordering on revocation.**
   ```
-  Invariant 5.1: EVERY revoked consent record's granted at MUST NOT EXCEED the revoked at.
+  Invariant 5.1: EVERY revoked consent record's grant instant MUST NOT EXCEED the revocation instant.
   ```
   WHY: the bound is on the value the record carries, so it holds whichever way the value was derived — a caller-supplied instant and a seam-resolved one meet the same floor, which is what makes it proof against clock-skew artifacts as well as backdating (Operation 25).
 - **Invariant 6 — Expiry coherence.**
@@ -321,11 +321,11 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
   Invariant 6.2: IF the candidate record is withdrawn AND the candidate record is elapsed THEN [Check] MUST answer revoked.
   Invariant 6.3: The implementation MUST write the elapsed consent record's stored state within the operation that answers the caller.
   ```
-  WHY: the bound on [Expires At] at grant time — strictly later than [Now] — is a [Grant] precondition and not part of this invariant (Operation 7 through 9). What this one holds is the reading: a record past its bound reads as [Expired], a record withdrawn first reads as [Revoked] because the earlier terminal event is the one that happened, and an implementation that answers a [Granted] result for a record whose state at the queried instant is [Expired] is non-conformant however it manages its cache.
+  WHY: the bound on [Expiry Instant] at grant time — strictly later than [Now] — is a [Grant] precondition and not part of this invariant (Operation 7 through 9). What this one holds is the reading: a record past its bound reads as [Expired], a record withdrawn first reads as [Revoked] because the earlier terminal event is the one that happened, and an implementation that answers a [Granted] result for a record whose state at the queried instant is [Expired] is non-conformant however it manages its cache.
 - **Invariant 7 — Grant attribution is complete.**
   ```
-  Invariant 7.1: EVERY consent record's consent id, subject ref, purpose and granted by MUST stand non-blank.
-  Invariant 7.2: EVERY consent record MUST carry a granted at.
+  Invariant 7.1: EVERY consent record's consent id, subject reference, purpose and granting actor MUST stand non-blank.
+  Invariant 7.2: EVERY consent record MUST carry a grant instant.
   ```
   WHY: Invariant 1.1 holds these fields still; this one holds them non-blank. An anonymous grant, a whitespace-only purpose or a missing instant answers none of *who agreed to what, and when* — which is the whole regulatory question (Check 2.1).
 - **Invariant 8 — Consent store durability.**
@@ -343,7 +343,7 @@ Rejection order on [Revoke] is carried by the guards rather than by a numbered p
 - **Invariant 10 — Point-in-time faithfulness.**
   ```
   Invariant 10.1: [Check] MUST answer from the candidate record alone.
-  Invariant 10.2: A tie on granted at MUST resolve to the greatest consent id in lexicographic byte-order.
+  Invariant 10.2: A tie on grant instant MUST resolve to the greatest consent id in lexicographic byte-order.
   Invariant 10.3: A later write MUST NOT change a [Check] answer for the at time.
   Invariant 10.4: A repeated [Check] carrying one at time MUST answer alike.
   ```
@@ -375,11 +375,11 @@ Term transition: the atom's evaluation of one call against the consent store, as
 
 ### Grant, check, revoke, re-consent
 
-A user onboarding to a health app affirms `analytics:behavioral`. The app calls `grant(subject_ref: user-4491, purpose: analytics:behavioral, granted_by: onboarding_service, expires_at: 2027-05-13T00:00:00Z)` → `cns-0001`. [Granted At] is stamped from the seam-injected [Now], here `2025-05-13T09:00:00Z`; the expires at guard passes because the bound is later. The record enters [Granted].
+A user onboarding to a health app affirms `analytics:behavioral`. The app calls `grant(subject_ref: user-4491, purpose: analytics:behavioral, granted_by: onboarding_service, expires_at: 2027-05-13T00:00:00Z)` → `cns-0001`. [Grant Instant] is stamped from the seam-injected [Now], here `2025-05-13T09:00:00Z`; the expiry instant guard passes because the bound is later. The record enters [Granted].
 
 Before emitting an analytics event the pipeline calls `check(subject_ref: user-4491, purpose: analytics:behavioral)` → granted, and processing proceeds.
 
-The user withdraws through the app's privacy settings. The privacy service calls `revoke(cns-0001, revoked_by: privacy_service, reason: "User-initiated withdrawal via privacy settings")` → revoked. [Revoked At] is stamped from [Now], here `2026-05-13T14:30:00Z` — not later than [Now], not earlier than [Granted At]. The next gate check answers revoked and processing is suppressed.
+The user withdraws through the app's privacy settings. The privacy service calls `revoke(cns-0001, revoked_by: privacy_service, reason: "User-initiated withdrawal via privacy settings")` → revoked. [Revocation Instant] is stamped from [Now], here `2026-05-13T14:30:00Z` — not later than [Now], not earlier than [Grant Instant]. The next gate check answers revoked and processing is suppressed.
 
 Six months later the user re-enables analytics: `grant(...)` → `cns-0088`, a second record in [Granted]. `cns-0001` stays [Revoked] as evidence. [Check] now answers granted, because `cns-0088` is the candidate record. A later `read({subject_ref: user-4491})` returns both, with full attribution on each.
 
@@ -389,7 +389,7 @@ Six months later the user re-enables analytics: `grant(...)` → `cns-0088`, a s
 
 `grant(subject_ref: user-8823, purpose: "  ", granted_by: consent_ui)` → invalid-request. A whitespace-only purpose is blank (Operation 5).
 
-`grant(subject_ref: user-9001, purpose: marketing:sms, granted_by: consent_ui, expires_at: 2020-01-01T00:00:00Z)` → invalid-request. A consent expiring in the past is already expired at the moment of grant, which is not a consent (Operation 8).
+`grant(subject_ref: user-9001, purpose: marketing:sms, granted_by: consent_ui, expires_at: 2020-01-01T00:00:00Z)` → invalid-request. A consent expiring in the past is already lapse instant the moment of grant, which is not a consent (Operation 8).
 
 ### Check against an instant
 
@@ -399,7 +399,7 @@ Before queuing a 30-day campaign: `check(subject_ref: user-4491, purpose: market
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit — GDPR Article 7 validity challenge.** A data protection authority investigates whether a controller held valid consent for `analytics:behavioral` processing on a given date. The controller runs `read({subject_ref: user-4491, purpose: analytics:behavioral})` and the authority reads three things from the records alone: whether a [Granted] record was in effect on the date, from [Granted At] against [Revoked At] and [Expires At]; whether the agreement was specific and informed, from [Granted By] naming the collection point, [Purpose] naming the scope, and [Metadata] carrying the form version; and whether the grant is immutable, from Invariants 1.1 and 7.1. No witness testimony and no developer narration.
+- **Regulator audit — GDPR Article 7 validity challenge.** A data protection authority investigates whether a controller held valid consent for `analytics:behavioral` processing on a given date. The controller runs `read({subject_ref: user-4491, purpose: analytics:behavioral})` and the authority reads three things from the records alone: whether a [Granted] record was in effect on the date, from [Grant Instant] against [Revocation Instant] and [Expiry Instant]; whether the agreement was specific and informed, from [Granting Actor] naming the collection point, [Purpose] naming the scope, and [Metadata] carrying the form version; and whether the grant is immutable, from Invariants 1.1 and 7.1. No witness testimony and no developer narration.
 - **Disputed revocation — the data subject claims non-compliance.** A complaint says marketing continued after withdrawal. `read({subject_ref: user-4491, purpose: marketing:email})` shows `cns-0001` granted `2025-03-01` and revoked `2026-01-15` by `privacy_portal`, with the stated ground. The atom's records fix exactly when the withdrawal was recorded and by which system; whether the sending system called [Check] first is the composing layer's conformance question, not this atom's (State 13, Composition note 2).
 - **Cross-purpose audit — HIPAA Authorization review.** An HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) inquiry asks whether patient `patient-7712` authorized disclosure of PHI (Protected Health Information — individually identifiable health data covered by HIPAA) under `hipaa:research:partner-univ-cardiology`. `read(...)` returns a [Granted] record with `granted_at: 2025-09-01`, `expires_at: 2026-09-01`, `granted_by: clinical_consent_kiosk`. The disclosure occurred `2026-01-10`, and `check(..., at_time: 2026-01-10T00:00:00Z)` → granted settles it from the records.
 
@@ -413,12 +413,12 @@ This atom's acceptance is what an external auditor can clear from the consent st
 
 ```
 Check 1.1: An auditor MUST find EVERY issued consent id in the store through [Read] (Invariant 8.1, Invariant 8.2).
-Check 2.1: An auditor MUST find EVERY consent record's consent id, subject ref, purpose and granted by non-blank (Invariant 7.1).
-Check 2.2: An auditor MUST find a granted at on EVERY consent record (Invariant 7.2).
-Check 3.1: An auditor MUST find EVERY revoked consent record's revoked by and revocation reason non-blank (Invariant 4.1, Invariant 4.2).
-Check 3.2: An auditor MUST find EVERY revoked consent record's granted at no later than the revoked at (Invariant 5.1).
+Check 2.1: An auditor MUST find EVERY consent record's consent id, subject reference, purpose and granting actor non-blank (Invariant 7.1).
+Check 2.2: An auditor MUST find a grant instant on EVERY consent record (Invariant 7.2).
+Check 3.1: An auditor MUST find EVERY revoked consent record's revoking actor and revocation reason non-blank (Invariant 4.1, Invariant 4.2).
+Check 3.2: An auditor MUST find EVERY revoked consent record's grant instant no later than the revocation instant (Invariant 5.1).
 Check 4.1: An auditor MUST find [Check] answering granted, then revoked once a [Revoke] lands, then granted once a fresh [Grant] lands (Invariant 3.1, Operation 44).
-Check 5.1: An auditor MUST find [Check] answering granted for an at time the expires at exceeds, and expired for an at time no earlier than the expires at (Invariant 6.1).
+Check 5.1: An auditor MUST find [Check] answering granted for an at time the expiry instant exceeds, and expired for an at time no earlier than the expiry instant (Invariant 6.1).
 Check 5.2: An auditor MUST read the stored state as a cache rather than as the answer (Invariant 2.2, Invariant 6.3).
 Check 6.1: An auditor MUST find [Revoke] answering already-revoked against a revoked consent record (Invariant 3.1).
 Check 6.2: An auditor MUST find [Revoke] answering already-expired against an expired consent record (Invariant 3.2).
@@ -428,7 +428,7 @@ Check 8.1: An auditor MUST find two [Check] calls carrying one consent id's pair
 Check 8.2: An auditor MUST find a [Check] carrying an at time answering alike across a later [Grant] for the pair (Invariant 10.3).
 Check 8.3: An auditor MUST find a [Check] carrying an at time answering alike across a later [Revoke] for the pair (Invariant 10.3).
 Check 8.4: An auditor MUST find [Check] answering from the latest consent record the at time DOES NOT PRECEDE (Invariant 10.1).
-Check 8.5: An auditor MUST find [Check] answering from the greatest consent id of two consent records sharing a subject ref, a purpose and a granted at (Invariant 10.2).
+Check 8.5: An auditor MUST find [Check] answering from the greatest consent id of two consent records sharing a subject reference, a purpose and a grant instant (Invariant 10.2).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -439,9 +439,9 @@ Check 5.1 asserts on [Check]'s answer and not on a stored [Expired] field, becau
 ## Non-goals
 
 ```
-Non-goal 1: The atom MUST NOT merge two [Grant] calls carrying one subject ref and one purpose.
+Non-goal 1: The atom MUST NOT merge two [Grant] calls carrying one subject reference and one purpose.
 Non-goal 2: A deployment needing at-most-once grant MUST compose Duplicate Prevention.
-Non-goal 3: The atom MUST NOT hold at most one granted consent record per subject ref and purpose.
+Non-goal 3: The atom MUST NOT hold at most one granted consent record per subject reference and purpose.
 Non-goal 4: A deployment needing one live agreement per pair MUST enforce the bound at the composing layer.
 Non-goal 5: The atom MUST NOT define a valid purpose.
 Non-goal 6: The atom MUST NOT expand a purpose hierarchy.
@@ -486,20 +486,20 @@ Whether a guard's decision may depend on the clock reading, and under what condi
 ### Clock semantics
 
 ```
-Clock semantics 5: [Grant] MUST guard a supplied expires at against now.
+Clock semantics 5: [Grant] MUST guard a supplied expiry instant against now.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 4. Clock dependence 1 owns it.
-Deleted: Clock semantics 7. Operation 10 owns it: `now` is never supplied by the business caller, so a granted at stamped from the injected now is never a caller-supplied instant.
-Clock semantics 6: [Revoke] MUST guard a supplied revoked at against now.
-Clock semantics 8: [Revoke] MAY record a revoked at earlier than now.
+Deleted: Clock semantics 7. Operation 10 owns it: `now` is never supplied by the business caller, so a grant instant stamped from the injected now is never a caller-supplied instant.
+Clock semantics 6: [Revoke] MUST guard a supplied revocation instant against now.
+Clock semantics 8: [Revoke] MAY record a revocation instant earlier than now.
 ```
 
 WHY:
-This atom accepts three caller-supplied instants — expires at, revoked at and at time — and that is exactly why its guards read the clock where Message Preference's are forbidden to. A guard consults now to refuse a dishonest instant and for nothing else: a bound already in the past, a withdrawal dated in the future (Clock dependence 1, Clock semantics 5, Clock semantics 6). A backdated revoked at is accepted on purpose — documenting a withdrawal recognized or communicated earlier is valid, and the floor is [Granted At] rather than [Now] (Clock semantics 8, Invariant 5.1).
+This atom accepts three caller-supplied instants — expiry instant, revocation instant and at time — and that is exactly why its guards read the clock where Message Preference's are forbidden to. A guard consults now to refuse a dishonest instant and for nothing else: a bound already in the past, a withdrawal dated in the future (Clock dependence 1, Clock semantics 5, Clock semantics 6). A backdated revocation instant is accepted on purpose — documenting a withdrawal recognized or communicated earlier is valid, and the floor is [Grant Instant] rather than [Now] (Clock semantics 8, Invariant 5.1).
 
-Nothing else consults it. [Granted At] is always the seam's reading and never the caller's, because the moment of agreement is the system's observation rather than the caller's claim (Operation 10).
+Nothing else consults it. [Grant Instant] is always the seam's reading and never the caller's, because the moment of agreement is the system's observation rather than the caller's claim (Operation 10).
 
 Clock semantics 5, Clock semantics 6 and Clock semantics 8 stay under this heading rather than under Clock dependence: each is one action's use of a reading Clock dependence 1 already permits, and a family rule does not enlarge because an action instantiates it (council read 75).
 
@@ -509,7 +509,7 @@ Clock semantics 5, Clock semantics 6 and Clock semantics 8 stay under this headi
 Concurrency 1: The implementation MUST serialize a state transition on one consent id.
 Concurrency 2: Two concurrent [Revoke] calls on one consent id MUST answer revoked once.
 Concurrency 3: The later concurrent [Revoke] call on one consent id MUST answer already-revoked.
-Concurrency 4: Two concurrent [Grant] calls carrying one subject ref and one purpose MUST record two consent records.
+Concurrency 4: Two concurrent [Grant] calls carrying one subject reference and one purpose MUST record two consent records.
 ```
 
 WHY:
@@ -529,7 +529,7 @@ Composition note 8: A composing pattern MUST NOT stand a consent record in any s
 ```
 
 WHY:
-[Permissions](./permissions.md) is the composing peer, not the substitute: it governs what an internal actor may do, this governs what the system may do to the subject's data, and an action may need both. [Actor Identity](./actor-identity.md) turns the opaque granted by and revoked by into credentialed, attested actors — which HIPAA and 21 CFR (Code of Federal Regulations) Part 11 require of consent collection and withdrawal as electronic records. [Audit Trail](../compositions/audit-trail.md) records each grant and revoke as an attributed, retention-governed event. [Retention Window](./retention-window.md) bounds how long the store is kept, against GDPR's *as long as necessary* and HIPAA's six years. [Tamper Evidence](./tamper-evidence.md) seals the records for court and regulator admissibility beyond this atom's spec-level immutability. [Legal Hold](./legal-hold.md) overrides that retention where a consent record is itself under litigation.
+[Permissions](./permissions.md) is the composing peer, not the substitute: it governs what an internal actor may do, this governs what the system may do to the subject's data, and an action may need both. [Actor Identity](./actor-identity.md) turns the opaque granting actor and revoking actor into credentialed, attested actors — which HIPAA and 21 CFR (Code of Federal Regulations) Part 11 require of consent collection and withdrawal as electronic records. [Audit Trail](../compositions/audit-trail.md) records each grant and revoke as an attributed, retention-governed event. [Retention Window](./retention-window.md) bounds how long the store is kept, against GDPR's *as long as necessary* and HIPAA's six years. [Tamper Evidence](./tamper-evidence.md) seals the records for court and regulator admissibility beyond this atom's spec-level immutability. [Legal Hold](./legal-hold.md) overrides that retention where a consent record is itself under litigation.
 
 Two compositions own what the atom deliberately does not. [Propagate Consent Revocation Downstream](../compositions/propagate-consent-revocation-downstream.md) records, atomically with each withdrawal, the complete set of downstream processing scopes the consent governed — the propagation Non-goal 9 excludes. [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) composes this atom as a read-only authority oracle: an erasure request calls [Check] to make the Article 17(1)(b) determination, mapping all four answers — granted means a ground persists, revoked and expired mean the consent basis is gone, not-known is a registry anomaly — and never grants, revokes or expires anything, which is why Composition note 8 exists.
 
@@ -541,7 +541,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a data subject; an auditor; a reader; the store; a consent record; a state; a store name; a query; a time range; a reference filter; a later write; the consent record count; the stored state.
 
-Term records: consent record — one agreement to one purpose, carrying consent id, subject ref, purpose, granted by, granted at, state, the expires at and metadata supplied at grant, and, once withdrawn, revoked by, revocation reason and revoked at.
+Term records: consent record — one agreement to one purpose, carrying consent id, subject reference, purpose, granting actor, grant instant, state, the expiry instant and metadata supplied at grant, and, once withdrawn, revoking actor, revocation reason and revocation instant.
 
 Term record verbs: route, share, name, accept, carry, identify, allocate, reuse, change, draw, interpret, confirm, record, stand, answer, stamp, resolve, refuse, write, evaluate, order, exclude, ignore, leave, read, supply, rest, offer, remove, suppress, hold, poll, equal, serialize, appear, meet, fall, find, compose, define, expand, enforce, propagate, gate, establish, seal, bound, guarantee, own, guard, declare, call, run, merge, precede.
 
@@ -553,29 +553,29 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: consent record, store instance, store name, seam, transition, consent id, subject ref, purpose, granted by, blank, now, business caller, at time, grant guard, expires at, metadata, revoked by, revocation reason, reason, revoked at, granted at, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state, grant field.
+Term terms: consent record, store instance, store name, seam, transition, consent id, subject reference, purpose, granting actor, blank, now, business caller, at time, grant guard, expiry instant, metadata, revoking actor, revocation reason, reason, revocation instant, grant instant, evaluation instant, withdrawn, elapsed, candidate record, later write, query, supported filter axes, reference filter, state, grant field.
 
 #### Grant
 
-The behavior a consent collection surface invokes to record a data subject's affirmative agreement to a named [Purpose]. It assigns a fresh [Consent Id], stamps [Granted At] from the injected [Now], records [Subject Ref], [Purpose], [Granted By], and [Expires At] / [Metadata] if supplied, and returns the [Consent Id] (or a rejection). The consent enters [Granted].
+The behavior a consent collection surface invokes to record a data subject's affirmative agreement to a named [Purpose]. It assigns a fresh [Consent Id], stamps [Grant Instant] from the injected [Now], records [Subject Reference], [Purpose], [Granting Actor], and [Expiry Instant] / [Metadata] if supplied, and returns the [Consent Id] (or a rejection). The consent enters [Granted].
 
 Kind: Operation
 
 #### Revoke
 
-The behavior that documents a data subject's withdrawal of consent, transitioning a [Granted] record to [Revoked]. It records [Revoked By], [Revocation Reason], and [Revoked At], all immutable thereafter. A [Revoked] or [Expired] record cannot be revoked ([Already Revoked] / [Already Expired]) — terminal absorption (Invariant 3).
+The behavior that documents a data subject's withdrawal of consent, transitioning a [Granted] record to [Revoked]. It records [Revoking Actor], [Revocation Reason], and [Revocation Instant], all immutable thereafter. A [Revoked] or [Expired] record cannot be revoked ([Already Revoked] / [Already Expired]) — terminal absorption (Invariant 3).
 
 Kind: Operation
 
 #### Check
 
-The pure point-in-time query that evaluates the consent state for a (subject, [Purpose]) as of [At Time], returning one of `granted | revoked | expired | not-known`. It selects the record with the greatest [Granted At] ≤ [At Time], evaluates that record's [Revoked At] / [Expires At] against [At Time], and never writes and never rejects (Invariant 10).
+The pure point-in-time query that evaluates the consent state for a (subject, [Purpose]) as of [At Time], returning one of `granted | revoked | expired | not-known`. It selects the record with the greatest [Grant Instant] ≤ [At Time], evaluates that record's [Revocation Instant] / [Expiry Instant] against [At Time], and never writes and never rejects (Invariant 10).
 
 Kind: Operation
 
 #### Read
 
-The read-only behavior that returns the consent records matching a [Query], ordered by [Granted At] ascending then [Consent Id] ascending. It changes nothing. Filters by [Consent Id], [Subject Ref], [Purpose], [Granted By], [State], or time range are combinable; a malformed one is rejected [Invalid Query].
+The read-only behavior that returns the consent records matching a [Query], ordered by [Grant Instant] ascending then [Consent Id] ascending. It changes nothing. Filters by [Consent Id], [Subject Reference], [Purpose], [Granting Actor], [State], or time range are combinable; a malformed one is rejected [Invalid Query].
 
 Kind: Operation
 
@@ -587,7 +587,7 @@ Kind:       Field
 Field of:   the consent record
 Projection: consent_id
 
-#### Subject Ref
+#### Subject Reference
 
 The opaque reference to the data subject whose consent is recorded. Set on [Grant], immutable. The atom does not validate that the subject exists elsewhere; it is the caller's responsibility.
 
@@ -597,13 +597,13 @@ Projection: subject_ref
 
 #### Purpose
 
-The opaque string naming the processing-purpose scope the consent covers (e.g., `marketing:email`). Set on [Grant], immutable, caller-declared vocabulary the atom does not interpret. Two records with the same [Subject Ref] and [Purpose] are distinct records.
+The opaque string naming the processing-purpose scope the consent covers (e.g., `marketing:email`). Set on [Grant], immutable, caller-declared vocabulary the atom does not interpret. Two records with the same [Subject Reference] and [Purpose] are distinct records.
 
 Kind:       Field
 Field of:   the consent record
 Projection: purpose
 
-#### Granted By
+#### Granting Actor
 
 The opaque reference to the actor who recorded the data subject's affirmative agreement — the attribution anchor for the consent event. Set on [Grant], immutable; empty or whitespace-only is rejected.
 
@@ -611,17 +611,17 @@ Kind:       Field
 Field of:   the consent record
 Projection: granted_by
 
-#### Granted At
+#### Grant Instant
 
-The timestamp the consent was granted, stamped from the injected [Now] at [Grant]. Set once, immutable (Invariant 1). The lower temporal bound for [Revoked At] (Invariant 5) and the selection key for [Check] / ordering key for [Read].
+The timestamp the consent was granted, stamped from the injected [Now] at [Grant]. Set once, immutable (Invariant 1). The lower temporal bound for [Revocation Instant] (Invariant 5) and the selection key for [Check] / ordering key for [Read].
 
 Kind:       Field
 Field of:   the consent record
 Projection: granted_at
 
-#### Expires At
+#### Expiry Instant
 
-The optional timestamp at which the consent expires. Set on [Grant] (must be strictly in the future relative to the injected [Now]); immutable. When [Expires At] ≤ the evaluating clock and no revocation precedes it, the semantic state is [Expired]. Absent ⇒ the consent never expires by time.
+The optional timestamp at which the consent expires. Set on [Grant] (must be strictly in the future relative to the injected [Now]); immutable. When [Expiry Instant] ≤ the evaluating clock and no revocation precedes it, the semantic state is [Expired]. Absent ⇒ the consent never expires by time.
 
 Kind:       Field
 Field of:   the consent record
@@ -635,9 +635,9 @@ Kind:       Field
 Field of:   the consent record
 Projection: metadata
 
-#### Revoked By
+#### Revoking Actor
 
-The opaque reference to the actor who recorded the withdrawal. Set at [Revoke], immutable thereafter; present on [Revoked] records only. Empty or whitespace-only is rejected [Invalid Request].
+The opaque reference to the actor who recorded the withdrawal. Set Instant [Revoke], immutable thereafter; present on [Revoked] records only. Empty or whitespace-only is rejected [Invalid Request].
 
 Kind:       Field
 Field of:   the consent record
@@ -645,15 +645,15 @@ Projection: revoked_by
 
 #### Revocation Reason
 
-The required, non-empty reason for the withdrawal — written from the [Reason] parameter. Set at [Revoke], immutable thereafter; present on [Revoked] records only. A blank reason defeats the audit trail and is rejected.
+The required, non-empty reason for the withdrawal — written from the [Reason] parameter. Set Instant [Revoke], immutable thereafter; present on [Revoked] records only. A blank reason defeats the audit trail and is rejected.
 
 Kind:       Field
 Field of:   the consent record
 Projection: revocation_reason
 
-#### Revoked At
+#### Revocation Instant
 
-The timestamp the consent was revoked — supplied or defaulted to the injected [Now]. Must not be future and must be ≥ [Granted At] (Invariant 5). Set at [Revoke], immutable; present on [Revoked] records only.
+The timestamp the consent was revoked — supplied or defaulted to the injected [Now]. Must not be future and must be ≥ [Grant Instant] (Invariant 5). Set Instant [Revoke], immutable; present on [Revoked] records only.
 
 Kind:       Field
 Field of:   the consent record
@@ -677,7 +677,7 @@ Projection: store_name
 
 #### Now
 
-The current clock reading the pipeline consumes — the injected `clock_t`, supplied at the I/O seam, never read inside a transition and never a signature parameter. It stamps the immutable write timestamps ([Granted At], [Revoked At]) and drives the pure expiry guard / derivation (no write); [At Time] defaults to it when omitted.
+The current clock reading the pipeline consumes — the injected `clock_t`, supplied at the I/O seam, never read inside a transition and never a signature parameter. It stamps the immutable write timestamps ([Grant Instant], [Revocation Instant]) and drives the pure expiry guard / derivation (no write); [At Time] defaults to it when omitted.
 
 Kind:         Parameter
 Parameter of: Grant
@@ -701,7 +701,7 @@ Projection:   reason
 
 #### Query
 
-The selection [Read] consumes — a filter over [Consent Id], [Subject Ref], [Purpose], [Granted By], [State], and/or a time range. Supplied per call, not stored; a malformed one is rejected [Invalid Query].
+The selection [Read] consumes — a filter over [Consent Id], [Subject Reference], [Purpose], [Granting Actor], [State], and/or a time range. Supplied per call, not stored; a malformed one is rejected [Invalid Query].
 
 Kind:         Parameter
 Parameter of: Read
@@ -709,7 +709,7 @@ Projection:   query
 
 #### Granted
 
-The state of a consent in effect for its [Purpose]. A record enters [Granted] on [Grant]; it may be revoked or evaluated, and its semantic state becomes [Expired] passively when [Expires At] elapses.
+The state of a consent in effect for its [Purpose]. A record enters [Granted] on [Grant]; it may be revoked or evaluated, and its semantic state becomes [Expired] passively when [Expiry Instant] elapses.
 
 Kind:      Member
 Member of: the consent state
@@ -717,7 +717,7 @@ Role:      Outcome
 
 #### Revoked
 
-The terminal state of a consent the data subject has withdrawn. Carries [Revoked By], [Revocation Reason], and [Revoked At]; retained as audit evidence, no further transition (Invariant 3).
+The terminal state of a consent the data subject has withdrawn. Carries [Revoking Actor], [Revocation Reason], and [Revocation Instant]; retained as audit evidence, no further transition (Invariant 3).
 
 Kind:      Member
 Member of: the consent state
@@ -725,7 +725,7 @@ Role:      Outcome
 
 #### Expired
 
-The terminal state of a consent whose [Expires At] has elapsed with no prior revocation. Derived from [Expires At] vs the evaluating clock; the stored [State] cache is written eager/lazy. Retained, no further transition (Invariant 3).
+The terminal state of a consent whose [Expiry Instant] has elapsed with no prior revocation. Derived from [Expiry Instant] vs the evaluating clock; the stored [State] cache is written eager/lazy. Retained, no further transition (Invariant 3).
 
 Kind:      Member
 Member of: the consent state
@@ -742,7 +742,7 @@ Projection: not-known
 
 #### Invalid Request
 
-The refusal [Grant] or [Revoke] returns when request fields fail — an empty or whitespace-only [Subject Ref], [Purpose], [Granted By], [Revoked By], or [Reason]; an [Expires At] not in the future at [Grant]; a malformed [Consent Id]; or a [Revoked At] that is future or before [Granted At].
+The refusal [Grant] or [Revoke] returns when request fields fail — an empty or whitespace-only [Subject Reference], [Purpose], [Granting Actor], [Revoking Actor], or [Reason]; an [Expiry Instant] not in the future at [Grant]; a malformed [Consent Id]; or a [Revocation Instant] that is future or before [Grant Instant].
 
 Kind:       Member
 Member of:  the action rejection
@@ -795,15 +795,15 @@ Projection: invalid-query
 [Check]: #check
 [Read]: #read
 [Consent Id]: #consent-id
-[Subject Ref]: #subject-ref
+[Subject Reference]: #subject-reference
 [Purpose]: #purpose
-[Granted By]: #granted-by
-[Granted At]: #granted-at
-[Expires At]: #expires-at
+[Granting Actor]: #granting-actor
+[Grant Instant]: #grant-instant
+[Expiry Instant]: #expiry-instant
 [Metadata]: #metadata
-[Revoked By]: #revoked-by
+[Revoking Actor]: #revoking-actor
 [Revocation Reason]: #revocation-reason
-[Revoked At]: #revoked-at
+[Revocation Instant]: #revocation-instant
 [State]: #state
 [Store Name]: #store-name
 [Now]: #now
@@ -827,11 +827,11 @@ Projection: invalid-query
 - **GDPR Article 6(1)(a)** — consent as a lawful basis for processing personal data. A [Granted] consent record in effect at processing time is the legal basis documentation.
 - **GDPR Article 7** — conditions for consent: must be freely given, specific, informed, and unambiguous; burden of proof on the controller (Invariant 7, Generation acceptance check 2); withdrawal must be as easy as giving (the [Revoke] action, same surface as [Grant]); withdrawal does not affect lawfulness of prior processing (Invariant 9, revocation non-retroactivity).
 - **GDPR Article 17(1)(b)** — right to erasure applies when the data subject withdraws consent and there is no other lawful basis for processing. The [Revoke] action is the trigger; whether erasure follows is a composing-layer decision.
-- **GDPR Article 30** — record of processing activities must include the purpose of processing and the legal basis. Consent records with [Purpose] and [Granted At] supply the Article 30 documentation surface.
+- **GDPR Article 30** — record of processing activities must include the purpose of processing and the legal basis. Consent records with [Purpose] and [Grant Instant] supply the Article 30 documentation surface.
 - **CCPA / CPRA** — right to opt-out of sale or sharing of personal information; right to opt-in for sensitive personal information. The [Grant] and [Revoke] actions are the opt-in and opt-out mechanisms. CPRA extends consent requirements to sensitive personal information categories.
-- **HIPAA §164.508 (Authorization)** — required elements for a valid authorization include: a description of the information to be used or disclosed ([Purpose]), the name of the person authorized to make the disclosure ([Granted By] + composing Actor Identity), an expiration date or event ([Expires At]), and the right to revoke ([Revoke] action). The consent record's fields map directly to the required Authorization elements.
+- **HIPAA §164.508 (Authorization)** — required elements for a valid authorization include: a description of the information to be used or disclosed ([Purpose]), the name of the person authorized to make the disclosure ([Granting Actor] + composing Actor Identity), an expiration date or event ([Expiry Instant]), and the right to revoke ([Revoke] action). The consent record's fields map directly to the required Authorization elements.
 - **HIPAA §164.522** — right of an individual to request restrictions on certain uses and disclosures of PHI. Consent records with granular [Purpose] scoping are the mechanism.
-- **21 CFR Part 11** — electronic records and signatures in FDA-regulated contexts. Consent records for clinical trial participation are regulated records under Part 11; [Granted By] and [Revoked By] map to electronic signature requirements when composed with Actor Identity.
+- **21 CFR Part 11** — electronic records and signatures in FDA-regulated contexts. Consent records for clinical trial participation are regulated records under Part 11; [Granting Actor] and [Revoking Actor] map to electronic signature requirements when composed with Actor Identity.
 - **ICH E6 Good Clinical Practice §4.8** — the International Council for Harmonisation's E6 guideline; informed consent requirements for clinical trial subjects, including documentation, right of withdrawal, and retention of consent records. The consent record lifecycle (grant, revoke, retain) is the Part 4.8 compliance mechanism.
 - **Children's Online Privacy Protection Act (COPPA)** — verifiable parental consent required for data collection from children under 13. Proxy consent (guardian granting on behalf of minor subject) is handled at the composing layer; the atom records the grant faithfully.
 - **ePrivacy Directive (Cookie Law)** — consent required for non-essential cookies and tracking. Web consent banners produce [Grant] calls; user withdrawal produces [Revoke] calls. The consent record is the ePrivacy audit artifact.

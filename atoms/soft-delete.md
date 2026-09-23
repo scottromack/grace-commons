@@ -35,7 +35,7 @@ Most systems eventually need to delete records, and the naive implementation —
 
 This atom separates the two concepts a hard delete conflates. *Deletion* means the record is marked removed, excluded from normal read surfaces, and no longer available for ordinary use — while remaining retained, attributable and recoverable. *Purge* means permanent destruction, with full attribution of who authorized it and when. Between the two, restoration is always available: the record returns to active as though it had never been deleted.
 
-The three-state lifecycle appears in nearly every domain that handles records with lifecycle significance — content moderation, account management, clinical records, financial reconciliation, e-discovery — and the states are constant across them even where the vocabulary is not. *Archived*, *deactivated*, *tombstoned* and *voided* are all deleted by another name.
+The three-state lifecycle appears in nearly every domain that handles records with lifecycle significance — content moderation, account management, clinical records, financial reconciliation, e-discovery — and the states are constant across them even where the vocabulary is not. *Archived*, *deactivated*, *tombstoned* and *voided* are all deleting actor another name.
 
 What the atom deliberately does not define is what *hidden from normal query* means operationally. That is deployment policy: a social platform hides deleted posts from public feeds and may surface them in moderator queues; a clinical system hides deleted observations from summaries and returns them on full audit export. Neither is wrong, and both correctly implement the deleted state. The atom defines the state and the recoverability guarantee, and leaves the read surfaces to the deployment.
 
@@ -65,7 +65,7 @@ Term record id: the opaque value naming one lifecycle record — a [Record Id]; 
 
 Term tracked record: a host record carrying a lifecycle record — one that has undergone at least one [Soft Delete].
 
-Term reference: record id, deleted by, restored by OR purged by — every opaque reference this atom records.
+Term reference: record id, deleting actor, restoring actor OR purging actor — every opaque reference this atom records.
 
 Term store instance: one named lifecycle store a call is routed to; record id uniqueness ranges over one instance.
 
@@ -87,10 +87,10 @@ State 3: The atom MUST NOT offer a restore-from-purged surface.
 State 4: The atom MUST NOT offer a direct active-to-purged transition.
 State 5: The atom MUST NOT offer a lifecycle record removal surface.
 State 6: The atom MUST NOT offer an untrack surface.
-State 7: EVERY lifecycle record MUST carry record id, a state, deleted by and deleted at.
+State 7: EVERY lifecycle record MUST carry record id, a state, deleting actor and deletion instant.
 State 8: A lifecycle record MAY carry deletion reason.
 State 9: A lifecycle record MAY carry a restore field.
-State 10: EVERY purged lifecycle record MUST carry purged by, purge reason and purged at.
+State 10: EVERY purged lifecycle record MUST carry purging actor, purge reason and purge instant.
 State 11: A purged lifecycle record MUST carry the deletion fields the purge found.
 State 12: The store instance's lifecycle record count MUST NOT fall.
 State 13: The atom MUST NOT record a receipt instant.
@@ -119,7 +119,7 @@ WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 WHY:
-The lower bounds (Operation 17, Operation 18) hold against the *resolved* value, so a skewed node cannot default its way past them: a wall-clock default that lands before the record's deleted at is refused exactly as a caller-supplied one would be. A backdated instant is otherwise accepted — documenting a deletion or purge recognized later is valid, and the future bound refuses the one direction that is always fabrication.
+The lower bounds (Operation 17, Operation 18) hold against the *resolved* value, so a skewed node cannot default its way past them: a wall-clock default that lands before the record's deletion instant is refused exactly as a caller-supplied one would be. A backdated instant is otherwise accepted — documenting a deletion or purge recognized later is valid, and the future bound refuses the one direction that is always fabrication.
 
 ### Operations
 
@@ -158,16 +158,16 @@ Operation 13: IF the lifecycle record's state DOES NOT EQUAL deleted THEN [Purge
 Operation 14: A transitioning action MUST answer a state rejection ONLY IF record id DOES NOT EQUAL blank.
 Operation 15: A transitioning action MUST answer invalid-request on an attribution fault ONLY IF EVERY state check passes.
 Operation 16: IF now PRECEDES the resolved transition instant THEN a transitioning action MUST answer invalid-request.
-Operation 17: IF the resolved restored at PRECEDES the lifecycle record's deleted at THEN [Restore] MUST answer invalid-request.
-Operation 18: IF the resolved purged at PRECEDES the lifecycle record's deleted at THEN [Purge] MUST answer invalid-request.
+Operation 17: IF the resolved restoration instant PRECEDES the lifecycle record's deletion instant THEN [Restore] MUST answer invalid-request.
+Operation 18: IF the resolved purge instant PRECEDES the lifecycle record's deletion instant THEN [Purge] MUST answer invalid-request.
 Operation 19: An admitted soft delete MUST stand the lifecycle record in deleted.
 Operation 20: An admitted restore MUST stand the lifecycle record in active.
 Operation 21: An admitted purge MUST stand the lifecycle record in purged.
-Operation 22: An admitted soft delete MUST record deleted by and the resolved deleted at.
+Operation 22: An admitted soft delete MUST record deleting actor and the resolved deletion instant.
 Operation 23: An admitted soft delete MUST record a supplied reason as deletion reason.
-Operation 24: An admitted restore MUST record restored by and the resolved restored at.
+Operation 24: An admitted restore MUST record restoring actor and the resolved restoration instant.
 Operation 25: An admitted restore MUST record a supplied reason as restoration reason.
-Operation 26: An admitted purge MUST record purged by, reason as purge reason and the resolved purged at.
+Operation 26: An admitted purge MUST record purging actor, reason as purge reason and the resolved purge instant.
 Operation 27: An admitted restore MUST replace the lifecycle record's restore fields.
 Operation 28: An admitted purge MUST NOT change a restore field.
 Operation 29: A transitioning action MUST commit the state change and the recorded fields in one operation.
@@ -201,31 +201,31 @@ Term states: active | deleted | purged — a [State], and the whole state space 
 
 Term transitioning action: [Soft Delete] | [Restore] | [Purge] — the three actions that move a lifecycle record.
 
-Term acting reference: deleted by on [Soft Delete], restored by on [Restore], and purged by on [Purge] — the actor reference a transitioning action carries.
+Term acting reference: deleting actor on [Soft Delete], restoring actor on [Restore], and purging actor on [Purge] — the actor reference a transitioning action carries.
 
-Term transition instant: deleted at on [Soft Delete], restored at on [Restore], and purged at on [Purge] — the instant a transitioning action records.
+Term transition instant: deletion instant on [Soft Delete], restoration instant on [Restore], and purge instant on [Purge] — the instant a transitioning action records.
 
 Term resolved transition instant: the transition instant the lifecycle record carries — the supplied value where one exists, and now otherwise.
 
 Term state rejection: already-deleted, already-purged OR not-deleted — every refusal that rests on the lifecycle record's state.
 
-Term deletion field: deleted by, deleted at OR deletion reason — the fields [Soft Delete] sets.
+Term deletion field: deleting actor, deletion instant OR deletion reason — the fields [Soft Delete] sets.
 
-Term restore field: restored by, restored at OR restoration reason — the fields [Restore] sets.
+Term restore field: restoring actor, restoration instant OR restoration reason — the fields [Restore] sets.
 
-Term purge field: purged by, purged at OR purge reason — the fields [Purge] sets.
+Term purge field: purging actor, purge instant OR purge reason — the fields [Purge] sets.
 
 Term deletion epoch: the span from one admitted soft delete to the lifecycle record's next admitted soft delete; the deletion fields carry one epoch's attribution and no more.
 
-Term latest transition instant: the most recent of a lifecycle record's deleted at, restored at and purged at.
+Term latest transition instant: the most recent of a lifecycle record's deletion instant, restoration instant and purge instant.
 
-Term filter axes: record id | deleted by | purged by | state | deleted at | restored at | purged at — the seven axes [Read] accepts, and no others.
+Term filter axes: record id | deleting actor | purging actor | state | deletion instant | restoration instant | purge instant — the seven axes [Read] accepts, and no others.
 
-Term admitted soft delete: a [Soft Delete] call whose record id and deleted by exist, whose lifecycle record's state EQUALS active, and whose resolved deleted at the guards admit.
+Term admitted soft delete: a [Soft Delete] call whose record id and deleting actor exist, whose lifecycle record's state EQUALS active, and whose resolved deletion instant the guards admit.
 
-Term admitted restore: a [Restore] call whose record id names a lifecycle record whose state EQUALS deleted, and whose restored by and resolved restored at the guards admit.
+Term admitted restore: a [Restore] call whose record id names a lifecycle record whose state EQUALS deleted, and whose restoring actor and resolved restoration instant the guards admit.
 
-Term admitted purge: a [Purge] call whose record id names a lifecycle record whose state EQUALS deleted, and whose purged by, reason and resolved purged at the guards admit.
+Term admitted purge: a [Purge] call whose record id names a lifecycle record whose state EQUALS deleted, and whose purging actor, reason and resolved purge instant the guards admit.
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
@@ -266,24 +266,24 @@ Operation 38 is the scope rule an auditor must read before trusting an empty ans
   ```
 - **Invariant 4 — Purge requires a prior deletion.**
   ```
-  Invariant 4.1: EVERY purged lifecycle record MUST carry a deleted by and a deleted at.
-  Invariant 4.2: A purged lifecycle record's deleted by MUST stand non-blank.
+  Invariant 4.1: EVERY purged lifecycle record MUST carry a deleting actor and a deletion instant.
+  Invariant 4.2: A purged lifecycle record's deleting actor MUST stand non-blank.
   ```
   WHY: there is no direct path from active to purged (State 4), so every purged record passed through deleted and carries that step's attribution as evidence. The two-step shape is the atom's deliberate friction: the first step hides the record and is reversible, the second destroys it and is not, and separating them creates a moment where the decision can be reconsidered.
 - **Invariant 5 — Purge attribution is complete.**
   ```
-  Invariant 5.1: EVERY purged lifecycle record's purged by MUST stand non-blank.
+  Invariant 5.1: EVERY purged lifecycle record's purging actor MUST stand non-blank.
   Invariant 5.2: EVERY purged lifecycle record's purge reason MUST stand non-blank.
-  Invariant 5.3: EVERY purged lifecycle record MUST carry a purged at.
+  Invariant 5.3: EVERY purged lifecycle record MUST carry a purge instant.
   ```
   WHY: the load-bearing one. An anonymous purge, a whitespace-only reason or a missing instant each defeat the record that legal proceedings, regulatory inspections and GDPR compliance demonstrations require. A reason is mandatory on purge and optional on deletion because destruction is the act that must justify itself.
 - **Invariant 6 — Temporal ordering within a transition.**
   ```
-  Invariant 6.1: A purged lifecycle record's purged at MUST NOT PRECEDE the record's deleted at.
-  Invariant 6.2: A recorded restored at MUST NOT PRECEDE the deleted at the restore found.
+  Invariant 6.1: A purged lifecycle record's purge instant MUST NOT PRECEDE the record's deletion instant.
+  Invariant 6.2: A recorded restoration instant MUST NOT PRECEDE the deletion instant the restore found.
   Invariant 6.3: The atom MUST NOT order two deletion epochs from the stored fields.
   ```
-  WHY: Invariant 6.3 is an honest limit rather than a gap. After a soft delete following a restore, deleted at is replaced and the stored restored at from the prior cycle then precedes it — which looks inverted and is correct, because the two fields describe different epochs. The stored fields bound each transition against the deletion current *at that moment*, and cross-epoch ordering is recoverable only from a composed [Event Log](./event-log.md).
+  WHY: Invariant 6.3 is an honest limit rather than a gap. After a soft delete following a restore, deletion instant is replaced and the stored restoration instant from the prior cycle then precedes it — which looks inverted and is correct, because the two fields describe different epochs. The stored fields bound each transition against the deletion current *at that moment*, and cross-epoch ordering is recoverable only from a composed [Event Log](./event-log.md).
 - **Invariant 7 — Lifecycle record durability.**
   ```
   Invariant 7.1: The atom MUST NOT remove a lifecycle record from the store.
@@ -291,8 +291,8 @@ Operation 38 is the scope rule an auditor must read before trusting an empty ans
   ```
 - **Invariant 8 — Deletion attribution is complete.**
   ```
-  Invariant 8.1: EVERY lifecycle record's deleted by MUST stand non-blank.
-  Invariant 8.2: EVERY lifecycle record MUST carry a deleted at.
+  Invariant 8.1: EVERY lifecycle record's deleting actor MUST stand non-blank.
+  Invariant 8.2: EVERY lifecycle record MUST carry a deletion instant.
   ```
 
 ---
@@ -346,16 +346,16 @@ This atom's acceptance is what an external auditor can clear from the lifecycle 
 ```
 Check 1.1: An auditor MUST find no lifecycle record absent from a later read (Invariant 7.1).
 Check 1.2: An auditor MUST find a purged lifecycle record in the store (Invariant 7.1, State 11).
-Check 2.1: An auditor MUST find EVERY purged lifecycle record's purged by non-blank (Invariant 5.1).
+Check 2.1: An auditor MUST find EVERY purged lifecycle record's purging actor non-blank (Invariant 5.1).
 Check 2.2: An auditor MUST find EVERY purged lifecycle record's purge reason non-blank (Invariant 5.2).
-Check 2.3: An auditor MUST find a purged at on EVERY purged lifecycle record (Invariant 5.3).
-Check 2.4: An auditor MUST find no purged lifecycle record's purged at preceding the record's deleted at (Invariant 6.1).
-Check 3.1: An auditor MUST find a deleted by and a deleted at on EVERY purged lifecycle record (Invariant 4.1).
-Check 3.2: An auditor MUST find EVERY purged lifecycle record's deleted by non-blank (Invariant 4.2).
+Check 2.3: An auditor MUST find a purge instant on EVERY purged lifecycle record (Invariant 5.3).
+Check 2.4: An auditor MUST find no purged lifecycle record's purge instant preceding the record's deletion instant (Invariant 6.1).
+Check 3.1: An auditor MUST find a deleting actor and a deletion instant on EVERY purged lifecycle record (Invariant 4.1).
+Check 3.2: An auditor MUST find EVERY purged lifecycle record's deleting actor non-blank (Invariant 4.2).
 Check 4.1: An auditor MUST find EVERY tracked record whose state EQUALS EXACTLY ONE OF active, deleted, purged (Invariant 2.1).
 Check 4.2: An auditor MUST find no lifecycle record whose state DOES NOT EQUAL purged on a later read of a record a prior read found purged (Invariant 3.1).
-Check 5.1: An auditor MUST find EVERY lifecycle record's deleted by non-blank (Invariant 8.1).
-Check 5.2: An auditor MUST find a deleted at on EVERY lifecycle record (Invariant 8.2).
+Check 5.1: An auditor MUST find EVERY lifecycle record's deleting actor non-blank (Invariant 8.1).
+Check 5.2: An auditor MUST find a deletion instant on EVERY lifecycle record (Invariant 8.2).
 Check 5.3: An auditor MUST find a re-read lifecycle record's deletion fields unchanged across an admitted restore (Invariant 1.1).
 Check 5.4: An auditor MUST find a re-read lifecycle record's deletion fields unchanged across an admitted purge (Invariant 1.2).
 ```
@@ -397,7 +397,7 @@ Non-goal 15: A deployment needing an authorization decision MUST compose Permiss
 Non-goal 16: The atom MUST NOT detect a rewrite under the store.
 Non-goal 17: A deployment needing a rewrite detected MUST compose Tamper Evidence.
 Non-goal 18: The atom MUST NOT define which read surface a deleted record leaves.
-Non-goal 19: The atom MUST NOT bound a transition instant from below by anything beside the lifecycle record's own deleted at.
+Non-goal 19: The atom MUST NOT bound a transition instant from below by anything beside the lifecycle record's own deletion instant.
 Non-goal 20: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
@@ -492,7 +492,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the host system; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; an investigator; the store; a lifecycle record; a tracked record; a host record; a purged lifecycle record; a deleted lifecycle record; a transitioning action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a state rejection; a rejection; a crash; a reader; a deletion epoch; a string input; an opaque reference; the store instance's lifecycle record count.
 
-Term records: lifecycle record — the state and attribution this atom holds for one host record, carrying record id, a state, deleted by, deleted at and, where supplied or set, deletion reason, restored by, restored at, restoration reason, purged by, purged at and purge reason.
+Term records: lifecycle record — the state and attribution this atom holds for one host record, carrying record id, a state, deleting actor, deletion instant and, where supplied or set, deletion reason, restoring actor, restoration instant, restoration reason, purging actor, purge instant and purge reason.
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, set, replace, leave, own, match, normalize, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, order, name, bind, destroy, hold, gate, retain, define, canonicalize, register, untrack.
 
@@ -508,25 +508,25 @@ Term terms: lifecycle record, record id, tracked record, reference, store instan
 
 #### Soft Delete
 
-The behavior that marks a record as removed and hidden but recoverable — transitioning it to [Deleted] (creating the lifecycle record on the first call for a new [Record Id]) and recording [Deleted By], [Deleted At], and an optional [Deletion Reason]. Returns deleted, or a rejection ([Invalid Request], [Already Deleted], [Already Purged], [Storage Failure]).
+The behavior that marks a record as removed and hidden but recoverable — transitioning it to [Deleted] (creating the lifecycle record on the first call for a new [Record Id]) and recording [Deleting Actor], [Deletion Instant], and an optional [Deletion Reason]. Returns deleted, or a rejection ([Invalid Request], [Already Deleted], [Already Purged], [Storage Failure]).
 
 Kind: Operation
 
 #### Restore
 
-The behavior that returns a [Deleted] record to [Active], recording [Restored By], [Restored At], and an optional [Restoration Reason]. Rejected for an unknown ([Not Known]), non-[Deleted] ([Not Deleted]), or [Purged] ([Already Purged]) record.
+The behavior that returns a [Deleted] record to [Active], recording [Restoring Actor], [Restoration Instant], and an optional [Restoration Reason]. Rejected for an unknown ([Not Known]), non-[Deleted] ([Not Deleted]), or [Purged] ([Already Purged]) record.
 
 Kind: Operation
 
 #### Purge
 
-The behavior that permanently destroys a [Deleted] record's content and transitions it to terminal [Purged], recording [Purged By], a required [Purge Reason], and [Purged At]. The lifecycle record survives as audit evidence. Rejected for a non-[Deleted] record ([Not Deleted]).
+The behavior that permanently destroys a [Deleted] record's content and transitions it to terminal [Purged], recording [Purging Actor], a required [Purge Reason], and [Purge Instant]. The lifecycle record survives as audit evidence. Rejected for a non-[Deleted] record ([Not Deleted]).
 
 Kind: Operation
 
 #### Read
 
-The read-only query returning lifecycle records — only for [Record Id]s that have undergone at least one [Soft Delete] — ordered by most-recent transition timestamp then [Record Id]. Filterable by [Record Id], [Deleted By], [Purged By], [State], or time ranges on [Deleted At] / [Restored At] / [Purged At]. Rejected [Invalid Query] for a malformed filter.
+The read-only query returning lifecycle records — only for [Record Id]s that have undergone at least one [Soft Delete] — ordered by most-recent transition timestamp then [Record Id]. Filterable by [Record Id], [Deleting Actor], [Purging Actor], [State], or time ranges on [Deletion Instant] / [Restoration Instant] / [Purge Instant]. Rejected [Invalid Query] for a malformed filter.
 
 Kind: Operation
 
@@ -546,7 +546,7 @@ Kind:       Field
 Field of:   the lifecycle record
 Projection: state
 
-#### Deleted By
+#### Deleting Actor
 
 The opaque reference to the actor who performed the most recent deletion. Set on [Soft Delete], non-blank (Invariant 8), immutable within the deletion epoch (Invariant 1).
 
@@ -554,9 +554,9 @@ Kind:       Field
 Field of:   the lifecycle record
 Projection: deleted_by
 
-#### Deleted At
+#### Deletion Instant
 
-The timestamp of the most recent deletion. Set on [Soft Delete] (caller-supplied or wall-clock-defaulted; not in the future); immutable within the epoch. The lower bound for [Restored At] and [Purged At] (Invariant 6).
+The timestamp of the most recent deletion. Set on [Soft Delete] (caller-supplied or wall-clock-defaulted; not in the future); immutable within the epoch. The lower bound for [Restoration Instant] and [Purge Instant] (Invariant 6).
 
 Kind:       Field
 Field of:   the lifecycle record
@@ -570,7 +570,7 @@ Kind:       Field
 Field of:   the lifecycle record
 Projection: deletion_reason
 
-#### Restored By
+#### Restoring Actor
 
 The opaque reference to the actor who performed the most recent restore. Set on [Restore].
 
@@ -578,9 +578,9 @@ Kind:       Field
 Field of:   the lifecycle record
 Projection: restored_by
 
-#### Restored At
+#### Restoration Instant
 
-The timestamp of the most recent restore. Set on [Restore]; must be ≥ the then-current [Deleted At] (Invariant 6) and not in the future.
+The timestamp of the most recent restore. Set on [Restore]; must be ≥ the then-current [Deletion Instant] (Invariant 6) and not in the future.
 
 Kind:       Field
 Field of:   the lifecycle record
@@ -594,7 +594,7 @@ Kind:       Field
 Field of:   the lifecycle record
 Projection: restoration_reason
 
-#### Purged By
+#### Purging Actor
 
 The opaque reference to the actor who authorized and performed the purge. Set on [Purge], non-blank (Invariant 5), immutable.
 
@@ -602,9 +602,9 @@ Kind:       Field
 Field of:   the lifecycle record
 Projection: purged_by
 
-#### Purged At
+#### Purge Instant
 
-The timestamp of the purge. Set on [Purge]; must be ≥ [Deleted At] (Invariant 6) and not in the future.
+The timestamp of the purge. Set on [Purge]; must be ≥ [Deletion Instant] (Invariant 6) and not in the future.
 
 Kind:       Field
 Field of:   the lifecycle record
@@ -652,7 +652,7 @@ Role:      Outcome
 
 #### Invalid Request
 
-The rejection [Soft Delete], [Restore], or [Purge] returns for a malformed [Record Id], a missing or whitespace-only attribution field ([Deleted By] / [Restored By] / [Purged By]) or [Reason], or a future-dated or out-of-order timestamp.
+The rejection [Soft Delete], [Restore], or [Purge] returns for a malformed [Record Id], a missing or whitespace-only attribution field ([Deleting Actor] / [Restoring Actor] / [Purging Actor]) or [Reason], or a future-dated or out-of-order timestamp.
 
 Kind:       Member
 Member of:  the action rejection
@@ -706,7 +706,7 @@ Projection: not-deleted
 
 #### Invalid Query
 
-The rejection [Read] returns for a malformed filter — a null or whitespace-only [Record Id], [Deleted By], or [Purged By]; a [State] outside the three values; a reversed time range; or an unrecognized filter key.
+The rejection [Read] returns for a malformed filter — a null or whitespace-only [Record Id], [Deleting Actor], or [Purging Actor]; a [State] outside the three values; a reversed time range; or an unrecognized filter key.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -724,14 +724,14 @@ Projection: invalid-query
 [Read]: #read
 [Record Id]: #record-id
 [State]: #state
-[Deleted By]: #deleted-by
-[Deleted At]: #deleted-at
+[Deleting Actor]: #deleting-actor
+[Deletion Instant]: #deletion-instant
 [Deletion Reason]: #deletion-reason
-[Restored By]: #restored-by
-[Restored At]: #restored-at
+[Restoring Actor]: #restoring-actor
+[Restoration Instant]: #restoration-instant
 [Restoration Reason]: #restoration-reason
-[Purged By]: #purged-by
-[Purged At]: #purged-at
+[Purging Actor]: #purging-actor
+[Purge Instant]: #purge-instant
 [Purge Reason]: #purge-reason
 [Reason]: #reason
 [Active]: #active

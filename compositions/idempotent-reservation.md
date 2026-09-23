@@ -551,7 +551,7 @@ Projection: outcome-unknown
 
 #### Recording Failure
 
-The composition's own rejection for a write to `token_results` that did not land, carrying its position and, at the outcome position, the constituent's answer. intent: the pending entry failed — nothing is committed, and the whole action may be retried (a write that landed unacknowledged is found by the retry's pending arm, whose empty-candidates case proceeds as never delegated). `outcome(optional id)` for [Place Hold], `outcome(result)` for the resolving actions: the constituent has answered — the committed id where there is one, else its rejection or ok — and the [Result] could not be recorded by `reservation_completion_bound`; the act must not be re-run under a fresh token, and a same-token retry lands the pending arm.
+The composition's own rejection for a write to `token_results` that did not land, carrying its position and, at the outcome position, the constituent's answer. intent: the pending entry failed — nothing is committed, and the whole action may be retried (a write that landed unacknowledged is found by the retry's pending arm, whose empty-candidates case proceeds as never delegated). `outcome(optional id)` for [Place Hold], `outcome(result)` for the resolving actions: the constituent has answered — the committed id where there is one, else its rejection or ok — and the [Result] could not be recording actor `reservation_completion_bound`; the act must not be re-run under a fresh token, and a same-token retry lands the pending arm.
 
 Kind:       Member
 Member of:  the action rejection

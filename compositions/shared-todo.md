@@ -83,11 +83,11 @@ Composition state 4: The composition MUST NOT materialize a derived query.
 
 Term task id: the Personal Todo id a call names a task by (Action wiring 6).
 
-Term actor ref: the opaque reference a call carries for the actor making it; the composition checks it and never authenticates it (Non-goal 12).
+Term actor reference: the opaque reference a call carries for the actor making it; the composition checks it and never authenticates it (Non-goal 12).
 
-Term responsible actor: the assignee ref of the active assignment Assignment's active_for answers for a task id — none if Assignment answers none.
+Term responsible actor: the assignee reference of the active assignment Assignment's active_for answers for a task id — none if Assignment answers none.
 
-Term visible tasks: EVERY task of the Personal Todo instance IF the actor ref holds tasks:view — none otherwise.
+Term visible tasks: EVERY task of the Personal Todo instance IF the actor reference holds tasks:view — none otherwise.
 
 WHY:
 The contract classification is *conforming, no stored composition state* (the section titled Composition state in `execution-contract.md`), and there is no element to classify, which is that rule's best case. Both derived queries are joins over surfaces the constituents already declare, computed per call, so nothing here can go stale and nothing needs a rebuild.
@@ -100,7 +100,7 @@ The contract classification is *conforming, no stored composition state* (the se
 Action wiring 1: The composition MUST call a constituent ONLY AFTER Permissions' permitted answers.
 Action wiring 2: IF Permissions' permitted answers denied THEN the composition MUST answer permission-denied.
 Action wiring 3: The composition MUST NOT call a constituent for a denied answer.
-Action wiring 4: The composition MUST call Permissions' permitted with the call's actor ref.
+Action wiring 4: The composition MUST call Permissions' permitted with the call's actor reference.
 Action wiring 5: An admitted add MUST call Personal Todo's add with the description.
 Action wiring 6: An admitted edit MUST call Personal Todo's edit with the task id and the new description.
 Action wiring 7: An admitted complete MUST call Personal Todo's complete with the task id.
@@ -112,7 +112,7 @@ Action wiring 12: IF the recall answers storage-failure THEN an admitted delete 
 Action wiring 13: An admitted assign MUST answer not-known for a task id the Personal Todo instance does not carry.
 Action wiring 14: An admitted assign MUST call Assignment's assign ONLY AFTER the task id's existence check clears.
 Action wiring 15: An admitted assign MUST accept a task id whose unit state EQUALS done.
-Action wiring 16: An admitted reassign MUST call Assignment's reassign with the assignment id and the new assignee ref.
+Action wiring 16: An admitted reassign MUST call Assignment's reassign with the assignment id and the new assignee reference.
 Action wiring 17: An admitted recall MUST call Assignment's recall with the assignment id.
 Action wiring 18: The composition MUST answer the constituent's answer.
 Action wiring 19: The composition MUST NOT answer an empty task set for a denied tasks:view.
@@ -199,7 +199,7 @@ Each of these needs two or all three constituents working together. None is avai
   ```
 - **Invariant 5 — Authorization history completeness.**
   ```
-  Invariant 5.1: The Permissions instance MUST answer an actor ref's grant history.
+  Invariant 5.1: The Permissions instance MUST answer an actor reference's grant history.
   Invariant 5.2: A grant record MUST outlive the task the grant governed.
   Deleted: Invariant 6. Composes 6 owns it.
   Deleted: Invariant 7. Composes 6 owns it.
@@ -249,7 +249,7 @@ A ward team: attending physician (all scopes), registered nurses (`tasks:view`, 
 - Orderly tries to add a task: `add_task(orderly_o, "Transport to radiology") → permission-denied`. Orderly holds no `tasks:add` grant.
 - Nurse N completes the vitals check: `complete_task(nurse_n, task_c7) → ok`.
 
-The accountability record is complete at the responsibility level: which nurse held responsibility at each shift, and which role level held which grants. Who *invoked* each reassignment is not recorded by any constituent here — Assignment records the responsibility chain, not the acting caller — so a regulated clinical environment needing invocation-level attribution composes the action surface with Audit Trail (which also makes the record tamper-evident and retention-bounded).
+The accountability record is complete at the responsibility level: which nurse held responsibility at each shift, and which role level held which grants. Who *invoked* each reassignment is not recording actor any constituent here — Assignment records the responsibility chain, not the acting caller — so a regulated clinical environment needing invocation-level attribution composes the action surface with Audit Trail (which also makes the record tamper-evident and retention-bounded).
 
 ---
 
@@ -265,7 +265,7 @@ Check 1.2: An auditor MUST find no active assignment naming a task id the Person
 Check 2.1: An auditor MUST find no task id carrying two active assignments in the Assignment store (Invariant 2.1).
 Check 3.1: An auditor MUST find a task's responsible actor from the Assignment store (Invariant 4.1).
 Check 3.2: An auditor MUST find a task's responsibility sequence from the Assignment store (Invariant 4.2).
-Check 4.1: An auditor MUST find an actor ref's grant history in the Permissions store (Invariant 5.1).
+Check 4.1: An auditor MUST find an actor reference's grant history in the Permissions store (Invariant 5.1).
 Check 4.2: An auditor MUST find a grant record for a task id the Personal Todo store does not carry (Invariant 5.2).
 Check 5.1: An auditor MUST find [Responsible Actor] answering unassigned for a task carrying no active assignment (Composition state 2).
 Check 5.2: An auditor MUST find [Responsible Actor] answering not-known for a task id the Personal Todo store does not carry (Composition state 2).
@@ -279,13 +279,13 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: An auditor needing the gate's order confirmed MUST read the deployment's own implementation (Invariant 1.1).
 External check 2: An auditor needing a denied call confirmed unreached MUST read the deployment's own implementation (Invariant 1.2).
 External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed Audit Trail (Non-goal 7).
-External check 4: An auditor needing the actor ref bound to a caller MUST read the deployment's authentication layer (Non-goal 12).
+External check 4: An auditor needing the actor reference bound to a caller MUST read the deployment's authentication layer (Non-goal 12).
 ```
 
 WHY:
 The split is the honest one and it is the same shape [Session-Gated Authorization](./session-gated-authorization.md) found. The three stores record *what stands*: an assignment's terminal state, a grant's history, a task's existence — so Check 1.1 through 5.2 clear from records. They do not record *what was attempted*: a denied call writes nothing anywhere, so the count of refusals and the order of the two steps inside an admitted call leave no trace in any constituent store. That is External check 1 through 3, and it is why a regulated deployment composes [Audit Trail](./audit-trail.md) rather than reading harder.
 
-External check 4 is the one a deployment can fail silently, and the section titled Non-goals names it as a seam rather than a gap: every guarantee here is stated over the actor ref values presented to the composition, and nothing here authenticates them.
+External check 4 is the one a deployment can fail silently, and the section titled Non-goals names it as a seam rather than a gap: every guarantee here is stated over the actor reference values presented to the composition, and nothing here authenticates them.
 
 ---
 
@@ -303,14 +303,14 @@ Non-goal 8: A deployment needing a tamper-evident record MUST compose Audit Trai
 Non-goal 9: The composition MUST NOT carry a task's priority.
 Non-goal 10: The composition MUST NOT carry a task's due date.
 Non-goal 11: The composition MUST NOT wire an action for Permissions' grant.
-Non-goal 12: The composition MUST NOT authenticate an actor ref.
-Non-goal 13: A deployment needing an authenticated actor ref MUST compose an authenticating pattern.
-Non-goal 14: An authenticating pattern MUST supply the actor ref the composition checks.
+Non-goal 12: The composition MUST NOT authenticate an actor reference.
+Non-goal 13: A deployment needing an authenticated actor reference MUST compose an authenticating pattern.
+Non-goal 14: An authenticating pattern MUST supply the actor reference the composition checks.
 Non-goal 15: The composition MUST NOT partition the Personal Todo instance's description uniqueness per actor.
 ```
 
 WHY:
-Non-goal 4 and Non-goal 12 are the two constituent obligations this composition declines, and declining them is a decision rather than an oversight. [Assignment](../atoms/assignment.md)'s `Composition note 4` assigns *whether a completed task's assignment is recalled* to a composing pattern, and both answers are defensible — an Active assignment on a Done task is a completion-attribution record, and recalling it is a clean close — so the composition supports either and the deployment picks. [Permissions](../atoms/permissions.md)'s `Composition note 3` assigns the caller-to-subject binding, and this composition passes actor ref through unauthenticated: an unauthenticated deployment lets any caller act under any actor's grants, which Non-goal 13 names the cure for. Both are pushed down one layer with the receiver named, which is the most a composition can do with an assignment it does not want.
+Non-goal 4 and Non-goal 12 are the two constituent obligations this composition declines, and declining them is a decision rather than an oversight. [Assignment](../atoms/assignment.md)'s `Composition note 4` assigns *whether a completed task's assignment is recalled* to a composing pattern, and both answers are defensible — an Active assignment on a Done task is a completion-attribution record, and recalling it is a clean close — so the composition supports either and the deployment picks. [Permissions](../atoms/permissions.md)'s `Composition note 3` assigns the caller-to-subject binding, and this composition passes actor reference through unauthenticated: an unauthenticated deployment lets any caller act under any actor's grants, which Non-goal 13 names the cure for. Both are pushed down one layer with the receiver named, which is the most a composition can do with an assignment it does not want.
 
 Non-goal 11 is narrower than it reads. The composition gates every action on the Permissions instance and wires no action for `grant` or `revoke` — who may administer grants is a governance surface of its own, and a regulated deployment composes [Attributed Permissions Admin](./attributed-permissions-admin.md) over the same instance.
 
@@ -346,7 +346,7 @@ Concurrency 4 and Concurrency 5 are the revoked-grant window stated rather than 
 
 ```
 Composition note 1: A deployment MUST declare which composing patterns the deployment wired in.
-Composition note 2: A deployment MUST bind an actor ref to an authenticated caller.
+Composition note 2: A deployment MUST bind an actor reference to an authenticated caller.
 Composition note 3: A deployment MUST own whether a completed task's assignment is recalled.
 Composition note 4: A deployment MUST administer the Permissions instance's grants.
 Composition note 5: A deployment MUST NOT wire a second Assignment instance over the task list.
@@ -365,7 +365,7 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: composition, constituents, responsible actor, visible tasks, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall, task id, actor ref.
+Term terms: composition, constituents, responsible actor, visible tasks, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall, task id, actor reference.
 
 Term record verbs: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, recheck, rest, leave, wrap, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply.
 

@@ -54,13 +54,13 @@ Identity 3: The transition MUST NOT allocate an observation id.
 Identity 4: The atom MUST NOT change an observation id.
 Identity 5: Two observations in one store instance MUST NOT share an observation id.
 Identity 6: The deployment MUST route EVERY call to one store instance.
-Identity 7: The atom MUST NOT identify an observation by the subject ref.
-Identity 8: The atom MUST admit a second observation carrying a recorded subject ref.
-Identity 9: A subject ref MUST carry one meaning across EVERY store instance.
+Identity 7: The atom MUST NOT identify an observation by the subject reference.
+Identity 8: The atom MUST admit a second observation carrying a recorded subject reference.
+Identity 9: A subject reference MUST carry one meaning across EVERY store instance.
 Identity 10: An observation id MUST carry one meaning within one store instance.
 Identity 11: The atom MUST compare a reference byte-exactly.
 Identity 12: The atom MUST NOT normalize a reference.
-Identity 13: The atom MUST NOT confirm that a subject ref names a known subject.
+Identity 13: The atom MUST NOT confirm that a subject reference names a known subject.
 Identity 14: The atom MUST NOT interpret an observation type.
 Identity 15: The atom MUST NOT interpret a unit.
 Identity 16: An action MUST NOT accept a store name.
@@ -68,17 +68,17 @@ Identity 16: An action MUST NOT accept a store name.
 
 Term observation: one recorded measurement about one subject — a value, a unit, a type, an observer and an instant; the record this atom holds.
 
-Term observation id: the opaque value naming one observation — an [Observation Id]; host-allocated at the seam.
+Term observation id: the opaque value naming one observation — an [Observation Id]; host-allocation instant the seam.
 
-Term subject ref: the opaque reference naming what the measurement is about — a [Subject Ref]; a property of the observation, never the observation's identity.
+Term subject reference: the opaque reference naming what the measurement is about — a [Subject Reference]; a property of the observation, never the observation's identity.
 
-Term recorded by: the opaque reference naming the observer who took the measurement — a [Recorded By].
+Term recording actor: the opaque reference naming the observer who took the measurement — a [Recording Actor].
 
 Term observation type: the opaque string naming what was measured — an [Observation Type]; recorded and filtered on, never interpreted.
 
 Term unit: the opaque string naming the measurement's unit — a [Unit].
 
-Term reference: subject ref, recorded by, amended by OR retracted by — every opaque reference this atom records.
+Term reference: subject reference, recording actor, amending actor OR retracting actor — every opaque reference this atom records.
 
 Term store instance: one named observation store a call is routed to; observation id uniqueness ranges over one instance.
 
@@ -87,7 +87,7 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 Term transition: the atom's evaluation of one call against the observation store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
 WHY:
-Identity 9 and Identity 10 state the two scopes that a multi-site deployment gets wrong in opposite directions. subject ref is portable by design — the same subject appears in one store and another — and observation id is not, so a cross-instance query that treats two ids from two stores as comparable is reading coincidence. Identity 16 is what makes the boundary visible in the signature: no action takes a [Store Name], so a caller cannot address two instances in one call and a composition that needs to must do its own routing.
+Identity 9 and Identity 10 state the two scopes that a multi-site deployment gets wrong in opposite directions. subject reference is portable by design — the same subject appears in one store and another — and observation id is not, so a cross-instance query that treats two ids from two stores as comparable is reading coincidence. Identity 16 is what makes the boundary visible in the signature: no action takes a [Store Name], so a caller cannot address two instances in one call and a composition that needs to must do its own routing.
 
 Identity 14 and Identity 15 are why vocabulary standardization sits outside. LOINC (Logical Observation Identifiers Names and Codes), SNOMED CT (Systematized Nomenclature of Medicine — Clinical Terms) and UCUM (Unified Code for Units of Measure) are controlled vocabularies a deployment maps into these two opaque strings, and an atom that knew any of them would be specified against one healthcare stack.
 
@@ -101,13 +101,13 @@ State 4: The atom MUST NOT offer a purged state.
 State 5: The atom MUST NOT offer a removal surface.
 State 6: The atom MUST NOT offer an edit surface.
 State 7: The atom MUST NOT offer an un-retract surface.
-State 8: EVERY observation MUST carry observation id, subject ref, recorded by, observation type, value, unit, recorded at and a state.
+State 8: EVERY observation MUST carry observation id, subject reference, recording actor, observation type, value, unit, recording instant and a state.
 State 9: EVERY amended observation MUST carry a successor id.
-State 10: EVERY successor observation MUST carry predecessor id, amended by and amendment reason.
-State 11: EVERY retracted observation MUST carry retracted by and retraction reason.
+State 10: EVERY successor observation MUST carry predecessor id, amending actor and amendment reason.
+State 11: EVERY retracted observation MUST carry retracting actor and retraction reason.
 State 12: The store instance's observation count MUST NOT fall.
-State 13: The atom MUST store a resolved recorded at standing within the future bound as the call supplied the value.
-State 14: The atom MUST NOT normalize a recorded at's timezone.
+State 13: The atom MUST store a resolved recording instant standing within the future bound as the call supplied the value.
+State 14: The atom MUST NOT normalize a recording instant's timezone.
 ```
 
 WHY:
@@ -115,7 +115,7 @@ State 4 is a deliberate absence. Clinical records are not deleted here, and dest
 
 Invariant 3 is what makes the chain linear rather than a tree, and the `State` family does not restate it. An observation already carrying a successor id is standing in amended, so a second [Amend] answers already-amended (Operation 14) and there is no path by which a branch could be written.
 
-State 13 is the allowance's exact scope and the thing an implementer gets wrong: the margin widens the *refusal's* tolerance and never alters a *value*. A recorded at inside the allowance is stored as supplied, not clamped to now.
+State 13 is the allowance's exact scope and the thing an implementer gets wrong: the margin widens the *refusal's* tolerance and never alters a *value*. A recording instant inside the allowance is stored as supplied, not clamped to now.
 
 The consequence is stated rather than hidden: a caller whose clock runs ahead of the seam by more than the allowance is refused as future-dated even though the measurement happened in the past. The width of that margin is the deployment's choice and the refusal is correct at whatever width they pick.
 
@@ -140,7 +140,7 @@ WHY:
 What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 WHY:
-recorded at may not increase monotonically across a subject's observations under a skewed clock, and there is no sequence number here to fall back on. Ordering within a history is best-effort wall time, not causal order — which is what Operation 55 forbids a rule from resting on.
+recording instant may not increase monotonically across a subject's observations under a skewed clock, and there is no sequence number here to fall back on. Ordering within a history is best-effort wall time, not causal order — which is what Operation 55 forbids a rule from resting on.
 
 ### Operations
 
@@ -163,13 +163,13 @@ read(query)
 ```
 
 ```
-Operation 1: IF subject ref EQUALS blank THEN [Record] MUST answer invalid-observation.
-Operation 2: IF recorded by EQUALS blank THEN [Record] MUST answer invalid-observation.
+Operation 1: IF subject reference EQUALS blank THEN [Record] MUST answer invalid-observation.
+Operation 2: IF recording actor EQUALS blank THEN [Record] MUST answer invalid-observation.
 Operation 3: IF observation type EQUALS blank THEN [Record] MUST answer invalid-observation.
 Operation 4: IF unit EQUALS blank THEN [Record] MUST answer invalid-observation.
 Operation 5: IF the observation type carries no value constraint THEN a content-checking action MUST answer invalid-observation.
 Operation 6: IF value fails the observation type's value constraint THEN a content-checking action MUST answer invalid-observation.
-Operation 7: IF the future bound PRECEDES the resolved recorded at THEN [Record] MUST answer invalid-observation.
+Operation 7: IF the future bound PRECEDES the resolved recording instant THEN [Record] MUST answer invalid-observation.
 Operation 8: An admitted record MUST record EXACTLY ONE observation.
 Operation 9: An admitted record MUST stand the observation in recorded.
 Operation 10: An admitted record MUST answer the observation id.
@@ -178,34 +178,34 @@ Operation 12: A chain action MUST answer not-known ONLY IF the observation id na
 Operation 13: IF the observation's state EQUALS retracted THEN a chain action MUST answer already-retracted.
 Operation 14: IF the observation's state EQUALS amended THEN [Amend] MUST answer already-amended.
 Operation 15: A chain action MUST answer a state rejection ONLY IF the observation id names an observation.
-Operation 16: IF amended by EQUALS blank THEN [Amend] MUST answer invalid-request.
+Operation 16: IF amending actor EQUALS blank THEN [Amend] MUST answer invalid-request.
 Operation 17: IF reason EQUALS blank THEN a chain action MUST answer invalid-request.
-Operation 18: IF retracted by EQUALS blank THEN [Retract] MUST answer invalid-request.
+Operation 18: IF retracting actor EQUALS blank THEN [Retract] MUST answer invalid-request.
 Operation 19: A chain action MUST answer invalid-request ONLY IF EVERY state check passes.
 Operation 20: [Amend] MUST answer invalid-observation ONLY IF EVERY request check passes.
-Operation 21: [Amend] MUST NOT accept a subject ref.
+Operation 21: [Amend] MUST NOT accept a subject reference.
 Operation 22: [Amend] MUST NOT accept an observation type.
-Operation 23: [Amend] MUST NOT accept a recorded at.
+Operation 23: [Amend] MUST NOT accept a recording instant.
 Operation 24: An admitted amend MUST record EXACTLY ONE successor observation.
-Operation 25: An admitted amend MUST take the successor's subject ref from the original.
+Operation 25: An admitted amend MUST take the successor's subject reference from the original.
 Operation 26: An admitted amend MUST take the successor's observation type from the original.
-Operation 27: An admitted amend MUST stamp the successor's recorded at from now.
+Operation 27: An admitted amend MUST stamp the successor's recording instant from now.
 Operation 28: An admitted amend MUST stand the successor in recorded.
 Operation 29: An admitted amend MUST set the successor's predecessor id to the original's observation id.
-Operation 30: An admitted amend MUST record amended by and reason as amendment reason on the successor.
+Operation 30: An admitted amend MUST record amending actor and reason as amendment reason on the successor.
 Operation 31: An admitted amend MUST stand the original in amended.
 Operation 32: An admitted amend MUST set the original's successor id to the successor's observation id.
 Operation 33: An admitted amend MUST commit the successor and the original's change in one operation.
 Operation 34: An admitted amend MUST answer the successor's observation id.
 Operation 35: An admitted retract MUST stand the observation in retracted.
-Operation 36: An admitted retract MUST record retracted by and reason as retraction reason.
+Operation 36: An admitted retract MUST record retracting actor and reason as retraction reason.
 Operation 37: An admitted retract MUST answer retracted.
 Operation 38: An observation whose state EQUALS amended MUST NOT refuse [Retract].
 Operation 39: IF the store refuses the write THEN a writing action MUST answer storage-failure.
 Operation 40: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 41: A refused action MUST leave the store as the call found the store.
-Operation 42: An admitted read MUST answer the matching observations in recorded at ascending order.
-Operation 43: An admitted read MUST order two observations sharing a recorded at stably across two reads of one store state.
+Operation 42: An admitted read MUST answer the matching observations in recording instant ascending order.
+Operation 43: An admitted read MUST order two observations sharing a recording instant stably across two reads of one store state.
 Operation 44: An admitted read MUST answer EVERY observation matching the supplied filters.
 Operation 45: An admitted read MUST NOT answer an observation failing a supplied filter.
 Operation 46: IF no observation matches THEN an admitted read MUST answer an empty observation sequence.
@@ -238,23 +238,23 @@ Term value constraint: the bound a deployment declares for one observation type 
 
 Term clock offset allowance: the non-negative duration a deployment declares as the margin between a caller's clock and the seam's; `0` means no tolerance.
 
-Term future bound: now raised by the clock offset allowance — the ceiling a resolved recorded at is checked against (Operation 7).
+Term future bound: now raised by the clock offset allowance — the ceiling a resolved recording instant is checked against (Operation 7).
 
-Term resolved recorded at: the recorded at the observation carries — the supplied value where one exists, and now otherwise.
+Term resolved recording instant: the recording instant the observation carries — the supplied value where one exists, and now otherwise.
 
-Term content field: observation id, subject ref, recorded by, observation type, value, unit OR recorded at — every field [Record] sets and nothing changes.
+Term content field: observation id, subject reference, recording actor, observation type, value, unit OR recording instant — every field [Record] sets and nothing changes.
 
-Term transition metadata: successor id, predecessor id, amended by, amendment reason, retracted by OR retraction reason — every field a chain action writes.
+Term transition metadata: successor id, predecessor id, amending actor, amendment reason, retracting actor OR retraction reason — every field a chain action writes.
 
 Term amendment chain: the observations one predecessor id and successor id sequence links — one measurement's correction history for one subject.
 
-Term filter axes: observation id | subject ref | observation type | state | recorded at — the five axes [Read] accepts, and no others.
+Term filter axes: observation id | subject reference | observation type | state | recording instant — the five axes [Read] accepts, and no others.
 
-Term admitted record: a [Record] call whose references, observation type, unit, value constraint, value and resolved recorded at the guards all admit.
+Term admitted record: a [Record] call whose references, observation type, unit, value constraint, value and resolved recording instant the guards all admit.
 
-Term admitted amend: an [Amend] call whose observation id names an observation whose state EQUALS recorded, and whose amended by, reason, value and unit the guards admit.
+Term admitted amend: an [Amend] call whose observation id names an observation whose state EQUALS recorded, and whose amending actor, reason, value and unit the guards admit.
 
-Term admitted retract: a [Retract] call whose observation id names an observation whose state DOES NOT EQUAL retracted, and whose retracted by and reason the guards admit.
+Term admitted retract: a [Retract] call whose observation id names an observation whose state DOES NOT EQUAL retracted, and whose retracting actor and reason the guards admit.
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
 
@@ -275,7 +275,7 @@ Operation 21 and Operation 22 are the atom's strongest structural claim and they
 
 Operation 5 is the refusal that surprises implementers. An observation type carrying no declared value constraint is rejected rather than accepted unchecked, because accepting it would mean recording a measurement the atom had no way to validate — and a store that silently accepts unknown types has a per-type integrity guarantee in name only. A deployment adds a measurement by declaring its constraint first.
 
-Operation 43 admits a limit rather than inventing an order. Two observations sharing a recorded at — concurrent entries, a back-dated record colliding with a current one, a coarse clock — have no order this atom can derive, so the requirement is stability across reads of one store state rather than a prescribed tiebreak. A caller depending on a particular tiebreak establishes it as a deployment convention, and observation id order is deterministic but arbitrary across implementations.
+Operation 43 admits a limit rather than inventing an order. Two observations sharing a recording instant — concurrent entries, a back-dated record colliding with a current one, a coarse clock — have no order this atom can derive, so the requirement is stability across reads of one store state rather than a prescribed tiebreak. A caller depending on a particular tiebreak establishes it as a deployment convention, and observation id order is deterministic but arbitrary across implementations.
 
 ### Invariants
 
@@ -293,11 +293,11 @@ Operation 43 admits a limit rather than inventing an order. Two observations sha
   Invariant 3.1: An observation MUST NOT carry two successor ids.
   Invariant 3.2: An observation MUST NOT carry two predecessor ids.
   ```
-- **Invariant 4 — Subject ref is inherited across an amendment chain.**
+- **Invariant 4 — Subject Reference is inherited across an amendment chain.**
   ```
-  Invariant 4.1: EVERY observation in one amendment chain MUST share one subject ref.
+  Invariant 4.1: EVERY observation in one amendment chain MUST share one subject reference.
   ```
-  WHY: by construction rather than by check (Operation 21). [Amend] takes no subject ref, so a successor naming a different subject is not a violation the atom catches — it is a call the signature cannot express. A wrong-subject entry is retracted and re-recorded against the right one.
+  WHY: by construction rather than by check (Operation 21). [Amend] takes no subject reference, so a successor naming a different subject is not a violation the atom catches — it is a call the signature cannot express. A wrong-subject entry is retracted and re-recorded against the right one.
 - **Invariant 5 — Observation type is inherited across an amendment chain.**
   ```
   Invariant 5.1: EVERY observation in one amendment chain MUST share one observation type.
@@ -314,17 +314,17 @@ Operation 43 admits a limit rather than inventing an order. Two observations sha
   Invariant 7.3: A reader MUST NOT observe a partial record once a crash has landed.
   ```
   WHY: Invariant 7.3 forbids the repair-later posture other stores are allowed. A crash-recovery scan that fixes a dangling amend after the fact is not a substitute here, because between the crash and the repair the partial record is *visible*, which is the state this invariant says never exists — and one of the two dangling shapes cannot be repaired at all without rewriting a write-once field (Atomic writes 4, Invariant 9.1).
-- **Invariant 8 — Recorded at is set once.**
+- **Invariant 8 — Recording Instant is set once.**
   ```
-  Invariant 8.1: A recorded recorded at MUST NOT change.
-  Invariant 8.2: A successor observation's recorded at MUST stand at the amendment's instant.
+  Invariant 8.1: A recorded recording instant MUST NOT change.
+  Invariant 8.2: A successor observation's recording instant MUST stand at the amendment's instant.
   ```
   WHY: the successor's instant says when the correction was entered, and the original's says when the measurement was taken. Conflating them would lose the distinction a reviewer needs most — whether a value changed because the subject changed or because the record was wrong.
 - **Invariant 9 — Transition metadata is write-once.**
   ```
   Invariant 9.1: A recorded transition metadata field MUST NOT change.
   ```
-  WHY: the protections come from elsewhere and meet here. A successor id cannot be overwritten because a second [Amend] answers already-amended (Operation 14, Invariant 3.1); a retracted by cannot be overwritten because retraction is terminal (Invariant 6.1); a successor's predecessor id, amended by and amendment reason are covered as any observation's fields are (Invariant 1.1). Taken with Invariant 1 and Invariant 8, no field of any observation ever changes after it is first written.
+  WHY: the protections come from elsewhere and meet here. A successor id cannot be overwritten because a second [Amend] answers already-amended (Operation 14, Invariant 3.1); a retracting actor cannot be overwritten because retraction is terminal (Invariant 6.1); a successor's predecessor id, amending actor and amendment reason are covered as any observation's fields are (Invariant 1.1). Taken with Invariant 1 and Invariant 8, no field of any observation ever changes after it is first written.
 
 ---
 
@@ -332,13 +332,13 @@ Operation 43 admits a limit rather than inventing an order. Two observations sha
 
 ### A vital sign, recorded and queried
 
-A nurse charts a blood pressure: `record(subject_ref: "p42", recorded_by: "rn.okafor", observation_type: "blood_pressure_systolic", value: 128, unit: "mmHg")` → `obs-0441`, standing in recorded with recorded at from the injected reading (Operation 8 through 10). The clinical system later runs `read({subject_ref: "p42", observation_type: "blood_pressure_systolic", state: recorded})` and receives the current values in chronological order.
+A nurse charts a blood pressure: `record(subject_ref: "p42", recorded_by: "rn.okafor", observation_type: "blood_pressure_systolic", value: 128, unit: "mmHg")` → `obs-0441`, standing in recorded with recording instant from the injected reading (Operation 8 through 10). The clinical system later runs `read({subject_ref: "p42", observation_type: "blood_pressure_systolic", state: recorded})` and receives the current values in chronological order.
 
 ### Correcting a transcription error
 
 The nurse notices the chart reads 128 where the monitor read 148: `amend("obs-0441", amended_by: "rn.okafor", value: 148, unit: "mmHg", reason: "Transcription error — monitor read 148")` → `obs-0442`. The original stands in amended carrying `successor_id: obs-0442`; the successor stands in recorded carrying `predecessor_id: obs-0441`, the amending clinician and the reason (Operation 24 through 34). Both remain visible; a query for recorded observations answers only the successor.
 
-The successor's subject ref and observation type came from the original and could not have come from anywhere else — [Amend] accepts neither (Operation 21, Operation 22, Invariant 4.1, Invariant 5.1). Its recorded at is the amendment's instant, not the measurement's (Operation 27, Invariant 8.2).
+The successor's subject reference and observation type came from the original and could not have come from anywhere else — [Amend] accepts neither (Operation 21, Operation 22, Invariant 4.1, Invariant 5.1). Its recording instant is the amendment's instant, not the measurement's (Operation 27, Invariant 8.2).
 
 ### Retracting a wrong-patient entry
 
@@ -366,7 +366,7 @@ An amended observation can still be retracted — retraction reaches any link in
 
 - **Regulator audit.** A HIPAA (US Health Insurance Portability and Accountability Act) auditor queries every observation for a patient across all states. The result carries the recorded, amended and retracted alike, and the chain is walkable in both directions — Check 2.1 through 2.4 are what make the amendment trail verifiable from the store rather than from a narrative about it.
 - **Disputed observation.** A patient disputes a glucose value. The original's value and clinician are immutable (Invariant 1.1); whether it was amended, by whom and why is on the successor (State 10); whether it was withdrawn and why is on the record itself (State 11). The dispute resolves against the chain, and what the chain cannot say is whether the measurement was *clinically* correct — that is a clinical judgment, not a record property.
-- **Breach investigation.** An investigator cross-references each observation's recorded by against the authorized staff list at the time it was recorded. Invariant 1.1 is why the reference can be trusted — it cannot have been changed since — and Invariant 7.1 is why the set is complete. What the store cannot supply is whether the named clinician was *authorized*, which is a composing [Permissions](./permissions.md) record (Non-goal 13, External check 2).
+- **Breach investigation.** An investigator cross-references each observation's recording actor against the authorized staff list at the time it was recorded. Invariant 1.1 is why the reference can be trusted — it cannot have been changed since — and Invariant 7.1 is why the set is complete. What the store cannot supply is whether the named clinician was *authorized*, which is a composing [Permissions](./permissions.md) record (Non-goal 13, External check 2).
 
 ---
 
@@ -377,21 +377,21 @@ This atom's acceptance is what an external auditor can clear from the observatio
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find a re-read observation's observation id, subject ref, recorded by, observation type, value, unit and recorded at unchanged from the prior read (Invariant 1.1).
+Check 1.1: An auditor MUST find a re-read observation's observation id, subject reference, recording actor, observation type, value, unit and recording instant unchanged from the prior read (Invariant 1.1).
 Check 1.2: An auditor MUST find a re-read transition metadata field unchanged from the prior read (Invariant 9.1).
 Check 2.1: An auditor MUST find a successor observation for EVERY amended observation's successor id (Invariant 2.1).
 Check 2.2: An auditor MUST find EVERY successor observation's predecessor id equal to the original's observation id (Operation 29).
-Check 2.3: An auditor MUST find EVERY observation in one amendment chain sharing one subject ref (Invariant 4.1).
+Check 2.3: An auditor MUST find EVERY observation in one amendment chain sharing one subject reference (Invariant 4.1).
 Check 2.4: An auditor MUST find EVERY observation in one amendment chain sharing one observation type (Invariant 5.1).
 Check 2.5: An auditor MUST find no observation carrying two successor ids (Invariant 3.1).
 Check 2.6: An auditor MUST find no observation carrying two predecessor ids (Invariant 3.2).
 Check 3.1: An auditor MUST find no observation whose state DOES NOT EQUAL retracted on a later read of an observation a prior read found retracted (Invariant 6.1).
 Check 4.1: An auditor MUST find no observation absent from a later read (Invariant 7.1).
-Check 5.1: An auditor MUST find EVERY observation's recorded by non-blank (Operation 2, String 5).
-Check 5.2: An auditor MUST find EVERY retracted observation's retracted by and retraction reason non-blank (Operation 17, Operation 18).
-Check 5.3: An auditor MUST find EVERY successor observation's amended by and amendment reason non-blank (Operation 16, Operation 17).
-Check 5.4: An auditor MUST find a predecessor id, an amended by and an amendment reason on EVERY successor observation (State 10).
-Check 6.1: An auditor MUST find two reads of one store state ordering two observations sharing a recorded at alike (Operation 43).
+Check 5.1: An auditor MUST find EVERY observation's recording actor non-blank (Operation 2, String 5).
+Check 5.2: An auditor MUST find EVERY retracted observation's retracting actor and retraction reason non-blank (Operation 17, Operation 18).
+Check 5.3: An auditor MUST find EVERY successor observation's amending actor and amendment reason non-blank (Operation 16, Operation 17).
+Check 5.4: An auditor MUST find a predecessor id, an amending actor and an amendment reason on EVERY successor observation (State 10).
+Check 6.1: An auditor MUST find two reads of one store state ordering two observations sharing a recording instant alike (Operation 43).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -400,7 +400,7 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: A deployment needing EVERY issued observation id found in the store MUST capture the record answers (Invariant 7.1).
-External check 2: A deployment needing a recorded by confirmed authorized MUST read the composing Permissions record (Non-goal 13).
+External check 2: A deployment needing a recording actor confirmed authorized MUST read the composing Permissions record (Non-goal 13).
 External check 3: A deployment needing a reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
 External check 4: A deployment needing a value confirmed correct MUST read outside the observation store (Non-goal 5).
 ```
@@ -415,13 +415,13 @@ External check 4 is the boundary a reader most wants the atom to cross and it ca
 ```
 Non-goal 1: The atom MUST NOT define a value constraint.
 Non-goal 2: The deployment MUST declare a value constraint per observation type.
-Non-goal 3: The atom MUST NOT bound the look-back on a recorded at.
+Non-goal 3: The atom MUST NOT bound the look-back on a recording instant.
 Non-goal 4: The atom MUST NOT interpret a value.
 Non-goal 5: The atom MUST NOT confirm that a value stands correct.
 Non-goal 6: The atom MUST NOT map an observation type to a controlled vocabulary.
 Non-goal 7: The atom MUST NOT map a unit to a controlled vocabulary.
 Non-goal 8: The atom MUST NOT offer an amendment that changes an observation type.
-Non-goal 9: The atom MUST NOT offer an amendment that changes a subject ref.
+Non-goal 9: The atom MUST NOT offer an amendment that changes a subject reference.
 Non-goal 10: The atom MUST NOT bind a reference to an actor.
 Non-goal 11: A deployment needing a non-repudiable observer MUST compose Actor Identity.
 Non-goal 12: The atom MUST NOT decide who may call an action.
@@ -441,7 +441,7 @@ Non-goal 23: A deployment needing a verifiable time anchor MUST compose a truste
 WHY:
 Non-goal 1 and Non-goal 2 are one decision read from both ends, and it is the atom's sharpest division of labour. What counts as a valid systolic pressure, a valid pain score, a valid glucose reading is clinical and local — an adult ICU and a neonatal unit disagree, and an atom that picked either would be specified against one care setting. So the atom defines no constraint and refuses to record a type that has none (Operation 5). The deployment supplies the clinical knowledge; the atom supplies the guarantee that the knowledge was applied.
 
-Non-goal 3 leaves recorded at unbounded below on purpose. A nurse charting a bedside observation taken thirty minutes ago is normal workflow; an observation charted two years late is unusual and may warrant scrutiny, and the difference between *unusual* and *invalid* is a clinical judgment the atom declines to make. The future bound refuses the one direction that is always impossible.
+Non-goal 3 leaves recording instant unbounded below on purpose. A nurse charting a bedside observation taken thirty minutes ago is normal workflow; an observation charted two years late is unusual and may warrant scrutiny, and the difference between *unusual* and *invalid* is a clinical judgment the atom declines to make. The future bound refuses the one direction that is always impossible.
 
 Non-goal 8 and Non-goal 9 restate as refusals what Operation 21 and Operation 22 make unrepresentable. Both are worth stating twice in different registers: a reader looking for *can I fix the type with an amendment* finds the answer in the Non-goals, and an implementer looking at the signature finds that the question does not arise.
 
@@ -481,7 +481,7 @@ Concurrency 4: A second serialized [Amend] against one observation MUST answer a
 Concurrency 5: The implementation MUST release the per-observation critical section on the invocation's return.
 Concurrency 6: IF the per-observation critical section lapses mid-invocation THEN the implementation MUST answer storage-failure.
 Concurrency 7: The atom MUST NOT offer a reconciliation leg.
-Concurrency 8: The atom MUST admit two concurrent [Record] calls against one subject ref.
+Concurrency 8: The atom MUST admit two concurrent [Record] calls against one subject reference.
 ```
 
 Term per-observation critical section: the mutual exclusion an implementation holds over one observation id while a chain action's state check and transition run.
@@ -535,7 +535,7 @@ Composition note 10: A composing pattern reading the observation store MUST NOT 
 WHY:
 [Event Log](./event-log.md) is the structural cousin and not a constituent: this store is append-only with immutable entries ordered by an instant, which is an event log's shape, and it carries amendment and retraction semantics an event log has none of. A deployment may layer one as the persistence substrate; that is an implementation choice rather than a composition this atom names.
 
-[Actor Identity](./actor-identity.md) is what makes recorded by, amended by and retracted by more than opaque strings — the attestation that the reference names a real, credentialed observer at the time of recording, which a disputed-authorship challenge needs and this atom cannot supply. [Permissions](./permissions.md) answers the different question of whether that observer was *allowed* to record, and the two are often confused: the atom records who, the attestation proves who, the permission proves may.
+[Actor Identity](./actor-identity.md) is what makes recording actor, amending actor and retracting actor more than opaque strings — the attestation that the reference names a real, credentialed observer at the time of recording, which a disputed-authorship challenge needs and this atom cannot supply. [Permissions](./permissions.md) answers the different question of whether that observer was *allowed* to record, and the two are often confused: the atom records who, the attestation proves who, the permission proves may.
 
 [Tamper Evidence](./tamper-evidence.md) lifts immutability from a specification guarantee to a cryptographic one. [Retention Window](./retention-window.md) and [Legal Hold](./legal-hold.md) own the clocks this atom refuses to hold (State 4, Non-goal 14 through 16), and [Audit Trail](../compositions/audit-trail.md) is the regulated record-keeping stack this store feeds. [Medication Order](./medication-order.md) carries an opaque reference to the observations that informed a prescribing decision — advisory, unidirectional, and no dependency in this direction: this atom is the upstream evidence and does not know what was done with it.
 
@@ -549,7 +549,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an observer; a subject; an investigator; the store; an observation; a successor observation; an original; an amended observation; a retracted observation; a chain action; a content-checking action; a writing action; a refused action; an ordering rule; an action; a query; a filter; a reference filter; a state filter; a range filter; a state rejection; an amendment chain; a rejection; a crash; a reader; a string input; an opaque reference; the store instance's observation count.
 
-Term records: observation — one recorded measurement, carrying observation id, subject ref, recorded by, observation type, value, unit, recorded at and a state, plus the transition metadata a chain action writes.
+Term records: observation — one recorded measurement, carrying observation id, subject reference, recording actor, observation type, value, unit, recording instant and a state, plus the transition metadata a chain action writes.
 
 Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, stamp, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, raise, compare, trim, case-fold, refuse, write, read, find, observe, repair, commit, fall, bound, decide, declare, compose, wire, supply, remove, order, sort, name, bind, derive, map, define, apply, hold, release, serialize, lapse, return, canonicalize, store, fail, accept, rest, capture.
 
@@ -561,7 +561,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: observation, observation id, subject ref, recorded by, observation type, unit, reference, store instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, state rejection, value constraint, clock offset allowance, future bound, resolved recorded at, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, per-observation critical section, string input, blank, uncommitted crash, dangling amend.
+Term terms: observation, observation id, subject reference, recording actor, observation type, unit, reference, store instance, seam, transition, now, business caller, states, content field, chain action, content-checking action, writing action, state rejection, value constraint, clock offset allowance, future bound, resolved recording instant, transition metadata, amendment chain, filter axes, admitted record, admitted amend, admitted retract, admitted read, per-observation critical section, string input, blank, uncommitted crash, dangling amend.
 
 Term successor ids: successor_ids — the ids of the observations that succeed this one.
 
@@ -569,25 +569,25 @@ Term predecessor ids: predecessor_ids — the ids of the observations this one s
 
 #### Record
 
-The behavior an observer or a recording system invokes to create a new [Recorded] observation. It assigns an [Observation Id], sets [Subject Ref], [Recorded By], [Observation Type], [Value], [Unit], and [Recorded At], and returns the [Observation Id] (or a rejection). It validates [Value] against the declared per-type constraint and rejects an unknown [Observation Type].
+The behavior an observer or a recording system invokes to create a new [Recorded] observation. It assigns an [Observation Id], sets [Subject Reference], [Recording Actor], [Observation Type], [Value], [Unit], and [Recording Instant], and returns the [Observation Id] (or a rejection). It validates [Value] against the declared per-type constraint and rejects an unknown [Observation Type].
 
 Kind: Operation
 
 #### Amend
 
-The behavior that corrects a [Recorded] observation by creating a successor. The original transitions to [Amended] with a [Successor Id]; the successor is [Recorded] with a [Predecessor Id], [Amended By], and [Amendment Reason], inheriting [Subject Ref] and [Observation Type] by construction. It does not edit the original and does not accept [Subject Ref], [Observation Type], or [Recorded At] as parameters.
+The behavior that corrects a [Recorded] observation by creating a successor. The original transitions to [Amended] with a [Successor Id]; the successor is [Recorded] with a [Predecessor Id], [Amending Actor], and [Amendment Reason], inheriting [Subject Reference] and [Observation Type] by construction. It does not edit the original and does not accept [Subject Reference], [Observation Type], or [Recording Instant] as parameters.
 
 Kind: Operation
 
 #### Retract
 
-The behavior that withdraws an erroneous observation, marking it [Retracted] with [Retracted By] and [Retraction Reason]. The record is retained, not destroyed. A [Recorded] or [Amended] observation may be retracted; a [Retracted] one may not (terminal).
+The behavior that withdraws an erroneous observation, marking it [Retracted] with [Retracting Actor] and [Retraction Reason]. The record is retained, not destroyed. A [Recorded] or [Amended] observation may be retracted; a [Retracted] one may not (terminal).
 
 Kind: Operation
 
 #### Read
 
-The read-only behavior that returns the observations matching a [Query], ordered by [Recorded At] ascending. It changes nothing. Filters by [Observation Id], [Subject Ref], [Observation Type], time range, or [State] are combinable.
+The read-only behavior that returns the observations matching a [Query], ordered by [Recording Instant] ascending. It changes nothing. Filters by [Observation Id], [Subject Reference], [Observation Type], time range, or [State] are combinable.
 
 Kind: Operation
 
@@ -599,7 +599,7 @@ Kind:       Field
 Field of:   Observation
 Projection: observation_id
 
-#### Subject Ref
+#### Subject Reference
 
 The opaque, globally-scoped reference to the subject the observation is about. Set on [Record], immutable, and inherited unchanged by any successor across an amendment chain (Invariant 4).
 
@@ -607,9 +607,9 @@ Kind:       Field
 Field of:   Observation
 Projection: subject_ref
 
-#### Recorded By
+#### Recording Actor
 
-The opaque reference to the observer who performed the measurement. Set on [Record], immutable; an amendment carries its own [Amended By] and never changes the original [Recorded By].
+The opaque reference to the observer who performed the measurement. Set on [Record], immutable; an amendment carries its own [Amending Actor] and never changes the original [Recording Actor].
 
 Kind:       Field
 Field of:   Observation
@@ -639,9 +639,9 @@ Kind:       Field
 Field of:   Observation
 Projection: unit
 
-#### Recorded At
+#### Recording Instant
 
-The wall-time the observation was recorded — supplied to [Record] or defaulted from the receiving node's wall clock; must not be future-dated. Set once (Invariant 8), immutable. A successor carries its own [Recorded At] (when the correction was entered), not the original measurement time.
+The wall-time the observation was recorded — supplied to [Record] or defaulted from the receiving node's wall clock; must not be future-dated. Set once (Invariant 8), immutable. A successor carries its own [Recording Instant] (when the correction was entered), not the original measurement time.
 
 Kind:       Field
 Field of:   Observation
@@ -671,7 +671,7 @@ Kind:       Field
 Field of:   Observation
 Projection: successor_id
 
-#### Amended By
+#### Amending Actor
 
 The opaque reference to the observer who made a correction — set on the successor at [Amend] time, immutable thereafter.
 
@@ -687,9 +687,9 @@ Kind:       Field
 Field of:   Observation
 Projection: amendment_reason
 
-#### Retracted By
+#### Retracting Actor
 
-The opaque reference to the observer who withdrew an observation — set at [Retract] time, immutable thereafter (Invariant 9).
+The opaque reference to the observer who withdrew an observation — set instant [Retract] time, immutable thereafter (Invariant 9).
 
 Kind:       Field
 Field of:   Observation
@@ -697,7 +697,7 @@ Projection: retracted_by
 
 #### Retraction Reason
 
-The required, non-empty reason for a retraction — set at [Retract] time, immutable thereafter. A blank reason is rejected.
+The required, non-empty reason for a retraction — set instant [Retract] time, immutable thereafter. A blank reason is rejected.
 
 Kind:       Field
 Field of:   Observation
@@ -705,7 +705,7 @@ Projection: retraction_reason
 
 #### Store Name
 
-The identifier of the store instance an observation belongs to. Multiple instances coexist; [Observation Id]s are unique within an instance, while [Subject Ref] is portable across instances. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
+The identifier of the store instance an observation belongs to. Multiple instances coexist; [Observation Id]s are unique within an instance, while [Subject Reference] is portable across instances. No action accepts it as a parameter — instance selection is handled at the deployment-routing layer.
 
 Kind:       Field
 Field of:   the store instance
@@ -721,7 +721,7 @@ Projection:   reason
 
 #### Query
 
-The selection [Read] consumes — a filter over [Observation Id], [Subject Ref], [Observation Type], time range, and/or [State]. Supplied per call, not stored; a malformed one is rejected [Invalid Query].
+The selection [Read] consumes — a filter over [Observation Id], [Subject Reference], [Observation Type], time range, and/or [State]. Supplied per call, not stored; a malformed one is rejected [Invalid Query].
 
 Kind:         Parameter
 Parameter of: Read
@@ -745,7 +745,7 @@ Role:      Outcome
 
 #### Retracted
 
-The terminal state of an observation withdrawn as erroneous. Retained and visible but flagged invalid, carrying [Retracted By] and [Retraction Reason]; no further transition (Invariant 6).
+The terminal state of an observation withdrawn as erroneous. Retained and visible but flagged invalid, carrying [Retracting Actor] and [Retraction Reason]; no further transition (Invariant 6).
 
 Kind:      Member
 Member of: the observation state
@@ -753,7 +753,7 @@ Role:      Outcome
 
 #### Invalid Observation
 
-The refusal [Record] (or [Amend]) returns when observation content fails — an empty/whitespace [Subject Ref], [Recorded By], [Observation Type], or [Unit]; a [Value] failing the per-type constraint; an [Observation Type] with no declared constraint; or a future-dated [Recorded At].
+The refusal [Record] (or [Amend]) returns when observation content fails — an empty/whitespace [Subject Reference], [Recording Actor], [Observation Type], or [Unit]; a [Value] failing the per-type constraint; an [Observation Type] with no declared constraint; or a future-dated [Recording Instant].
 
 Kind:       Member
 Member of:  the action rejection
@@ -798,7 +798,7 @@ Projection: already-retracted
 
 #### Invalid Request
 
-The refusal [Amend] or [Retract] returns when request metadata fails — an empty or whitespace-only [Amended By], [Retracted By], or [Reason].
+The refusal [Amend] or [Retract] returns when request metadata fails — an empty or whitespace-only [Amending Actor], [Retracting Actor], or [Reason].
 
 Kind:       Member
 Member of:  the action rejection
@@ -824,18 +824,18 @@ Projection: invalid-query
 [Retract]: #retract
 [Read]: #read
 [Observation Id]: #observation-id
-[Subject Ref]: #subject-ref
-[Recorded By]: #recorded-by
+[Subject Reference]: #subject-reference
+[Recording Actor]: #recording-actor
 [Observation Type]: #observation-type
 [Value]: #value
 [Unit]: #unit
-[Recorded At]: #recorded-at
+[Recording Instant]: #recording-instant
 [State]: #state
 [Predecessor Id]: #predecessor-id
 [Successor Id]: #successor-id
-[Amended By]: #amended-by
+[Amending Actor]: #amending-actor
 [Amendment Reason]: #amendment-reason
-[Retracted By]: #retracted-by
+[Retracting Actor]: #retracting-actor
 [Retraction Reason]: #retraction-reason
 [Store Name]: #store-name
 [Reason]: #reason
@@ -855,8 +855,8 @@ Projection: invalid-query
 
 ## Standards references
 
-- **HIPAA §164.312(b)** — audit controls: covered entities must implement hardware, software, and procedural mechanisms to record and examine activity in information systems that contain ePHI (electronic Protected Health Information — individually identifiable health data in digital form). The observation record, with its immutable [Recorded By] and [Recorded At], is the primary audit surface.
-- **HL7 FHIR (Health Level 7 Fast Healthcare Interoperability Resources — a standard for exchanging healthcare information) Observation resource** — the canonical interoperability representation of a clinical observation; this atom's core fields map to FHIR Observation's `subject` ([Subject Ref]), `performer` ([Recorded By]), `value[x]` ([Value] + [Unit]), `issued` ([Recorded At]), and `status` (final → [Recorded], amended → [Amended], cancelled → [Retracted]). FHIR's `code` field is a CodeableConcept (LOINC or SNOMED CT), not an opaque string — this atom deliberately defers terminology binding to deployment convention. FHIR carries many additional fields (category, encounter, bodySite, interpretation, referenceRange) not present here; those are composing-layer concepts.
+- **HIPAA §164.312(b)** — audit controls: covered entities must implement hardware, software, and procedural mechanisms to record and examine activity in information systems that contain ePHI (electronic Protected Health Information — individually identifiable health data in digital form). The observation record, with its immutable [Recording Actor] and [Recording Instant], is the primary audit surface.
+- **HL7 FHIR (Health Level 7 Fast Healthcare Interoperability Resources — a standard for exchanging healthcare information) Observation resource** — the canonical interoperability representation of a clinical observation; this atom's core fields map to FHIR Observation's `subject` ([Subject Reference]), `performer` ([Recording Actor]), `value[x]` ([Value] + [Unit]), `issued` ([Recording Instant]), and `status` (final → [Recorded], amended → [Amended], cancelled → [Retracted]). FHIR's `code` field is a CodeableConcept (LOINC or SNOMED CT), not an opaque string — this atom deliberately defers terminology binding to deployment convention. FHIR carries many additional fields (category, encounter, bodySite, interpretation, referenceRange) not present here; those are composing-layer concepts.
 - **21 CFR (Code of Federal Regulations — the codification of US federal agency rules) Part 11** — electronic records in FDA-regulated (US Food and Drug Administration) clinical trials; each observation is a regulated electronic record requiring attribution, timestamp, and amendment trail.
 - **Joint Commission Record of Care standards** — require that corrections to medical records be dated, timed, and attributed; the amendment model satisfies this directly.
 - **IHE PCC (Integrating the Healthcare Enterprise — Patient Care Coordination)** — the Clinical Document Architecture (CDA) and FHIR-based profiles that govern how observations are exchanged across care settings.
@@ -882,16 +882,16 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/clinical-observation.md`.
 
-- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section with its semantics — taken before the state check, released on return or death, a lease's expiry the invocation's terminus, a stalled invocation re-reading the state under the critical section and landing [Already Amended]; a deployment-declared clock offset allowance under which the future-dated check on a caller-supplied [Recorded At] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction, beside a caller told to read the original and retry; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 7 says never exists, could relink one dangling shape but not the other — the successor's content is nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an act the caller's retry could already have landed; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone* — with *Recovery commits under a declared service identity … and what cannot be re-derived is re-run*, frozen 2026-08-29).
+- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section with its semantics — taken before the state check, released on return or death, a lease's expiry the invocation's terminus, a stalled invocation re-reading the state under the critical section and landing [Already Amended]; a deployment-declared clock offset allowance under which the future-dated check on a caller-supplied [Recording Instant] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction, beside a caller told to read the original and retry; a future-dated refusal deciding actor comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 7 says never exists, could relink one dangling shape but not the other — the successor's content is nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an act the caller's retry could already have landed; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone* — with *Recovery commits under a declared service identity … and what cannot be re-derived is re-run*, frozen 2026-08-29).
 
 - **2026-09-13 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the four actions as a signature block, Invariant 1 through 9 keeping their numbers, every success effect conditioned on a declared admitted record, admitted amend, admitted retract or admitted read (Hard invariant 16), [Amend] and [Retract] unified under a declared chain action so their shared guards are stated once, the per-action *rejection priority* paragraph collapsed to one seven-row case space, the arithmetic in `recorded_at ≤ now + clock_offset_allowance` routed through a declared future bound so no rule carries a sum (Closed vocabulary 9), the five acceptance areas opened into `Check 1.1 through 6.1` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and four edge-case families. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into clinical-observation` found nothing citing this atom by label. 61.2 KB → 60.7 KB, the smallest reduction of the migration — this atom's prose carried almost no restatement, and what came out was one repeated precedence paragraph.
 
 - **2026-09-13 — The value constraint is the deployment's, and the refusal is the atom's.** *Chose:* `Operation 5` — an observation type carrying no declared value constraint is refused — with `Non-goal 1` and `Non-goal 2` stating the division from both ends. *Over:* accepting an unknown type unchecked, which is what most record stores do. *Because:* what counts as a valid systolic pressure or pain score is clinical and local, so an atom that defined one would be specified against a single care setting, and an atom that accepted a type it could not check would have a per-type integrity guarantee in name only. A deployment adds a measurement by declaring what a valid value for it looks like first. This is the corpus's first bounds entry whose *value* is entirely the deployment's while its *existence* is normative.
 
-- **2026-09-13 — Inheritance by construction, stated as the absence of a parameter.** *Chose:* `Operation 21`, `Operation 22` and `Operation 23` — [Amend] accepts no subject ref, no observation type and no recorded at — with `Invariant 4` and `Invariant 5` resting on them. *Over:* runtime checks that a successor matches its original. *Because:* a check catches divergence and a missing parameter makes it unrepresentable, and the second is the stronger guarantee. The consequence is the atom's most-questioned friction and it is deliberate: a clinician who charted the wrong measurement type is not correcting a value, they recorded something that did not happen, which retraction says and amendment does not.
+- **2026-09-13 — Inheritance by construction, stated as the absence of a parameter.** *Chose:* `Operation 21`, `Operation 22` and `Operation 23` — [Amend] accepts no subject reference, no observation type and no recording instant — with `Invariant 4` and `Invariant 5` resting on them. *Over:* runtime checks that a successor matches its original. *Because:* a check catches divergence and a missing parameter makes it unrepresentable, and the second is the stronger guarantee. The consequence is the atom's most-questioned friction and it is deliberate: a clinician who charted the wrong measurement type is not correcting a value, they recorded something that did not happen, which retraction says and amendment does not.
 
 - **2026-09-13 — The only atom that forbids repair-later.** *Chose:* `Invariant 7.3` and `Atomic writes 4` — no reader may observe a partial record once a crash has landed, and the implementation MUST NOT repair a dangling amend. *Over:* the crash-recovery scan every other store in the corpus is permitted. *Because:* the partial record is visible between the crash and the repair, which is the state Invariant 7.3 says never exists — and one of the two dangling shapes cannot be repaired at all, because an original marked amended with a successor id naming no record has lost the successor's value, unit, clinician and reason entirely, and un-marking it would rewrite a write-once field (`Invariant 9.1`).
 
-- **2026-09-13 — Renamed from Clinical Observation; the domain was in the name, not the concept.** *Chose:* `Observation`, with `patient_ref` renamed subject ref and the clinician vocabulary neutralized wherever it was definitional. *Over:* holding the name, and over `Superseding Record` and `Amendment Chain`, which name the invariant more precisely and read less naturally. *Because:* `atoms/TAXONOMY.md` had flagged this atom as the corpus's masquerade candidate since 2026-06-08 — a neutral concept dressed in domain clothes — and gated the judgment on the EOS strip test rather than on taste. The GRACE migration made the test decidable. Of 173 labelled rules, **not one carries a clinical semantic**: value, unit and observation type are opaque (Identity 14, Identity 15), the atom is forbidden to interpret a value (Non-goal 4) or confirm one correct (Non-goal 5), and what counts as valid is entirely the deployment's (Non-goal 1, Operation 5). Strip the setting and what remains is an amendable, attributed, retractable measurement record — equally a vital sign, an assay, an instrument reading, a financial mark. The two domain-flavoured identifiers were opaque references, and renaming one of them removed the last of it. `Medication Order` stays tagged `domain: healthcare` and earned it — its guards are irreducibly clinical and no census can count them away. The calibration the maintainer set is visible in what did *not* change: the worked example keeps its nurse and its blood pressure, and the Standards references keep their healthcare anchors, because those are illustration and evidence rather than framing. Neutral where the text is definitional, concrete where it is illustrative.
+- **2026-09-13 — Renamed from Clinical Observation; the domain was in the name, not the concept.** *Chose:* `Observation`, with `patient_ref` renamed subject reference and the clinician vocabulary neutralized wherever it was definitional. *Over:* holding the name, and over `Superseding Record` and `Amendment Chain`, which name the invariant more precisely and read less naturally. *Because:* `atoms/TAXONOMY.md` had flagged this atom as the corpus's masquerade candidate since 2026-06-08 — a neutral concept dressed in domain clothes — and gated the judgment on the EOS strip test rather than on taste. The GRACE migration made the test decidable. Of 173 labelled rules, **not one carries a clinical semantic**: value, unit and observation type are opaque (Identity 14, Identity 15), the atom is forbidden to interpret a value (Non-goal 4) or confirm one correct (Non-goal 5), and what counts as valid is entirely the deployment's (Non-goal 1, Operation 5). Strip the setting and what remains is an amendable, attributed, retractable measurement record — equally a vital sign, an assay, an instrument reading, a financial mark. The two domain-flavoured identifiers were opaque references, and renaming one of them removed the last of it. `Medication Order` stays tagged `domain: healthcare` and earned it — its guards are irreducibly clinical and no census can count them away. The calibration the maintainer set is visible in what did *not* change: the worked example keeps its nurse and its blood pressure, and the Standards references keep their healthcare anchors, because those are illustration and evidence rather than framing. Neutral where the text is definitional, concrete where it is illustrative.
 
 NOTE: End of Observation.

@@ -480,6 +480,13 @@ _LIST_CATEGORIES = {"actors", "records", "bounds", "cadences", "terms", "cited"}
 
 def declared_names(text: str) -> set[str]:
     names = set(declared_terms(text))
+    # a term entry's heading declares the name it names (Surface 25, Surface 26):
+    # the gap flagged from council read 136 onward, where an English name whose
+    # only home was a term entry was invisible to every reader here
+    for m in re.finditer(r"^#### (.+)$", text, re.M):
+        h = m.group(1).strip().strip("[]`")
+        if h and h[0].isupper() and " contract" not in h:
+            names.add(h.lower())
     for line in text.split("\n"):
         sm = SIG_HEAD.match(line)
         if sm:

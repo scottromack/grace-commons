@@ -1339,6 +1339,35 @@ def check_operand_type_synthetic(problems: list[str]) -> int:
     return n
 
 
+def check_entry_heading_declares_synthetic(problems: list[str]) -> int:
+    """A term entry's heading declares the name it names (Surface 25, Surface
+    26; council read 160). The gap was flagged from council read 136 onward —
+    an English name whose only home was a term entry was invisible to every
+    reader in check.py. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-22).\n\n"
+            "Term record verbs: carry, hold.\n\n## Terms\n\n#### Hold Instant\n\n"
+            "The instant the hold was placed.\n\nKind: Field\n\n## Structure\n\n")
+    def run(rule: str, code: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + "```\n" + rule + "\n```\n", encoding="utf-8")
+            return [x for x in scan(f) if x.code == code]
+    n = 0
+    if not run("State 1: EVERY order MUST carry prior state and hold instant.", "W-two-obligations"):
+        n += 1
+    else:
+        problems.append("W-two-obligations: fired on a name a term entry heading declares")
+    if run("State 1: EVERY order MUST carry prior state and hold the lock.", "W-two-obligations"):
+        n += 1
+    else:
+        problems.append("W-two-obligations: a real second obligation did not fire")
+    return n
+
+
 def check_two_obligations_synthetic(problems: list[str]) -> int:
     """W-two-obligations (tools/grace/check.py): a second declared record verb
     after *and* fires, and a declared name whose first word is a verb does not
@@ -2138,6 +2167,13 @@ def main(argv: list[str]) -> int:
         print(f"operand type in check.py: {n_operand} synthetic fixtures hold (EXCEEDS between instants "
               "and a lower-case precedes fire; EXCEEDS between durations, PRECEDES and DOES NOT PRECEDE "
               "stay silent) \u2713")
+
+    heading_problems: list[str] = []
+    n_heading = check_entry_heading_declares_synthetic(heading_problems)
+    failures.extend(heading_problems)
+    if not heading_problems:
+        print(f"term entry heading declares: {n_heading} synthetic fixtures hold (a name a heading "
+              "declares is no second obligation; a real one still fires) \u2713")
 
     two_ob_problems: list[str] = []
     n_two = check_two_obligations_synthetic(two_ob_problems)

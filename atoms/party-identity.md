@@ -55,8 +55,8 @@ Identity 9: Two state change events MUST NOT share a state change id.
 Identity 10: The atom MUST NOT identify a party by an enrollment field.
 Identity 11: The atom MUST compare a reference byte-exactly.
 Identity 12: The atom MUST NOT normalize a reference.
-Identity 13: The atom MUST NOT confirm that a document ref names a known document.
-Identity 14: The atom MUST NOT confirm that an evidence ref names a known evidence record.
+Identity 13: The atom MUST NOT confirm that a document reference names a known document.
+Identity 14: The atom MUST NOT confirm that an evidence reference names a known evidence record.
 Identity 15: The atom MUST NOT confirm that an acting reference names a known actor.
 Identity 16: The atom MUST NOT match two parties as one natural person.
 Identity 17: The deployment MUST route EVERY call to one store instance.
@@ -72,11 +72,11 @@ Term state change event: the record of one transition — the prior state, the n
 
 Term assigned id: party id, verification id OR state change id — every opaque name this atom assigns.
 
-Term enrollment field: name | date of birth | document type | document ref | enrolled at | enrolling actor ref — what a party carries from enrollment and never changes.
+Term enrollment field: name | date of birth | document type | document reference | enrollment instant | enrolling actor reference — what a party carries from enrollment and never changes.
 
-Term acting reference: enrolling actor ref, verifying actor ref, suspending actor ref, reinstating_actor_ref OR closing_actor_ref — the reference an action records for who acted.
+Term acting reference: enrolling actor reference, verifying actor reference, suspending actor reference, reinstating_actor_ref OR closing_actor_ref — the reference an action records for who acted.
 
-Term reference: an assigned id, an acting reference, document ref OR evidence ref — every opaque reference this atom records.
+Term reference: an assigned id, an acting reference, document reference OR evidence reference — every opaque reference this atom records.
 
 Term store instance: one named party store a call is routed to; assigned id uniqueness ranges over one instance.
 
@@ -87,7 +87,7 @@ Term transition: the atom's evaluation of one call against the party store, as t
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
-Identity 10 is what an external party's life requires. A [Name] changes by law, a [Document Ref] is superseded when the document is renewed, a [Document Type] differs between two enrollments of one person, and none of that makes the party a different party — so identifying by a content field would collapse attribute change with distinct-party disambiguation. The opaque id is what lets a composition link a lifetime of activity to one durable reference.
+Identity 10 is what an external party's life requires. A [Name] changes by law, a [Document Reference] is superseded when the document is renewed, a [Document Type] differs between two enrollments of one person, and none of that makes the party a different party — so identifying by a content field would collapse attribute change with distinct-party disambiguation. The opaque id is what lets a composition link a lifetime of activity to one durable reference.
 
 Identity 16 is the atom's sharpest refusal and the one a reader most often mistakes for a gap. Two enrollments of the same natural person produce two parties with two ids, and this atom will never say they are one. Deciding that is identity resolution — a biometric match, a document comparison, an external resolver — and building it in would make the record primitive depend on the hardest judgment in the domain. Merging is then an explicit, auditable act in a composing pattern rather than a silent collision here (Non-goal 1, Non-goal 2).
 
@@ -97,7 +97,7 @@ Identity 16 is the atom's sharpest refusal and the one a reader most often mista
 State 1: EVERY party MUST carry party id, EVERY enrollment field and a state.
 State 2: EVERY party MUST carry a state change log.
 State 3: EVERY party MUST carry a verification event list.
-State 4: EVERY verification event MUST carry verification id, verifying actor ref, verification method, verification result, evidence ref and verified at.
+State 4: EVERY verification event MUST carry verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant.
 State 5: EVERY state change event MUST carry state change id, the prior state, the new state, an acting reference and an instant.
 State 6: A state change event MAY carry a reason.
 State 7: EVERY state change event a reasoned action appended MUST carry a reason.
@@ -123,7 +123,7 @@ Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns i
 ```
 
 WHY:
-Every enrollment names an [Enrolling Actor Ref], and Capability requirement 3 is what makes the state checks mean anything under concurrency. Two calls naming one party — a suspend and a close arriving together — must resolve in some order, and the loser must see the winner's state and be refused accordingly. Without it both read *verified*, both pass their checks, and the party ends in whichever state committed last with a state change log that claims two prior states.
+Every enrollment names an [Enrolling Actor Reference], and Capability requirement 3 is what makes the state checks mean anything under concurrency. Two calls naming one party — a suspend and a close arriving together — must resolve in some order, and the loser must see the winner's state and be refused accordingly. Without it both read *verified*, both pass their checks, and the party ends in whichever state committed last with a state change log that claims two prior states.
 
 ### Operations
 
@@ -161,7 +161,7 @@ Operation 2: IF the date of birth parses as no calendar date THEN [Enroll] MUST 
 Operation 3: IF now PRECEDES the date of birth THEN [Enroll] MUST answer invalid-request.
 Operation 4: An admitted enroll MUST assign a fresh party id.
 Operation 5: An admitted enroll MUST record EVERY enrollment field.
-Operation 6: An admitted enroll MUST record now as enrolled at.
+Operation 6: An admitted enroll MUST record now as enrollment instant.
 Operation 7: An admitted enroll MUST stand the party in unverified.
 Operation 8: An admitted enroll MUST answer the party id.
 Operation 9: [Enroll] MUST NOT answer not-known.
@@ -178,8 +178,8 @@ Operation 19: [Reinstate] MUST answer no-passed-verification-since-suspend ONLY 
 Operation 20: A party action MUST answer invalid-request on a field fault ONLY IF EVERY state check passes.
 Operation 21: IF the verification result differs from passed AND the verification result differs from failed THEN [Verify] MUST answer invalid-request.
 Operation 22: An admitted verify MUST append a verification event carrying a fresh verification id.
-Operation 23: An admitted verify MUST record verifying actor ref, verification method, verification result and evidence ref on the verification event.
-Operation 24: An admitted verify MUST record now as the verification event's verified at.
+Operation 23: An admitted verify MUST record verifying actor reference, verification method, verification result and evidence reference on the verification event.
+Operation 24: An admitted verify MUST record now as the verification event's verification instant.
 Operation 25: IF the party's state EQUALS unverified AND the verification result EQUALS passed THEN an admitted verify MUST stand the party in verified.
 Operation 26: An admitted verify MUST NOT change the party's state outside the unverified-to-verified transition.
 Operation 27: An admitted verify MUST answer the verification id.
@@ -229,17 +229,17 @@ Term state rejection: already-closed | not-verifiable | already-suspended | not-
 
 Term state check: Operation 11, Operation 13, Operation 14, Operation 15, Operation 16 and Operation 18 — every check a party action makes on the party's own standing before reading the call's remaining inputs.
 
-Term required string input: name, document type, document ref, verification method, evidence ref, reason, an acting reference OR party id — every string an action refuses when blank.
+Term required string input: name, document type, document reference, verification method, evidence reference, reason, an acting reference OR party id — every string an action refuses when blank.
 
 Term fresh verification: a verification event whose verification result EQUALS passed that follows the party's most recent suspend in insertion order, or that follows the enrollment where no suspend EXISTS.
 
-Term evidence reference: document ref OR evidence ref — every pointer this atom records into the composing document store.
+Term evidence reference: document reference OR evidence reference — every pointer this atom records into the composing document store.
 
-Term custody field: party id | enrolled at | enrolling actor ref — the fields an erasure scrub leaves, so the chain of custody outlives the personal data.
+Term custody field: party id | enrollment instant | enrolling actor reference — the fields an erasure scrub leaves, so the chain of custody outlives the personal data.
 
 Term insertion order: the order a store instance appended its records; authoritative for this atom, where a recorded instant is advisory.
 
-Term query axes: party id, state and a range over enrolled at — every filter axis [Read] admits.
+Term query axes: party id, state and a range over enrollment instant — every filter axis [Read] admits.
 
 Term admitted enroll: an [Enroll] call that passes every precondition and whose store write commits.
 
@@ -301,7 +301,7 @@ Operation 59 is this atom's one departure from its siblings on instants. [Approv
   ```
   Invariant 7.1: An action MUST NOT change an enrollment field.
   ```
-  WHY: the enrollment record is the auditable original — what was known and checked at onboarding — and a later truth does not overwrite it. A legal name change or a renewed document is an event that layers on top through a composing pattern (Non-goal 4). The one authorized exception is field-level scrubbing under an erasure obligation, which is a composing pattern's act and not an action here (External check 3); party id, enrolled at and enrolling actor ref survive a scrub so the chain of custody outlives the personal data.
+  WHY: the enrollment record is the auditable original — what was known and checked at onboarding — and a later truth does not overwrite it. A legal name change or a renewed document is an event that layers on top through a composing pattern (Non-goal 4). The one authorized exception is field-level scrubbing under an erasure obligation, which is a composing pattern's act and not an action here (External check 3); party id, enrollment instant and enrolling actor reference survive a scrub so the chain of custody outlives the personal data.
 - **Invariant 8 — No transition is silent.**
   ```
   Invariant 8.1: EVERY transitioning action MUST append a state change event.
@@ -358,7 +358,7 @@ A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanct
 
 - **Regulator audit.** *Show me every party you treat as verified, and the evidence.* Filter to `state = verified`; each record answers with its full verification event list and state change log, and Invariant 4.1 is what makes a passed check after the most recent suspend present on every one of them — structurally, rather than by policy.
 - **Investigation of a reinstatement.** *Who restored this party, on what basis?* The state change log carries the reinstatement's actor, instant and reason; the verification event list carries the check that made it admissible. The two are separate records because they answer separate questions — what evidence arrived, and who decided it was enough.
-- **Breach investigation.** *Which parties were enrolled in this window?* The enrolled at range filter answers it, and Ordering 5 says what that answer is worth: instants are advisory, so a reconstruction that must be defensible uses insertion order and the composing trusted timestamping pattern for wall-time bounds.
+- **Breach investigation.** *Which parties were enrolled in this window?* The enrollment instant range filter answers it, and Ordering 5 says what that answer is worth: instants are advisory, so a reconstruction that must be defensible uses insertion order and the composing trusted timestamping pattern for wall-time bounds.
 
 ---
 
@@ -373,7 +373,7 @@ Check 1.1: An auditor MUST find EVERY party whose state EQUALS EXACTLY ONE OF un
 Check 1.2: An auditor MUST find no party whose state DOES NOT EQUAL closed on a later read of a party a prior read found closed (Invariant 3.1).
 Check 2.1: An auditor MUST find a fresh verification on EVERY party whose state EQUALS verified (Invariant 4.1).
 Check 2.2: An auditor MUST read most recent from insertion order (Ordering 3, Ordering 4).
-Check 3.1: An auditor MUST find verifying actor ref, verification method, evidence ref and verified at on EVERY verification event (State 4).
+Check 3.1: An auditor MUST find verifying actor reference, verification method, evidence reference and verification instant on EVERY verification event (State 4).
 Check 3.2: An auditor MUST find a re-read verification event unchanged (Invariant 5.1).
 Check 3.3: An auditor MUST find a party's verification event list no shorter on a later read (Invariant 6.3).
 Check 4.1: An auditor MUST find a state change event for EVERY transition a party's state change log records (Invariant 8.1).
@@ -410,7 +410,7 @@ External check 8: A deployment needing an answer observed MUST read the composin
 WHY:
 External check 1 is the boundary a regulator's question runs straight into. This atom records that a check was performed, by whom, how, and what it found — and it cannot tell whether the check was actually run, whether the sanctions database was actually queried, or whether an actor simply wrote `passed`. Invariant 4.1 guarantees that a verified party has evidence *on record*; it guarantees nothing about what produced that record. Saying so is the difference between a gap and a disclosed boundary.
 
-External check 3 follows from Invariant 7.1 and is the one an erasure obligation collides with. Nothing here scrubs a name, and a deployment under GDPR Article 17 needs something that does; the composing pattern removes the identifiable fields and records the removal as an attributed event, leaving party id, enrolled at and enrolling actor ref so the chain of custody survives the data.
+External check 3 follows from Invariant 7.1 and is the one an erasure obligation collides with. Nothing here scrubs a name, and a deployment under GDPR Article 17 needs something that does; the composing pattern removes the identifiable fields and records the removal as an attributed event, leaving party id, enrollment instant and enrolling actor reference so the chain of custody survives the data.
 
 ---
 
@@ -546,11 +546,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 Term actors: the atom; the deployment; the implementation; the store; the store instance; the seam; the transition; a composing pattern; a caller; an auditor; a regulator; an investigator; a party; a verification event; a state change event; an action; a party action; a transitioning action; a losing party action; a refused action; an assigned id; an opaque reference; a string input; a filter; a filter axis; a filter value; a query; the store instance's party count; a party's verification event list length; a party's state change log length.
 
-Term records: party — one external party, carrying party id, name, date of birth, document type, document ref, enrolled at, enrolling actor ref, a state, a state change log and a verification event list. verification event — one identity check, carrying verification id, verifying actor ref, verification method, verification result, evidence ref and verified at. state change event — one transition, carrying state change id, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a reason.
+Term records: party — one external party, carrying party id, name, date of birth, document type, document reference, enrollment instant, enrolling actor reference, a state, a state change log and a verification event list. verification event — one identity check, carrying verification id, verifying actor reference, verification method, verification result, evidence reference and verification instant. state change event — one transition, carrying state change id, the prior state, the new state, an acting reference, an instant and, where the writer carries one, a reason.
 
 Term record verbs: identify, assign, generate, change, share, carry, stand, read, answer, record, append, remove, leave, admit, offer, hold, commit, discard, repair, refuse, write, find, resolve, name, compare, normalize, confirm, match, differ, route, register, create, pass, attest, cover, call, fall, precede, follow, sample, consume, supply, acknowledge, canonicalize, declare, compose, bind, decide, define, bound, reach, accept, trim, case-fold, compute, reproduce, reconstruct, replay, verify, detect, guarantee, take, derive, expose, store, own, enumerate, distinguish, select, order, deduplicate, scrub, parse, gate, count, schedule, propagate, terminate, link, serialize, suspend, reinstate, close, enroll, ignore, partition, retry, exceed, perform, score, model.
 
-Term value sets: state = unverified | verified | suspended | closed. verification result = passed | failed. state rejection = already-closed | not-verifiable | already-suspended | not-suspended. enrollment field = name | date of birth | document type | document ref | enrolled at | enrolling actor ref.
+Term value sets: state = unverified | verified | suspended | closed. verification result = passed | failed. state rejection = already-closed | not-verifiable | already-suspended | not-suspended. enrollment field = name | date of birth | document type | document reference | enrollment instant | enrolling actor reference.
 
 Term bounds: length bound.
 
@@ -566,7 +566,7 @@ Term composing pattern: [Actor Identity](./actor-identity.md), [Consent](./conse
 
 #### Enroll
 
-The behavior that records a new [Party] — assigning a fresh [Party Id], recording every enrollment field, stamping [Enrolled At], and standing the record in [Unverified]. Refused [Invalid Request] or [Storage Failure]. It creates rather than transitions, which is why a lost answer must not be retried blind.
+The behavior that records a new [Party] — assigning a fresh [Party Id], recording every enrollment field, stamping [Enrollment Instant], and standing the record in [Unverified]. Refused [Invalid Request] or [Storage Failure]. It creates rather than transitions, which is why a lost answer must not be retried blind.
 
 Kind: Operation
 
@@ -609,7 +609,7 @@ Projection: state
 
 #### Verification Event
 
-The record of one identity check, appended to a party and never changed. Carries [Verification Id], [Verifying Actor Ref], [Verification Method], [Verification Result], [Evidence Ref] and [Verified At]. It records that a check was made, by whom, how, and what it found — never that the check was in fact performed.
+The record of one identity check, appended to a party and never changed. Carries [Verification Id], [Verifying Actor Reference], [Verification Method], [Verification Result], [Evidence Reference] and [Verification Instant]. It records that a check was made, by whom, how, and what it found — never that the check was in fact performed.
 
 Kind: Type
 Projection: verification_event
@@ -653,7 +653,7 @@ Kind:       Field
 Field of:   Party
 Projection: document_type
 
-#### Document Ref
+#### Document Reference
 
 The opaque pointer to the identity document record in the composing document store. Never resolved here.
 
@@ -661,7 +661,7 @@ Kind:       Field
 Field of:   Party
 Projection: document_ref
 
-#### Enrolled At
+#### Enrollment Instant
 
 The instant the party was enrolled, stamped from [Now]. Immutable, and one of the three fields an erasure scrub must leave.
 
@@ -669,7 +669,7 @@ Kind:       Field
 Field of:   Party
 Projection: enrolled_at
 
-#### Enrolling Actor Ref
+#### Enrolling Actor Reference
 
 The opaque reference naming who enrolled the party. Attribution only — binding it to a verifiable actor is [Actor Identity](./actor-identity.md)'s. One of the three fields an erasure scrub must leave.
 
@@ -701,7 +701,7 @@ Kind:       Field
 Field of:   Verification Event
 Projection: verification_id
 
-#### Verifying Actor Ref
+#### Verifying Actor Reference
 
 The opaque reference naming who performed the check. Attribution only.
 
@@ -725,7 +725,7 @@ Kind:       Field
 Field of:   Verification Event
 Projection: verification_result
 
-#### Evidence Ref
+#### Evidence Reference
 
 The opaque pointer to the evidence record supporting the check. Never resolved here.
 
@@ -733,7 +733,7 @@ Kind:       Field
 Field of:   Verification Event
 Projection: evidence_ref
 
-#### Verified At
+#### Verification Instant
 
 The instant the check was recorded, stamped from [Now]. Advisory: insertion order, not this field, decides what *most recent* means.
 
@@ -790,7 +790,7 @@ Projection:   now
 
 #### Query
 
-The filter a [Read] carries, over exactly three axes: [Party Id], [Current State], and a range on [Enrolled At]. An axis or a value outside those is [Invalid Query] rather than a silently dropped filter.
+The filter a [Read] carries, over exactly three axes: [Party Id], [Current State], and a range on [Enrollment Instant]. An axis or a value outside those is [Invalid Query] rather than a silently dropped filter.
 
 Kind:         Parameter
 Parameter of: Read
@@ -925,17 +925,17 @@ Projection: storage-failure
 [Name]: #name
 [Date Of Birth]: #date-of-birth
 [Document Type]: #document-type
-[Document Ref]: #document-ref
-[Enrolled At]: #enrolled-at
-[Enrolling Actor Ref]: #enrolling-actor-ref
+[Document Reference]: #document-reference
+[Enrollment Instant]: #enrollment-instant
+[Enrolling Actor Reference]: #enrolling-actor-reference
 [Current State]: #current-state
 [State-Change Log]: #state-change-log
 [Verification Id]: #verification-id
-[Verifying Actor Ref]: #verifying-actor-ref
+[Verifying Actor Reference]: #verifying-actor-reference
 [Verification Method]: #verification-method
 [Verification Result]: #verification-result
-[Evidence Ref]: #evidence-ref
-[Verified At]: #verified-at
+[Evidence Reference]: #evidence-reference
+[Verification Instant]: #verification-instant
 [State Change Id]: #state-change-id
 [Prior State]: #prior-state
 [New State]: #new-state
@@ -995,7 +995,7 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/party-identity.md`.
 
-- **2026-09-13 — The EOS strip test: no domain tag, no rename, and the coupling is in the attributes rather than the name.** *Chose:* leave the atom untagged and unrenamed, and record where the domain actually touches it. *Over:* a `domain:` tag, or a reframe of the kind [Observation](./observation.md) took. *Because:* the test asks whether stripping the domain leaves a freestanding neutral primitive, and here it does. Every invariant is neutral — records are never removed, a terminal absorbs, events are append-only and immutable, a standing rests on recorded evidence since the last revocation. None of them is derivable only from banking or healthcare; the same shape governs a licence, an accreditation, a calibration status. The *name* is already the stripped form: party is legal and commercial vocabulary rather than one industry's, which is why the atom is not called Customer Identity or Patient Identity. What is domain-flavoured is the enrollment attribute set — name, date of birth, document type, document ref — which is natural-person identity-document vocabulary, and the atom already treats two of the four as opaque strings it never interprets. The honest boundary is that this atom is a neutral standing-and-evidence primitive carrying one concrete attribute schema, and the question of whether that schema should be an opaque attribute bag belongs on the docket rather than in a rename.
+- **2026-09-13 — The EOS strip test: no domain tag, no rename, and the coupling is in the attributes rather than the name.** *Chose:* leave the atom untagged and unrenamed, and record where the domain actually touches it. *Over:* a `domain:` tag, or a reframe of the kind [Observation](./observation.md) took. *Because:* the test asks whether stripping the domain leaves a freestanding neutral primitive, and here it does. Every invariant is neutral — records are never removed, a terminal absorbs, events are append-only and immutable, a standing rests on recorded evidence since the last revocation. None of them is derivable only from banking or healthcare; the same shape governs a licence, an accreditation, a calibration status. The *name* is already the stripped form: party is legal and commercial vocabulary rather than one industry's, which is why the atom is not called Customer Identity or Patient Identity. What is domain-flavoured is the enrollment attribute set — name, date of birth, document type, document reference — which is natural-person identity-document vocabulary, and the atom already treats two of the four as opaque strings it never interprets. The honest boundary is that this atom is a neutral standing-and-evidence primitive carrying one concrete attribute schema, and the question of whether that schema should be an opaque attribute bag belongs on the docket rather than in a rename.
 - **2026-09-13 — Insertion order is authoritative and a recorded instant is advisory, stated as its own rule family.** *Chose:* an `Ordering` family, with Ordering 4 and Ordering 5 forbidding a reading or a reconstruction from turning on an instant. *Over:* the prose's paragraph saying the same thing beside the state machine. *Because:* Operation 18's *most recent suspend* is the atom's central guarantee and it is decidable two ways, one of which is unsound — under clock skew a later event can carry an earlier instant, and two readers would then disagree about whether a party may be reinstated. A rule family is what makes the sound reading the one a generator implements.
 - **2026-09-13 — Invariant 9 and Invariant 10 are tombstoned; Identity owns assigned id stability and uniqueness.** *Chose:* Identity 6 through 9 as the single owners. *Over:* keeping the invariants, which restated them. *Because:* Authority 3. Checked before removing: the corpus cites Party Identity Invariants 1, 4, 5 and 11 — from [Customer Onboarding](../compositions/customer-onboarding.md) and the coverage matrix — and cites neither 9 nor 10, so the tombstones break no citation.
 - **2026-09-13 — no-passed-verification-since-suspend stays a purpose-built rejection arm.** *Chose:* the arm the prose already carried. *Over:* folding it into not-suspended or invalid-request, which is what the corpus's closed answer set usually pressures a rare condition into. *Because:* this one is not rare and not adjacent to anything — it is the atom's central guarantee failing, and a caller receiving it knows exactly what to do next, which is to record a check. It is worth naming as the corpus's counter-example: the docket row on answers charged to the nearest arm is about conditions that could not justify the cost of their own name, and this is what paying that cost looks like.
