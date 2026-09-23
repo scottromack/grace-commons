@@ -549,7 +549,7 @@ Atomic writes 4 names the store the transaction spans, and the words are load-be
 
 ```
 Clock semantics 4: The atom MUST bound a supplied order instant from above by the future bound.
-Deleted: Clock semantics 3. Operation 4 owns it for order instant, and the `resolved dispensed_at`, `resolved administered_at` and `resolved completed_at` declarations own it for the event instants.
+Deleted: Clock semantics 3. Operation 4 owns it for order instant, and the resolved dispensing instant, resolved administration instant and resolved completion instant declarations own it for the event instants.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 3 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 3 owns it.
 Clock semantics 5: The atom MUST NOT bound a supplied event instant.

@@ -548,6 +548,23 @@ def scan(path: Path) -> list[Finding]:
     def add(line: int, code: str, msg: str) -> None:
         findings.append(Finding(path, line, code, msg))
 
+    # D-code-token: a code span quotes literal text (Term code span, Surface 30),
+    # so a span carrying a space beside an underscore is a token that broke —
+    # `compensable workflow_id` is what a rename leaves when it reaches the wire
+    # spelling it should have kept (council read 164)
+    for off, ln in enumerate(lines, start=1):
+        if ln.lstrip().startswith("```"):
+            continue
+        for span in re.findall(r"`([^`]+)`", ln):
+            # narrow on purpose: a span may quote an expression, a form or a
+            # citation, all of which carry spaces legitimately. The defect is a
+            # span that is *only* lower-case words and underscores — an
+            # identifier with a space in it, which no token has.
+            if re.fullmatch(r"[a-z][a-z0-9]* [a-z][a-z0-9]*(?:[ _][a-z0-9]+)*", span) and "_" in span:
+                add(off, "D-code-token",
+                    f"`{span[:48]}` is a code span carrying a space beside an underscore; a span "
+                    f"quotes one literal token (Term code span, Surface 30)")
+
     # D-wire-spelling: a fenced block that is not rule text is a wire surface —
     # a signature, an event schema, a record shape — and carries the code
     # spelling, never the term entry's English name (council read 138; the

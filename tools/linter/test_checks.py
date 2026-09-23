@@ -1368,6 +1368,40 @@ def check_entry_heading_declares_synthetic(problems: list[str]) -> int:
     return n
 
 
+def check_code_token_synthetic(problems: list[str]) -> int:
+    """D-code-token (tools/grace/check.py): a code span quotes one literal
+    token, so an identifier with a space in it is a token a rename broke —
+    `compensable workflow_id` (council read 164). The test is narrow on
+    purpose: an expression, a form and a citation all carry spaces
+    legitimately. Returns the fixture count."""
+    import tempfile
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "grace"))
+    from check import scan  # noqa: E402
+    head = ("Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-22).\n\n"
+            "Term record verbs: read.\n\n## Structure\n\n")
+    def run(line: str):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "atoms" / "synthetic.md"
+            f.parent.mkdir()
+            f.write_text(head + line + "\n\n```\nOperation 1: A reader MUST read the store.\n```\n",
+                         encoding="utf-8")
+            return [x for x in scan(f) if x.code == "D-code-token"]
+    cases = [
+        ("a broken identifier", "The record carries `compensable workflow_id` today.", True),
+        ("a whole identifier", "The record carries `compensable_workflow_id` today.", False),
+        ("an expression", "The bound is `run_floor MUST NOT EXCEED run_bound` here.", False),
+        ("a quoted form", "The retired form is `step_id NOT EXISTS` here.", False),
+        ("a label citation", "See `record_action step 3.2` for the rule.", False),
+    ]
+    n = 0
+    for why, line, should_fire in cases:
+        if bool(run(line)) == should_fire:
+            n += 1
+        else:
+            problems.append(f"D-code-token: {why} {'did not fire' if should_fire else 'fired'}")
+    return n
+
+
 def check_two_obligations_synthetic(problems: list[str]) -> int:
     """W-two-obligations (tools/grace/check.py): a second declared record verb
     after *and* fires, and a declared name whose first word is a verb does not
@@ -2174,6 +2208,13 @@ def main(argv: list[str]) -> int:
     if not heading_problems:
         print(f"term entry heading declares: {n_heading} synthetic fixtures hold (a name a heading "
               "declares is no second obligation; a real one still fires) \u2713")
+
+    token_problems: list[str] = []
+    n_token = check_code_token_synthetic(token_problems)
+    failures.extend(token_problems)
+    if not token_problems:
+        print(f"D-code-token: {n_token} synthetic fixtures hold (an identifier with a space fires; "
+              "the whole identifier, an expression, a quoted form and a label citation stay silent) \u2713")
 
     two_ob_problems: list[str] = []
     n_two = check_two_obligations_synthetic(two_ob_problems)
