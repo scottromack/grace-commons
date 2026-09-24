@@ -428,7 +428,7 @@ def specs_with_rules(root: Path, paths: list[Path] | None) -> list[Spec]:
 
 def changed_seeds(root: Path, rev: str, spec: Spec) -> set[str]:
     rel = spec.path.relative_to(root).as_posix()
-    diff = subprocess.run(["git", "-C", str(root), "diff", "-U0", rev, "--", rel],
+    diff = subprocess.run(["git", "--no-optional-locks", "-C", str(root), "diff", "-U0", rev, "--", rel],
                           capture_output=True, text=True).stdout
     seeds: set[str] = set()
     for line in diff.split("\n"):
