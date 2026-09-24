@@ -687,6 +687,16 @@ WHY:
 
 **Retry transience, partitioned** (Reconciliation 26, 27 and 30 through 33; 2026-08-26-f). A retry is well formed only over a transient arm, with a landing for every deterministic one — a loop over an arm that answers the same way every time is not a recovery. The transient arms are three, not one. A retried withdrawal answered not-pending was overtaken by the step's named approver in the open window — lawful, and it closes as a supersession; a retried recall answered not-known closes with the anomaly mark so its partial flag cannot stand forever. The substrate's invalid-request is foreclosed for caller input and, from its retention source, arrives with the event appended and nothing owed. invalid-credential on a retry cannot be a caller's — every retry is the service identity's — so it is the deployment's own credential, paged until rotated. Past the window an open marker is escalated as an unresolved finding rather than left as a loop nobody can tell from an abandoned one.
 
+### Scope vocabulary
+
+```
+Scope vocabulary 1: The composition MUST define chains initiate, chains withdraw AND chains read for the Permissions instance.
+Scope vocabulary 2: The composition MUST NOT gate a decision action on a Permissions scope.
+```
+
+WHY:
+Permissions treats scopes as opaque; these three are the minimum useful set, and a deployment distinguishing *read your own chains* from *read any chain* adds finer scopes and wires them. Step decisions are gated by Approval Step's exclusivity instead (Scope vocabulary 2). **The withdrawal authorities are asymmetric by design**: [Withdraw Step] is Approval Step's submitter-only rule, so an initiator who has lost [Chains Withdraw] can still correct one gate — a property of the submitter role earned at initiation — but cannot retract the whole chain, which takes standing chain-level authority. A deployment wanting both to need [Chains Withdraw] adds the check in front of [Withdraw Step].
+
 ### Cascade
 
 ```
@@ -713,16 +723,6 @@ Term recalled step ids: the steps whose assignments a cascade recalled — alway
 
 WHY:
 **The trailing steps are treated by terminal state, by design** (Cascade 1 and 2). Under Approved or Rejected a trailing step stays Pending — Approval Step's terminal absorption applies to steps, not chains — and only its in-tray binding is discharged: the work is moot for the chain, and the approver may still decide it for the record (Invariant 7). Under Withdrawn the trailing steps are withdrawn too, as [Withdraw Chain] does, so a later decision on one is refused not-pending — outside an open partial window, where a withdrawal that failed leaves the step Pending, a decision landing there is lawful and supersedes it, and the retry closes as a supersession rather than pretending it can still withdraw. **Attribution is keyed on one fact** (Cascade 5 and 6): whether the invocation holds the initiator's validated credential. A [Withdraw Chain] or [Withdraw Step] holds it; [Withdraw Chain]'s evaluate-first gate, the sweep, and an approver's own decision completing a lost withdrawal-driven evaluation do not — the approver's credential is validated but is not the initiator's, and Approval Step admits only the initiator's reference on a withdrawal. The key generalizes to any future trigger; a site-by-site list did not. **A partial cascade is housekeeping around a transition that stands** (Cascade 8, 9 and 13): the chain has structurally terminated, the caller gets the decision's success, and the recalled step ids list only what was recalled; an in-invocation not-pending is the same supersession the retry closes with, and Invariant 2.2's reconstruction counts that step as decided.
-
-### Scope vocabulary
-
-```
-Scope vocabulary 1: The composition MUST define chains initiate, chains withdraw AND chains read for the Permissions instance.
-Scope vocabulary 2: The composition MUST NOT gate a decision action on a Permissions scope.
-```
-
-WHY:
-Permissions treats scopes as opaque; these three are the minimum useful set, and a deployment distinguishing *read your own chains* from *read any chain* adds finer scopes and wires them. Step decisions are gated by Approval Step's exclusivity instead (Scope vocabulary 2). **The withdrawal authorities are asymmetric by design**: [Withdraw Step] is Approval Step's submitter-only rule, so an initiator who has lost [Chains Withdraw] can still correct one gate — a property of the submitter role earned at initiation — but cannot retract the whole chain, which takes standing chain-level authority. A deployment wanting both to need [Chains Withdraw] adds the check in front of [Withdraw Step].
 
 ## Composition-level invariants
 

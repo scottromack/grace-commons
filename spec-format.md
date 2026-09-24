@@ -152,6 +152,10 @@ Reference examples: [`compositions/idempotent-reservation.md`](./compositions/id
 
    - **Housekeeping** — the leg the composition runs outside every invocation whose output **nothing** awaits: what it examines, the edges that bound it, what it may report or remove, and — load-bearing — what it may not do, since a leg that repaired what it found would be a second writer over an act the invocation owns. Promoted to the standard label families at [`GRACE-lang.md`](./GRACE-lang.md) v0.43, which declares the family's meaning; this list fixes only its position, in the same slot as *Reconciliation*, which is its declared pair. Which of the two a leg belongs to is settled by one question — *does anything await its output?* — and not by the leg's inherited name or by what sibling compositions call theirs.
 
+   - **Scope vocabulary** — the scopes the composition defines for its Permissions instance, and which action each gates — including a gate it deliberately does not add. Promoted to the standard label families at [`GRACE-lang.md`](./GRACE-lang.md) v0.62, which declares the family's meaning; this list fixes only its position, after *Housekeeping*, where all three naming specifications already file it last.
+
+   - **Verdict** — how a verification read resolves the evidence it reads into its answer: the classes or outcomes, which one each piece of evidence produces, and what never counts as one. Promoted at [`GRACE-lang.md`](./GRACE-lang.md) v0.62; placed after *Scope vocabulary*, the three naming specifications having filed it last in Composition logic.
+
 6. **Composition-level invariants.** The emergent invariants — properties that arise only at composition time and belong to no single constituent. Numbered, descriptively named. Each invariant should reference the constituent invariants it depends on and the action wiring step that establishes it. The composition's defending claim is that each of these invariants holds; the Generation acceptance section is how an auditor verifies it.
 
 7. **Examples.** A walkthrough using concrete values (an end-to-end run of the load-bearing action sequence) plus several domain examples that exercise different regulatory regimes or different parameter combinations. The walkthrough must show the load-bearing wiring decision firing in both its accepting and rejecting modes if applicable; happy-path-only examples are a Pass 3 finding.
@@ -226,6 +230,7 @@ A spec's headings are its structure. Each heading is an element and its level is
 | Clock semantics | 3 | Edge cases | no | no |
 | Concurrency | 3 | Edge cases | no | no |
 | Indeterminate outcome | 3 | Edge cases | no | no |
+| Retention asymmetry | 3 | Edge cases | no | no |
 | String policy | 3 | Edge cases | no | no |
 | Composition notes | 2 | | yes | no |
 | Terms | 2 | | yes | no |
@@ -252,6 +257,8 @@ A spec's headings are its structure. Each heading is an element and its level is
 | Wiring decision | 3 | Composition logic | yes | no |
 | Reconciliation | 3 | Composition logic | no | no |
 | Housekeeping | 3 | Composition logic | no | no |
+| Scope vocabulary | 3 | Composition logic | no | no |
+| Verdict | 3 | Composition logic | no | no |
 | Composition-level invariants | 2 | | yes | no |
 | Examples | 2 | | yes | any order |
 | Generation acceptance | 2 | | yes | yes |
@@ -264,6 +271,7 @@ A spec's headings are its structure. Each heading is an element and its level is
 | Clock semantics | 3 | Edge cases | no | no |
 | Concurrency | 3 | Edge cases | no | no |
 | Indeterminate outcome | 3 | Edge cases | no | no |
+| Retention asymmetry | 3 | Edge cases | no | no |
 | String policy | 3 | Edge cases | no | no |
 | Composition notes | 2 | | no | no |
 | Terms | 2 | | yes | no |
@@ -273,7 +281,7 @@ A spec's headings are its structure. Each heading is an element and its level is
 | Ledger | 2 | | yes | no |
 | Decisions | 2 | | yes | no |
 
-The rule families the corpus files as edge cases — `Atomic writes`, `Clock dependence`, `Clock semantics`, `Concurrency`, `Indeterminate outcome`, `String policy` — are rows under `Edge cases` in both shapes, so one family has one address whichever shape carries it; a prose edge case is an unplaced heading after them. A heading that names the same thing as a row takes the row's name.
+The rule families the corpus files as edge cases — `Atomic writes`, `Clock dependence`, `Clock semantics`, `Concurrency`, `Indeterminate outcome`, `Retention asymmetry`, `String policy` — are rows under `Edge cases` in both shapes, so one family has one address whichever shape carries it; a prose edge case is an unplaced heading after them. A heading that names the same thing as a row takes the row's name.
 
 ### Retired heading names
 

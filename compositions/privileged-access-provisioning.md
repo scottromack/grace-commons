@@ -649,6 +649,16 @@ WHY:
 
 The reconciliation declares no window of its own and no cadence knob: it runs at every start and retries every open entry until each closes, and the open state is never silent — [Read Request] surfaces the audit pending list, and the auditor's closure procedure is Check 6.1 through 6.4.
 
+### Scope vocabulary
+
+```
+Scope vocabulary 1: The composition MUST define requests initiate, requests revoke AND requests read for the Permissions instance.
+Scope vocabulary 2: The composition MUST NOT define a withdraw scope.
+```
+
+WHY:
+There is deliberately no withdraw scope (Scope vocabulary 2): [Withdraw Request] is the requestor's own act, and a third-party grant would promise a path the substrate refuses (Non-goal 10).
+
 ### Provisioning cascade
 
 ```
@@ -672,16 +682,6 @@ Term delivery channel: the deployment's channel carrying a provisioned token to 
 
 WHY:
 The cascade's expiry guard is structural rather than clock-branched (Provisioning cascade 6): a request approved after its expiry instant yields a non-positive remaining ttl, which Capability's own validation refuses, and the request lands ProvisioningFailed with ttl-elapsed. In both refusal arms the decision action's caller still receives the decision — the decision committed; the failure is the request's, surfaced in its state and the deployment's alerts. A failed provisioning event after a committed allocation opens its entry and the token is still delivered, because the access lawfully exists (Action wiring 7). The provisioning event carries the max redemptions and the expiry instant (Provisioning cascade 8), so the record reflects the configuration it was allocated under; it never carries the token.
-
-### Scope vocabulary
-
-```
-Scope vocabulary 1: The composition MUST define requests initiate, requests revoke AND requests read for the Permissions instance.
-Scope vocabulary 2: The composition MUST NOT define a withdraw scope.
-```
-
-WHY:
-There is deliberately no withdraw scope (Scope vocabulary 2): [Withdraw Request] is the requestor's own act, and a third-party grant would promise a path the substrate refuses (Non-goal 10).
 
 ---
 

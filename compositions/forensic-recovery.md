@@ -847,16 +847,6 @@ Concurrency 2: The reconciliation MUST compensate a record ONLY under the record
 WHY:
 Two callers acting on one record are serialized: Soft Delete's first write wins, and the second observes the new state and answers already-deleted, already-purged or not-deleted. The composition **widens the serialization to the whole action** (Concurrency 1), and the widened exclusion is the deployment's, not Soft Delete's (Capability requirement 11). The widening is what makes intent order commit order: an exclusion scoped to the transition alone lets another action's intent and outcome interleave between this one's transition and its outcome, so the audit writes commit out of the order the transitions did and no key in the records recovers it. A compensation runs later **under the same exclusion** (Concurrency 2): the exclusion governs how many writers an outcome can have — one — and the intent governs where the outcome sits in the replay, fixed before the transition committed.
 
-### Pre-composition transitions
-
-```
-Pre-composition transitions 1: The composition MUST read a transition predating the composition as a binding gap.
-Pre-composition transitions 2: A deployment migrating an existing Soft Delete store MUST take EXACTLY ONE OF a backfill of the lifecycle index and the matching audit events, a disclosed coverage boundary.
-```
-
-WHY:
-A record transitioned before the composition carried it has no intent, no outcome and no lifecycle entry for those transitions, so [Recover History] answers the current state and a history holding only what came after. The missing transitions are at the sequence's head, and Verdict 6 and 7 read an edge disagreement as binding-gap — a transition with no event — never as out-of-order, which names an ordering defect among transitions that are all present (2026-08-30-b).
-
 ### Retention asymmetry
 
 ```
@@ -866,6 +856,16 @@ Retention asymmetry 2: The composition MUST NOT read a Soft Delete record whose 
 
 WHY:
 The audit retention policy governs the lifecycle events; Soft Delete's lifecycle records persist by the atom's own discipline (Soft Delete Invariant 7). When an event's horizon lapses and the substrate's cascade purges it, the lifecycle record stays, and [Recover History] reports the transition as lawfully destroyed — honestly distinguished from missing (Audit Trail Invariant 8). The index's purged half is what keeps the transition in the history (Composition state 11), and the reconciliation's upper edge is what keeps it from being mistaken for an orphan (Reconciliation 4).
+
+### Pre-composition transitions
+
+```
+Pre-composition transitions 1: The composition MUST read a transition predating the composition as a binding gap.
+Pre-composition transitions 2: A deployment migrating an existing Soft Delete store MUST take EXACTLY ONE OF a backfill of the lifecycle index and the matching audit events, a disclosed coverage boundary.
+```
+
+WHY:
+A record transitioned before the composition carried it has no intent, no outcome and no lifecycle entry for those transitions, so [Recover History] answers the current state and a history holding only what came after. The missing transitions are at the sequence's head, and Verdict 6 and 7 read an edge disagreement as binding-gap — a transition with no event — never as out-of-order, which names an ordering defect among transitions that are all present (2026-08-30-b).
 
 ---
 

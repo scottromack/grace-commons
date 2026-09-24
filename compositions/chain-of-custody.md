@@ -848,6 +848,15 @@ Concurrency 2: The chain exclusion MUST bind EVERY custody action AND the reconc
 WHY:
 Provenance's transfer carries no custodian guard by design, so two concurrent transfers both succeed there — the second records a hand-off from the first transfer's recipient onward, the chain still hand-to-hand consistent (2026-08-26-k, 2026-08-30-i). **Through this surface the second fails**, and the reason is authentication: under the exclusion the second transfer's resolution reads the new holder, its intent attests that holder, and the caller's credential — the old holder's — does not validate for them, so it is refused invalid-credential with nothing committed. A narrower exclusion would let another transfer interleave between the resolution and the commit, binding one principal at the intent and attributing another at the entry — the principal divergence Action wiring 23 lands and the reconciliation never compensates. The composition offers no compare-and-swap for a conditional transfer.
 
+### Retention asymmetry
+
+```
+Retention asymmetry 1: The composition MUST report an entry whose outcome event was lawfully purged as failed-verification carrying purged.
+```
+
+WHY:
+The audit retention policy governs the custody events, not the Provenance chain, which is append-only and kept from its own perspective. When an event's horizon lapses the entry persists and the proof reports lawful destruction of its attribution and seal, honestly distinguished from missing (Invariant 3). Disposing of the chain itself is a Retention Window or Defensible Retention instance applied to the chain directly (Non-goal 10).
+
 ### Pre-genesis custody
 
 ```
@@ -865,15 +874,6 @@ Rename 1: The composition MUST NOT change a recorded custodian reference for a r
 
 WHY:
 A custodian renamed by the deployment keeps the reference recorded at the time of the step (Provenance Invariant 1); Actor Identity verifies historical attestations against historical public material while it is retained, and the link from the old reference to the real-world actor is externally clearable.
-
-### Retention asymmetry
-
-```
-Retention asymmetry 1: The composition MUST report an entry whose outcome event was lawfully purged as failed-verification carrying purged.
-```
-
-WHY:
-The audit retention policy governs the custody events, not the Provenance chain, which is append-only and kept from its own perspective. When an event's horizon lapses the entry persists and the proof reports lawful destruction of its attribution and seal, honestly distinguished from missing (Invariant 3). Disposing of the chain itself is a Retention Window or Defensible Retention instance applied to the chain directly (Non-goal 10).
 
 ---
 

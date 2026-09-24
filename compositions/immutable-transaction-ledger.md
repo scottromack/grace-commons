@@ -831,6 +831,16 @@ Concurrency 2: A verification bundle MUST name the ledger seal the bundle anchor
 WHY:
 Distinct disclosures — even over overlapping entry sets — do not conflict: each has its own disclosure id, accounting record, outcome, binding and bundle, and the bijection is per-disclosure local. Implementations serialize each single store write and the per-disclosure exclusion, never across calls. An entry appended between two disclosures' bundle constructions may move the seal, so two bundles over one subset can anchor to different seal points — each valid against the seal it names, and the recipient verifies against the seal reference paired with the bundle (Concurrency 2). A lawful purge can land between membership and bundle construction; the disclosure stands and the bundle marks the entry (Verdict 10).
 
+### Retention asymmetry
+
+```
+Retention asymmetry 1: The composition MUST NOT bound the accounting store's retention.
+Retention asymmetry 2: A deployment whose accounting horizon is regulated MUST declare an accounting-horizon cover.
+```
+
+WHY:
+Selective Disclosure records are never removable (its Invariant 6), so left alone the accounting store keeps forever while the outcome events purge at the ledger horizon — the mismatch Invariant 1.6 makes lawful and distinguishable. A deployment under HIPAA §164.528's six-year accounting window or GDPR Article 30 aligns the policies, or declares a second Retention Window instance over the accounting store — a declared multi-instance topology per the section titled Substrate composition invocation in `execution-contract.md`, not a silent duplicate. A disclosed entry that is itself later purged makes a subsequent [Verify Disclosure] unverifiable for that entry — honest destruction surfacing at the verification boundary, not a tamper finding; the disclosure proof is contemporaneous evidence, not a perpetual oracle over a record the policy authorized destroying, and [Verify Ledger] still proves the disclosure occurred.
+
 ### Degraded bundle
 
 ```
@@ -842,16 +852,6 @@ Degraded bundle 4: IF [Verify Disclosure] receives a degraded bundle THEN the ov
 
 WHY:
 Where the mechanism cannot prove a named subset — a single whole-ledger hash with no inclusion structure — the accounting is unaffected and the binding holds, but a recipient can verify only by verifying the whole seal, which needs the whole ledger and breaks the confidentiality half. The composition does not weaken the guarantee silently: the degraded path's verdicts are pinned, and a verifier that waves a degraded bundle through as verified is non-conforming.
-
-### Retention asymmetry
-
-```
-Retention asymmetry 1: The composition MUST NOT bound the accounting store's retention.
-Retention asymmetry 2: A deployment whose accounting horizon is regulated MUST declare an accounting-horizon cover.
-```
-
-WHY:
-Selective Disclosure records are never removable (its Invariant 6), so left alone the accounting store keeps forever while the outcome events purge at the ledger horizon — the mismatch Invariant 1.6 makes lawful and distinguishable. A deployment under HIPAA §164.528's six-year accounting window or GDPR Article 30 aligns the policies, or declares a second Retention Window instance over the accounting store — a declared multi-instance topology per the section titled Substrate composition invocation in `execution-contract.md`, not a silent duplicate. A disclosed entry that is itself later purged makes a subsequent [Verify Disclosure] unverifiable for that entry — honest destruction surfacing at the verification boundary, not a tamper finding; the disclosure proof is contemporaneous evidence, not a perpetual oracle over a record the policy authorized destroying, and [Verify Ledger] still proves the disclosure occurred.
 
 ---
 
