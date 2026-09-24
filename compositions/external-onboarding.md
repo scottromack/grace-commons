@@ -32,308 +32,482 @@ Without the composition, any of these steps can occur independently, in any orde
 
 Every system that admits external parties — customers, collaborators, patients, counterparties — faces the same structural challenge: the invitation must be issued before the invitee exists in the system, yet the moment of acceptance is the moment at which the system must durably record who joined, establish their identity record, and register the credential they will use to authenticate. Those three obligations — serializing concurrent acceptance attempts, creating the party record, registering the credential — belong to different atoms. The question of what must happen when they meet, in what order, with what audit record binding the whole arc together, belongs to no single atom. It belongs to the composition.
 
-External Onboarding wires the four constituent atoms into a single enforced onboarding boundary. The [Invite] action establishes the documented intent: an authenticated actor initiates an invitation, creating an audit-anchored record of who invited whom and to what context. Whether that actor was *permitted* to invite is not this composition's gate — its attempt record authenticates and attributes, and authorization is the above-composition obligation named in Edge cases (*Inviter and revoker authorization*). The [Onboard] action is the composition's load-bearing center: it calls `Invitation.accept` first — establishing the single-resolution serialization point — then `Party Identity.enroll`, then `Credential.register`, recording the full arc in the Audit Trail as a single named event that links invitation token, accepting identity reference, party record, and credential. The [Decline] and [Revoke] actions close the invitation on the other terminal paths, each attested in the Audit Trail.
+External Onboarding wires the four constituent atoms into a single enforced onboarding boundary. The [Invite] action establishes the documented intent: an authenticated actor initiates an invitation, creating an audit-anchored record of who invited whom and to what context. Whether that actor was *permitted* to invite is not this composition's gate — its attempt record authenticates and attributes, and authorization is the above-composition obligation Non-goal 1 and Non-goal 2 name. The [Onboard] action is the composition's load-bearing center: it calls `Invitation.accept` first — establishing the single-resolution serialization point — then `Party Identity.enroll`, then `Credential.register`, recording the full arc in the Audit Trail as a single named event that links invitation token, accepting identity reference, party record, and credential. The [Decline] and [Revoke] actions close the invitation on the other terminal paths, each attested in the Audit Trail.
 
 The emergent invariant is invitation-gates-enrollment: no Party Identity is enrolled and no Credential registered via this composition unless an Invitation's `Accepted` transition precedes them — in the same onboarding call, or, on the resume arm, in the stopped arc that call re-enters. The Invitation atom's single-resolution invariant (at most one write to one of three stored terminal states per invitation — a lapsed invitation is shown `Expired` by derivation, never written — the transition atomic under concurrent attempts) is the mechanism that makes the gate hold under concurrent onboarding attempts for the same invitation — exactly one [Onboard] call clears the gate; all others receive `already-resolved(Accepted)` and create no constituent records — their attempt event is their only trace — unless they are the same acceptor re-entering a stopped arc past the bound, which is the resume arm, one resumer per token.
 
-The second emergent property is the identity binding at accept, not at initiate. The `accepting_identity_ref` passed to `Invitation.accept` — a caller-supplied external reference identifying who is accepting, such as an email address or an external identity handle — is recorded permanently in the Invitation record at the moment of acceptance. The `party_id` produced by the downstream `Party Identity.enroll` call is then linked to that `accepting_identity_ref` in the Audit Trail completion record. The tracing path — from any enrolled Party Identity back to the specific Invitation that authorized its creation — runs through the Audit Trail: the completion event carries both the `invitation_token` and the `party_id`, making the chain reconstructable from records alone.
+The second emergent property is the identity binding at accept, not at initiate. The accepting_identity_ref passed to `Invitation.accept` — a caller-supplied external reference identifying who is accepting, such as an email address or an external identity handle — is recorded permanently in the Invitation record at the moment of acceptance. The `party_id` produced by the downstream `Party Identity.enroll` call is then linked to that accepting_identity_ref in the Audit Trail completion record. The tracing path — from any enrolled Party Identity back to the specific Invitation that authorized its creation — runs through the Audit Trail: the completion event carries both the invitation_token and the `party_id`, making the chain reconstructable from records alone.
 
 ---
 
 ## Composes
 
-- **[Invitation](../atoms/invitation.md)** — the lifecycle record of an invitation from `Pending` through **one write to one of three stored terminal states** (`Accepted`, `Declined`, `Revoked`); a lapsed invitation is *shown* `Expired` by the atom's read-time derivation, never written (its Invariant 12 — there is no `expire` action, no `expired_at` field, and no stored `Expired`), and a write attempted on a lapsed invitation is rejected with the distinct `expired` token, never `already-resolved(Expired)` (its Invariant 6). Provides the serialization gate via its single-resolution invariant: `Invitation.accept` is atomic under concurrent attempts; exactly one succeeds. Surface used: `initiate`, `accept`, `decline`, `revoke`, and `read` (the resume arm's state read and step 1's `resume_party_id` pre-check — Actions, [Onboard]). **What that gate serializes, and does not:** the single-resolution invariant serializes the one write to `Accepted` — *"under concurrent `accept` calls, exactly one commits the transition; all others receive `already-resolved(Accepted)`"* — and nothing after it, so two re-entries of an accepted arc are two callers the atom answers identically and cannot tell apart. The resume arm's own serialization is therefore this composition's obligation (Configuration, `per_token_serialization`), attributed to no constituent. **Instance posture and routing obligation, declared:** the composition maintains **exactly one dedicated Invitation instance**, and the deployment routes every lifecycle action on that instance — `initiate`, `accept`, `decline`, `revoke` — through this composition's four actions (the substrate's own exactly-one-instance discipline, applied here as a deployment obligation). Direct atom access to the instance, or invitations managed on other instances or through sibling patterns, sit outside this composition's audit claims — this is the membership criterion Generation acceptance's store-quantified checks assume, without which a lawfully-elsewhere invitation would be condemned as a recording failure. (Credential and Party Identity are shared surfaces by design — `Credential.rotate` and downstream verification run outside this composition — and no check quantifies over their stores in the store-to-records direction.)
-- **[Credential](../atoms/credential.md)** — the durable binding between a principal and authentication material. Registered after Party Identity enrollment so the `principal_ref` is a valid `party_id`. Surface used: `register`, and `read` (filtered to a `principal_ref`) on the resume arm.
-- **[Party Identity](../atoms/party-identity.md)** — the persistent, verifiable identity record for an external party. Enrolled in `Unverified` state; verification (the transition to `Verified`) is handled downstream by [Customer Onboarding](./customer-onboarding.md) or equivalent. Surface used: `enroll`, and `read` (an `enrolled_at` range — which the atom's own contract calls *"advisory wall-time metadata … under clock skew its result set is best-effort"* — widened both ends by `clock_offset_allowance` and filtered composition-side on exact fields) on the resume arm.
-- **[Audit Trail](./audit-trail.md)** — the tamper-evident, attribution-stamped substrate recording every onboarding event. Every action that changes state in any of the three data-bearing atoms is recorded here. Surface used: `record_action` — consumed at its declared contract, `record_action(action_ref, actor_ref, credential, data) → event_id | rejected(invalid-credential | invalid-request | recording-failure(step))`, with the `(step)` payload carried on every transcription (Composition logic, *The substrate's arms, landed once*) — and the declared pass-through sequence-range read (Composition state). Event Log, Actor Identity, Retention Window, and Tamper Evidence are reached transitively through Audit Trail; the composition does not maintain separate instances of those atoms.
+- **[Invitation](../atoms/invitation.md)** — the invitation lifecycle and the single-resolution gate.
+- **[Credential](../atoms/credential.md)** — the binding between the enrolled party and the party's authentication material.
+- **[Party Identity](../atoms/party-identity.md)** — the identity record the arc enrolls in the unverified state.
+- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate every attempt and every outcome is recorded through.
+
+```
+Composes 1: EXACTLY ONE Invitation instance MUST serve the composition.
+Composes 2: EXACTLY ONE Credential instance MUST serve the composition.
+Composes 3: EXACTLY ONE Party Identity instance MUST serve the composition.
+Composes 4: EXACTLY ONE Audit Trail instance MUST serve the composition.
+Composes 5: The composition MUST NOT change a constituent's spec.
+Composes 6: The composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8.
+Composes 7: The composition MUST read Audit Trail as a substrate PER the section titled Substrate composition invocation in `execution-contract.md`.
+Composes 8: The composition MUST NOT hold an instance of a constituent Audit Trail reaches.
+Composes 9: A deployment MUST route EVERY initiate, accept, decline AND revoke on the Invitation instance through the composition's four actions.
+Composes 10: The composition MUST NOT claim an invitation a caller resolved outside the composition's four actions.
+Composes 11: The composition MUST read the substrate's events by an open-ended sequence range.
+Composes 12: The composition MUST select an event in the composition's own code.
+Composes 13: The composition MUST NOT query the substrate by a payload predicate.
+Composes 14: The composition MUST attest EVERY audit record under the calling actor's credential.
+Composes 15: The composition MUST NOT declare a service identity.
+Composes 16: The composition MUST NOT make a constituent write outside a caller-authenticated invocation.
+```
+
+Term composition: this pattern's wiring of [Invitation](../atoms/invitation.md), [Credential](../atoms/credential.md), [Party Identity](../atoms/party-identity.md) and the [Audit Trail](./audit-trail.md) substrate — the four actions, the credential gate and the resume arm.
+
+Term constituents: [Invitation](../atoms/invitation.md), [Credential](../atoms/credential.md), [Party Identity](../atoms/party-identity.md), [Audit Trail](./audit-trail.md).
+
+Term substrate: the Audit Trail instance serving the composition.
+
+Term trail: the substrate's events, in sequence order, as the composition and an auditor read them.
+
+WHY:
+Composes 1 and Composes 9 are one posture from two sides. The composition keeps one dedicated Invitation instance and the deployment routes every lifecycle action on it through [Invite], [Onboard], [Decline] and [Revoke]; a direct call to the atom, or an invitation managed on another instance or by a sibling pattern, sits outside this composition's audit claims (Composes 10). That is the membership test the store-quantified acceptance checks assume — without it a lawfully-elsewhere invitation would be condemned as a recording failure. Credential and Party Identity are shared surfaces by design: `Credential.rotate` and downstream verification run outside this composition, and no check quantifies over their stores in the store-to-records direction.
+
+What Invitation's gate serializes, and what it does not. The single-resolution invariant serializes the one write to accepted — under concurrent accept calls exactly one commits and every other receives already-resolved carrying accepted — and nothing after it, so two re-entries of an accepted arc are two callers the atom answers identically and cannot tell apart. A lapsed invitation is *shown* expired by the atom's read-time derivation and never written, and a write attempted on one is refused with the distinct expired token, never already-resolved. The resume arm's own serialization is therefore this composition's obligation (Capability requirement 13), attributed to no constituent.
+
+Composes 7 and Composes 8 name the substrate relation: [Audit Trail](./audit-trail.md) is a composition, so Event Log, Actor Identity, Retention Window and Tamper Evidence are reached *through* it. Composes 11 through 13 declare the read exactly — the substrate declares a sequence-range enumeration, not a payload lookup, so every payload-keyed retrieval on this page is enumerate-and-filter in the composition's or the auditor's own code, the same move the substrate uses for its own rebuilds.
+
+Composes 14 through 16 are why the composition declares no service identity: every constituent write is made inside a caller-authenticated invocation, the resume arm included, which is a re-invocation by an authenticated caller rather than a sweep.
 
 ---
-
 ## Composition logic
 
-Four actions form the onboarding boundary. Each wraps one or more constituent atom calls and produces an Audit Trail record.
-
-**One gate discipline for all four actions.** Every state-changing action opens with an **attempt record** — an `Audit Trail.record_action` whose Actor Identity attestation, made inside the substrate's own declared surface, *is* the credential gate: an `invalid-credential` there stops the action before any Invitation write, and the attempt itself is auditable. (The substrate exposes no dry-run credential check, and none is needed — the attest is the check. An attempt refused at the gate lands no event; auditing *those* is the **Failed-Attempt Log** *(forthcoming)* pattern's business, as in the substrate's own edge case.) The action's outcome is then recorded by its own post-write event.
-
-**The validation the gate rule rests on, stated once.** Each action's step 1 validates every caller string against the surfaces that will carry it: non-null, non-empty, and non-whitespace; each actor reference within the wired Audit Trail instance's `reference_length_cap` (the substrate's own caller-input rule, adopted at this layer so its `invalid-request` cannot fire on a reference this layer already passed); and the constructed data of every event the action will emit — on the fresh arc and the resume arm alike, the largest being [Onboarding Interrupted] with its `party_id`, `stage`, and `reason` (each of the last two one of a fixed token set) — within the instance's payload budget — **sized with the deployment's declared minted-id width bounds**, the maximum widths the wired constituents allocate for `invitation_token`, `party_id`, `credential_id`, and `event_id` (the substrate's own `attestation_id_width` move), so a payload carrying ids that do not exist yet at step 1 is sizable before anything commits. Under this rule the *caller-input* source of the record steps' `invalid-request` arm is foreclosed for validated inputs — but the arm itself is never unreachable, because the substrate has a second source for it that no caller validation touches (below).
-
-**The substrate's arms, landed once.** Every `record_action` below is consumed at the substrate's declared contract — `event_id | rejected(invalid-credential | invalid-request | recording-failure(step))` — and the `(step)` payload is load-bearing, never dropped: the substrate attests at its step 2, appends at its step 3, and places retention at its step 4, so `recording-failure(step-2)` and `recording-failure(step-3)` mean **the event is not in the log** (nothing, or an orphan attestation the substrate's own compensation owns), while `recording-failure(step-4)` means **the event is appended and attested** and only its retention placement failed — the substrate's Invariant 2 liveness arm owns that unretained event, and a retry from this composition would append a second one. The landings are therefore split by step, and each action's arms below cite this rule rather than restate it:
-
-- **Attempt records (the gate, step 2 of every action).** `recording-failure(step)` on any step → `rejected(storage-failure(intent))`, stop — on the `step-4` arm the attempt event stands, which is harmless: attempt events are the record of a try and are not per-invitation signatures (Generation acceptance check 6), so a retried attempt lands a second one and nothing is owed. `invalid-request` → a deployment fault (either source, below), `rejected(storage-failure(intent))` with a hard alert naming the cause; whether the attempt event stands is immaterial for the same reason.
-- **Post-write records (each action's record after its constituent commit).** `recording-failure(step-2 | step-3)` → the event is absent and the constituent write it was to record has committed; the action's declared gap landing applies (the signature Generation acceptance checks 5 and 6 enumerate), returned as `rejected(storage-failure(outcome))`. `recording-failure(step-4)` → the event **exists**; the action **proceeds as though the record landed** — returns its result, or continues to its next step — with a hard alert on the unretained event, never a retry. `invalid-request` → a deployment fault with **two sources the token does not distinguish**: the caps disagreement (the declared minted-id width bounds and the wired instance disagree — nothing appended) and the substrate's own retention-configuration fault (Retention Window's `invalid-policy` / `policy-not-found`, which Audit Trail routes onto this arm at its step 4 — **the event is appended**). The composition reads the tail back through the declared enumerate-and-filter read (Composition state), selecting the record's own `action_ref` and `invitation_token`, and lands as the `step-4` arm if the event is found and as the `step-2 | step-3` arm if it is not; a hard alert naming the true cause either way. `invalid-credential` on a post-write record is a rotation race — the same credential attested at the attempt moments earlier — and takes the same gap landing as `step-2 | step-3`, returned as `rejected(invalid-credential)` so the caller learns the true cause.
-
-The composition's own `storage-failure(intent | outcome)` carries the **position** across the caller boundary, because the caller is the one who retries and cannot see the steps (§*A composition's own rejection arm carries the retry bit*): `intent` — no constituent has committed anything (the attempt event may stand, and owes nothing), so the whole action may be retried as written; `outcome` — the action's Invitation write has committed, and a retry of the action re-enters it rather than repeating it: as `already-resolved(state)` on [Decline] and [Revoke], as the resume arm on [Onboard] once the bound has elapsed, and as a fresh invitation on [Invite], the committed `Pending` one lapsing unreachable. The relayed constituent `storage-failure`s take the same position by the same test — Invitation's, refused with nothing written, is `intent`; Party Identity's and Credential's, refused after the acceptance committed, are `outcome`. Inside the action the substrate's `(step)` decides the landing; at the boundary the position rides the code.
-
-**[Invite] wiring.** The inviter calls the composition with their actor credentials. The composition records the `invitation.initiate-attempt` gate event, calls `Invitation.initiate`, and, on success, records `invitation.initiated` in the Audit Trail naming the inviter, the invitee reference, and — because this record follows the constituent's success — the invitation token itself, which is what makes the records-alone token correlation in the forensics walk executable. The invitation token is returned so the inviter can deliver it to the invitee out-of-band (email link, QR (Quick Response) code, direct message).
-
-**[Onboard] wiring — the load-bearing center.** The step order is fixed and non-negotiable:
-
-1. Audit Trail record: `onboarding.accept-attempt` — the credential gate (the discipline above). An `invalid-credential` stops the call before any Invitation write.
-2. `Invitation.accept(invitation_token, accepting_identity_ref)` — the serialization gate. If the gate refuses — the invitation was already resolved by a write (`already-resolved(Accepted | Declined | Revoked)`), its window has lapsed (the atom's derived-expiry `expired` rejection — the record stays `Pending` and reads `Expired` by projection, nothing written), or it is unknown — the entire call fails before any enrollment record is created. No Party Identity is enrolled; no Credential is registered; no identity is bound. The call returns `invitation-invalid(reason)`. **One exception, declared:** `already-resolved(Accepted)` where the stored `accepting_identity_ref` equals the one supplied, the acceptance is older than the deployment's `onboarding_completion_bound` by at least `clock_offset_allowance` (Configuration — the stamp is Invitation's seam's and the bound this seam's, so the two are compared only under the declared allowance), and the acceptance is inside the wired trail's retention horizon (`audit_trail_retention_policy`), is not a refusal but the **resume arm** — the caller is re-entering an arc that stopped after its gate cleared, and the call continues, one resumer per token under the deployment's `per_token_serialization`, from the stage the records establish (Actions, [Onboard], *Resume*). A younger acceptance is in flight and is refused as before; so is one whose events may have lawfully aged out.
-3. Audit Trail record: [Onboarding Invitation Accepted] — records the gate clearing: `{invitation_token, accepting_identity_ref, document_type, document_ref}` — the documents recorded here are what a resume matches the Party Identity store against, so a dead arc's party is found by what the arc recorded, not by what a resumer types.
-4. `Party Identity.enroll(name, date_of_birth, document_type, document_ref, enrolling_actor_ref)` → `party_id`. The party is created in `Unverified` state. If this fails (the atom's `invalid-request` or `storage-failure`), the composition writes `onboarding.interrupted` to the Audit Trail and relays the atom's rejection. The invitation is permanently Accepted; recovery is the resume arm (Edge cases, *Partial failure*).
-5. `Credential.register(principal_ref: party_id, credential_material, credential_type, expires_at?)` → `credential_id`. The credential is bound to `party_id`. If this fails, the composition writes [Onboarding Interrupted] to the Audit Trail (naming the enrolled `party_id`) and relays the atom's rejection under its own name. The invitation is Accepted and the party is enrolled; recovery is the resume arm, which finds the party from the records.
-6. Audit Trail record: [Onboarding Completed] — records the full arc: `{invitation_token, accepting_identity_ref, party_id, credential_id}`. If this record fails to write, the composition returns `storage-failure(outcome)` — the position telling the caller the arc has committed and is resumed, never re-run. The enrollment and credential exist; the completion record does not. The Generation-acceptance (GA) check for unrecorded completions detects this gap (see Generation acceptance, check 5).
-7. Return `{party_id, credential_id}`.
-
-**[Decline] wiring.** The invitee (or the system on their behalf) presents the invitation token. The composition records the `invitation.decline-attempt` gate event under the system service actor, calls `Invitation.decline`, then records `invitation.declined` in the Audit Trail. `Invitation.decline` does not record the decliner's identity (Invitation atom design); the Audit Trail records the timestamp and that the decline occurred, not who declined. If a deployment requires recording the decliner's identity, that is done in the `data` payload of the Audit Trail event and enforced above the atom layer.
-
-**[Revoke] wiring.** The inviter or an administrator calls [Revoke] with their actor credentials. The composition records the `invitation.revoke-attempt` gate event, calls `Invitation.revoke`, then records `invitation.revoked` in the Audit Trail, attributing the revocation to the revoking actor.
-
-**The step-order constraint is the composition's central contribution.** Neither `Party Identity.enroll` nor `Credential.register` is called unless `Invitation.accept` returned `accepted` — in this call, or in the stopped arc the resume arm re-enters after reading the invitation's stored `Accepted` state bound to the same acceptor. The Audit Trail substrate records both the moment the gate cleared and the subsequent enrollment and credential steps, so the full arc is traceable from records alone.
-
----
-
-## Configuration
-
-The composition holds no store and declares no service identity — it performs no unattended commits: every constituent write below is made inside a caller-authenticated invocation, including the resume arm, which is a re-invocation by an authenticated caller rather than a sweep. What it does declare is what its checks and its resume arm read against: a completion bound, a offset allowance, the trail's retention horizon, and the one serialization the resume arm needs. **Clock and ids, stated once.** `now` — the reading every bound below is read against — is injected at this composition's I/O seam per the Execution Contract's pipeline, one reading per invocation, never a parameter of any action and never read inside a step. Every other stamp this composition compares against — an invitation's `accepted_at`, a party's `enrolled_at`, a credential's `registered_at`, an event's `recorded_at` — is written by a constituent from its *own* seam, and this composition compares its reading with theirs only under `clock_offset_allowance`. Ids (`invitation_token`, `party_id`, `credential_id`, `event_id`) are minted at the constituents' seams; this composition mints none.
-
-- **`onboarding_completion_bound`** — *Type:* a duration. The deployment's declared maximum for an [Onboard] or [Invite] invocation between its first constituent write and its last record — from `Invitation.accept` committing to the `onboarding.completed` (or `onboarding.interrupted`) record landing, and from `Invitation.initiate` committing to the `invitation.initiated` record landing — read against the seam clock the reading invocation began under. **Two readers spend it.** Generation acceptance checks 5 and 6 examine only acceptances, initiations, and events older than it plus `clock_offset_allowance` (below); a younger one may be in flight and is inconclusive, not a signature. The resume arm takes an `already-resolved(Accepted)` older than it by at least `clock_offset_allowance` as an arc that stopped and a younger one as an arc still running, which it refuses; it applies the same widened bound to a successor-less `onboarding.resume-intended` (R1). *Default:* none — a deployment must set it, and a bound shorter than the deployment's slowest conforming invocation makes both readers wrong in the unsafe direction (a running arc read as stopped is resumed beside itself).
-- **`clock_offset_allowance`** — *Type:* a duration. The deployment-declared bound on the difference between this composition's seam clock and the clocks at Invitation's, Party Identity's, Credential's, and the substrate's seams. Wherever this composition compares a reading of its own against a stamp another seam wrote — step 3's *acceptance older than the bound*, R1's in-flight and horizon edges, R2's `enrolled_at` window, and every cross-store comparison the Generation acceptance standing rule makes — the comparison runs under this allowance, **widened symmetrically**, and **narrows** a decision rather than making one: the resume arm errs toward reading an arc as still running, the horizon edge toward refusing, and R2's window admits candidates it then decides on exact fields (§*A stamp from another seam never decides a write alone*). Party Identity's own contract calls its `enrolled_at` range *best-effort under skew*; this entry is what turns that caveat into a bound this composition can write under. *Default:* none — a deployment must set it, and a skew wider than the declared allowance is outside the resume arm's duplicate-freedom claim exactly as a bound shorter than the slowest invocation is outside the bound's; check 7 is where either shows.
-- **`audit_trail_retention_policy`** — the retention policy the wired Audit Trail instance places every onboarding event under (set once on the instance; `record_action` takes no per-call retention argument). Its horizon is the **upper edge** of the resume arm and of every trail-walking check: past it the arc's events are lawfully destroyed, their payloads unreadable, and the survivors — the undeletable Invitation, Party Identity, and Credential records and the attestation fields the purge preserves — are truth-bearing evidence an auditor reports on, never an arc a caller re-runs (R1; Generation acceptance, *Retention horizon*). The policy must outlast the longest interval a deployment allows between an acceptance and its resumption; an acceptance older than the horizon cannot be resumed through this composition at all. *Default:* none.
-- **`per_token_serialization`** — an **instance capability requirement**: a deployment-supplied mutual exclusion keyed by `invitation_token`, spanning every node the composition runs on, that [Onboard] holds from `Invitation.accept` committing through its return on a fresh arc, and from R1's first read through its return on the resume arm. Invitation's gate serializes the one write to `Accepted` and nothing after it (*Composes*); no constituent here declares a lease; and the resume arm is a look-then-write compensator — it reads the trail and the Party Identity store and then enrolls, registers, and records — so two resumers with the same acceptor, both past the bound, would each find no party and each enroll one. The section is what makes R1's and R2's reads decisive: every pre-check is re-read under it, never before it, and a stalled original invocation that still holds it is refused rather than raced (R1's unavailable arm). **Its semantics, stated:** the section is **released on the invocation's return or death**; where the host implements it as a **lease**, the lease is at least `onboarding_completion_bound + clock_offset_allowance` long and its **expiry is the invocation's terminus** — an invocation whose lease has expired has yielded the arc, and the widened bound is exactly the point past which a resumer may hold it. **Every write after the invocation's first is made only while the section is held:** an invocation that finds its section lost re-takes it before any pre-check and makes no write it cannot take the section for — on the fresh arc, by re-running R1–R2 as a resume of its own arc (step 3's `accepted` arm); on the resume arm, by re-running R1 from its first read. This composition runs no scan, so no liveness inequality gains a hold term; what the lease bounds is how long a stalled-but-alive holder can keep a resumer out — at most the lease length, after which the holder has yielded (§*A compensator is exclusive*). *Default:* none — a deployment must supply it; one whose section can be lost while its holder lives, or that does not span its nodes, has the second writer check 7 exists to report, and it is a conformance failure there, not a tolerated residue.
-
----
-
-## Composition state
-
-This composition introduces no cross-atom persistent state beyond what the constituent atoms and the Audit Trail substrate maintain — **Contract classification: conforming, no stored composition state** ([`execution-contract.md`](../execution-contract.md) §Composition state). There is no composition-owned index or map.
-
-The tracing from any Party Identity record back to the specific Invitation that authorized its creation runs through the Audit Trail: the `onboarding.completed` event carries `{invitation_token, accepting_identity_ref, party_id, credential_id}` in its data payload. An investigator querying "what invitation authorized the creation of party P?" finds the `onboarding.completed` event whose `party_id` field matches P and reads `invitation_token` from the event data. **The retrieval mechanism is named, not assumed:** the substrate's declared query surface is a sequence-range enumeration, not a payload-field lookup, so every payload-keyed retrieval in this spec — here and in Generation acceptance — is an **enumerate-and-filter**: read the trail through the substrate's declared list surface and filter on the event data in the auditor's or composition's own code (the same move the substrate uses for its own rebuilds). A deployment wanting an indexed payload lookup composes the forthcoming **Reverse Index** pattern over the trail; nothing here depends on it.
-
-The absence of a composition-owned map is intentional: the Audit Trail is already the tamper-evident, attributable, retention-bounded record required by the regulated adversarial scenarios. A separate map would duplicate that record under weaker integrity guarantees. The Audit Trail is the map.
-
----
-
-## Actions
-
-### invite
-
-Initiates an invitation from an authenticated, attributed actor to an external party, creating an audited record of the invitation event. The action does not check that the actor is permitted to invite (Edge cases — *Inviter and revoker authorization*).
+### Composition state
 
 ```
-invite(
-  inviter_ref,
-  invitee_ref,
-  context,
-  ttl,
-  actor_credential
-) →
-    invitation_token
-  | rejected(invalid-request | invalid-credential | storage-failure(intent | outcome))
+Composition state 1: The composition MUST NOT store composition state.
+Composition state 2: Audit Trail IS AUTHORITATIVE FOR the tracing from a party to the invitation behind the party's enrollment.
+Composition state 3: The composition MUST NOT store a correlation index over the trail.
+Composition state 4: The composition MUST read a completion record's party id, credential id AND invitation token from the completion record's own data.
 ```
 
-**Arguments**
+Term completion relation: the relation a completion record declares — one invitation token to one completion record at most, and one completion record to exactly one invitation token, one accepting identity reference, one party id and one credential id; mandatory on the completion record's side, optional on the invitation's, since an invitation may stay pending, lapse, or be declined or revoked.
 
-- `inviter_ref` — opaque reference to the internal actor issuing the invitation. Used as `inviter_ref` in `Invitation.initiate` and as `actor_ref` in the Audit Trail record. Non-null, non-empty.
-- `invitee_ref` — opaque reference to the intended invitee. Optional (may be null if the invitee has no system identity yet). Passed through to `Invitation.initiate`.
-- `context` — opaque descriptor of what the invitee is being invited to join (organization, workspace, role). Non-null, non-empty.
-- `ttl` — time-to-live: the invitation validity duration. Null uses the deployment default. Positive if supplied.
-- `actor_credential` — the inviter's Actor Identity credential, used to produce the Audit Trail attestation. Verified by the attempt record's attest (the gate discipline) before any invitation is created.
+WHY:
+**Contract classification: conforming, no stored composition state** (the section titled Composition state in `execution-contract.md`). There is no composition-owned index or map: the Audit Trail is already the tamper-evident, attributable, retention-bounded record the regulated scenarios require, and a separate map would duplicate that record under weaker integrity guarantees. The Audit Trail is the map.
 
-**Steps**
+The tracing runs through the completion record: it carries the invitation token, the accepting identity reference, the party id and the credential id in its data, so an investigator asking *what invitation authorized the creation of party P?* enumerates the trail, filters for the completion record naming P, and reads the token from the event's data. Term completion relation is the relation's cardinality and modality declared; Invariant 4.4 and Invariant 4.5 are the two halves an auditor checks.
 
-1. Validate inputs per the gate discipline's validation rule (Composition logic): `inviter_ref`, `context`, and (if supplied) `ttl` well-formed, references within the instance's `reference_length_cap`, and the constructed event data of both records below — the step-4 payload sized with the declared `invitation_token` width bound — within the payload budget. Any violation → `rejected(invalid-request)`. Stop.
-2. Call `Audit Trail.record_action(action_ref="invitation.initiate-attempt", actor_ref=inviter_ref, credential=actor_credential, data={invitee_ref, context, ttl})` → `event_id | rejected(invalid-credential | invalid-request | recording-failure(step))` — the credential gate.
-   - `invalid-credential` → `rejected(invalid-credential)`. Stop.
-   - `recording-failure(step)` → `rejected(storage-failure(intent))`. Stop (the attempt-record landing — *The substrate's arms, landed once*).
-   - `invalid-request` → a deployment fault, `rejected(storage-failure(intent))` with a hard alert (the same rule).
-3. Call `Invitation.initiate(inviter_ref, invitee_ref, context, ttl)` → `invitation_token | rejected(invalid-request | storage-failure)`.
-   - `invalid-request` → `rejected(invalid-request)`. Stop. (The attempt record in step 2 stands as the record of the try.)
-   - `storage-failure` → `rejected(storage-failure(intent))`. Stop — the constituent commits nothing on this arm.
-4. Call `Audit Trail.record_action(action_ref="invitation.initiated", actor_ref=inviter_ref, credential=actor_credential, data={invitation_token, invitee_ref, context, ttl})` → `event_id | rejected(invalid-credential | invalid-request | recording-failure(step))` — the post-success record, carrying the token — the records-alone correlation surface the forensics scenarios walk.
-   - `recording-failure(step-2 | step-3)` → `rejected(storage-failure(outcome))`. The invitation exists in `Pending` but its `invitation.initiated` record is absent **and the token was not returned to the caller**: no caller holds the bearer token, so through this composition's actions the invitation cannot be accepted and lapses at its `expires_at` — an actor with direct read access to the Invitation store could still read the token, which the routing obligation (*Composes*) places outside this composition's claims. The inviter retries with a fresh [Invite]. The gap is GA check 6's invitation-without-`invitation.initiated`-event signature.
-   - `recording-failure(step-4)` → the record exists; proceed to step 5 with a hard alert on the unretained event (*The substrate's arms, landed once*).
-   - `invalid-request` → the deployment-fault read-back (the same rule): found → as `step-4`; absent → as `step-2 | step-3`.
-   - `invalid-credential` → a rotation race (the same credential attested at step 2 moments earlier); same landing and same detectable gap as `recording-failure(step-2 | step-3)`, returned as `rejected(invalid-credential)` so the caller learns the true cause.
-5. Return `invitation_token`.
-
-**Note on step ordering.** The attempt record (step 2) is written before `Invitation.initiate` — it authenticates the inviter and records the intent even if the invitation store fails; the `invitation.initiated` record (step 4) follows the constituent's success, which is the only point the token exists to be recorded. An `invitation.initiate-attempt` event without a following `invitation.initiated` marks a failed or interrupted initiate (not correlatable to a token, by construction — no token was minted); an Invitation record without its `invitation.initiated` event marks a post-initiate recording failure or crash. GA check 6 enumerates the second signature.
-
----
-
-### onboard
-
-Accepts an invitation and, in one enforced sequence, enrolls the invitee as a Party Identity and registers their credential. The single serialization gate is `Invitation.accept`; no enrollment or registration occurs unless it returned `accepted` — in this call, or in the stopped arc the resume arm re-enters (*Resume*).
+### Capability requirement
 
 ```
-onboard(
-  invitation_token,
-  accepting_identity_ref,
-  name,
-  date_of_birth,
-  document_type,
-  document_ref,
-  credential_type,
-  credential_material,
-  expires_at?,
-  enrolling_actor_ref,
-  actor_credential,
-  resume_party_id?
-) →
-    {party_id, credential_id}
-  | rejected(
-      invalid-request
-    | invalid-credential
-    | invitation-invalid(already-resolved(state) | not-known | expired)
-    | onboarding-indeterminate(candidates)
-    | duplicate-active-credential
-    | storage-failure(intent | outcome)
-    )
+Capability requirement 1: A deployment MUST supply now at the composition's seam.
+Capability requirement 2: The composition MUST take EXACTLY ONE now PER invocation.
+Capability requirement 3: The composition MUST NOT take now as an input.
+Capability requirement 4: The composition MUST NOT mint an id.
+Capability requirement 5: A deployment MUST set the onboarding completion bound.
+Capability requirement 6: The slowest conforming invocation MUST NOT EXCEED the onboarding completion bound.
+Capability requirement 7: A deployment MUST set the clock offset allowance.
+Capability requirement 8: The seam skew MUST NOT EXCEED the clock offset allowance.
+Capability requirement 9: A deployment MUST configure the Audit Trail instance with the audit horizon.
+Capability requirement 10: The longest resume gap MUST NOT EXCEED the audit horizon.
+Capability requirement 11: A deployment MUST declare the minted-id width bounds.
+Capability requirement 12: The minted-id width bounds MUST agree with the widths the wired constituents allocate.
+Capability requirement 13: The host MUST supply a critical section keyed by invitation token.
+Capability requirement 14: The host MUST exclude a second holder of one invitation token's critical section across EVERY node the composition runs on.
+Capability requirement 15: The host MUST release a critical section on the holder's return.
+Capability requirement 16: The host MUST release a critical section on the holder's death.
+Capability requirement 17: The widened bound MUST NOT EXCEED the lease length.
+Capability requirement 18: IF the onboarding completion bound EQUALS blank THEN the composition MUST refuse to start.
+Capability requirement 19: IF the clock offset allowance EQUALS blank THEN the composition MUST refuse to start.
+Capability requirement 20: IF the critical section EQUALS blank THEN the composition MUST refuse to start.
 ```
 
-**Arguments**
+Term onboarding completion bound: the deployment's declared maximum for an [Onboard] or [Invite] invocation between the invocation's first constituent write and the invocation's last record — from Invitation's accept committing to the completion or interruption record landing, and from Invitation's initiate committing to the initiated record landing.
 
-- `invitation_token` — the bearer token identifying the invitation to accept.
-- `accepting_identity_ref` — a caller-supplied opaque reference identifying who is accepting the invitation (e.g., an email address, an external identity handle, a pre-registration ID). This is the permanent binding written to the Invitation record at acceptance time. Non-null, non-empty. Does not need to be a `party_id` or any system-internal reference; it is the caller's external correlator.
-- `name`, `date_of_birth`, `document_type`, `document_ref` — Party Identity enrollment fields. Subject to Party Identity's validation rules.
-- `credential_type`, `credential_material`, `expires_at?` — Credential registration fields. Subject to Credential's validation rules.
-- `enrolling_actor_ref` — the internal actor (admin, onboarding service, system account) performing the enrollment on behalf of the invitee. This actor is the Audit Trail attribution subject — not the invitee, who has no system credential yet. Non-null, non-empty.
-- `actor_credential` — the `enrolling_actor_ref`'s Actor Identity credential, used for Audit Trail attestation.
-- `resume_party_id?` — supplied only on a resume the composition previously refused as `onboarding-indeterminate(candidates)`: the `party_id`, chosen by an administrator from the named candidates, that the interrupted arc enrolled. Must be one of the candidates the refusal named for this token (*Resume*, step R3); any other value is `rejected(invalid-request)` at R3, and a value supplied on a fresh arc — an invitation still stored `Pending` — is `rejected(invalid-request)` at step 1, before the gate, with nothing written.
+Term clock offset allowance: the deployment's declared bound on the difference between this composition's seam clock and the clocks at Invitation's, Party Identity's, Credential's and the substrate's seams.
 
-**Steps**
+Term widened bound: `onboarding completion bound + clock offset allowance` — the age past which an arc may be read as stopped.
 
-1. Validate inputs per the gate discipline's validation rule (Composition logic): required fields present and well-formed, references within the instance's `reference_length_cap`, and every event payload this action will emit — the completion, interrupted, and resume-intended records sized with the declared `party_id` and `credential_id` width bounds — within the payload budget. Any violation → `rejected(invalid-request)`. Stop. **Where `resume_party_id` is supplied**, read the invitation now (`Invitation.read(filter)` by token — a read, before the gate, committing nothing): a record stored `Pending` names no arc this call could resume, so the value is malformed → `rejected(invalid-request)`. Stop, nothing written. Any other stored state falls through to step 3, which lands its own code, and R3 validates the value against the candidates.
-2. Call `Audit Trail.record_action(action_ref="onboarding.accept-attempt", actor_ref=enrolling_actor_ref, credential=actor_credential, data={invitation_token, accepting_identity_ref, document_type, document_ref})` → the credential gate (the discipline in Composition logic): the attest inside the substrate's own declared surface is the verification — no dry-run mode exists, and none is needed.
-   - `invalid-credential` → `rejected(invalid-credential)`. Stop. (No invitation is accepted, no constituent record is created; the refused attempt lands no event — Failed-Attempt Log territory.)
-   - `recording-failure(step)` → `rejected(storage-failure(intent))`. Stop (the attempt-record landing — *The substrate's arms, landed once*).
-   - `invalid-request` → a deployment fault, `rejected(storage-failure(intent))` with a hard alert (the same rule).
-3. Call `Invitation.accept(invitation_token, accepting_identity_ref)` → `accepted | rejected(invalid-request | expired | already-resolved(state) | not-known | storage-failure)`.
-   - `accepted` → **take the per-token section** (Configuration, `per_token_serialization`), held through step 8's return and released at every stop below. Unavailable → `rejected(storage-failure(outcome))`, stop, nothing more written: the acceptance has committed, the arc is check 5's first signature until it is resumed, and the position tells the caller so. Every write from step 4 on is made only while the section is held. An invocation that finds its section lost — the host's lease expired, which is its terminus: it has yielded the arc, and past `onboarding_completion_bound + clock_offset_allowance` a resumer may hold it — **re-takes the section and re-runs R1–R2 as a resume of its own arc before any further write**, taking their dispositions as written with one adoption: an `onboarding.completed` for the token is *proceed as landed* — the invocation returns that record's `{party_id, credential_id}` as its own outcome, since a completion the arc reached under another writer is the outcome this caller asked for. Then continue to step 4.
-   - `rejected(expired)` → `rejected(invitation-invalid(expired))`. Stop. The atom's derived-expiry rejection: the record is still stored `Pending`, reads `Expired` by projection, and nothing was written.
-   - `rejected(already-resolved(Accepted))` → read the invitation (`Invitation.read(filter)` by token). If its stored `accepting_identity_ref` equals the supplied one **and** its `accepted_at` is older than `onboarding_completion_bound + clock_offset_allowance` against the seam clock this invocation began under — `accepted_at` is Invitation's seam's stamp and the bound this seam's, so the comparison runs under the declared allowance and errs toward reading the arc as still running (§*A stamp from another seam never decides a write alone*) — take the **resume arm** (*Resume*, below) — the caller is re-entering an arc that stopped after its gate cleared; the arm's own first act is to bound the arc above (R1). Otherwise — a different acceptor, or an acceptance still inside the widened bound (the concurrent racer, in flight) — `rejected(invitation-invalid(already-resolved(Accepted)))`. Stop.
-   - `rejected(already-resolved(Declined))` → `rejected(invitation-invalid(already-resolved(Declined)))`. Stop.
-   - `rejected(already-resolved(Revoked))` → `rejected(invitation-invalid(already-resolved(Revoked)))`. Stop.
-   - `rejected(not-known)` → `rejected(invitation-invalid(not-known))`. Stop.
-   - `rejected(invalid-request)` → `rejected(invalid-request)`. Stop. (Step 1's validation makes this unreachable for well-formed inputs; the atom's own guard is the backstop.)
-   - `rejected(storage-failure)` → `rejected(storage-failure(intent))`. Stop — the record remains `Pending` by the atom's own contract.
-   - In all rejection cases: no permanent records are created beyond the step-2 attempt event, which stands as the record of the try.
-4. Call `Audit Trail.record_action(action_ref="onboarding.invitation-accepted", actor_ref=enrolling_actor_ref, credential=actor_credential, data={invitation_token, accepting_identity_ref, document_type, document_ref})` → `event_id | rejected(invalid-credential | invalid-request | recording-failure(step))`.
-   - `recording-failure(step-2 | step-3)` → `rejected(storage-failure(outcome))`. Stop. The invitation is Accepted but no acceptance record exists. This gap is detectable: any Invitation in stored `Accepted` state without a corresponding `onboarding.invitation-accepted` Audit Trail event is an unresolved interruption (GA check 5's first signature) — and it is the arc the resume arm re-enters from its first stage.
-   - `recording-failure(step-4)` → the record exists; proceed to step 5 with a hard alert on the unretained event (*The substrate's arms, landed once*).
-   - `invalid-request` → the deployment-fault read-back (the same rule): found → as `step-4`; absent → as `step-2 | step-3`.
-   - `invalid-credential` → a rotation race over a committed acceptance (the same credential attested at step 2); `rejected(invalid-credential)`, same detectable gap.
-5. Call `Party Identity.enroll(name, date_of_birth, document_type, document_ref, enrolling_actor_ref)` → `party_id | rejected(invalid-request | storage-failure)`.
-   - `invalid-request` → write `Audit Trail.record_action(action_ref="onboarding.interrupted", actor_ref=enrolling_actor_ref, credential=actor_credential, data={invitation_token, accepting_identity_ref, stage: "party-enrollment", reason: "invalid-request"})`, then `rejected(invalid-request)`. Stop.
-   - `storage-failure` → write the `onboarding.interrupted` record (same full signature; stage: "party-enrollment"), then `rejected(storage-failure(outcome))`. Stop.
-   - If the `onboarding.interrupted` record itself fails to land, the composition still returns the original rejection; the resulting gap — an `onboarding.invitation-accepted` with no subsequent `completed` *or* `interrupted` — is GA check 5's second signature.
-6. Call `Credential.register(principal_ref=party_id, credential_material, credential_type, expires_at?)` → `credential_id | rejected(invalid-request | duplicate-active-credential | storage-failure)`.
-   - Each arm → write `Audit Trail.record_action(action_ref="onboarding.interrupted", actor_ref=enrolling_actor_ref, credential=actor_credential, data={invitation_token, accepting_identity_ref, party_id, stage: "credential-registration", reason: <the atom's rejection>})`, then **relay the atom's rejection under its own name** — `rejected(invalid-request)`, `rejected(duplicate-active-credential)`, or `rejected(storage-failure(outcome))` — a caller fault, a state conflict, and an infrastructure fault are three different things and are not collapsed, and the position on the last tells the caller the acceptance has committed. Stop. The failed-interrupted-write rule of step 5 applies here too. **On the resume arm only**, `duplicate-active-credential` is not an interruption but the expected signal that the interrupted invocation registered the credential before it died: read it back (`Credential.read(filter)` filtered to `principal_ref = party_id` and the supplied `credential_type`, Active) and continue to step 7 with its `credential_id` — the credential the arc issued, whose material the interrupted caller supplied; the material presented on the resume is discarded, which the resume's return makes visible (the returned `credential_id` is the earlier one).
-7. Call `Audit Trail.record_action(action_ref="onboarding.completed", actor_ref=enrolling_actor_ref, credential=actor_credential, data={invitation_token, accepting_identity_ref, party_id, credential_id})` → `event_id | rejected(invalid-credential | invalid-request | recording-failure(step))`.
-   - `recording-failure(step-2 | step-3)` → `rejected(storage-failure(outcome))`. Stop. The party is enrolled and the credential is registered, but the completion record is absent — GA check 5's second signature detects it, and the resume arm re-enters at this stage.
-   - `recording-failure(step-4)` → the record exists; return `{party_id, credential_id}` with a hard alert on the unretained event (*The substrate's arms, landed once*).
-   - `invalid-request` → the deployment-fault read-back (the same rule): found → as `step-4`; absent → as `step-2 | step-3`.
-   - `invalid-credential` → the rotation race again; `rejected(invalid-credential)`, same gap.
-8. Return `{party_id, credential_id}`.
+Term audit horizon: the horizon of the retention policy the wired Audit Trail instance places every onboarding event under — the upper edge of the resume arm and of every trail-walking check.
 
-**Resume — re-entering an arc that stopped after its gate cleared.** The gate is single-resolution, so the arc it opens can be completed only by re-entering it, never by accepting again. The resume arm is that re-entry: a caller-authenticated re-invocation (its own attempt record at step 2 is its gate) that establishes from the records where the arc stopped and **re-runs** the remaining steps under the caller's own identity — it never re-emits a record it cannot re-derive, and it never enrolls beside a party the arc already created without saying so. It is taken from step 3's `already-resolved(Accepted)` arm under the two conditions stated there (same acceptor; acceptance older than `onboarding_completion_bound` by at least `clock_offset_allowance`). **One resumer per token.** The gate that admitted the resumer has already fired — Invitation serializes the write to `Accepted` and nothing after it (*Composes*) — so two resumers with the same acceptor, both past the bound, are two callers no constituent can tell apart, and each of R1–R3 is a look-then-write pre-check that both would pass. The whole arm therefore runs inside the deployment's **per-`invitation_token` section** (Configuration, `per_token_serialization`), taken before R1's first read and released at the resume's return or on any refusal; every read below is made under it, never before it, and a stalled original invocation that still holds the section is refused, not raced — until its lease expires, which is its terminus (Configuration) (§*A compensator is exclusive*). The arm proceeds:
+Term minted-id width bounds: the maximum widths the wired constituents allocate for an invitation token, a party id, a credential id and an event id.
 
-- **R1. Bound the arc, then establish the stage from the trail.** Take the section; **unavailable** — held by another resumer, by a living original whose lease has not expired, or not grantable by the host — → `rejected(storage-failure(intent))`, stop, nothing written by this resumer: retryable once the holder returns or its lease expires. **Upper edge first:** if the invitation's `accepted_at` lies **more than `audit_trail_retention_policy`'s horizon less `clock_offset_allowance` in the past** against this invocation's seam reading (Configuration — the stamp is Invitation's seam's, the reading this seam's, so the age errs toward refusing), the arc's events may have been lawfully destroyed and the trail cannot say whether it completed: `rejected(invitation-invalid(already-resolved(Accepted)))`, release, stop. Past the horizon an `onboarding.completed` whose payload the purge has made unreadable is not absent — it is purged, and a leg that read it as absent would complete the arc a second time; the survivors are the truth-bearing evidence an auditor reports on, never an arc a caller re-runs (§*A reconciliation is bounded at both ends*). Then enumerate-and-filter the trail (Composition state) to this token's events, in sequence order. An `onboarding.completed` → the arc finished; `rejected(invitation-invalid(already-resolved(Accepted)))`, release, stop — a second caller with the same acceptor is not a resumer. Otherwise take the **latest** of the token's `onboarding.interrupted` and `onboarding.resume-intended` events. A latest `onboarding.resume-intended` with no successor (no `onboarding.completed` or `onboarding.interrupted` after it in sequence) whose `recorded_at` is younger than `onboarding_completion_bound + clock_offset_allowance` is a resume in flight, or one that died inside the bound — the records cannot tell them apart: `rejected(invitation-invalid(already-resolved(Accepted)))`, release, stop, the same disposition a younger acceptance draws at step 3 for the same reason (a living resumer also holds the section, which is what keeps this branch a refusal rather than a race). An older successor-less `onboarding.resume-intended` is a resume that died, and it makes the stage **unrecorded** whatever the earlier records say — the dead resume may have enrolled a party before it wrote anything more — so R2 runs with that event as one of its anchors. Otherwise the latest `onboarding.interrupted`, if any, names the stage and (for `credential-registration`) the `party_id`; absence of `onboarding.interrupted`, `onboarding.resume-intended`, and `onboarding.invitation-accepted` alike is check 5's first signature (the acceptance record never landed); an `onboarding.invitation-accepted` with no successor is check 5's second signature (the stage is unrecorded). **Then fix the arc's recorded documents:** the `(document_type, document_ref)` pair on the token's `onboarding.invitation-accepted` event, or, where that record is absent, the pairs on the token's `onboarding.accept-attempt` events carrying this `accepting_identity_ref` (a set — a superset, in the safe direction). A resumer whose supplied `document_type` and `document_ref` are not among them is completing a different person's arc: `rejected(invalid-request)`, release, stop, nothing written. Under the section an `onboarding.resume-intended` pairs with the first `onboarding.completed` or `onboarding.interrupted` that follows it in sequence — exact, because one writer per token at a time is what the section supplies.
-- **R2. Establish the party where the trail does not.** Where R1 yields no `party_id` and the stage is unrecorded, the invocation that died — the original, or a resume — may have enrolled a party before it did. Read Party Identity (`Party Identity.read(query)`, an `enrolled_at` range) over the **union of the arc's windows**: one window per anchor, the anchors being the invitation's `accepted_at` and the `recorded_at` of every `onboarding.resume-intended` for the token, each window `[anchor − clock_offset_allowance, anchor + onboarding_completion_bound + clock_offset_allowance]`, both ends inclusive — one read spanning the earliest lower edge to the latest upper edge is a superset of the union and serves. The anchors are stamped at Invitation's and the substrate's seams and `enrolled_at` at Party Identity's, which the atom itself calls *advisory wall-time metadata — under clock skew its result set is best-effort*; the widened range is therefore a **narrowing** read, and what decides is the exact-field filter run composition-side over it: records whose `(document_type, document_ref)` is among the **arc's recorded documents** (R1 — the values the trail recorded at the gate clearing or the attempts, never the resumer's inputs, which R1 has already required to match them) and whose `enrolling_actor_ref` is in the **arc's actor set** — the `actor_ref`s of the token's `onboarding.invitation-accepted` and `onboarding.resume-intended` events and, where the acceptance record is absent (check 5's first signature), of the token's `onboarding.accept-attempt` events, which carry the token in their payload (a superset that can only widen the candidate set toward `onboarding-indeterminate`, never narrow it toward a silent second enrollment). The resumer's own `enrolling_actor_ref` is **not** the filter: the arc may have been started by one actor and is being completed by another — an administrator finishing what a service account began, the edge case's own recovery — and a filter on the resumer's identity would find nothing and enroll again. Zero matches → no party; the resume enrolls. Exactly one → the arc's party, resumed from step 6. More than one → `rejected(onboarding-indeterminate(candidates))` naming every matching `party_id`, release, stop: the composition does not choose among parties that are, by their fields, the same person enrolled twice inside one arc — an administrator does, and re-invokes with `resume_party_id` set to the chosen one (R3). No constituent write precedes this refusal. A skew wider than the declared allowance is outside this read's claim, as a bound shorter than the slowest invocation is outside the bound's; check 7 is the records-side test that reports the duplicate either would let through.
-- **R3. Honor `resume_party_id`.** Where supplied, it must be among the candidates R2 would name for this token (the same read, re-run under the section); otherwise `rejected(invalid-request)`, release, stop. Where it is, it is the arc's party and the resume continues from step 6.
-- **R4. Record the resumption before any constituent commit.** Write `Audit Trail.record_action(action_ref="onboarding.resume-intended", actor_ref=enrolling_actor_ref, credential=actor_credential, data={invitation_token, accepting_identity_ref, document_type, document_ref, resumed_from_stage, party_id?})` — the plan: the stage the records established, the arc's recorded documents (re-recorded so a later resume matches against a record that survives even if the acceptance record never landed), and the party the resume will continue with, if one. Its arms are the post-write landings (*The substrate's arms, landed once*): `recording-failure(step-2 | step-3)` and `invalid-credential` → the record is absent; `rejected(storage-failure(intent))` and `rejected(invalid-credential)` respectively, release, stop — this resume committed nothing and is retried as a whole; `recording-failure(step-4)` → the record **exists**; proceed to R5 as landed, with a hard alert on the unretained event, never a retry; `invalid-request` → the deployment-fault read-back: found → as `step-4`; absent → as `step-2 | step-3`.
-- **R5. Re-run from the established stage.** If the acceptance record is absent (R1's first signature), write step 4 now — the record is re-derivable in full from the Invitation record (`invitation_token`, `accepting_identity_ref`), so this is re-derivation, not fabrication — under step 4's arms. Then steps 5 through 8 as written, under the section and releasing it at return, skipping step 5 where a party is established and taking step 6's resume-only `duplicate-active-credential` reading where the credential already exists. The `onboarding.completed` record the resume writes is the arc's completion; its `actor_ref` is the resumer's, and the `onboarding.resume-intended` event preceding it is what tells a reader the arc was completed by a re-entry rather than in one pass.
+Term critical section: the host-supplied mutual exclusion keyed by invitation token, which an arc holds from the arc's first read or from Invitation's accept committing, through the arc's return.
 
----
+Term lease length: the duration the host holds a critical section implemented as a lease.
 
-### decline
+Term slowest conforming invocation: the longest a conforming [Onboard] or [Invite] invocation takes between the invocation's first constituent write and the invocation's last record.
 
-Records an invitee's deliberate refusal of an invitation and attests the event in the Audit Trail.
+Term seam skew: the difference between this composition's seam clock and a constituent's seam clock.
+
+Term longest resume gap: the longest interval a deployment allows between an acceptance and the acceptance's resumption.
+
+WHY:
+**Clock and ids, stated once.** Now — the reading every bound is read against — is injected at this composition's seam, one reading per invocation, never an input of any action and never read inside a step. Every other stamp the composition compares against — an invitation's acceptance instant, a party's enrollment instant, a credential's registration instant, an event's recording instant — is written by a constituent from the constituent's *own* seam, and the composition compares its reading with theirs only under the clock offset allowance (Clock semantics 1). Ids are minted at the constituents' seams; this composition mints none.
+
+**Two readers spend the completion bound.** The acceptance checks examine only arcs older than the widened bound, a younger one being possibly in flight and inconclusive (Standing rule 7); and the resume arm reads an acceptance older than the widened bound as an arc that stopped, and a younger one as an arc still running, which it refuses. A bound shorter than the slowest conforming invocation makes both readers wrong in the unsafe direction — a running arc read as stopped is resumed beside itself — which is what Capability requirement 6 forbids. A skew wider than the allowance is outside the resume arm's duplicate-freedom claim exactly as a short bound is (Invariant 1.3); Check 7.1 through 7.3 are where either shows.
+
+**The audit horizon is the upper edge.** Past it the arc's events are lawfully destroyed, their payloads unreadable, and the survivors — the undeletable Invitation, Party Identity and Credential records and the attestation fields the purge preserves — are truth-bearing evidence an auditor reports on, never an arc a caller re-runs (Resume 4). An acceptance older than the horizon cannot be resumed through this composition at all, which is why the horizon must outlast the longest gap a deployment allows before resuming (Capability requirement 10).
+
+**The minted-id width bounds** let a payload carrying ids that do not exist yet be sized before anything commits — the substrate's own attestation id width move (Primitive policy 6).
+
+**The critical section** is the one serialization neither the gate nor any constituent supplies. Invitation serializes the write to accepted and nothing after it; no constituent here declares a lease; and the resume arm is a look-then-write compensator — it reads the trail and the Party Identity store and then enrolls, registers and records — so two resumers with one acceptor, both past the bound, would each find no party and each enroll one. The critical section is what makes the resume arm's reads decisive: every pre-check is read under it, never before it, and a stalled original still holding it is refused rather than raced. Where the host implements it as a lease, the lease is at least the widened bound long (Capability requirement 17), and its **expiry is the invocation's terminus** — an invocation whose lease expired has yielded the arc, and the widened bound is exactly the point past which a resumer may hold it (Action wiring 12 through 14; the section titled *A compensator is exclusive* in `pressure-testing.md`). This composition runs no scan, so no liveness inequality gains a hold term; what the lease bounds is how long a stalled-but-alive holder can keep a resumer out. A deployment whose critical section can be lost while its holder lives, or that does not span its nodes, has the second writer Check 7.1 through 7.3 exist to report, and that is a conformance failure there, not a tolerated residue.
+
+### Primitive policy
 
 ```
-decline(invitation_token, service_actor_ref, actor_credential) →
-    declined
-  | rejected(invalid-request | invalid-credential | invitation-invalid(already-resolved(state) | not-known | expired) | storage-failure(intent | outcome))
+Primitive policy 1: The composition MUST answer invalid-request for a blank required input.
+Primitive policy 2: IF an actor reference EXCEEDS the reference length cap THEN the composition MUST answer invalid-request.
+Primitive policy 3: The composition MUST validate EVERY field an action passes to a constituent PER the constituent's own field rules.
+Primitive policy 4: An action MUST NOT record the action's attempt record BEFORE validating the action's inputs.
+Primitive policy 5: IF the data of an event the action will emit EXCEEDS the payload cap THEN the composition MUST answer invalid-request.
+Primitive policy 6: The composition MUST size a minted id the payload will carry at the id's minted-id width bound.
+Primitive policy 7: IF the call carries a resume party id THEN [Onboard] MUST read the invitation through Invitation's read.
+Primitive policy 8: [Onboard] MUST NOT record the accept attempt BEFORE reading the invitation for a call carrying a resume party id.
+Primitive policy 9: IF the call carries a resume party id AND the invitation's status EQUALS pending THEN [Onboard] MUST answer invalid-request.
+Primitive policy 10: An action refused under Primitive policy 1 through 9 MUST NOT write.
 ```
 
-**Arguments**
+Term required input: for [Invite] the inviter reference, the context and the actor credential; for [Onboard] the invitation token, the accepting identity reference, the name, the date of birth, the document type, the document reference, the credential type, the credential material, the enrolling actor reference and the actor credential; for [Decline] the invitation token, the service actor reference and the actor credential; for [Revoke] the invitation token, the revoked by reference, the revocation reason and the actor credential.
 
-- `invitation_token` — the bearer token identifying the invitation to decline.
-- `service_actor_ref` — the system service account used as the Audit Trail attribution actor. `Invitation.decline` does not record the decliner's identity; the Audit Trail records the event against the service account. Deployments that require the decliner's identity to be recorded supply it in the Audit Trail event data payload above the composition layer.
-- `actor_credential` — the service account's Actor Identity credential.
+Term actor reference: the inviter reference, the enrolling actor reference, the service actor reference or the revoked by reference — the reference an action attests under.
 
-**Steps**
+Term actor credential: the calling actor's Actor Identity credential, which the attempt record's attestation verifies.
 
-1. Validate inputs per the gate discipline's validation rule (references within the `reference_length_cap`; constructed event data within the payload budget) → `rejected(invalid-request)` if invalid. Stop.
-2. Call `Audit Trail.record_action(action_ref="invitation.decline-attempt", actor_ref=service_actor_ref, credential=actor_credential, data={invitation_token})` — the credential gate.
-   - `invalid-credential` → `rejected(invalid-credential)`. Stop, nothing written. (This is the arm the signature declares; the gate is what produces it.)
-   - `recording-failure(step)` → `rejected(storage-failure(intent))`. Stop (the attempt-record landing — *The substrate's arms, landed once*).
-   - `invalid-request` → a deployment fault, `rejected(storage-failure(intent))` with a hard alert (the same rule).
-3. Call `Invitation.decline(invitation_token)` → `declined | rejected(expired | already-resolved(state) | not-known | storage-failure)`.
-   - `expired` → `rejected(invitation-invalid(expired))`. Stop. The atom's derived-expiry rejection — the record stays `Pending`, reads `Expired` by projection, and a lapsed invitation needs no decline.
-   - `already-resolved(state)` → `rejected(invitation-invalid(already-resolved(state)))`. Stop.
-   - `not-known` → `rejected(invitation-invalid(not-known))`. Stop.
-   - `storage-failure` → `rejected(storage-failure(intent))`. Stop — the constituent commits nothing on this arm.
-4. Call `Audit Trail.record_action(action_ref="invitation.declined", actor_ref=service_actor_ref, credential=actor_credential, data={invitation_token})` → `event_id | rejected(invalid-credential | invalid-request | recording-failure(step))`.
-   - `recording-failure(step-2 | step-3)` → `rejected(storage-failure(outcome))`. (The invitation is Declined but the record is absent; a retry lands `already-resolved(Declined)`. GA check 6 detects unattested terminal transitions.)
-   - `recording-failure(step-4)` → the record exists; return `declined` with a hard alert on the unretained event (*The substrate's arms, landed once*).
-   - `invalid-request` → the deployment-fault read-back (the same rule): found → as `step-4`; absent → as `step-2 | step-3`.
-   - `invalid-credential` → a rotation race over the committed decline (the same credential attested at step 2 moments earlier); `rejected(invalid-credential)`, the same check-6 gap.
-5. Return `declined`.
+Term credential material: the authentication material a [Onboard] call passes to Credential's register — raw, never hashed by this composition.
 
----
+Term resume party id: the party id an administrator chose from an onboarding-indeterminate refusal's candidates, supplied on the [Onboard] that resumes the arc.
 
-### revoke
+Term service actor reference: the system service account a [Decline] attests under.
 
-Withdraws a pending invitation before the invitee acts on it, attributing the revocation to the revoking actor in the Audit Trail.
+WHY:
+Primitive policy 2 adopts the substrate's own caller-input rule at this layer, so the substrate's invalid-request cannot fire on a reference this layer already passed. Primitive policy 5 and Primitive policy 6 size every event the action will emit — on the fresh arc and the resume arm alike, the largest being the interruption record with its party id, stage and reason — within the payload cap, with ids that do not exist yet sized at their declared widths. Under these rules the *caller-input* source of the substrate's invalid-request is foreclosed for validated inputs; the arm itself is never unreachable, because the substrate has two sources no caller validation touches (Audit arm 8).
+
+Primitive policy 3 and Primitive policy 4 pin the validation depth: each constituent's field rules — Invitation's ttl bounds, Party Identity's enrollment-field rules, Credential's registration rules — are run *before* the gate. A typo caught after Invitation's accept has permanently consumed the invitation; caught before, it has consumed nothing. The constituents' own invalid-request arms stay as the backstop (Action wiring 21, Action wiring 28 and Action wiring 31).
+
+Primitive policy 7 through 9 refuse a resume party id on an invitation still stored pending, with nothing written: a pending invitation names no arc the call could resume, so the value is malformed. Any other stored status falls through to the gate, which lands its own answer, and Resume 21 validates the value against the candidates.
+
+### Audit arm
 
 ```
-revoke(
-  invitation_token,
-  revoked_by_ref,
-  reason,
-  actor_credential
-) →
-    revoked
-  | rejected(invalid-request | invalid-credential | invitation-invalid(already-resolved(state) | not-known | expired) | storage-failure(intent | outcome))
+Audit arm 1: IF Audit Trail answers invalid-credential at an attempt record THEN the action MUST answer invalid-credential.
+Audit arm 2: IF Audit Trail answers recording-failure at an attempt record THEN the action MUST answer storage-failure carrying intent.
+Audit arm 3: IF Audit Trail answers invalid-request at an attempt record THEN the action MUST answer storage-failure carrying intent.
+Audit arm 4: A refused attempt record MUST stop the action.
+Audit arm 5: IF Audit Trail answers recording-failure carrying a pre-append step at a post-write record THEN the action MUST answer storage-failure carrying outcome.
+Audit arm 6: IF Audit Trail answers recording-failure carrying the retention step at a post-write record THEN the action MUST proceed as landed.
+Audit arm 7: The composition MUST NOT retry a post-write record Audit Trail answered with the retention step.
+Audit arm 8: IF Audit Trail answers invalid-request at a post-write record THEN the composition MUST read the record back.
+Audit arm 9: The read-back MUST run from the sequence number of the invocation's own attempt record to the open end.
+Audit arm 10: The read-back MUST match the post-write record by action reference AND invitation token.
+Audit arm 11: IF the read-back finds the post-write record THEN the action MUST proceed as landed.
+Audit arm 12: IF the read-back finds no post-write record THEN the action MUST answer storage-failure carrying outcome.
+Audit arm 13: IF Audit Trail answers invalid-credential at a post-write record THEN the action MUST answer invalid-credential.
+Audit arm 14: IF Invitation answers storage-failure THEN the action MUST answer storage-failure carrying intent.
+Audit arm 15: IF Party Identity answers storage-failure THEN [Onboard] MUST answer storage-failure carrying outcome.
+Audit arm 16: IF Credential answers storage-failure THEN [Onboard] MUST answer storage-failure carrying outcome.
+Audit arm 17: A caller MUST read storage-failure carrying intent as a committed nothing.
+Audit arm 18: A caller MUST read storage-failure carrying outcome as a committed invitation write.
+Audit arm 19: The deployment MUST alert on an invalid-request from Audit Trail as a deployment fault.
+Audit arm 20: The deployment MUST alert on a post-write record carrying the retention step as an unretained event.
 ```
 
-**Steps**
+Term attempt record: the record an action writes first — the initiate attempt, the accept attempt, the decline attempt or the revoke attempt; the Actor Identity attestation the substrate makes inside the record *is* the credential gate.
 
-1. Validate inputs per the gate discipline's validation rule → `rejected(invalid-request)` if `revoked_by_ref`, `reason`, or `actor_credential` is absent or malformed, a reference exceeds the `reference_length_cap`, or the constructed event data exceeds the payload budget. Stop.
-2. Call `Audit Trail.record_action(action_ref="invitation.revoke-attempt", actor_ref=revoked_by_ref, credential=actor_credential, data={invitation_token, reason})` — the credential gate.
-   - `invalid-credential` → `rejected(invalid-credential)`. Stop, nothing written.
-   - `recording-failure(step)` → `rejected(storage-failure(intent))`. Stop (the attempt-record landing — *The substrate's arms, landed once*).
-   - `invalid-request` → a deployment fault, `rejected(storage-failure(intent))` with a hard alert (the same rule).
-3. Call `Invitation.revoke(invitation_token, revoked_by_ref, reason)` → `revoked | rejected(invalid-request | expired | already-resolved(state) | not-known | storage-failure)`.
-   - `expired` → `rejected(invitation-invalid(expired))`. Stop. A lapsed invitation already reads `Expired` by the atom's projection and needs no withdrawal; nothing is written.
-   - `already-resolved(state)` → `rejected(invitation-invalid(already-resolved(state)))`. Stop.
-   - `not-known` → `rejected(invitation-invalid(not-known))`. Stop.
-   - `invalid-request` → `rejected(invalid-request)`. Stop. (Step 1 forecloses it for well-formed inputs; the atom's guard is the backstop.)
-   - `storage-failure` → `rejected(storage-failure(intent))`. Stop — the constituent commits nothing on this arm.
-4. Call `Audit Trail.record_action(action_ref="invitation.revoked", actor_ref=revoked_by_ref, credential=actor_credential, data={invitation_token, reason})` → `event_id | rejected(invalid-credential | invalid-request | recording-failure(step))`.
-   - `recording-failure(step-2 | step-3)` → `rejected(storage-failure(outcome))`. (Invitation is Revoked but unattested; a retry lands `already-resolved(Revoked)`. GA check 6 detects this gap.)
-   - `recording-failure(step-4)` → the record exists; return `revoked` with a hard alert on the unretained event (*The substrate's arms, landed once*).
-   - `invalid-request` → the deployment-fault read-back (the same rule): found → as `step-4`; absent → as `step-2 | step-3`.
-   - `invalid-credential` → the rotation race over the committed revocation; `rejected(invalid-credential)`, the same check-6 gap.
-5. Return `revoked`.
+Term post-write record: a record an action writes after a constituent write commits — the initiated record, the acceptance record, the interruption record, the completion record, the decline record or the revoke record.
 
----
+Term pre-append step: a recording-failure step naming a step at or before the substrate's append — the event is not in the log.
+
+Term retention step: the recording-failure step naming the substrate's retention placement — the event is appended and attested, and only the event's retention failed.
+
+Term read-back: the composition's enumerate-and-filter read of the trail for a post-write record whose landing the substrate's answer did not say.
+
+Term position: intent | outcome — where a storage-failure sat: intent, no constituent has committed anything and the whole action may be retried as written; outcome, the action's Invitation write has committed, and a retry re-enters the action rather than repeating it.
+
+WHY:
+The substrate answers one taxonomy — invalid-credential, invalid-request, recording-failure carrying the step — and this composition maps it **by the call's position relative to the constituent write**, not uniformly. The step is load-bearing: at a pre-append step the event is not in the log; at the retention step the event exists and only its placement failed, the substrate's Invariant 2 liveness arm owns that unretained event, and a retry from here would append a second one (Audit arm 7).
+
+At an attempt record nothing has committed, so every arm is a clean pre-state refusal. An attempt event that stands after the retention step is harmless: attempt records are the record of a try, not per-invitation signatures (Check 6.4), so a retried attempt lands a second one and nothing is owed.
+
+At a post-write record a constituent write exists, so no arm can refuse the act, only report it. **The substrate's invalid-request has three sources the token does not distinguish** (Audit arm 8): a caps disagreement between the declared minted-id width bounds and the wired instance, at the substrate's first or third step — nothing appended; Actor Identity's own invalid-request at the substrate's second step — nothing appended; and the substrate's retention-configuration fault, Retention Window's invalid-policy or policy-not-found, which Audit Trail routes onto this arm at its fourth step — **the event is appended**. So the composition reads the record back, from the sequence number of the invocation's own attempt record — which the invocation holds, since the substrate answered the attempt's event id, and which the substrate's read record surfaces — to the open end: the post-write record, if it landed, lies after the attempt, and nothing before the attempt can be it. invalid-credential at a post-write record is a rotation race — the same credential attested at the attempt moments earlier — and takes the pre-append landing's gap, answered as invalid-credential so the caller learns the true cause.
+
+Audit arm 17 and Audit arm 18 export the position across the caller boundary, because the caller is the one who retries and cannot see the steps (the section titled *A composition's own rejection arm carries the retry bit* in `pressure-testing.md`): intent — the whole action may be retried as written; outcome — the action's Invitation write has committed, and a retry re-enters it, as already-resolved on [Decline] and [Revoke], as the resume arm on [Onboard] once the widened bound has elapsed, and as a fresh invitation on [Invite], the committed pending one lapsing unreachable. The relayed constituent storage-failures take the position by the same test: Invitation's, refused with nothing written, is intent; Party Identity's and Credential's, refused after the acceptance committed, are outcome. Audit arm 19 and Audit arm 20 name the surface every alert lands on — the deployment's alerting surface, the substrate's compliance alert.
+
+### Action wiring
+
+```
+invite(inviter_ref, optional invitee_ref, context, optional ttl, actor_credential)
+  answers invitation_token
+  refuses invalid-request | invalid-credential | storage-failure(position)
+
+onboard(invitation_token, accepting_identity_ref, name, date_of_birth, document_type, document_ref, credential_type, credential_material, optional expires_at, enrolling_actor_ref, actor_credential, optional resume_party_id)
+  answers onboarding result
+  refuses invalid-request | invalid-credential | invitation-invalid(invitation refusal) | onboarding-indeterminate(candidates) | duplicate-active-credential | storage-failure(position)
+
+decline(invitation_token, service_actor_ref, actor_credential)
+  answers declined
+  refuses invalid-request | invalid-credential | invitation-invalid(invitation refusal) | storage-failure(position)
+
+revoke(invitation_token, revoked_by_ref, reason, actor_credential)
+  answers revoked
+  refuses invalid-request | invalid-credential | invitation-invalid(invitation refusal) | storage-failure(position)
+```
+
+Term onboarding result: the party id and the credential id an [Onboard] answers.
+
+Term invitation refusal: the Invitation refusal a gate call met — already-resolved carrying the stored terminal, not-known or expired.
+
+Term candidates: the party ids the resume arm's party read names, when more than one party matches the arc.
+
+```
+Action wiring 1: An action MUST NOT call a constituent BEFORE the action's attempt record lands.
+Action wiring 2: The composition MUST NOT verify a credential outside an attempt record.
+Action wiring 3: A validated invite MUST record an initiate attempt carrying the invitee reference, the context AND the ttl.
+Action wiring 4: An admitted invite MUST call Invitation's initiate with the inviter reference, the invitee reference, the context AND the ttl.
+Action wiring 5: IF Invitation answers invalid-request for an initiate THEN [Invite] MUST answer invalid-request.
+Action wiring 6: An admitted invite MUST record an initiated record carrying the invitation token, the invitee reference, the context AND the ttl ONLY AFTER Invitation's initiate answers the invitation token.
+Action wiring 7: A landed invite MUST answer the invitation token.
+Action wiring 8: A validated onboard MUST record an accept attempt carrying the invitation token, the accepting identity reference, the document type AND the document reference.
+Action wiring 9: An admitted onboard MUST call Invitation's accept with the invitation token AND the accepting identity reference.
+Action wiring 10: IF Invitation answers accepted THEN [Onboard] MUST take the critical section for the invitation token.
+Action wiring 11: IF the host refuses the critical section to a fresh arc THEN [Onboard] MUST answer storage-failure carrying outcome.
+Action wiring 12: An arc MUST write ONLY IF the arc holds the critical section.
+Action wiring 13: An arc whose critical section expired MUST NOT write.
+Action wiring 14: An arc that lost the critical section MUST NOT write BEFORE taking the critical section again.
+Action wiring 15: A fresh arc taking the critical section again MUST establish the arc's stage PER the stage reading.
+Action wiring 16: IF the stage reading finds a completion record for the invitation token THEN a fresh arc taking the critical section again MUST answer the completion record's party id AND credential id.
+Action wiring 17: IF Invitation answers expired THEN [Onboard] MUST answer invitation-invalid carrying expired.
+Action wiring 18: IF Invitation answers not-known THEN [Onboard] MUST answer invitation-invalid carrying not-known.
+Action wiring 19: IF Invitation answers already-resolved AND the stored terminal DOES NOT EQUAL accepted THEN [Onboard] MUST answer invitation-invalid carrying already-resolved AND the stored terminal.
+Action wiring 20: IF Invitation answers already-resolved AND the stored terminal EQUALS accepted THEN [Onboard] MUST read the invitation through Invitation's read.
+Action wiring 21: IF Invitation answers invalid-request for an accept THEN [Onboard] MUST answer invalid-request.
+Action wiring 22: IF a resumable acceptance EXISTS for the invitation token THEN [Onboard] MUST take the resume arm.
+Action wiring 23: IF the stored terminal EQUALS accepted AND no resumable acceptance EXISTS for the invitation token THEN [Onboard] MUST answer invitation-invalid carrying already-resolved AND accepted.
+Action wiring 24: A refused gate call MUST NOT write beyond the accept attempt.
+Action wiring 25: A fresh arc MUST record an acceptance record carrying the invitation token, the accepting identity reference, the document type AND the document reference.
+Action wiring 26: A fresh arc MUST call Party Identity's enroll with the name, the date of birth, the document type, the document reference AND the enrolling actor reference ONLY AFTER the acceptance record lands.
+Action wiring 27: IF Party Identity refuses an enroll THEN the arc MUST record an interruption record carrying the invitation token, the accepting identity reference, party-enrollment as the stage AND the refusal as the reason.
+Action wiring 28: IF Party Identity answers invalid-request for an enroll THEN [Onboard] MUST answer invalid-request.
+Action wiring 29: An arc MUST call Credential's register with the arc's party id as the principal reference, the credential material, the credential type AND the expiry instant ONLY AFTER the arc's party stands.
+Action wiring 30: IF Credential refuses a register on a fresh arc THEN the arc MUST record an interruption record carrying the invitation token, the accepting identity reference, the party id, credential-registration as the stage AND the refusal as the reason.
+Action wiring 31: IF Credential answers invalid-request for a register THEN [Onboard] MUST answer invalid-request.
+Action wiring 32: IF Credential answers duplicate-active-credential on a fresh arc THEN [Onboard] MUST answer duplicate-active-credential.
+Action wiring 33: IF Credential answers duplicate-active-credential on the resume arm THEN the arc MUST read the party's active credential of the call's credential type through Credential's read.
+Action wiring 34: IF Credential answers duplicate-active-credential on the resume arm THEN the arc MUST continue with the credential id the read answers.
+Action wiring 35: A resume arm reading the arc's credential back MUST discard the call's credential material.
+Action wiring 36: An interruption record's refusal MUST NOT change the arc's answer.
+Action wiring 37: An arc MUST record a completion record carrying the invitation token, the accepting identity reference, the party id AND the credential id ONLY AFTER the arc's credential stands.
+Action wiring 38: A completing arc MUST answer the party id AND the credential id.
+Action wiring 39: An arc MUST release the critical section on EVERY return.
+Action wiring 40: A validated decline MUST record a decline attempt carrying the invitation token under the service actor reference.
+Action wiring 41: An admitted decline MUST call Invitation's decline with the invitation token.
+Action wiring 42: IF Invitation answers expired for a decline THEN [Decline] MUST answer invitation-invalid carrying expired.
+Action wiring 43: IF Invitation answers already-resolved for a decline THEN [Decline] MUST answer invitation-invalid carrying already-resolved AND the stored terminal.
+Action wiring 44: IF Invitation answers not-known for a decline THEN [Decline] MUST answer invitation-invalid carrying not-known.
+Action wiring 45: An admitted decline MUST record a decline record carrying the invitation token ONLY AFTER Invitation's decline answers declined.
+Action wiring 46: A landed decline MUST answer declined.
+Action wiring 47: The composition MUST NOT record a decliner's identity.
+Action wiring 48: A validated revoke MUST record a revoke attempt carrying the invitation token AND the revocation reason under the revoked by reference.
+Action wiring 49: An admitted revoke MUST call Invitation's revoke with the invitation token, the revoked by reference AND the revocation reason.
+Action wiring 50: IF Invitation answers expired for a revoke THEN [Revoke] MUST answer invitation-invalid carrying expired.
+Action wiring 51: IF Invitation answers already-resolved for a revoke THEN [Revoke] MUST answer invitation-invalid carrying already-resolved AND the stored terminal.
+Action wiring 52: IF Invitation answers not-known for a revoke THEN [Revoke] MUST answer invitation-invalid carrying not-known.
+Action wiring 53: IF Invitation answers invalid-request for a revoke THEN [Revoke] MUST answer invalid-request.
+Action wiring 54: An admitted revoke MUST record a revoke record carrying the invitation token AND the revocation reason ONLY AFTER Invitation's revoke answers revoked.
+Action wiring 55: A landed revoke MUST answer revoked.
+```
+
+Term validated invite: an [Invite] call whose inputs clear Primitive policy.
+
+Term admitted invite: a validated invite whose initiate attempt lands.
+
+Term landed invite: an admitted invite whose initiated record landed or proceeds as landed.
+
+Term validated onboard: an [Onboard] call whose inputs clear Primitive policy.
+
+Term admitted onboard: a validated onboard whose accept attempt lands.
+
+Term arc: one onboarding of one invitation token from the acceptance to the completion record — a fresh arc, or the stopped arc the resume arm re-enters.
+
+Term fresh arc: an admitted onboard whose accept Invitation answered accepted.
+
+Term resumable acceptance: an accepted invitation carrying the call's accepting identity reference whose `acceptance instant + widened bound` PRECEDES now.
+
+Term stage reading: the resume arm's establishment of an arc's stage and party from the trail and the Party Identity store, Resume 4 through 23.
+
+Term completing arc: an arc whose completion record lands or proceeds as landed.
+
+Term validated decline: a [Decline] call whose inputs clear Primitive policy.
+
+Term admitted decline: a validated decline whose decline attempt lands.
+
+Term landed decline: an admitted decline whose decline record landed or proceeds as landed.
+
+Term validated revoke: a [Revoke] call whose inputs clear Primitive policy.
+
+Term admitted revoke: a validated revoke whose revoke attempt lands.
+
+Term landed revoke: an admitted revoke whose revoke record landed or proceeds as landed.
+
+Term revocation reason: the reason a [Revoke] call carries, passed to Invitation's revoke and recorded on the revoke record.
+
+WHY:
+**One gate discipline for all four actions** (Action wiring 1 and 2). Every state-changing action opens with an attempt record whose Actor Identity attestation, made inside the substrate's own declared surface, *is* the credential gate: an invalid-credential there stops the action before any Invitation write, and the attempt itself is auditable. The substrate exposes no dry-run credential check, and none is needed — the attest is the check. An attempt refused at the gate lands no event; auditing *those* is the forthcoming Failed-Attempt Log's (Non-goal 11). The action's outcome is then recorded by the action's own post-write record.
+
+**[Invite].** The initiated record follows the constituent's success, which is the only point the token exists to be recorded, and carrying the token is what makes the records-alone token correlation in the forensics walk executable. Where that record is absent the token was **not answered to the caller** (Audit arm 5): no caller holds the bearer token, so through this composition the invitation cannot be accepted and lapses at its expiry instant, and the inviter retries with a fresh [Invite]; the gap is Check 6.2's signature. An initiate attempt with no following initiated record marks a failed or interrupted initiate, uncorrelatable to a token by construction, since no token was minted.
+
+**[Onboard] — the load-bearing center.** The step order is fixed: accept attempt, Invitation's accept, the acceptance record, Party Identity's enroll, Credential's register, the completion record, the answer — and Wiring decision 1 through 3 are why it cannot be reordered. The acceptance record carries the document type and the document reference, so a dead arc's party is found by what the arc recorded, not by what a resumer types (Resume 12 through 14). If the gate refuses — the invitation already resolved by a write, lapsed (the atom's derived-expiry refusal, nothing written), or unknown — the call fails before any enrollment: no party enrolled, no credential registered, no identity bound. **One exception, declared** (Action wiring 22): already-resolved carrying accepted where the stored accepting identity reference equals the one supplied and the acceptance is older than the widened bound is not a refusal but the **resume arm** — the caller re-entering an arc that stopped after its gate cleared. A younger acceptance is in flight and is refused (Action wiring 23), and so, at Resume 4, is one whose events may have lawfully aged out.
+
+After the gate the arc runs under the critical section (Action wiring 10 through 16). An invocation that finds its section lost — the host's lease expired, which is its terminus — has yielded the arc; it takes the section again and runs the stage reading as a resume of its own arc before any further write, with one adoption: a completion record for the token is the outcome this caller asked for, reached under another writer, and is answered as its own (Action wiring 16).
+
+**Partial failure after the gate.** An interruption record names the stage at which the sequence stopped. Credential's three refusals are relayed under their own names (Action wiring 31, Action wiring 32 and Audit arm 16) — a caller fault, a state conflict and an infrastructure fault are three different things and are not collapsed. If the interruption record itself fails, the original refusal is still answered (Action wiring 36); the resulting gap — an acceptance record with no later completion or interruption record — is Check 5.2's signature. **duplicate-active-credential reads two ways, by arm** (Action wiring 32 through 35): on the resume arm it is the expected signal that the interrupted invocation registered the credential before it died, read back and completed with; the material presented on the resume is discarded, which the resume's answer makes visible, since the credential id answered is the earlier one.
+
+**[Decline].** Invitation's decline records no decliner identity, and neither does this composition (Action wiring 47): the decline record is attested under the service account, and a deployment needing to know who declined records that above the composition, in its own record (Non-goal 5).
+
+**[Revoke].** The revoked by reference attests the revocation, and the revocation reason travels to the constituent and onto the record.
+
+### Wiring decision
+
+```
+Wiring decision 1: The composition MUST call Party Identity's enroll ONLY AFTER Invitation's accept answers accepted for the arc.
+Wiring decision 2: The composition MUST call Credential's register ONLY AFTER Party Identity's enroll answers the arc's party id.
+Wiring decision 3: The composition MUST NOT accept an invitation token a second time.
+Wiring decision 4: The composition MUST pass the call's accepting identity reference to Invitation's accept.
+Wiring decision 5: A deployment MUST NOT complete an arc's constituent steps outside the composition.
+```
+
+WHY:
+The principle: no party is enrolled and no credential registered through this composition unless an invitation's accepted transition precedes them — in the same call, or, on the resume arm, in the stopped arc the call re-enters. Invitation's single-resolution invariant is the mechanism that makes the gate hold under concurrent attempts: exactly one [Onboard] clears it, and every other receives already-resolved carrying accepted and creates no constituent record — the accept attempt is its only trace.
+
+The likely objection: *why not let an operator finish a stopped arc by hand — enroll the party, register the credential — rather than build a resume arm?* Because manual completion leaves the party with no completion record, which is the regulator-audit scenario's own failure produced by the recovery. And *why not simply accept again?* Because the gate is single-resolution: the arc it opens can be completed only by re-entering it (Wiring decision 3).
+
+The mechanism: the step order is fixed (Wiring decision 1 and 2); the identity binding is made at accept, with the accepting identity reference the caller supplies at acceptance, not the one the inviter guessed at initiation (Wiring decision 4); and a stopped arc is re-entered by the resume arm, never re-accepted and never finished outside the composition (Wiring decision 5).
+
+The result: invitation-gates-enrollment (Invariant 1) and credential-follows-party (Invariant 3) fall out of the wiring, and the completion record binds the whole arc in one tamper-evident entry (Invariant 5). The constituent atoms are unchanged; the guarantee lives in the order the composition calls them in.
+
+### Resume
+
+```
+Resume 1: The resume arm MUST read ONLY AFTER taking the critical section for the invitation token.
+Resume 2: IF the host refuses the critical section THEN the resume arm MUST answer storage-failure carrying intent.
+Resume 3: A resume arm answering a refusal MUST release the critical section.
+Resume 4: IF an aged acceptance EXISTS for the invitation token THEN the resume arm MUST answer invitation-invalid carrying already-resolved AND accepted.
+Resume 5: The resume arm MUST NOT read the trail BEFORE ruling out an aged acceptance.
+Resume 6: The resume arm MUST read the invitation token's events in sequence order.
+Resume 7: IF a completion record EXISTS for the invitation token THEN the resume arm MUST answer invitation-invalid carrying already-resolved AND accepted.
+Resume 8: IF a young resume record EXISTS for the invitation token THEN the resume arm MUST answer invitation-invalid carrying already-resolved AND accepted.
+Resume 9: IF a dead resume record EXISTS for the invitation token THEN the resume arm MUST read the stage as unrecorded.
+Resume 10: IF no dead resume record EXISTS AND an interruption record EXISTS for the invitation token THEN the resume arm MUST read the stage AND the party id from the token's latest interruption record.
+Resume 11: IF no acceptance record EXISTS for the invitation token THEN the resume arm MUST read the stage as acceptance-unrecorded.
+Resume 12: IF an acceptance record EXISTS AND no interruption record EXISTS for the invitation token THEN the resume arm MUST read the stage as unrecorded.
+Resume 13: The resume arm MUST take the arc's recorded documents from the token's acceptance record.
+Resume 14: IF no acceptance record EXISTS for the invitation token THEN the resume arm MUST take the arc's recorded documents from the token's accept attempts carrying the call's accepting identity reference.
+Resume 15: IF the call's document pair IS NOT IN the arc's recorded documents THEN the resume arm MUST answer invalid-request.
+Resume 16: IF the stage EQUALS unrecorded AND no party id stands for the arc THEN the resume arm MUST read Party Identity over the arc's window union.
+Resume 17: The resume arm MUST keep a party in the candidates ONLY IF the party's document pair IS IN the arc's recorded documents AND the party's enrolling actor reference IS IN the arc's actor set.
+Resume 18: The resume arm MUST NOT filter the candidates by the resuming call's enrolling actor reference.
+Resume 19: The resume arm MUST NOT filter the candidates by the party's state.
+Resume 20: IF the candidate reading EQUALS sole THEN the resume arm MUST continue with the candidate as the arc's party.
+Resume 21: IF the candidate reading EQUALS several AND the call carries no resume party id THEN the resume arm MUST answer onboarding-indeterminate carrying the candidates.
+Resume 22: IF the resume party id IS NOT IN the candidates THEN the resume arm MUST answer invalid-request.
+Resume 23: IF the resume party id IS IN the candidates THEN the resume arm MUST continue with the resume party id as the arc's party.
+Resume 24: The composition MUST NOT choose among the candidates.
+Resume 25: IF Party Identity answers invalid-query THEN the resume arm MUST answer invalid-request.
+Resume 26: The deployment MUST alert on an invalid-query from Party Identity as the composition's own defect.
+Resume 27: The resume arm MUST NOT make a constituent write BEFORE the resume record lands.
+Resume 28: The resume arm MUST record a resume record carrying the invitation token, the accepting identity reference, the document type, the document reference, the resumed stage AND the arc's party id where one stands.
+Resume 29: IF Audit Trail answers recording-failure carrying a pre-append step at the resume record THEN the resume arm MUST answer storage-failure carrying intent.
+Resume 30: IF the stage EQUALS acceptance-unrecorded THEN the resume arm MUST record the acceptance record from the Invitation record.
+Resume 31: IF no party id stands for the arc THEN the resume arm MUST call Party Identity's enroll PER Action wiring 26 through 28.
+Resume 32: IF a party id stands for the arc THEN the resume arm MUST NOT call Party Identity's enroll.
+Resume 33: A resume record MUST pair with the first outcome record following the resume record in sequence order.
+Resume 34: IF Audit Trail answers recording-failure carrying the retention step at the resume record THEN the resume arm MUST proceed as landed.
+Resume 35: IF Audit Trail answers invalid-credential at the resume record THEN the resume arm MUST answer invalid-credential.
+Resume 36: IF Audit Trail answers invalid-request at the resume record THEN the resume arm MUST read the resume record back PER Audit arm 9 through 10.
+Resume 37: IF the read-back finds no resume record THEN the resume arm MUST answer storage-failure carrying intent.
+Resume 38: A resume arm taking the critical section again MUST run the stage reading again from Resume 4.
+```
+
+Term resume arm: the [Onboard] path a resumable acceptance takes — a caller-authenticated re-entry of an arc that stopped after the arc's gate cleared, one resumer per token under the critical section.
+
+Term aged acceptance: an accepted invitation whose `acceptance instant + audit horizon − clock offset allowance` PRECEDES now — an arc whose events may have been lawfully destroyed.
+
+Term outcome record: a completion record or an interruption record.
+
+Term young resume record: the token's latest resume record, followed by no completion record and no interruption record, whose `recording instant + widened bound` DOES NOT PRECEDE now — a resume in flight, or one that died inside the bound, which the records cannot tell apart.
+
+Term dead resume record: the token's latest resume record, followed by no completion record and no interruption record, whose `recording instant + widened bound` PRECEDES now.
+
+Term stage: acceptance-unrecorded | unrecorded | party-enrollment | credential-registration — where the resume arm finds the arc stopped: the acceptance record never landed; the acceptance landed and nothing after it says where the arc stopped; or the stage an interruption record names.
+
+Term arc's recorded documents: the document type and document reference pair on the token's acceptance record, or, where that record is absent, the pairs on the token's accept attempts carrying the call's accepting identity reference — a set, a superset in the safe direction.
+
+Term document pair: a document type with the document reference beside it.
+
+Term arc's window union: one window per anchor — the anchors being the invitation's acceptance instant and the recording instant of every resume record for the token — each from `anchor − clock offset allowance` to `anchor + widened bound`, both ends included; one read from the earliest lower edge to the latest upper edge is a superset of the union and serves.
+
+Term arc's actor set: the actor references of the token's acceptance record and resume records and, where the acceptance record is absent, of the token's accept attempts.
+
+Term candidate reading: none | sole | several — how many parties the resume arm's party read keeps.
+
+WHY:
+**Why the arm exists.** The gate is single-resolution, so the arc it opens can be completed only by re-entering it, never by accepting again. The resume arm establishes from the records where the arc stopped and **re-runs** the remaining steps under the caller's own identity — it never re-emits a record it cannot re-derive, and it never enrolls beside a party the arc already created without saying so.
+
+**One resumer per token** (Resume 1 through 3). The gate that admitted the resumer has already fired, so two resumers with one acceptor, both past the bound, are two callers no constituent can tell apart, and every pre-check below is a look-then-write both would pass. The whole arm therefore runs under the critical section; every read is made under it, never before it, and a stalled original still holding it is refused, not raced, until its lease expires (the section titled *A compensator is exclusive* in `pressure-testing.md`).
+
+**Bound the arc, then read the stage** (Resume 4 through 12). The upper edge comes first: past the audit horizon a completion record whose payload the purge has made unreadable is not absent — it is purged — and a leg that read it as absent would complete the arc a second time (the section titled *A reconciliation is bounded at both ends* in `pressure-testing.md`). A completion record means the arc finished and a second caller with the same acceptor is not a resumer. A young resume record draws the same refusal a young acceptance draws, for the same reason. A dead one makes the stage unrecorded whatever the earlier records say — the dead resume may have enrolled a party before it wrote anything more — so the party read runs with its recording instant among the anchors.
+
+**Find the party the trail does not name** (Resume 16 through 26). Party Identity's own contract calls its enrollment-instant range *advisory wall-time metadata — under clock skew its result set is best-effort*, so the widened range is a **narrowing** read and what decides is the exact-field filter run composition-side over it (the section titled *A stamp from another seam never decides a write alone* in `pressure-testing.md`). The filter matches the arc's recorded documents — the values the trail recorded, never the resumer's inputs, which Resume 15 has already required to match them — and the arc's actor set, not the resumer's own reference (Resume 18): the arc may have been begun by one actor and be finished by another, an administrator completing what a service account began, and a filter on the resumer would find nothing and enroll again. The accept attempts widen the actor set where the acceptance record is absent, a superset that can only widen the candidates toward onboarding-indeterminate, never narrow them toward a silent second enrollment. The candidates are **not** filtered by state (Resume 19): a party the arc enrolled and someone has since closed is still the arc's party, and excluding it would enroll a second one; the administrator choosing among candidates sees the state and decides. Where several parties are, by their fields, the same person enrolled twice inside one arc, the composition does not choose (Resume 24); an administrator does, and re-invokes with a resume party id. Party Identity's invalid-query is reachable only from a query this composition built, so it is the composition's own defect, answered as invalid-request and alerted (Resume 25 and 26).
+
+**Record the resumption before any constituent commit** (Resume 27 through 29). The resume record is the plan: the stage the records established, the arc's recorded documents re-recorded so a later resume matches against a record that survives even if the acceptance record never landed, and the party the resume continues with. It commits nothing, so a pre-append failure there — and an invalid-request whose read-back finds no record — is intent, not outcome, and the resume is retried whole; the retention step proceeds as landed, as a post-write record's does (Resume 34 through 37). A resume arm that loses the critical section runs the stage reading again before any further write (Resume 38).
+
+**Re-run from the stage** (Resume 30 through 33). An absent acceptance record is re-derivable in full from the Invitation record — the token and the accepting identity reference — so writing it now is re-derivation, not fabrication. The completion record the resume writes is the arc's completion, attested by the resumer (Composes 14); the resume record before it is what tells a reader the arc was completed by a re-entry rather than in one pass. Under the critical section a resume record pairs exactly with the first completion or interruption record after it (Resume 33), because one writer per token at a time is what the section supplies.
 
 ## Composition-level invariants
 
-**Invariant 1 — Invitation gates enrollment.** No `Party Identity.enroll` call is made via the [Onboard] action unless the invitation named by `invitation_token` is in stored `Accepted` state, bound to the supplied `accepting_identity_ref`, as established in the same call — by `Invitation.accept` returning `accepted`, or, on the resume arm, by the constituent's own record read after `already-resolved(Accepted)` (*Resume*). No Party Identity is enrolled and no Credential registered via this composition without a preceding successful invitation acceptance, and a resumed arc enrolls beside no party the arc already created — **conditional on the deployment's declared `clock_offset_allowance` and `per_token_serialization` holding** (Configuration): R2's read, widened by the allowance and decided on exact fields, with the `onboarding-indeterminate` refusal where it cannot decide, is what keeps a dead arc's party from being enrolled a second time, and the section, one resumer per token, is what keeps two live resumers from enrolling once each; check 7 is where a breach of either shows.
+These emerge from the composition; none belongs to a single constituent. Each names the constituent guarantees and the wiring it rests on.
 
-**Invariant 2 — Identity binding at accept, not at initiate.** The `accepting_identity_ref` that permanently identifies who accepted the invitation is supplied at `Invitation.accept` call time, not at `Invitation.initiate` time. The inviting actor makes no binding commitment about the invitee's identity at initiation; the identity binding is the invitee's act at acceptance time.
+- **Invariant 1 — Invitation gates enrollment.**
+  ```
+  Invariant 1.1: EVERY enroll the composition makes MUST follow an accepted invitation carrying the arc's accepting identity reference.
+  Invariant 1.2: A resumed arc MUST NOT enroll a party beside the arc's party.
+  Invariant 1.3: The composition MUST make the duplicate-freedom claim ONLY IF the deployment declares the clock offset allowance AND the critical section.
+  ```
+  WHY: the acceptance is established in the same call — Invitation's accept answering accepted — or, on the resume arm, by the constituent's own record read after already-resolved carrying accepted. The party read, widened by the allowance and decided on exact fields, with the onboarding-indeterminate refusal where it cannot decide, is what keeps a dead arc's party from being enrolled a second time; the critical section, one resumer per token, is what keeps two live resumers from enrolling once each. Check 7.1 through 7.3 are where a breach of either shows. Rests on Invitation's single-resolution invariant, Wiring decision 1, Resume 16 through 24 and Capability requirement 13 through 17.
+- **Invariant 2 — Identity binding at accept, linked by the completion record.**
+  ```
+  Invariant 2.1: EVERY completion record MUST carry the accepting identity reference the arc's acceptance bound.
+  Invariant 2.2: The composition MUST NOT take an accepting identity reference from an [Invite] call.
+  ```
+  WHY: the binding itself is Invitation's — its accept records the accepting identity reference permanently, at acceptance, and the inviter commits to no identity at initiation. What the composition adds is the linkage: the party enrollment produces is tied to that reference on the completion record, so the path from any enrolled party back to the invitation that authorized it runs through the trail. Rests on Wiring decision 4 and Action wiring 37.
+- **Invariant 3 — Credential follows party.**
+  ```
+  Invariant 3.1: EVERY credential the composition registers MUST name the arc's party id as the credential's principal reference.
+  ```
+  WHY: the arc's party is the one the same call enrolled, or, on the resume arm, the one the stage reading establishes from the records. A credential registered through this composition always has a party record as its subject. Rests on Wiring decision 2 and Action wiring 29.
+- **Invariant 4 — Audit coverage as safety plus detectability.**
+  ```
+  Invariant 4.1: EVERY accepted, declined AND revoked write through the composition MUST stand as a covered transition.
+  Invariant 4.2: EVERY invitation the composition initiates MUST stand as a covered initiation.
+  Invariant 4.3: The composition MUST make the coverage claim ONLY IF the arc lies inside the audit horizon.
+  Invariant 4.4: An invitation token MUST NOT carry two completion records.
+  Invariant 4.5: A party id MUST NOT appear on the completion records of two invitation tokens.
+  ```
+  Term covered transition: a terminal invitation write whose record exists, or whose absent record is a gap signature Check 5.1 through 5.3 or Check 6.1 enumerates.
 
-**Invariant 3 — Credential-follows-party.** `Credential.register` is called only after `Party Identity.enroll` succeeds, and `principal_ref` in the credential is always the `party_id` produced by the enrollment in the same arc — the same [Onboard] call, or the stopped arc the resume arm completes, whose party R1 and R2 establish from the records. A credential registered via this composition always has a corresponding Party Identity record as its subject.
+  Term covered initiation: an invitation whose initiated record exists, or whose absent record is Check 6.2's gap signature.
 
-**Invariant 4 — Audit coverage as safety plus detectability.** Every terminal state change in the Invitation lifecycle that passes through this composition — `Accepted`, `Declined`, `Revoked` — either has its corresponding Audit Trail event, or is detectable as a **named gap signature** from the records alone: a stored-`Accepted` invitation without its `onboarding.invitation-accepted` event; an `onboarding.invitation-accepted` without a subsequent `onboarding.completed` or `onboarding.interrupted` for the same token; a `Declined` or `Revoked` invitation without its event; an Invitation record without its `invitation.initiated` event. GA checks 5 and 6 enumerate exactly these signatures — the claim is not that a recording step cannot fail (each action's arms admit it), but that no terminal transition through this composition is *silently* invisible: the absent record is itself detectable evidence. The claim and its signatures quantify **within the configured retention horizon**: an arc whose events have been lawfully purged reads as destruction (the substrate's Retention Window records in *Purged* state), never as a recording failure — the GA standing rules carry the same bound. An [Onboard] call that clears the gate produces at minimum its `onboarding.accept-attempt` and `onboarding.invitation-accepted` records and, on success, an `onboarding.completed` record (a call refused at or before the gate produces the attempt record alone, or nothing); on partial failure, an `onboarding.interrupted` record names the stage at which the sequence stopped, where that record itself could land; a resumed arc additionally carries the `onboarding.resume-intended` record that preceded its re-run, which is how a reader tells a completion reached by re-entry from one reached in a single pass. A token carries at most one `onboarding.completed` and names one `party_id` across its events (check 7); a second of either is a second writer, which the per-token section forecloses and check 7 reports.
-
-**Invariant 5 — Completion record names the full arc.** The `onboarding.completed` Audit Trail event carries `{invitation_token, accepting_identity_ref, party_id, credential_id}` as its data payload. From this single record, an investigator can traverse the full arc: the Invitation record (by `invitation_token`), the Party Identity record (by `party_id`), and the Credential record (by `credential_id`). No correlation index is required — the traversal is a record-by-record lookup keyed by the event's own fields. The traversal claim holds within the configured retention horizon; past it, the purged completion event's payload is lawfully unreadable, and the surviving attestation fields plus the undeletable constituent records are the post-horizon evidence surface.
-
----
-
-## Standards
-
-*Anchors: GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Articles 6–7 (lawful basis for processing at invitation and acceptance time); HIPAA (US Health Insurance Portability and Accountability Act) §164.312(a)(1) (access control — invitation-based provisioning as a covered access-granting event) + §164.312(d) (person or entity authentication — credential registration at onboarding); SOC 2 (Service Organization Control 2 — an audit standard for service-provider security controls) CC6.2 (prior to issuing system credentials, new internal and external users are registered and authorized); NIST (National Institute of Standards and Technology) SP 800-63A (identity enrollment and identity proofing — the enrollment arc); SCIM 2.0 RFC 7644 (System for Cross-domain Identity Management — the invite-then-provision flow); FATF (Financial Action Task Force — the international anti-money-laundering standard-setter) Recommendations 10–12 (customer due diligence at onboarding — Party Identity in Unverified state is the enrollment record the regulator requires; verification belongs to Customer Onboarding).*
-
-**GDPR Articles 6–7** require a lawful basis for processing personal data. The [Invite] action creates the first processing record: the system holds `invitee_ref` and processes data about the invitee from that moment. The [Onboard] action creates the `accepting_identity_ref` binding and the Party Identity enrollment — the data subject's active engagement with the system. The Audit Trail records both as the GDPR Article 5(2) accountability records.
-
-**SOC 2 CC6.2** requires that prior to issuing system credentials, new users are registered and authorized. The composition supplies the *registration* half and the *ordering* structurally: `Party Identity.enroll` (registration) precedes `Credential.register` (credential issuance), and both are preceded by `Invitation.accept`, whose `invitation.initiated` record attributes the invitation to an authenticated inviting actor. The *authorization* half — that the inviting actor was permitted to admit this user — is not something this composition checks or records: its gate verifies the inviter's credential and attributes the act, and whether the inviter held the authority is the composed Permissions instance's record (Edge cases — *Inviter and revoker authorization*). A CC6.2 claim rests on both records together, and a deployment that wires no authorization gate above [Invite] has the ordering and the attribution but not the authorization.
-
-**NIST SP 800-63A** defines the enrollment event at which an applicant registers with an identity system. The [Onboard] action is that enrollment event. The composition does not perform identity proofing (the transition from Unverified to Verified in Party Identity) — that belongs to Customer Onboarding. The composition records the enrollment inputs (`name`, `date_of_birth`, `document_type`, `document_ref`) and the enrolling actor, satisfying 800-63A's enrollment record requirements.
+  WHY: the claim is not that a recording step cannot fail — each action's arms admit it — but that no terminal transition through this composition is *silently* invisible: the absent record is itself detectable evidence. A call clearing the gate produces the accept attempt and the acceptance record and, on success, the completion record; on partial failure an interruption record names the stage where that record itself could land; a resumed arc also carries the resume record that preceded its re-run. Past the audit horizon an arc whose events were lawfully purged reads as destruction — the substrate's Retention Window record in its purged state — never as a recording failure. A second completion or a second party for one token is a second writer, which the critical section forecloses and Check 7.1 through 7.3 report. Rests on Audit arm 1 through 13, Action wiring 36 and Capability requirement 13 through 17.
+- **Invariant 5 — The completion record names the full arc.**
+  ```
+  Invariant 5.1: EVERY completion record MUST carry the invitation token, the accepting identity reference, the party id AND the credential id.
+  ```
+  WHY: from this single record an investigator traverses the full arc — the Invitation record by token, the party record by party id, the credential record by credential id — with no correlation index; each lookup is keyed by the event's own fields. The traversal holds inside the audit horizon; past it, the purged completion payload is lawfully unreadable, and the surviving attestation fields plus the undeletable constituent records are the post-horizon evidence. Rests on Composition state 2 and 4 and Action wiring 37.
 
 ---
 
@@ -341,7 +515,7 @@ revoke(
 
 ### New employee onboarding — happy path
 
-An HR administrator invites a new hire who does not yet have a system identity:
+An HR (human resources) administrator invites a new hire who does not yet have a system identity:
 
 ```
 invite(
@@ -366,30 +540,30 @@ onboard(
   document_type:            "passport",
   document_ref:             "doc_p_a01",
   credential_type:          "password",
-  credential_material:      <password hash>,
+  credential_material:      <the raw password>,
   expires_at:               null,
   enrolling_actor_ref:      "system_onboarding_svc",
   actor_credential:         <service account credential>
 ) → {party_id: "party_4421", credential_id: "cred_7791"}
 ```
 
-Internally: Audit Trail records `onboarding.accept-attempt` (the service account's credential gate clears). `Invitation.accept("tok_inv_g7h2k1", "newhire@acme.com") → accepted`. Audit Trail records `onboarding.invitation-accepted`. `Party Identity.enroll(...)` → `party_4421`. `Credential.register(principal_ref="party_4421", "password", ...)` → `cred_7791`. Audit Trail records `onboarding.completed: {tok_inv_g7h2k1, newhire@acme.com, party_4421, cred_7791}`.
+Internally: Audit Trail records `onboarding.accept-attempt` (the service account's credential gate clears). `Invitation.accept("tok_inv_g7h2k1", "newhire@acme.com") → accepted`. Audit Trail records `onboarding.invitation-accepted`. `Party Identity.enroll(...)` → `party_4421`. `Credential.register(principal_ref="party_4421", credential_material=<the raw password>, credential_type="password")` → `cred_7791`. Audit Trail records `onboarding.completed: {tok_inv_g7h2k1, newhire@acme.com, party_4421, cred_7791}`.
 
 The party is in `Unverified` state. The HR team proceeds to the Customer Onboarding verification workflow to drive the `Party Identity.verify` call that produces the `Verified` transition.
 
-### Concurrent acceptance attempt — second attempt rejected
+### Concurrent acceptance attempt — the same acceptor, still in flight
 
-A second actor (or a duplicate browser tab) attempts to accept the same invitation concurrently:
+A duplicate browser tab submits the same acceptance while the first call is still running:
 
 ```
 onboard(
   invitation_token:       "tok_inv_g7h2k1",
-  accepting_identity_ref: "different@acme.com",
+  accepting_identity_ref: "newhire@acme.com",
   ...
 ) → rejected(invitation-invalid(already-resolved(Accepted)))
 ```
 
-Internally: the `onboarding.accept-attempt` gate event lands (the record of the try), then `Invitation.accept("tok_inv_g7h2k1", "different@acme.com") → rejected(already-resolved(Accepted))`. No Party Identity is enrolled. No Credential is registered. No acceptance, enrollment, or completion record is written — the attempt event is the only trace. The rejection is clean; Invitation's single-resolution invariant handles the race.
+Internally: the accept attempt lands, the record of the try; then `Invitation.accept("tok_inv_g7h2k1", "newhire@acme.com")` answers already-resolved carrying accepted. The composition reads the invitation and finds the same acceptor, but an acceptance younger than the widened bound — an arc still in flight, whose own invocation holds the critical section — so it refuses (Action wiring 23). No party is enrolled and no credential registered; the attempt event is the only trace. This is the race worth showing, because the same acceptor is the one the resume arm would admit once the bound has passed; a *different* acceptor is refused the same way at any age, by Invitation's single-resolution invariant alone.
 
 ### Invitation revoked before use
 
@@ -420,53 +594,151 @@ decline(
 
 ### Regulated adversarial scenarios
 
-**Regulator audit.** A HIPAA compliance officer asks: *"Can you prove that every user who currently has access to the system was admitted via a documented invitation from an identified, authenticated internal actor — and that the actor was permitted to admit them?"* The auditor queries the Audit Trail for all `onboarding.completed` events. Each event carries `{invitation_token, accepting_identity_ref, party_id, credential_id}`. For each `party_id` in the system with an active credential, the auditor confirms a corresponding `onboarding.completed` event exists in the Audit Trail (Invariant 4) — walking the active credential's rotation chain back through predecessor records to the `credential_id` the event names, since the credential registered at onboarding has usually been rotated since (Generation acceptance check 2). The Invitation record for each `invitation_token` names the `inviter_ref` — the actor whose credential the `invitation.initiate-attempt` record verified. Invariant 1 (invitation gates enrollment) is the structural guarantee: the `onboarding.completed` event is only produced if `Invitation.accept` succeeded, and the Invitation record names who *issued* the access, authenticated and attributed. The second half of the regulator's question — whether that actor was *permitted* to — is answered from the composed Permissions instance's records for `invitations:initiate` at the invitation's `initiated_at`, not from this composition's, which never checks it (Edge cases — *Inviter and revoker authorization*). Both halves are answerable from records alone; they are two records, not one.
+**Regulator audit.** A HIPAA compliance officer asks: *"Can you prove that every user who currently has access to the system was admitted via a documented invitation from an identified, authenticated internal actor — and that the actor was permitted to admit them?"* The auditor queries the Audit Trail for all `onboarding.completed` events. Each event carries `{invitation_token, accepting_identity_ref, party_id, credential_id}`. For each `party_id` in the system with an active credential, the auditor confirms a corresponding `onboarding.completed` event exists in the Audit Trail (Invariant 4) — walking the active credential's rotation chain back through predecessor records to the `credential_id` the event names, since the credential registered at onboarding has usually been rotated since (Generation acceptance check 2). The Invitation record for each invitation_token names the inviter_ref — the actor whose credential the `invitation.initiate-attempt` record verified. Invariant 1 (invitation gates enrollment) is the structural guarantee: the `onboarding.completed` event is only produced if `Invitation.accept` succeeded, and the Invitation record names who *issued* the access, authenticated and attributed. The second half of the regulator's question — whether that actor was *permitted* to — is answered from the composed Permissions instance's records for `invitations:initiate` at the invitation's `initiated_at`, not from this composition's, which never checks it (Edge cases — *Inviter and revoker authorization*). Both halves are answerable from records alone; they are two records, not one.
 
-**Disputed onboarding.** A former employee claims: *"My account was created without my knowledge — I never accepted an invitation."* The investigator queries the Audit Trail for `onboarding.completed` events whose `party_id` matches the former employee's record. The event is found. The Invitation record for the `invitation_token` in that event shows `inviter_ref` (who sent it), `accepting_identity_ref` (the external reference supplied at acceptance time), and `accepted_at` (when the acceptance was committed). Invariant 2 (identity binding at accept) is the structural guarantee: the `accepting_identity_ref` was supplied by the caller at `Invitation.accept` time, not pre-populated by the inviting actor. Whether the former employee personally presented the token or whether someone else held the token and supplied the reference is outside the composition's scope — the composition records that a bearer of `tok_inv_g7h2k1` presented the invitation and supplied `accepting_identity_ref: "newhire@acme.com"`. Further investigation of who actually controlled that email address at that moment belongs to Party Identity's identity proofing concept (Customer Onboarding) or a breach forensics investigation.
+**Disputed onboarding.** A former employee claims: *"My account was created without my knowledge — I never accepted an invitation."* The investigator queries the Audit Trail for `onboarding.completed` events whose `party_id` matches the former employee's record. The event is found. The Invitation record for the invitation_token in that event shows inviter_ref (who sent it), accepting_identity_ref (the external reference supplied at acceptance time), and `accepted_at` (when the acceptance was committed). Invariant 2 (identity binding at accept) is the structural guarantee: the accepting_identity_ref was supplied by the caller at `Invitation.accept` time, not pre-populated by the inviting actor. Whether the former employee personally presented the token or whether someone else held the token and supplied the reference is outside the composition's scope — the composition records that a bearer of `tok_inv_g7h2k1` presented the invitation and supplied `accepting_identity_ref: "newhire@acme.com"`. Further investigation of who actually controlled that email address at that moment belongs to Party Identity's identity proofing concept (Customer Onboarding) or a breach forensics investigation.
 
-**Breach forensics.** An investigator determines that an onboarding service account's credential was compromised during a window. The question is: were any fraudulent onboardings performed using the compromised credential? The investigator joins by token, not by the completion's actor: the `onboarding.completed` event's `actor_ref` is the resumer's where an arc was resumed, so a completion attested by an uncompromised administrator can still belong to an arc the compromised account began. The investigator queries the Audit Trail for `onboarding.accept-attempt` and `onboarding.invitation-accepted` events whose `actor_ref` matches the compromised service account within the compromise window, takes their `invitation_token`s, and joins each to the token's `onboarding.completed` event. Each such event names `{invitation_token, accepting_identity_ref, party_id, credential_id}`. The investigator cross-references: do the `invitation_token` values correspond to invitations issued by authenticated inviting actors — and, against the composed Permissions instance's records, by actors permitted to invite at the time? The `invitation.initiated` event for each token names the `inviter_ref`, and its `actor_credential` attestation is independently verifiable — this is the record that carries the token, which is what makes the correlation executable from the trail alone. Any `onboarding.completed` event whose token has no `invitation.initiated` event through the composition, or whose inviter's attestation fails, is a candidate fraudulent onboarding. Invariant 4 (full Audit Trail coverage) and Invariant 5 (completion record names the full arc) together make this forensic reconstruction possible from records alone.
-
----
-
-## Non-goals and edge cases
-
-**Partial failure after `Invitation.accept`.** If `Invitation.accept` succeeds but a downstream step fails (Audit Trail step 4 fails, `Party Identity.enroll` fails, `Credential.register` fails, or Audit Trail step 7 fails), the invitation is permanently in `Accepted` state and cannot be accepted again. It **can be resumed**: a subsequent [Onboard] call with the same `invitation_token` and the same `accepting_identity_ref`, made after `onboarding_completion_bound + clock_offset_allowance` has elapsed and while the acceptance is inside the trail's retention horizon, takes the resume arm (Actions, [Onboard], *Resume*) — one resumer per token, under the deployment's `per_token_serialization` — establishes the stage from the trail and, where the trail is silent, from the Party Identity store over every window the arc's records anchor, and re-runs the remaining steps under the caller's own authenticated identity behind an `onboarding.resume-intended` record. The caller need not be the actor who began the arc: R2 looks for the arc's party by the actors the trail records, not by the resumer's. The arc's completion record is then written by the composition, so the party traces to its invitation exactly as a single-pass arc does. What the resume does **not** do is guess: where the store shows more than one party enrolled by the arc's actors under the arc's recorded documents inside the arc's windows, it refuses with `onboarding-indeterminate(candidates)` and an administrator chooses, re-invoking with `resume_party_id`. Manual completion of the constituent steps outside the composition is no longer the recovery, and a deployment that performs it produces a party with no completion record — the regulator-audit scenario's failure, by its own hand. The GA check for unresolved interruptions (check 5) surfaces arcs awaiting resumption.
-
-**Concurrent [Onboard] calls — the race.** Two callers present the same `invitation_token` simultaneously. `Invitation.accept` is atomic under concurrent attempts; exactly one succeeds. The winning call proceeds to enrollment and credential registration. The losing call receives `rejected(invitation-invalid(already-resolved(Accepted)))` at step 3, before any enrollment occurs. No orphaned Party Identity records are created by the losing call. This is Invitation's single-resolution invariant working as the composition's concurrency control. The race it cannot see is the one between two **resumers** — same acceptor, both past the bound — because the gate has already fired for both and answers both alike; that race is closed by the per-token section the resume arm runs under (Configuration, `per_token_serialization`) and by R1's in-flight refusal, and a breach of the section is what check 7 reports.
-
-**Invitation expired between [Invite] and [Onboard].** The invitee delays acting on the invitation until after `expires_at`. `Invitation.accept` returns the atom's derived-expiry rejection `expired` → `rejected(invitation-invalid(expired))`. Nothing is written by the refusal: the record remains stored `Pending` and is *shown* `Expired` by the atom's read-time projection (its Invariant 12 — expiry is derived, never written; there is no stored `Expired` terminal for `already-resolved` to name). No enrollment occurs. The inviting actor must issue a new invitation.
-
-**`duplicate-active-credential` at step 6 — two readings, by arm.** On the **resume arm** it is the expected signal: the interrupted invocation registered the credential before it died, and the resume reads it back and completes the arc with it (step 6's resume-only reading). On a **fresh arc** the `party_id` was minted at step 5 of this very call, so no earlier registration under it through this composition is possible; the only causal story left is a `principal_ref` collision — an external writer registering credentials under the same `principal_ref` namespace as this composition's `party_id`s, which the shared-surface posture of Credential (*Composes*) admits and this composition cannot see. The composition writes `onboarding.interrupted` (stage: "credential-registration", reason: "duplicate-active-credential") and relays `rejected(duplicate-active-credential)` — a state conflict, not an infrastructure failure, and the caller is told which. The enrolled party exists in `Unverified` state without a credential of this composition's issuing; administrator review determines whose credential holds the namespace, and the arc is completed by resumption once it is resolved.
-
-**Identity verification after onboarding.** This composition enrolls the party in `Unverified` state. The transition to `Verified` is a separate concept — the Customer Onboarding composition orchestrates identity verification and calls `Party Identity.verify(verification_result=passed)` to drive the `Unverified → Verified` transition. Downstream regulated activity that requires `Verified` status must check Party Identity state before proceeding; this composition does not provide that gate.
-
-**Credential rotation after onboarding.** Once onboarded, the principal may rotate their credential using `Credential.rotate` directly (outside this composition's surface). The composition does not expose a rotate action. Rotation belongs to the principal's ongoing credential management, separate from the one-time onboarding arc — and it does not disturb the arc's record: the `onboarding.completed` event names the credential as registered, and Generation acceptance check 2 reaches the current head by walking `successor_credential_id`, so the binding from party to credential survives every lawful rotation and revocation without the completion record being rewritten.
-
-**Invitee identity not matching `invitee_ref`.** If the inviting actor supplied an `invitee_ref` at [Invite] time (e.g., a known email address), and the `accepting_identity_ref` supplied at [Onboard] time does not match that `invitee_ref`, the composition does not detect or block this mismatch — the Invitation atom does not validate the relationship between `invitee_ref` and `accepting_identity_ref`. A deployment that requires the accepting identity to prove control of the `invitee_ref` (e.g., by verifying ownership of the email address before calling [Onboard]) must enforce this constraint above the composition layer, before calling [Onboard]. The composition records whatever `accepting_identity_ref` is supplied; the mismatch is a policy matter for the calling layer.
-
-**Inviter and revoker authorization is an above-composition obligation.** This composition's gate **authenticates and attributes; it does not authorize.** The attempt record on [Invite] and [Revoke] verifies the presented credential against the actor registry and attributes the act to `inviter_ref` / `revoked_by_ref`, so an invitation or revocation is never issued on an unverified claim — but nothing in the wiring asks whether that actor was *permitted* to invite this party into this context, or to withdraw this invitation, and no constituent here holds that answer (Invitation takes `inviter_ref` as an opaque reference; Audit Trail attests, it does not gate). The authorization gate is therefore a **declared above-composition obligation**: a deployment composes a [Permissions](../atoms/permissions.md) instance over the scopes `invitations:initiate` and `invitations:revoke`, checked by the caller before [Invite] and [Revoke] (or by a wrapping composition such as Session-Gated Authorization or Attributed Permissions Admin — Composition notes), and that instance's records are where "was the inviter authorized?" is answered. Every claim on this page that an invitation was *issued by an authorized actor* is to be read as *issued by an authenticated, attributed actor*; a deployment that wires no such gate has attribution without authorization, and a regulator's authorization question then has no record to answer it. The obligation is named here rather than absorbed because gating on a scope would make Permissions a constituent and this composition the owner of an authorization vocabulary it has no other reason to hold.
-
-**Decliner identity not recorded.** `Invitation.decline` does not accept an identity argument; the Invitation atom records only that a decline occurred, not who declined. The [Decline] action in this composition uses the system service account as the Audit Trail attestation actor. A deployment that needs to record who declined should capture the decliner's external reference in the Audit Trail event data payload before calling the composition's [Decline] action.
+**Breach forensics.** An investigator determines that an onboarding service account's credential was compromised during a window. The question is: were any fraudulent onboardings performed using the compromised credential? The investigator joins by token, not by the completion's actor: the `onboarding.completed` event's `actor_ref` is the resumer's where an arc was resumed, so a completion attested by an uncompromised administrator can still belong to an arc the compromised account began. The investigator queries the Audit Trail for `onboarding.accept-attempt` and `onboarding.invitation-accepted` events whose `actor_ref` matches the compromised service account within the compromise window, takes their invitation_tokens, and joins each to the token's `onboarding.completed` event. Each such event names `{invitation_token, accepting_identity_ref, party_id, credential_id}`. The investigator cross-references: do the invitation_token values correspond to invitations issued by authenticated inviting actors — and, against the composed Permissions instance's records, by actors permitted to invite at the time? The `invitation.initiated` event for each token names the inviter_ref, and its actor_credential attestation is independently verifiable — this is the record that carries the token, which is what makes the correlation executable from the trail alone. Any `onboarding.completed` event whose token has no `invitation.initiated` event through the composition, or whose inviter's attestation fails, is a candidate fraudulent onboarding. Invariant 4 (full Audit Trail coverage) and Invariant 5 (completion record names the full arc) together make this forensic reconstruction possible from records alone.
 
 ---
 
 ## Generation acceptance
 
-An implementation of External Onboarding is accepted if an external auditor can clear the following checks from the Audit Trail and constituent-atom records alone, without recourse to source code, runbooks, or developer narration. Four standing rules govern how the checks run. **Retrieval:** every payload-keyed query below is an enumerate-and-filter over the substrate's declared sequence-range read (Composition state names the mechanism); no payload-index surface is assumed. **Cross-store timestamps:** each constituent stamps its records at its own seam, so a comparison between two stores' stamps (or a store's stamp and an event's) is evidence-trail auditing under the declared `clock_offset_allowance` (Configuration) — a check condemns only violations wider than that allowance and reads discrepancies inside it as inconclusive rather than as findings; the same allowance widens the resume arm's windows, so the checks and the writes run under one declared number (§*A stamp from another seam never decides a write alone*). **Store scope:** every Invitation-store quantifier below ranges over the composition's one dedicated instance under the deployment's routing obligation (*Composes*); records living outside it are outside these claims. **Retention horizon:** the trail is retention-bounded by configuration while Invitation records are undeletable, so every trail-walking check quantifies over arcs whose events are within `audit_trail_retention_policy`'s horizon (Configuration) — the same upper edge the resume arm refuses past — a purged event is lawful destruction under the substrate's honest-representation invariant, its Retention Window record in *Purged* state being the evidence, never a gap signature — and past the horizon the surviving evidence surface is the attestation's own `action_ref` / `actor_ref` / `attested_at` (which the substrate's purge preserves) plus the undeletable constituent records themselves. **In-flight bound:** checks 5 and 6 compare a constituent's committed state against events this composition writes later in the same invocation, so an invocation still running reads as a signature; each examines only acceptances, initiations, and events older than `onboarding_completion_bound + clock_offset_allowance` (Configuration) against the auditor's seam clock — the lower edge the resume arm reads under, widened by the same allowance because the stamps are the constituents' — and reports younger ones as inconclusive, never as findings. **Pairing key:** every join below is on `invitation_token`, which is a per-invocation key on every post-gate path by Invitation's single-resolution invariant — at most one accept, one decline, one revoke ever commits per token — so a token pairs at most one gate clearing with at most one outcome, and a resumed arc's `onboarding.resume-intended` and second `onboarding.interrupted` records join to the same arc, never to a second one — within the arc, an `onboarding.resume-intended` pairs with the first `onboarding.completed` or `onboarding.interrupted` that follows it in sequence, exact because the per-token section (Configuration, `per_token_serialization`) admits one writer at a time; the `invitation.initiate-attempt` event, written before a token exists, carries no per-invocation key by construction and no check pairs it; the other attempt events carry the token in their payload, and R2 reads the `onboarding.accept-attempt` events only as a superset source of actors and documents where the acceptance record is absent — no check pairs an attempt to an outcome. Checks 1, 4, 5, 6, and 7 all read under these rules.
+An implementation of External Onboarding is accepted if an external auditor can clear the conformance checks below from the Audit Trail and the constituent records alone, without recourse to source code, runbooks or developer narration, reading under the standing rules; the external checks name the deployment facts no record carries.
 
-1. **Every active Party Identity enrolled via this composition traces to an accepted invitation.** For every `onboarding.completed` Audit Trail event, the `invitation_token` field references an Invitation record in `Accepted` state, with `accepted_at` predating the event timestamp and `accepting_identity_ref` matching the event's `accepting_identity_ref` field. No `onboarding.completed` event exists for an invitation that is not in `Accepted` state.
+### Conformance checks
 
-2. **Every credential registered via this composition traces to an enrolled party — in any lifecycle state.** For every `onboarding.completed` event, the `credential_id` field references a Credential record **in any lifecycle state** — Active, Rotated, Revoked, or lapsed — whose `principal_ref` matches the event's `party_id` field; where that record is Rotated, walk `successor_credential_id` to the current head and confirm every link's `principal_ref` matches the same `party_id`. **Activeness is deliberately not quantified:** lawful rotation retires the registered credential the day the principal rotates (Credential's `rotate` moves the prior record to Rotated and mints a successor), and lawful revocation retires it permanently, and neither unbinds the onboarding the event records — a check that required the registered credential to be *active* would fail a conforming implementation on its first rotation. What the check establishes is the binding: the credential this arc issued, and every successor rotated from it, belongs to the party this arc enrolled. No credential registered via this composition is bound to a `principal_ref` that does not appear as a `party_id` in a Party Identity record.
+```
+Check 1.1: An auditor MUST find the invitation token of EVERY completion record naming an invitation whose status EQUALS accepted (Invariant 1.1).
+Check 1.2: An auditor MUST find the acceptance instant preceding the completion record's recording instant PER the clock offset allowance (Invariant 1.1).
+Check 1.3: An auditor MUST find the completion record's accepting identity reference equal to the invitation's (Invariant 2.1).
+Check 2.1: An auditor MUST find the credential id of EVERY completion record naming a credential, in any status, whose principal reference equals the completion record's party id (Invariant 3.1).
+Check 2.2: An auditor MUST find EVERY link of a rotated credential's successor chain carrying the same principal reference (Invariant 3.1).
+Check 2.3: An auditor MUST NOT require the registered credential to stand active (Invariant 3.1).
+Check 3.1: An auditor MUST find no registration instant preceding the party's enrollment instant for a completion record's credential PER the clock offset allowance (Wiring decision 2).
+Check 4.1: An auditor MUST find no acceptance record for an invitation whose status DOES NOT EQUAL accepted (Invariant 1.1).
+Check 4.2: An auditor MUST find no completion record without an acceptance record for the invitation token (Invariant 1.1).
+Check 5.1: An auditor MUST enumerate EVERY accepted invitation carrying no acceptance record (Invariant 4.1).
+Check 5.2: An auditor MUST enumerate EVERY acceptance record followed by no completion record AND no interruption record for the invitation token (Invariant 4.1).
+Check 5.3: An auditor MUST enumerate EVERY interruption record followed by no completion record for the invitation token (Invariant 4.1).
+Check 5.4: An auditor MUST NOT read a resume record as closing a gap signature (Resume 33).
+Check 6.1: An auditor MUST find a decline record for EVERY declined invitation AND a revoke record for EVERY revoked invitation (Invariant 4.1).
+Check 6.2: An auditor MUST find an initiated record carrying the invitation token for EVERY invitation (Invariant 4.2).
+Check 6.3: An auditor MUST find EVERY initiated record naming an invitation that exists (Invariant 4.2).
+Check 6.4: An auditor MUST NOT read an initiate attempt as a per-invitation signature (Action wiring 3).
+Check 7.1: An auditor MUST find no invitation token carrying two completion records (Invariant 4.4).
+Check 7.2: An auditor MUST find one party id across a token's completion record, credential-registration interruption records AND resume records (Invariant 1.2).
+Check 7.3: An auditor MUST find no party id on the completion records of two invitation tokens (Invariant 4.5).
+Check 7.4: An auditor MUST report a second writer as a conformance failure (Invariant 1.3).
+```
 
-3. **Credential-follows-party ordering.** For every `onboarding.completed` event, the Party Identity record for the event's `party_id` has an `enrolled_at` timestamp earlier than or equal to the Credential record's `registered_at` timestamp for the event's `credential_id`. No Credential record registered via this composition predates its subject's Party Identity enrollment.
+NOTE: EVERY check names the rule the check tests.
 
-4. **Invitation-gates-enrollment.** No `onboarding.invitation-accepted` Audit Trail event exists for an invitation that is not in stored `Accepted` state. No `onboarding.completed` event exists without a preceding `onboarding.invitation-accepted` event for the same `invitation_token`. The acceptance gate preceded enrollment in every arc.
+### External checks
 
-5. **Interruption signatures are enumerated, both kinds.** The auditor enumerates two failure signatures, not one: **(a)** every Invitation record in stored `Accepted` state with no `onboarding.invitation-accepted` event for its token — the step-4 recording-failure or crash window, an acceptance the trail never registered; **(b)** every `onboarding.invitation-accepted` event with no subsequent `onboarding.completed` *or* `onboarding.interrupted` event for the same token — the mid-sequence crash or failed-interrupted-write window, an arc that stopped without its stage record. An `onboarding.interrupted` event without a subsequent `onboarding.completed` for the same token is the third, explicit signature: an unresolved interruption awaiting resumption. All three are enumerable by the declared enumerate-and-filter; together they cover every partial-failure path the [Onboard] wiring admits. A resumed arc changes none of them: an `onboarding.resume-intended` closes no signature by itself — only the `onboarding.completed` or `onboarding.interrupted` that follows it does — so an arc whose resume died is still signature (b) or the third signature, and is resumed again.
+```
+External check 1: An auditor needing the onboarding completion bound confirmed MUST read the deployment's own configuration (Capability requirement 5).
+External check 2: An auditor needing the clock offset allowance confirmed MUST read the deployment's own configuration (Capability requirement 7).
+External check 3: An auditor needing the audit horizon confirmed MUST read the Audit Trail instance's retention policy (Capability requirement 9).
+External check 4: An auditor needing the minted-id width bounds confirmed MUST read the deployment's own declaration (Capability requirement 11).
+External check 5: An auditor needing the critical section's cross-node exclusion confirmed MUST read the deployment's own host (Capability requirement 14).
+External check 6: An auditor needing the lease length confirmed MUST read the deployment's own host (Capability requirement 17).
+External check 7: An auditor needing the routing obligation confirmed MUST read the deployment's own wiring (Composes 9).
+External check 8: An auditor needing an actor reference's authorization confirmed MUST read the composed Permissions instance's records (Non-goal 2).
+External check 9: An auditor needing a constituent's own guarantee confirmed MUST read the constituent's own acceptance (Composes 6).
+```
 
-6. **Every terminal invitation transition via this composition is attested — in both directions.** Every Invitation record in `Declined` or `Revoked` state that was processed via this composition has a corresponding `invitation.declined` or `invitation.revoked` Audit Trail event. Every Invitation record — in any state — has a corresponding `invitation.initiated` event carrying its token; a record without one marks a post-initiate recording failure or crash ([Invite] step 4's declared gap), flagged for review alongside the unattested Declined/Revoked records. In the other direction, every `invitation.initiated` event names an Invitation record that exists. (`invitation.initiate-attempt` events carry no token by construction and are not per-invitation signatures; a sustained excess of attempts over `invitation.initiated` events is a coarse operational indicator, not a per-record finding.)
+### Standing rules
 
-7. **One writer per token.** For every `invitation_token`, at most one `onboarding.completed` event exists, and every `party_id` named across the token's `onboarding.completed`, `onboarding.interrupted` (stage `credential-registration`), and `onboarding.resume-intended` events is one value; in the other direction, every `party_id` an `onboarding.completed` names is named by exactly one token's events. Two completions for one token, two `party_id`s across one token's events, or one party completed under two tokens is a **second writer** — the per-token section (Configuration, `per_token_serialization`) breached, or a skew wider than the declared `clock_offset_allowance` carrying a dead arc's party outside R2's window — and is a conformance failure, never a tolerated residue: the resume arm's duplicate-freedom (Invariant 1) is conditional on those two entries, and this is the check that tests the condition from the records. It runs over arcs older than the in-flight bound and inside the horizon, as the standing rules require; an `onboarding.resume-intended` younger than the bound with no successor is a resume in flight and is inconclusive.
+```
+Standing rule 1: An auditor MUST read a payload-keyed query as an enumerate-and-filter over the substrate's sequence-range read.
+Standing rule 2: An auditor MUST compare two seams' stamps PER the clock offset allowance.
+Standing rule 3: An auditor MUST read a discrepancy inside the clock offset allowance as inconclusive.
+Standing rule 4: An auditor MUST quantify an Invitation-store check over the dedicated Invitation instance alone.
+Standing rule 5: An auditor MUST quantify a trail-walking check over the arcs inside the horizon.
+Standing rule 6: An auditor MUST read a purged event as lawful destruction.
+Standing rule 7: An auditor MUST read a record younger than the widened bound as inconclusive.
+Standing rule 8: An auditor MUST join records on the invitation token.
+Standing rule 9: An auditor MUST NOT pair an attempt record with an outcome.
+```
+
+Term arcs inside the horizon: the invitations whose `acceptance instant + audit horizon − clock offset allowance` — or, for an invitation never accepted, whose `initiation instant + audit horizon − clock offset allowance` DOES NOT PRECEDE the auditor's now — the membership test for an Invitation record under Standing rule 5.
+
+WHY:
+Standing rule 6 is the substrate's honest-representation invariant read from the auditor's side: a purged event's Retention Window record in its purged state is the evidence, never a gap signature, and past the horizon the surviving evidence is the attestation's own action reference, actor reference and attestation instant — which the substrate's purge preserves — plus the undeletable constituent records.
+
+Standing rule 7 is the lower edge. Check 5.1 through 6.3 compare a constituent's committed state against records this composition writes later in the same invocation, so an invocation still running reads as a signature; each examines only what is older than the widened bound — the edge the resume arm reads under, widened by the same allowance because the stamps are the constituents'.
+
+Standing rule 8 is exact because the invitation token is a per-invocation key on every post-gate path: Invitation's single resolution lets at most one accept, one decline and one revoke commit per token. The initiate attempt, written before a token exists, carries no per-invocation key by construction and no check pairs it; the other attempts carry the token, and the resume arm reads accept attempts only as a superset source of actors and documents (Standing rule 9).
+
+Check 2.1 through 2.3 establish the binding, not activeness. Credential's rotate moves the prior record to rotated and mints a successor, and revoke retires it; neither unbinds the onboarding the completion record records, and a check that required the registered credential to be active would fail a conforming implementation at its first rotation. So the auditor walks the successor chain to the head and confirms every link names the same party.
+
+Check 7.1 through 7.4 test the condition Invariant 1.3 states from the records: two completions for one token, two parties across one token's records, or one party completed under two tokens is the critical section breached or a skew wider than the allowance carrying a dead arc's party outside the party read's window — a conformance failure, never a tolerated residue.
+
+---
+
+## Non-goals
+
+```
+Non-goal 1: The composition MUST NOT authorize an actor reference.
+Non-goal 2: A deployment needing an authorized actor reference MUST compose Permissions over the invitation initiate AND invitation revoke scopes.
+Non-goal 3: The composition MUST NOT claim that an authorized actor issued an invitation.
+Non-goal 4: The composition MUST NOT verify a party.
+Non-goal 5: A deployment needing a decliner's identity MUST record the identity above the composition.
+Non-goal 6: A deployment needing a verified party MUST compose Customer Onboarding.
+Non-goal 7: The composition MUST NOT rotate a credential.
+Non-goal 8: The composition MUST NOT check the accepting identity reference against the invitee reference.
+Non-goal 9: A deployment needing the accepting identity proven against the invitee reference MUST enforce the proof above the composition.
+Non-goal 10: The composition MUST NOT record a refused attempt.
+Non-goal 11: A deployment needing refused attempts recorded MUST compose Failed-Attempt Log.
+Non-goal 12: The composition MUST NOT index the trail by payload.
+Non-goal 13: A deployment needing an indexed payload lookup MUST compose Reverse Index.
+```
+
+WHY:
+Non-goal 1 through 3 are the gate's limit, stated because a claim made and neither wired nor disclaimed is the worst of three states. The gate **authenticates and attributes; it does not authorize.** The attempt record on [Invite] and [Revoke] verifies the presented credential and attributes the act to the inviter or the revoker, so no invitation or revocation is made on an unverified claim — but nothing in the wiring asks whether that actor was *permitted* to, and no constituent here holds that answer: Invitation takes the inviter reference as opaque, and Audit Trail attests, it does not gate. The authorization gate is a declared above-composition obligation — a [Permissions](../atoms/permissions.md) instance over the invitation initiate and invitation revoke scopes, checked by the caller before [Invite] and [Revoke] or by a wrapping composition such as Session-Gated Authorization or Attributed Permissions Admin, whose records are where *was the inviter authorized?* is answered. Every claim on this page that an invitation was issued by an actor is to be read as *issued by an authenticated, attributed actor*. Gating on a scope would make Permissions a constituent and this composition the owner of an authorization vocabulary it has no other use for.
+
+Non-goal 4 and Non-goal 6 — this composition enrolls the party unverified. The transition to verified is Customer Onboarding's, which calls `Party Identity.verify`; downstream regulated activity that requires a verified party checks the party's state itself.
+
+Non-goal 7 — a principal rotates a credential with `Credential.rotate` directly, outside this composition's surface, and rotation does not disturb the arc's record — the completion record names the credential as registered, and Check 2.2 reaches the current head by the successor chain.
+
+Non-goal 8 and Non-goal 9 — where the inviter supplied an invitee reference — a known email address, say — and the accepting identity reference supplied at [Onboard] differs, the composition neither detects nor blocks the mismatch; Invitation does not relate the two. A deployment requiring proof of control of the invitee reference enforces it before calling [Onboard].
+
+Non-goal 10 through 13 name the two forthcoming patterns this page leans on without composing: the **Failed-Attempt Log** *(forthcoming)* for attempts refused at the gate, which land no event, and the **Reverse Index** *(forthcoming)* for a payload lookup over the trail, which nothing here depends on.
+
+---
+
+## Edge cases
+
+### Clock semantics
+
+```
+Clock semantics 1: The composition MUST widen a comparison against another seam's stamp by the clock offset allowance on both sides.
+Clock semantics 2: The composition MUST read a widened comparison toward an arc still running.
+Clock semantics 3: The composition MUST read a widened horizon comparison toward refusing.
+```
+
+WHY:
+Wherever this composition compares a reading of its own against a stamp another seam wrote — the gate's resumable acceptance, the resume arm's aged acceptance and young resume record, the party read's window, every cross-store acceptance check — the comparison runs under the allowance, widened symmetrically, and **narrows** a decision rather than making one (the section titled *A stamp from another seam never decides a write alone* in `pressure-testing.md`). The grammar's operators pin the edges the prose left open: PRECEDES is strict, so an acceptance exactly at the widened bound is still running and an event exactly at the horizon edge is still inside it, and the party read's windows include both ends by declaration.
+
+### Concurrency
+
+```
+Concurrency 1: Two fresh accepts of one invitation token MUST resolve through Invitation's single resolution.
+Concurrency 2: Two resumers of one invitation token MUST resolve through the critical section.
+Concurrency 3: A resumer MUST NOT race a holder whose lease has not expired.
+```
+
+WHY:
+Two callers present one token at once: Invitation's accept is atomic under concurrent attempts, exactly one succeeds, and the loser is refused before any enrollment — Invitation's single-resolution invariant working as the composition's concurrency control. The race the gate cannot see is between two **resumers** — one acceptor, both past the bound — because the gate has already fired for both and answers both alike; that race is closed by the critical section the resume arm runs under and by the young-resume refusal (Resume 8), and a breach of the section is what Check 7.1 through 7.3 report.
+
+### Credential collision on a fresh arc
+
+On a fresh arc the party id was minted at the enroll of this very call, so no earlier registration under it through this composition is possible; duplicate-active-credential there can only be a principal reference collision — an external writer registering credentials under the same principal-reference namespace as this composition's party ids, which the shared-surface posture of Credential admits and this composition cannot see. The composition records the interruption and answers duplicate-active-credential — a state conflict, not an infrastructure failure. The enrolled party exists unverified without a credential of this composition's issuing; administrator review decides whose credential holds the namespace, and the arc is completed by resumption once it is resolved.
+
+### Partial failure
+
+If Invitation's accept succeeds and a later step fails — the acceptance record, Party Identity's enroll, Credential's register or the completion record — the invitation is permanently accepted and cannot be accepted again. It **can be resumed**: a later [Onboard] with the same token and the same accepting identity reference, past the widened bound and inside the audit horizon, takes the resume arm, one resumer per token, establishes the stage from the trail and, where the trail is silent, from the Party Identity store over every window the arc's records anchor, and re-runs the remaining steps under the caller's own authenticated identity behind a resume record. The caller need not be the actor who began the arc. What the resume does **not** do is guess: where the store shows more than one party enrolled by the arc's actors under the arc's recorded documents inside the arc's windows, it refuses with onboarding-indeterminate and an administrator chooses. Manual completion outside the composition is not the recovery (Wiring decision 5); a deployment that performs it produces a party with no completion record — the regulator-audit scenario's failure, by its own hand. Check 5.1 through 5.3 surface the arcs awaiting resumption.
 
 ---
 
@@ -474,47 +746,91 @@ An implementation of External Onboarding is accepted if an external auditor can 
 
 **Relationship to Customer Onboarding.** External Onboarding admits a party to the system in `Unverified` state. Customer Onboarding drives the identity verification workflow that transitions the party to `Verified`. The two compositions address adjacent points in the regulated identity lifecycle: External Onboarding is the admission gate; Customer Onboarding is the verification gate. A deployment requiring `Verified` status before granting access to regulated functionality places Customer Onboarding downstream of this composition in the onboarding pipeline.
 
-**Relationship to Login.** External Onboarding registers the credential. Login uses that credential: `login(principal_ref, credential_type, presented_material, ...)` calls `Credential.verify`, and on success issues a Session. After a successful [Onboard], the principal can immediately call `login` using the registered `credential_type` and their credential material. The two compositions are adjacent lifecycle boundaries: External Onboarding creates the credential record; Login produces the authenticated session.
+**Relationship to Login.** External Onboarding registers the credential. Login uses that credential: `login(principal_ref, credential_type, presented_material, ...)` calls `Credential.verify`, and on success issues a Session. After a successful [Onboard], the principal can immediately call `login` using the registered credential_type and their credential material. The two compositions are adjacent lifecycle boundaries: External Onboarding creates the credential record; Login produces the authenticated session.
 
 **Relationship to Session-Gated Authorization.** Once the onboarded principal has an active session (from Login), runtime authorization queries flow through Session-Gated Authorization: `check_permitted(session_token, action_scope)` gates every permission check on session validity. External Onboarding is the entry point; Session-Gated Authorization is the access-time gate.
 
 **Relationship to Attributed Permissions Admin.** Once onboarded, the principal appears as a subject in Permissions. An authorized actor calls `Attributed Permissions Admin.grant(subject_ref=party_id, action_scope, ...)` to grant the newly onboarded party access to specific scopes. The `party_id` produced by External Onboarding becomes the `subject_ref` in Permissions grants.
 
-**Forthcoming-link resolution.** The Invitation atom's *Composition notes* listed "External Onboarding *(not started)*" as a forthcoming composition. That link is now live.
+**Forthcoming-link resolution.** The Invitation atom's *Composition notes* listed "External Onboarding *(not started)*" as a forthcoming composition. That link is now live. Invitation's `Composition note 2` and `Composition note 3` once asked this composition to pass the accepting identity reference *as the party record's reference* and to register the credential *against the accepting identity reference*; Party Identity mints the party id at its own seam and takes no such input, and the credential is registered against that party id (Invariant 3.1), so this composition links the accepting identity reference to the party on the completion record instead (Invariant 2.1), and Invitation's two notes now say so.
 
 ---
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `[Term]` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are: the four onboarding actions it exposes ([Invite], [Onboard], [Decline], [Revoke]) and the four composition-introduced Audit Trail event types that record the arc ([Onboarding Invitation Accepted] — the gate clearing; [Onboarding Completed] — the full-arc completion naming invitation, identity, party, and credential in one entry; [Onboarding Interrupted] — the partial-failure record; [Onboarding Resume Intended] — the record a re-entry writes before it re-runs an interrupted arc). Its load-bearing guarantee — invitation-gates-enrollment: no Party Identity is enrolled through this composition unless an Invitation's Accepted transition precedes it (Invariant 1) — is a structural property, not a datum. The composition owns no cross-atom state (the Audit Trail *is* the map — Composition state), so there is no store to carry a term entry as a Type. The `invitation.*` audit event types (`invitation.initiated`, `invitation.declined`, `invitation.revoked`), the attempt-gate event types (`invitation.initiate-attempt`, `onboarding.accept-attempt`, `invitation.decline-attempt`, `invitation.revoke-attempt`), and the composition's parameterized rejections (`invitation-invalid(already-resolved(state) | not-known | expired)`, `onboarding-indeterminate(candidates)`) stay backticked as wire values, as do the constituent calls and their outcomes — Invitation's `initiate` / `accept` / `decline` / `revoke` (and its `Pending` / `Accepted` / `Declined` / `Revoked` / `Expired` states), Credential's `register`, Party Identity's `enroll` (and its `Unverified` / `Verified` states), Audit Trail's `record_action` — the relayed constituent tokens (`invitation_token`, `accepting_identity_ref`, `party_id`, `credential_id`, `inviter_ref`, `invitee_ref`, `enrolling_actor_ref`, `actor_credential`), the generic/relayed rejections (`invalid-request`, `invalid-credential`, `duplicate-active-credential`, `storage-failure(intent | outcome)`, `recording-failure(step)`, `not-known`), and concrete example ids. Constituent atom and substrate names remain the existing full links to `../atoms/*` and `./audit-trail.md`; constituent operations stay backticked qualified calls, not cross-page links (the decided convention). *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are the four actions it exposes and the four composition-introduced Audit Trail events that record the arc. It owns no cross-atom state — the Audit Trail *is* the map — so no store carries a term entry. The deployment settings keep their wire spellings in configuration — `onboarding_completion_bound`, `clock_offset_allowance`, `audit_trail_retention_policy`, `per_token_serialization` — and the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+
+### Vocabulary
+
+Term actors: the composition; the constituents; the host; a deployment; an auditor; a caller; an administrator; an investigator; an invocation; an action; an arc; a fresh arc; a resumed arc; the resume arm; a resumer; a completing arc; an attempt record; a post-write record; the read-back; an admitted invite; a landed invite; an admitted onboard; an admitted decline; a landed decline; an admitted revoke; a landed revoke; a refused gate call; an initiate attempt; an initiated record; an accept attempt; an acceptance record; an interruption record; a completion record; a resume record; a decline attempt; a decline record; a revoke attempt; a revoke record; an invitation; a party; a credential; an enroll; the slowest conforming invocation; the seam skew; the longest resume gap; the widened bound; the lease length; the minted-id width bounds.
+
+Term records: the attempt records and post-write records the composition writes through the substrate — each an Audit Trail event carrying one event type below.
+
+Term record verbs: serve, change, inherit, read, hold, route, claim, select, query, attest, declare, make, store, supply, take, mint, set, configure, agree, exclude, release, refuse, answer, validate, record, size, write, stop, proceed, retry, run, match, alert, call, verify, establish, continue, discard, accept, pass, complete, keep, filter, choose, pair, follow, enroll, carry, name, stand, appear, find, require, enumerate, report, compare, quantify, join, authorize, compose, rotate, check, enforce, index, widen, resolve, race.
+
+Term value sets: event type = invitation.initiate-attempt | invitation.initiated | onboarding.accept-attempt | onboarding.invitation-accepted | onboarding.interrupted | onboarding.completed | onboarding.resume-intended | invitation.decline-attempt | invitation.declined | invitation.revoke-attempt | invitation.revoked. The rest are declared where the section that owns each declares it: position, stage, candidate reading.
+
+Term bounds: onboarding completion bound (onboarding_completion_bound), clock offset allowance (clock_offset_allowance), audit horizon (audit_trail_retention_policy), widened bound, minted-id width bounds, lease length.
+
+Term cadences: empty.
+
+Term qualifiers: migrated — rewritten in GRACE lang v0.61 (2026-09-23).
+
+Term terms: composition, constituents, substrate, trail, completion relation, onboarding completion bound, clock offset allowance, widened bound, audit horizon, minted-id width bounds, critical section, lease length, slowest conforming invocation, seam skew, longest resume gap, required input, actor reference, actor credential, credential material, resume party id, service actor reference, attempt record, post-write record, pre-append step, retention step, read-back, position, onboarding result, invitation refusal, candidates, validated invite, admitted invite, landed invite, validated onboard, admitted onboard, arc, fresh arc, resumable acceptance, stage reading, completing arc, validated decline, admitted decline, landed decline, validated revoke, admitted revoke, landed revoke, revocation reason, resume arm, aged acceptance, outcome record, young resume record, dead resume record, stage, arc's recorded documents, document pair, arc's window union, arc's actor set, candidate reading, covered transition, covered initiation, arcs inside the horizon, initiate attempt, initiated record, accept attempt, acceptance record, interruption record, completion record, resume record, decline attempt, decline record, revoke attempt, revoke record.
+
+Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. The section titled Substrate composition invocation in `execution-contract.md` — the substrate relation and its instance topology. The section titled Composition state in `execution-contract.md` — the conforming, no-stored-state classification. record_action, read_record, proceed as landed, compliance alert, reference length cap, payload cap, recording instant, event id, action reference: Audit Trail. invitation token, accepting identity reference, acceptance instant, initiation instant, expiry bound, stored terminal, status, inviter reference, invitee reference, context, revoked by reference, ttl bounds: Invitation. party id, enrollment instant, enrolling actor reference, document type, document reference, name, date of birth: Party Identity. credential id, credential type, principal reference, registration instant, expiry instant: Credential.
+
+Term composing patterns: Failed-Attempt Log *(forthcoming)*; Reverse Index *(forthcoming)*; [Permissions](../atoms/permissions.md); [Customer Onboarding](./customer-onboarding.md).
+
+Term initiate attempt: the invitation.initiate-attempt event — [Invite]'s attempt record.
+
+Term initiated record: the invitation.initiated event — [Invite]'s post-write record, carrying the invitation token.
+
+Term accept attempt: the onboarding.accept-attempt event — [Onboard]'s attempt record.
+
+Term acceptance record: the onboarding.invitation-accepted event — an [Onboarding Invitation Accepted].
+
+Term interruption record: the onboarding.interrupted event — an [Onboarding Interrupted].
+
+Term completion record: the onboarding.completed event — an [Onboarding Completed].
+
+Term resume record: the onboarding.resume-intended event — an [Onboarding Resume Intended].
+
+Term decline attempt: the invitation.decline-attempt event — [Decline]'s attempt record.
+
+Term decline record: the invitation.declined event — [Decline]'s post-write record.
+
+Term revoke attempt: the invitation.revoke-attempt event — [Revoke]'s attempt record.
+
+Term revoke record: the invitation.revoked event — [Revoke]'s post-write record.
 
 #### Invite
 
-The composition action that initiates an invitation from an authenticated, attributed actor to an external party — the `invitation.initiate-attempt` gate event first (the attest is the credential check, recorded before the Invitation is created), then `Invitation.initiate`, then the post-success `invitation.initiated` record carrying the token — returning the `invitation_token` the inviter delivers out-of-band.
+The composition action that initiates an invitation from an authenticated, attributed actor to an external party — the initiate attempt first, whose attestation is the credential check, then Invitation's initiate, then the initiated record carrying the token — answering the invitation token the inviter delivers out of band (Action wiring 3 through 7).
 
 Kind: Operation
 
 #### Onboard
 
-The composition's load-bearing action: accept an invitation and, in one fixed sequence gated by `Invitation.accept`, enroll the invitee as a Party Identity (Unverified) and register their Credential — recording [Onboarding Invitation Accepted], then [Onboarding Completed] (or [Onboarding Interrupted] on a mid-sequence failure). A stopped arc is re-entered through the resume arm — one resumer per token, under the deployment's per-token section, bounded below by the completion bound and above by the trail's retention horizon — never re-accepted. No enrollment occurs unless the acceptance gate clears (Invariant 1).
+The composition's load-bearing action: accept an invitation and, in one fixed sequence gated by Invitation's accept, enroll the invitee as an unverified party and register the party's credential — recording the [Onboarding Invitation Accepted], then the [Onboarding Completed], or the [Onboarding Interrupted] on a failure past the gate. A stopped arc is re-entered through the resume arm — one resumer per token under the critical section, bounded below by the widened bound and above by the audit horizon — never re-accepted (Action wiring 8 through 39, Resume 1 through 38). No enrollment occurs unless the gate clears (Invariant 1).
 
 Kind: Operation
 
 #### Decline
 
-The composition action that records an invitee's deliberate refusal of an invitation (`Invitation.decline`) and attests it (`invitation.declined`) under the system service actor.
+The composition action that records an invitee's deliberate refusal of an invitation through Invitation's decline and attests it under the system service account (Action wiring 40 through 47).
 
 Kind: Operation
 
 #### Revoke
 
-The composition action that withdraws a pending invitation before the invitee acts (`Invitation.revoke`), attributing the revocation to the revoking actor (`invitation.revoked`).
+The composition action that withdraws a pending invitation before the invitee acts, through Invitation's revoke, attributing the revocation to the revoking actor (Action wiring 48 through 55).
 
 Kind: Operation
 
 #### Onboarding Invitation Accepted
 
-The Audit Trail event [Onboard] records the moment the `Invitation.accept` gate clears — carrying the `invitation_token`, `accepting_identity_ref`, and the `document_type` and `document_ref` the arc enrolls under, which a resume matches the Party Identity store against. An Invitation in Accepted state with no such event is an unresolved interruption (Generation acceptance check 5).
+The Audit Trail event [Onboard] records when Invitation's accept clears the gate — carrying the invitation token, the accepting identity reference, and the document type and document reference the arc enrolls under, which a resume matches the Party Identity store against. An accepted invitation with no such event is Check 5.1's gap signature.
 
 Kind:       Member
 Member of:  the onboarding event
@@ -523,7 +839,7 @@ Projection: onboarding.invitation-accepted
 
 #### Onboarding Completed
 
-The Audit Trail event [Onboard] records on a successful full arc — naming the invitation, the accepting identity, the party record, and the credential in one tamper-evident entry (`{invitation_token, accepting_identity_ref, party_id, credential_id}`). The records-alone answer to *what invitation authorized this party's creation?*
+The Audit Trail event [Onboard] records on a completed arc — naming the invitation, the accepting identity, the party record and the credential in one tamper-evident entry. The records-alone answer to *what invitation authorized this party's creation?* (Invariant 5.1).
 
 Kind:       Member
 Member of:  the onboarding event
@@ -532,7 +848,7 @@ Projection: onboarding.completed
 
 #### Onboarding Interrupted
 
-The Audit Trail event [Onboard] writes when a step after the acceptance gate fails (Party Identity enrollment or Credential registration) — naming the stage and reason, so a partially-completed onboarding is detectable and recoverable rather than silent.
+The Audit Trail event [Onboard] writes when a step past the gate fails — Party Identity's enroll or Credential's register — naming the stage and the reason, so a partial onboarding is detectable and resumable rather than silent (Action wiring 27 and 30).
 
 Kind:       Member
 Member of:  the onboarding event
@@ -541,7 +857,7 @@ Projection: onboarding.interrupted
 
 #### Onboarding Resume Intended
 
-The Audit Trail event the resume arm of [Onboard] writes before it re-runs an arc that stopped after its gate cleared — naming the stage the records established and the party the resume will continue with, if one — so that a completion reached by re-entry is distinguishable from one reached in a single pass, and a resume that itself died is visible as a plan without an outcome — which the next resume reads as *stage unrecorded* (its `recorded_at` an anchor of R2's window) and, while younger than the bound, as a resume in flight.
+The Audit Trail event the resume arm writes before it re-runs a stopped arc — naming the stage the records established and the party the resume continues with, if one — so a completion reached by re-entry is distinguishable from one reached in a single pass, and a resume that itself died is visible as a plan without an outcome: the next resume reads it as a stage unrecorded and, while it is younger than the widened bound, as a resume in flight (Resume 8, Resume 9 and Resume 28).
 
 Kind:       Member
 Member of:  the onboarding event
@@ -564,6 +880,18 @@ Projection: onboarding.resume-intended
 
 ---
 
+## Standards references
+
+*Anchors: GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Articles 6–7 (lawful basis for processing at invitation and acceptance time); HIPAA (US Health Insurance Portability and Accountability Act) §164.312(a)(1) (access control — invitation-based provisioning as a covered access-granting event) + §164.312(d) (person or entity authentication — credential registration at onboarding); SOC 2 (Service Organization Control 2 — an audit standard for service-provider security controls) CC6.2 (prior to issuing system credentials, new internal and external users are registered and authorized); NIST (National Institute of Standards and Technology) SP (Special Publication) 800-63A (identity enrollment and identity proofing — the enrollment arc); SCIM 2.0 (System for Cross-domain Identity Management) RFC 7644 (RFC — Request for Comments, the IETF’s, Internet Engineering Task Force’s, numbered standards series — the invite-then-provision flow); FATF (Financial Action Task Force — the international anti-money-laundering standard-setter) Recommendations 10–12 (customer due diligence at onboarding — Party Identity in Unverified state is the enrollment record the regulator requires; verification belongs to Customer Onboarding).*
+
+**GDPR Articles 6–7** require a lawful basis for processing personal data. The [Invite] action creates the first processing record: the system holds invitee_ref and processes data about the invitee from that moment. The [Onboard] action creates the accepting_identity_ref binding and the Party Identity enrollment — the data subject's active engagement with the system. The Audit Trail records both as the GDPR Article 5(2) accountability records.
+
+**SOC 2 CC6.2** requires that prior to issuing system credentials, new users are registered and authorized. The composition supplies the *registration* half and the *ordering* structurally: `Party Identity.enroll` (registration) precedes `Credential.register` (credential issuance), and both are preceded by `Invitation.accept` — and the invitation itself by [Invite], whose initiated record attributes it to an authenticated inviting actor. The *authorization* half — that the inviting actor was permitted to admit this user — is not something this composition checks or records: its gate verifies the inviter's credential and attributes the act, and whether the inviter held the authority is the composed Permissions instance's record (Non-goal 1 and Non-goal 2). A CC6.2 claim rests on both records together, and a deployment that wires no authorization gate above [Invite] has the ordering and the attribution but not the authorization.
+
+**NIST SP 800-63A** defines the enrollment event at which an applicant registers with an identity system. The [Onboard] action is that enrollment event. The composition does not perform identity proofing (the transition from Unverified to Verified in Party Identity) — that belongs to Customer Onboarding. The composition records the enrollment inputs (name, date_of_birth, document_type, document_ref) and the enrolling actor, satisfying 800-63A's enrollment record requirements.
+
+---
+
 ## Status
 
 `partially resolved` — see the Ledger.
@@ -576,29 +904,8 @@ formal: pending — re-derivation, 2026-08-30: external-onboarding.tla, no twin,
 last gate: 2026-08-30 — third gate, fresh reader, under the frozen rules — 6 foundational corrected in-round, 13 refining and 3 rhetorical routed (2 refining since closed), 5 foundational closure residue corrected in a second pass; 2026-08-26 — Final Critique 7, fresh reader — 6 foundational (all since closed), 10 refining, 3 rhetorical
 
 open:
-- 2026-08-26-e · refining · [Decline] · the decliner-identity sentence points at a `data` parameter the signature does not carry → pin the edge case's above-layer reading
-- 2026-08-26-f · refining · step 1 validation, all actions · validation depth unpinned; whether constituent semantic validation runs pre-gate decides whether a typo permanently consumes the invitation → pin that it runs pre-gate, citing the constituents' field rules, with steps 5/6's arms as backstop
-- 2026-08-26-h · refining · [Revoke] · lacks its Arguments subsection → add it
-- 2026-08-26-i · refining · Invariant 2 · restates the constituent's Invariants 3/4 as composition-emergent → re-scope to the completion-record linkage
-- 2026-08-26-j · refining · Standards references · RFC and SP unglossed → gloss
-- 2026-08-26-k · refining · Examples, happy path · `Credential.register` argument order and the `<password hash>` material contradict the atom's raw-material model → match the atom
 - 2026-08-29-a · refining · formal · `external-onboarding.tla` predates the resume arm and the step-split landings → extend the model with the resume path, its in-flight bound, and the step-4 proceed arm
-- 2026-08-26-m · rhetorical · Composition logic overview; Actions · the same sequence numbered differently → number once
-- 2026-08-26-n · rhetorical · Invariant 4 · "exactly these" over-tightens against check 5's third signature → loosen
-- 2026-08-26-o · rhetorical · Invariant 4 · mixed marker/backtick notation and a sentence fragment → clean up
-- 2026-08-30-c · refining · *Post-write records* · `invalid-request` omits Actor Identity's own arm at the substrate's step 2; the read-back's lower bound is unstated → name the third source; state the high-water mark
 - 2026-08-30-d · refining · step 6, resume-only read-back · the `Credential.read` may return a rotation successor, a collision, or nothing → walk predecessors to the earliest in the arc's window, or name the head and adjust check 2
-- 2026-08-30-e · refining · R2, R3 · `Party Identity.read`'s `invalid-query` is neither landed nor declared unreachable → add the sentence
-- 2026-08-30-f · refining · step 3, R1, R2, Configuration · strict versus inclusive comparison at the bound and the horizon, and window inclusivity, are unpinned → pin
-- 2026-08-30-g · refining · *Retention horizon* standing rule · no operational membership test for an Invitation record → state the test
-- 2026-08-30-h · refining · Composition state · the relations declare no cardinality or modality → declare
-- 2026-08-30-i · refining · Invariants · no *Rests on:* lines → add them
-- 2026-08-30-j · refining · Examples; Standards · HR unglossed → gloss (with 2026-08-26-j)
-- 2026-08-30-k · refining · R2, R3 · candidates are not filtered by Current State; a Closed duplicate can be a candidate → exclude, or annotate
-- 2026-08-30-l · refining · every "hard alert" · names no surface → adopt the substrate's deployment-alerting obligation term
-- 2026-08-30-m · rhetorical · Standards, SOC 2 CC6.2 · attributes `invitation.initiated` to `Invitation.accept`; it is [Invite]'s → fix
-- 2026-08-30-n · rhetorical · Composition notes, forthcoming-link resolution · Invitation says `accepting_identity_ref` is the `principal_ref` passed to `Credential.register`; this spec passes `party_id` without flagging → note
-- 2026-08-30-o · rhetorical · Examples, concurrent acceptance · shows a different acceptor; the same-acceptor race is the one worth showing → change
 - 2026-08-30-p · refining · formal · the model has one resumer, no per-token section, and no stalled original; the second writer is unrepresentable → extend it
 ```
 
@@ -606,8 +913,12 @@ open:
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/external-onboarding.md`.
 
-- **2026-08-30 — One resumer per token, the arc bounded at both edges, the dead resume's party found by the arc's actors, the skew declared, the position on the code.** *Chose:* a deployment-supplied `per_token_serialization` the resume arm holds from R1's first read to its return and the fresh arc takes at step 3's `accepted` arm and holds to its return, with stated lease semantics — released on return or death, a lease at least the widened bound long whose expiry is the invocation's terminus, every write after the first made only under the section, and an invocation that lost it re-taking it and re-running R1–R2 as a resume of its own arc before writing again — so two resumers never both enroll and a stalled original is refused until its lease expires; the arc's `document_type` and `document_ref` recorded on `onboarding.accept-attempt`, `onboarding.invitation-accepted`, and `onboarding.resume-intended`, R2 matching the store against the recorded pair and a resumer whose inputs differ refused; R4 taking the post-write landings with `step-4` proceeding as landed; with R1 refusing a successor-less `onboarding.resume-intended` younger than the bound and check 7 condemning two completions or two parties per token; an upper edge on the resume arm — `accepted_at` older than `audit_trail_retention_policy`'s horizon is refused, since a purged completion is not an absent one; R1 reading a dead resume's `onboarding.resume-intended` as *stage unrecorded* and R2 reading the union of windows anchored at `accepted_at` and at every resume-intended's `recorded_at`; R2 filtering on the arc's actor set from the trail rather than the resumer's identity; a `clock_offset_allowance` widening every cross-seam comparison — step 3's bound, R1's edges, R2's window, the standing rule — with Invariant 1's duplicate-freedom made conditional on it; `resume_party_id` on a `Pending` invitation refused at step 1 by a read before the gate; and `storage-failure(intent | outcome)` on all four signatures, the relayed constituent tokens taking the position by the same test. *Over:* a resume arm whose only gate had already fired for every resumer; a section claimed in Configuration that no fresh-arc step took, with no release, expiry, or re-take rule; a party matched on documents the resumer typed; a leg with a lower edge and no upper one; a stage read from `onboarding.interrupted` alone and a window anchored at `accepted_at` alone; "equal this invocation's" against "re-run under the caller's own identity"; a write decision on a read the constituent calls best-effort; a declared rejection no step evaluates; and a bare token on both sides of the commit. *Because:* the gate serializes the one write to `Accepted` and nothing after it, so two re-entries are two writers the atom cannot tell apart; a section with no terminus lets a stalled holder block the arc forever and a lost one lets its holder write between a resumer's pre-check and its append; and a filter on the resumer's inputs finds a different person's party or none; a lawfully destroyed completion read as absent completes the arc twice; a resume that enrolled and died leaves its party outside every window the original arc anchors; an administrator finishing a service account's arc is the recovery the edge case names, and a filter on the resumer finds nothing; a stamp another seam wrote can differ from this one's by a sign the bound does not have; and a caller who cannot tell `intent` from `outcome` re-runs a committed act (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone*, *A composition's own rejection arm carries the retry bit*, and *Capability provenance* frozen with its tells for uses — with §*A reconciliation is bounded at both ends*, §*Recovery commits under a declared service identity*, and §*Lawful destruction is answered before absence*; *Liveness is arithmetic* and *An outcome is sized before the intent* were swept and found no shape here beyond naming the resume payloads in step 1's sizing).
-- **2026-08-29 — The gate can be re-entered but never re-accepted, and the substrate's arm keeps its step.** *Chose:* a resume arm on [Onboard] — same acceptor, acceptance older than a declared `onboarding_completion_bound`, stage established from the trail and then from the Party Identity store, candidates named where the store cannot decide, an `onboarding.resume-intended` record before any commit, then the remaining steps re-run under the caller's own identity; and every `record_action` transcription carrying `recording-failure(step)`, with the `step-4` arm proceeding as landed and `invalid-request` read back rather than declared unreachable. *Over:* administrator completion of the constituent steps outside the composition, and a single bare `recording-failure` landing. *Because:* manual completion leaves the party with no completion record, which is the regulator-audit scenario's own failure produced by the recovery; and the substrate's step-4 arm means the event is already appended, so a bare token turned the retry into a duplicate-event generator (the frozen rules of 2026-08-29 — *Recovery commits under a declared service identity* and *A transcribed rejection arm keeps its payload*).
+- **2026-08-30 — One resumer per token, the arc bounded at both edges, the dead resume's party found by the arc's actors, the skew declared, the position on the code.** *Chose:* a deployment-supplied `per_token_serialization` the resume arm holds from R1's first read to its return and the fresh arc takes at step 3's `accepted` arm and holds to its return, with stated lease semantics — released on return or death, a lease at least the widened bound long whose expiry is the invocation's terminus, every write after the first made only under the section, and an invocation that lost it re-taking it and re-running R1–R2 as a resume of its own arc before writing again — so two resumers never both enroll and a stalled original is refused until its lease expires; the arc's document_type and document_ref recorded on `onboarding.accept-attempt`, `onboarding.invitation-accepted`, and `onboarding.resume-intended`, R2 matching the store against the recorded pair and a resumer whose inputs differ refused; R4 taking the post-write landings with `step-4` proceeding as landed; with R1 refusing a successor-less `onboarding.resume-intended` younger than the bound and check 7 condemning two completions or two parties per token; an upper edge on the resume arm — `accepted_at` older than `audit_trail_retention_policy`'s horizon is refused, since a purged completion is not an absent one; R1 reading a dead resume's `onboarding.resume-intended` as *stage unrecorded* and R2 reading the union of windows anchored at `accepted_at` and at every resume-intended's `recorded_at`; R2 filtering on the arc's actor set from the trail rather than the resumer's identity; a `clock_offset_allowance` widening every cross-seam comparison — step 3's bound, R1's edges, R2's window, the standing rule — with Invariant 1's duplicate-freedom made conditional on it; resume_party_id on a `Pending` invitation refused at step 1 by a read before the gate; and `storage-failure(intent | outcome)` on all four signatures, the relayed constituent tokens taking the position by the same test. *Over:* a resume arm whose only gate had already fired for every resumer; a section claimed in Configuration that no fresh-arc step took, with no release, expiry, or re-take rule; a party matched on documents the resumer typed; a leg with a lower edge and no upper one; a stage read from `onboarding.interrupted` alone and a window anchored at `accepted_at` alone; "equal this invocation's" against "re-run under the caller's own identity"; a write decision on a read the constituent calls best-effort; a declared rejection no step evaluates; and a bare token on both sides of the commit. *Because:* the gate serializes the one write to `Accepted` and nothing after it, so two re-entries are two writers the atom cannot tell apart; a section with no terminus lets a stalled holder block the arc forever and a lost one lets its holder write between a resumer's pre-check and its append; and a filter on the resumer's inputs finds a different person's party or none; a lawfully destroyed completion read as absent completes the arc twice; a resume that enrolled and died leaves its party outside every window the original arc anchors; an administrator finishing a service account's arc is the recovery the edge case names, and a filter on the resumer finds nothing; a stamp another seam wrote can differ from this one's by a sign the bound does not have; and a caller who cannot tell intent from outcome re-runs a committed act (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone*, *A composition's own rejection arm carries the retry bit*, and *Capability provenance* frozen with its tells for uses — with §*A reconciliation is bounded at both ends*, §*Recovery commits under a declared service identity*, and §*Lawful destruction is answered before absence*; *Liveness is arithmetic* and *An outcome is sized before the intent* were swept and found no shape here beyond naming the resume payloads in step 1's sizing).
+- **2026-08-29 — The gate can be re-entered but never re-accepted, and the substrate's arm keeps its step.** *Chose:* a resume arm on [Onboard] — same acceptor, acceptance older than a declared `onboarding_completion_bound`, stage established from the trail and then from the Party Identity store, candidates named where the store cannot decide, an `onboarding.resume-intended` record before any commit, then the remaining steps re-run under the caller's own identity; and every `record_action` transcription carrying `recording-failure(step)`, with the `step-4` arm proceeding as landed and invalid-request read back rather than declared unreachable. *Over:* administrator completion of the constituent steps outside the composition, and a single bare `recording-failure` landing. *Because:* manual completion leaves the party with no completion record, which is the regulator-audit scenario's own failure produced by the recovery; and the substrate's step-4 arm means the event is already appended, so a bare token turned the retry into a duplicate-event generator (the frozen rules of 2026-08-29 — *Recovery commits under a declared service identity* and *A transcribed rejection arm keeps its payload*).
 - **2026-08-27 — The gate authenticates and attributes; authorization is declared above the composition.** *Chose:* a named edge case declaring a composed Permissions instance over `invitations:initiate` / `invitations:revoke` as the deployment's authorization gate, with every "authorized actor" claim on the page downgraded to authenticated-and-attributed and the SOC 2 CC6.2 paragraph re-scoped to the registration and ordering halves. *Over:* wiring Permissions as a fifth constituent and gating [Invite] and [Revoke] on a scope. *Because:* the claim was made and neither wired nor disclaimed, which is the worst of the three states; absorbing the gate would make this composition the owner of an authorization vocabulary it has no other use for, while declaring it names the record a regulator's authorization question is answered from.
 - **2026-08-26 — The attempt record is the credential gate on all four actions.** *Chose:* every state-changing action opens with a `record_action` attempt event whose Actor Identity attestation, made inside the substrate's declared surface, is the credential check; an attempt refused at the gate lands no event. *Over:* a dry-run mode the substrate does not declare, or reaching Actor Identity directly, which is a transitive constituent. *Because:* the check must live on a surface the composition actually consumes, and the attempt is then auditable for free.
 - **2026-08-26 — Invariant 4 is safety plus detectability, not totality.** *Chose:* the arc's completeness is claimed over named gap signatures that checks 5 and 6 enumerate. *Over:* the unconditional statement over paths that admit invisible terminal transitions. *Because:* the composition is stateless by design and carries no marker discipline, so detectability through records is the recovery posture it can honestly offer.
+
+- **2026-09-23 — Rewritten in GRACE lang v0.61; twenty-one of twenty-four open Ledger lines closed by the rules that now own them, and nothing else changed but what each line asked for.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Audit arm`, `Action wiring`, `Wiring decision` and a `Resume` family for the resume arm as the surfaces; invariant numbers 1 through 5 unchanged; the seven prose checks kept as `Check 1.1` through `Check 7.4`, grouped by their old numbers, with the standing rules as a `Standing rule` family; `Non-goals` and `Edge cases` split; Standards renamed Standards references and moved to its place. The lines' own fixes, taken as the ledger prescribed them: the validation depth pinned pre-gate against each constituent's field rules (2026-08-26-f, Primitive policy 3 and 4); the decliner's identity declared unrecorded (2026-08-26-e, Action wiring 47, Non-goal 5); Invariant 2 re-scoped to the completion record's linkage (2026-08-26-i); the substrate's third invalid-request source named, Actor Identity's arm at the substrate's second step, and the read-back floored at the invocation's own attempt record (2026-08-30-c, Audit arm 8 through 12); Party Identity's invalid-query landed as the composition's own defect (2026-08-30-e, Resume 25 and 26); the candidates declared unfiltered by state, since a closed party the arc enrolled is still the arc's party (2026-08-30-k, Resume 19); every alert named onto the deployment's alerting surface (2026-08-30-l); the relation's cardinality and modality declared (2026-08-30-h); the comparisons' edges pinned by the operators (2026-08-30-f); an operational membership test for the horizon (2026-08-30-g); *rests on* in every invariant's WHY (2026-08-30-i); the examples' credential call matched to the atom's raw-material model and the concurrent example changed to the same-acceptor race (2026-08-26-k, 2026-08-30-o); acronyms glossed and the SOC 2 attribution corrected (2026-08-26-j, 2026-08-30-j, 2026-08-30-m); and the mismatch with Invitation's `Composition note 2` and `Composition note 3` noted here and corrected there (2026-08-30-n). *Over:* the prose spec. *Because:* the migration plan, and the standing rule that a migration closes a line only where a rule now owns what the line asked for. Three stay open: the resume arm's credential read-back (2026-08-30-d), which wants a design choice between walking predecessors and naming the head, and the two formal lines.
+
+NOTE: End of External Onboarding.

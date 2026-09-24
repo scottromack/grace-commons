@@ -484,8 +484,8 @@ NOTE: watch host obligations — this atom sets no maximum length on a string in
 
 ```
 Composition note 1: A composing External Onboarding MUST create the party record ONLY AFTER an admitted accept.
-Composition note 2: A composing External Onboarding MUST pass the accepting identity reference as the party record's reference.
-Composition note 3: A composing Credential MUST register against the accepting identity reference.
+Composition note 2: A composing External Onboarding MUST record the accepting identity reference beside the party record's id on the onboarding's completion record.
+Composition note 3: A composing External Onboarding MUST register the credential against the party record the accepted invitation's onboarding enrolled.
 Composition note 4: A composing Event Log MUST append an event on EVERY admitted action.
 Composition note 5: A composing Event Log MUST append an event on EVERY refused action.
 Composition note 6: A composing Actor Identity MUST attest the actor behind an admitted accept.
