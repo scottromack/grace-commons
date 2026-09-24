@@ -279,11 +279,11 @@ fanout_shaped(event_scope, payload_content)
 
 redispose(fanout_id, principal_ref, payload_content)
   answers redisposition
-  refuses invalid-request | not-known | not-retryable | payload-mismatch | orphan-pending(notification_id) | journal-rejected | yielded
+  refuses invalid-request | not-known | not-retryable | payload-mismatch | orphan-pending(notification_id) | journal-rejected(redispose position) | yielded
 
 reconcile_gaps(fanout_id, optional payload_content, abandon)
   answers gap result
-  refuses invalid-request | not-known | payload-mismatch | too-young | journal-rejected
+  refuses invalid-request | not-known | payload-mismatch | too-young | journal-rejected(gap position)
 
 reconcile_overshoots(principal_ref)
   answers overshoot result
@@ -294,11 +294,11 @@ Term fanout result: the fanout id and four unordered lists — created (principa
 
 Term redisposition: created carrying the notification id | failed carrying the cause | suppressed carrying the reason and the preference id or none.
 
-Term redispose position, carried by [Redispose]'s journal-rejected: read | outcome carrying the notification id or none — whether the refused read preceded everything, or the refused append followed a create that stands.
+Term redispose position: read | outcome carrying the notification id or none — whether the refused read preceded everything, or the refused append followed a create that stands.
 
 Term gap result: the repaired principals with each outcome, and the abandoned principals or all.
 
-Term gap position, carried by [Reconcile Gaps]'s journal-rejected: intent | adoption carrying the notification id | abandonment.
+Term gap position: intent | adoption carrying the notification id | abandonment.
 
 Term overshoot result: the overshoots recorded, each a configuration version, a window, a cap and the committed count.
 

@@ -1106,7 +1106,9 @@ def check_signature_form_synthetic(problems: list[str]) -> int:
             "  refuses invalid-request | recording-failure(position)\n\n"
             "read(filter)\n  answers the matching items | not-known\n")
     silent = [("the form", good),
-              ("an example call", 'place(item_ref: "i-1")\n→ rejected(invalid-request)\n')]
+              ("an example call", 'place(item_ref: "i-1")\n→ rejected(invalid-request)\n'),
+              # a refusal whose name ends in rejected is an arm, not the wrapper (council read 182)
+              ("a name ending in rejected", "place(item_ref)\n  answers ok\n  refuses journal-rejected(position)\n")]
     firing = [
         ("the arrow", "place(item_ref) → ok\n"),
         ("a trailing ?", "place(item_ref, reason?)\n  answers ok\n"),
@@ -2156,8 +2158,8 @@ def main(argv: list[str]) -> int:
     n_sig = check_signature_form_synthetic(sig_problems)
     failures.extend(sig_problems)
     if not sig_problems:
-        print(f"D-signature-form: {n_sig} synthetic fixtures hold (the form and an example "
-              "call silent, and a value sets line naming no signed action; the arrow, a `?`, a braced record, the `rejected(…)` wrapper, "
+        print(f"D-signature-form: {n_sig} synthetic fixtures hold (the form, an example "
+              "call and a name ending in rejected silent, and a value sets line naming no signed action; the arrow, a `?`, a braced record, the `rejected(…)` wrapper, "
               "a nested arm, two codes with no bar, a missing answers line, a missing blank "
               "line, a split header and a value sets line restating a signature fire) \u2713")
 

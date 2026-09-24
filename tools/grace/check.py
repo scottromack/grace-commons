@@ -336,7 +336,11 @@ SIG_ARMS = re.compile(r"^" + _SIG_ARM + r"(?: \| " + _SIG_ARM + r")*$")
 _SIG_CODE = _SIG_WORD + _SIG_ARM[_SIG_ARM.index("(?:\\(("):]
 SIG_CODES = re.compile(r"^" + _SIG_CODE + r"(?: \| " + _SIG_CODE + r")*$")
 SIG_RETIRED = (("→", "the arrow"), ("->", "the arrow"), ("?", "a trailing `?`"),
-               ("{", "a braced record"), ("rejected(", "the `rejected(…)` wrapper"))
+               ("{", "a braced record"),
+               # the wrapper is `rejected(` standing alone; a refusal whose name ends
+               # in *rejected* and carries a payload, `journal-rejected(position)`, is an
+               # arm, not the wrapper (council read 182)
+               (re.compile(r"(?<![\w-])rejected\("), "the `rejected(…)` wrapper"))
 
 
 def signature_form(body: list[str]) -> list[tuple[int, str]]:
@@ -345,7 +349,8 @@ def signature_form(body: list[str]) -> list[tuple[int, str]]:
     out: list[tuple[int, str]] = []
     expect = "head"
     for off, raw in enumerate(body):
-        why = next((w for tok, w in SIG_RETIRED if tok in raw), None)
+        why = next((w for tok, w in SIG_RETIRED
+                    if (tok.search(raw) if isinstance(tok, re.Pattern) else tok in raw)), None)
         if why:
             out.append((off, f"{why}, which the signature form retired"))
             expect = "head"
