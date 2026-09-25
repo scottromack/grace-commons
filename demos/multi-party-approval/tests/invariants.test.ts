@@ -13,7 +13,15 @@
 // in-memory DBs because they need to attempt mutations that would break the
 // shared DB's state.
 //
-// Invariant 6 — the behavioral trailing-decision flow (chain.ts emits an
+// Numbers are multi-party-approval.md's composition-level invariants. This
+// file covers 1, 2, 4, 5, 7 and 8. Invariant 3 (permission enforcement) is
+// the permitted() middleware, and no test yet drives a denial; Invariant 9
+// (chain reconstructibility) is the read_chain walkthrough in scenarios.test.ts.
+// Invariant 10 (authentication precedes commitment) is not covered: the
+// act-as picker takes no credential, so there is none to validate before a
+// commit. Invariant 6 is deleted from the spec (Composes 5 owns it).
+//
+// Invariant 7's trailing-decision clause — the behavioral flow (chain.ts emits an
 // audit row with trailing=true) — is verified here at the quorum level:
 // we show that evaluate() still returns the terminal state even after a
 // trailing decision changes the step vector.  The full end-to-end HTTP
@@ -303,13 +311,13 @@ Deno.test("invariant 2: quorum determinism — evaluate() matches chain.state fo
 });
 
 // ===========================================================================
-// Invariant 3 — Chain completeness
+// Invariant 1 — Chain completeness
 // ===========================================================================
 // Every chain has at least APPROVER_SET_MINIMUM (= 1) steps, and every step's
 // chain_id references an existing chain (FK-enforced, but verified in-process
 // too).
 
-Deno.test("invariant 3a: chain completeness — every chain has ≥ 1 step", () => {
+Deno.test("invariant 1a: chain completeness — every chain has ≥ 1 step", () => {
   const rows = testDb.prepare(`
     SELECT c.chain_id,
            COUNT(s.step_id) AS step_count
@@ -328,7 +336,7 @@ Deno.test("invariant 3a: chain completeness — every chain has ≥ 1 step", () 
   }
 });
 
-Deno.test("invariant 3b: chain completeness — no orphan steps (every step references a known chain)", () => {
+Deno.test("invariant 1b: chain completeness — no orphan steps (every step references a known chain)", () => {
   const { n } = testDb.prepare(`
     SELECT COUNT(*) AS n
     FROM   approval_step s
@@ -431,7 +439,7 @@ Deno.test("invariant 5c: audit completeness — chain_resolved + chain_withdrawn
 });
 
 // ===========================================================================
-// Invariant 6 — Quorum determinism for trailing decisions
+// Invariant 7 — Chain terminal absorption: a trailing decision
 // ===========================================================================
 // A trailing step decision (on a chain already in a terminal state) must not
 // change the chain's outcome.  This is verified here at the quorum-evaluation
@@ -442,7 +450,7 @@ Deno.test("invariant 5c: audit completeness — chain_resolved + chain_withdrawn
 // Step m3 (trailing-Pending) can be approved, rejected, or withdrawn —
 // in all cases evaluate() still returns Approved.
 
-Deno.test("invariant 6: trailing decision does not change quorum outcome for M-of-N", () => {
+Deno.test("invariant 7: trailing decision does not change quorum outcome for M-of-N", () => {
   // Baseline: chain reached Approved with a=2 (quorum met)
   assertEquals(evaluate("M-of-N", 2, { a: 2, r: 0, w: 0, p: 1 }), "Approved");
 

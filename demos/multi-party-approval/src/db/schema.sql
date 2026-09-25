@@ -126,21 +126,21 @@ CREATE TABLE IF NOT EXISTS approval_step (
   -- decided_by and decided_at are set together
   CHECK ((state = 'Pending') = (decided_by IS NULL)),
   CHECK ((decided_by IS NULL) = (decided_at IS NULL)),
-  -- Invariant 6: rejection requires a reason
+  -- Approval Step Invariant 6.3: rejection requires a reason
   CHECK (state <> 'Rejected'  OR decision_reason IS NOT NULL),
-  -- withdrawal requires a reason
+  -- Approval Step Invariant 6.4: withdrawal requires a reason
   CHECK (state <> 'Withdrawn' OR decision_reason IS NOT NULL),
-  -- Invariant 4: only the named approver may approve or reject
+  -- Approval Step Invariant 4: only the named approver may approve or reject
   CHECK (state <> 'Approved'  OR decided_by = approver_ref),
   CHECK (state <> 'Rejected'  OR decided_by = approver_ref),
-  -- Invariant 5: only the submitter may withdraw
+  -- Approval Step Invariant 5: only the submitter may withdraw
   CHECK (state <> 'Withdrawn' OR decided_by = submitter_ref),
-  -- Invariant 7: temporal ordering
+  -- Approval Step Invariant 7: temporal ordering
   CHECK (decided_at IS NULL OR decided_at >= submitted_at),
   UNIQUE (chain_id, position)
 );
 
--- Invariant 1: submission fields are immutable after INSERT
+-- Approval Step Invariant 1: submission fields are immutable after INSERT
 CREATE TRIGGER IF NOT EXISTS approval_step_no_submission_mutation
 BEFORE UPDATE OF chain_id, position, subject_ref, approver_ref,
                  submitter_ref, scope, submitted_at, reason
@@ -149,7 +149,7 @@ BEGIN
   SELECT RAISE(ABORT, 'approval_step submission immutable');
 END;
 
--- Invariant 3: terminal absorption on steps
+-- Approval Step Invariant 3: terminal absorption on steps
 CREATE TRIGGER IF NOT EXISTS approval_step_terminal_absorption
 BEFORE UPDATE OF state ON approval_step
 WHEN OLD.state <> 'Pending' AND NEW.state <> OLD.state

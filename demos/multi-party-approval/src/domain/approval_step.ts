@@ -104,7 +104,7 @@ export function submit(
 
 /**
  * Transitions a Pending step to Approved.
- * Invariant 4: decided_by must equal approver_ref.
+ * Approval Step Invariant 4: decided_by must equal approver_ref.
  */
 export function approve(
   db: Database,
@@ -136,8 +136,8 @@ export function approve(
 
 /**
  * Transitions a Pending step to Rejected.
- * Invariant 4: decided_by must equal approver_ref.
- * Invariant 6: reason is required.
+ * Approval Step Invariant 4: decided_by must equal approver_ref.
+ * Approval Step Invariant 6.3: reason is required.
  */
 export function reject(
   db: Database,
@@ -171,7 +171,7 @@ export function reject(
 
 /**
  * Transitions a Pending step to Withdrawn.
- * Invariant 5: withdrawn_by must equal submitter_ref (the chain initiator).
+ * Approval Step Invariant 5: withdrawn_by must equal submitter_ref (the chain initiator).
  * reason is required.
  */
 export function withdraw(

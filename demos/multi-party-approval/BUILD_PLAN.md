@@ -92,7 +92,7 @@ grace-commons-demo/
 │       └── error.ts                # rejection-token → HTTP status mapping
 └── tests/
     ├── quorum.test.ts              # pure-function tests over (kind, m, vector) including trailing
-    ├── invariants.test.ts          # one test per application-level invariant 1–9
+    ├── invariants.test.ts          # composition-level invariants 1, 2, 4, 5, 7 and 8
     ├── scenarios.test.ts           # SOX/FDA/ICH walkthroughs against the live HTTP surface
     └── audit_tamper.test.ts        # mutate a row or hash, expect verify_record → failed
 ```
@@ -444,7 +444,7 @@ The cascade is serialized inside one transaction; no partial-cascade flag needed
 1. `BEGIN IMMEDIATE`.
 2. SELECT step; if missing or `step.chain_id <> chain_id` → `404 not-known`.
 3. Read `chain.state`. Compute `trailing = (chain.state <> 'Pending')`. The chain's terminal state does *not* gate the call — the spec's Pass-1-Round-3 fix.
-4. `approval_step.approve(step_id, decided_by = actor_ref, reason)` — atom-level checks fire here (Invariant 4: `decided_by = approver_ref`; Invariant 3: must be Pending). Propagate `unauthorized | not-pending | invalid-request` as-is.
+4. `approval_step.approve(step_id, decided_by = actor_ref, reason)` — atom-level checks fire here (Approval Step Invariant 4: `decided_by = approver_ref`; Approval Step Invariant 3: must be Pending). Propagate `unauthorized | not-pending | invalid-request` as-is.
 5. `assignment.recall(step_to_assignment[step_id])` — idempotent on already-Recalled.
 6. `record_action(step_approved, actor_ref, chain_id, step_id, data = { reason, trailing })`.
 7. If `trailing` is `false`: re-read the `(A, R, W, P)` vector for this chain. Call `quorum.evaluate(kind, m, vector)`. If the result is `'Pending'`, COMMIT and return. Otherwise:
@@ -493,7 +493,7 @@ Audit substrate routes (not in spec as actions, but the demo needs them):
 |---|---|---|---|
 | List audit events | GET | `/audit` | filters: `chain_id`, `step_id`, `action_ref`, `from`, `to` |
 | Verify one event | GET | `/audit/:event_id/verify` | recomputes attestation + walks hash chain; returns `{ verified \| failed-verification(reason) }` |
-| Verify chain segment | GET | `/verify/chains/:chain_id` | independent recompute of Invariant 2 (`quorum.evaluate` vs `chain.state`) + Invariants 4/5 cross-check |
+| Verify chain segment | GET | `/verify/chains/:chain_id` | independent recompute of Invariant 2 (`quorum.evaluate` vs `chain.state`) + Approval Step Invariant 4 and 5 cross-check |
 
 UI routes (HTML; same domain functions, JSX-rendered output):
 
@@ -513,7 +513,7 @@ HTMX wiring: the approve/reject/withdraw buttons on a step row do `hx-post` to t
 
 ## 9. UI / view layout
 
-Layout is intentionally boring — the demo's job is to make Invariants 2, 4, 5, and 7 visible, not to impress.
+Layout is intentionally boring — the demo's job is to make Invariants 2 and 7, and Approval Step Invariants 4 and 5, visible, not to impress.
 
 - **Top bar.** Current actor display, dropdown to switch (POSTs to `/act-as`), link to `/me/in-tray` with a count badge.
 - **Chain list (`/`).** A table: chain_id (short), subject_ref, scope, quorum (`all-of-N` / `M-of-N(2)` / `one-of-N`), state (pill), initiator, initiated_at, action ("View"). Filter form bound to `read_chain` query string. The current actor's `chains:initiate` grant determines whether the "+ New chain" button is visible.
@@ -632,10 +632,11 @@ Each of these is a place where the spec leaves room and the implementation picks
 | 3. Permission enforcement | App middleware | `permitted()` check in front of every chain-level POST and GET |
 | 4. Assignment coverage during pendency, with cascade-on-terminal | SQL UNIQUE + app cascade | `assignment.UNIQUE(task_ref)` + `recall(...)` inside the same txn as state change |
 | 5. Audit completeness | App txn + verifier | Same-txn audit insert; counts re-checked by `invariants.test.ts` |
-| 6. Constituent invariants preserved | SQL CHECKs + triggers + atom modules | Per §4.4 / §4.5 / §4.6 and the per-atom module functions |
+| 6. Deleted from the spec — Composes 5 owns constituent invariants | SQL CHECKs + triggers + atom modules | Per §4.4 / §4.5 / §4.6 and the per-atom module functions |
 | 7. Chain terminal absorption | SQL trigger | `chain_no_terminal_state_change`; plus app short-circuits re-evaluation when chain already terminal |
 | 8. Chain immutability of declared fields | SQL trigger | `chain_no_field_mutation` + `chain_terminal_at_set_once` |
-| 9. Forensic completability | App query design + audit substrate | `read_chain` join + hash-chained `audit_event` |
+| 9. Chain reconstructibility, within the audit horizon | App query design + audit substrate | `read_chain` join + hash-chained `audit_event` |
+| 10. Authentication precedes commitment | Not enforced | The act-as picker takes no credential; audit rows are HMAC-attested server-side under the actor's stored secret, so no caller credential is validated before a commit |
 
 Plus the constituent-atom invariants for Approval Step (1–10) covered by §4.4 CHECKs + triggers + `approval_step.ts`; Permissions invariants covered by §4.2 + `permissions.ts`; Assignment invariants covered by §4.5 + `assignment.ts`; Audit Trail substrate invariants covered by §4.6 + `audit_trail.ts`.
 

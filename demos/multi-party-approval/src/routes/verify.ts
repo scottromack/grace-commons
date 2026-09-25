@@ -2,8 +2,8 @@
 //
 // GET /verify/chains/:chain_id
 //   Invariant 2: quorum.evaluate(kind, m, vector) === chain.state
-//   Invariant 4: decided_by === approver_ref for Approved/Rejected steps
-//   Invariant 5: decided_by === submitter_ref for Withdrawn steps
+//   Approval Step Invariant 4: decided_by === approver_ref for Approved/Rejected steps
+//   Approval Step Invariant 5: decided_by === submitter_ref for Withdrawn steps
 
 import { Hono } from "hono";
 import type { AppVariables } from "../middleware/current_actor.ts";
@@ -52,7 +52,7 @@ verify.get("/chains/:chain_id", (c) => {
     ? true  // terminal state is authoritative; re-eval may show Pending if trailing
     : computed === chain.state;
 
-  // --- Invariant 4/5: actor identity on decisions ---
+  // --- Approval Step Invariant 4 and 5: actor identity on decisions ---
   const stepChecks = steps.map(s => {
     if (s.state === "Approved" || s.state === "Rejected") {
       const ok = s.decided_by === s.approver_ref;

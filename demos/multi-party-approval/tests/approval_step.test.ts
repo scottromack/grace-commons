@@ -3,9 +3,9 @@
 // Covers:
 //   - submit creates a Pending step
 //   - approve / reject / withdraw happy paths
-//   - wrong-actor rejection (Invariant 4 / 5)
-//   - missing reason rejection (Invariant 6)
-//   - terminal absorption (Invariant 3): can't decide a decided step
+//   - wrong-actor rejection (Approval Step Invariant 4 and 5)
+//   - missing reason rejection (Approval Step Invariant 6.3)
+//   - terminal absorption (Approval Step Invariant 3): can't decide a decided step
 //   - not-known for unknown step_id
 //   - assign creates an Active assignment
 //   - recall transitions to Recalled and returns 'ok'
@@ -116,7 +116,7 @@ Deno.test("approve: transitions to Approved", async () => {
   assertEquals(Step.read(db, step_id)!.state, "Approved");
 });
 
-Deno.test("approve: rejects wrong actor (Invariant 4)", async () => {
+Deno.test("approve: rejects wrong actor (Approval Step Invariant 4)", async () => {
   const { db, step_id } = await freshStep("actor_a");
   const res = Step.approve(db, step_id, "actor_b");
   assertEquals("err" in res && res.err, "unauthorized");
@@ -129,7 +129,7 @@ Deno.test("approve: rejects unknown step_id", async () => {
   assertEquals("err" in res && res.err, "not-known");
 });
 
-Deno.test("approve: terminal absorption — already Approved (Invariant 3)", async () => {
+Deno.test("approve: terminal absorption — already Approved (Approval Step Invariant 3)", async () => {
   const { db, step_id } = await freshStep();
   Step.approve(db, step_id, "actor_a");
   const res = Step.approve(db, step_id, "actor_a");
@@ -148,20 +148,20 @@ Deno.test("reject: transitions to Rejected with reason", async () => {
   assertEquals(Step.read(db, step_id)!.decision_reason, "Not compliant");
 });
 
-Deno.test("reject: requires reason (Invariant 6)", async () => {
+Deno.test("reject: requires reason (Approval Step Invariant 6.3)", async () => {
   const { db, step_id } = await freshStep();
   const res = Step.reject(db, step_id, "actor_a", "   ");
   assertEquals("err" in res && res.err, "invalid-request");
   assertEquals(Step.read(db, step_id)!.state, "Pending");
 });
 
-Deno.test("reject: rejects wrong actor (Invariant 4)", async () => {
+Deno.test("reject: rejects wrong actor (Approval Step Invariant 4)", async () => {
   const { db, step_id } = await freshStep("actor_a");
   const res = Step.reject(db, step_id, "actor_b", "Reason");
   assertEquals("err" in res && res.err, "unauthorized");
 });
 
-Deno.test("reject: terminal absorption — can't reject Approved step (Invariant 3)", async () => {
+Deno.test("reject: terminal absorption — can't reject Approved step (Approval Step Invariant 3)", async () => {
   const { db, step_id } = await freshStep();
   Step.approve(db, step_id, "actor_a");
   const res = Step.reject(db, step_id, "actor_a", "Too late");
@@ -180,7 +180,7 @@ Deno.test("withdraw: transitions to Withdrawn with reason", async () => {
   assertEquals(Step.read(db, step_id)!.state, "Withdrawn");
 });
 
-Deno.test("withdraw: rejects wrong actor (Invariant 5 — must be submitter)", async () => {
+Deno.test("withdraw: rejects wrong actor (Approval Step Invariant 5 — must be submitter)", async () => {
   const { db, step_id } = await freshStep("actor_b", "actor_a");
   // actor_b is approver, not submitter
   const res = Step.withdraw(db, step_id, "actor_b", "Trying to self-withdraw");

@@ -1,4 +1,6 @@
-// invariants.test.ts — one test per composition invariant (Invariants 1–8).
+// invariants.test.ts — one test per composition invariant, Invariant 1 through 8.
+// The spec's Invariant 9 (pair-scoped revocation over an enumerated set) is not
+// covered: this demo builds no pair-scoped revocation, only revoke_grant on one grant.
 //
 // Each test is labelled with its corresponding Alloy assertion name from
 // alloy/attributed-permissions-admin.als. The Alloy model verifies these
