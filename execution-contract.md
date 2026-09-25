@@ -67,7 +67,7 @@ SM = (S, E, T, G, I, Q)
 - **S** — the finite set of named states. Maps to the atom's State section (state names only).
 - **E** — the set of typed events, one per action. Maps to the atom's action signatures.
 - **T** — the transition function: `S × E × Params × clock_t × id_t → S`. The body of T is a direct effect (a database write); T itself is deterministic given its inputs. `clock_t` and `id_t` are injected — see Pipeline below.
-- **G** — the guard function: `S × E × Params × clock_t → pass | typed_failure(reason)`. G is a pure function. It takes `state_t` (read in Step 1), the event parameters, and the injected clock reading `clock_t` (read as a direct effect at the top of Step 2 — see Pipeline below); it returns either pass or a typed rejection. `clock_t` is what temporal guards evaluate against: a reject-future-timestamp bound or an ordering check against a stored timestamp is a comparison between explicit inputs, never an internal clock read. The typed failure space is exactly the set of rejection reasons named in the atom's Decision points.
+- **G** — the guard function: `S × E × Params × clock_t → pass | typed_failure(reason)`. G is a pure function. It takes `state_t` (read in Step 1), the event parameters, and the injected clock reading `clock_t` (read as a direct effect at the top of Step 2 — see Pipeline below); it returns either pass or a typed rejection. `clock_t` is what temporal guards evaluate against: a reject-future-timestamp bound or an ordering check against a stored timestamp is a comparison between explicit inputs, never an internal clock read. The typed failure space is exactly the set of rejection reasons named on the refuses lines of the atom's Operations.
 - **I** — the invariant set. Each named invariant in the atom's Invariants section maps to a member of I. Invariants are not assertions run on every read; they are correctness conditions the compiler must prove T preserves. Two classes: *single-state invariants* (hold over the new state after each write — assertable as a post-write pure function) and *sequence-safety invariants* (hold over any history of states — the compiler must prove T never produces a violating state, not assert at runtime).
 - **Q** — the query surface: the named read queries the SM exposes without triggering a transition. Maps to the atom's Outputs section (read surfaces only). Each query is a direct effect (DB read) followed by a pure projection. Q does not modify state.
 
@@ -120,13 +120,13 @@ If the store read fails, the pipeline aborts before Step 2. The guard never eval
 
 ### Step 3 failure
 
-If the store write fails after Step 2 returns pass, the pipeline aborts. The caller receives `storage-failure`. The state at `entity_id` is unchanged — `state_t` remains the durable state. This is a critical distinction from Step 1 failure: in Step 3, the guard already passed. A caller who retries on `storage-failure` must understand that the transition may have partially executed — and whether partial execution is recoverable depends on the atom. (In Permissions, a `storage-failure` on `revoke` means the grant remains Active; the caller must not assume it is revoked and must retry. This is documented in that atom's Decision points as a security-critical failure mode.)
+If the store write fails after Step 2 returns pass, the pipeline aborts. The caller receives `storage-failure`. The state at `entity_id` is unchanged — `state_t` remains the durable state. This is a critical distinction from Step 1 failure: in Step 3, the guard already passed. A caller who retries on `storage-failure` must understand that the transition may have partially executed — and whether partial execution is recoverable depends on the atom. (In Permissions, a `storage-failure` on `revoke` means the grant remains Active; the caller must not assume it is revoked and must retry. That atom states it as Operation 14 and Operation 15, and its Revoke persistence failure edge case requires the retry and, in a high-assurance deployment, a security alert.)
 
 ---
 
 ### Multi-write atomicity
 
-Some transitions write to two stores (reassign in Assignment: mark old assignment Transferred, create new Active assignment; cascade-recall in Shared Todo's delete_task: recall the active assignment, then delete the task). Both writes are part of a single Step 3. The atomicity contract: both writes commit or both are rolled back. A partial state — one write committed, the other not — violates the atom's or composition's invariants and must not be observable. The implementation provides the transactional boundary; the spec names the atomicity requirement explicitly in each affected atom's Decision points.
+Some transitions write to two stores (reassign in Assignment: mark old assignment Transferred, create new Active assignment; cascade-recall in Shared Todo's delete_task: recall the active assignment, then delete the task). Both writes are part of a single Step 3. The atomicity contract: both writes commit or both are rolled back. A partial state — one write committed, the other not — violates the atom's or composition's invariants and must not be observable. The implementation provides the transactional boundary; the spec names the atomicity requirement explicitly in each affected atom — Assignment's Reassign atomicity edge case is one.
 
 ---
 
@@ -136,16 +136,16 @@ The Grace Commons atom spec maps to the execution model through a direct section
 
 | Atom section | Compilation target |
 |---|---|
-| State (state names) | S — the named state set |
-| State (transition descriptions) | T — transition function body (DB write per transition) |
-| Inputs (action signatures) | E — typed event set per action |
-| Inputs (rejection reasons in signatures) | Typed failure space of G |
-| Decision points | G — guard function per event, evaluating over state_t and clock_t |
+| State (the declared states) | S — the named state set |
+| Operations (the signature block's inputs) | E — typed event set per action |
+| Operations (the signature block's refuses lines) | Typed failure space of G |
+| Operations (each rule that answers a refusal) | G — guard function per event, evaluating over state_t and clock_t |
+| Operations (each rule that records or changes a unit) | T — transition function body (DB write per transition) |
 | Invariants (single-state) | Post-write PF assertions; compiler emits checks after store.write |
 | Invariants (sequence-safety) | Compiler correctness obligations on T; runtime serialization guarantees |
-| Outputs (read surfaces) | Q — named read queries; DE reads + PF projection |
-| Outputs (action returns) | R — per-event return projection; PF over state_{t+1} |
-| Description / validation rules | PF normalization functions, called inside G before guard evaluation |
+| Operations (the read actions) | Q — named read queries; DE reads + PF projection |
+| Operations (the signature block's answers lines) | R — per-event return projection; PF over state_{t+1} |
+| A policy family — String policy, or a spec's own, such as Personal Todo's Description policy | PF normalization functions, called inside G before guard evaluation |
 | Identity model | id_t injection rule: generate once per creation event, inject into T |
 
 **Invariant classes matter for code generation.** Single-state invariants (Invariant 8 timestamp ordering in Personal Todo, Invariant 2 event immutability in Event Log) compile to post-write assertions — pure functions the compiler emits immediately after `store.write` to check the new state satisfies the invariant before returning. Sequence-safety invariants (Invariant 1 membership exclusivity in Personal Todo, Invariant 7 reassign atomicity in Assignment) cannot be checked in isolation after a single write; the compiler must prove that no execution of T starting from a valid state can produce an invalid state, and the runtime must serialize transitions to prevent concurrent races from bypassing this guarantee.
@@ -254,7 +254,7 @@ The composition does not read the constituent atom's internal state directly. It
 
 A composition action that sequences two constituent SM transitions still executes the full four-step pipeline at the composition level — with Step 3 containing the sequenced constituent calls and the multi-write atomicity obligation applying across constituent store boundaries. The wiring layer is itself subject to the pipeline; it is not an exception to it.
 
-Derived queries (`responsible_actor`, `visible_tasks` in Shared Todo) are pure joins over constituent Q surfaces — direct effects (reads from constituent stores) followed by a pure join function. The composition does not own a separate record store; it derives.
+Derived queries (the responsible actor and the visible tasks in Shared Todo) are pure joins over constituent Q surfaces — direct effects (reads from constituent stores) followed by a pure join function. The composition does not own a separate record store; it derives.
 
 ---
 
@@ -361,7 +361,7 @@ That atomicity, and the total order it protects (Event Log Invariant 3; the oper
 
 Three failure classes. No others.
 
-**Guard failure.** G returns `typed_failure(reason)` in Step 2. The reason is one of the named rejection reasons in the atom's Decision points. The store is unchanged. The caller receives the typed rejection. Guard failures are the normal operational outcome of preconditions not being met — they are not error conditions and must not be logged as errors. Every named rejection reason must be reachable by a conforming caller in a well-specified scenario.
+**Guard failure.** G returns `typed_failure(reason)` in Step 2. The reason is one of the reasons named on the action's refuses line in the atom's Operations. The store is unchanged. The caller receives the typed rejection. Guard failures are the normal operational outcome of preconditions not being met — they are not error conditions and must not be logged as errors. Every named rejection reason must be reachable by a conforming caller in a well-specified scenario.
 
 **Effect failure.** The store read fails (Step 1) or the store write fails (Step 3). These are infrastructure failures.
 - Step 1: the caller receives `state-unavailable`. No guard ran. No transition fired. Retry is safe.
@@ -373,7 +373,7 @@ Three failure classes. No others.
 
 ## Testing model
 
-Testing in Grace Commons is not a separate layer. It is a second view over the same state machine semantics — state machine replays with assertions over projection functions, compiled from the spec rather than authored independently. The Examples section of every atom is already a test specification; the Regulated adversarial scenarios are already acceptance tests; the Decision points are already guard test specifications. The compiler emits the test suite; there is no test authoring step.
+Testing in Grace Commons is not a separate layer. It is a second view over the same state machine semantics — state machine replays with assertions over projection functions, compiled from the spec rather than authored independently. The Examples section of every atom is already a test specification; the Regulated adversarial scenarios are already acceptance tests; the refuses lines and the rules that answer them are already guard test specifications. The compiler emits the test suite; there is no test authoring step.
 
 **The core rule.** Every test is a declared traversal of the state machine graph. Not unit tests, integration tests, or mocks as separate concepts — just state transitions and assertions over projections. Same pipeline. Different inputs.
 
@@ -381,7 +381,7 @@ Testing in Grace Commons is not a separate layer. It is a second view over the s
 
 ### Test types
 
-**Guard test.** Exercises G directly — no store, no pipeline, no IO. Inputs: a known `state_t`, event parameters, and a fixed `clock_t`. Execution: call `G(state_t, event, params, clock_t)` as a pure function. Temporal guards (future-timestamp bounds, ordering checks against stored timestamps) are exercised by varying the fixed `clock_t`; the test stays deterministic because the clock is an input, not a read. Assertion: result is the expected `pass` or `typed_failure(reason)`. One guard test per named rejection reason in the atom's Decision points, plus one for the pass case per transition. These are the fastest tests in the suite and the ones that cover the entire guard logic surface in isolation.
+**Guard test.** Exercises G directly — no store, no pipeline, no IO. Inputs: a known `state_t`, event parameters, and a fixed `clock_t`. Execution: call `G(state_t, event, params, clock_t)` as a pure function. Temporal guards (future-timestamp bounds, ordering checks against stored timestamps) are exercised by varying the fixed `clock_t`; the test stays deterministic because the clock is an input, not a read. Assertion: result is the expected `pass` or `typed_failure(reason)`. One guard test per reason named on a refuses line in the atom's Operations, plus one for the pass case per transition. These are the fastest tests in the suite and the ones that cover the entire guard logic surface in isolation.
 
 **Transition test.** Runs the full four-step pipeline against a real store seeded to a known state. Inputs: seed data in store (derived from the atom's Examples section) + event + params. Execution: full pipeline (Read → Guard → Transition+Write → Project). Assertions: (a) R returns the expected output; (b) Q returns results consistent with the new state; (c) single-state invariants hold over `state_{t+1}`. One transition test per named transition in the atom's State section, covering both the happy path and each guard-failure path.
 
@@ -405,8 +405,8 @@ The seed data is not authored separately. It is derived from the atom's Examples
 
 | Spec section | Test type compiled |
 |---|---|
-| Decision points (each rejection reason) | Guard test — one per named reason, plus pass case |
-| State (transitions, happy path) | Transition test — one per named transition |
+| Operations (each reason on a refuses line) | Guard test — one per named reason, plus pass case |
+| Operations (each rule that records or changes a unit, happy path) | Transition test — one per named transition |
 | Invariants (single-state class) | Post-write assertions within each Transition test |
 | Invariants (sequence-safety class) | Sequence tests targeting each invariant's boundary conditions |
 | Examples (happy-path scenarios) | Seed data + expected outcomes for Transition and Sequence tests |
@@ -435,7 +435,7 @@ A runtime implementation of a Grace Commons atom is conforming when all of the f
 - **Conformance 1:** Every transition executes the four-step pipeline in order (Read → Guard → Transition+Write → Project) with no additional steps and no reordering.
 - **Conformance 2:** `clock_t` is read as a direct effect at the top of Step 2 and injected into both G and T as a parameter; `id_t` is read as a direct effect at Step 3 and injected into T. Neither G nor T calls the clock or entropy source internally.
 - **Conformance 3:** No persistent state mutation occurs outside Step 3's `store.write`.
-- **Conformance 4:** Every rejection reason named in the atom's Decision points is reachable and typed. No rejection reason exists that is not named in the spec.
+- **Conformance 4:** Every rejection reason named on a refuses line in the atom's Operations is reachable and typed. No rejection reason exists that is not named in the spec.
 - **Conformance 5:** Every named invariant in I holds over the record set after any valid sequence of transitions, including sequences interleaved by other conforming callers under the implementation's serialization guarantees.
 - **Conformance 6:** Q returns results consistent with the record set produced by the state machine's transition history. A query that disagrees with the durable record set is a conformance failure.
 - **Conformance 7:** For regulated atoms: the Generation acceptance checks pass against the record set produced by any conforming run.
