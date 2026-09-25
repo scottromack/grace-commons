@@ -174,7 +174,8 @@ Step.approve(testDb, s1, A1.actor_ref);
 Step.approve(testDb, s2, A2.actor_ref);
 Assign.recall(testDb, as1);
 Assign.recall(testDb, as2);
-emit(testDb, INIT, "chain_initiated", "ch-aon-ok");
+emit(testDb, INIT, "chain_initiated", "ch-aon-ok", null,
+  { approver_set: [A1.actor_ref, A2.actor_ref] });
 emit(testDb, A1,   "step_approved",   "ch-aon-ok", s1, { trailing: false });
 emit(testDb, A2,   "step_approved",   "ch-aon-ok", s2, { trailing: false });
 emit(testDb, SYS,  "chain_resolved",  "ch-aon-ok", null,
@@ -191,7 +192,8 @@ Step.approve(testDb, m2, A2.actor_ref);
 Assign.recall(testDb, ma1);
 Assign.recall(testDb, ma2);
 Assign.recall(testDb, ma3);
-emit(testDb, INIT, "chain_initiated", "ch-mon-ok");
+emit(testDb, INIT, "chain_initiated", "ch-mon-ok", null,
+  { approver_set: [A1.actor_ref, A2.actor_ref, A3.actor_ref] });
 emit(testDb, A1,   "step_approved",   "ch-mon-ok", m1, { trailing: false });
 emit(testDb, A2,   "step_approved",   "ch-mon-ok", m2, { trailing: false });
 emit(testDb, SYS,  "chain_resolved",  "ch-mon-ok", null,
@@ -208,7 +210,8 @@ Step.reject(testDb, r1, A1.actor_ref, "Does not comply with policy");
 // r2 stays Pending (not cascade-withdrawn for Rejected chains)
 Assign.recall(testDb, ra1);
 Assign.recall(testDb, ra2);
-emit(testDb, INIT, "chain_initiated", "ch-rej");
+emit(testDb, INIT, "chain_initiated", "ch-rej", null,
+  { approver_set: [A1.actor_ref, A2.actor_ref] });
 emit(testDb, A1,   "step_rejected",   "ch-rej", r1,
   { reason: "Does not comply with policy", trailing: false });
 emit(testDb, SYS,  "chain_resolved",  "ch-rej", null,
@@ -224,7 +227,8 @@ Step.withdraw(testDb, w1, INIT.actor_ref, "Superseded by revised document");
 Step.withdraw(testDb, w2, INIT.actor_ref, "Superseded by revised document");
 Assign.recall(testDb, wa1);
 Assign.recall(testDb, wa2);
-emit(testDb, INIT, "chain_initiated",  "ch-wd");
+emit(testDb, INIT, "chain_initiated",  "ch-wd", null,
+  { approver_set: [A1.actor_ref, A2.actor_ref] });
 emit(testDb, INIT, "step_withdrawn",   "ch-wd", w1,
   { reason: "Superseded by revised document", trailing: false });
 emit(testDb, INIT, "step_withdrawn",   "ch-wd", w2,
@@ -236,7 +240,8 @@ emit(testDb, INIT, "chain_withdrawn",  "ch-wd", null,
 insertChain(testDb, "ch-pend", "all-of-N", null, "Pending");
 addStep(testDb, "ch-pend", 0, A1); // assignments stay Active
 addStep(testDb, "ch-pend", 1, A2);
-emit(testDb, INIT, "chain_initiated", "ch-pend");
+emit(testDb, INIT, "chain_initiated", "ch-pend", null,
+  { approver_set: [A1.actor_ref, A2.actor_ref] });
 
 // ---------------------------------------------------------------------------
 // Expected counts (derived from the setup above — used in multiple tests)
@@ -317,21 +322,26 @@ Deno.test("invariant 2: quorum determinism — evaluate() matches chain.state fo
 // chain_id references an existing chain (FK-enforced, but verified in-process
 // too).
 
-Deno.test("invariant 1a: chain completeness — every chain has ≥ 1 step", () => {
+Deno.test("invariant 1a: chain completeness — every chain's step count equals its approver set's count", () => {
+  // Invariant 1.1: a chain's step list carries one step per declared approver.
+  // The chain store keeps no approver set; the declared set is the one the
+  // chain_initiated event carries, as chain.ts records it.
   const rows = testDb.prepare(`
     SELECT c.chain_id,
-           COUNT(s.step_id) AS step_count
+           (SELECT COUNT(*) FROM approval_step s WHERE s.chain_id = c.chain_id) AS step_count,
+           (SELECT e.data_json FROM audit_event e
+             WHERE e.chain_id = c.chain_id AND e.action_ref = 'chain_initiated') AS initiated
     FROM   chain c
-    LEFT   JOIN approval_step s ON s.chain_id = c.chain_id
-    GROUP  BY c.chain_id
-  `).all() as Array<{ chain_id: string; step_count: number }>;
+  `).all() as Array<{ chain_id: string; step_count: number; initiated: string | null }>;
 
   assertEquals(rows.length, 5, "expected 5 chains");
-  for (const { chain_id, step_count } of rows) {
+  for (const { chain_id, step_count, initiated } of rows) {
+    assertEquals(initiated !== null, true, `chain ${chain_id} has no chain_initiated event`);
+    const approver_set = (JSON.parse(initiated!) as { approver_set: string[] }).approver_set;
     assertEquals(
-      step_count >= 1,
-      true,
-      `chain ${chain_id} has ${step_count} steps — violates APPROVER_SET_MINIMUM = 1`,
+      step_count,
+      approver_set.length,
+      `chain ${chain_id} has ${step_count} steps for ${approver_set.length} declared approvers`,
     );
   }
 });
