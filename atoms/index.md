@@ -23,21 +23,21 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_26 compositions (25 regulated) · 28 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_26 compositions (26 regulated) · 28 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
 | Atom | Domain | Regulated | Security | Composed by |
 |---|---|---|---|---|
 | [Actor Identity](./actor-identity.md) | — | yes (4) | yes | attributed-permissions-admin, audit-trail, authenticated-actor, reserve-from-pool |
-| [Approval Step](./approval-step.md) | — | yes (2) | — | execute-gated-workflow, multi-party-approval |
-| [Assignment](./assignment.md) | — | yes (3) | — | execute-gated-workflow, multi-party-approval, shared-todo |
+| [Approval Step](./approval-step.md) | — | yes (2) | yes | execute-gated-workflow, multi-party-approval |
+| [Assignment](./assignment.md) | — | yes (3) | yes | execute-gated-workflow, multi-party-approval, shared-todo |
 | [Capability](./capability.md) | — | yes (2) | yes | capability-backed-sharing, privileged-access-provisioning |
 | [Capacity Constraint Enforcement](./capacity-constraint-enforcement.md) | — | yes (1) | — | reserve-from-pool |
 | [Consent](./consent.md) | — | yes (2) | — | propagate-consent-revocation-downstream, resolve-a-persons-data-rights |
 | [Credential](./credential.md) | — | yes (5) | yes | actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning |
 | [Duplicate Prevention](./duplicate-prevention.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
-| [Event Log](./event-log.md) | — | yes (4) | — | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, undo-history |
+| [Event Log](./event-log.md) | — | yes (5) | — | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, undo-history |
 | [Invitation](./invitation.md) | — | yes (1) | yes | external-onboarding |
 | [lease](./lease.md) | — | yes (1) | — | recoverable-invocation |
 | [Legal Hold](./legal-hold.md) | — | yes (1) | — | defensible-retention |
@@ -54,7 +54,7 @@ _26 compositions (25 regulated) · 28 atoms · 64 composition→atom edges. Gene
 | [Selective Disclosure](./selective-disclosure.md) | — | yes (3) | — | capability-backed-sharing, immutable-transaction-ledger, resolve-a-persons-data-rights |
 | [Session](./session.md) | — | yes (4) | yes | actor-suspension, login, privileged-access-provisioning, session-gated-authorization |
 | [Soft Delete](./soft-delete.md) | — | yes (1) | — | forensic-recovery |
-| [State Machine](./state-machine.md) | — | yes (1) | — | compensable-workflow, execute-gated-workflow |
+| [State Machine](./state-machine.md) | — | yes (2) | — | compensable-workflow, execute-gated-workflow |
 | [Subscription](./subscription.md) | — | yes (2) | — | notification-fanout, preference-aware-notification-fanout |
 | [Tamper Evidence](./tamper-evidence.md) | — | yes (1) | — | audit-trail |
 
@@ -70,7 +70,7 @@ Atoms that a regulated composition (one carrying a `## Generation acceptance` se
 - [Consent](./consent.md) — via propagate-consent-revocation-downstream, resolve-a-persons-data-rights
 - [Credential](./credential.md) — via actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning
 - [Duplicate Prevention](./duplicate-prevention.md) — via idempotent-reservation, reserve-from-pool
-- [Event Log](./event-log.md) — via audit-trail, preference-aware-notification-fanout, reserve-from-pool, undo-history
+- [Event Log](./event-log.md) — via audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, undo-history
 - [Invitation](./invitation.md) — via external-onboarding
 - [lease](./lease.md) — via recoverable-invocation
 - [Legal Hold](./legal-hold.md) — via defensible-retention
@@ -85,7 +85,7 @@ Atoms that a regulated composition (one carrying a `## Generation acceptance` se
 - [Selective Disclosure](./selective-disclosure.md) — via capability-backed-sharing, immutable-transaction-ledger, resolve-a-persons-data-rights
 - [Session](./session.md) — via actor-suspension, login, privileged-access-provisioning, session-gated-authorization
 - [Soft Delete](./soft-delete.md) — via forensic-recovery
-- [State Machine](./state-machine.md) — via execute-gated-workflow
+- [State Machine](./state-machine.md) — via compensable-workflow, execute-gated-workflow
 - [Subscription](./subscription.md) — via notification-fanout, preference-aware-notification-fanout
 - [Tamper Evidence](./tamper-evidence.md) — via audit-trail
 
@@ -94,6 +94,8 @@ Atoms that a regulated composition (one carrying a `## Generation acceptance` se
 An overlay, not a domain: an atom carries it iff it derives an identity / access / crypto-family standard (NIST 800-63/53/207, OWASP ASVS, SCIM, FIPS 180-4). Cross-cutting and multi-valued — an atom can hold it alongside any domain.
 
 - [Actor Identity](./actor-identity.md)
+- [Approval Step](./approval-step.md)
+- [Assignment](./assignment.md)
 - [Capability](./capability.md)
 - [Credential](./credential.md)
 - [Invitation](./invitation.md)
@@ -111,7 +113,7 @@ The one intrinsic axis. A domain earns a tag only when stripping it fails to lea
 
 The union of standards each atom's composers carry, attributed per composer in the atom's own page.
 
-- **21 CFR Part 11**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Event Log](./event-log.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
+- **21 CFR Part 11**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Credential](./credential.md), [Event Log](./event-log.md), [lease](./lease.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
 - **AMLD**: [Party Identity](./party-identity.md), [Retention Window](./retention-window.md)
 - **BSA/AML**: [Party Identity](./party-identity.md), [Retention Window](./retention-window.md)
 - **Basel III**: [Actor Identity](./actor-identity.md), [Duplicate Prevention](./duplicate-prevention.md), [Event Log](./event-log.md), [Provisional Commitment](./provisional-commitment.md), [Retention Window](./retention-window.md), [Tamper Evidence](./tamper-evidence.md)
@@ -126,7 +128,7 @@ The union of standards each atom's composers carry, attributed per composer in t
 - **ISO 15489**: [Legal Hold](./legal-hold.md), [Retention Window](./retention-window.md), [Soft Delete](./soft-delete.md)
 - **ISO 27001**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Consent](./consent.md), [Credential](./credential.md), [Event Log](./event-log.md), [Permissions](./permissions.md), [Provenance](./provenance.md), [Retention Window](./retention-window.md), [Selective Disclosure](./selective-disclosure.md), [Session](./session.md), [Soft Delete](./soft-delete.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)
 - **NIST 800-207**: [Credential](./credential.md), [Permissions](./permissions.md), [Session](./session.md)
-- **NIST 800-53**: [Capability](./capability.md), [Credential](./credential.md), [Permissions](./permissions.md), [Session](./session.md)
+- **NIST 800-53**: [Actor Identity](./actor-identity.md), [Approval Step](./approval-step.md), [Assignment](./assignment.md), [Capability](./capability.md), [Credential](./credential.md), [Permissions](./permissions.md), [Session](./session.md)
 - **NIST 800-57**: [Actor Identity](./actor-identity.md), [Credential](./credential.md)
 - **NIST 800-63**: [Actor Identity](./actor-identity.md), [Credential](./credential.md), [Invitation](./invitation.md), [Party Identity](./party-identity.md), [Permissions](./permissions.md), [Session](./session.md)
 - **NIST 800-92**: [Actor Identity](./actor-identity.md), [Event Log](./event-log.md), [Retention Window](./retention-window.md), [State Machine](./state-machine.md), [Tamper Evidence](./tamper-evidence.md)

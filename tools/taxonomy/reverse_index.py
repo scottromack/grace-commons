@@ -107,7 +107,13 @@ def parse_composition(path):
         roles[name] = m.group(3).strip()[:90]
     regulated = bool(re.search(r"^## .*Generation acceptance", text, re.M))
     std_section = section(text, r"^## Standards")
-    standards = sorted({code for pat, code in STANDARDS if re.search(pat, std_section)})
+    # a migrated page spells an acronym out where it first appears — `21 CFR (Code of
+    # Federal Regulations) Part 11`, `ISO/IEC (International Electrotechnical Commission)
+    # 27001` — so each pattern is matched with the expansions removed as well as with them
+    # kept; the kept reading still catches a standard a page names only inside parentheses
+    bare = re.sub(r"\s\([^)]*\)", "", std_section)
+    standards = sorted({code for pat, code in STANDARDS
+                        if re.search(pat, std_section) or re.search(pat, bare)})
     return {"name": path.stem, "atoms": atoms, "roles": roles,
             "regulated": regulated, "standards": standards}
 

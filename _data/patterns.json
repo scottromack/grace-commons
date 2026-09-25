@@ -31,6 +31,7 @@
    "GDPR",
    "HIPAA",
    "ISO 27001",
+   "NIST 800-53",
    "NIST 800-57",
    "NIST 800-63",
    "NIST 800-92",
@@ -59,6 +60,7 @@
   },
   "regulated": true,
   "standards": [
+   "21 CFR Part 11",
    "GDPR",
    "HIPAA",
    "ISO 27001",
@@ -94,11 +96,12 @@
    "execute-gated-workflow",
    "multi-party-approval"
   ],
-  "security": false,
+  "security": true,
   "standards": [
    "21 CFR Part 11",
    "HIPAA",
    "ISO 27001",
+   "NIST 800-53",
    "PCI DSS",
    "SOC 2",
    "SOX"
@@ -126,11 +129,12 @@
    "multi-party-approval",
    "shared-todo"
   ],
-  "security": false,
+  "security": true,
   "standards": [
    "21 CFR Part 11",
    "HIPAA",
    "ISO 27001",
+   "NIST 800-53",
    "PCI DSS",
    "SOC 2",
    "SOX"
@@ -153,9 +157,11 @@
   },
   "regulated": true,
   "standards": [
+   "21 CFR Part 11",
    "GDPR",
    "HIPAA",
    "ISO 27001",
+   "NIST 800-53",
    "PCI DSS",
    "SOX"
   ],
@@ -230,6 +236,7 @@
   },
   "regulated": true,
   "standards": [
+   "21 CFR Part 11",
    "GDPR",
    "HIPAA",
    "ISO 27001",
@@ -263,6 +270,7 @@
   ],
   "security": true,
   "standards": [
+   "21 CFR Part 11",
    "GDPR",
    "HIPAA",
    "ISO 27001",
@@ -280,7 +288,7 @@
    "selective-disclosure"
   ],
   "grounded": false,
-  "invariants": 6,
+  "invariants": 5,
   "kind": "composition",
   "models": {
    "als": false,
@@ -289,6 +297,7 @@
   },
   "regulated": true,
   "standards": [
+   "21 CFR Part 11",
    "GDPR",
    "HIPAA",
    "ISO 27001",
@@ -330,7 +339,7 @@
    "provenance"
   ],
   "grounded": false,
-  "invariants": 7,
+  "invariants": 6,
   "kind": "composition",
   "models": {
    "als": false,
@@ -359,14 +368,14 @@
    "event-log"
   ],
   "grounded": false,
-  "invariants": 9,
+  "invariants": 8,
   "kind": "composition",
   "models": {
    "als": false,
    "tla": true,
    "twins": 0
   },
-  "regulated": false,
+  "regulated": true,
   "standards": [
    "21 CFR Part 11",
    "ISO 27001",
@@ -432,6 +441,7 @@
   ],
   "security": true,
   "standards": [
+   "21 CFR Part 11",
    "FATF",
    "GDPR",
    "HIPAA",
@@ -558,6 +568,7 @@
   },
   "regulated_by": [
    "audit-trail",
+   "compensable-workflow",
    "preference-aware-notification-fanout",
    "reserve-from-pool",
    "undo-history"
@@ -590,7 +601,7 @@
    "assignment"
   ],
   "grounded": false,
-  "invariants": 8,
+  "invariants": 7,
   "kind": "composition",
   "models": {
    "als": false,
@@ -645,7 +656,7 @@
    "soft-delete"
   ],
   "grounded": false,
-  "invariants": 6,
+  "invariants": 5,
   "kind": "composition",
   "models": {
    "als": false,
@@ -700,7 +711,7 @@
    "selective-disclosure"
   ],
   "grounded": false,
-  "invariants": 6,
+  "invariants": 5,
   "kind": "composition",
   "models": {
    "als": false,
@@ -769,6 +780,7 @@
   ],
   "security": false,
   "standards": [
+   "21 CFR Part 11",
    "GDPR",
    "HIPAA",
    "PCI DSS",
@@ -823,6 +835,7 @@
    "GDPR",
    "HIPAA",
    "NIST 800-53",
+   "NIST 800-63",
    "OWASP ASVS",
    "PCI DSS",
    "SOX"
@@ -880,7 +893,7 @@
    "assignment"
   ],
   "grounded": false,
-  "invariants": 10,
+  "invariants": 9,
   "kind": "composition",
   "models": {
    "als": false,
@@ -890,6 +903,7 @@
   "regulated": true,
   "standards": [
    "21 CFR Part 11",
+   "NIST 800-53",
    "PCI DSS",
    "SOC 2",
    "SOX"
@@ -1076,7 +1090,7 @@
    "event-log"
   ],
   "grounded": false,
-  "invariants": 10,
+  "invariants": 9,
   "kind": "composition",
   "models": {
    "als": false,
@@ -1218,6 +1232,7 @@
   },
   "regulated": true,
   "standards": [
+   "21 CFR Part 11",
    "GDPR",
    "HIPAA",
    "PCI DSS",
@@ -1238,7 +1253,7 @@
    "actor-identity"
   ],
   "grounded": false,
-  "invariants": 8,
+  "invariants": 7,
   "kind": "composition",
   "models": {
    "als": false,
@@ -1259,7 +1274,7 @@
    "consent"
   ],
   "grounded": false,
-  "invariants": 9,
+  "invariants": 8,
   "kind": "composition",
   "models": {
    "als": false,
@@ -1387,6 +1402,7 @@
   ],
   "security": true,
   "standards": [
+   "21 CFR Part 11",
    "GDPR",
    "HIPAA",
    "ISO 27001",
@@ -1493,6 +1509,7 @@
    "twins": 1
   },
   "regulated_by": [
+   "compensable-workflow",
    "execute-gated-workflow"
   ],
   "security": false,
