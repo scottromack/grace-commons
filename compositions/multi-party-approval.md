@@ -79,7 +79,7 @@ Term verification: Audit Trail's verify_record on an event id and a presentation
 
 Term step write: Approval Step's submit, approve, reject or withdraw.
 
-Term chain namespace: the action references chain_initiation_intended, chain_initiated, chain_initiation_failed, step_decision_intended, step_approved, step_rejected, step_withdrawn, chain_withdrawal_intended, chain_withdrawn, chain_resolved, cascade_completed and chain.recovery_intended on the composition's Audit Trail instance.
+Term chain namespace: the action references chain_initiation_intended, chain_initiated, chain_initiation_failed, step_decision_intended, step_approved, step_rejected, step_withdrawn, chain_withdrawal_intended, chain_withdrawn, chain_resolved, cascade_completed and chain_recovery_intended on the composition's Audit Trail instance.
 
 WHY:
 **Approval Step is one gate and deliberately knows no chain** — it does not count approvals, interpret a quorum or wire gates together, and its own EOS (Essence of Software — Daniel Jackson's framework for freestanding, composable concepts) boundary defends that. **Permissions** knows who may start, withdraw or read a chain and nothing of whether the named approvers decided; **Assignment** binds work to an actor and nothing of whether the work is one gate of many; **Audit Trail** records acts of consequence and nothing of whether they make a complete chain under a named rule. Stacked, the four answer the auditor's question in one structure: a chain naming its approvers and rule, one step per slot, one in-tray record per step, an audit event for every act, and a chain outcome any reader recomputes from the records. Event Log, Actor Identity, Tamper Evidence and Retention Window are reached through the substrate and never instanced here (Composes 7 and 8; the section titled Compositions of compositions in `spec-format.md`).
@@ -666,7 +666,7 @@ Term superseded mark: superseded_by_decision set to true on a closure record.
 
 Term closure mark: retried where the retried call succeeded; superseded_by_decision where a retried withdrawal answered not-pending, the step decided by its named approver in the window; store_anomaly where a retried recall answered not-known (2026-08-26-n).
 
-Term recovery intent: the chain.recovery_intended event.
+Term recovery intent: the chain_recovery_intended event.
 
 Term open marker: a quarantine flag set, a partial flag with no closure record for every call it names, or a routed transition with no audit record.
 
