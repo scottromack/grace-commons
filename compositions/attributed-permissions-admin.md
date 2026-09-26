@@ -66,7 +66,7 @@ Composes 16: The composition MUST record a grant ONLY AFTER the administrative a
 Composes 17: The composition MUST record a revocation ONLY AFTER the administrative act's landed attestation.
 Composes 18: The composition MUST NOT record an administrative act carrying no attestation.
 Composes 19: The composition MUST NOT claim coverage of a write made outside the composition's surface.
-Composes 20: The composition MUST enumerate an attestation through Actor Identity's declared enumeration.
+Composes 20: The composition MUST enumerate an attestation through Actor Identity's declared read.
 Composes 21: The composition MUST filter an enumerated attestation in the composition's own code.
 Composes 22: The composition MUST NOT query Actor Identity by an action reference.
 Composes 23: The composition MUST mint one attestation PER administered grant.
@@ -84,7 +84,7 @@ Term administrative act: an issuance, a revocation, OR a pair-scoped revocation 
 WHY:
 Composes 15 through 18 are the attest-before-record ordering stated as an obligation rather than a step number, because it is the ordering the whole composition exists to impose. Composes 19 is its honest limit in the same breath: the guarantee is over this surface, and a direct store write bypasses it. Saying so here rather than in a footnote is what keeps Invariant 1 readable as what it is — a property of the administered set, not of the store.
 
-Composes 22 is a capability this composition does *not* have and must not appear to. Actor Identity keys attestations by id and declares no read by action reference, so every orphan enumeration on this page is *enumerate the declared output and filter audit-side* (Composes 20, Composes 21). A rule written as *find the attestations whose reference begins with the prefix* would name a surface no constituent offers.
+Composes 22 is a capability this composition does *not* have and must not appear to. Actor Identity keys attestations by id and declares no read by action reference, so every orphan enumeration on this page is *enumerate the declared read and filter audit-side* (Composes 20, Composes 21). A rule written as *find the attestations whose reference begins with the prefix* would name a surface no constituent offers.
 
 Composes 23 and Composes 24 look like an implementation note and are a checked invariant's antecedent. Invariant 7 requires the revocation map to be injective and Check 6.2 tests it, so a pair-scoped revocation that shared one attestation across the set — the obvious economy — would break a checked invariant to save an attest call. One attestation per grant is forced, not chosen; the auditor's grouping key is the shared request instant instead, which costs nothing and needs no new field.
 
@@ -256,10 +256,10 @@ Term boundary predicate: the composition's own validation of an input at an acti
 
 Term opaque input: subject reference | action scope | grantor ref | grantor credential | grant id | revoker ref | revoker credential.
 
-Term administered opaque input: an opaque input an administrative action carries — as against one the evaluation passthrough relays.
+Term administered opaque input: an opaque input an administrative action carries, other than a credential — as against one the evaluation passthrough relays.
 
 WHY:
-Primitive policy 6 through 11 carry one asymmetry the page names rather than hides. Administration inputs are trimmed once at this boundary and the trimmed value is what the constituent stores; the evaluation passthrough is **not** trimmed, by design, because the composition relays that query and does not silently rewrite it. The consequence is exact-match: an evaluation whose subject or scope differs from the stored form only by surrounding whitespace answers denied. Callers normalize as the administration surface does, or accept the miss — and either way the behaviour is stated instead of discovered.
+Primitive policy 6 through 11 carry one asymmetry the page names rather than hides. Administration inputs are trimmed once at this boundary and the trimmed value is what the constituent stores; the evaluation passthrough is **not** trimmed, by design, because the composition relays that query and does not silently rewrite it. The consequence is exact-match: an evaluation whose subject or scope differs from the stored form only by surrounding whitespace answers denied. Callers normalize as the administration surface does, or accept the miss — and either way the behaviour is stated instead of discovered. A credential is not trimmed: the composition passes it as the caller gave it, because whether it validates is Actor Identity's to decide and a trimmed credential is a different credential (Primitive policy 12).
 
 Primitive policy 15 and Primitive policy 16 read the constituent's refusal at the right layer. An invalid-request from the attest surface means the proposal *this composition assembled* violated the constituent's request shape — a configuration fault in the proposal format, not something the caller typed — so it is pageable rather than retryable, and the composition surfaces it under its own code because the effective cause is a malformed proposal reference.
 
@@ -470,7 +470,7 @@ WHY:
 
 ```
 Housekeeping 1: The composition MAY compose a failed-grant leg.
-Housekeeping 2: The failed-grant leg MUST enumerate an attestation through Actor Identity's declared enumeration.
+Housekeeping 2: The failed-grant leg MUST enumerate an attestation through Actor Identity's declared read.
 Housekeeping 3: The failed-grant leg MUST filter an enumerated attestation by the namespace prefix.
 Housekeeping 4: The failed-grant leg MUST read an attestation no attribution entry names as an orphan.
 Housekeeping 5: The failed-grant leg MUST report an orphan.
@@ -483,7 +483,7 @@ Housekeeping 11: The failed-grant leg MUST NOT examine an issuance-side attestat
 Housekeeping 12: The failed-grant leg MUST NOT examine a revocation-side attestation younger than the pair-scoped completion bound.
 Housekeeping 13: The failed-grant leg MUST age an attestation by the request instant the attestation's proposal carries.
 Housekeeping 14: The failed-grant leg MUST widen the bound by the clock offset allowance ONLY IF the leg ages an attestation by a constituent's stamp.
-Housekeeping 15: The failed-grant leg MUST NOT examine an aged-out attestation.
+Housekeeping 15: The failed-grant leg MUST NOT report an aged-out attestation as an orphan.
 Housekeeping 16: The failed-grant leg MUST report an aged-out unpaired attestation carrying an orphan log entry as a purge-pending orphan.
 Housekeeping 17: The failed-grant leg MUST report an aged-out unpaired attestation carrying no orphan log entry as a non-conformant purge.
 Housekeeping 18: The failed-grant leg MUST NOT read an aged-out unpaired attestation as benign.
@@ -645,7 +645,7 @@ Check 3.3: An auditor MUST NOT read an inversion inside the clock offset allowan
 Check 4.1: An auditor MUST clear Permissions' conformance checks over the Permissions instance (Invariant 5.1).
 Check 4.2: An auditor MUST clear Actor Identity's conformance checks over the Actor Identity instance (Invariant 5.2).
 Check 4.3: An auditor MUST NOT count a constituent's conformance checks (Invariant 5.4).
-Check 5.1: An auditor MUST enumerate Actor Identity's declared output (Composes 20).
+Check 5.1: An auditor MUST enumerate Actor Identity's declared read (Composes 20).
 Check 5.2: An auditor MUST filter the enumeration by the namespace prefix (Capability requirement 11).
 Check 5.3: An auditor MUST read a filtered attestation no attribution entry names as an orphan (Housekeeping 4).
 Check 5.4: An auditor MUST read an issuance-side attestation younger than the issuance completion bound as inconclusive (Housekeeping 11).
@@ -677,7 +677,7 @@ External check 8: The deployment MUST establish that the namespace prefix stands
 ```
 
 WHY:
-**Check 5 is the composition's contribution to forensic completability, and the namespace prefix is what makes it possible at all.** Actor Identity keys attestations by id and declares no read by action reference, so the population of *this composition's* attestations is recovered by enumerating the constituent's declared output and filtering audit-side on the prefix. A deployment that omits the prefix from either proposal format cannot clear this check from the records: the references become indistinguishable from a foreign composing system's in a shared store, and the orphan population cannot be *bounded* — only sampled. The distinction between *an orphan we can see* and *a missing attestation we cannot* is the whole of what this check buys, which is why External check 8 exists beside it.
+**Check 5 is the composition's contribution to forensic completability, and the namespace prefix is what makes it possible at all.** Actor Identity keys attestations by id and declares no read by action reference, so the population of *this composition's* attestations is recovered by enumerating the constituent's declared read and filtering audit-side on the prefix. A deployment that omits the prefix from either proposal format cannot clear this check from the records: the references become indistinguishable from a foreign composing system's in a shared store, and the orphan population cannot be *bounded* — only sampled. The distinction between *an orphan we can see* and *a missing attestation we cannot* is the whole of what this check buys, which is why External check 8 exists beside it.
 
 Check 5.4 and Check 5.5 take different bounds on the two sides, and the asymmetry is not an oversight. A pair-scoped invocation's attestations all carry its **first** request instant, so the last one is already the whole invocation old when written; ageing the revocation side against the single-grant bound would report a live invocation's later attestations as orphans. The revocation side therefore takes the wider bound, and the cost — detection latency on a report-only leg — is the safe direction to spend.
 

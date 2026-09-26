@@ -69,6 +69,8 @@ Deno.test("administration trims once; the evaluation does not trim (Primitive po
   assertEquals(C.permitted(x, "u1", "s"), "permitted");
   assertEquals(C.permitted(x, " u1", "s"), "denied");
   assertEquals(C.permitted(x, "U1", "s"), "denied");
+  // A credential is passed as given, never trimmed (Term administered opaque input).
+  assertEquals(C.issue_grant(x, "u1", "s", "alice", " alice-secret "), { refused: "invalid-credential" });
 });
 
 Deno.test("an attest storage failure answers attribution-storage-failure and writes no grant (Action wiring 5 and 6)", () => {

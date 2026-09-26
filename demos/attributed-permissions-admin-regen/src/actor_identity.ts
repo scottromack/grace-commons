@@ -1,5 +1,4 @@
-// Actor Identity, as much of the atom as this composition reaches: attest,
-// verify, and the enumeration Composes 20 relies on. The credential mechanism
+// Actor Identity: attest, verify and the read. The credential mechanism
 // is an HMAC over the action reference and the actor reference under the
 // actor's registered secret; a credential validates when it is that secret.
 import type { Database } from "@db/sqlite";
@@ -47,8 +46,9 @@ export function verify(db: Database, attestation_id: string, registryUp = true):
   return proofOf(r.secret, a.action_ref, a.actor_ref) === a.proof ? "verified" : { "failed-verification": "proof-invalid" };
 }
 
-// The enumeration Composes 20 and Housekeeping 2 require. Actor Identity's
-// signature block declares no such read; see CORNERS.md.
-export function enumerate(db: Database): { attestation_id: string; action_ref: string; attested_at: string }[] {
-  return db.prepare("SELECT attestation_id, action_ref, attested_at FROM attestation ORDER BY attested_at").all();
+// Operation 27 through 30: every attestation with its stored fields, keyed
+// by nothing; a composing pattern filters in its own code.
+export interface Attestation { attestation_id: string; action_ref: string; actor_ref: string; proof: string; attested_at: string }
+export function read(db: Database): Attestation[] {
+  return db.prepare("SELECT * FROM attestation ORDER BY attested_at").all<Attestation>();
 }

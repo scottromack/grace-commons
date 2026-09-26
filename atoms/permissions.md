@@ -110,6 +110,9 @@ revoke(grant_id)
 
 permitted(subject_ref, action_scope)
   answers permitted | denied
+
+read()
+  answers every grant
 ```
 
 ```
@@ -138,6 +141,10 @@ Operation 22: [Check] MUST match an action scope exactly.
 Deleted: Operation 23. Capability requirement 1 owns it.
 Deleted: Operation 24. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
+Operation 26: [Read] MUST answer EVERY grant, active AND revoked.
+Operation 27: [Read] MUST answer a grant's grant id, subject reference, action scope, grant instant, status AND revocation instant.
+Operation 28: [Read] MUST NOT write.
+Operation 29: [Read] MUST NOT refuse a call.
 ```
 
 Term pair: one subject reference with one action scope — what [Check] matches over.
@@ -158,6 +165,7 @@ The case space, and the rule that owns each case:
 | [Revoke] | store refuses the write | [Storage Failure] | none — **the subject keeps the access** (Operation 13 through 15) |
 | [Check] | a live grant matches the pair | [Permitted] | none — the call reads (Operation 17, Operation 20) |
 | [Check] | nothing matches, over-length argument included | [Denied] | none (Operation 18, String 7) |
+| [Read] | any | every grant, with its stored fields | none (Operation 26 through 29) |
 
 WHY:
 The two storage failures are not the same failure. A failed [Grant] leaves a record missing, which the caller discovers the next time the subject is denied; a failed [Revoke] leaves a subject holding access the organization has decided to remove, and a caller that reads it as *probably fine* has left the door open (Operation 15, Revoke persistence 1 through 4). [Check] refuses nothing: a malformed argument matches no grant, and the correct answer to *may this actor do this thing* is then denied rather than an error the call site has to interpret (Operation 19, String 7).
@@ -415,6 +423,12 @@ The read-only behavior a composing pattern invokes before an action to evaluate 
 
 Kind: Operation
 
+#### Read
+
+The read-only query answering every grant the store holds, [Active] and [Revoked], each with its stored fields. It is what a composing pattern enumerates a subject's or a pair's grants through, filtering in its own code (Deprovisioning 2), and what an auditor reads the store through (Check 1.1). It changes nothing and refuses nothing.
+
+Kind: Operation
+
 #### Grant Id
 
 The opaque, immutable identity of a grant, host-allocation instant the I/O seam on [Grant] and never reused. The [Subject Reference] and [Action Scope] are properties of the grant, not its identity; the id is the handle [Revoke] uses.
@@ -551,6 +565,7 @@ Projection: storage-failure
 [Grant]: #grant
 [Revoke]: #revoke
 [Check]: #check
+[Read]: #read
 [Grant Id]: #grant-id
 [Subject Reference]: #subject-reference
 [Action Scope]: #action-scope
@@ -610,5 +625,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/permissions.md`.
 
 - **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the three actions as a signature block, the string policy as its own rule family, the ten invariant numbers unchanged, Generation acceptance as conformance checks plus external checks ahead of Non-goals, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan, and this atom completes [Shared Todo](../compositions/shared-todo.md)'s constituent set — Personal Todo, Assignment and Permissions all migrated, which makes that composition the one with no inherited term collision to resolve.
+
+- **2026-09-26 — The read surface restored.** *Chose:* `read()` in the signature block, answering every grant with its stored fields (Operation 26 through 29). *Over:* an atom with no declared read. *Because:* the prose spec declared its read surface in its Outputs section — "the current set of grants", each with its fields — and the migration dropped it with the section, while Deprovisioning 2, Check 1.1, Attributed Permissions Admin and Actor Suspension all read the store through it. Restored as the prose had it, not widened: no filter, so a composing pattern filters in its own code. Found by the cold regeneration of the Attributed Permissions Admin demo (council read 228).
 
 NOTE: End of Permissions.

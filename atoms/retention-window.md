@@ -119,6 +119,9 @@ place_under_retention(record_ref, policy_ref)
 purge(retention_id)
   answers ok
   refuses not-known | not-retained | retention-period-not-elapsed | storage-failure
+
+read()
+  answers every retention
 ```
 
 ```
@@ -151,6 +154,11 @@ Deleted: Operation 25. Execution Contract Logic confinement 3 owns it.
 Operation 26: The transition MUST NOT read the policy registry.
 Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
 Operation 28: A reader MUST derive purge eligible from retention deadline and the injected now.
+Operation 29: [Read] MUST answer EVERY retention, retained AND purged.
+Operation 30: [Read] MUST answer a retention's stored fields.
+Operation 31: [Read] MUST answer purge eligible PER retained retention.
+Operation 32: [Read] MUST NOT write.
+Operation 33: [Read] MUST NOT refuse a call.
 ```
 
 The case space, and the rule that owns each case:
@@ -169,6 +177,7 @@ The case space, and the rule that owns each case:
 | [Purge] | eligible, past purge deadline | ok | the same — lateness is observable, never refused (Operation 18) |
 | [Purge] | eligible, store refuses the write | [Storage Failure] | none — the retention stays [Retained] (Operation 19, Operation 20) |
 | *a retention crossing retention deadline* | — | *nothing* | nothing is written; eligibility is read (State 7, Operation 28) |
+| [Read] | any | every retention, with its stored fields and, while retained, purge eligible | none (Operation 29 through 33) |
 
 WHY:
 The refusal order is carried by each rule's own condition rather than by the order the rules sit in (`GRACE-lang.md` Hard invariant 15): identity and state answer first, the time gate next, the store last. The gate writes nothing when it refuses, which is what makes *no early purge* a structural guarantee rather than a logged intention (Operation 16, Operation 17, Invariant 7.1). A purge past the deadline is accepted on purpose: the regulator already expects the record gone, and refusing would keep it (Operation 18). One clock reading per call closes the window two readings would open between the gate and the stamp — the residual risk is a dishonest clock, not an internal race (Operation 21, Operation 22, Invariant 8.2).
@@ -451,6 +460,12 @@ The behavior the host invokes to transition a retention to [Purged], destroying 
 
 Kind: Operation
 
+#### Read
+
+The read-only query answering every retention the store holds, [Retained] and [Purged], each with its stored fields and, while [Retained], the [Purge Eligible] projection derived against the injected [Now]. It changes nothing and refuses nothing.
+
+Kind: Operation
+
 #### Retention Id
 
 The opaque, immutable identity of a retention, host-allocation instant the I/O seam on [Place Under Retention] and never reused. The [Record Reference], [Policy Reference], and the derived deadlines are properties of the retention, not its identity.
@@ -642,6 +657,7 @@ Projection: storage-failure
 [Retention Window]: #retention-window
 [Place Under Retention]: #place-under-retention
 [Purge]: #purge
+[Read]: #read
 [Retention Id]: #retention-id
 [Record Reference]: #record-reference
 [Policy Reference]: #policy-reference
@@ -711,5 +727,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/retention-window.md`.
 
 - **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the two actions as a signature block, the refusal order carried by each rule's own condition rather than by the order the rules sit in, the eleven invariant numbers frozen exactly as Audit Trail cites them, Generation acceptance moved ahead of Non-goals as `spec-format.md` requires, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan takes the atoms the migrated compositions already cite first — Audit Trail cites this atom's Invariants 1, 3, 7 and 11 (`tools/grace/cites.py --into retention-window`).
+
+- **2026-09-26 — The read surface restored.** *Chose:* `read()` in the signature block, answering every retention with its stored fields and, while retained, purge eligible (Operation 29 through 33). *Over:* an atom with no declared read. *Because:* the prose spec declared its read surface in its Outputs section — the retained and purged sets, each retention with its fields, and purge eligibility derived at read time — and the migration dropped it with the section, while Operation 28, Customer Onboarding and Defensible Retention all read the store through it. Restored as the prose had it, not widened. Found beside the same loss in Permissions and Actor Identity, which the cold regeneration of the Attributed Permissions Admin demo surfaced (council read 228).
 
 NOTE: End of Retention Window.

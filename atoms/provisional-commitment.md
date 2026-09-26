@@ -159,6 +159,9 @@ release(id)
 expire(id)
   answers ok
   refuses not-known | not-held | window-not-elapsed | storage-failure
+
+read()
+  answers every commitment
 ```
 
 ```
@@ -199,6 +202,10 @@ Operation 34: A resolving action MUST NOT accept a requester.
 Operation 35: A resolving action MUST NOT accept a duration.
 Deleted: Operation 36. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 37. Execution Contract Logic confinement 3 owns it.
+Operation 38: [Read] MUST answer EVERY commitment, held AND terminal.
+Operation 39: [Read] MUST answer a commitment's stored fields.
+Operation 40: [Read] MUST NOT write.
+Operation 41: [Read] MUST NOT refuse a call.
 ```
 
 Term resolving action: [Confirm] | [Release] | [Expire] — every action taking a held commitment to a terminal state.
@@ -546,6 +553,12 @@ The resolving behavior — the side-effecting lapse — that moves a lapsed [Hel
 
 Kind: Operation
 
+#### Read
+
+The read-only query answering every commitment the store holds, held and terminal, each with its stored fields. It changes nothing and refuses nothing.
+
+Kind: Operation
+
 #### Commitment
 
 The record this atom defines: one resource held for one requester for a bounded window, resolved to exactly one terminal state. Carries [Id], [Resource], [Requester], [Placement Instant], [Expiry Instant], a state, and the terminal instant of the transition that settled it.
@@ -735,6 +748,7 @@ Projection: storage-failure
 [Confirm]: #confirm
 [Release]: #release
 [Expire]: #expire
+[Read]: #read
 [Commitment]: #commitment
 [Id]: #id
 [Resource]: #resource
@@ -805,5 +819,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-13 — Single-resolution is stated as at-most-one, and the at-least-one half is a non-goal.** *Chose:* `Invariant 2.1` and `Invariant 2.2` alone, with `Non-goal 25` naming the limit and `Capability requirement 12` where a deployment may close it. *Over:* a third rule reading *EXACTLY ONE resolving action MUST commit*. *Because:* its marginal content over the other two was liveness, which an atom that licenses lazy expiry cannot deliver — and the model says the same: `INVARIANT Safety` with no temporal property, and `Inv_SingleResolution` checking only that a written resolution matches the state. The spec claimed *exactly*; the model checked *at most*. GRACE's `MUST` has no temporal scope to tell them apart, which is now a docket row.
 - **2026-09-13 — Invariant 4 and Invariant 9 are tombstoned; Identity owns id stability and id reuse.** *Chose:* Identity 4 and Identity 5 as the single owners. *Over:* keeping the invariants, which restated them. *Because:* Authority 3 — and Identity 5 is the stronger claim, since two commitments never share an id whether or not either has resolved.
 - **2026-06-23 — Expiry stays a stored terminal reached by an explicit expire event; the derived-expiry refactor is withdrawn for this atom.** *Chose:* stored `Expired` with lapse instant, the window-not-elapsed rejection and confirm's window-elapsed guard restored. *Over:* the corpus-wide derive-expiry-at-read-time move applied two days earlier. *Because:* this atom's lapse has a side effect — expire releases the resource, and in a pool-backed composition returns a capacity slot — which Reserve from Pool and Idempotent Reservation call and map; derived expiry is for side-effect-free lapses only.
+
+- **2026-09-26 — The read surface restored.** *Chose:* `read()` in the signature block, answering every commitment with its stored fields (Operation 38 through 41). *Over:* an atom with no declared read. *Because:* the prose spec declared its read surface in its Outputs section — "the current set of [Held] commitments" and the terminal ones, each with its fields — and the migration dropped it with the section. Restored as the prose had it, not widened. Found beside the same loss in Permissions and Actor Identity, which the cold regeneration of the Attributed Permissions Admin demo surfaced (council read 230).
 
 NOTE: End of Provisional Commitment.

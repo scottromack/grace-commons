@@ -130,7 +130,7 @@ The table under the section titled *Composition headings* owns each heading's na
     ```
     Composes 1: EXACTLY ONE Event Log instance MUST serve the composition.
     Composes 5: The composition MUST call ActorIdentity.attest at [Record Action] step 2 alone.
-    Composes 7: The composition MUST read an attestation's surviving fields through Actor Identity's declared read surface.
+    Composes 7: The composition MUST read an attestation's surviving fields through Actor Identity's declared read.
     Composes 8: The composition MUST NOT delete an attestation.
     ```
 

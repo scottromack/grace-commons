@@ -107,6 +107,9 @@ attest(action_ref, actor_ref, credential)
 
 verify(attestation_id)
   answers verified | failed-verification(verification failure) | not-known
+
+read()
+  answers every attestation
 ```
 
 Term verification failure: proof-invalid | actor-unknown-in-registry | registry-unavailable — the reasons [Verify] gives for a failed verification.
@@ -138,6 +141,10 @@ Operation 23: The host MUST supply the cryptographic material at the atom's seam
 Deleted: Operation 24. Execution Contract Logic confinement 3 owns it.
 Operation 25: The transition MUST NOT mint entropy.
 Operation 26: The business caller MUST NOT supply attestation instant.
+Operation 27: [Read] MUST answer EVERY attestation.
+Operation 28: [Read] MUST answer an attestation's attestation id, action reference, actor reference, proof AND attestation instant.
+Operation 29: [Read] MUST NOT write.
+Operation 30: [Read] MUST NOT refuse a call.
 ```
 
 Term registry answer: material | unknown-actor | unreachable — what the actor registry gives a verifier for an actor reference.
@@ -159,6 +166,7 @@ The case space, and the rule that owns each case:
 | [Verify] | attestation found, registry unreachable | [Registry Unavailable] | none (Operation 17) |
 | [Verify] | material in hand, proof does not hold | [Proof Invalid] | none (Operation 18) |
 | [Verify] | material in hand, proof holds | [Verified] | none (Operation 19) |
+| [Read] | any | every attestation, with its stored fields | none (Operation 27 through 30) |
 
 WHY:
 The four verify outcomes are kept apart by their conditions, not by the order the rules sit in (`GRACE-lang.md` Hard invariant 15): not-known is an id miss; actor-unknown-in-registry is missing actor material and may be permanent; registry-unavailable is transient and worth retrying; proof-invalid is a proof that exists and fails — after a key rotation, or under forgery. A deployment that collapses these into a boolean has thrown away the difference between *we cannot check right now* and *this does not check out* (Operation 15 through 19). Verification reads the registry's view, which is why a rotation can turn a verified attestation into a failing one unless the registry keeps historical material — the registry's property, not the atom's (Non-goal 3, Registry view 1 through 3).
@@ -369,7 +377,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: attestation — one binding, carrying attestation id, action reference, actor reference, proof and attestation instant.
 
-Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, agree, fail.
+Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, agree, fail, refuse.
 
 Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
 
@@ -396,6 +404,12 @@ Kind: Operation
 #### Verify
 
 The read-only behavior an auditor or composing pattern invokes to confirm a recorded [Attestation], by id. It re-checks the stored [Proof] against the recorded [Action Reference] and [Actor Reference] using the actor registry's public material, and returns [Verified], [Failed Verification], or [Not Known]. It changes nothing.
+
+Kind: Operation
+
+#### Read
+
+The read-only query answering every attestation the store holds, each with its stored fields. It keys nothing by action reference: a composing pattern that wants its own attestations enumerates this read and filters in its own code. It changes nothing and refuses nothing.
 
 Kind: Operation
 
@@ -544,6 +558,7 @@ Projection: storage-failure
 [Attestation]: #attestation
 [Attest]: #attest
 [Verify]: #verify
+[Read]: #read
 [Action Reference]: #action-reference
 [Actor Reference]: #actor-reference
 [Attestation Id]: #attestation-id
@@ -606,5 +621,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`.
 
 - **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the two actions as a signature block, the verify precedence carried by each rule's own condition rather than by the order the rules sit in, the nine invariant numbers frozen exactly as Audit Trail cites them, Generation acceptance moved ahead of Non-goals as `spec-format.md` requires, Non-goals and Edge cases as two sections, the case table kept beside the rules. *Over:* the prose spec. *Because:* the migration plan takes the atoms the migrated compositions already cite first — Audit Trail cites this atom's Invariants 1, 6 and 9 (`tools/grace/cites.py --into actor-identity`).
+
+- **2026-09-26 — The read surface restored.** *Chose:* `read()` in the signature block, answering every attestation with its stored fields (Operation 27 through 30). *Over:* an atom with no declared read. *Because:* the prose spec declared its read surface in its Outputs section — "the current set of attestations", each with its fields — and the migration dropped it with the section, while Check 1.1, Audit Trail and Attributed Permissions Admin all read the store through it. Restored as the prose had it, not widened: no filter and no key by action reference, so a composing pattern filters in its own code. Found by the cold regeneration of the Attributed Permissions Admin demo (council read 228).
 
 NOTE: End of Actor Identity.

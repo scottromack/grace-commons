@@ -1,5 +1,4 @@
-// Permissions, as much of the atom as this composition reaches: grant, revoke,
-// the evaluation, and the reads the composition's actions need.
+// Permissions: grant, revoke, the evaluation and the read.
 import type { Database } from "@db/sqlite";
 import type { Faults } from "./store.ts";
 
@@ -29,7 +28,7 @@ export function grant(db: Database, seam: { now(): string; grantId(): string }, 
 
 // Operation 9 through 15.
 export function revoke(db: Database, seam: { now(): string }, faults: Faults, grant_id: string): RevokeAnswer {
-  const g = read(db, grant_id);
+  const g = db.prepare("SELECT status FROM grant_record WHERE grant_id = ?").get<{ status: string }>(grant_id);
   if (!g) return { refused: "not-known" };
   if (g.status === "revoked") return { refused: "not-active" };
   if (faults.revokeStorage) return { refused: "storage-failure" };
@@ -46,13 +45,8 @@ export function permitted(db: Database, subject_ref: string, action_scope: strin
   return row ? "permitted" : "denied";
 }
 
-// The declared read Action wiring 55 names, and the enumeration of a pair's
-// active grants Action wiring 42 names. Permissions' signature block declares
-// neither; see CORNERS.md.
-export function read(db: Database, grant_id: string): GrantRecord | undefined {
-  return db.prepare("SELECT * FROM grant_record WHERE grant_id = ?").get<GrantRecord>(grant_id);
-}
-export function activeGrants(db: Database, subject_ref: string, action_scope: string): string[] {
-  return db.prepare("SELECT grant_id FROM grant_record WHERE subject_ref = ? AND action_scope = ? AND status = 'active' ORDER BY grant_id")
-    .all<{ grant_id: string }>(subject_ref, action_scope).map((r) => r.grant_id);
+// Operation 26 through 29: every grant, active and revoked, with its stored
+// fields. No filter; a composing pattern filters in its own code.
+export function read(db: Database): GrantRecord[] {
+  return db.prepare("SELECT * FROM grant_record ORDER BY grant_id").all<GrantRecord>();
 }

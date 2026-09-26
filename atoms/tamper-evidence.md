@@ -102,6 +102,9 @@ seal(record_set_ref, mechanism_credential)
 
 verify(evidence_id, original_record_set)
   answers verified | failed-verification(verification failure) | not-known
+
+read()
+  answers every evidence
 ```
 
 Term mechanism failure reason: unreadable-records | keying-precondition | anchor-unreachable — the reasons [Seal] gives for a mechanism failure.
@@ -137,6 +140,10 @@ Deleted: Operation 23. Execution Contract Logic confinement 3 owns it.
 Operation 24: The transition MUST NOT mint entropy.
 Operation 25: The business caller MUST NOT supply sealing instant.
 Operation 26: The implementation MUST own the mechanism.
+Operation 27: [Read] MUST answer EVERY evidence.
+Operation 28: [Read] MUST answer an evidence's evidence id, record set reference, proof, sealing instant AND anchoring instant.
+Operation 29: [Read] MUST NOT write.
+Operation 30: [Read] MUST NOT refuse a call.
 ```
 
 Term record set match: yes | no — the host's answer, injected at the seam, to whether the presented original record set is the record set the evidence's record set reference names. The atom cannot judge it: record set reference is opaque and Identity rules forbid interpreting it, so the party that resolved the reference at seal time is the party that answers here (council read 13).
@@ -160,6 +167,7 @@ The case space, and the rule that owns each case:
 | [Verify] | right records, verification service unreachable | [Mechanism Verification Unavailable] | none (Operation 17) |
 | [Verify] | right records, proof does not hold | [Proof Invalid] | none (Operation 18) |
 | [Verify] | right records, proof holds | [Verified] | none (Operation 19) |
+| [Read] | any | every evidence, with its stored fields | none (Operation 27 through 30) |
 
 WHY:
 The four verify outcomes are kept apart by their conditions rather than by the order the rules are written in (`GRACE-lang.md` Hard invariant 15): not-known is an id miss and nothing else; record-set-mismatch is a caller holding the wrong records; mechanism-verification-unavailable is transient and worth retrying; proof-invalid is the structural signal of tampering, and a deployment that collapses it into any of the other three has lost the only alarm this atom raises (Operation 15 through 19). [Verify] needs the records because the proof commits to content — the asymmetry from [Actor Identity](./actor-identity.md), whose verification needs only the attestation and the registry (Operation 13, Invariant 4.1).
@@ -398,7 +406,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: evidence — one commitment, carrying evidence id, record set reference, proof, sealing instant and, where the mechanism anchors, anchoring instant.
 
-Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, make, cache, declare, renumber, add.
+Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, make, cache, declare, renumber, add, refuse.
 
 Term value sets: record set match = yes | no. seal check = held | failed | unavailable. evidence field = evidence id | record set reference | proof | sealing instant | anchoring instant. evidence state = sealed.
 
@@ -425,6 +433,12 @@ Kind: Operation
 #### Verify
 
 The read-only behavior an auditor or composing pattern invokes to confirm a recorded [Evidence], by id, against a presented record set. It re-runs the mechanism's verification function over the [Original Record Set] against the stored [Proof] and returns [Verified], [Failed Verification], or [Not Known]. It changes nothing. Unlike Actor Identity's verify, it requires the originating record set as input, because the [Proof] commits to the records' content.
+
+Kind: Operation
+
+#### Read
+
+The read-only query answering every evidence the store holds, each with its stored fields. It changes nothing and refuses nothing.
 
 Kind: Operation
 
@@ -589,6 +603,7 @@ Projection: storage-failure
 [Evidence]: #evidence
 [Seal]: #seal
 [Verify]: #verify
+[Read]: #read
 [Evidence Id]: #evidence-id
 [Record Set Reference]: #record-set-reference
 [Proof]: #proof
@@ -655,5 +670,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/tamper-evidence.md`.
 
 - **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the two actions as a signature block, the verify precedence carried by each rule's own condition rather than by the order the rules sit in, the nine invariant numbers frozen exactly as Audit Trail cites them, Generation acceptance moved ahead of Non-goals as `spec-format.md` requires, Non-goals and Edge cases as two sections, the case table kept beside the rules. *Over:* the prose spec. *Because:* the migration plan takes the atoms the migrated compositions already cite first — Audit Trail cites this atom's Invariants 1, 3, 4, 8 and 9 (`tools/grace/cites.py --into tamper-evidence`).
+
+- **2026-09-26 — The read surface restored.** *Chose:* `read()` in the signature block, answering every evidence with its stored fields (Operation 27 through 30). *Over:* an atom with no declared read. *Because:* the prose spec declared its read surface in its Outputs section — "the current set of [Evidence] records", each with its fields — and the migration dropped it with the section. Restored as the prose had it, not widened. Found beside the same loss in Permissions and Actor Identity, which the cold regeneration of the Attributed Permissions Admin demo surfaced (council read 230).
 
 NOTE: End of Tamper Evidence.

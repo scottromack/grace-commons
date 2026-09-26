@@ -111,6 +111,9 @@ complete(id)
 delete(id)
   answers ok
   refuses not-known | storage-failure
+
+read()
+  answers every unit
 ```
 
 ```
@@ -142,6 +145,10 @@ Operation 24: A refused call MUST leave the unit as the call found the unit.
 Deleted: Operation 25. Capability requirement 1 owns it.
 Deleted: Operation 26. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 27. Execution Contract Logic confinement 3 owns it.
+Operation 28: [Read] MUST answer EVERY unit, pending AND done.
+Operation 29: [Read] MUST answer a unit's id, description, state, addition instant, last edit instant AND completion instant.
+Operation 30: [Read] MUST NOT write.
+Operation 31: [Read] MUST NOT refuse a call.
 ```
 
 Term new description: the text an edit offers for a unit — a [New Description]; normalized under the description policy.
@@ -161,6 +168,7 @@ The case space, and the rule that owns each case:
 | [Delete] | unit is pending or done | ok | the unit leaves; the id is retired (Operation 19, Operation 20, Identity 5) |
 | any | id names nothing | [Not Known] | none (Operation 7, Operation 15, Operation 18) |
 | any writing call | store refuses | [Storage Failure] | none (Operation 5, Operation 21 through 24) |
+| [Read] | any | every unit, with its stored fields | none (Operation 28 through 31) |
 
 WHY:
 The no-op edit is a real accepted case that writes nothing, which is why it cannot answer storage-failure — a person retyping the same words has changed nothing and should not see a failure from a store that was never asked (Operation 10 through 12). Uniqueness ranges over pending and done together: a finished *buy milk* still blocks a second one, because a list showing the same text twice is confusing whichever column it sits in (Operation 4, Invariant 6.1).
@@ -373,7 +381,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: unit — one thing to do, carrying id, description, addition instant, a unit state and, once they land, last edit instant and completion instant.
 
-Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find.
+Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find, refuse.
 
 Term value sets: unit state = pending | done.
 
@@ -406,6 +414,12 @@ Kind: Operation
 #### Delete
 
 The behavior that removes a unit from the system entirely. Deletion is terminal; the [Id] is retired and not reused.
+
+Kind: Operation
+
+#### Read
+
+The read-only query answering every unit the store holds, pending and done, each with its stored fields. It changes nothing and refuses nothing.
 
 Kind: Operation
 
@@ -554,6 +568,7 @@ Wire:       pinned
 [Edit]: #edit
 [Complete]: #complete
 [Delete]: #delete
+[Read]: #read
 [Id]: #id
 [Description]: #description
 [Addition Instant]: #addition-instant
@@ -607,5 +622,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the four actions as a signature block, the description policy as its own rule family, the eight invariant numbers unchanged, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan, and this atom is the corpus's simplest shape — the one a reader meets first.
 
 - **2026-09-14 — The atom gained an acceptance surface, kept deliberately plain.** *Chose:* fourteen `Check` rules and three `External check` rules, each one reading of the list against one rule. *Over:* a richer section. *Because:* presence became mandatory on 2026-09-14, and this atom is the reference implementation's first worked example, so its section teaches the shape more than it audits a risk. Two things it does carry are not decoration: the three timestamp checks keep the invariants' conditional form rather than chaining them, since an auditor comparing `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a correct list; and `Check 3.4`'s passing condition is that **nothing happened** — a no-op edit answers ok and writes nothing, so the evidence of conformance is a stamp that did not move (council read 65).
+
+- **2026-09-26 — The read surface restored.** *Chose:* `read()` in the signature block, answering every unit with its stored fields (Operation 28 through 31). *Over:* an atom with no declared read. *Because:* the prose spec declared its read surface in its Outputs section — "the current set of pending units" and done units, each with its fields — and the migration dropped it with the section. Restored as the prose had it, not widened. Found beside the same loss in Permissions and Actor Identity, which the cold regeneration of the Attributed Permissions Admin demo surfaced (council read 230).
 
 NOTE: End of Personal Todo.

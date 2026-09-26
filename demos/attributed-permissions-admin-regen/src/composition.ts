@@ -34,11 +34,14 @@ export type Refusal =
   | { refused: "partially-revoked"; revoked_grant_ids: string[]; remaining: string[] };
 
 // ---- boundary predicate (Primitive policy 1 through 8) ----
-// Trimmed once, here; the trimmed value is what reaches a constituent.
-function admit(cap: number, inputs: string[]): string[] | undefined {
+// Administered inputs are trimmed once, here, and the trimmed value reaches the
+// constituent. The credential, last, is checked for blank and length and passed
+// as given (Term administered opaque input; Primitive policy 12).
+function admit(cap: number, inputs: string[], credential: string): string[] | undefined {
   const out = inputs.map((s) => s.trim());
   if (out.some((s) => s === "" || s.length > cap)) return undefined;
-  return out;
+  if (credential.trim() === "" || credential.length > cap) return undefined;
+  return [...out, credential];
 }
 
 // Capability requirement 15: canonical serialization, keys in a fixed order.
@@ -55,7 +58,7 @@ function logOrphan(db: Database, attestation_id: string, proposal: string, reque
 // ---- Issue Grant (Action wiring 1 through 15) ----
 export function issue_grant(x: Instance, subject_ref: string, action_scope: string,
   grantor_ref: string, grantor_credential: string): { ok: { grant_id: string; attestation_id: string } } | Refusal {
-  const a = admit(x.config.lengthCap, [subject_ref, action_scope, grantor_ref, grantor_credential]);
+  const a = admit(x.config.lengthCap, [subject_ref, action_scope, grantor_ref], grantor_credential);
   if (!a) return { refused: "invalid-request" };
   const [subject, scope, grantor, credential] = a;
   const requested_at = x.seam.now();                       // Identity 7 and 8
@@ -118,7 +121,7 @@ function pairWrite(x: Instance, attestation_id: string, proposal: string, reques
 // ---- Revoke Grant (Action wiring 16 through 41) ----
 export function revoke_grant(x: Instance, grant_id: string, revoker_ref: string, revoker_credential: string):
   { ok: { attestation_id: string } } | Refusal {
-  const a = admit(x.config.lengthCap, [grant_id, revoker_ref, revoker_credential]);
+  const a = admit(x.config.lengthCap, [grant_id, revoker_ref], revoker_credential);
   if (!a) return { refused: "invalid-request" };
   return revokeOne(x, a[0], a[1], a[2], x.seam.now());
 }
@@ -143,10 +146,13 @@ function revokeOne(x: Instance, grant_id: string, revoker: string, credential: s
 export function revoke_permission(x: Instance, subject_ref: string, action_scope: string,
   revoker_ref: string, revoker_credential: string):
   { ok: { revoked_grant_ids: string[]; attestation_ids: string[] } } | Refusal {
-  const a = admit(x.config.lengthCap, [subject_ref, action_scope, revoker_ref, revoker_credential]);
+  const a = admit(x.config.lengthCap, [subject_ref, action_scope, revoker_ref], revoker_credential);
   if (!a) return { refused: "invalid-request" };
   const [subject, scope, revoker, credential] = a;
-  const enumerated = P.activeGrants(x.db, subject, scope);  // one instant (Term enumerated set)
+  // Action wiring 42: one read, filtered here to the pair's active grants (Term enumerated set).
+  const enumerated = P.read(x.db)
+    .filter((g) => g.subject_ref === subject && g.action_scope === scope && g.status === "active")
+    .map((g) => g.grant_id);
   if (enumerated.length === 0) return { refused: "not-permitted" };  // Action wiring 43 through 45
   const requested_at = x.seam.now();                         // Identity 9: one reading for every attestation
   const revoked: string[] = [], attestations: string[] = [], remaining: string[] = [];
@@ -182,7 +188,7 @@ function verifyOne(x: Instance, id: string): VerifyResult {
 
 export function verify_grant_attribution(x: Instance, grant_id: string):
   { ok: AttributionRecord } | "not-known" | "attribution-inconsistency" {
-  const g = P.read(x.db, grant_id);
+  const g = P.read(x.db).find((r) => r.grant_id === grant_id);  // Action wiring 55
   if (!g) return "not-known";
   const ga = x.db.prepare("SELECT attestation_id FROM grant_attribution WHERE grant_id = ?").get<{ attestation_id: string }>(grant_id);
   if (!ga) return "attribution-inconsistency";
@@ -206,7 +212,7 @@ export type LegFinding = { attestation_id: string; reading: "orphan" | "purge-pe
 export function failed_grant_leg(x: Instance, now: string): LegFinding[] {
   const out: LegFinding[] = [];
   const t = Date.parse(now);
-  for (const e of AI.enumerate(x.db)) {                                   // Housekeeping 2
+  for (const e of AI.read(x.db)) {                                        // Housekeeping 2
     if (!e.action_ref.startsWith(x.config.prefix)) continue;              // Housekeeping 3
     const named = x.db.prepare("SELECT 1 FROM grant_attribution WHERE attestation_id = ? UNION SELECT 1 FROM revocation_attribution WHERE attestation_id = ?")
       .get(e.attestation_id, e.attestation_id);

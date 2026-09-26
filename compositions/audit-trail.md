@@ -48,7 +48,7 @@ Composes 3: EXACTLY ONE Retention Window instance MUST serve the composition.
 Composes 4: EXACTLY ONE Tamper Evidence instance MUST serve the composition.
 Composes 5: The composition MUST call ActorIdentity.attest at [Record Action] step 2 alone.
 Composes 6: The composition MUST call ActorIdentity.verify at [Verify Record] step 3 alone.
-Composes 7: The composition MUST read an attestation's surviving fields through Actor Identity's declared read surface.
+Composes 7: The composition MUST read an attestation's surviving fields through Actor Identity's declared read.
 Composes 8: The composition MUST NOT delete an attestation.
 Composes 9: The composition MUST call RetentionWindow.place_under_retention at [Record Action] step 4 and at the third half's compensating placement alone.
 Composes 10: The composition MUST call RetentionWindow.purge at [Purge Event] step 1 alone.

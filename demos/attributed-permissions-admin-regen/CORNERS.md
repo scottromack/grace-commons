@@ -6,13 +6,15 @@ Findings and preferences from regenerating the demo from today's specs. A **find
 
 ## Findings
 
-**1. Permissions declares no read, and the composition relies on one.** Permissions' Operations block declares `grant`, `revoke` and `permitted` and nothing else. The composition reads the grant "through Permissions' declared read" (Action wiring 55), enumerates a pair's active grants "through Permissions' declared read" (Action wiring 42), and forbids reading the store beside the declared read (Composes 6). Permissions' own Deprovisioning 2 asks a composing pattern to enumerate a subject's active grants, through a surface the atom does not offer. This render adds `read` and `activeGrants` to the atom and marks them as undeclared.
+Four, all cured in the specs on 2026-09-26 (council read 230); the render follows the cured pages.
 
-**2. Actor Identity declares no enumeration, and the composition relies on one.** Actor Identity declares `attest` and `verify`. Composes 20, Housekeeping 2 and Check 5.1 enumerate attestations "through Actor Identity's declared enumeration". This render adds `enumerate` and marks it as undeclared.
+**1. Permissions declared no read, and the composition relies on one.** The prose spec declared its read surface in an Outputs section; the migration dropped it. Action wiring 42 and 55, Composes 6 and Permissions' own Deprovisioning 2 lean on it. *Cured:* `read()` restored to Permissions (Operation 26 through 29); the composition filters in its own code.
 
-**3. The boundary trims credentials, and a credential is not to be inspected.** The Term *opaque input* lists the grantor's and the revoker's credentials; Primitive policy 6 through 8 trim every administered opaque input and pass the trimmed value on. Primitive policy 12 says the composition MUST NOT inspect a credential. A credential with surrounding whitespace reaches Actor Identity rewritten. This render trims, as Primitive policy 6 says, and records the conflict.
+**2. Actor Identity declared no enumeration, and the composition relies on one.** The same loss. Composes 20, Housekeeping 2 and Check 5.1 lean on it. *Cured:* `read()` restored to Actor Identity (Operation 27 through 30), keyed by nothing, so Composes 22 still holds. The same loss in Retention Window was cured beside it.
 
-**4. The failed-grant leg is told not to examine what it is told to report.** Housekeeping 15 says the leg MUST NOT examine an aged-out attestation; Housekeeping 16 and 17 say it MUST report an aged-out unpaired attestation as a purge-pending orphan or a non-conformant purge. This render reads Housekeeping 15 as "does not report it as an ordinary orphan" and reports the two horizon readings.
+**3. The boundary trimmed credentials, and a credential is not to be inspected.** Primitive policy 6 trimmed every administered opaque input, and the credentials were among them; Primitive policy 12 forbids inspecting a credential. *Cured:* the Term *administered opaque input* excludes a credential, which is passed as the caller gave it.
+
+**4. The failed-grant leg was told not to examine what it is told to report.** Housekeeping 15 said MUST NOT examine an aged-out attestation; Housekeeping 16 and 17 report two readings of one. *Cured:* Housekeeping 15 now says MUST NOT report an aged-out attestation as an orphan.
 
 ## Preferences
 

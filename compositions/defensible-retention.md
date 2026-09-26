@@ -126,7 +126,7 @@ Composition state 32: A hold MUST NOT rest on a retention.
 
 Term record-to-retentions index: record_to_retentions — the composition's index from a record reference to the retentions whose retention state EQUALS retained over the record — the auditor's first query surface and a read-path convenience, never the gate's input.
 
-Term retention-to-record index: retention_to_record — the composition's index from a retention id to the record the retention covers, with the retention's retention deadline and purge deadline read back from Retention Window's declared Outputs.
+Term retention-to-record index: retention_to_record — the composition's index from a retention id to the record the retention covers, with the retention's retention deadline and purge deadline read back from Retention Window's declared read.
 
 Term audit horizon: the age past which the audit instance has destroyed an event's payload, set by the instance's audit_trail_retention_policy.
 
@@ -339,7 +339,7 @@ Action wiring 6: An intent MUST carry the invocation's inputs.
 Action wiring 7: An intent MUST NOT carry a constituent-minted id.
 Action wiring 8: An intent MUST carry the injected now as intent instant.
 Action wiring 9: An admitted placement MUST call Retention Window's place_under_retention with the record reference AND the policy reference.
-Action wiring 10: An admitted placement MUST read the retention's retention deadline AND purge deadline from Retention Window's declared Outputs.
+Action wiring 10: An admitted placement MUST read the retention's retention deadline AND purge deadline from Retention Window's declared read.
 Action wiring 11: An admitted placement MUST record a retention placed outcome carrying the retention id, the record reference, the policy reference, the retention deadline AND the purge deadline.
 Action wiring 12: An admitted placement MUST answer the retention id.
 Action wiring 13: IF Retention Window answers invalid-policy THEN [Place Record Under Retention] MUST answer invalid-request.
