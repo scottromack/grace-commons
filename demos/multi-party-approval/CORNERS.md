@@ -6,7 +6,7 @@ This file tracks every place where the demo's implementation falls short of, def
 - New entries land *during* the build, not after — the moment the implementation makes a choice that deviates from the spec, the entry is written.
 - This file is the honest counterpart to the demo. A reader who has only the demo and `CORNERS.md` knows exactly how the demo deviates from the spec.
 
-The rule for *what* belongs here vs. what belongs as a spec finding is in [`CLAUDE.md` section Implementation-discovered findings](../../CLAUDE.md): contradictions go to Lineage notes via a review pass; preferences and rendering-target collapses go here.
+The rule for *what* belongs here vs. what belongs as a spec finding is in the section titled *Implementation-discovered findings* in [`contributing.md`](../../contributing.md): contradictions go to the spec's Ledger via a review pass; preferences and rendering-target collapses go here.
 
 ---
 
@@ -81,3 +81,15 @@ These are *not* corners the demo cut — they are items the spec explicitly name
 - **Spec section:** section 11 of BUILD_PLAN.md (seed actors).
 - **Cut made:** Plan names the actor_ref as `pi_müller` (with ü). Seed uses `pi_mueller` because actor_refs appear in cookie values and URL path segments in later steps; non-ASCII refs create percent-encoding noise with no spec benefit. Display name remains `Müller (PI)`.
 - **Relaxation cost:** Trivial rename in seed.ts and any test fixtures that reference this ref, once the URL/cookie layer is confirmed safe with non-ASCII values. ~10 min.
+
+---
+
+## Spec drift since this render (measured 2026-09-26)
+
+The render predates the spec's rewrite in GRACE lang (council read 196). Read against the spec's signatures today, the demo differs in shape, not only in spelling:
+
+- **No intent records, no credential.** The spec records an intent under the actor's credential before each state change and answers `invalid-credential` when it does not validate (Invariant 10). The demo writes the change and its audit row in one transaction under the act-as picker, with no caller credential. `invalid-credential` is never answered.
+- **`recording-failure` carries no position.** The spec answers `recording-failure(position)`, `intent` or `outcome`; with no intent record, the demo's failure has no position to carry.
+- **Invariant numbers** were aligned with the spec on 2026-09-25 (council read 208); the coverage header in `tests/invariants.test.ts` names what is and is not covered.
+
+Closing these is a rebuild of the chain actions around the intent-and-outcome shape, not a token rename.

@@ -1,8 +1,10 @@
 # Attributed Permissions Admin — Demo
 
+> **Scope.** Rendered 2026-05-18 and 2026-05-19, against the specs as they stood then. Later commits changed deploy settings, ports and citation wording; nothing was re-rendered. The specs have moved since; what moved is measured in `CORNERS.md`, the section titled *Spec drift since this render*. A cold regeneration from the current specs sits beside it in [`../attributed-permissions-admin-regen/`](../attributed-permissions-admin-regen/).
+
 Working implementation of the [Attributed Permissions Admin composition](../../compositions/attributed-permissions-admin.md). The composition wires two atoms — Permissions and Actor Identity — so every grant and revocation is atomically paired with a verifiable attestation. No path through the composition records a grant without first recording who issued it.
 
-The Alloy model (`alloy/attributed-permissions-admin.als`) did real work during spec development: Invariant 7 (attestation exclusivity) was found by the model, not prose review. Three static checks produced counterexamples before `fact Invariant7_Attestation_Exclusivity` was added. The `/verify` page closes the loop — it evaluates all 8 invariants over the live DB state and labels each with its Alloy assertion name.
+The Alloy model (`compositions/attributed-permissions-admin.als`) did real work during spec development: Invariant 7 (attestation exclusivity) was found by the model, not prose review. Three static checks produced counterexamples before `fact Invariant7_Attestation_Exclusivity` was added. The `/verify` page closes the loop — it evaluates all 8 invariants over the live DB state and labels each with its Alloy assertion name.
 
 ## Stack
 
@@ -36,7 +38,7 @@ deno task test       # run all tests
 
 ## Alloy model
 
-`alloy/attributed-permissions-admin.als` contains the formal model. Run with the [Alloy Analyzer v6](https://alloytools.org) to reproduce the checks. The model has:
+`compositions/attributed-permissions-admin.als` contains the formal model. Run with the [Alloy Analyzer v6](https://alloytools.org) to reproduce the checks. The model has:
 
 - 4 static structural checks (1 expected clean, 3 expected to find counterexamples before Invariant 7)
 - 6 dynamic LTL checks over traced state (all expected clean)

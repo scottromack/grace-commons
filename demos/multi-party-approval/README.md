@@ -1,5 +1,7 @@
 # Multi-Party Approval — Demo
 
+> **Scope.** Rendered 2026-05-18, against the specs as they stood then. Later commits changed deploy settings, ports, citation wording and the invariant numbers its tests cite, and added one test (2026-09-25); nothing was re-rendered. The specs have moved since; what moved is measured in `CORNERS.md`, the section titled *Spec drift since this render*.
+
 Working implementation of the [Multi-Party Approval composition](../../compositions/multi-party-approval.md).
 
 ## Stack

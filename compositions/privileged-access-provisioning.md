@@ -332,19 +332,19 @@ Primitive policy 13 and 14: the credential is consumed by Credential's verify an
 ```
 request_access(requestor_ref, credential, resource_ref, access_scope, justification, approver_set, quorum_rule, optional ttl)
   answers request_id
-  refuses invalid-request | permission-denied | credential-invalid | recording-failure
+  refuses invalid-request | permission-denied | invalid-credential | recording-failure
 
 approve_step(actor_ref, credential, request_id, step_id, optional reason)
   answers approved
-  refuses invalid-request | not-known | not-pending | unauthorized | credential-invalid | recording-failure
+  refuses invalid-request | not-known | not-pending | unauthorized | invalid-credential | recording-failure
 
 reject_step(actor_ref, credential, request_id, step_id, reason)
   answers rejected_outcome
-  refuses invalid-request | not-known | not-pending | unauthorized | credential-invalid | recording-failure
+  refuses invalid-request | not-known | not-pending | unauthorized | invalid-credential | recording-failure
 
 withdraw_request(actor_ref, credential, request_id, reason)
   answers withdrawn
-  refuses invalid-request | not-known | not-pending | unauthorized | permission-denied | credential-invalid | recording-failure
+  refuses invalid-request | not-known | not-pending | unauthorized | permission-denied | invalid-credential | recording-failure
 
 exercise_access(session_token, capability_token)
   answers exercised
@@ -352,7 +352,7 @@ exercise_access(session_token, capability_token)
 
 revoke_access(actor_ref, credential, request_id, reason)
   answers revoked
-  refuses invalid-request | not-known | not-provisioned | credential-invalid | permission-denied | recording-failure
+  refuses invalid-request | not-known | not-provisioned | invalid-credential | permission-denied | recording-failure
 
 read_request(actor_ref, query)
   answers request results
@@ -368,7 +368,7 @@ Term request results: the requests a query matches, each carrying the request re
 ```
 Action wiring 1: A credentialed action MUST call Credential's verify with the actor reference, the credential type AND the credential.
 Action wiring 2: A credentialed action MUST NOT resolve the request BEFORE Credential's verify answers verified.
-Action wiring 3: IF Credential's verify answers failed-verification THEN the action MUST answer credential-invalid.
+Action wiring 3: IF Credential's verify answers failed-verification THEN the action MUST answer invalid-credential.
 Action wiring 4: A credentialed action MUST NOT answer not-known BEFORE rebuilding the request record.
 Action wiring 5: IF a credentialed action's request id names no request record THEN the action MUST answer not-known.
 Action wiring 6: IF the action's load-bearing act committed THEN the action MUST answer the action's success.
@@ -388,7 +388,7 @@ Action wiring 19: IF initiate chain refuses THEN [Request Access] MUST record an
 Action wiring 20: IF initiate chain refuses THEN [Request Access] MUST set the request state to Withdrawn.
 Action wiring 21: IF initiate chain refuses THEN [Request Access] MUST close the initiation entry.
 Action wiring 22: IF initiate chain answers invalid-request THEN [Request Access] MUST answer invalid-request.
-Action wiring 23: IF initiate chain answers invalid-credential THEN [Request Access] MUST answer credential-invalid.
+Action wiring 23: IF initiate chain answers invalid-credential THEN [Request Access] MUST answer invalid-credential.
 Action wiring 24: IF initiate chain answers permission-denied THEN [Request Access] MUST answer permission-denied.
 Action wiring 25: IF initiate chain answers recording-failure THEN [Request Access] MUST answer recording-failure.
 Action wiring 26: The deployment MUST alert on a substrate permission-denied as a wiring fault.
@@ -400,7 +400,7 @@ Action wiring 31: IF the request's chain id EQUALS blank THEN a decision action 
 Action wiring 32: [Approve Step] MUST call Multi-Party Approval's approve step with the actor reference, the credential, the chain id, the step id AND the reason.
 Action wiring 33: [Reject Step] MUST call Multi-Party Approval's reject step with the actor reference, the credential, the chain id, the step id AND the reason.
 Action wiring 34: IF the approval substrate answers invalid-request, not-known, not-pending OR unauthorized to a decision THEN the decision action MUST answer the substrate's refusal.
-Action wiring 35: IF the approval substrate answers invalid-credential to a decision THEN the decision action MUST answer credential-invalid.
+Action wiring 35: IF the approval substrate answers invalid-credential to a decision THEN the decision action MUST answer invalid-credential.
 Action wiring 36: IF the approval substrate answers recording-failure to a decision THEN the decision action MUST answer recording-failure.
 Action wiring 37: IF the approval substrate answers invalid-credential OR recording-failure to a decision THEN the decision action MUST open an evaluation entry.
 Action wiring 38: IF the approval substrate answers not-pending to a decision THEN the decision action MUST run the chain evaluation.
@@ -434,7 +434,7 @@ Action wiring 65: IF withdraw chain answers not-pending THEN [Withdraw Request] 
 Action wiring 66: IF withdraw chain answers permission-denied THEN [Withdraw Request] MUST answer permission-denied.
 Action wiring 67: IF withdraw chain answers unauthorized OR not-known THEN [Withdraw Request] MUST answer recording-failure.
 Action wiring 68: IF withdraw chain answers unauthorized OR not-known THEN the deployment MUST alert on the answer as a conformance fault.
-Action wiring 69: IF withdraw chain answers invalid-credential THEN [Withdraw Request] MUST answer credential-invalid.
+Action wiring 69: IF withdraw chain answers invalid-credential THEN [Withdraw Request] MUST answer invalid-credential.
 Action wiring 70: IF withdraw chain answers invalid-request THEN [Withdraw Request] MUST answer invalid-request.
 Action wiring 71: IF withdraw chain answers recording-failure THEN [Withdraw Request] MUST answer recording-failure.
 Action wiring 72: An admitted withdrawal MUST record a withdrawal event carrying Withdrawn AND the reason ONLY AFTER withdraw chain answers withdrawn.
@@ -526,7 +526,7 @@ Term requests read: the scope admitting [Read Request] — a [Requests Read].
 WHY:
 **Two standing rules govern every action** (Action wiring 6 through 9). *Truth order*: the constituent act commits first, the audit event carrying the resulting state records second, and the maps are derived-index writes outside the atomicity surface — a failed map write is a rebuild trigger, never a failure arm. *Committed acts are never answered as failures*: where a record fails after the load-bearing act committed, the action answers its success, the request carries an open pending entry, and the record catches up — the alternative teaches callers to retry acts that already happened, which for a redemption would consume a second use.
 
-**Credential first, then the request** (Action wiring 1 through 5). A credential that fails verify is [Credential Invalid]; a missing request scope is [Permission Denied]. A credentialed action verifies the caller before it resolves anything, so not-known, not-pending and not-provisioned are answered only to an authenticated caller, and [Withdraw Request] answers unauthorized before it reads the request's state (Action wiring 59 and 60): the existence and state oracle an unauthenticated caller had is closed, and what an authenticated caller learns is the residual stated in Non-goal 15. **Credential's verify and the substrate's attest are two checks against two registries** — Credential's store and the actor registry — which is why both run (Capability requirement 18); and an approver revoked between initiation and decision fails verify and cannot decide. The chain remains in flight and the revoked approver's step stays pending; the chain can be withdrawn and initiated again with a replacement approver.
+**Credential first, then the request** (Action wiring 1 through 5). A credential that fails verify is [Invalid Credential]; a missing request scope is [Permission Denied]. A credentialed action verifies the caller before it resolves anything, so not-known, not-pending and not-provisioned are answered only to an authenticated caller, and [Withdraw Request] answers unauthorized before it reads the request's state (Action wiring 59 and 60): the existence and state oracle an unauthenticated caller had is closed, and what an authenticated caller learns is the residual stated in Non-goal 15. **Credential's verify and the substrate's attest are two checks against two registries** — Credential's store and the actor registry — which is why both run (Capability requirement 18); and an approver revoked between initiation and decision fails verify and cannot decide. The chain remains in flight and the revoked approver's step stays pending; the chain can be withdrawn and initiated again with a replacement approver.
 
 **[Request Access] writes the request before the chain** (Action wiring 13 through 30). The pre-write keeps the chain from ever being an orphan: a crash after the chain commits would otherwise leave a live Pending chain with active approver Assignments whose subject resolves to nothing — invisible to every rebuild and withdrawable by no one, since withdrawal is initiator-only. The record is truth-bearing for exactly this window, the initiation entry holding the request event's payload. From the instant initiate_chain answers, the chain id is written onto the record, so a live approver resolving the chain from the record finds it even if the request event never lands. A refused initiate_chain **closes** the pre-written record rather than discarding it — the record is immutable and the store forward-only — with an initiation-failed withdrawal event carrying the whole request shape, since it is the only event that request will ever have. A substrate permission-denied means the requestor holds requests initiate and lacks chains initiate: a wiring fault to alert on, surfaced honestly either way. The request event's own failure leaves the initiation entry open and the request id answered — the chain is live and approvers hold in-tray items, so failing the caller would orphan it.
 
@@ -1124,14 +1124,14 @@ Member of:  the composition's refusals
 Role:       Rejection
 Projection: permission-denied
 
-#### Credential Invalid
+#### Invalid Credential
 
 The refusal when Credential's verify answers failed-verification — material-mismatch or no-active-credential — for a requestor or an approver, or when the approval substrate's attest refuses the credential; the enforcement behind approver-credential completeness (Invariant 6).
 
 Kind:       Member
 Member of:  the composition's refusals
 Role:       Rejection
-Projection: credential-invalid
+Projection: invalid-credential
 
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
@@ -1151,7 +1151,7 @@ Projection: credential-invalid
 [Not Provisioned]: #not-provisioned
 [Session Invalid]: #session-invalid
 [Permission Denied]: #permission-denied
-[Credential Invalid]: #credential-invalid
+[Invalid Credential]: #invalid-credential
 
 ---
 

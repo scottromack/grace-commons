@@ -1,5 +1,7 @@
 # Beacon — Mongo ghost render (headless, document store)
 
+> **Scope.** Rendered 2026-06-07, against the specs as they stood then. No later commit changed it. The specs have moved since; this render's drift has not been measured.
+
 A render of the Grace Commons clinical-trial-portal spec surface (External
 Onboarding C16, Login C13, Session-Gated Authorization C14, Attributed
 Permissions Admin APA, Audit Trail C1) on **MongoDB** — deliberately

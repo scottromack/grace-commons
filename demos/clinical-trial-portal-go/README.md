@@ -1,5 +1,7 @@
 # Beacon — Render 3 (Go, headless)
 
+> **Scope.** Rendered 2026-06-06, against the specs as they stood then. Later commits changed citation wording only. The specs have moved since; this render's drift has not been measured.
+
 The **third render** of the Grace Commons clinical-trial-portal specs, in Go — and
 deliberately **headless**. Renders 1 ([Deno/HTMX/SQLite](../clinical-trial-portal/))
 and 2 ([Next.js/RSC/Postgres](../clinical-trial-portal-next/)) are both full UIs,

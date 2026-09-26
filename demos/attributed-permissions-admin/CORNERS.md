@@ -2,14 +2,14 @@
 
 Preferences and judgment calls made during the build. Cases where the spec was
 silent or admitted multiple readings. Contradictions *within the spec itself*
-go to the spec's Lineage notes via the standard review channel — not here.
-See `../README.md` and `../../CLAUDE.md` for that methodology.
+go to the spec's Ledger via the standard review channel — not here.
+See `../README.md` and the section titled *Implementation-discovered findings* in `../../contributing.md` for that methodology.
 
 ---
 
 ## The three intentionally-failing Alloy checks
 
-The Alloy model (`alloy/attributed-permissions-admin.als`) contains three
+The Alloy model (`compositions/attributed-permissions-admin.als`) contains three
 assertions that **are expected to produce counterexamples** when Invariant 7 is
 not yet asserted as a fact. They are included deliberately to document the gap
 the model exposed.
@@ -246,3 +246,16 @@ deployment would issue separate key material for each surface (e.g., a
 bcrypt-hashed password for login and an HMAC key for attestation) and
 would define the cascade behavior via the "Authenticated Actor"
 composition. Post-demo spec work.
+
+---
+
+## Spec drift since this render (measured 2026-09-26)
+
+Read against the spec's signatures today (`issue_grant` and `revoke_grant` refuse `invalid-request | invalid-credential | attribution-storage-failure | orphan-attestation(position)`, `revoke_grant` also `not-known | not-active`), the demo answers:
+
+- **`duplicate-active-grant`**, which no signature carries and the spec forbids: Permissions admits several active grants on one pair, and the composition MUST NOT deduplicate a concurrent issuance (Non-goal 10, the Concurrency family).
+- **`credential-invalid`, `grantor-not-found`, `revoker-not-found`** where the spec answers `invalid-credential`.
+- **The orphan's cause** — `grant-storage-failure`, `pairing-write-failure`, `revocation-storage-failure` — where the spec answers `orphan-attestation(pre-grant)` or `orphan-attestation(post-grant(grant id))`, and `attribution-storage-failure` when the attest itself could not be stored.
+- **No pair-scoped revocation** — `revoke_permission` and its Invariant 9 are not built (see `README.md`).
+
+The tests pin the demo's current tokens, so closing these changes the domain module, the routes and the tests together.

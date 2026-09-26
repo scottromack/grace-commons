@@ -1,8 +1,12 @@
 # CORNERS — clinical-trial-portal
 
-> Implementation-side follow-up tracker per the CLAUDE.md "implementation-discovered findings" discipline. Items here are *preferences* (cleaner-if, nice-to-have, demo-quality polish) — not contradictions inside the Grace Commons spec layer. Spec-layer findings go in the relevant atom or composition's Lineage notes, not here.
+> Implementation-side follow-up tracker per the "implementation-discovered findings" discipline in `contributing.md`. Items here are *preferences* (cleaner-if, nice-to-have, demo-quality polish) — not contradictions inside the Grace Commons spec layer. Spec-layer findings go in the relevant atom or composition's Lineage notes, not here.
 
 Beacon was built from structured Grace Commons specifications. There is no hidden behavior. Every mutation in the system is declared in a single file (`composition.ts`). Every permission rule, every emitted audit event, and every access control decision can be read and understood by any stakeholder — regulator, auditor, investigator, or engineer. This file exists because that transparency extends to known boundaries: gaps are documented here rather than left implicit. This is how the methodology is supposed to work — gaps become visible early because the entire system is legible.
+
+## Spec drift since this render (measured 2026-09-26)
+
+The portal's login answers `{ ok: false, reason: "invalid_credentials" }` and records `unknown_email`, `bad_password`, `no_credential` and `no_actor` as audit detail. The [Login](../../compositions/login.md) spec answers `invalid-credential` — renamed from `credential-invalid` on 2026-09-26 so the corpus spells one refusal one way — and does not name the detail reasons. The second and third renders (`-next`, `-mongo`) carry the same reasons. A render that adopts the spec's token changes the login route and the conformance manifest's expectations together.
 
 ## Open
 

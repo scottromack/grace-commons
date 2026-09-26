@@ -1,7 +1,7 @@
 # CORNERS — Mongo ghost render
 
-Implementation preferences and environment notes, per the CLAUDE.md
-finding-vs-preference discipline: nothing here names a contradiction inside a
+Implementation preferences and environment notes, per the
+finding-vs-preference discipline in `contributing.md`: nothing here names a contradiction inside a
 spec; everything here is render-local. Spec contradictions would go through the
 review channel as findings — none surfaced during this build.
 

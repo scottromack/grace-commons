@@ -1,5 +1,7 @@
 # Beacon Clinical Research — **Second Render** (Next.js + PostgreSQL + RSC)
 
+> **Scope.** Rendered 2026-06-04 through 2026-06-08, against the specs as they stood then. Later commits changed citation wording only. The specs have moved since; this render's drift has not been measured.
+
 ### Live demo
 
 https://beacon-clinical-next.fly.dev

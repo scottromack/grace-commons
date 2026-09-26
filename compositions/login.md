@@ -189,7 +189,7 @@ Audit arm 10: The composition MUST read a cap-sourced invalid-request as a recor
 ```
 
 WHY:
-One arm rule for every `record_action` this composition makes, stated once here and cited at each site, because a site that claimed an arm unreachable would be wrong about this substrate. `recording-failure` is the transient arm — owed, retried, re-derived by the sweep if the process dies first. `invalid-credential` is the composition's own credential being bad, which is a deployment fault rather than a caller outcome.
+One arm rule for every `record_action` this composition makes, stated once here and cited at each site, because a site that claimed an arm unreachable would be wrong about this substrate. `recording-failure` is the transient arm — owed, retried, re-derived by the sweep if the process dies first. invalid-credential is the composition's own credential being bad, which is a deployment fault rather than a caller outcome.
 
 invalid-request is the arm a reader most wants to call unreachable and cannot. The substrate raises it not only for an over-cap payload — which the boundary predicate forecloses for validated inputs — but for its own retention-configuration faults and for an Event Log cap disagreement, neither of which any caller input controls. **Its two sources land differently and the sweep must tell them apart** (Audit arm 9, Audit arm 10): on the retention source the event is *already appended and attested*, because the substrate places retention after the append, so nothing is owed and the unretained event is the substrate's own reconciliation's; on the cap source nothing was appended, the record stays owed, and it lands once the deployment corrects the cap.
 
@@ -198,11 +198,11 @@ invalid-request is the arm a reader most wants to call unreachable and cannot. T
 ```
 login(principal_ref, credential_type, presented_material, issued_by_ref, optional session_duration)
   answers login result
-  refuses invalid-request | credential-invalid | storage-failure(stage)
+  refuses invalid-request | invalid-credential | storage-failure(stage)
 
 logout(session_token, revoked_by_ref, reason)
   answers ok
-  refuses invalid-request | not-found
+  refuses invalid-request | not-known
 
 revoke_sessions_for_credential(credential_id, revoked_by_ref, reason)
   answers revocation tally
@@ -215,7 +215,7 @@ Term revocation tally: revoked, skipped and failed — what revoke_sessions_for_
 
 ```
 Action wiring 1: An admitted login MUST call Credential's verify with the principal reference, the credential type AND the presented material.
-Action wiring 2: IF Credential's verify answers failed-verification THEN an admitted login MUST answer credential-invalid.
+Action wiring 2: IF Credential's verify answers failed-verification THEN an admitted login MUST answer invalid-credential.
 Action wiring 3: An admitted login MUST NOT answer Credential's verify reason to the caller.
 Action wiring 4: An admitted login MUST call Session's issue ONLY AFTER Credential's verify answers verified.
 Action wiring 5: An admitted login MUST read the credential id of the effective-active credential for the pair.
@@ -228,7 +228,7 @@ Action wiring 11: IF the map write fails THEN an admitted login MUST record a ma
 Action wiring 12: An admitted login MUST append a login event log entry.
 Action wiring 13: An admitted login MUST record a login event under the service identity.
 Action wiring 14: An admitted logout MUST call Session's revoke with the session token, the revoked by reference AND the reason.
-Action wiring 15: IF Session's revoke answers not-known THEN an admitted logout MUST answer not-found.
+Action wiring 15: IF Session's revoke answers not-known THEN an admitted logout MUST answer not-known.
 Action wiring 16: An admitted logout MUST record a logout event under the service identity.
 Action wiring 17: An admitted cascade MUST read the cascade set ONLY AFTER recording a cascade initiation event.
 Action wiring 18: An admitted cascade MUST read the cascade set as the union of the map entry AND the event-derived set.
@@ -357,7 +357,7 @@ The host system sets a session cookie. On the next request, the host system (or 
 
 ### Failed login — wrong password
 
-The user enters an incorrect password. `login(user_u91, "password", <wrong-password>, login_svc_l01)`. Step 2: `Credential.verify → failed-verification(material-mismatch)`. Step 2 path: `login_event_log` entry with `outcome: failed-verification(material-mismatch)`; Audit Trail login_failed event. Return: credential-invalid. No session is issued; no entry appears in `credential_to_sessions` or `session_to_credential`.
+The user enters an incorrect password. `login(user_u91, "password", <wrong-password>, login_svc_l01)`. Step 2: `Credential.verify → failed-verification(material-mismatch)`. Step 2 path: `login_event_log` entry with `outcome: failed-verification(material-mismatch)`; Audit Trail login_failed event. Return: invalid-credential. No session is issued; no entry appears in `credential_to_sessions` or `session_to_credential`.
 
 ### Logout
 
@@ -473,7 +473,7 @@ Composition note 3 is the cascade's trigger and it is the deployment's to pull. 
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the emergent cascade action it exposes ([Revoke Sessions For Credential]) — the load-bearing surface neither constituent provides — its own login rejection ([Credential Invalid]), the distinctive `login_event_log` classifications it records ([Outcome], with its [Success With Map Failure] and [Failed Storage Failure] members), and the cascade result's integrity-gap counter ([Not Found]). The two eponymous thin-wrapper actions — login (verify → issue) and logout (revoke) — are left backticked (their names would also collide with the page heading and the *Logout* example anchor). Its emergent state — the cascade maps (`credential_to_sessions`, `session_to_credential`) and the `login_event_log` — is a composition-introduced surface no constituent provides, left as backticked store tokens. References to the constituent atoms and their operations — Credential's `verify` / `register` / `revoke`, Session's `issue` / `revoke` / `validate`, Audit Trail's `record_action` — the relayed tokens (principal reference, credential id, session token, credential type), the constituent states (`Active` / `Revoked`, and the derived `Expired` effective status), the Audit Trail event types (login_succeeded, session_revoked_by_cascade, orphan_session_revoked, …), and the inherited rejections (invalid-request, `not-known`, `already-terminal`, storage-failure) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the emergent cascade action it exposes ([Revoke Sessions For Credential]) — the load-bearing surface neither constituent provides — its own login rejection ([Invalid Credential]), the distinctive `login_event_log` classifications it records ([Outcome], with its [Success With Map Failure] and [Failed Storage Failure] members), and the cascade result's integrity-gap counter ([Not Known]). The two eponymous thin-wrapper actions — login (verify → issue) and logout (revoke) — are left backticked (their names would also collide with the page heading and the *Logout* example anchor). Its emergent state — the cascade maps (`credential_to_sessions`, `session_to_credential`) and the `login_event_log` — is a composition-introduced surface no constituent provides, left as backticked store tokens. References to the constituent atoms and their operations — Credential's `verify` / `register` / `revoke`, Session's `issue` / `revoke` / `validate`, Audit Trail's `record_action` — the relayed tokens (principal reference, credential id, session token, credential type), the constituent states (`Active` / `Revoked`, and the derived `Expired` effective status), the Audit Trail event types (login_succeeded, session_revoked_by_cascade, orphan_session_revoked, …), and the inherited rejections (invalid-request, not-known, `already-terminal`, storage-failure) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -493,14 +493,14 @@ The composition's load-bearing emergent action: given a credential id, it walks 
 
 Kind: Operation
 
-#### Credential Invalid
+#### Invalid Credential
 
 The composition's own login rejection — returned when `Credential.verify` fails (`failed-verification(reason)`): the credential check did not pass, so no session is issued and a failed-login event is recorded. The observable form of the credential-gates-issuance boundary (Invariant 1).
 
 Kind:       Member
 Member of:  the login rejection
 Role:       Rejection
-Projection: credential-invalid
+Projection: invalid-credential
 
 #### Outcome
 
@@ -529,7 +529,7 @@ Member of:  the login outcome
 Role:       Outcome
 Projection: failed-storage-failure
 
-#### Not Found
+#### Not Known
 
 The [Revoke Sessions For Credential] counter for a data-integrity gap: a session token present in `credential_to_sessions` but absent from the Session store (`Session.validate → invalid(not-known)`). Distinct from skipped (already-terminal sessions); each increment writes a `session_not_found_during_cascade` event for investigation.
 
@@ -544,11 +544,11 @@ Projection: not_found
      kramdown; no plugin required. -->
 
 [Revoke Sessions For Credential]: #revoke-sessions-for-credential
-[Credential Invalid]: #credential-invalid
+[Invalid Credential]: #invalid-credential
 [Outcome]: #outcome
 [Success With Map Failure]: #success-with-map-failure
 [Failed Storage Failure]: #failed-storage-failure
-[Not Found]: #not-found
+[Not Known]: #not-known
 
 ---
 
