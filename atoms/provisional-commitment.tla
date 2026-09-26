@@ -10,7 +10,7 @@
 \* Capacity Constraint pool, relied on by the reservation-lifecycle and
 \* idempotent-reservation compositions, which call ProvisionalCommitment.expire(id)
 \* — so the lapse needs an explicit `expire()` event, not a side-effect-free
-\* read-time derivation). See atoms/provisional-commitment.md section Lineage
+\* read-time derivation). See the Lineage of atoms/provisional-commitment.md, in git history
 \* (Derive-expiry refactor reverted — 2026-06-23).
 \*
 \* WHAT THIS MODEL CHECKS

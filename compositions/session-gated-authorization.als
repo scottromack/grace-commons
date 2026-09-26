@@ -283,7 +283,7 @@ fact Outcome_Coherence {
 -- files (one without, one with the invariant), which is deferred
 -- as not worth the cost-benefit for one structurally redundant
 -- check. See compositions/session-gated-authorization.md
--- section Round 5 R5F1.
+-- the Lineage's Round 5 R5F1 (in git history).
 -- ==============================================================
 
 
@@ -298,7 +298,7 @@ fact Outcome_Coherence {
 -- above is structurally unreachable: Principal_Binding_Holds
 -- (the check below this fact) discharges clean. The original
 -- "Without_Invariant2" check was removed in Round 6 — see
--- compositions/session-gated-authorization.md section Round 5 R5F1.
+-- the Lineage of compositions/session-gated-authorization.md, Round 5 R5F1 (in git history).
 -- ==============================================================
 
 fact Invariant2_Principal_Binding {
@@ -810,7 +810,7 @@ pred dyn_trace_permitted_then_revoked {
     -- temporal-existence claims, which is what the predicate's
     -- prose intent ("a Permitted call followed by a Revocation")
     -- actually requires. See compositions/session-gated-authorization.md
-    -- section Round 5 R5F2.
+    -- the Lineage's Round 5 R5F2 (in git history).
     eventually (some rec : DynCallRecord |
         rec in DynSystem.dyn_call_log and
         rec.rec_outcome = Permitted)

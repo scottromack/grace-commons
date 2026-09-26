@@ -78,7 +78,7 @@ one sig Ordered, Verified, Dispensed, Administered, Completed,
         Cancelled, Discontinued, Amended, OnHold extends State {}
 
 -- Pre-dispensing states are those from which amend is permitted.
--- Spec section Actions section amend: "Valid only for orders in Ordered or Verified state."
+-- The spec's [Amend] operation: "Valid only for orders in Ordered or Verified state."
 -- Spec Invariant 3: "amend is rejected for any order in Dispensed, Administered,
 --   Completed, On Hold, Cancelled, Discontinued, or Amended state."
 fun PreDispensingState : set State {
@@ -141,7 +141,7 @@ fact LinearChain {
 
 -- Inverse consistency: successor and predecessor are inverses of each other.
 -- If order B is the successor of order A, then A must be the predecessor of B.
--- This encodes the bidirectional link that spec section State and section Actions describe:
+-- This encodes the bidirectional link that spec's State and Operations describe:
 -- after amend, original gets successor_id and successor gets predecessor_id.
 fact SuccessorPredecessorInverse {
     all a, b : Order | a.successor = b iff b.predecessor = a
@@ -181,9 +181,9 @@ fact PreDispensingOnlyAmendment {
 }
 
 -- Successor state constraint: a successor order (one with a predecessor) always
--- starts in Ordered state. Spec section Actions section amend: "The successor starts in Ordered
+-- starts in Ordered state. The spec's [Amend] operation: "The successor starts in Ordered
 -- state regardless of whether the original was Ordered or Verified."
--- Spec section Behavior: "The successor always starts in Ordered state."
+-- The spec's Operations: "The successor always starts in Ordered state."
 fact SuccessorStartsOrdered {
     all x : Order | one x.predecessor implies x.state in (Ordered + Verified + Dispensed +
         Administered + Completed + Cancelled + Discontinued + Amended + OnHold)
@@ -197,7 +197,7 @@ fact SuccessorStartsOrdered {
 }
 
 -- amendedBy is set iff the order has a predecessor (it was created by amend).
--- Spec section Actions section amend: "The successor carries ... amended_by." and
+-- The spec's [Amend] operation: "The successor carries ... amended_by." and
 -- Invariant 12: "amended_by / amendment_reason on a successor ... all immutable."
 fact AmendedByConsistency {
     all x : Order | (one x.amendedBy) iff (one x.predecessor)

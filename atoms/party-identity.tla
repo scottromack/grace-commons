@@ -2,8 +2,8 @@
 \* Grace Commons — Party Identity atom.
 \* Spec-level formal sibling of atoms/party-identity.md.
 \* Derived validator; the English spec is the single source of truth. If this
-\* model and the English disagree, diagnose per pressure-testing.md section The conflict
-\* protocol before changing either.
+\* model and the English disagree, diagnose per the entry The conflict protocol in
+\* pressure-testing.md before changing either.
 \*
 \* WHAT THIS MODEL CHECKS
 \* The load-bearing claim of the atom is Invariant 4: a party in Verified state

@@ -173,7 +173,7 @@ Init ==
 
 \* --- Invite(actor, inv) ---------------------------------------------------
 \*
-\* Models the spec's `invite` action (section Actions → invite).
+\* Models the spec's `invite` action (Action wiring → invite).
 \* Writes the Audit Trail initiation record and creates the Invitation in
 \* Pending state. Both writes are atomic here (TLA+ action grain), matching
 \* the spec's same-transactional-boundary requirement.
@@ -198,7 +198,7 @@ Invite(actor, inv) ==
 
 \* --- Onboard(inv, party, cred, actor) ------------------------------------
 \*
-\* Models the spec's `onboard` action happy path (section Actions → onboard,
+\* Models the spec's `onboard` action happy path (Action wiring → onboard,
 \* steps 3–8). The single-resolution gate fires first: the precondition
 \* `invitations[inv].status = "pending"` is the atomic check corresponding
 \* to Invitation.accept. Exactly one concurrent Onboard per invitation
@@ -299,7 +299,7 @@ Revoke(inv, actor) ==
 \* --- Expire(inv) ----------------------------------------------------------
 \*
 \* Models background expiry by the Invitation atom's scheduler.
-\* Per spec section Round 3 Pass 3 finding R3F1, expiry that occurs via the
+\* Per the Lineage's Round 3 Pass 3 finding R3F1 (in git history), expiry that occurs via the
 \* background scheduler (not through this composition's `onboard` action
 \* discovering an expired invitation) is outside the composition's surface
 \* and does not produce an audit event from this composition.

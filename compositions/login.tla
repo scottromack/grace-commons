@@ -2,7 +2,7 @@
 \* Grace Commons — Login composition TLA+ model.
 \* Spec-level formal sibling of compositions/login.md.
 \*
-\* This TLA+ model verifies the named invariants from section Application-level
+\* This TLA+ model verifies the named invariants from the Composition-level
 \* invariants under every reachable interleaving at the chosen bounds.
 \*
 \* COMPLEMENTARITY WITH THE ALLOY MODEL.
@@ -38,7 +38,7 @@
 \*   In a real distributed deployment the snapshot race is real; here the
 \*   TLA+ atomic-action model discharges the single-node case.
 \*
-\* Final Critique 1 TOCTOU RACE (login.md section Final Critique 1):
+\* Final Critique 1 TOCTOU RACE (Final Critique 1 in the Lineage of login.md, in git history):
 \*   A Logout may run concurrently with the cascade. If Logout fires on a
 \*   session the cascade also targets, the cascade finds it already
 \*   terminal (already-terminal → skipped). The model includes Logout as

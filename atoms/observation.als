@@ -105,7 +105,7 @@ fact LinearChain {
 
 -- Inverse consistency: successor and predecessor are inverses of each other.
 -- If obs B is the successor of obs A, then A must be the predecessor of B (and vice versa).
--- This encodes the bidirectional link that spec section State and section Actions describe:
+-- This encodes the bidirectional link that spec's State and Operations describe:
 -- after amend, original gets successor_id and successor gets predecessor_id.
 fact SuccessorPredecessorInverse {
     all a, b : Obs | a.successor = b iff b.predecessor = a

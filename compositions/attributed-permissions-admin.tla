@@ -4,8 +4,8 @@
 \* and compositions/attributed-permissions-admin.als.
 \*
 \* This TLA+ model is a peer artifact to the canonical English spec. It
-\* models the operational state machine implied by the spec's section Action
-\* wiring and checks the eight named invariants from section Application-level
+\* models the operational state machine implied by the spec's Action
+\* wiring and checks the eight named invariants from the Composition-level
 \* invariants under every reachable interleaving at the chosen bounds.
 \*
 \* COMPLEMENTARITY WITH THE ALLOY MODEL.
