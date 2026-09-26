@@ -1962,7 +1962,7 @@ BANNED_TOKEN_EXCLUDED_DIRS = {".git", ".github", "node_modules", "Alloy.app",
 # A pattern's Lineage is its last section, so scanning stops at its heading —
 # whether that heading is markdown (`## Lineage…`) or, when the section is folded
 # into a <details> for readability, an HTML `<h2>…Lineage…</h2>`. Both forms are
-# anchored to the line start, so an in-body prose mention ("see Lineage notes §…")
+# anchored to the line start, so an in-body prose mention ("see Lineage notes §…" — hunts the form)
 # never matches and the live body above Lineage is still fully scanned.
 LINEAGE_HEADING = re.compile(r"^(?:##\s+|\s*<h2\b[^>]*>\s*)Lineage\b", re.IGNORECASE)
 
@@ -3108,6 +3108,194 @@ def check_invariant_numbers(root: Path, patterns: dict[Path, Pattern]) -> list[F
 # Driver
 # --------------------------------------------------------------------------- #
 
+
+# ── Notation is law (GRACE lang Principle 12 through 14, council read 206) ──
+# A historical record is a dated entry: a specification's Decisions section, its
+# Ledger `formal:` provenance line, GRACE lang's Changes, the register's Council
+# read entries, and on a Project Log page an entry whose lead phrase or heading
+# is dated. Everything else a reader can learn a form from.
+_DATE = re.compile(r"20\d\d-\d\d-\d\d")
+_HUNTS = "hunts the form"
+_SPANS = re.compile(r"``.*?``|`[^`]*`")  # a tool line that detects or quotes the retired form (Principle 13)
+NOTATION_EXTS = {".md", ".tla", ".als", ".cfg", ".py", ".mjs", ".js", ".ts", ".tsx",
+                 ".sql", ".json", ".go", ".toml"}
+
+
+def _tracked(root: Path, exts: set[str]) -> list[Path]:
+    """The corpus is every file the repository tracks (GRACE-lang Term corpus)."""
+    import subprocess
+    try:
+        names = subprocess.run(["git", "--no-optional-locks", "ls-files"], cwd=root,
+                               capture_output=True, text=True, check=True).stdout.split("\n")
+        return sorted(root / n for n in names
+                      if n and Path(n).suffix in exts and "node_modules/" not in n)
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    out: list[Path] = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in RANGE_EXCLUDED_DIRS and not d.startswith(".")]
+        out += [Path(dirpath) / f for f in filenames if Path(f).suffix in exts]
+    return sorted(out)
+
+
+def _record_lines(root: Path, path: Path, lines: list[str]) -> set[int]:
+    """0-based indexes of the lines inside a historical record."""
+    rel = path.relative_to(root).as_posix()
+    rec: set[int] = set()
+    if rel.startswith(("atoms/", "compositions/")) and path.suffix == ".md":
+        on = False
+        for i, l in enumerate(lines):
+            if l.startswith("## "):
+                on = l.strip() == "## Decisions"
+            if on or l.startswith("formal:"):
+                rec.add(i)
+    elif rel == "GRACE-lang.md":
+        c = next((i for i, l in enumerate(lines) if l.startswith("### 23. Changes")), len(lines))
+        rec |= set(range(c + 1, len(lines)))
+    elif rel == "governance.md":
+        on = False
+        for i, l in enumerate(lines):
+            if l.startswith(("- ", "#")):
+                on = l.startswith("- **Council read")
+            if on:
+                rec.add(i)
+    elif path.suffix == ".md" and re.search(r"^parent:\s*Project Log\s*$", "\n".join(lines[:12]), re.M):
+        head = ""
+        start = 0
+        for i, l in enumerate(lines):
+            if l.startswith("#"):
+                lvl = len(l) - len(l.lstrip("#"))
+                # an undated heading at the level of a dated one it follows continues that entry
+                if not (_DATE.search(l) is None and _DATE.search(head) and lvl == len(head) - len(head.lstrip("#"))):
+                    head = l
+            if not l.strip():
+                continue
+            if i == 0 or not lines[i - 1].strip() or l.startswith(("#", "- ", "| ")) or not l.startswith((" ", "\t")):
+                if i == 0 or not lines[i - 1].strip() or l.startswith(("#", "- ", "| ")):
+                    start = i
+            para = lines[start] + (" " + lines[start + 1] if start + 1 < len(lines) and lines[start + 1].startswith((" ", "\t")) else "")
+            lead = re.match(r"^\s*(?:- |> )?(\*\*|\*)(.+?)\1", para)
+            dated = bool(_DATE.search(head)) or (
+                not para.startswith("|") and (bool(lead and _DATE.search(lead.group(2)))
+                or bool(re.match(r"^\s*(?:- )?(?:\*\*|\*)?(?:Resolved|Progress|Adoption|Dated)", para)
+                        and _DATE.search(para[:120]))))
+            if dated:
+                rec.add(i)
+    return rec
+
+
+def check_retired_sign(root: Path) -> list[Finding]:
+    """N-retired-sign: the section sign, retired from the rules at v0.56 and
+    closed under Principle 14 at council read 222, stands only in a historical
+    record, a code span, a fenced block, or a tool line that hunts the form."""
+    out: list[Finding] = []
+    for path in _tracked(root, NOTATION_EXTS):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        if "\u00a7" not in text:
+            continue
+        lines = text.splitlines()
+        rec = _record_lines(root, path, lines) if path.suffix == ".md" else set()
+        fence = False
+        for i, raw in enumerate(lines):
+            if path.suffix == ".md" and raw.lstrip().startswith("```"):
+                fence = not fence
+                continue
+            if "\u00a7" not in raw or i in rec or fence or _HUNTS in raw:
+                continue
+            if path.suffix == ".md" and "\u00a7" not in _SPANS.sub("", raw):
+                continue
+            out.append(Finding(path, i + 1, "N-retired-sign",
+                "a section sign outside a record — cite *the section titled X*, *the entry X*, "
+                "or *Section N of* a document (GRACE-lang Principle 12)"))
+    return out
+
+
+def check_page_citations(root: Path) -> list[Finding]:
+    """X-page-citation: `X-section-title` for every Markdown page outside the
+    specifications — a citation *the section titled X* or *the entry X* names a
+    heading or entry of the file it names, or of its own page (council read 216)."""
+    cite = re.compile(r"\b[Tt]he (?:section titled|entry) \*([^*]+)\*")
+    tfile = re.compile(r"^(?: under [^.;]{1,40}?)? in (?:\[?`?([\w./-]+\.md)`?\]?|\[[^\]]+\]\(\.?/?([\w./-]+\.md)\))")
+    cache: dict[Path, set[str]] = {}
+
+    def titles(p: Path) -> set[str]:
+        if p not in cache:
+            ts = set(_titles(p))
+            try:
+                for m in re.finditer(r"^\s*(?:- |> )?\*\*([^*]+?)\*\*", p.read_text(encoding="utf-8"), re.M):
+                    t = m.group(1).strip()
+                    ts.add(t.rstrip("."))
+                    ts.add(re.split(r" — |\s\(|: ", t)[0].rstrip("."))
+            except OSError:
+                pass
+            cache[p] = {t.lower().replace("*", "").replace("`", "").replace('"', "") for t in ts}
+        return cache[p]
+
+    out: list[Finding] = []
+    for md in _tracked(root, {".md"}):
+        rel = md.relative_to(root).as_posix()
+        if rel.startswith(("atoms/", "compositions/")):
+            continue
+        lines = md.read_text(encoding="utf-8").splitlines()
+        rec = _record_lines(root, md, lines)
+        for i, raw in enumerate(lines):
+            if i in rec:
+                continue
+            for m in cite.finditer(raw):
+                name = m.group(1).lower().replace("`", "").replace('"', "").strip()
+                fm = tfile.match(raw[m.end():])
+                known = set(titles(md))
+                if fm:
+                    fname = fm.group(1) or fm.group(2)
+                    named = md.parent / fname
+                    if not named.exists():
+                        named = root / fname
+                    known |= titles(named)
+                else:
+                    # the file may be named earlier in the sentence
+                    for f in re.findall(r"([\w./-]+\.md)", raw[:m.start()]):
+                        for named in (md.parent / f, root / f):
+                            if named.exists():
+                                known |= titles(named)
+                if any(t == name or t.startswith(name) for t in known):
+                    continue
+                out.append(Finding(md, i + 1, "X-page-citation",
+                    f"'{m.group(0)[:60]}' opens no heading or entry of the file it names"))
+    return out
+
+
+def check_views_current(root: Path) -> list[Finding]:
+    """V-views-current: the generated views — `graph.md`, `atoms/index.md`,
+    `_data/patterns.json` — match what their generators produce from the corpus
+    now (council read 204: thirteen migrations passed with the views behind)."""
+    import shutil
+    import subprocess
+    import tempfile
+    views = ["graph.md", "atoms/index.md", "_data/patterns.json"]
+    out: list[Finding] = []
+    with tempfile.TemporaryDirectory() as tmp:
+        t = Path(tmp)
+        for d in ("atoms", "compositions", "tools/taxonomy"):
+            shutil.copytree(root / d, t / d, ignore=shutil.ignore_patterns("__pycache__"))
+        for f in root.glob("*.md"):
+            shutil.copy(f, t / f.name)
+        for gen in ("generate_graph.py", "generate_views.py"):
+            subprocess.run([sys.executable, str(t / "tools/taxonomy" / gen), str(t)],
+                           capture_output=True, text=True, timeout=120)
+        for v in views:
+            a, b = root / v, t / v
+            if not b.exists():
+                continue
+            if not a.exists() or a.read_text(encoding="utf-8") != b.read_text(encoding="utf-8"):
+                out.append(Finding(a, 1, "V-views-current",
+                    "the generated view differs from what its generator produces now — "
+                    "regenerate with tools/taxonomy/generate_graph.py and generate_views.py"))
+    return out
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     flags = {a for a in argv[1:] if a.startswith("--")}
@@ -3170,6 +3358,9 @@ def main(argv: list[str]) -> int:
     findings += check_composes_list(patterns)
     findings += check_constituents_agree(patterns)
     findings += check_invariant_numbers(root, patterns)
+    findings += check_retired_sign(root)
+    findings += check_page_citations(root)
+    findings += check_views_current(root)
 
     findings.sort(key=lambda f: (f.code, str(f.path), f.line))
     for f in findings:

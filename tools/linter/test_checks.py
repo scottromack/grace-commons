@@ -34,6 +34,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lint import (  # noqa: E402
+    check_retired_sign,
+    check_page_citations,
+    check_views_current,
     check_migration_seam,
     check_heading_standard,
     check_range_form,
@@ -1084,6 +1087,61 @@ def check_range_form_synthetic(problems: list[str]) -> int:
     return len(silent) + len(firing) + 1 + len(covers)
 
 
+def check_notation_synthetic(problems: list[str]) -> int:
+    """N-retired-sign, X-page-citation and V-views-current — landed with the
+    section sign's closing at council read 222. Each is shown to fire on its
+    violation and stay silent on the lawful forms. Returns the fixture count."""
+    import shutil
+    import tempfile
+    S = "\u00a7"
+    n = 0
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "atoms").mkdir()
+        (root / "atoms" / "a.md").write_text(
+            "## Examples\n\nsee " + S + "State here\n\nquoted `" + S + "State` here\n\n"
+            "## Decisions\n\n- **2026-09-01 \u2014 x.** per " + S + "State\n", encoding="utf-8")
+        (root / "log.md").write_text(
+            "---\nparent: Project Log\n---\n\n### 2026-06-06 \u2014 entry\n\nsee " + S + "A\n\n"
+            "### Standing\n\nlive " + S + "B\n\n## Undated\n\nlive " + S + "C\n", encoding="utf-8")
+        (root / "tool.py").write_text("x = '" + S + "'  # hunts the form\ny = '" + S + "'\n", encoding="utf-8")
+        hits = {(f.path.name, f.line) for f in check_retired_sign(root)}
+        want = {("a.md", 3), ("log.md", 15), ("tool.py", 2)}
+        quiet = {("a.md", 5), ("a.md", 9), ("log.md", 7), ("log.md", 11)}
+        for w in want:
+            if w not in hits:
+                problems.append(f"N-retired-sign: did not fire at {w}")
+        for q in quiet:
+            if q in hits:
+                problems.append(f"N-retired-sign: fired at {q}")
+        n += len(want) + len(quiet)
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "t.md").write_text("## Real heading \u2014 sub\n\n**An entry (2026-01-01).** text\n", encoding="utf-8")
+        (root / "p.md").write_text(
+            "the section titled *Real heading* in `t.md`\n"
+            "the entry *An entry* in [T](./t.md)\n"
+            "the section titled *No such heading* in `t.md`\n", encoding="utf-8")
+        lines = {f.line for f in check_page_citations(root)}
+        if lines != {3}:
+            problems.append(f"X-page-citation: fired on lines {sorted(lines)}, want [3]")
+        n += 3
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        real = Path(__file__).resolve().parents[2]
+        for sub in ("atoms", "compositions", "tools/taxonomy", "_data"):
+            shutil.copytree(real / sub, root / sub, ignore=shutil.ignore_patterns("__pycache__"))
+        for f in real.glob("*.md"):
+            shutil.copy(f, root / f.name)
+        if check_views_current(root):
+            problems.append("V-views-current: fired on the current views")
+        (root / "graph.md").write_text((root / "graph.md").read_text(encoding="utf-8") + "\nstale\n", encoding="utf-8")
+        if not check_views_current(root):
+            problems.append("V-views-current: did not fire on a stale view")
+        n += 2
+    return n
+
+
 def check_signature_form_synthetic(problems: list[str]) -> int:
     """D-signature-form (tools/grace/check.py) — landed with the signature form at
     council read 89. The form, a record named by a term and an example call stay
@@ -1490,7 +1548,7 @@ def check_rule_symbol_synthetic(problems: list[str]) -> int:
         ("a record in words", "Operation 1: A call MUST answer invocation_id and intent_event_id."),
     ]
     firing = [
-        ("a section sign", "Operation 1: A call MUST read the store PER §Conformance."),
+        ("a section sign", "Operation 1: A call MUST read the store PER §Conformance."),  # hunts the form
         ("an arrow", "Operation 1: A call MUST call Log.append → event_id."),
         ("a brace", "Operation 1: A call MUST answer {invocation_id, intent_event_id}."),
         ("a bar", "Operation 1: recording-failure(step-2 | step-3) MUST land recording-failure(intent)."),
@@ -2267,6 +2325,16 @@ def main(argv: list[str]) -> int:
               "form, a phrase from no family and a move silent; the dash, the repeated and "
               "plural family, *to*, a backward, a one-label and a reshaped range fire; "
               "check.py resolves the last label; cites.py covers minors and stops at the end) \u2713")
+
+    notation_problems: list[str] = []
+    n_notation = check_notation_synthetic(notation_problems)
+    failures.extend(notation_problems)
+    if not notation_problems:
+        print(f"N-retired-sign, X-page-citation, V-views-current: {n_notation} synthetic fixtures hold "
+              "(a live sign, a sign under an undated section and an unmarked tool line fire; "
+              "a span, a Decisions entry, a dated entry and its continuing heading and a marked tool line "
+              "stay silent; a missing heading fires where a heading and an entry resolve; the current "
+              "views pass and a stale one fires) \u2713")
 
     decl_problems: list[str] = []
     check_decl_form_synthetic(decl_problems)

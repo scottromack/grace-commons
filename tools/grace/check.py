@@ -205,7 +205,7 @@ RULE_NOUNS = rule_nouns()
 # answer "answering x", a record "carrying a, b and c", a set of codes "a and
 # b", a range "steps 2 through 5"; a template such as `<kind>.intended` is a
 # code spelling and sits in a code span (council read 103).
-RULE_SYMBOL = re.compile(r"[§→{}|<>–/*]")
+RULE_SYMBOL = re.compile(r"[§→{}|<>–/*]")  # hunts the form (Principle 13)
 RETIRED_NOUNS = ((re.compile(r"\barguments?\b"), "argument", "input"),)
 
 
