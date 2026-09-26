@@ -72,7 +72,7 @@ Net: **early-foundational** — inside the Years 0–3 band of [`the-spec-layer.
 
 **Readability debt (author-side)** — The bridge principle erodes as terse expert shorthand accumulates faster than it is cleaned; past readability sweeps failed to stick because a one-pass edit fights the same completeness pressure that produced the terseness.
 
-*Mitigation (in place):* Self-explanatory-over-shorthand as standing guidance when authoring or touching a line. *(gap):* The discipline that actually holds — a standing rule, a terse-form linter, or a readability arm on the scheduled rescan — is undecided; filed in [`open-questions.md`](./open-questions.md) §Readability ↔ completeness.
+*Mitigation (in place):* Self-explanatory-over-shorthand as standing guidance when authoring or touching a line. *(gap):* The discipline that actually holds — a standing rule, a terse-form linter, or a readability arm on the scheduled rescan — is undecided; filed in the section titled *Readability ↔ completeness* in [`open-questions.md`](./open-questions.md).
 
 **Adoption Resistance** — Engineers resent reduced code ownership; business resists writing or maintaining specs.
 
@@ -100,7 +100,7 @@ Net: **early-foundational** — inside the Years 0–3 band of [`the-spec-layer.
 
 **Methodology bloat / over-machinery** — Each new rule or convention adds machinery; new conventions silently duplicate rules that already exist. Observed: a proposed structural-relation rule arrived as a full convention with formal-model hooks and collapsed to one Pass-3 checklist line once the adversarial pass proved most of it restated existing disciplines.
 
-*Mitigation (in place):* Smallest-machinery-that-closes-the-gap; the EOS over-absorption check applied to conventions themselves. *(gap → proposed):* Make "is this a new rule, or an instance of existing ones?" a standing gate before any convention lands — housed in [`pressure-testing.md`](./pressure-testing.md) §The methodology applied to itself, not a new document.
+*Mitigation (in place):* Smallest-machinery-that-closes-the-gap; the EOS over-absorption check applied to conventions themselves. *(gap → proposed):* Make "is this a new rule, or an instance of existing ones?" a standing gate before any convention lands — housed in the section titled *The methodology applied to itself* in [`pressure-testing.md`](./pressure-testing.md), not a new document.
 
 **Reviewer-vendor dependence** — The entire grounding gate (Final Critique, clearance gate, council rescans) runs on a single model family. Model regression, drift, or unavailability silently changes the bar `grounded` means.
 
