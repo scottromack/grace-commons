@@ -2,7 +2,7 @@
 
 > Do not cut corners unless you have VERY good reasons and in that case ask.
 
-> Standing instructions for any AI agent session working on Grace Commons, regardless of vendor or tool. (`CLAUDE.md` is a one-line shim pointing here, so Claude tooling and AGENTS.md-reading tools share this single source.) **This file is an agent-operational index and nothing more**: it points at the canonical documents and records environment quirks. It deliberately carries no canonical content — no vocabulary mirrors, no convention restatements, no library-state snapshots. Every rule it once mirrored now lives in exactly one canonical home, linked below. (The lesson that shaped this: every mirrored sentence in this file's CLAUDE.md-era predecessor eventually drifted from its source — stale counts, stale open-question lists, stale convention text. On 2026-06-11 the file was cut to pointers; the sections below that look like content are one-line redirects kept so historical "per CLAUDE.md §…" references in commit history still resolve — via the shim, they land here.)
+> Standing instructions for any AI agent session working on Grace Commons, regardless of vendor or tool. (`CLAUDE.md` is a one-line shim pointing here, so Claude tooling and AGENTS.md-reading tools share this single source.) **This file is an agent-operational index and nothing more**: it points at the canonical documents and records environment quirks. It deliberately carries no canonical content — no vocabulary mirrors, no convention restatements, no library-state snapshots. Every rule it once mirrored now lives in exactly one canonical home, linked below. (The lesson that shaped this: every mirrored sentence in this file's CLAUDE.md-era predecessor eventually drifted from its source — stale counts, stale open-question lists, stale convention text. On 2026-06-11 the file was cut to pointers; the sections below that look like content are one-line redirects kept so historical `per CLAUDE.md §…` references in commit history still resolve — via the shim, they land here.)
 
 ---
 
@@ -53,23 +53,23 @@ Moved — no mirror kept. Atom (atomic concept), composition, freestanding, and 
 
 ## Authoring conventions
 
-Moved — owned by [`spec-format.md`](./spec-format.md) §Cross-cutting authoring conventions (as of 2026-06-11). Deviations are review findings, not stylistic choices.
+Moved — owned by the section titled *Cross-cutting authoring conventions* in [`spec-format.md`](./spec-format.md) (as of 2026-06-11). Deviations are review findings, not stylistic choices.
 
 ## The three-pass review
 
-Moved — owned by [`pressure-testing.md`](./pressure-testing.md): pass definitions, §Order and iteration (round structure and naming; `grounded on Final Critique N` is the canonical marker), and §What "grounded" means (the formal-layer vote and Opus clearance gate).
+Moved — owned by [`pressure-testing.md`](./pressure-testing.md): pass definitions, the section titled *Order and iteration* (round structure and naming; `grounded on Final Critique N` is the canonical marker), and the section titled *What "grounded" means* (the formal-layer vote and Opus clearance gate).
 
 ## Regulated-pattern conventions
 
-Moved — owned by [`pressure-testing.md`](./pressure-testing.md) §Regulated-pattern conventions (the two required sections and when they apply); section placement by [`spec-format.md`](./spec-format.md) §Regulated overlay.
+Moved — owned by the section titled *Regulated-pattern conventions* in [`pressure-testing.md`](./pressure-testing.md) (the two required sections and when they apply); section placement by the section titled *Regulated overlay* in [`spec-format.md`](./spec-format.md).
 
 ## Current state of the library
 
-Moved — [`roadmap.md`](./roadmap.md) is the single source of truth for counts, statuses, and sequencing; structural milestones are recorded on each pattern's roadmap row. The no-snapshot rule that used to live here is owned by [`pressure-testing.md`](./pressure-testing.md) §The no-snapshot rule.
+Moved — [`roadmap.md`](./roadmap.md) is the single source of truth for counts, statuses, and sequencing; structural milestones are recorded on each pattern's roadmap row. The no-snapshot rule that used to live here is owned by the section titled *The no-snapshot rule* in [`pressure-testing.md`](./pressure-testing.md).
 
 ## Workflow for adding a new pattern
 
-Moved — owned by [`contributing.md`](./contributing.md) §Workflow for adding a new pattern (as of 2026-06-11).
+Moved — owned by the section titled *Workflow for adding a new pattern* in [`contributing.md`](./contributing.md) (as of 2026-06-11).
 
 ## Open architectural questions
 
@@ -77,11 +77,11 @@ Moved — [`open-questions.md`](./open-questions.md) is the SSOT. No list is mir
 
 ## Implementation-discovered findings
 
-Moved — owned by [`contributing.md`](./contributing.md) §Implementation-discovered findings (as of 2026-06-11). The one-line form: a **finding** names a contradiction inside the spec and routes through the review channel; everything else is a **preference** and belongs in the build's own tracker; builds proceed against the spec as written.
+Moved — owned by the section titled *Implementation-discovered findings* in [`contributing.md`](./contributing.md) (as of 2026-06-11). The one-line form: a **finding** names a contradiction inside the spec and routes through the review channel; everything else is a **preference** and belongs in the build's own tracker; builds proceed against the spec as written.
 
 ## Tone
 
-Moved — the verbosity-preserves-meaning and bridges-over-walls principles are owned by [`the-spec-layer.md`](./the-spec-layer.md) (§The Architecture, §Principles, §Bridges); complete-over-concise and the reading tiers by [`spec-format.md`](./spec-format.md). The litmus test for any addition: *does this build a bridge, or does it build a wall?*
+Moved — the verbosity-preserves-meaning and bridges-over-walls principles are owned by [`the-spec-layer.md`](./the-spec-layer.md) (the sections titled *The Architecture*, *Principles* and *Bridges*); complete-over-concise and the reading tiers by [`spec-format.md`](./spec-format.md). The litmus test for any addition: *does this build a bridge, or does it build a wall?*
 
 ---
 
