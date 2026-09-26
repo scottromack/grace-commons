@@ -1,6 +1,6 @@
 // Audit Trail — record_action + verify_record.
 //
-// Hash chain design (BUILD_PLAN.md §4.6):
+// Hash chain design (section 4.6) of BUILD_PLAN.md:
 //   attestation = HMAC-SHA256(key=actor.credential_secret,
 //                             data=canonical_json(core_payload))
 //   row_hash    = SHA-256(prev_row_hash || canonical_json({...core_payload, attestation}))
@@ -113,7 +113,7 @@ function retentionUntil(policy: RetentionPolicy): string {
  * Must be called inside an open transaction (the caller's BEGIN IMMEDIATE).
  * record_action does NOT open its own transaction — it participates in the
  * caller's so that an outer ROLLBACK removes the audit row with the
- * constituent write. See BUILD_PLAN.md §5.
+ * constituent write. See section 5 of BUILD_PLAN.md.
  */
 export function record_action(
   params: RecordActionParams,

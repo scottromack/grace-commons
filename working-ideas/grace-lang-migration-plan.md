@@ -6,11 +6,11 @@
 
 ## Language
 
-`GRACE-lang.md` is v0.27. Land v0.28 first: the review's eight changes, plus one — a declaration MAY cite its owner (§13), so a composition uses a constituent's term without restating it.
+`GRACE-lang.md` is v0.27. Land v0.28 first: the review's eight changes, plus one — a declaration MAY cite its owner (section 13), so a composition uses a constituent's term without restating it.
 
 ## Rewrite
 
-One spec at a time. Obligations in Strict Caveman (§20), each with a label. Rationale in `WHY:`, short. Real examples. Terms one line each, the card's fields kept. Cut to about 30% of today's bytes; a target, not a gate.
+One spec at a time. Obligations in Strict Caveman (section 20), each with a label. Rationale in `WHY:`, short. Real examples. Terms one line each, the card's fields kept. Cut to about 30% of today's bytes; a target, not a gate.
 
 Language only. Same obligations, same terms, same invariant numbers, same Ledger. A defect found on the way goes on the Ledger as an open line, fixed after. No inventory, no diff, no gate per spec, no parser yet — the rewrite fixes the shape, the parser reads it afterwards (debt #21, step ii).
 

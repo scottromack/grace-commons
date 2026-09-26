@@ -2,7 +2,7 @@
 \* Grace Commons — Actor Suspension. Login's outbound-side counterpart.
 \* Spec-level formal sibling of compositions/actor-suspension.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* The composition's load-bearing emergent guarantee is Invariant 1 (atomicity of
@@ -31,7 +31,7 @@
 \* NOT MODELED (out of scope for the load-bearing property)
 \* - concurrent grant/session ISSUANCE after the snapshot (Invariant 1 is
 \*   snapshot-scoped; gating issuance on the suspension state is the composing
-\*   layer's obligation — see the English §Edge cases).
+\*   layer's obligation — see the English section Edge cases).
 \* - the benign TOCTOU already-terminal case (a concurrent revoke during the
 \*   cascade) — handled in the wiring as benign, not a safety property to verify.
 \* - the best-effort posture and the optional Credential surface.

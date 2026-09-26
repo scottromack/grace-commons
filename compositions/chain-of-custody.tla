@@ -2,7 +2,7 @@
 \* Grace Commons — Chain of Custody composition.
 \* Spec-level formal sibling of compositions/chain-of-custody.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS (revised 2026-06-11 — closes the Invariant-4 coverage-gap finding)
 \* The composition's load-bearing wiring decision is Invariant 4 (binding
@@ -32,7 +32,7 @@
 \*                     from a clean one.
 \*
 \* Per custody entry e, TWO truth-bearing sub-writes (the entry_to_event map is
-\* a derived index per execution-contract.md §Composition state — rebuildable by
+\* a derived index per execution-contract.md section Composition state — rebuildable by
 \* enumerating Audit Trail events whose `data.entry_id` names the entry; outside
 \* the atomicity surface; omitted from the model per that section's obligation 2):
 \*   intentState: absent | present                      (the pre-commit intent record —
@@ -77,7 +77,7 @@
 \*   interleaving; RetryAudit abstracts both compensation attestations into the
 \*   one `recovered` outcome.
 \* - the entry_to_event derived index (outside the atomicity surface per
-\*   execution-contract.md §Composition state; a lost entry is a rebuild
+\*   execution-contract.md section Composition state; a lost entry is a rebuild
 \*   trigger, not data loss).
 \* - verify_custody outcome plumbing (Invariant 5) — a query-shape property.
 \* - constituent invariants (Invariant 6) — each checked in its own model

@@ -3,7 +3,7 @@
 \* composition follows around an irreversible act. Spec-level formal sibling of
 \* compositions/recoverable-invocation.md. Derived validator; the English spec
 \* is the single source of truth. On any disagreement, diagnose per
-\* pressure-testing.md §The conflict protocol.
+\* the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* VERSION 5 (2026-09-09) splits [OPEN] and raises the resolve budget. The
 \* tenth gate found the first MODEL-WRONG finding since the sixth: v4 made the
@@ -1205,7 +1205,7 @@ OpReturn ==
     /\ opState \in {"returned", "visible"}
     \* THE OPERATOR RE-ARMS. An operator who resolves an act may be called
     \* again on it — that is how a false abandonment is corrected, and it is
-    \* the page's own §check 6 path. v5's first cut left this phase terminal,
+    \* the page's own section check 6 path. v5's first cut left this phase terminal,
     \* so MaxResolves was never the binding constraint and raising it changed
     \* nothing: the SWITCH THAT WAS OFF WAS A PHASE, NOT THE CONSTANT NAMED IN
     \* THE CONFIGURATION. The chain probe is what found that, by holding twice.

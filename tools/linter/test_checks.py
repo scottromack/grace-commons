@@ -533,7 +533,7 @@ T_SILENT = {"chain-of-custody", "forensic-recovery"}
 T_FIRING: set[str] = set()
 
 
-# U-retry-bit — landed 2026-08-30 ADVISORY (pressure-testing.md §A composition's
+# U-retry-bit — landed 2026-08-30 ADVISORY (pressure-testing.md section A composition's
 # own rejection arm carries the retry bit, frozen the same day). Synthetic from
 # the start, like S and T. The corpus set below is a FLOOR at landing and is
 # switched to `exact` in the change that closes the last site.
@@ -700,7 +700,7 @@ def check_r_synthetic(problems: list[str]) -> None:
 # The count reading was built at council read 33 against hand-written family
 # counts and compares only the counts somebody already wrote down. The list
 # reading was added at council read 63, when `Reconciliation` crossed Standard
-# label 4's threshold of three in silence because §18 named it nowhere — the
+# label 4's threshold of three in silence because section 18 named it nowhere — the
 # census list being the second hand-census, which is read 58's lesson one layer
 # out. Pinned without a victim: a throwaway grammar and two throwaway patterns,
 # so the fixtures cannot die when a corpus family's count moves.

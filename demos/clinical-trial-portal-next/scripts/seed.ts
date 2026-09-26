@@ -8,7 +8,7 @@
  * backdated study.registered genesis, appended through the same appendEvent path
  * as every other event so its hash can never diverge (the render-1 bug, fixed).
  *
- * Actor roster matches render 1 byte-for-byte (Demo2-plan §3 / the render-1 seed).
+ * Actor roster matches render 1 byte-for-byte (Demo2-plan section 3 / the render-1 seed).
  */
 import { db, withTx, type Ctx } from "../lib/db.ts";
 import { hashPassword } from "../lib/password.ts";

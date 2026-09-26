@@ -2,7 +2,7 @@
 \* Grace Commons — Regulated Record Retention & Defensible Deletion.
 \* Spec-level formal sibling of compositions/defensible-retention.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* The load-bearing claim is hold-blocks-purge (the named race): a record under

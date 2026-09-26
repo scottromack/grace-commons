@@ -8,7 +8,7 @@
 // record_action() participates in the caller's transaction — no nested txns.
 //
 // The trailing flag and cascade sequencing are the critical correctness
-// invariants. See BUILD_PLAN.md §7 and the pre-build analysis in chat.
+// invariants. See section 7 of BUILD_PLAN.md and the pre-build analysis in chat.
 //
 // NOTE: audit_pending flag never fires in this implementation (single-txn
 // discipline). The column exists per spec; see CORNERS.md.

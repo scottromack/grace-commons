@@ -1,4 +1,4 @@
-// app/layout.tsx — root layout (BUILD_PLAN §3 / §7.8).
+// app/layout.tsx — root layout (section 3 of BUILD_PLAN / section 7.8).
 //
 // Renders <html>/<body> and pulls in render 1's COMPILED Inks.css verbatim from
 // /beacon.css (served from public/) so the second render is pixel-identical "by

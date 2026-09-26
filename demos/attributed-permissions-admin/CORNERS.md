@@ -129,7 +129,7 @@ row exists. The schema (`src/db/schema.sql`) backs this up with a
 status = 'active'`.
 
 **The spec does not require this.** Per
-`compositions/attributed-permissions-admin.md` §Edge cases → *Concurrent
+the section titled *Edge cases* in `compositions/attributed-permissions-admin.md` → *Concurrent
 issuance of the same grant*: "Two simultaneous `issue_grant(subject_ref,
 action_scope, ...)` calls for the same `(subject_ref, action_scope)` pair
 from different grantors produce two distinct attestations and two distinct
@@ -174,7 +174,7 @@ implementation and the spec's stated "concurrent grants are allowed"
 behaviour.
 
 **Why this is a CORNERS entry, not a spec finding.** The spec is
-internally consistent: §Edge cases names the behaviour the model
+internally consistent: section Edge cases names the behaviour the model
 verifies. The implementation does something stronger than the spec
 asks. That's a build choice, not a spec contradiction. If a deployment
 wanted single-active-per-pair as a guaranteed property (rather than an

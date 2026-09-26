@@ -26,7 +26,7 @@
 --                 singly-linked; branching and cycles are forbidden.
 --   Invariant 2 — Successor inherits identity fields. The successor carries the
 --                 same patient_ref, prescriber_ref, and medication_ref as the
---                 original. (Spec §Identity model and §Invariants 2/4.)
+--                 original. (Spec section Identity model and section Invariants 2/4.)
 --
 -- SCOPE
 -- Static structural model (snapshots). Each Order sig represents one medication
@@ -67,7 +67,7 @@ module medication_order
 -- Signatures (types)
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- State enum: exactly one of nine values (spec §State).
+-- State enum: exactly one of nine values (spec section State).
 -- Pre-dispensing states: Ordered, Verified.
 -- Post-dispensing / terminal / inactive states: Dispensed, Administered,
 --   Completed, Cancelled, Discontinued, Amended.
@@ -78,8 +78,8 @@ one sig Ordered, Verified, Dispensed, Administered, Completed,
         Cancelled, Discontinued, Amended, OnHold extends State {}
 
 -- Pre-dispensing states are those from which amend is permitted.
--- Spec §Actions §amend: "Valid only for orders in Ordered or Verified state."
--- Spec §Invariant 3: "amend is rejected for any order in Dispensed, Administered,
+-- Spec section Actions section amend: "Valid only for orders in Ordered or Verified state."
+-- Spec Invariant 3: "amend is rejected for any order in Dispensed, Administered,
 --   Completed, On Hold, Cancelled, Discontinued, or Amended state."
 fun PreDispensingState : set State {
     Ordered + Verified
@@ -107,7 +107,7 @@ abstract sig ClinRef       {}  -- clinician reference for amended_by, etc.
 -- prescriber:  one  — always present; inherited by successor (Invariants 1, 2).
 -- medication:  one  — always present; inherited by successor (Invariants 1, 2).
 -- amendedBy:   lone — present only on successor orders (set by amend).
--- state:       one  — always exactly one state (spec §State).
+-- state:       one  — always exactly one state (spec section State).
 sig Order {
     successor   : lone Order,   -- the correcting order (set when this becomes Amended)
     predecessor : lone Order,   -- the order this corrects (set on amend creation)
@@ -141,14 +141,14 @@ fact LinearChain {
 
 -- Inverse consistency: successor and predecessor are inverses of each other.
 -- If order B is the successor of order A, then A must be the predecessor of B.
--- This encodes the bidirectional link that spec §State and §Actions describe:
+-- This encodes the bidirectional link that spec section State and section Actions describe:
 -- after amend, original gets successor_id and successor gets predecessor_id.
 fact SuccessorPredecessorInverse {
     all a, b : Order | a.successor = b iff b.predecessor = a
 }
 
 -- Amended state iff successor is set (the link and the state label are consistent).
--- Spec §State: "Amended — the order has been superseded by a successor. Retained
+-- Spec section State: "Amended — the order has been superseded by a successor. Retained
 -- and visible; carries successor_id pointing to the correcting order."
 fact AmendedIffHasSuccessor {
     all x : Order | x.state = Amended iff one x.successor
@@ -181,9 +181,9 @@ fact PreDispensingOnlyAmendment {
 }
 
 -- Successor state constraint: a successor order (one with a predecessor) always
--- starts in Ordered state. Spec §Actions §amend: "The successor starts in Ordered
+-- starts in Ordered state. Spec section Actions section amend: "The successor starts in Ordered
 -- state regardless of whether the original was Ordered or Verified."
--- Spec §Behavior: "The successor always starts in Ordered state."
+-- Spec section Behavior: "The successor always starts in Ordered state."
 fact SuccessorStartsOrdered {
     all x : Order | one x.predecessor implies x.state in (Ordered + Verified + Dispensed +
         Administered + Completed + Cancelled + Discontinued + Amended + OnHold)
@@ -197,8 +197,8 @@ fact SuccessorStartsOrdered {
 }
 
 -- amendedBy is set iff the order has a predecessor (it was created by amend).
--- Spec §Actions §amend: "The successor carries ... amended_by." and
--- §Invariant 12: "amended_by / amendment_reason on a successor ... all immutable."
+-- Spec section Actions section amend: "The successor carries ... amended_by." and
+-- Invariant 12: "amended_by / amendment_reason on a successor ... all immutable."
 fact AmendedByConsistency {
     all x : Order | (one x.amendedBy) iff (one x.predecessor)
 }
@@ -206,7 +206,7 @@ fact AmendedByConsistency {
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Invariant 2: Inherited identity fields
 -- The successor carries the same patient_ref, prescriber_ref, and medication_ref
--- as the original. Spec §Identity model and §Invariant 2.
+-- as the original. Spec section Identity model and Invariant 2.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- patient_ref is inherited across amendment chains.
@@ -215,14 +215,14 @@ fact PatientRefInherited {
 }
 
 -- prescriber_ref is inherited across amendment chains.
--- Spec §Identity model: "prescriber_ref is inherited unchanged by any successor
+-- Spec section Identity model: "prescriber_ref is inherited unchanged by any successor
 -- order created by amend — prescribing authorship belongs to the original prescriber."
 fact PrescriberRefInherited {
     all a, b : Order | a.successor = b implies b.prescriber = a.prescriber
 }
 
 -- medication_ref is inherited across amendment chains.
--- Spec §Identity model: "medication_ref is inherited unchanged by any successor
+-- Spec section Identity model: "medication_ref is inherited unchanged by any successor
 -- order created by amend. An order placed for the wrong medication must be
 -- cancelled and re-ordered; amendment cannot change the medication identity."
 fact MedicationRefInherited {

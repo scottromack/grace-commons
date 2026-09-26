@@ -17,7 +17,7 @@ const now = new Date().toISOString();
 
 // ---------------------------------------------------------------------------
 // Actors
-// Per BUILD_PLAN.md §11. credential_secret is a stand-in HMAC key; in a
+// Per section 11 of BUILD_PLAN.md. credential_secret is a stand-in HMAC key; in a
 // real deployment this would be a proper secret — not hardcoded.
 // ---------------------------------------------------------------------------
 
@@ -132,7 +132,7 @@ const actors = [
 
 // ---------------------------------------------------------------------------
 // Permission grants
-// Per BUILD_PLAN.md §11:
+// Per section 11 of BUILD_PLAN.md:
 //   - controller_morgan, qa_manager, coordinator_lee → initiate + withdraw
 //   - all human actors → read
 //   - system@demo → no grants (application actor, not human)
@@ -222,7 +222,7 @@ if (existingChains > 0) {
       scope:            "sox-annual-close",
       approver_set:     ["finance_director_chen", "cfo_park", "ceo_walsh"],
       quorum_kind:      "all-of-N",
-      reason:           "Q4 close — requires Controller, CFO, and CEO sign-off under SOX §302.",
+      reason:           "Q4 close — requires Controller, CFO, and CEO sign-off under SOX section 302.",
       retention_policy: "sox_7_year",
     }),
     "initiate SOX chain",
@@ -277,7 +277,7 @@ if (existingChains > 0) {
       scope:            "ich-gcp-deviation",
       approver_set:     ["pi_chen", "pi_okafor", "pi_mueller", "pi_singh"],
       quorum_kind:      "one-of-N",
-      reason:           "Unplanned deviation from v3.1 §7.2 — any lead PI may approve.",
+      reason:           "Unplanned deviation from v3.1 section 7.2 — any lead PI may approve.",
       retention_policy: "ich_e6_tmf",
     }),
     "initiate ICH chain",

@@ -3,7 +3,7 @@
 // canonicalize + the hashed-event shape here are BYTE-IDENTICAL to render 2's
 // demos/clinical-trial-portal-next/lib/canonical.ts and domain/event_log.ts. So
 // "verifies under verify.mjs" means "verifies under the TypeScript canonical
-// contract" — the cross-language portability claim (BUILD_PLAN §6.3) made literal:
+// contract" — the cross-language portability claim (section 6.3) of BUILD_PLAN made literal:
 // a Go- or Python-produced chain re-walks clean under the JS contract.
 //
 // Usage:  node verify.mjs <chain.jsonl>     (defaults to ./expected-chain.jsonl)

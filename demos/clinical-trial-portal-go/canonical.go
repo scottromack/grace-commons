@@ -12,7 +12,7 @@ import (
 // canonicalize mirrors render 1/2's lib/canonical.ts BYTE-FOR-BYTE: keys sorted
 // lexicographically at every level, no whitespace, JSON.stringify semantics for
 // primitives. The audit hash chain's cross-render portability depends on this
-// producing exactly the same bytes as the TS/JS canonicalize (BUILD_PLAN §6.1).
+// producing exactly the same bytes as the TS/JS canonicalize (section 6.1) of BUILD_PLAN.
 //
 // The TS source it ports:
 //

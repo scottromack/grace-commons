@@ -907,9 +907,9 @@ Projection: storage-failure
 - **RFC 7519 (JSON Web Token)** — an `api-token` [Credential Type] stores a hash of the raw token as its [Verifier]. The atom does not interpret token claims; that is the composing pattern's.
 - **OpenID Connect Core 1.0** — the OIDC login flow produces the verification event this atom models; [Login](../compositions/login.md) is the Grace Commons expression of the authorization-code flow.
 - **PCI DSS Requirement 8 (identify and authenticate access)** — the atom satisfies the structural requirements: one effective-active credential per pair, rotation producing a new record, revocation recorded with attribution. The configuration knobs — rotation period, complexity rules, lockout threshold — are the deployment's (Non-goal 8, Non-goal 16).
-- **ISO/IEC 27001 §A.9.4 (system and application access control)** — the registration, rotation and revocation lifecycle corresponds to the credential-management controls there.
+- **ISO/IEC 27001 clause A.9.4 (system and application access control)** — the registration, rotation and revocation lifecycle corresponds to the credential-management controls there.
 - **GDPR Article 32 (security of processing)** — State 9, State 10 and the one-way verifier discipline contribute to the technical measures Article 32 requires. A deployment storing a biometric verifier assesses Article 9 separately (Non-goal 23).
-- **HIPAA §164.312(d) (person or entity authentication)** — the verified answer is the structural mechanism for this requirement.
+- **HIPAA section 164.312(d) (person or entity authentication)** — the verified answer is the structural mechanism for this requirement.
 
 It inherits from:
 

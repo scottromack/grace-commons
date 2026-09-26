@@ -382,7 +382,7 @@ Each row has a "Show hash" disclosure that reveals `prev_hash` and `this_hash` f
 
 Each phase is independently shippable: the demo runs (perhaps with reduced functionality) at the end of every phase, and tests pass.
 
-**Required input.** Every phase below presumes the reference patterns in Appendix A. The patterns are not suggestions — they are the render-layer spec. A "completed" phase is one whose files conform to those patterns *and* pass the test bar (§8.14). If a pattern is genuinely ambiguous for a particular file, do not improvise: surface the ambiguity, propose the smallest extension to the patterns that resolves it, and continue.
+**Required input.** Every phase below presumes the reference patterns in Appendix A. The patterns are not suggestions — they are the render-layer spec. A "completed" phase is one whose files conform to those patterns *and* pass the test bar (section 8.14). If a pattern is genuinely ambiguous for a particular file, do not improvise: surface the ambiguity, propose the smallest extension to the patterns that resolves it, and continue.
 
 ### Phase 0 — Scaffold *(half day)*
 
@@ -393,7 +393,7 @@ Each phase is independently shippable: the demo runs (perhaps with reduced funct
 
 ### Phase 1 — Schema + atoms *(1 day)*
 
-- Write `migrations/0001_init.sql` with every table from §5.
+- Write `migrations/0001_init.sql` with every table from section 5.
 - One file per atom under `domain/` exporting pure read/write helpers (no audit emission yet, no composition logic): `parties.ts`, `actors.ts`, `credentials.ts`, `sessions.ts`, `permissions.ts`, `grants.ts`, `invitations.ts`, `event_log.ts`, `retention_policy.ts`.
 - `domain/subjects.ts`, `domain/visits.ts`, `domain/studies.ts` for the regulated artifacts.
 - Unit tests per file using `deno test` with an in-memory SQLite instance per test.
@@ -455,7 +455,7 @@ All previously-open questions are answered. These are now constraints on the imp
 2. **Invitation delivery.** In-UI link only. No SMTP in scope. The invite link is displayed in a copy-able card on the PI's `/people` view after issuance.
 3. **Password hashing.** Argon2id via `jsr:@denosaurs/argontwo@^0.2`. WASM-based, signed on GitHub Actions, JSR score 100%, denosaurs org. Algorithm variant: `Argon2id` (RFC 9106 default — hybrid of Argon2i side-channel resistance and Argon2d GPU resistance). No fallback. bcrypt is not used. (Package was last published two years before this plan; the underlying primitive is stable, but reconfirm the version pin and the `hash`/`verify` signatures against the current JSR listing at the moment Phase 2 begins.)
 4. **Session token.** Opaque random, DB-backed (`sessions` table is the source of truth). Not JWT. `session.closed` means a row was actually revoked.
-5. **Tamper evidence.** SHA-256 hash chain over canonical JSON, as specified in §6. No signatures, no per-deployment private key. The property demonstrated is *detection of tampering by an actor with DB write access* — sufficient for the demo's claim.
+5. **Tamper evidence.** SHA-256 hash chain over canonical JSON, as specified in section 6. No signatures, no per-deployment private key. The property demonstrated is *detection of tampering by an actor with DB write access* — sufficient for the demo's claim.
 6. **Retention.** Enforcement is **off** by default in the demo seed so the full chain is visible. A clearly-labeled toggle on `/audit` flips enforcement on, with explanatory copy in the UI ("Hide events older than the retention window. The records are not deleted — Part 11 forbids that — just filtered for presentation.").
 7. **Subject privacy.** Synthetic subject codes only (e.g. `BCN-014`). No real names, no PII columns on `subjects`. The form does not accept a name field.
 8. **PI bootstrap.** PI account is seeded directly in `seed.ts` with a loud header comment: `// SEAM: in production this happens via out-of-band provisioning. A "Bootstrap Identity" composition is out of scope for this demo.` No setup wizard.
@@ -518,7 +518,7 @@ demos/clinical-trial-portal/
     audit_list.tsx
     audit_verify.tsx
   migrations/
-    0001_init.sql                  # Full schema from §5
+    0001_init.sql                  # Full schema from section 5
   scripts/
     migrate.ts                     # Apply migrations idempotently
     seed.ts                        # PI + CRA + permission catalog + study
@@ -730,7 +730,7 @@ export function issueInvitation(ctx: Ctx, input: {
 }
 ```
 
-All nine composition functions (§7 Phase 2 list) follow this shape. The audit event(s) emitted by each are spelled out in §6.
+All nine composition functions (section 7 Phase 2 list) follow this shape. The audit event(s) emitted by each are spelled out in section 6.
 
 ### A.6 `domain/event_log.ts` — audit append + tamper-evidence
 

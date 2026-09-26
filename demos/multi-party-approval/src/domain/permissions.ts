@@ -1,6 +1,6 @@
 // Permissions atom — grant / revoke / permitted.
 // Scoped to the chain store; knows nothing about chains.
-// See BUILD_PLAN.md §5 and spec §Permissions.
+// See section 5 of BUILD_PLAN.md and spec section Permissions.
 
 import { db, tx } from "../db/client.ts";
 

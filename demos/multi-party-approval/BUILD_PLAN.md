@@ -59,7 +59,7 @@ grace-commons-demo/
 │   ├── config.ts                   # constants from spec Configuration block
 │   ├── db/
 │   │   ├── client.ts               # opens sqlite, sets pragmas, exports `db` + `tx()` helper
-│   │   ├── schema.sql              # single-source DDL — see §4
+│   │   ├── schema.sql              # single-source DDL — see section 4
 │   │   ├── migrate.ts              # runs schema.sql idempotently
 │   │   └── seed.ts                 # actors, permission_grants, three demo chains
 │   ├── domain/                     # the spec's atoms + composition, one TS module per concern
@@ -72,7 +72,7 @@ grace-commons-demo/
 │   │   ├── quorum.ts               # pure evaluate(kind, m, vector) function
 │   │   └── chain.ts                # initiate / withdraw / approve_step / reject_step / withdraw_step / read_chain
 │   ├── routes/
-│   │   ├── chains.ts               # see §8
+│   │   ├── chains.ts               # see section 8
 │   │   ├── steps.ts
 │   │   ├── audit.ts
 │   │   ├── verify.ts
@@ -365,7 +365,7 @@ Three invariants are too rich for CHECK constraints and live in app logic plus a
 
 `evaluate(kind, m, vector)` returns one of `'Pending' | 'Approved' | 'Rejected' | 'Withdrawn'`. The function is the *Quorum evaluation rule* subsection of the spec, transcribed to TypeScript and unit-testable in isolation. `one-of-N` is handled as `M-of-N` with `m = N`-but-actually-`m = 1`; the function unifies them per the spec's Round-2 finding.
 
-`src/domain/approval_step.ts` mirrors the atom's surface: `submit`, `approve`, `reject`, `withdraw`, `read`. Each function takes the database handle as a parameter (so transactions compose), enforces the atom's invariants 1–10 via the CHECKs + triggers from §4.4, and propagates the rejection taxonomy `invalid-request | not-known | not-pending | unauthorized | storage-failure` unchanged. Nothing in this module knows about chains.
+`src/domain/approval_step.ts` mirrors the atom's surface: `submit`, `approve`, `reject`, `withdraw`, `read`. Each function takes the database handle as a parameter (so transactions compose), enforces the atom's invariants 1–10 via the CHECKs + triggers from section 4.4, and propagates the rejection taxonomy `invalid-request | not-known | not-pending | unauthorized | storage-failure` unchanged. Nothing in this module knows about chains.
 
 `src/domain/permissions.ts` exposes `grant(actor, scope, by)`, `revoke(grant_id, by)`, and `permitted(actor, scope) → 'permitted' | 'denied'`. Single-row queries; no knowledge of chains.
 
@@ -373,7 +373,7 @@ Three invariants are too rich for CHECK constraints and live in app logic plus a
 
 `src/domain/audit_trail.ts` exposes `record_action({action_ref, actor_ref, credential, chain_id?, step_id?, data, retention_policy})` and `verify_record(event_id) → 'verified' | 'failed-verification(reason)'`. `record_action` (a) reads `MAX(seq)` and the latest `row_hash`, (b) computes the new row's attestation via HMAC-SHA256 with the actor's `credential_secret`, (c) computes `row_hash` via SHA-256 over the canonical payload, (d) inserts the row. All steps are inside the calling transaction so an outer abort rolls the audit row back with the constituent write — the spec's "every chain-level action produces exactly one `record_action`" stays trivially true.
 
-`src/domain/chain.ts` is the composition. It owns the five action-signature functions (`initiate_chain`, `withdraw_chain`, `approve_step`, `reject_step`, `withdraw_step`), the `read_chain` query, and the chain-state re-evaluation that follows step decisions. The transaction shape for each action is in §7.
+`src/domain/chain.ts` is the composition. It owns the five action-signature functions (`initiate_chain`, `withdraw_chain`, `approve_step`, `reject_step`, `withdraw_step`), the `read_chain` query, and the chain-state re-evaluation that follows step decisions. The transaction shape for each action is in section 7.
 
 ---
 
@@ -484,7 +484,7 @@ One row per spec action signature, plus the read and admin routes the demo UI ne
 | `approve_step` | POST | `/chains/:chain_id/steps/:step_id/approve` | `{ reason? }` | 200 `{ step_state, chain_state, trailing }` | 400 · 404 · 409 · 403 · 500 |
 | `reject_step` | POST | `/chains/:chain_id/steps/:step_id/reject` | `{ reason }` | 200 same shape | 400 · 404 · 409 · 403 · 500 |
 | `withdraw_step` | POST | `/chains/:chain_id/steps/:step_id/withdraw` | `{ reason }` | 200 same shape | 400 · 404 · 409 · 403 · 500 |
-| `read_chain` | GET | `/chains` | query string per §7.6 | 200 `ChainView[]` | 403 · 400 invalid-query |
+| `read_chain` | GET | `/chains` | query string per section 7.6 | 200 `ChainView[]` | 403 · 400 invalid-query |
 | `read_chain` (single) | GET | `/chains/:chain_id` | — | 200 `ChainView` or 404 | 403 · 404 |
 
 Audit substrate routes (not in spec as actions, but the demo needs them):
@@ -632,19 +632,19 @@ Each of these is a place where the spec leaves room and the implementation picks
 | 3. Permission enforcement | App middleware | `permitted()` check in front of every chain-level POST and GET |
 | 4. Assignment coverage during pendency, with cascade-on-terminal | SQL UNIQUE + app cascade | `assignment.UNIQUE(task_ref)` + `recall(...)` inside the same txn as state change |
 | 5. Audit completeness | App txn + verifier | Same-txn audit insert; counts re-checked by `invariants.test.ts` |
-| 6. Deleted from the spec — Composes 5 owns constituent invariants | SQL CHECKs + triggers + atom modules | Per §4.4 / §4.5 / §4.6 and the per-atom module functions |
+| 6. Deleted from the spec — Composes 5 owns constituent invariants | SQL CHECKs + triggers + atom modules | Per section 4.4 / section 4.5 / section 4.6 and the per-atom module functions |
 | 7. Chain terminal absorption | SQL trigger | `chain_no_terminal_state_change`; plus app short-circuits re-evaluation when chain already terminal |
 | 8. Chain immutability of declared fields | SQL trigger | `chain_no_field_mutation` + `chain_terminal_at_set_once` |
 | 9. Chain reconstructibility, within the audit horizon | App query design + audit substrate | `read_chain` join + hash-chained `audit_event` |
 | 10. Authentication precedes commitment | Not enforced | The act-as picker takes no credential; audit rows are HMAC-attested server-side under the actor's stored secret, so no caller credential is validated before a commit |
 
-Plus the constituent-atom invariants for Approval Step (1–10) covered by §4.4 CHECKs + triggers + `approval_step.ts`; Permissions invariants covered by §4.2 + `permissions.ts`; Assignment invariants covered by §4.5 + `assignment.ts`; Audit Trail substrate invariants covered by §4.6 + `audit_trail.ts`.
+Plus the constituent-atom invariants for Approval Step (1–10) covered by section 4.4 CHECKs + triggers + `approval_step.ts`; Permissions invariants covered by section 4.2 + `permissions.ts`; Assignment invariants covered by section 4.5 + `assignment.ts`; Audit Trail substrate invariants covered by section 4.6 + `audit_trail.ts`.
 
 ---
 
 ## 15. Deferred items tracker (`CORNERS.md`)
 
-The first build lands with a `CORNERS.md` alongside the implementation that tracks every deferred-against-spec item discovered along the way, so a future session sees exactly what is still owed. Initial entries (all pre-known, named in §13 above):
+The first build lands with a `CORNERS.md` alongside the implementation that tracks every deferred-against-spec item discovered along the way, so a future session sees exactly what is still owed. Initial entries (all pre-known, named in section 13 above):
 
 - **Audit table collapse.** Single `audit_event` table satisfies every Audit Trail invariant the composition needs, but loses the four-atom didactic shape and the spec's *retention-horizon asymmetry* and *partial-attestation orphan* edge cases. Relaxation: split into four tables (`event_log`, `actor_identity`, `retention_window`, `tamper_evidence`). Estimated ~3–4 hours.
 - **`audit_pending` flag never fires.** Single-transaction discipline means `initiate_chain` case (c) cannot physically happen; the column exists per spec but no code path sets it. Relaxation: add a test-only `?fail-at=audit` fault-injection knob to step 6 of `initiate_chain`. Estimated ~1 hour.

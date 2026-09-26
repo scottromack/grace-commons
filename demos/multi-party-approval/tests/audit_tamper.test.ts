@@ -3,7 +3,7 @@
 // Six tests, each running against a fresh in-memory Database so they are
 // fully isolated and leave data/grace-commons-demo.sqlite untouched.
 //
-// Mutation types covered (BUILD_PLAN.md §12):
+// Mutation types covered (section 12) of BUILD_PLAN.md:
 //   baseline  — clean chain of 3 events → "verified"  (harness sanity check)
 //   1. data_json mutated       → attestation mismatch
 //   2. attestation mutated     → attestation mismatch

@@ -1,5 +1,5 @@
 "use client";
-// components/VerifyChip.tsx — the live "running verdict" island (BUILD_PLAN §7.5).
+// components/VerifyChip.tsx — the live "running verdict" island (section 7.5) of BUILD_PLAN.
 // Recomputes the hash chain via a server action and swaps the result in place,
 // without leaving the page. The full /audit/verify report stays available for a
 // no-JS path.

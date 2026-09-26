@@ -45,7 +45,7 @@ module provenance
 -- Signatures
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Event type enum: exactly one of six values (spec §State).
+-- Event type enum: exactly one of six values (spec section State).
 abstract sig EventType {}
 one sig Originated, Received, Transferred, Transformed, Disclosed, Archived extends EventType {}
 
@@ -58,7 +58,7 @@ abstract sig Custodian {}
 
 -- A custody entry.
 -- successor/predecessor : lone — linear chain (Invariant 2/5; no branching).
--- etype  : one — exactly one event type (spec §State).
+-- etype  : one — exactly one event type (spec section State).
 -- holder : one — the current custodian in effect immediately AFTER this entry.
 -- acting : lone — the custodian who performed a non-transfer action (genesis,
 --          transform, disclose, archive); absent on transfers.

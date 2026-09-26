@@ -97,7 +97,7 @@ def parse_composition(path):
     # ../atoms/<cat>/<name>.md and the post-flatten ../atoms/<name>.md alike.
     # a constituent is a list item — `- **[Atom](../atoms/x.md)** — role.` — and
     # nothing else: a Term line under the heading links the same atoms in prose
-    # (spec-format.md §Composes; council read 93)
+    # (spec-format.md section Composes; council read 93)
     for m in re.finditer(r"^\s*-\s+\*{0,2}\[([^\]]+)\]\(\.\./atoms/(?:[a-z-]+/)?([a-z0-9-]+)\.md\)\*{0,2}"
                          r"(?:\s*\*\([^)]*\)\*)?\s*[—-]\s*(.*)", composes, re.M):
         name = m.group(2)

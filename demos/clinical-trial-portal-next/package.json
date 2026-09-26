@@ -30,7 +30,7 @@
     "typescript": "^5.7.0"
   },
   "comments": {
-    "driver": "BUILD_PLAN Decision 1 specified postgres.js; we use node-postgres (pg) + @electric-sql/pglite behind one query(text,params) seam (lib/db.ts). Both are raw-SQL (no ORM — honors A.14/Decision 1); pglite is the zero-setup embedded default (a single in-process backend = the §4 single-writer model), pg is used when DATABASE_URL points at a real server. Logged in CORNERS.md.",
+    "driver": "BUILD_PLAN Decision 1 specified postgres.js; we use node-postgres (pg) + @electric-sql/pglite behind one query(text,params) seam (lib/db.ts). Both are raw-SQL (no ORM — honors A.14/Decision 1); pglite is the zero-setup embedded default (a single in-process backend = the section 4 single-writer model), pg is used when DATABASE_URL points at a real server. Logged in CORNERS.md.",
     "password": "@node-rs/argon2 (BUILD_PLAN Decision 4) is added in the composition step; if its native binary is unavailable, lib/password.ts falls back to node:crypto scrypt with a CORNERS note (conformance does not check the password method; cross-render PHC interop is the only thing lost)."
   }
 }

@@ -5,7 +5,7 @@
 // standing in for a live `deno task seed` + lifecycle walk. The demo runs on
 // Deno (jsr: imports, Argon2id WASM) which is not present in this sandbox, and
 // the checked-in dev.db carries only the stale seed event, so this script
-// replays render 1's documented lifecycle (Demo2-plan §0 scenario) using:
+// replays render 1's documented lifecycle (section 0 of Demo2-plan scenario) using:
 //   • the render's ACTUAL schema (migrations/0001_init.sql, exec'd verbatim), and
 //   • a byte-faithful port of the render's event/hash construction
 //     (composition.ts event semantics + lib/canonical.ts + lib/hash.ts +
@@ -128,7 +128,7 @@ db.prepare("INSERT INTO credentials (id,actor_id,kind,secret_hash,created_at) VA
 const PERMS = [["invite_actor","Invite a coordinator"],["grant_permission","Manage grants on others"],["enroll_subject","Enroll a subject"],["record_visit","Record a study visit"],["view_audit","View the audit log"]];
 PERMS.forEach((p, i) => db.prepare("INSERT INTO permissions (id,code,label) VALUES (?,?,?)").run(i + 1, p[0], p[1]));
 db.prepare("INSERT INTO studies (id,protocol_number,title,created_at) VALUES (1,'BCN-OX-201','Beacon Oncology Phase II',?)").run(SEED_T);
-db.prepare("INSERT INTO retention_policy (id,days,enforce_on_read) VALUES (1,2555,0)").run(); // §8.6: enforcement off in seed
+db.prepare("INSERT INTO retention_policy (id,days,enforce_on_read) VALUES (1,2555,0)").run(); // section 8.6: enforcement off in seed
 // 6 bootstrap grants, all among seeded identities (grantee ∈ {PI,CRA}) → no events.
 const insGrant = db.prepare("INSERT INTO grants (id,grantor_actor_id,grantee_actor_id,permission_id,scope,issued_at,revoked_at,revoke_reason) VALUES (?,?,?,?,?,?,?,?)");
 insGrant.run(1, 1, 1, 1, "all", SEED_T, null, null); // PI: invite_actor

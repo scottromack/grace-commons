@@ -41,7 +41,7 @@
 const PASS = (detail) => ({ status: "pass", detail });
 const FAIL = (detail, offending = []) => ({ status: "fail", detail, offending });
 
-// Documented anonymous-by-design event classes (Decision §8.10 + the bootstrap
+// Documented anonymous-by-design event classes (Decision section 8.10 + the bootstrap
 // seam): a login failure has no established identity; the seeded genesis event
 // is provisioned before any session exists. Every OTHER event must be attributed.
 const ANON_BY_DESIGN = new Set(["login.failed", "study.registered"]);

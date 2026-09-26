@@ -14,7 +14,7 @@
 // Composition emergent state:
 //   The `scope` column ('all' | 'own') is an extension beyond the base Permissions
 //   atom to model CRA (all audit records) vs SC (own audit records only) access.
-//   Documented here as the one composition-emergent piece per §3 of the plan.
+//   Documented here as the one composition-emergent piece per section 3 of the plan.
 //
 // Invariants:
 //   - A grant is active until its revoked_at is set (terminal)

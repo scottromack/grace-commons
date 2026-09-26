@@ -2,7 +2,7 @@
 \* Grace Commons — Reserve from Pool composition.
 \* Spec-level formal sibling of compositions/reserve-from-pool.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* The composition's load-bearing wiring decision is Invariant 1 (allocation

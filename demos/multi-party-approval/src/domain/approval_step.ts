@@ -4,7 +4,7 @@
 // its own BEGIN IMMEDIATE transaction without a nested transaction.
 // Nothing in this module knows about chains.
 //
-// SQL CHECKs and triggers (schema.sql §4.4) enforce the structural
+// SQL CHECKs and triggers (schema.sql section 4.4) enforce the structural
 // invariants; this module enforces the behavioural invariants that
 // CHECKs cannot express (existence, state guards, actor identity).
 

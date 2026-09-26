@@ -762,16 +762,16 @@ Projection: storage-failure
 
 ## Standards references
 
-- **ISO 9001:2015 §8.5.2 (Identification and traceability)** — the minimum anchor. A resource under provisional commitment must be identifiable and traceable through every transition; the identity model and the per-commitment instants satisfy it directly.
-- **ISO 9001:2015 §8.5.4 (Preservation)** — the resource is preserved in its committed state for the window's length; Invariant 6.1 is the operational form.
+- **ISO 9001:2015 clause 8.5.2 (Identification and traceability)** — the minimum anchor. A resource under provisional commitment must be identifiable and traceable through every transition; the identity model and the per-commitment instants satisfy it directly.
+- **ISO 9001:2015 clause 8.5.4 (Preservation)** — the resource is preserved in its committed state for the window's length; Invariant 6.1 is the operational form.
 - **Basel III liquidity framework (BCBS 238 LCR)** — credit-limit holds and intraday liquidity reservations follow this lifecycle. Terminal absorption matches Basel's expectation that settlement events are facts about the past.
 - **The Joint Commission, *Provision of Care, Treatment, and Services*** — bed-management and capacity coordination require resource encumbrance to be auditable and time-bounded; Invariant 7 is the structural correlate.
 - **IATA Resolution 830a and related ticketing-time-limit rules** — airline fare-lock and seat-hold semantics formalize the window contract this atom abstracts; the atom is vocabulary-neutral, IATA is one instantiation.
 - **PCI DSS Requirement 10 (logging and monitoring)** — for commitments touching cardholder data, every transition must be logged. Composes with [Event Log](./event-log.md) (Non-goal 4).
 - **GDPR Article 30 (records of processing activities)** — a commitment record carrying personal data is itself a processing activity; [Requester], [Placement Instant], [Expiry Instant] and the terminal instant supply the data points Art. 30 expects. What counts as a processing purpose is host policy (Non-goal 18).
-- **Sarbanes-Oxley §404 (internal control over financial reporting)** — where a confirmed commitment is material to reporting, the controls around the held-to-confirmed transition are §404-scope. Composes with [Event Log](./event-log.md) for the evidence an attestation requires.
+- **Sarbanes-Oxley section 404 (internal control over financial reporting)** — where a confirmed commitment is material to reporting, the controls around the held-to-confirmed transition are section 404-scope. Composes with [Event Log](./event-log.md) for the evidence an attestation requires.
 
-For commitments touching protected health information, HIPAA's audit-controls requirement (45 CFR §164.312(b)) applies to the composing [Event Log](./event-log.md) instance rather than to the commitment record; the same separation applies to GDPR Art. 30 where the log carries the processing history.
+For commitments touching protected health information, HIPAA's audit-controls requirement (45 CFR section 164.312(b)) applies to the composing [Event Log](./event-log.md) instance rather than to the commitment record; the same separation applies to GDPR Art. 30 where the log carries the processing history.
 
 It inherits from:
 

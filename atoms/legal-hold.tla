@@ -2,7 +2,7 @@
 \* Grace Commons — Legal Hold atom.
 \* Spec-level formal sibling of atoms/legal-hold.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* Two load-bearing claims (formal-layer vote 2026-06-03):

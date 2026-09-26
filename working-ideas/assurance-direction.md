@@ -5,9 +5,9 @@
 
 ## Principles
 
-1. **Assurance is a level, not a checkbox.** Every invariant sits at one named level on a fixed ladder (§1). "Verified" alone is not a status — the level is.
-2. **The top level is value-gated, not cost-gated.** Mechanized proof is reserved for invariants where bounded ≠ general: the genuinely inductive subset (§6). Cheap proof removes the *cost* reason to abstain; it does not create a *value* reason to proceed. Proving a non-inductive invariant re-derives what bounded checking already established completely, and earns nothing.
-3. **The level is derived; the change is canonical.** An invariant's assurance level is an output of the audit, recomputed on every version bump (§2, §4) — never a label applied by hand. (Mirrors Versioning, Principle 2.)
+1. **Assurance is a level, not a checkbox.** Every invariant sits at one named level on a fixed ladder (section 1). "Verified" alone is not a status — the level is.
+2. **The top level is value-gated, not cost-gated.** Mechanized proof is reserved for invariants where bounded ≠ general: the genuinely inductive subset (section 6). Cheap proof removes the *cost* reason to abstain; it does not create a *value* reason to proceed. Proving a non-inductive invariant re-derives what bounded checking already established completely, and earns nothing.
+3. **The level is derived; the change is canonical.** An invariant's assurance level is an output of the audit, recomputed on every version bump (section 2, section 4) — never a label applied by hand. (Mirrors Versioning, Principle 2.)
 4. **Invent as little as possible.** This document adds no versioning mechanism. The proof level rides the existing pre-release/grounding axis; invalidation rides the existing MAJOR/MINOR/PATCH classifier.
 
 ## 1. The assurance ladder
@@ -18,7 +18,7 @@ Every invariant carries exactly one level.
 |---|---|---|
 | **L0** | Stated | Written in the canonical structured-English layer. |
 | **L1** | Bounded-checked | The TLA+/Alloy model holds at the configured bound **and** the buggy twin fails as expected. The launch grade — most of the corpus is here. |
-| **L2** | Proved | Mechanically proved for all N (Isabelle/HOL), modulo the named assumptions carried with the proof (§5). |
+| **L2** | Proved | Mechanically proved for all N (Isabelle/HOL), modulo the named assumptions carried with the proof (section 5). |
 
 L2 is a **grounding-maturity** state. It is carried on the Version field's pre-release axis — the same axis grounding maturity already lives on in Versioning — **not** in the MAJOR.MINOR.PATCH numbers. The numbers say what the behavior is; the grounding state says how far that behavior has been verified. The two are orthogonal: an invariant can be L1 at a fully grounded `1.2.0`, or L2 at the same number.
 
@@ -44,7 +44,7 @@ So on proved invariants, the proof is the decision procedure for the MAJOR/MINOR
 
 ## 4. Blast-radius is the re-run worklist
 
-The audit already enumerates blast-radius dependents on every bump (Versioning §5). That enumeration **is** the set of proofs to re-run:
+The audit already enumerates blast-radius dependents on every bump (Versioning section 5). That enumeration **is** the set of proofs to re-run:
 
 - An **atom** bump enumerates its dependent compositions; their proofs re-run even though their version numbers do not propagate. Proof-dependency follows the composition graph, not the version graph.
 - A **substrate** bump (e.g. Tamper Evidence under Audit Trail) enumerates every composition on that substrate; one bump fans the re-run across all of them — and, conversely, one proof of the substrate raises their assurance the same way.
@@ -70,7 +70,7 @@ The tracked metric is the percent of the **load-bearing surface** — the set of
 
 1. **Classification pass.** Tag every invariant inductive / non-inductive. Converts the metric from estimate to measured and produces the L2 worklist. Precondition for everything else.
 2. **First proof: `verifyChain`** (Tamper Evidence / Audit Trail substrate) — highest fanout in the corpus; one proof raises assurance across every composition on the substrate.
-3. **Wire the audit** to emit proof re-runs from blast-radius (§4) and to refuse L2 on any invariant whose source has bumped above PATCH without a passing re-run.
+3. **Wire the audit** to emit proof re-runs from blast-radius (section 4) and to refuse L2 on any invariant whose source has bumped above PATCH without a passing re-run.
 
 ---
 

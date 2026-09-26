@@ -2,7 +2,7 @@
 -- Postgres dialect port of demos/clinical-trial-portal/migrations/0001_init.sql.
 -- Atom→table mapping, column meanings, CHECKs, partial index, and ON DELETE
 -- RESTRICT discipline are UNCHANGED. Only SQLite→Postgres deltas differ
--- (BUILD_PLAN §5.1): IDENTITY keys (except event_log.id), native BOOLEAN.
+-- (section 5.1) of BUILD_PLAN: IDENTITY keys (except event_log.id), native BOOLEAN.
 -- created_at / occurred_at stay TEXT (ISO-8601) because they are hashed verbatim
 -- — a timestamptz round-trip could renormalize the string and change the hash.
 
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS invitations (
 
 -- Event Log atom (C1 audit substrate).
 -- id is NOT an IDENTITY: it is part of the hashed payload, so it is assigned
--- explicitly as MAX(id)+1 under the global advisory lock (BUILD_PLAN §4/§6.4),
+-- explicitly as MAX(id)+1 under the global advisory lock (section 4 of BUILD_PLAN/section 6.4),
 -- not delegated to a sequence.
 CREATE TABLE IF NOT EXISTS event_log (
   id            BIGINT PRIMARY KEY,

@@ -23,7 +23,7 @@ module attributed_permissions_admin_buggy
  *
  * This file is the committed form of the Round 4 regression gate
  * and the vacuity guard required by pressure-testing.md
- * §What "the model exists and verifies" means (criterion 2).
+ * Section What "the model exists and verifies" means (criterion 2).
  * Regenerate it from the canonical file whenever the canonical
  * model changes: copy, rename the module, comment out the
  * Invariant 7 fact.
@@ -223,7 +223,7 @@ sig Attestation {
 --   grants_in_store / attestations_in_store — which atoms are
 --   live in the Permissions store / Actor Identity store at the
 --   current time. This is the store-scoping discipline from
---   pressure-testing.md §Formal-model authoring pitfalls: a
+--   the section titled *Formal-model authoring pitfalls* in pressure-testing.md: a
 --   pre/post pair is the same entity at two times, never two
 --   entities at one time, so facts quantify over store members,
 --   not over all atoms.
@@ -681,7 +681,7 @@ check Invariant_2_Always for 4 but 1..2 steps
 -- attestation exclusivity through every operation. This is the
 -- promotion of Invariant 7's temporal half from "true by
 -- construction of the transitions" to "verified property"
--- (pressure-testing.md §The coverage cross-check: by-construction
+-- (pressure-testing.md section The coverage cross-check: by-construction
 -- → covered). Part of the regression gate: in the buggy twin this
 -- check fails at the unseeded initial state.
 assert Invariant_7_Always {

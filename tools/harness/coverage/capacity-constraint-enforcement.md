@@ -4,7 +4,7 @@
 - **Model:** `capacity-constraint-enforcement.tla` (+ buggy twin `capacity-constraint-enforcement-buggy.tla`)
 - **Reviewer / date:** agent coverage cross-check — 2026-06-03; updated 2026-06-04 (release action added; Inv 14 vote reconsidered)
 - **Formal-layer vote load-bearing claims:** Invariant 4 (bounded arithmetic `allocated ≤ capacity` under serializable concurrency), Invariant 5 (non-negativity)
-- **Inv 14 reconsidered:** out-of-scope (within-action, not an interleaving) — see §Inv 14 reconsideration below
+- **Inv 14 reconsidered:** out-of-scope (within-action, not an interleaving) — see the section titled *Inv 14 reconsideration* below
 
 ## Step 1 — harness re-run (must pass)
 
@@ -30,7 +30,7 @@ The spec has 14 invariants. The model now covers both the allocate-path (Inv4) a
 | Invariant 11 — Capacity-adjustment events auditable | No | out-of-scope (no adjust_capacity modeled) | Named explicitly out of scope. |
 | Invariant 12 — Id stability | No | out-of-scope (no id model; per model header) | Named explicitly out of scope. |
 | Invariant 13 — No id reuse | No | out-of-scope (no id model) | Named explicitly out of scope. |
-| Invariant 14 — Action atomicity | ~~YES (original vote)~~ → **out-of-scope (within-action, not an interleaving; vote reconsidered 2026-06-04)** | out-of-scope | See §Inv 14 reconsideration below. |
+| Invariant 14 — Action atomicity | ~~YES (original vote)~~ → **out-of-scope (within-action, not an interleaving; vote reconsidered 2026-06-04)** | out-of-scope | See the section titled *Inv 14 reconsideration* below. |
 
 ## Inv 14 reconsideration
 
@@ -49,5 +49,5 @@ Saturation check: `Capacity=3`, `Workers={w1,w2,w3,w4}` → 15 states (C(4,0..3)
 - GAP rows: **none.** Both load-bearing invariants are now covered.
   - Invariant 4: covered (was covered; unchanged).
   - Invariant 5: covered (was a coverage gap — allocate-only model made the check trivially true for the release case; closed 2026-06-04 by adding `ReleaseAtomic` to the correct model and `ReleaseBuggy` to the buggy twin, where `ReleaseBuggy` drives `allocated` to -1 proving Inv5 has teeth).
-  - Invariant 14: out-of-scope (within-action; vote reconsidered 2026-06-04 — see §Inv 14 reconsideration).
+  - Invariant 14: out-of-scope (within-action; vote reconsidered 2026-06-04 — see the section titled *Inv 14 reconsideration*).
 - Result: **closed.** Both previously-flagged items resolved. No remaining GAP rows. Coverage cross-check complete.

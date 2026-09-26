@@ -2,7 +2,7 @@
 \* Grace Commons — Provisional Commitment atom.
 \* Spec-level formal sibling of atoms/provisional-commitment.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* This model is the Final Critique 4 STORED-EXPIRED shape, restored after
 \* the 2026-06-21 "derive expiry at read time" refactor was WITHDRAWN for this
@@ -10,7 +10,7 @@
 \* Capacity Constraint pool, relied on by the reservation-lifecycle and
 \* idempotent-reservation compositions, which call ProvisionalCommitment.expire(id)
 \* — so the lapse needs an explicit `expire()` event, not a side-effect-free
-\* read-time derivation). See atoms/provisional-commitment.md §Lineage
+\* read-time derivation). See atoms/provisional-commitment.md section Lineage
 \* (Derive-expiry refactor reverted — 2026-06-23).
 \*
 \* WHAT THIS MODEL CHECKS

@@ -30,7 +30,7 @@ export async function currentActorMiddleware(
   if (token) {
     const result = validate_session(token);
     if (typeof result === "object") {
-      // ValidSession — principal_ref is safe to use (spec §Session.validate)
+      // ValidSession — principal_ref is safe to use (spec section Session.validate)
       actor = getActor(result.principal_ref) ?? null;
     }
     // 'expired' | 'revoked' | 'not-known' → actor stays null; guard will redirect

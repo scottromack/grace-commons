@@ -212,7 +212,7 @@ CREATE INDEX IF NOT EXISTS attestation_by_actor
 -- Distinct from actor.credential_secret (attest key / Actor Identity surface).
 -- Each row binds a principal_ref to a stored verifier (SHA-256 hash of
 -- salt:password). At most one active credential per (principal_ref, type).
--- See CORNERS.md §Cross-atom identity surface aliasing for the separation
+-- See CORNERS.md section Cross-atom identity surface aliasing for the separation
 -- rationale.
 -- ---------------------------------------------------------------------------
 

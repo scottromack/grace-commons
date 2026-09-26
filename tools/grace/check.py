@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """GRACE lang surface checker — the mechanical slice of `GRACE-lang.md`.
 
-Reads a spec's normative surface the way §2 and §17 of the grammar say a parser
+Reads a spec's normative surface the way section 2 and section 17 of the grammar say a parser
 must — a bare fenced block classified by its first line, `Term`
 declarations — and reports what a form-reader can decide without semantics:
 fence classification (Surface 18, Surface 19) and signature blocks (Surface 20), unlabelled lines (Hard invariant 1, Sugar 3), label uniqueness
@@ -20,7 +20,7 @@ Non-gating by default: exits 0 whatever it finds; `--gate` exits 1 on any
 finding that is not advisory (the W- codes).
 
 What it does not do: resolve every identifier (Closed vocabulary 4), parse value sets against
-conditions (Hard invariant 14), or normalize (§16). Those need the parser this is the
+conditions (Hard invariant 14), or normalize (section 16). Those need the parser this is the
 forerunner of.
 """
 from __future__ import annotations
@@ -84,7 +84,7 @@ def reserved_capitals(grammar_path=None):
 
     reserved: every upper-case word on the declarations that enumerate the
     reserved tokens (bare since v0.51; a code span still counts). grammar-shaped: the upper-case words of the
-    provisional forms and of the watch list (§18) — forms the grammar has named
+    provisional forms and of the watch list (section 18) — forms the grammar has named
     and not admitted, so one in a rule is a finding and never a proper noun.
     """
     p = grammar_path or os.path.join(os.path.dirname(__file__), "..", "..", "GRACE-lang.md")
@@ -301,7 +301,7 @@ DEMONSTRATIVE = re.compile(r"\b(these|those)\b")
 # Two detectors ported from Kimi's sweep parser (council read 24). A comparison
 # written in English rather than through EXCEEDS, EQUALS, DOES NOT EQUAL, EXISTS or IS IN is
 # one the normalizer cannot read; most route through an admitted operator, and
-# the ones that cannot are the pressure §18 counts.
+# the ones that cannot are the pressure section 18 counts.
 COMPARATOR = re.compile(r"\b(past|longer than|shorter than|more than|fewer than|greater than|less than|short of|at most|at least|no longer|no earlier|no later|advance past)\b", re.I)
 # A modal outside the admitted three carries no obligation the parser can read.
 SOFT_MODAL = re.compile(r"\b(can|could|would|should|might)\b")
@@ -968,7 +968,7 @@ def scan(path: Path) -> list[Finding]:
                         break
         watched = re.search(r"\b(until|while|unless|after|before)\b", bare_name_text(stmt, multiword))
         if watched:
-            add(r.line, "W-watch-word", f"{r.label}: lower-case after/before/until/while/unless — an ordering or duration the tails do not carry (§18 watch list)")
+            add(r.line, "W-watch-word", f"{r.label}: lower-case after/before/until/while/unless — an ordering or duration the tails do not carry (section 18 watch list)")
         if verbs is not None:
             for vm in re.finditer(r"\b(MUST NOT|MUST|MAY)\s+(\S+)", stmt):
                 v = vm.group(2).strip(",.;:")

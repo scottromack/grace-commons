@@ -4,7 +4,7 @@
 \* Identical to undo-history.tla EXCEPT the storage-failure branch (`ForwardFail`)
 \* leaves PHANTOM state: it updates `derived` even though Event Log's append was
 \* rejected (no event landed, len unchanged). This is exactly the hazard the
-\* spec's storage-failure wiring defends against — undo-history.md §Action wiring:
+\* spec's storage-failure wiring defends against — the section titled *Action wiring* in undo-history.md:
 \* "If the append returns rejected(storage-failure), return storage-failure without
 \* updating the derived state — the action did not happen."
 \*

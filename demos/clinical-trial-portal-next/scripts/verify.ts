@@ -1,5 +1,5 @@
 /**
- * scripts/verify.ts — CLI chain verifier (BUILD_PLAN §2 / render 1's `deno task
+ * scripts/verify.ts — CLI chain verifier (section 2 of BUILD_PLAN / render 1's `deno task
  * verify`). Lists the audit log and recomputes the full hash chain, for monitors
  * who do not want to trust the web UI.
  */

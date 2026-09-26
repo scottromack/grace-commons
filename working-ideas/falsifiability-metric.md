@@ -1,6 +1,6 @@
 # Falsifiability metric — emergent-invariant growth (draft, 2026-06-12)
 
-> **Status: internal staging, not canonical.** A defensible definition of the metric that makes the Grace Commons thesis falsifiable, drafted for the 2026-06-24 call and as the honest version of a claim previously made hand-wavily ("emergent invariants per composition stays flat"). Corrects an external-review draft (Grok, 2026-06-12) whose counting rule double-counted preservation invariants. Nothing here is canon; if adopted it folds into `the-spec-layer.md` (the thesis-as-experiment framing) with the *computation* living as a generated view, never a hand-maintained snapshot (no-snapshot rule). Cross-refs: `pressure-testing.md` §the three gates, §The no-snapshot rule; `roadmap.md` (SSOT for counts).
+> **Status: internal staging, not canonical.** A defensible definition of the metric that makes the Grace Commons thesis falsifiable, drafted for the 2026-06-24 call and as the honest version of a claim previously made hand-wavily ("emergent invariants per composition stays flat"). Corrects an external-review draft (Grok, 2026-06-12) whose counting rule double-counted preservation invariants. Nothing here is canon; if adopted it folds into `the-spec-layer.md` (the thesis-as-experiment framing) with the *computation* living as a generated view, never a hand-maintained snapshot (no-snapshot rule). Cross-refs: `pressure-testing.md` section the three gates, section The no-snapshot rule; `roadmap.md` (SSOT for counts).
 
 ---
 
@@ -22,7 +22,7 @@ So the raw section counts (Undo History 7, APA 8) are **not** the metric. Filter
 
 ## Counting rule (anchored to the gates, not invented fresh)
 
-An invariant counts toward a composition's **emergent load** iff it passes the gates the library already uses to decide what is emergent (`pressure-testing.md` §the three gates):
+An invariant counts toward a composition's **emergent load** iff it passes the gates the library already uses to decide what is emergent (`pressure-testing.md` section the three gates):
 
 1. **Named.** It appears as a named invariant in the composition's Composition-level invariants section (prose-only must-be-trues are a separate finding — promote, don't count loosely).
 2. **No constituent owns it** (Gate 2). Violating it is not a violation of any single constituent's own stated invariants — it is a failure of the interaction. This excludes preservation invariants by construction.
@@ -45,8 +45,8 @@ Same discipline as everything else here: **derive, don't lag.** The running tall
 
 **Dated data points (findings, not a live count):**
 
-- *2026-06-14 — Grok strange-pattern forecast:* 11 candidates → ~2–3 survived the blade (Conflict Reconciliation; Valid-Time as an overlay), ~8 sorted to verb/adjective/mechanism. Survival ≈ 2–3/11. Full grammar-sort in [`no-global-services.md`](./no-global-services.md) §Strange-pattern forecast.
-- *Prior, informal:* the reverse concept-recovery arc (roadmap §Concept-recovery; `discoveries.md` "reverse concept-recovery saturates onto the atom set, 2026-06-13") is the same signal observed across ten real-system runs — recovered concepts kept landing on the *existing* atom set rather than minting new ones, i.e. a near-zero blade-survival rate on independently-sourced candidates. That is the strongest corroboration to date; the forecast pass is a second, adversarially-sourced instance.
+- *2026-06-14 — Grok strange-pattern forecast:* 11 candidates → ~2–3 survived the blade (Conflict Reconciliation; Valid-Time as an overlay), ~8 sorted to verb/adjective/mechanism. Survival ≈ 2–3/11. Full grammar-sort in [`no-global-services.md`](./no-global-services.md) section Strange-pattern forecast.
+- *Prior, informal:* the reverse concept-recovery arc (roadmap section Concept-recovery; `discoveries.md` "reverse concept-recovery saturates onto the atom set, 2026-06-13") is the same signal observed across ten real-system runs — recovered concepts kept landing on the *existing* atom set rather than minting new ones, i.e. a near-zero blade-survival rate on independently-sourced candidates. That is the strongest corroboration to date; the forecast pass is a second, adversarially-sourced instance.
 
 Small N, and deliberately a *direction* not a threshold (same reasoning as the trip-wires below). But it is the cheapest instrument in this file — every forecast or recovery run already produces the grammar-sort it needs.
 

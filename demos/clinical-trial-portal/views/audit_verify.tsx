@@ -53,7 +53,7 @@ export const AuditVerifyPage: FC<{ actor: Actor; result: VerifyResult }> = ({ ac
           <p class="text-xs text-red-600 mt-4">
             A row at or before event #{result.at} was modified after insertion.
             The chain is broken from this point forward. This finding must be
-            escalated per 21 CFR Part 11 §11.10(e).
+            escalated per 21 CFR Part 11 section 11.10(e).
           </p>
         </div>
       )}

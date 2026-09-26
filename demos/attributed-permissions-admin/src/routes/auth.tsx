@@ -8,7 +8,7 @@
 // The credential field on the login form (principal_ref + password) resolves
 // against the Credential atom login surface (credential_store.ts), which is
 // distinct from the Actor Identity attest key (actor.credential_secret).
-// See CORNERS.md §Cross-atom identity surface aliasing.
+// See CORNERS.md section Cross-atom identity surface aliasing.
 
 import { Hono } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";

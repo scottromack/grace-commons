@@ -3,7 +3,7 @@
 \* Capability + Selective Disclosure + Audit Trail (substrate).
 \* Spec-level formal sibling of compositions/capability-backed-sharing.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* Invariant 2 — disclosure-accountability binding — as it is stated after the

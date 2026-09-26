@@ -1,6 +1,6 @@
 # Default output stack — the declared deployment baseline (draft, 2026-06-14)
 
-> **Status: internal staging, not canonical.** A **below-the-contract deployment profile**, *not* a spec constraint. The canonical spec stays substrate-independent — the Beacon renders run the *same* spec on Deno/SQLite, Next/Postgres, **headless Go, and headless Mongo** (two with no browser at all). This file makes exactly one assumption explicit: the *default* output stack, so it is **declared rather than smuggled**. Folds into [`execution-contract.md`](../execution-contract.md) §atom-to-runtime mapping if promoted. Cross-refs: [`outbound-contract-ports.md`](./outbound-contract-ports.md) (the runtime handoffs), `pressure-testing.md` §Capability provenance (capabilities are declared, never ambient).
+> **Status: internal staging, not canonical.** A **below-the-contract deployment profile**, *not* a spec constraint. The canonical spec stays substrate-independent — the Beacon renders run the *same* spec on Deno/SQLite, Next/Postgres, **headless Go, and headless Mongo** (two with no browser at all). This file makes exactly one assumption explicit: the *default* output stack, so it is **declared rather than smuggled**. Folds into [`execution-contract.md`](../execution-contract.md) section atom-to-runtime mapping if promoted. Cross-refs: [`outbound-contract-ports.md`](./outbound-contract-ports.md) (the runtime handoffs), `pressure-testing.md` section Capability provenance (capabilities are declared, never ambient).
 
 ## The declaration
 

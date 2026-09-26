@@ -22,7 +22,7 @@ the three-pass review otherwise has to catch by eye —
                               invariant *Rests on:* clauses) resolves: N <= the cited
                               pattern's real invariant count. The tractable mechanical
                               slice of the capability-provenance rule (pressure-testing.md
-                              §Capability provenance); the broader "is this capability
+                              section Capability provenance); the broader "is this capability
                               actually declared by that constituent" check stays
                               fresh-reader Pass-2 work (paraphrased names defeat a regex).
                               A range, `Event Log Invariant 1 through 7`, is read to its
@@ -45,7 +45,7 @@ the three-pass review otherwise has to catch by eye —
   G. Status grammar         — every pattern has a `## Status` section whose first
                               line starts with exactly one backticked status token
                               conforming to the pinned grammar (pressure-testing.md
-                              §Status line format, pinned 2026-06-11).
+                              section Status line format, pinned 2026-06-11).
   H. Status mirror          — a roadmap.md list entry that links a pattern and carries
                               a backticked status token mirrors the pattern file's own
                               token exactly (the pattern file is the source of truth).
@@ -89,7 +89,7 @@ the three-pass review otherwise has to catch by eye —
                               appended event cannot be withdrawn. The first
                               mechanical slice that polices a *use* of a
                               constituent capability rather than a claim about
-                              one (pressure-testing.md §Capability provenance,
+                              one (pressure-testing.md section Capability provenance,
                               widened 2026-08-27). The phrase alone is not the
                               signal — most uses of it are benign, over
                               constituent-store writes only.
@@ -110,7 +110,7 @@ the three-pass review otherwise has to catch by eye —
                               see the step duplicates outcome events. A bare
                               token in that position is a transcription of the
                               substrate arm with its payload dropped
-                              (pressure-testing.md §A transcribed rejection arm
+                              (pressure-testing.md section A transcribed rejection arm
                               keeps its payload, frozen 2026-08-29). Signature
                               blocks, examples, prose, and a peer composition's
                               own bare arm mapped on a line with no substrate
@@ -124,7 +124,7 @@ the three-pass review otherwise has to catch by eye —
                               can present at most one payload per event and
                               every verification under interval cadence returns
                               a seal-record-set mismatch (pressure-testing.md
-                              §A seal presentation is keyed by log position,
+                              section A seal presentation is keyed by log position,
                               frozen 2026-08-29). Bare-payload `verify_record`
                               calls are NOT flagged — the substrate's own
                               contract uses the singular parameter name.
@@ -139,7 +139,7 @@ the three-pass review otherwise has to catch by eye —
                               not count as the commit. One token on both sides
                               of the commit tells the caller nothing about
                               whether a retry is safe (pressure-testing.md
-                              §A composition's own rejection arm carries the
+                              section A composition's own rejection arm carries the
                               retry bit, frozen 2026-08-30). Landed advisory
                               2026-08-30 (baseline: 10 actions, 5 patterns) and
                               promoted to gating the same day at zero sites.
@@ -518,7 +518,7 @@ def check_rests_on_refs(patterns: dict[Path, Pattern], md_files: list[Path]) -> 
     """F. A '<Pattern> Invariant N' reference resolves: N <= that pattern's count.
 
     The tractable mechanical slice of the capability-provenance rule
-    (pressure-testing.md §Capability provenance): it catches a cross-reference to an
+    (pressure-testing.md section Capability provenance): it catches a cross-reference to an
     invariant *number* a pattern does not have (the dangling-number class). It
     deliberately does NOT verify that the cited capability is the *right* one —
     paraphrased parenthetical names ("Invariant 4 (cross-store atomicity)" for a
@@ -731,7 +731,7 @@ def check_constituent_calls(patterns: dict[Path, Pattern]) -> list[Finding]:
 #                  withdraw
 # --------------------------------------------------------------------------- #
 # The third mechanical slice of the capability-provenance rule, and the first
-# that polices a *use* rather than a claim (pressure-testing.md §Capability
+# that polices a *use* rather than a claim (pressure-testing.md section Capability
 # provenance, widened 2026-08-27). A composition that says a write set "commits
 # together or not at all" is claiming a withdrawal capability over every member
 # of that set. Where a member is an Audit Trail write, the substrate declares
@@ -1171,7 +1171,7 @@ def check_retry_bit(patterns: dict[Path, Pattern]) -> list[Finding]:
 # Status grammar / mirror (G, H, I)
 # --------------------------------------------------------------------------- #
 
-# the pinned status-token grammar (pressure-testing.md §Status line format)
+# the pinned status-token grammar (pressure-testing.md section Status line format)
 STATUS_TOKEN_FORMS = [
     re.compile(r"^draft$"),
     re.compile(r"^unresolved$"),
@@ -1861,7 +1861,7 @@ def check_status_grammar(patterns: dict[Path, Pattern]) -> list[Finding]:
             findings.append(Finding(
                 p.path, line, "G-status-grammar",
                 f"token `{token}` matches no form of the pinned grammar "
-                f"(pressure-testing.md §Status line format)",
+                f"(pressure-testing.md section Status line format)",
             ))
     return findings
 
@@ -2117,7 +2117,7 @@ def check_internal_ids(patterns: dict[Path, Pattern]) -> list[Finding]:
 # Common-acronym whitelist (N) — the redundant-gloss guard
 # --------------------------------------------------------------------------- #
 
-# spec-format's acronym rule (§Cross-cutting authoring conventions) exempts a
+# spec-format's acronym rule (section Cross-cutting authoring conventions) exempts a
 # short, dictionary-headword whitelist (SMS, GPS, URL, HTML, US/USA, ID, PDF,
 # FAQ) from the spell-out requirement. *Glossing* a whitelisted acronym anyway —
 # "SMS (Short Message Service …)" — is the redundant noise the whitelist exists
@@ -2156,7 +2156,7 @@ def check_whitelist_gloss(patterns: dict[Path, Pattern]) -> list[Finding]:
                     findings.append(Finding(
                         p.path, i, "N-whitelist-gloss",
                         f"{acr} is a whitelisted common acronym (spec-format "
-                        f"§Cross-cutting authoring conventions) — drop the "
+                        f"section Cross-cutting authoring conventions) — drop the "
                         f"spelled-out gloss; the acronym stands alone",
                     ))
     return findings
@@ -2243,7 +2243,7 @@ def check_term_registry(patterns: dict[Path, Pattern]) -> list[Finding]:
 # --------------------------------------------------------------------------- #
 #
 # The Ledger is the countable single source of truth for a pattern's health
-# (open-questions.md §Replace the prose Lineage; pressure-testing.md §Where the
+# (open-questions.md section Replace the prose Lineage; pressure-testing.md section Where the
 # journey gets recorded). Its grammar is fixed so this file can parse it:
 #
 #   ## Ledger
@@ -2401,8 +2401,8 @@ def check_ledger(patterns: dict[Path, Pattern]) -> list[Finding]:
         if led is None:
             findings.append(Finding(
                 p.path, 1, "R-ledger-missing",
-                "no `## Ledger` section (spec-format.md §Status / Ledger / Decisions; "
-                "pressure-testing.md §Where the journey gets recorded)",
+                "no `## Ledger` section (spec-format.md section Status / Ledger / Decisions; "
+                "the section titled *Where the journey gets recorded* in pressure-testing.md)",
             ))
             continue
         for ln, msg in led.problems:
@@ -2417,7 +2417,7 @@ def check_ledger(patterns: dict[Path, Pattern]) -> list[Finding]:
             findings.append(Finding(
                 p.path, led.line, "R-ledger-grounded-open",
                 f"status is grounded with {led.count('foundational')} open foundational "
-                f"line(s); grounding requires zero (pressure-testing.md §The 92%-good "
+                f"line(s); grounding requires zero (pressure-testing.md section The 92%-good "
                 f"grounding threshold)",
             ))
         if led.status == "partially resolved" and not led.open and led.gate == "none":
@@ -2483,7 +2483,7 @@ def census(root: Path, patterns: dict[Path, Pattern]) -> int:
 
 
 # --------------------------------------------------------------------------- #
-# H. The heading standard — spec-format.md §Heading standard
+# H. The heading standard — the section titled *Heading standard* in spec-format.md
 # --------------------------------------------------------------------------- #
 
 _HEADING_TABLES = {"atom": "### Atom headings", "composition": "### Composition headings"}
@@ -2516,7 +2516,7 @@ def heading_standard(spec_format_text: str) -> dict[str, list[dict]]:
 
 
 def retired_heading_names(spec_format_text: str) -> dict[str, str]:
-    """spec-format.md §Retired heading names: retired name -> the row it became."""
+    """the section titled *Retired heading names* in spec-format.md: retired name -> the row it became."""
     start = spec_format_text.find("### Retired heading names\n")
     if start < 0:
         raise SystemExit("lint.py: spec-format.md carries no `### Retired heading names` "
@@ -2560,7 +2560,7 @@ def _heading_tree(text: str) -> list[tuple[int, str, int]]:
 
 def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Finding]:
     """H. A migrated spec's `##` and `###` headings against spec-format.md
-    §Heading standard: every heading a known row or an unplaced child where the
+    section Heading standard: every heading a known row or an unplaced child where the
     parent admits one, at the row's level and under the row's parent, in table
     order with unplaced children after the placed ones in collation order, and
     every required row present.
@@ -2599,7 +2599,7 @@ def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
                 synonym = row_by_singular.get(_singular(bare))
             if synonym is not None:
                 add(line, f"`{'#' * level} {name}` is a second name for `{synonym}`; the "
-                          f"heading takes the row's name (spec-format.md §Retired heading names)")
+                          f"heading takes the row's name (the section titled *Retired heading names* in spec-format.md)")
             if level == 2:
                 row = by_name.get(name)
                 if row is None or row["level"] != 2:
@@ -2610,7 +2610,7 @@ def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
                 k = top_index[name]
                 if k < last_top:
                     add(line, f"`## {name}` comes after `## {top[last_top]['name']}`; the "
-                              f"{shape} order puts it before (spec-format.md §Heading standard)")
+                              f"{shape} order puts it before (the section titled *Heading standard* in spec-format.md)")
                 last_top = max(last_top, k)
                 parent = row
                 last_child = (-1, "")
@@ -2655,12 +2655,12 @@ def check_heading_standard(root: Path, patterns: dict[Path, Pattern]) -> list[Fi
             if (r["inside"], r["name"]) not in present:
                 where = f"under `## {r['inside']}`" if r["inside"] else "at `##`"
                 add(1, f"carries no `{'#' * r['level']} {r['name']}` {where}, which the {shape} "
-                       f"shape requires (spec-format.md §Heading standard)")
+                       f"shape requires (the section titled *Heading standard* in spec-format.md)")
     return findings
 
 
 def check_section_classification(root: Path) -> list[Finding]:
-    """H. The section-name check execution-contract.md §Section-name
+    """H. The section-name check execution-contract.md section Section-name
     classification specified in June and nothing ran: every heading the
     standard names is classified by the Contract, and every name the Contract
     classifies is still a heading spec-format.md names. Both directions read by
@@ -2679,7 +2679,7 @@ def check_section_classification(root: Path) -> list[Finding]:
     for n in sorted(names):
         if n.lower() not in block.lower():
             findings.append(Finding(ec_path, line_of(ec, m.start()), "H-classification",
-                                    f"`{n}` is a heading spec-format.md §Heading standard names "
+                                    f"`{n}` is a heading the section titled *Heading standard* in spec-format.md names "
                                     f"and the Contract does not classify"))
     for bullet in re.findall(r"^- \*\*[^*]+:\*\* (.*)$", block, re.M):
         depth, parts, cur = 0, [], ""
@@ -2805,7 +2805,7 @@ def check_range_form(root: Path) -> list[Finding]:
 # `permissions(../atoms/permissions.md)` — renders as its own source. Seven
 # migrated compositions carried 144 of them (council read 93), written by the
 # migration's casing pass. And a composition's constituents are the linked
-# bullets under its `## Composes` heading (spec-format.md §Composes), which is
+# bullets under its `## Composes` heading (spec-format.md section Composes), which is
 # what tools/taxonomy reads for the catalogue, the graph and the pattern data:
 # seven migrated compositions had dropped the list, and the generated views went
 # three commits stale before anyone regenerated them.
@@ -2939,7 +2939,7 @@ def check_composes_list(patterns: dict[Path, Pattern]) -> list[Finding]:
         if not COMPOSES_BULLET.search(m.group(1)):
             out.append(Finding(p.path, line_of(p.text, m.start()), "F-composes-list",
                 "the Composes section lists no linked constituent — "
-                "`- **[Name](path)** — role.` (spec-format.md §Composes); the "
+                "`- **[Name](path)** — role.` (spec-format.md section Composes); the "
                 "generated catalogue, graph and pattern data read this list"))
     return out
 

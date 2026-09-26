@@ -2,7 +2,7 @@
 \* Grace Commons — Compensable Workflow composition.
 \* Spec-level formal sibling of compositions/compensable-workflow.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS (base model — the two load-bearing invariants the
 \* formal-layer vote names)
@@ -39,7 +39,7 @@
 \* SCOPE (named, base model) — see the coverage matrix in compensable-workflow.md Lineage
 \* - Compensations are assumed to eventually succeed under retry, so the
 \*   NON-TERMINAL `halted` holding state (a compensation that cannot complete — a
-\*   liveness/operational concern, compensable-workflow.md §Edge cases) is out of model scope.
+\*   liveness/operational concern, the section titled *Edge cases* in compensable-workflow.md) is out of model scope.
 \* - The forward-effect retry window is the modeled idempotency surface;
 \*   compensation idempotency is symmetric and by-construction here (CompEffect
 \*   fires once per step via its ~comp guard).

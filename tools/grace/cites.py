@@ -617,7 +617,7 @@ def main(argv: list[str]) -> int:
         # what the rewrite outran: a migrated spec no council read has read.
         # The register names every read and the qualifiers line names every
         # migration, so the gap is derived rather than kept by hand — the same
-        # discipline open-questions.md §Generated index asks for. The register's
+        # discipline open-questions.md section Generated index asks for. The register's
         # subject is prose ("Lease as rewritten and relabelled"), so a spec is
         # read when its name appears in that phrase; a version there is a read
         # of the grammar.

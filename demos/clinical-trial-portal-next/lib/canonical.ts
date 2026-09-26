@@ -6,7 +6,7 @@
  * PORTED BYTE-IDENTICAL from the first render
  * (demos/clinical-trial-portal/lib/canonical.ts). Do NOT "improve" it — the
  * cross-render portability of the audit hash chain depends on this producing
- * exactly the same bytes as render 1 (BUILD_PLAN §6.1).
+ * exactly the same bytes as render 1 (section 6.1) of BUILD_PLAN.
  */
 export function canonicalize(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value);

@@ -2,7 +2,7 @@
 \* Grace Commons — Approval Step atom.
 \* Spec-level formal sibling of atoms/approval-step.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* The load-bearing claims are Invariant 4 (approver exclusivity — only the actor

@@ -2,7 +2,7 @@
 \* Grace Commons — Event Log atom: BUGGY TWIN (vacuity guard).
 \*
 \* Identical to event-log.tla EXCEPT it adds the VolatileRestart action the
-\* English spec explicitly warns against (State §next_sequence_number:
+\* English spec explicitly warns against (State section next_sequence_number:
 \* "Volatile implementations that reset to 1 on restart violate this invariant
 \* across the lifetime of the log instance"). Resetting next_seq to 1 lets a
 \* later-appended event receive a sequence_number no larger than an earlier

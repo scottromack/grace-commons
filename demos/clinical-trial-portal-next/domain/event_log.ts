@@ -11,13 +11,13 @@
  *
  * Ported from render 1 (demos/clinical-trial-portal/domain/event_log.ts), now
  * async + Postgres. `id` is assigned MAX(id)+1 under the global advisory lock
- * (held by withTx) so it can be part of the hash before insert (BUILD_PLAN §6.4).
+ * (held by withTx) so it can be part of the hash before insert (section 6.4) of BUILD_PLAN.
  *
  * PORTING HAZARD made explicit: SQLite returned integer columns as JS numbers;
  * Postgres returns BIGINT as strings. The hashed payload must use the SAME types
  * on append and on verify, so every id is coerced to a JS number via `num()`
  * before hashing. (This is a render-layer detail the SQLite engine hid — it
- * belongs in the divergence log, BUILD_PLAN §9.)
+ * belongs in the divergence log, section 9.) of BUILD_PLAN
  */
 import type { Queryable, Tx } from "../lib/db.ts";
 import { canonicalize } from "../lib/canonical.ts";
@@ -52,7 +52,7 @@ const num = (v: unknown): number | null =>
   v === null || v === undefined ? null : Number(v);
 
 /**
- * The hashed payload shape — IDENTICAL to render 1 (BUILD_PLAN §6.3). All ids are
+ * The hashed payload shape — IDENTICAL to render 1 (section 6.3) of BUILD_PLAN. All ids are
  * JS numbers here so append and verify hash the same bytes.
  */
 function hashEvent(f: {

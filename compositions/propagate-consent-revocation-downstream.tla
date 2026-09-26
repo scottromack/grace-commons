@@ -3,7 +3,7 @@
 \* Consent + Permissions + Audit Trail (substrate) + Retention Window.
 \* Spec-level formal sibling of compositions/propagate-consent-revocation-downstream.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* Invariant 3 — revocation propagation completeness — as restated 2026-08-27

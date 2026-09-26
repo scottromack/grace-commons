@@ -1,5 +1,5 @@
 """Protocol prose per composition — the recurrence and deletion baseline for the
-higher-order composition test (pressure-testing.md §Pass 2, *The higher-order
+higher-order composition test (pressure-testing.md section Pass 2, *The higher-order
 composition test*; roadmap.md methodology debt #20).
 
 Six components make up the recoverable-invocation shape every regulated composition

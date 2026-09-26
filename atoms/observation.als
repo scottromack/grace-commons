@@ -46,7 +46,7 @@ module observation
 -- Signatures (types)
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- State enum: exactly one of three values (spec §State).
+-- State enum: exactly one of three values (spec section State).
 abstract sig State {}
 one sig Recorded, Amended, Retracted extends State {}
 
@@ -65,7 +65,7 @@ abstract sig ObsType {}       -- observation_type (blood_pressure_systolic, hear
 -- recordedBy:   one  — always present and immutable (Invariant 1).
 -- amendedBy:    lone — present only on successor observations (set by amend).
 -- retractedBy:  lone — present only on Retracted observations (Invariant 9).
--- state:        one  — always exactly one state (spec §State).
+-- state:        one  — always exactly one state (spec section State).
 sig Obs {
     successor   : lone Obs,   -- the correcting observation (set when this becomes Amended)
     predecessor : lone Obs,   -- the observation this corrects (set on amend creation)
@@ -105,7 +105,7 @@ fact LinearChain {
 
 -- Inverse consistency: successor and predecessor are inverses of each other.
 -- If obs B is the successor of obs A, then A must be the predecessor of B (and vice versa).
--- This encodes the bidirectional link that spec §State and §Actions describe:
+-- This encodes the bidirectional link that spec section State and section Actions describe:
 -- after amend, original gets successor_id and successor gets predecessor_id.
 fact SuccessorPredecessorInverse {
     all a, b : Obs | a.successor = b iff b.predecessor = a

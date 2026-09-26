@@ -1,6 +1,6 @@
 // tools/conformance/ghost/scenarios/full-lifecycle.mjs
 //
-// Ghost-flow scenario #1 — the Demo2 §0 lifecycle, as render-AGNOSTIC data.
+// Ghost-flow scenario #1 — the Demo2 section 0 lifecycle, as render-AGNOSTIC data.
 // Every step is in spec vocabulary (authenticate / invite / onboard / grant /
 // enrollSubject / recordVisit / revokeGrant / signOut), so the SAME scenario can
 // drive render 1 and render 2 — each via its own actions adapter. "$bind.path"

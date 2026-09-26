@@ -1,5 +1,5 @@
 /**
- * scripts/prove-chain.ts — BUILD_PLAN §10 step 3: prove the hash chain before
+ * scripts/prove-chain.ts — section 10 of BUILD_PLAN step 3: prove the hash chain before
  * anything is built on it. Migrates, appends events through `withTx` (so the
  * advisory lock + id-under-lock path runs), verifies the chain, then tampers a
  * row and confirms verifyChain flags the exact id.

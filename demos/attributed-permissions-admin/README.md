@@ -54,4 +54,4 @@ deno task test       # run all tests
 
 ## Build history
 
-`BUILD_PLAN.md` documents the phased build arc, schema decisions, and the invariant-to-Alloy-assertion mapping table (§12).
+`BUILD_PLAN.md` documents the phased build arc, schema decisions, and the invariant-to-Alloy-assertion mapping table (section 12).

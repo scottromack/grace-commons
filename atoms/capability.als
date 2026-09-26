@@ -23,7 +23,7 @@
 --   - EffStatus(r, now) is the derived effective status `read` returns at render time.
 --
 -- SCOPE — two-layer model mirroring the notification.als / subscription.als pattern and
--- the prior capability.als (see pressure-testing.md §Formal-model authoring pitfalls,
+-- the prior capability.als (see the section titled *Formal-model authoring pitfalls* in pressure-testing.md,
 -- "Static models lie about transitions"):
 --
 --   1. Store layer (CapabilityRecord within a Store sig). A Store is a snapshot of the

@@ -1,5 +1,5 @@
 -- Grace Commons Demo 2: Beacon Clinical Research
--- Phase 0 — Complete schema from §5
+-- Phase 0 — Complete schema from section 5
 
 -- Party Identity atom
 CREATE TABLE IF NOT EXISTS parties (

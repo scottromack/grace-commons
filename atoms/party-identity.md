@@ -963,12 +963,12 @@ Projection: storage-failure
 
 - **FATF Recommendations 10–12 (customer due diligence)** — identify the customer and verify identity using reliable independent sources; identify beneficial owners; conduct ongoing due diligence. The [Enroll] → [Verify] lifecycle is the structural form; the beneficial-ownership graph is a composing pattern's (Non-goal 11) and the monitoring schedule is too (Non-goal 8).
 - **BSA/AML — 31 CFR Part 1020 (FinCEN Customer Identification Program)** — minimum identity attributes, verification by documentary or non-documentary method, and five-year retention past the relationship's end. The enrollment fields are the attributes; [Verification Method] records which kind was used; retention is [Retention Window](./retention-window.md)'s (Non-goal 13).
-- **FinCEN Beneficial Ownership Rule — 31 CFR §1010.230** — each beneficial owner is a party record in their own right; the ownership relationship is not.
+- **FinCEN Beneficial Ownership Rule — 31 CFR section 1010.230** — each beneficial owner is a party record in their own right; the ownership relationship is not.
 - **EU 5th Anti-Money Laundering Directive (AMLD5)** — enhanced due diligence and beneficial-ownership registries, aligned with FATF.
 - **GDPR Article 4(1)** — the enrollment fields are personal data, and this atom is the corpus's clearest case of an atom that holds some rather than opaque references alone.
 - **GDPR Articles 5–6** — lawful basis for processing, typically Article 6(1)(c) or 6(1)(b); processing *beyond* the regulatory obligation is [Consent](./consent.md)'s.
 - **GDPR Article 17 (right to erasure)** — in direct tension with the retention obligations above. This atom does not resolve it: Invariant 7.1 forbids changing an enrollment field, and the composing erasure pattern is the authorized scrub (External check 3, Non-goal 12).
-- **HIPAA 45 CFR §164.514** — patient identity must be established before protected health information records exist; the patient is a party here.
+- **HIPAA 45 CFR section 164.514** — patient identity must be established before protected health information records exist; the patient is a party here.
 
 It inherits from:
 

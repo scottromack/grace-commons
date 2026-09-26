@@ -3,7 +3,7 @@
 //
 // Next's App Router has no Hono-style middleware chain for per-route gates, so
 // the equivalent is a helper called at the TOP of each protected Server
-// Component / Server Action (BUILD_PLAN §7.4). This module resolves the session
+// Component / Server Action (BUILD_PLAN section 7.4). This module resolves the session
 // cookie → a fully-formed Ctx (the same Ctx that composition.ts consumes), and
 // redirects to /login on any failure — exactly the require_session contract.
 //

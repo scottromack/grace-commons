@@ -2,7 +2,7 @@
 \* Grace Commons — Login composition TLA+ model.
 \* Spec-level formal sibling of compositions/login.md.
 \*
-\* This TLA+ model verifies the named invariants from §Application-level
+\* This TLA+ model verifies the named invariants from section Application-level
 \* invariants under every reachable interleaving at the chosen bounds.
 \*
 \* COMPLEMENTARITY WITH THE ALLOY MODEL.
@@ -12,7 +12,7 @@
 \* failure edge case and the Final Critique 1 TOCTOU race.
 \*
 \* SCOPE — INTENTIONAL EXCLUSIONS (matching login.md's Final Critique scope):
-\*   * Audit Trail substrate (login.md §Invariant 5 — Audit Trail
+\*   * Audit Trail substrate (login.md Invariant 5 — Audit Trail
 \*     completeness). That invariant delegates to the Audit Trail
 \*     composition's own model. This model verifies cascade-ordering
 \*     as the login-composition contribution to the audit claim.
@@ -24,21 +24,21 @@
 \*     must be "active" for Login to fire. What "active" means to the
 \*     Permissions or Actor Identity stores is out of scope here.
 \*
-\* MAP-WRITE-FAILURE PATH (login.md §step 5 / §Edge cases):
+\* MAP-WRITE-FAILURE PATH (login.md section step 5 / section Edge cases):
 \*   Login's step-5 credential_to_sessions write may fail. The session
 \*   is still valid and returned (outcome: success-with-map-failure).
 \*   This model tracks such sessions in `map_write_failed` so that
 \*   Invariant 6's strict-inverse clause can correctly exclude them:
 \*   they appear in session_to_cred but not in cred_to_sessions.
 \*
-\* CASCADE SNAPSHOT SCOPE (login.md §Invariant 2):
+\* CASCADE SNAPSHOT SCOPE (login.md Invariant 2):
 \*   RevokeSessionsForCredential takes an atomic snapshot of active
 \*   sessions and revokes them. Sessions created AFTER the cascade fires
 \*   cannot exist — the credential is revoked, so Login's guard blocks.
 \*   In a real distributed deployment the snapshot race is real; here the
 \*   TLA+ atomic-action model discharges the single-node case.
 \*
-\* Final Critique 1 TOCTOU RACE (login.md §Final Critique 1):
+\* Final Critique 1 TOCTOU RACE (login.md section Final Critique 1):
 \*   A Logout may run concurrently with the cascade. If Logout fires on a
 \*   session the cascade also targets, the cascade finds it already
 \*   terminal (already-terminal → skipped). The model includes Logout as
@@ -106,11 +106,11 @@ Init ==
 
 \* --- Action: Login -----------------------------------------------------------
 \*
-\* Models the happy path of login.md §Composition logic (steps 2-6).
+\* Models the happy path of the section titled *Composition logic* in login.md (steps 2-6).
 \* Precondition: the credential must be "active" — this is the spec's
 \* Credential.verify guard. Steps 3-6 are atomic: session record, audit
 \* entry, cred_to_sessions write, and session_to_cred write all commit
-\* together. This matches §Edge cases → "Cross-store consistency under
+\* together. This matches section Edge cases → "Cross-store consistency under
 \* failure" (same-transactional-boundary commit discipline).
 \*
 Login(cred, sess) ==
@@ -126,7 +126,7 @@ Login(cred, sess) ==
 
 \* --- Action: LoginMapWriteFailure -------------------------------------------
 \*
-\* Models the step-5 map write failure edge case (login.md §Edge cases →
+\* Models the step-5 map write failure edge case (login.md section Edge cases →
 \* "Map write failure on step 5"). The session is issued and session_to_cred
 \* is written (step 6 succeeds), but cred_to_sessions is NOT updated (step 5
 \* fails). The caller receives outcome = success-with-map-failure. The audit
@@ -153,7 +153,7 @@ LoginMapWriteFailure(cred, sess) ==
 \*
 \* Models the logout happy path: terminates an active session by transitioning
 \* its status to "logged_out". The session_to_cred entry is preserved
-\* (immutable once written, per login.md §Invariant 3).
+\* (immutable once written, per login.md Invariant 3).
 \*
 \* Final Critique 1 note: this action may fire concurrently with
 \* RevokeSessionsForCredential. If Logout fires on a session that is also in
@@ -172,8 +172,8 @@ Logout(sess) ==
 
 \* --- Action: RevokeSessionsForCredential ------------------------------------
 \*
-\* Models revoke_sessions_for_credential (login.md §Composition logic and
-\* §Action wiring).
+\* Models revoke_sessions_for_credential (the section titled *Composition logic* in login.md and
+\* section Action wiring).
 \*
 \* Step-by-step correspondence with login.md:
 \*   (1) Credential.revoke — cred_status flips to "revoked".
@@ -185,7 +185,7 @@ Logout(sess) ==
 \*         else: Session.revoke → "revoked_by_cascade"
 \*
 \* Atomicity: all writes commit in a single TLA+ step. This models the
-\* same-transactional-boundary discipline login.md §Edge cases requires.
+\* same-transactional-boundary discipline login.md section Edge cases requires.
 \*
 \* The Final Critique 1 TOCTOU race is captured by the interleaving model: TLC will
 \* generate traces in which Logout fires on a session BEFORE this action
@@ -226,11 +226,11 @@ Next ==
 Spec == Init /\ [][Next]_vars
 
 \* =========================================================================
-\* Named invariants from §Composition-level invariants.
+\* Named invariants from section Composition-level invariants.
 \* Names match the spec's invariant names.
 \* =========================================================================
 
-\* Invariant 1 — Credential gates issuance (login.md §Invariant 1).
+\* Invariant 1 — Credential gates issuance (login.md Invariant 1).
 \* No session is issued without a prior Credential.verify = verified.
 \* State-only proxy: every issued session token maps to a credential,
 \* and every issued session has a log entry. The Login guard
@@ -242,7 +242,7 @@ Credential_Gates_Issuance ==
     /\ \A s \in SessionTokens :
          IsIssuedSession(s) => s \in log_sessions
 
-\* Invariant 2 — Cascade completeness, snapshot-scoped (login.md §Invariant 2).
+\* Invariant 2 — Cascade completeness, snapshot-scoped (login.md Invariant 2).
 \* Every session the cascade acted on (cascade_revoked) is now terminal.
 \* Sessions that were already terminal when the cascade took its snapshot
 \* (Final Critique 1 TOCTOU race, already-terminal path) were never added to
@@ -252,7 +252,7 @@ Credential_Gates_Issuance ==
 Cascade_Completeness ==
     \A s \in cascade_revoked : IsTerminalSession(s)
 
-\* Invariant 2a — Cascade coverage over the cascade map (login.md §Invariant 2a).
+\* Invariant 2a — Cascade coverage over the cascade map (login.md Invariant 2a).
 \* For every credential whose cascade has been initiated, no session that
 \* appears in cred_to_sessions remains active. Map-write-failure sessions
 \* are excluded from cred_to_sessions, so this invariant speaks only to
@@ -261,7 +261,7 @@ Cascade_Coverage ==
     \A c \in cascade_initiated :
         \A s \in cred_to_sessions[c] : IsTerminalSession(s)
 
-\* Invariant 3 — Session-credential traceability (login.md §Invariant 3).
+\* Invariant 3 — Session-credential traceability (login.md Invariant 3).
 \* session_to_cred is immutable once written: every entry points to a real
 \* credential. No action modifies a non-NULL session_to_cred slot — this
 \* holds by inspection of Next. The state-level check confirms structural
@@ -270,7 +270,7 @@ Session_Credential_Traceability ==
     \A s \in SessionTokens :
         session_to_cred[s] /= NULL => session_to_cred[s] \in CredentialIds
 
-\* Invariant 4 — Login event log completeness (login.md §Invariant 4).
+\* Invariant 4 — Login event log completeness (login.md Invariant 4).
 \* Every login call produces exactly one log entry. State-only proxy:
 \* every issued session (session_status /= NULL) has a corresponding
 \* entry in log_sessions. Both Login and LoginMapWriteFailure write to
@@ -280,7 +280,7 @@ Login_Event_Log_Completeness ==
     \A s \in SessionTokens :
         IsIssuedSession(s) => s \in log_sessions
 
-\* Invariant 5 — Cascade audit ordering (login.md §Invariant 5 proxy).
+\* Invariant 5 — Cascade audit ordering (login.md Invariant 5 proxy).
 \* credential_revocation_cascade_initiated is recorded before any
 \* session_revoked_by_cascade event for the same credential.
 \* State-only proxy: for every session in cascade_revoked, the session's
@@ -292,7 +292,7 @@ Cascade_Audit_Ordering ==
         session_to_cred[s] /= NULL =>
         session_to_cred[s] \in cascade_initiated
 
-\* Invariant 6 — Map inverse consistency (login.md §Invariant 6).
+\* Invariant 6 — Map inverse consistency (login.md Invariant 6).
 \* credential_to_sessions and session_to_credential are strict inverses
 \* under the write-both-or-neither discipline.
 \*

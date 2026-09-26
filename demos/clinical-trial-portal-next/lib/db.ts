@@ -3,7 +3,7 @@
  *
  * Speaks PostgreSQL through ONE `query(text, params)` interface, backed by:
  *   • PGlite (embedded Postgres-in-WASM) by default — zero setup, single
- *     in-process backend = the §4 single-writer model, used for local dev and CI.
+ *     in-process backend = the section 4 single-writer model, used for local dev and CI.
  *   • node-postgres (`pg`) when DATABASE_URL is set — a real server for deploy.
  * Both are raw SQL, no ORM (BUILD_PLAN Decision 1 / first-render A.14). The
  * postgres.js choice in the plan is swapped for pg/pglite because they share the
@@ -13,7 +13,7 @@
  * The write path (`withTx`) takes the global audit advisory lock as its FIRST
  * statement, so every mutation totally orders against every other — reproducing
  * the SQLite single-writer guarantee the audit chain assumes, as an explicit
- * named mechanism (BUILD_PLAN §4).
+ * named mechanism (section 4) of BUILD_PLAN.
  */
 
 export interface Actor { id: number; party_id: number; display_name?: string }
@@ -22,7 +22,7 @@ export interface Ctx { actor: Actor | null; session: Session | null }
 export interface Queryable { query<T = any>(text: string, params?: any[]): Promise<T[]> }
 export interface Tx extends Queryable { ctx: Ctx }
 
-// A fixed app-wide 64-bit constant — "BEACON_AUDIT_LOCK" (BUILD_PLAN §4.2).
+// A fixed app-wide 64-bit constant — "BEACON_AUDIT_LOCK" (section 4.2) of BUILD_PLAN.
 const BEACON_AUDIT_LOCK = 7423001;
 
 interface Backend {
@@ -123,7 +123,7 @@ export const db: Queryable = { query };
  * (atom writes + appendEvent), commits on success, rolls back on throw.
  * NOTE: this is ASYNC (the driver is async) — so render 1's "no async inside
  * withTx" rule is relaxed; but password hashing still happens BEFORE withTx to
- * keep the global lock hold-time minimal (BUILD_PLAN §4.2 / §7.1).
+ * keep the global lock hold-time minimal (section 4.2 of BUILD_PLAN / section 7.1).
  */
 export async function withTx<T>(ctx: Ctx, fn: (tx: Tx) => Promise<T>): Promise<T> {
   const b = await backend();

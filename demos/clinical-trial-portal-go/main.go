@@ -11,7 +11,7 @@ import (
 // Inputs are PINNED (timestamps, token) so the Go, Python (twin.py), and JS
 // renders produce a BYTE-IDENTICAL chain that can be diffed. Real renders use
 // wall-clock occurred_at and random tokens — which is exactly why two live
-// renders' hashes differ while both still verify (BUILD_PLAN §6.3); here we fix
+// renders' hashes differ while both still verify (section 6.3) of BUILD_PLAN; here we fix
 // them on purpose to demonstrate byte-identity across three languages.
 func main() {
 	pi := 1   // PI actor id (Anya), seeded

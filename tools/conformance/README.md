@@ -355,7 +355,7 @@ node agree.mjs clinical-trial-portal \
 The demo runs on Deno (jsr: imports, Argon2id WASM), which isn't present in this
 sandbox, and the checked-in `dev.db` carries only the stale seed event. So
 `fixtures/build-clinical-trial-portal.mjs` replays render 1's documented
-lifecycle (Demo2-plan §0) into a SQLite store using the render's **actual
+lifecycle (section 0) of Demo2-plan into a SQLite store using the render's **actual
 schema** (`migrations/0001_init.sql`, exec'd verbatim) and a **byte-faithful
 port** of its event/hash construction — faithfulness was originally checked by
 reproducing seed.ts's exact stored hash, genesis bug and all (the bug it then

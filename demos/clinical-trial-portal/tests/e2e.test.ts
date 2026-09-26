@@ -6,9 +6,9 @@
 // (no file I/O, no real server port). Use Hono's built-in app.request() for all
 // HTTP interactions. Seed PI and CRA via domain helpers directly — this mirrors
 // what seed.ts does in production and is documented as the "Bootstrap Identity"
-// seam (§8 decision #8).
+// seam (section 8 decision #8).
 //
-// The test walks the five-actor scenario from the plan's Domain Story (§1):
+// The test walks the five-actor scenario from the plan's Domain Story (section 1):
 //   Anya (PI)  →  invites Maya (SC)  →  Maya accepts, is granted permissions
 //   →  Maya enrolls BCN-001  →  Maya records screening visit
 //   →  Jordan (CRA) logs in, verifies the chain
@@ -325,7 +325,7 @@ Deno.test("e2e: invite → accept → grant → enroll → visit → audit verif
 
   // ── 10. Full event-set coverage check ─────────────────────────────────────
   //
-  // Every action specified in the plan's §6 event catalog that this scenario
+  // Every action specified in the plan's section 6 event catalog that this scenario
   // exercises should be present in the log. This catches any future regression
   // where a composition function silently stops emitting an event.
 

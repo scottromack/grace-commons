@@ -929,12 +929,12 @@ Projection: not-permitted
 ## Standards references
 
 - **NIST (National Institute of Standards and Technology — the US federal standards body) SP 800-53 Rev. 5, AC-3 (Access Enforcement), AU-2 (Event Logging) and IA-2 (Identification and Authentication)** — the three controls this composition sits across: access is enforced by the constituent, the administrative act is recorded, and the actor performing it is identified and bound to the act.
-- **SOX (Sarbanes-Oxley Act) §404 (Internal Control over Financial Reporting)** — segregation-of-duties controls over access provisioning; the composition produces the records §404 examines, and declines the control §404 also wants — whether the grantor was authorized — to the layer that owns it.
-- **HIPAA (Health Insurance Portability and Accountability Act) §164.312(a)(1) and §164.312(b) (Technical Safeguards — Access Control and Audit Controls)** — the combined access-control-with-audit-controls bar the two paragraphs together establish. Neither constituent clears it alone; the pairing is what does.
+- **SOX (Sarbanes-Oxley Act) section 404 (Internal Control over Financial Reporting)** — segregation-of-duties controls over access provisioning; the composition produces the records section 404 examines, and declines the control section 404 also wants — whether the grantor was authorized — to the layer that owns it.
+- **HIPAA (Health Insurance Portability and Accountability Act) section 164.312(a)(1) and section 164.312(b) (Technical Safeguards — Access Control and Audit Controls)** — the combined access-control-with-audit-controls bar the two paragraphs together establish. Neither constituent clears it alone; the pairing is what does.
 - **PCI DSS (Payment Card Industry Data Security Standard) Requirement 7 and Requirement 10** — Requirement 7 mandates that access authorization be documented and Requirement 10 that the administrative act be tracked; the attestation and the pairing are the structural form of both.
-- **21 CFR (Title 21 of the US Code of Federal Regulations) Part 11 §11.10 and §11.50** — the electronic-signature regime applied to the grantor's attestation on an administrative action, including the signature manifestation the proposal body carries.
+- **21 CFR (Title 21 of the US Code of Federal Regulations) Part 11 section 11.10 and section 11.50** — the electronic-signature regime applied to the grantor's attestation on an administrative action, including the signature manifestation the proposal body carries.
 - **GDPR (the EU General Data Protection Regulation) Article 25 and Article 30** — data protection by design, and the records-of-processing obligation for access-administration events.
-- **ISO/IEC 27001 §A.9.2 (User access management)** — the International Organization for Standardization / International Electrotechnical Commission control requiring a formal user-access-management procedure with recorded authorization.
+- **ISO/IEC 27001 clause A.9.2 (User access management)** — the International Organization for Standardization / International Electrotechnical Commission control requiring a formal user-access-management procedure with recorded authorization.
 
 The two atoms carry their own standards inheritance — see each constituent's Standards references.
 

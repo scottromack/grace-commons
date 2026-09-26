@@ -9,7 +9,7 @@
 \* incrementally-maintained `derived` diverge from the replay (StatusOf).
 \*
 \* This is the Inv2-specific twin the per-invariant vacuity guard requires
-\* (pressure-testing.md §the "model present" bar, criterion 2): the oldest-targeting
+\* (pressure-testing.md section the "model present" bar, criterion 2): the oldest-targeting
 \* twin breaks Inv3/Inv4 but leaves Inv2 holding (its undo still recomputes derived),
 \* so Inv2 needs its own witness that the check has teeth.
 \*

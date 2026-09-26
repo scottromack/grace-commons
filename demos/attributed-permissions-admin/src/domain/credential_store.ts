@@ -3,7 +3,7 @@
 // Implements the login surface of the Credential atom, separate from the
 // Actor Identity attest key (actor.credential_secret). The two surfaces
 // share the same principal_ref / actor_ref but are managed independently.
-// See CORNERS.md §Cross-atom identity surface aliasing.
+// See CORNERS.md section Cross-atom identity surface aliasing.
 //
 // Operations:
 //   register_login(principal_ref, password) → credential_id

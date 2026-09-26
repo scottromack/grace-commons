@@ -2,7 +2,7 @@
 // re-expressed as a React server component). Same Inks.css classes.
 //
 // The "Sign out" control is a plain <form action={serverAction}> so it works
-// without client JS (BUILD_PLAN §7.6). `active` highlights the current section
+// without client JS (section 7.6) of BUILD_PLAN. `active` highlights the current section
 // (the server has no usePathname, so each page passes which section it is).
 import { logout } from "../app/login/actions.ts";
 

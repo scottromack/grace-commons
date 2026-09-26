@@ -2,7 +2,7 @@
 \* Grace Commons — Credential atom (execution/render-time refactor, 2026-06-21).
 \* Spec-level formal sibling of atoms/credential.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* (1) Active uniqueness over EFFECTIVE-Active (Inv 2): at most one credential

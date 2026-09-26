@@ -1,6 +1,6 @@
 // Quorum evaluation rule — pure, deterministic, order-independent.
 //
-// Transcribed directly from BUILD_PLAN.md §6 (which transcribes the spec's
+// Transcribed directly from section 6 of BUILD_PLAN.md (which transcribes the spec's
 // *Quorum evaluation rule* subsection). This function is the only place
 // in the codebase that decides chain terminal state from a vote vector.
 //

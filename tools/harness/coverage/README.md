@@ -1,7 +1,7 @@
 # Coverage cross-check — inaugural sweep (2026-06-03)
 
 The first full run of the formal-layer **coverage cross-check** (pressure-testing.md
-§"The coverage cross-check") across all 22 vote-yes models. Each per-pattern
+Section "The coverage cross-check") across all 22 vote-yes models. Each per-pattern
 matrix in this directory classifies every spec invariant as `covered` /
 `by-construction` / `out-of-scope(reason)` / **GAP**. Run by fresh-context
 reviewers, gated by Opus.
@@ -73,7 +73,7 @@ checker-rejected buggy twin. Produced by parallel Sonnet subagents, Opus-gated
 | Legal Hold | Inv 6 | Two-clock extension: global `now` + ghost `placedAt`/`releasedAt`, `Inv_TemporalOrdering` | `legal-hold.tla` (370 states) + **two isolated twins**: `legal-hold-buggy.tla` (Inv 6) and `legal-hold-buggy-cascade.tla` (Inv 4) |
 | Provisional Commitment | Inv 8 | Ghost `releasedAt`/`expiredAt` + `Inv8_TransitionsAfterPlacement` with `PlacedAt=1` | `provisional-commitment.tla` (15 states) + **two isolated twins**: `…-buggy.tla` (Inv 8) and `…-buggy-window.tla` (Inv 7) |
 | Capacity Constraint | Inv 5 | Added `ReleaseAtomic` so non-negativity is non-vacuous on the release path | `capacity-constraint-enforcement.tla` (7 states) + **two isolated twins**: `…-buggy.tla` (Inv 5 underflow) and `…-buggy-toctou.tla` (Inv 4 overshoot) |
-| Capacity Constraint | Inv 14 | **Vote reconsidered → out-of-scope** (within-action atomicity is a host obligation, not an action-vs-action interleaving; parallels Party Identity Inv 11). Documented in Lineage §Formal-layer vote. | — (no model; by-design) |
+| Capacity Constraint | Inv 14 | **Vote reconsidered → out-of-scope** (within-action atomicity is a host obligation, not an action-vs-action interleaving; parallels Party Identity Inv 11). Documented in Lineage section Formal-layer vote. | — (no model; by-design) |
 
 Gating note: the three TLA+ extensions (Legal Hold, Provisional Commitment,
 Capacity Constraint) initially repointed the single existing twin at the *new*

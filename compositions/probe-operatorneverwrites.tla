@@ -3,7 +3,7 @@
 \* composition follows around an irreversible act. Spec-level formal sibling of
 \* compositions/recoverable-invocation.md. Derived validator; the English spec
 \* is the single source of truth. On any disagreement, diagnose per
-\* pressure-testing.md §The conflict protocol.
+\* the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* VERSION 4 (2026-09-08) brings [RESOLVE] — the operator, the protocol's
 \* THIRD writer — inside the frame. v1-v3 modelled two writers against a page

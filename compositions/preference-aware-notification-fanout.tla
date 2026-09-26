@@ -2,7 +2,7 @@
 \* Grace Commons — Preference-Aware Notification Fanout composition.
 \* Spec-level formal sibling of compositions/preference-aware-notification-fanout.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* The load-bearing claim is Invariant 4 (frequency-cap safety), safety arm,
@@ -25,7 +25,7 @@
 \* - `delivered` is the principal's committed in-window delivery count — the
 \*   truth the journal (Event Log) carries; the delivery_count_index is a
 \*   derived read of it and is deliberately NOT modeled as separate state
-\*   (execution-contract §Composition state: a formal model of the action
+\*   (execution-contract section Composition state: a formal model of the action
 \*   models the truth-bearing stores and omits the index).
 \* - `GateDeliver(w)`: single atomic observe-and-commit — the
 \*   serialized-per-principal capability the deployment declares; no

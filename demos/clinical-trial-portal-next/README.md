@@ -45,7 +45,7 @@ Backing atoms: [party-identity](../../atoms/party-identity.md),
 
 - **Next.js 15 (App Router, React 19)** — Server Components for reads, **Server Actions** for the five mutations (the HTMX-swap equivalents).
 - **PostgreSQL**, raw SQL, no ORM. By default an **embedded** Postgres (`@electric-sql/pglite`) under `./data/pg` — zero setup. Point `DATABASE_URL` at a real server (`pg`) for deploy. Both sit behind one `query(text, params)` seam in `lib/db.ts`.
-- **One global advisory lock** serializes the audit chain (`pg_advisory_xact_lock`) — the one genuinely new engineering surface the swap forces into the open (BUILD_PLAN §4).
+- **One global advisory lock** serializes the audit chain (`pg_advisory_xact_lock`) — the one genuinely new engineering surface the swap forces into the open (section 4) of BUILD_PLAN.
 - **Inks.css** — render 1's compiled stylesheet, reused verbatim for pixel parity.
 
 ## Getting started
@@ -69,7 +69,7 @@ npm run prove-chain  # demonstrate tamper-evidence end to end
 To run against a real Postgres, set `DATABASE_URL` to a **direct / session**
 connection string — **not** a transaction-pooled one (PgBouncer transaction
 mode / a serverless pooler), or `pg_advisory_xact_lock` silently stops holding
-and the global audit chain can fork (BUILD_PLAN Decision 2 / §4.2).
+and the global audit chain can fork (BUILD_PLAN Decision 2 / section 4.2).
 
 ### Logins (seeded)
 
@@ -104,7 +104,7 @@ control, no cross-atom calls.
 
 **C14 without middleware.** Next has no Hono-style middleware chain, so the
 session and permission gates are helpers called at the top of each protected
-handler (BUILD_PLAN §7.4):
+handler (section 7.4) of BUILD_PLAN:
 
 - `auth/current.ts` — `currentCtx()` / `currentUser()` resolve the session cookie
   to the same `Ctx` that `composition.ts` consumes, redirecting to `/login` on
@@ -119,12 +119,12 @@ handler (BUILD_PLAN §7.4):
 JSON, with `actor_id`/`session_id` attribution on every row, append-only by
 convention. The `id` is part of the hashed payload, so it is assigned
 `MAX(id)+1` **under the advisory lock** before insert — not delegated to a
-sequence (BUILD_PLAN §5.1, §6.4). Viewing and exporting the log are themselves
+sequence (section 5.1 of BUILD_PLAN, section 6.4). Viewing and exporting the log are themselves
 regulated acts, so `/audit` emits `audit.viewed` and `/audit/export.csv` emits
 `audit.exported` — the sanctioned route-level meta-event seam, exactly as in
 render 1.
 
-**The one new surface — global serialization (BUILD_PLAN §4).** SQLite's
+**The one new surface — global serialization (section 4) of BUILD_PLAN.** SQLite's
 single-writer lock gave render 1 a total order over the chain for free; Postgres
 MVCC does not. `withTx` takes `pg_advisory_xact_lock(7423001)` as its first
 statement, so every mutation totally orders against every other — the SQLite
@@ -141,7 +141,7 @@ The whole point. Read this render against [the first](../clinical-trial-portal/)
 - **Rewritten** (the render layer): `app/` (RSC pages + Server Actions replace
   Hono routes + HTMX views), `auth/` (helpers replace middleware), `lib/db.ts`
   (the driver + the advisory lock).
-- **Genuinely new**: the global-serialization adapter (§4) — *expected* new work,
+- **Genuinely new**: the global-serialization adapter (section 4) — *expected* new work,
   the implicit ordering assumption made explicit.
 
 The audit contract is identical across renders: same action codes, same payload

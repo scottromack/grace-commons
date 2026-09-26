@@ -1,13 +1,13 @@
 // auth/permit.ts — C14 Session-Gated Authorization, part 2 (replaces render 1's
 // require_permission middleware).
 //
-// The authorization SEMANTICS are unchanged from render 1 / Demo2-plan §4/§9:
+// The authorization SEMANTICS are unchanged from render 1 / section 4 of Demo2-plan/section 9:
 //   • a route is gated by one or more permission CODES;
 //   • the actor must hold an unrevoked grant for ANY of them (absence = denial);
 //   • the matching grant's scope ('all' | 'own') flows downstream — the audit and
 //     subjects surfaces use it to show all rows vs. only the actor's own.
 // Only the CALL MECHANISM differs: a helper at the top of each handler instead of
-// a Hono `.use()` chain (BUILD_PLAN §7.4).
+// a Hono `.use()` chain (section 7.4) of BUILD_PLAN.
 //
 // READS ONLY (the `query` read seam + grants.findActiveFor). It never mutates and
 // never imports composition.ts — the only mutation surface stays composition.ts.

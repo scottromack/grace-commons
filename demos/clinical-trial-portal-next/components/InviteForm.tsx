@@ -1,6 +1,6 @@
 "use client";
 // components/InviteForm.tsx — the "Invite someone" form + the live invite-result
-// card (the 'use client' island called out in BUILD_PLAN §7.5). Works without JS:
+// card (the 'use client' island called out in section 7.5) of BUILD_PLAN. Works without JS:
 // the plain POST issues the invitation and the page re-renders; the in-place
 // result card is the progressive enhancement.
 import { useActionState } from "react";

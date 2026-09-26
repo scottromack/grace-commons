@@ -45,7 +45,7 @@
 \* COMPLEMENTARITY NOTE
 \*
 \* The `invite` action writes the Audit Trail record before calling
-\* Invitation.initiate (audit-first discipline, spec §onboard notes step
+\* Invitation.initiate (audit-first discipline, spec section onboard notes step
 \* ordering). In this model, both writes are atomic at the action grain
 \* (TLA+ actions are atomic). The partial-failure case — Audit Trail record
 \* exists but Invitation.initiate fails — is represented by the absence of
@@ -173,7 +173,7 @@ Init ==
 
 \* --- Invite(actor, inv) ---------------------------------------------------
 \*
-\* Models the spec's `invite` action (§Actions → invite).
+\* Models the spec's `invite` action (section Actions → invite).
 \* Writes the Audit Trail initiation record and creates the Invitation in
 \* Pending state. Both writes are atomic here (TLA+ action grain), matching
 \* the spec's same-transactional-boundary requirement.
@@ -198,7 +198,7 @@ Invite(actor, inv) ==
 
 \* --- Onboard(inv, party, cred, actor) ------------------------------------
 \*
-\* Models the spec's `onboard` action happy path (§Actions → onboard,
+\* Models the spec's `onboard` action happy path (section Actions → onboard,
 \* steps 3–8). The single-resolution gate fires first: the precondition
 \* `invitations[inv].status = "pending"` is the atomic check corresponding
 \* to Invitation.accept. Exactly one concurrent Onboard per invitation
@@ -239,8 +239,8 @@ Onboard(inv, party, cred, actor) ==
 
 \* --- OnboardInterrupted(inv, actor) ---------------------------------------
 \*
-\* Models partial failure after Invitation.accept (spec §onboard, steps
-\* 5–7 failure paths and §Edge cases → "Partial failure after
+\* Models partial failure after Invitation.accept (spec section onboard, steps
+\* 5–7 failure paths and section Edge cases → "Partial failure after
 \* Invitation.accept"). The gate clears (invitation → Accepted) but the
 \* downstream enrollment or credential registration fails.
 \*
@@ -299,7 +299,7 @@ Revoke(inv, actor) ==
 \* --- Expire(inv) ----------------------------------------------------------
 \*
 \* Models background expiry by the Invitation atom's scheduler.
-\* Per spec §Round 3 Pass 3 finding R3F1, expiry that occurs via the
+\* Per spec section Round 3 Pass 3 finding R3F1, expiry that occurs via the
 \* background scheduler (not through this composition's `onboard` action
 \* discovering an expired invitation) is outside the composition's surface
 \* and does not produce an audit event from this composition.
@@ -338,7 +338,7 @@ Spec == Init /\ [][Next]_vars
 
 \* =========================================================================
 \* APPLICATION-LEVEL INVARIANTS
-\* Names and numbering match §Composition-level invariants in the spec.
+\* Names and numbering match section Composition-level invariants in the spec.
 \* =========================================================================
 
 \* Invariant 1 — Invitation gates enrollment.
@@ -435,7 +435,7 @@ Completion_Names_Full_Arc ==
 
 \* =========================================================================
 \* ADDITIONAL STRUCTURAL INVARIANTS
-\* Properties not named in §Composition-level invariants but implied by
+\* Properties not named in section Composition-level invariants but implied by
 \* the composition's step-order wiring and needed for a complete TLC check.
 \* =========================================================================
 
@@ -472,7 +472,7 @@ Audit_Set_Integrity ==
 
 \* =========================================================================
 \* COMBINED SAFETY PREDICATE
-\* All invariants from §Composition-level invariants plus structural guards.
+\* All invariants from section Composition-level invariants plus structural guards.
 \* TLC checks Safety as a single invariant over the full state space.
 \* =========================================================================
 

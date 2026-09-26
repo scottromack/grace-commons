@@ -2,7 +2,7 @@
 //
 // Ported from render 1 (demos/clinical-trial-portal/composition.ts). Every
 // function: takes a Ctx + typed input; wraps its body in `await withTx` (which
-// holds the global audit advisory lock — BUILD_PLAN §4); writes atom rows + one
+// holds the global audit advisory lock — section 4) of BUILD_PLAN; writes atom rows + one
 // or more audit events in the SAME transaction; returns a plain object. Action
 // codes and audit payload fields are TRANSCRIBED from render 1 — an auditor
 // diffing the two renders' event logs must see identical `action` strings.

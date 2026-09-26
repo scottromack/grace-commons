@@ -32,9 +32,9 @@ deno task test       # run the full test suite under tests/
 ## Tests
 
 - `approval_step.test.ts` — Unit tests for approval_step.ts and assignment.ts atoms (submit, approve, reject, withdraw).
-- `quorum.test.ts` — Exhaustive quorum.ts coverage; named scenarios cross-referenced to spec worked examples and BUILD_PLAN.md §6.
+- `quorum.test.ts` — Exhaustive quorum.ts coverage; named scenarios cross-referenced to spec worked examples and section 6 of BUILD_PLAN.md.
 - `audit_tamper.test.ts` — Six forgery-detection tests against fresh in-memory DBs; verifies hash-chain integrity under tampering.
-- `invariants.test.ts` — One test per application-level invariant from BUILD_PLAN.md §12; this is the primary spec-conformance file.
+- `invariants.test.ts` — One test per application-level invariant from section 12 of BUILD_PLAN.md; this is the primary spec-conformance file.
 - `scenarios.test.ts` — HTTP-level walkthroughs via `app.fetch()` (Hono test interface, no server started).
 
 ## Implementation findings
@@ -43,7 +43,7 @@ deno task test       # run the full test suite under tests/
 
 ## Build history
 
-`BUILD_PLAN.md` is the full build arc: phased task breakdown, schema decisions, route design, and the list of application-level invariants (§12). Read it to understand why the implementation is shaped the way it is.
+`BUILD_PLAN.md` is the full build arc: phased task breakdown, schema decisions, route design, and the list of application-level invariants (section 12). Read it to understand why the implementation is shaped the way it is.
 
 ## Visual design
 

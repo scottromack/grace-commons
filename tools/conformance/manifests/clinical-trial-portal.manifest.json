@@ -21,7 +21,7 @@
       "render_scope": {
         "description": "Orthogonal to kind. A check is record-clearable in PRINCIPLE (against the full composition) but the spec admits renders that implement a subset. render_scope records whether THIS render's documented surface covers the check. This axis is NOT in the PLAN's two-value kind field; it exists so that a render which deliberately omits optional substrate is not punished with false fails — the load-bearing high-precision discipline ('a false fail destroys trust faster than a missed check').",
         "values": {
-          "in-scope": "render 1's composition-coverage map (Demo2-plan.md §2) and committed Decisions (§8) cover the substrate this check reads. Counts toward the denominator.",
+          "in-scope": "render 1's composition-coverage map (section 2) of Demo2-plan.md and committed Decisions (section 8) cover the substrate this check reads. Counts toward the denominator.",
           "out-of-scope": "render 1 deliberately does not implement the composition substrate this check reads (e.g. credential-revocation cascade maps, a per-call authorization event log, a cryptographic attestation store). Justified by a Demo2-plan citation in scope_note. Reported separately; never scored. Scope exclusion is auditable, never silent, and is keyed to a render DESIGN decision — never to the check happening to fail."
         }
       }
@@ -129,7 +129,7 @@
       "kind": "record-clearable",
       "render_scope": "out-of-scope",
       "severity": "major",
-      "scope_note": "OUT OF RENDER SCOPE. render 1 maintains no credential_to_sessions / session_to_credential cascade maps. Credential-revocation cascade is Phase 7 stretch (Demo2-plan §7 'Soft-revoke pattern for an actor … out of scope'); render 1 issues and revokes individual sessions without the dual-map bookkeeping these checks reconcile. Reported separately; never scored.",
+      "scope_note": "OUT OF RENDER SCOPE. render 1 maintains no credential_to_sessions / session_to_credential cascade maps. Credential-revocation cascade is Phase 7 stretch (section 7 of Demo2-plan 'Soft-revoke pattern for an actor … out of scope'); render 1 issues and revokes individual sessions without the dual-map bookkeeping these checks reconcile. Reported separately; never scored.",
       "adapter_capability": []
     },
     {
@@ -140,7 +140,7 @@
       "kind": "record-clearable",
       "render_scope": "out-of-scope",
       "severity": "major",
-      "scope_note": "OUT OF RENDER SCOPE. render 1 implements no credential-revocation cascade (Demo2-plan §7). There are no credential_revocation_cascade_initiated events to reconcile. Reported separately; never scored.",
+      "scope_note": "OUT OF RENDER SCOPE. render 1 implements no credential-revocation cascade (section 7) of Demo2-plan. There are no credential_revocation_cascade_initiated events to reconcile. Reported separately; never scored.",
       "adapter_capability": []
     },
     {
@@ -173,7 +173,7 @@
       "kind": "record-clearable",
       "render_scope": "out-of-scope",
       "severity": "refining",
-      "scope_note": "OUT OF RENDER SCOPE. login_map_write_failure is an event of the cascade-map machinery render 1 does not implement (Demo2-plan §7). No such events exist. Reported separately; never scored.",
+      "scope_note": "OUT OF RENDER SCOPE. login_map_write_failure is an event of the cascade-map machinery render 1 does not implement (section 7) of Demo2-plan. No such events exist. Reported separately; never scored.",
       "adapter_capability": []
     },
 
@@ -185,7 +185,7 @@
       "kind": "record-clearable",
       "render_scope": "out-of-scope",
       "severity": "major",
-      "scope_note": "The spec marks checks 1–2 state-verifiable only for a SPECIFIC disputed decision at a known time, and 3–5 require Audit Trail composed in for per-call records. render 1 enforces the gate in middleware (requireSession/requirePermission) and emits NO per-call authorization event (Demo2-plan §2: C14 is a middleware seam, not an audited mutation). A records-only batch validator cannot enumerate authorization decisions to replay their session validity. Reported separately.",
+      "scope_note": "The spec marks checks 1–2 state-verifiable only for a SPECIFIC disputed decision at a known time, and 3–5 require Audit Trail composed in for per-call records. render 1 enforces the gate in middleware (requireSession/requirePermission) and emits NO per-call authorization event (section 2 of Demo2-plan: C14 is a middleware seam, not an audited mutation). A records-only batch validator cannot enumerate authorization decisions to replay their session validity. Reported separately.",
       "adapter_capability": []
     },
     {
@@ -230,7 +230,7 @@
       "kind": "record-clearable",
       "render_scope": "out-of-scope",
       "severity": "major",
-      "scope_note": "OUT OF RENDER SCOPE. This check is record-clearable only when every check_permitted call is itself an audited event. render 1 audits state MUTATIONS, not authorization CHECKS — there is no per-call gate/outcome event stream (Demo2-plan §2). A render that audited each authorization decision would make this in-scope. Reported separately; never scored.",
+      "scope_note": "OUT OF RENDER SCOPE. This check is record-clearable only when every check_permitted call is itself an audited event. render 1 audits state MUTATIONS, not authorization CHECKS — there is no per-call gate/outcome event stream (section 2) of Demo2-plan. A render that audited each authorization decision would make this in-scope. Reported separately; never scored.",
       "adapter_capability": []
     },
 
@@ -364,7 +364,7 @@
       "kind": "record-clearable",
       "render_scope": "in-scope",
       "severity": "major",
-      "scope_note": "Attribution-coverage slice of the eight invariants. Records-alone: every event is attributed to an actor EXCEPT the by-design anonymous classes — failed-login events (no identity established, Decision §8.10) and bootstrap seed events (the seam, documented). No mutation event is unexpectedly anonymous.",
+      "scope_note": "Attribution-coverage slice of the eight invariants. Records-alone: every event is attributed to an actor EXCEPT the by-design anonymous classes — failed-login events (no identity established, Decision section 8.10) and bootstrap seed events (the seam, documented). No mutation event is unexpectedly anonymous.",
       "adapter_capability": ["events"]
     },
     {
@@ -408,7 +408,7 @@
       "kind": "record-clearable",
       "render_scope": "in-scope",
       "severity": "major",
-      "scope_note": "render-1 mapping: render 1 never hard-deletes events — retention is filter-on-read only (Decision §8.6; hard deletion would break the chain). Records-alone: the id sequence is gap-free, so no event is MISSING; and because nothing is purged, no event needs a destroyed-marker. Absence-of-gaps is the structural guarantee the spec calls for.",
+      "scope_note": "render-1 mapping: render 1 never hard-deletes events — retention is filter-on-read only (Decision section 8.6; hard deletion would break the chain). Records-alone: the id sequence is gap-free, so no event is MISSING; and because nothing is purged, no event needs a destroyed-marker. Absence-of-gaps is the structural guarantee the spec calls for.",
       "adapter_capability": ["events", "retentionPolicy"]
     },
     {

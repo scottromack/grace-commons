@@ -2,7 +2,7 @@
 \* Grace Commons — Undo History composition.
 \* Spec-level formal sibling of compositions/undo-history.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS (Tier-A + Tier-B extension, 2026-06-14)
 \* The original model checked only undo-targeting (Inv 3) over an integer
@@ -119,7 +119,7 @@ Init ==
 \* The successful branch appends and updates derived together (didAppend = didChange
 \* = TRUE). The *Fail branch is the storage-failure path: the append is rejected, so
 \* NOTHING domain-visible changes (didAppend = didChange = FALSE) — "the action did
-\* not happen" (undo-history.md §Action wiring). Inv1 reads the ghost pair.
+\* not happen" (the section titled *Action wiring* in undo-history.md). Inv1 reads the ghost pair.
 
 DoAdd(x) ==
     /\ phase = "adding"
@@ -187,7 +187,7 @@ DoUndo ==
 
 \* Storage-failure branch of undo: the compensating-event append fails, so undo
 \* returns storage-failure and the derived state is not recomputed (undo-history.md
-\* §Action wiring, the undo storage-failure path). Nothing changes but the ghosts.
+\* section Action wiring, the undo storage-failure path). Nothing changes but the ghosts.
 UndoFail ==
     /\ len > 0
     /\ \E k \in 1..len : ~undone[k]

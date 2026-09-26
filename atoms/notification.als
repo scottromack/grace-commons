@@ -58,7 +58,7 @@ module notification
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Status enum
--- Four named states from the spec (notification.md §State).
+-- Four named states from the spec (the section titled *State* in notification.md).
 -- ─────────────────────────────────────────────────────────────────────────────
 
 abstract sig Status {}

@@ -3,7 +3,7 @@
 // Implements the Session atom surface used by the Login route and the
 // currentActorMiddleware (Session-Gated Authorization, C14).
 //
-// Operations (spec §Session):
+// Operations (spec section Session):
 //   issue_session(principal_ref) → session_id (bearer token)
 //   validate_session(token) → { principal_ref, expires_at } | 'expired' | 'revoked' | 'not-known'
 //   revoke_session(token) → void

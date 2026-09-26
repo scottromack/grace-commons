@@ -4,7 +4,7 @@
 // returns 'not-active' without touching the row. This is the
 // spec's trailing-decision contract — chain.ts never needs to
 // special-case whether a cascade recall already fired.
-// See BUILD_PLAN.md §4.5 and spec *Cascade-recall* subsection.
+// See section 4.5 of BUILD_PLAN.md and spec *Cascade-recall* subsection.
 
 import type { Database } from "@db/sqlite";
 

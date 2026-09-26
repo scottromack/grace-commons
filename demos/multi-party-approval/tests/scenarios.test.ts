@@ -12,7 +12,7 @@
 //
 // Requires --allow-env in the test command (already added to deno.json "test").
 //
-// Five scenarios (BUILD_PLAN.md §12):
+// Five scenarios (section 12) of BUILD_PLAN.md:
 //   1. all-of-N  → Approved (full quorum, 4 audit events, final state verified)
 //   2. M-of-N 2/3 → Approved at quorum + trailing approval carries trailing=true
 //   3. withdraw  → Withdrawn + cascade step_withdrawn emitted for each step
@@ -409,7 +409,7 @@ Deno.test("scenario 3 — withdraw: initiator withdraws → cascade step_withdra
 // ---------------------------------------------------------------------------
 // Scenario 4: all-of-N → Rejected
 //   - One of two approvers rejects; quorum becomes unreachable → chain Rejected.
-//   - Spec §7: Rejected (unlike Withdrawn) does NOT cascade-withdraw pending steps.
+//   - Spec section 7: Rejected (unlike Withdrawn) does NOT cascade-withdraw pending steps.
 //     The trailing Pending step stays Pending; its assignment IS Recalled.
 //   - Audit trail: chain_initiated + step_rejected + chain_resolved = 3 events.
 // ---------------------------------------------------------------------------

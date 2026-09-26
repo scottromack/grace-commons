@@ -1054,7 +1054,7 @@ Projection: pool-capacity-exceeded
 
 ## Standards references
 
-- **ISO (International Organization for Standardization) 9001 §8.5.2 / §8.5.4 (identification, traceability, preservation of outputs)** — the reservation lifecycle's traceable per-unit arc inherits from Provisional Commitment.
+- **ISO (International Organization for Standardization) 9001 clause 8.5.2 / clause 8.5.4 (identification, traceability, preservation of outputs)** — the reservation lifecycle's traceable per-unit arc inherits from Provisional Commitment.
 - **PCI DSS (Payment Card Industry Data Security Standard) Requirement 10 (logging and monitoring)** — the Event Log journal plus Actor Identity attribution on every reservation event produce the audit evidence for payment-adjacent holds (credit-limit and authorization holds are Provisional Commitments against a credit pool).
 - **IATA (International Air Transport Association) Resolution 830a / NDC (New Distribution Capability — IATA's airline retailing standard) (airline reservation and distribution)** — seat-inventory holds against a bounded cabin are the canonical Reserve from Pool case: a pool per cabin class, a hold per booking, confirm/cancel/expire returning inventory.
 - **Joint Commission care-coordination standards** — hospital bed and resource allocation as a bounded pool with attributed, journaled holds; the no-oversell guarantee is the patient-safety form of allocation coherence.

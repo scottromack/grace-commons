@@ -50,7 +50,7 @@ type appendInput struct {
 }
 
 // hashEvent — the hashed payload shape, IDENTICAL to render 1/2's hashEvent
-// (BUILD_PLAN §6.3). canonicalize sorts the keys, so field order here is
+// (section 6.3) of BUILD_PLAN. canonicalize sorts the keys, so field order here is
 // irrelevant; the field SET and values must match exactly.
 func hashEvent(e EventRow) string {
 	return sha256hex(canonicalize(map[string]any{

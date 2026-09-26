@@ -829,7 +829,7 @@ Projection: storage-failure
 ## Standards references
 
 - **GDPR Articles 6 and 7 (lawful basis and consent)** — [Initiate] creates a processing record: the system now holds an [Invitee Reference] and will process data about the invitee if they accept. [Initiation Instant] and [Inviter Reference] are the processing-event record; [Accepting Identity Reference] bound at [Accept] is the record of the data subject's active engagement.
-- **HIPAA §164.312(a)(1) (access control)** — invitation-based provisioning is a covered access-granting mechanism. [Inviter Reference] is the authorized administrator who granted access and [Accepting Identity Reference] is the identity that gained it.
+- **HIPAA section 164.312(a)(1) (access control)** — invitation-based provisioning is a covered access-granting mechanism. [Inviter Reference] is the authorized administrator who granted access and [Accepting Identity Reference] is the identity that gained it.
 - **SCIM 2.0 (RFC 7644)** — SCIM's `POST /Users` with an invite flow maps to the Invitation → [External Onboarding](../compositions/external-onboarding.md) arc. [Invitee Reference] corresponds to the external identity reference; [Accepting Identity Reference] to the provisioned user id.
 - **SOC 2 CC6.2 (users registered and authorized before credentials are issued)** — the invitation record *is* the registration and authorization event. [Inviter Reference] is the authorizing party; [Acceptance Instant] and [Accepting Identity Reference] are the registration.
 - **NIST SP 800-63A (enrollment and identity proofing)** — the enrollment event maps to the Invitation → accept arc. This atom models the enrollment record; proofing is [Party Identity](./party-identity.md)'s (Non-goal 17, Non-goal 18).

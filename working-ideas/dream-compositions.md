@@ -1,6 +1,6 @@
 # Dream compositions — ideation over the existing atom inventory (2026-06-12)
 
-> **Status: internal staging, not canonical.** Brainstorm output from a Cowork session sweep of the 27 grounded atoms and 24 grounded compositions. Nothing here is proposed, sequenced, or counted; each candidate is gate-sketched (pressure-testing.md §the three gates) but has had no pass run against it. This file dies into `roadmap.md` proposals for whichever candidates the author promotes, and into the trash for the rest.
+> **Status: internal staging, not canonical.** Brainstorm output from a Cowork session sweep of the 27 grounded atoms and 24 grounded compositions. Nothing here is proposed, sequenced, or counted; each candidate is gate-sketched (pressure-testing.md section the three gates) but has had no pass run against it. This file dies into `roadmap.md` proposals for whichever candidates the author promotes, and into the trash for the rest.
 
 Selection bias, deliberate: candidates favor underused atoms (Observation, Medication Order, Capability, Provenance, Capacity Constraint Enforcement), substrate reuse, cross-domain reach in the C12 mold (one structure, several regulator-shaped domains), and emergent invariants with obvious formal-layer shapes.
 

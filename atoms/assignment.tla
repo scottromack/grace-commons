@@ -2,7 +2,7 @@
 \* Grace Commons — Assignment atom.
 \* Spec-level formal sibling of atoms/assignment.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* Invariant 1 (at most one Active assignment per task) and the load-bearing

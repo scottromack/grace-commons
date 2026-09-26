@@ -4,8 +4,8 @@
 \* and compositions/attributed-permissions-admin.als.
 \*
 \* This TLA+ model is a peer artifact to the canonical English spec. It
-\* models the operational state machine implied by the spec's §Action
-\* wiring and checks the eight named invariants from §Application-level
+\* models the operational state machine implied by the spec's section Action
+\* wiring and checks the eight named invariants from section Application-level
 \* invariants under every reachable interleaving at the chosen bounds.
 \*
 \* COMPLEMENTARITY WITH THE ALLOY MODEL.
@@ -28,10 +28,10 @@
 \*   * Tamper-evidence over the composition's emergent state (the bare
 \*     composition assumes the maps have not been adversarially
 \*     rewritten; composing with Tamper Evidence over the emergent
-\*     state is the named remedy in §Edge cases).
+\*     state is the named remedy in section Edge cases).
 \*
 \* NOTE ON CONCURRENT ISSUANCE.
-\* Per §Edge cases → "Concurrent issuance of the same grant", two
+\* Per section Edge cases → "Concurrent issuance of the same grant", two
 \* simultaneous issue_grant calls for the same (subject_ref,
 \* action_scope) pair produce two distinct attestations and two
 \* distinct grants — Permissions' Edge case *Concurrent grant
@@ -112,17 +112,17 @@ Init ==
 
 \* --- Action: IssueGrant --------------------------------------------------
 \*
-\* Models the spec's issue_grant happy path (§Composition logic →
-\* §Action wiring, steps 2-6). The three writes — Actor Identity
+\* Models the spec's issue_grant happy path (section Composition logic →
+\* section Action wiring, steps 2-6). The three writes — Actor Identity
 \* attestation (step 3), Permissions grant (step 4), grant_attribution
 \* pairing (step 5) — are stamped at the same logical-clock tick and
-\* commit at the action grain. This matches §Edge cases → "Cross-store
+\* commit at the action grain. This matches section Edge cases → "Cross-store
 \* consistency under failure", which names same-transactional-boundary
 \* commit as the implementation requirement on which Invariants 1 and 2
 \* are conditional.
 \*
 \* The action is unguarded with respect to existing grants for
-\* (SUBJECT, SCOPE) — per §Edge cases this is allowed; two concurrent
+\* (SUBJECT, SCOPE) — per section Edge cases this is allowed; two concurrent
 \* IssueGrant firings produce two grants and two attestations, both
 \* fully attributed. The eight named invariants survive that scenario.
 \*
@@ -147,7 +147,7 @@ IssueGrant(act) ==
 
 \* --- Action: RevokeGrant -------------------------------------------------
 \*
-\* Models the spec's revoke_grant happy path (§Action wiring, steps
+\* Models the spec's revoke_grant happy path (section Action wiring, steps
 \* 2-6). Same atomic-grain discipline as IssueGrant: attest, status
 \* flip, revocation_attribution write at one logical-clock tick.
 \* Invariant 2 (revocation attribution) is established by the
@@ -182,11 +182,11 @@ Next ==
 Spec == Init /\ [][Next]_vars
 
 \* =========================================================================
-\* Eight emergent invariants from §Composition-level invariants.
+\* Eight emergent invariants from section Composition-level invariants.
 \* Names match the spec's invariant names and the dynamic Alloy assertions.
 \* =========================================================================
 
-\* Invariant 1 — Attribution completeness (§Invariant 1).
+\* Invariant 1 — Attribution completeness (Invariant 1).
 \* For every grant_id in the Permissions store, grant_attribution is
 \* populated. The action wiring (IssueGrant) writes both in the same step,
 \* so the conditional-on-pairing-write-durability qualifier in the spec
@@ -194,14 +194,14 @@ Spec == Init /\ [][Next]_vars
 Attribution_Completeness ==
     \A g \in GrantIds : IsUsedGrant(g) => grant_attribution[g] /= NULL
 
-\* Invariant 2 — Revocation attribution (§Invariant 2).
+\* Invariant 2 — Revocation attribution (Invariant 2).
 \* For every Revoked grant, revocation_attribution is populated.
 Revocation_Attribution ==
     \A g \in GrantIds :
         (IsUsedGrant(g) /\ grants[g].status = "revoked")
         => revocation_attribution[g] /= NULL
 
-\* Invariant 3 — Attribution recoverability (§Invariant 3).
+\* Invariant 3 — Attribution recoverability (Invariant 3).
 \* State-only proxy: every populated grant_attribution entry references
 \* an existing attestation record. The full recoverability claim
 \* (verify_grant_attribution returns the tuple) follows by inspection.
@@ -210,7 +210,7 @@ Attribution_Recoverability ==
         (grant_attribution[g] /= NULL)
         => IsUsedAtt(grant_attribution[g])
 
-\* Invariant 4 — Attribution-time monotonicity (§Invariant 4).
+\* Invariant 4 — Attribution-time monotonicity (Invariant 4).
 \* attestation.attested_at <= grant.granted_at for issuance. Best-effort
 \* under cross-system clock skew per the spec; the single-clock model
 \* here discharges the deployment-with-shared-clock-source case.
@@ -221,19 +221,19 @@ Dyn_Attest_Before_Record ==
         => attestations[grant_attribution[g]].attested_at
               <= grants[g].granted_at
 
-\* Invariant 5 — Constituent invariants preserved (§Invariant 5).
+\* Invariant 5 — Constituent invariants preserved (Invariant 5).
 \* All Permissions invariants hold over the grants store; all Actor
 \* Identity invariants hold over the attestation store. The slice
 \* checked here, given the model's scope:
 \*   (a) revocation_attribution entries reference live attestations
 \*       (mirror of Invariant 3 over the revocation map).
-\*   (b) Permissions §Invariant 9 — for Revoked grants,
+\*   (b) Permissions Invariant 9 — for Revoked grants,
 \*       granted_at <= revoked_at.
-\* Permissions §Invariant 2 (status monotonicity: revoked → active
+\* Permissions Invariant 2 (status monotonicity: revoked → active
 \* forbidden) holds by inspection of Next — no action transitions a
 \* Revoked grant back to Active. Single-active-per-pair is *not*
 \* checked here because the spec deliberately allows two active grants
-\* for the same pair; see §Edge cases → "Concurrent issuance of the
+\* for the same pair; see section Edge cases → "Concurrent issuance of the
 \* same grant".
 Invariant5_Constituent_Preserved ==
     /\ \A g \in GrantIds :
@@ -243,7 +243,7 @@ Invariant5_Constituent_Preserved ==
          (IsUsedGrant(g) /\ grants[g].status = "revoked")
          => grants[g].granted_at <= grants[g].revoked_at
 
-\* Invariant 6 — Pairing-map durability (§Invariant 6).
+\* Invariant 6 — Pairing-map durability (Invariant 6).
 \* State-only proxy: populated entries reference live attestations.
 \* The full temporal "once written, never modified" holds by inspection
 \* of Next — IssueGrant and RevokeGrant only write to map slots known
@@ -257,7 +257,7 @@ Dyn_Pairing_Durability ==
          (revocation_attribution[g] /= NULL)
          => IsUsedAtt(revocation_attribution[g])
 
-\* Invariant 7 — Attestation exclusivity (§Invariant 7).
+\* Invariant 7 — Attestation exclusivity (Invariant 7).
 \* grant_attribution is injective; revocation_attribution is injective;
 \* their ranges are disjoint. No attestation serves more than one role.
 \* The action wiring enforces this structurally: each action writes
@@ -284,7 +284,7 @@ Invariant7_Attestation_Exclusivity ==
        /\ RevInjective
        /\ IssuanceAtts \cap RevAtts = {}
 
-\* Invariant 8 — Orphan log durability (§Invariant 8).
+\* Invariant 8 — Orphan log durability (Invariant 8).
 \* State-only proxy: orphan_log contains only valid attestation ids.
 \* The full temporal property holds by inspection of Next — no action
 \* removes from orphan_log (and on the happy-path-only scope of this

@@ -1,4 +1,4 @@
-// invariants.test.ts — One test per application-level invariant (BUILD_PLAN.md §12).
+// invariants.test.ts — One test per application-level invariant (section 12) of BUILD_PLAN.md.
 //
 // Data strategy
 // ─────────────

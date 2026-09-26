@@ -1,7 +1,7 @@
 /**
  * lib/hash.ts — SHA-256 + random tokens, ported from the first render
  * (demos/clinical-trial-portal/lib/hash.ts). Same primitive (node:crypto),
- * synchronous sha256hex so it can run inside the transaction body. BUILD_PLAN §6.2.
+ * synchronous sha256hex so it can run inside the transaction body. section 6.2 of BUILD_PLAN.
  */
 import { createHash, randomBytes } from "node:crypto";
 

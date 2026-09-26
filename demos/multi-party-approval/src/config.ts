@@ -2,7 +2,7 @@
 // Configuration block (multi-party-approval.md).
 //
 // These are exported constants rather than a database table because the
-// demo is single-tenant. See BUILD_PLAN.md §4.7 for the rationale.
+// demo is single-tenant. See section 4.7 of BUILD_PLAN.md for the rationale.
 
 /** Minimum number of steps (approvers) a chain must declare. */
 export const APPROVER_SET_MINIMUM = 1;

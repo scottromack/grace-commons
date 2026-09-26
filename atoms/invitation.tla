@@ -2,7 +2,7 @@
 \* Grace Commons — Invitation atom (execution/render-time refactor, 2026-06-21).
 \* Spec-level formal sibling of atoms/invitation.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
 \* (1) Single-resolution BY WRITE: an invitation is written to at most one stored

@@ -1,7 +1,7 @@
 # Deploy — clinical-trial-portal-next on Fly.io
 
 A runbook to get the Next.js render running as a **clickable public demo**. It is
-the executable form of BUILD_PLAN §8, with one deliberate simplification for the
+the executable form of section 8 of BUILD_PLAN, with one deliberate simplification for the
 demo (see *Storage*). Execute it with `flyctl`; nothing here has been run from the
 build sandbox (no Fly access, and `next build` can't run there), so treat the two
 config files as carefully-constructed-from-render-1 but shake them out on the first
@@ -17,19 +17,19 @@ on a volume, `migrate && seed && start` on boot); this mirrors that shape.
 | Option | What | When |
 |---|---|---|
 | **1 — pglite on a Fly volume (recommended for the demo)** | No external DB. `DATABASE_URL` unset → the app uses embedded pglite (`lib/db.ts`) at `PGLITE_DIR`, pointed at a mounted volume. One machine, one in-process writer. | The clickable demo. Fastest, cheapest, fewest moving parts. |
-| **2 — Fly Managed Postgres** | `DATABASE_URL` = a **direct/session** connection string; the `pg` path in `lib/db.ts`; the advisory lock is real cross-connection. | Production-shaped / multi-machine. BUILD_PLAN §8's intent. |
+| **2 — Fly Managed Postgres** | `DATABASE_URL` = a **direct/session** connection string; the `pg` path in `lib/db.ts`; the advisory lock is real cross-connection. | Production-shaped / multi-machine. section 8 of BUILD_PLAN's intent. |
 
 **Recommendation: Option 1.** A single-site demo doesn't need Managed Postgres, and
-pglite is a single in-process backend — so the BUILD_PLAN §4 audit-chain
+pglite is a single in-process backend — so the section 4 of BUILD_PLAN audit-chain
 serialization is satisfied inherently (exactly as render 1's SQLite single-writer
 gives it for free; no `pg_advisory_xact_lock` needed). This is a deliberate
-divergence from §8's Managed-Postgres line, traded for demo simplicity; Option 2
+divergence from section 8's Managed-Postgres line, traded for demo simplicity; Option 2
 below is the upgrade path. (Worth a one-line CORNERS entry if we keep it.)
 
 > **If you choose Option 2:** the `DATABASE_URL` **must** be the direct/SESSION
 > connection string, **not** a transaction-pooled one (PgBouncer transaction mode /
 > a serverless pooler), or `pg_advisory_xact_lock` silently stops holding and the
-> audit chain can fork (BUILD_PLAN Decision 2 / §4.2). This is the single
+> audit chain can fork (BUILD_PLAN Decision 2 / section 4.2). This is the single
 > deploy-day gotcha for the Postgres path.
 
 The rest of this doc assumes **Option 1**.
@@ -56,7 +56,7 @@ out.jsonl
 
 Two paths. **Path A** (below) is the simplest reliable one and matches render 1's
 proven "migrate && seed && start" boot. **Path B** (notes after) is the leaner
-standalone image BUILD_PLAN §8 envisions — defer it; it has a real wrinkle.
+standalone image section 8 of BUILD_PLAN envisions — defer it; it has a real wrinkle.
 
 ```dockerfile
 # ---- builder ----

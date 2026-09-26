@@ -95,7 +95,7 @@ if (existingActors === 0) {
 //
 // Password convention: short first-name-style strings, clearly distinct from
 // the long HMAC key strings in the Actor Identity attest surface.
-// See CORNERS.md §Cross-atom identity surface aliasing for the separation
+// See CORNERS.md section Cross-atom identity surface aliasing for the separation
 // rationale.
 // ---------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 -- Grace Commons Demo — canonical DDL
 -- Every table, column, CHECK, trigger, and index is derived from a spec
--- invariant or action precondition. See BUILD_PLAN.md §4 for the mapping.
+-- invariant or action precondition. See section 4 of BUILD_PLAN.md for the mapping.
 --
 -- Run idempotently via: deno task migrate
 -- All CREATE statements use IF NOT EXISTS so re-running is safe.

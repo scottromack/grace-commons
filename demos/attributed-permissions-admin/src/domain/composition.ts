@@ -15,7 +15,7 @@
 // pairing-map write. If any step after attest() fails, the attestation is
 // logged as an orphan (recoverable anomaly).
 //
-// See attributed-permissions-admin.md §Operations for the full step-by-step.
+// See attributed-permissions-admin.md section Operations for the full step-by-step.
 
 import { ulid } from "@std/ulid";
 import { db, tx } from "../db/client.ts";
@@ -35,7 +35,7 @@ export type IssueGrantResult =
 /**
  * Issues a new permission grant.
  *
- * Steps (spec §issue_grant):
+ * Steps (spec section issue_grant):
  *   1. Validate inputs — reject empty refs.
  *   2. Check for existing active grant — reject if duplicate.
  *   3. Verify grantor credential against Actor Identity atom — reject if invalid.
@@ -122,7 +122,7 @@ export type RevokeGrantResult =
 /**
  * Revokes an existing active grant.
  *
- * Steps (spec §revoke_grant):
+ * Steps (spec section revoke_grant):
  *   1. Look up grant — reject if not-known.
  *   2. Check grant is active — reject if not-active.
  *   3. Attest: call Actor Identity attest(revoker_ref, action_ref, credential).

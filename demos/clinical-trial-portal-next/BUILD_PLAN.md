@@ -5,13 +5,13 @@
 
 **Audience:** Show HN; Daniel Jackson (author, *The Essence of Software*); and any reader asking "does the spec-as-canonical claim actually survive contact with a second, unrelated stack?"
 
-This is a **plan-only** document. No application code yet — every section is a target the implementation will hit. It is the counterpart to `demos/clinical-trial-portal/Demo2-plan.md` (the first render). Read that document first: §0–§6 (the stack-agnostic half — domain story, composition coverage, actor roster, route shape, schema *intent*, audit design) are **shared and unchanged**. This document replaces only its **Appendix A** (the render-layer patterns) and the stack-specific decisions, and adds the one genuinely-new engineering surface the swap forces: **global serialization of the audit chain.**
+This is a **plan-only** document. No application code yet — every section is a target the implementation will hit. It is the counterpart to `demos/clinical-trial-portal/Demo2-plan.md` (the first render). Read that document first: section 0–section 6 (the stack-agnostic half — domain story, composition coverage, actor roster, route shape, schema *intent*, audit design) are **shared and unchanged**. This document replaces only its **Appendix A** (the render-layer patterns) and the stack-specific decisions, and adds the one genuinely-new engineering surface the swap forces: **global serialization of the audit chain.**
 
 ---
 
 ## 0. What is shared vs. what this render replaces
 
-The first render's plan already anticipated this document. Its §0 says, verbatim:
+The first render's plan already anticipated this document. Its section 0 says, verbatim:
 
 > *A **second render** — same compositions, same actor roster, same audit semantics, same `composition.ts` action codes, same hash-chain contract — targeting a more conventional stack (current candidate: Next.js + Prisma + PostgreSQL + React Server Components) is planned as a follow-up. The point of the multi-render strategy is to demonstrate that the library specs survive a stack swap; only Appendix A is replaced.*
 
@@ -23,18 +23,18 @@ These are the library-spec contracts. They are the same in both renders. The fir
 
 | Carried-over contract | Source of truth | Why it cannot change |
 |---|---|---|
-| **Domain story** (PI / Coordinator / CRA; invite → onboard → grant → enroll → record → audit-walk → verify) | Demo2-plan §1 | It is the demonstration, not the stack. |
-| **Composition coverage** (C16 External Onboarding, C13 Login, C14 Session-Gated Authorization, APA Attributed Permissions Admin, C1 Audit Trail) | Demo2-plan §2 | These are the library specs under test. |
-| **Actor roster + permission catalog + seed** (Dr. Anya Okonkwo / Jordan Lee seeded; Maya Chen onboarded; five permission codes) | Demo2-plan §3 | The walkthrough depends on it byte-for-byte. |
-| **Route *semantics*** (which action requires which permission; the public/PI/SC/audit surfaces) | Demo2-plan §4 | The authorization model is spec, not render. The *transport* (Hono route vs. Next route handler/server action) changes; the permission gates do not. |
+| **Domain story** (PI / Coordinator / CRA; invite → onboard → grant → enroll → record → audit-walk → verify) | section 1 of Demo2-plan | It is the demonstration, not the stack. |
+| **Composition coverage** (C16 External Onboarding, C13 Login, C14 Session-Gated Authorization, APA Attributed Permissions Admin, C1 Audit Trail) | section 2 of Demo2-plan | These are the library specs under test. |
+| **Actor roster + permission catalog + seed** (Dr. Anya Okonkwo / Jordan Lee seeded; Maya Chen onboarded; five permission codes) | section 3 of Demo2-plan | The walkthrough depends on it byte-for-byte. |
+| **Route *semantics*** (which action requires which permission; the public/PI/SC/audit surfaces) | section 4 of Demo2-plan | The authorization model is spec, not render. The *transport* (Hono route vs. Next route handler/server action) changes; the permission gates do not. |
 | **Action-code vocabulary** (the dotted strings `invitation.issued`, `invitation.accepted`, `invitation.revoked`, `login.succeeded`, `login.failed`, `session.revoked`, `grant.issued`, `grant.revoked`, `subject.enrolled`, `visit.recorded`, plus the route-layer meta-events `audit.viewed` / `audit.exported`) | first render's `composition.ts` header (canonical) | An auditor diffing the two renders' event logs must see identical `action` strings. **Transcribe from the first render's `composition.ts`, not from memory.** |
-| **The hash-chain contract** (see §6) | first render's `lib/canonical.ts`, `lib/hash.ts`, `domain/event_log.ts` | This is *the* load-bearing portability claim. It must port byte-for-byte. |
-| **`composition.ts` is the only mutation surface; every mutation writes atom rows + audit event in one all-or-nothing transaction** | Demo2-plan §2, Appendix A.5 | The records-alone story and the rollback test depend on it. |
+| **The hash-chain contract** (see section 6) | first render's `lib/canonical.ts`, `lib/hash.ts`, `domain/event_log.ts` | This is *the* load-bearing portability claim. It must port byte-for-byte. |
+| **`composition.ts` is the only mutation surface; every mutation writes atom rows + audit event in one all-or-nothing transaction** | section 2 of Demo2-plan, Appendix A.5 | The records-alone story and the rollback test depend on it. |
 | **Argon2id PHC-format credential strings** (m=19456, t=2, p=1) | Demo2-plan Decision 3 / A.8 | PHC strings are interoperable: a credential hashed by either render verifies in the other. |
 
 ### 0.2 Render-layer (this document **replaces** the first render's Appendix A)
 
-Everything below is stack-specific "how to express what" for Next.js + Postgres. It is the second half of the executable spec for this render. None of it changes the contracts in §0.1.
+Everything below is stack-specific "how to express what" for Next.js + Postgres. It is the second half of the executable spec for this render. None of it changes the contracts in section 0.1.
 
 ---
 
@@ -52,7 +52,7 @@ Eight judgment calls, resolved before drafting. Decisions 1–3 and 6 are delibe
 
 5. **Session token: opaque random, DB-backed**, identical to the first render (the `sessions` table is the source of truth; not JWT). `randomToken(32)` → 64-char hex via `crypto.randomBytes`.
 
-6. **The audit chain is a single global hash chain, so every mutation globally serializes via one Postgres advisory lock.** This is the heart of the experiment — see §6. SQLite's single-writer lock gave the first render global serialization for free; Postgres does not. Every `composition.ts` transaction takes `pg_advisory_xact_lock(BEACON_AUDIT_LOCK)` (a fixed 64-bit constant) as its first statement, computes `id = MAX(id)+1` for the event row under that lock, appends, and commits — releasing the lock. The alternative (`SERIALIZABLE` + retry on `40001`) is recorded as a considered option in §6.4 but the advisory lock is chosen for determinism and a one-line implementation.
+6. **The audit chain is a single global hash chain, so every mutation globally serializes via one Postgres advisory lock.** This is the heart of the experiment — see section 6. SQLite's single-writer lock gave the first render global serialization for free; Postgres does not. Every `composition.ts` transaction takes `pg_advisory_xact_lock(BEACON_AUDIT_LOCK)` (a fixed 64-bit constant) as its first statement, computes `id = MAX(id)+1` for the event row under that lock, appends, and commits — releasing the lock. The alternative (`SERIALIZABLE` + retry on `40001`) is recorded as a considered option in section 6.4 but the advisory lock is chosen for determinism and a one-line implementation.
 
 7. **Deploy: Fly.io — a persistent Next.js machine + Fly Managed Postgres.** Same provider as the first render, different shape: no SQLite volume mount (Postgres is the store); `DATABASE_URL` injected as a Fly secret using the **direct/session** connection string (per Decision 2). `output: 'standalone'` for a lean container. Migrate + seed run as a release command.
 
@@ -70,7 +70,7 @@ Runtime target: **Node 22 LTS**, Next.js 15 (App Router, React 19, RSC + Server 
 - **`@std`-equivalents in Node**: `crypto` (SHA-256, random tokens) from `node:crypto`; no external hash dep.
 - **`nodemailer`** — invitation email, same as the first render's Phase 7. In-UI link is the default; SMTP is opt-in via env (mirrors first render).
 - **Tailwind v4** — same CSS-only flow as the first render: `@import "tailwindcss"` + `@source` + the inkset `@utility` rules. Built by the Next build (PostCSS-less v4) or a `build:css` script; the inkset stylesheet is imported in the root layout.
-- **Tests: Vitest** (unit + composition rollback + tamper) and a Playwright-or-fetch **e2e** that walks the lifecycle against a running server. The first render's `deno test` layers map one-to-one (§7.12).
+- **Tests: Vitest** (unit + composition rollback + tamper) and a Playwright-or-fetch **e2e** that walks the lifecycle against a running server. The first render's `deno test` layers map one-to-one (section 7.12).
 
 `package.json` scripts:
 
@@ -92,7 +92,7 @@ Mirrors the first render's module boundaries (one file per atom; `composition.ts
 
 ```
 demos/clinical-trial-portal-next/
-├── package.json                      # scripts, deps (§2)
+├── package.json                      # scripts, deps (section 2)
 ├── next.config.ts                    # output: 'standalone'
 ├── tsconfig.json
 ├── docker-compose.yml                # local postgres:16 for dev
@@ -101,9 +101,9 @@ demos/clinical-trial-portal-next/
 ├── .env.example                      # DATABASE_URL (session conn), SMTP_*, SESSION_COOKIE
 ├── README.md
 ├── BUILD_PLAN.md                     # this document
-├── CORNERS.md                        # deferred-vs-spec tracker (seed entries in §11)
+├── CORNERS.md                        # deferred-vs-spec tracker (seed entries in section 11)
 ├── migrations/
-│   └── 0001_init.sql                 # Postgres DDL — §5 (single-source schema)
+│   └── 0001_init.sql                 # Postgres DDL — section 5 (single-source schema)
 ├── styles/
 │   ├── inkset.css                    # ported UNCHANGED from first render
 │   └── tailwind.css                  # @import "tailwindcss" + @source
@@ -181,7 +181,7 @@ This is the section with no counterpart in the first render, because SQLite made
 
 ### 4.1 The problem the swap exposes
 
-The `event_log` is a **single global hash chain**: every row's `prev_hash` is the immediately-preceding row's `this_hash`, ordered by a global monotonic `id`, and `id` is part of the hashed payload (computed as `MAX(id)+1` *before* insert so it can be hashed — see §6). Every `composition.ts` mutation appends to this one chain inside its transaction.
+The `event_log` is a **single global hash chain**: every row's `prev_hash` is the immediately-preceding row's `this_hash`, ordered by a global monotonic `id`, and `id` is part of the hashed payload (computed as `MAX(id)+1` *before* insert so it can be hashed — see section 6). Every `composition.ts` mutation appends to this one chain inside its transaction.
 
 Therefore **every mutation must be totally ordered with respect to every other mutation.** Two concurrent appends that both read the same `MAX(id)` and the same tail `this_hash` produce two rows claiming the same `id`/`prev_hash` — a forked, unverifiable chain.
 
@@ -190,7 +190,7 @@ Therefore **every mutation must be totally ordered with respect to every other m
 
 ### 4.2 The mechanism: one global advisory lock
 
-`withTx` (the write-path transaction wrapper, §7.1) takes, as its first statement inside `BEGIN`:
+`withTx` (the write-path transaction wrapper, section 7.1) takes, as its first statement inside `BEGIN`:
 
 ```sql
 SELECT pg_advisory_xact_lock(7423001);   -- BEACON_AUDIT_LOCK, a fixed app-wide constant
@@ -216,7 +216,7 @@ A single global chain means **all** mutations across the whole system serialize 
 
 ## 5. Postgres schema (`migrations/0001_init.sql`)
 
-A direct port of the first render's `migrations/0001_init.sql` (Demo2-plan §5). The atom→table mapping, column meanings, CHECKs, the partial index, and `ON DELETE RESTRICT` discipline are **unchanged**. Only SQLite→Postgres dialect deltas differ, listed first so the diff is auditable.
+A direct port of the first render's `migrations/0001_init.sql` (section 5) of Demo2-plan. The atom→table mapping, column meanings, CHECKs, the partial index, and `ON DELETE RESTRICT` discipline are **unchanged**. Only SQLite→Postgres dialect deltas differ, listed first so the diff is auditable.
 
 ### 5.1 Dialect deltas (the complete list)
 
@@ -233,7 +233,7 @@ A direct port of the first render's `migrations/0001_init.sql` (Demo2-plan §5).
 
 Everything else (table set, columns, `UNIQUE`, `CHECK (status IN …)`, `CHECK (kind IN ('password'))`, `CHECK (scope IN ('all','own'))`, all foreign keys with implicit `ON DELETE RESTRICT`, the four `event_log` indexes, the `grants` partial index) is copied verbatim in intent.
 
-### 5.2 Tables (same as Demo2-plan §5, Postgres dialect)
+### 5.2 Tables (same as section 5 of Demo2-plan, Postgres dialect)
 
 Atom stores: `parties`, `actors`, `credentials`, `sessions`, `permissions`, `grants`, `invitations`, `event_log`, `retention_policy`. Regulated artifacts: `studies`, `subjects`, `visits`. No new tables. The only composition-emergent state remains the `scope` column on `grants` and the single-row `retention_policy` — identical to the first render. The schema being this small is the point; the second render does not get to grow it.
 
@@ -305,7 +305,7 @@ this_hash = sha256hex( canonicalize({
 }) )
 ```
 
-`prev_hash` = previous row's `this_hash`; row #1 uses `''`. Keys are sorted by `canonicalize`, so field *declaration* order is irrelevant — but the **field set and their values must match exactly**. The `id` is the `MAX(id)+1` value computed under the advisory lock (§4.2). Because `occurred_at` is wall-clock, the two renders will not produce identical hashes for re-run events — but they implement the *same contract*, so a chain produced by either render verifies under either render's `verifyChain`. (Stretch demo: export a CSV from the Deno render, import the rows, run this render's `deno task verify`-equivalent — it verifies. That is the thesis made tangible.)
+`prev_hash` = previous row's `this_hash`; row #1 uses `''`. Keys are sorted by `canonicalize`, so field *declaration* order is irrelevant — but the **field set and their values must match exactly**. The `id` is the `MAX(id)+1` value computed under the advisory lock (section 4.2). Because `occurred_at` is wall-clock, the two renders will not produce identical hashes for re-run events — but they implement the *same contract*, so a chain produced by either render verifies under either render's `verifyChain`. (Stretch demo: export a CSV from the Deno render, import the rows, run this render's `deno task verify`-equivalent — it verifies. That is the thesis made tangible.)
 
 ### 6.4 `appendEvent` (under the lock)
 
@@ -397,7 +397,7 @@ export async function requirePermission(ctx: Ctx, codes: string[]): Promise<{ sc
 }
 ```
 
-The authorization *semantics* (which code gates which action; `'own'` vs `'all'` scope on `view_audit`) are unchanged from Demo2-plan §4/§9 — only the call mechanism (helper-at-top-of-handler instead of Hono `.use()`) differs.
+The authorization *semantics* (which code gates which action; `'own'` vs `'all'` scope on `view_audit`) are unchanged from section 4 of Demo2-plan/section 9 — only the call mechanism (helper-at-top-of-handler instead of Hono `.use()`) differs.
 
 ### 7.5 Routes → Server Components + Server Actions
 
@@ -408,7 +408,7 @@ The authorization *semantics* (which code gates which action; `'own'` vs `'all'`
 
 ### 7.6 Progressive-enhancement note (a real divergence to track)
 
-The first render advertises "no JS required to operate the app — degradation is a deliberate Part 11 robustness property" (Demo2-plan §4). React Server Actions invoked via `<form action={…}>` **do** work without client JS (full-page POST + server render), so the core flows degrade gracefully. The *live partial swaps* (HTMX `hx-swap` updating a fragment in place) require the client runtime in the Next render. **Decision:** keep every mutating flow as a plain `<form action={serverAction}>` so it works JS-off (preserving the Part 11 property), and treat the in-place swap as a progressive enhancement only. This divergence is logged in CORNERS — it is the one place the render swap visibly changes a stated property, and naming it honestly is the point.
+The first render advertises "no JS required to operate the app — degradation is a deliberate Part 11 robustness property" (Demo2-plan section 4). React Server Actions invoked via `<form action={…}>` **do** work without client JS (full-page POST + server render), so the core flows degrade gracefully. The *live partial swaps* (HTMX `hx-swap` updating a fragment in place) require the client runtime in the Next render. **Decision:** keep every mutating flow as a plain `<form action={serverAction}>` so it works JS-off (preserving the Part 11 property), and treat the in-place swap as a progressive enhancement only. This divergence is logged in CORNERS — it is the one place the render swap visibly changes a stated property, and naming it honestly is the point.
 
 ### 7.7 `lib/password.ts` — Argon2id via `@node-rs/argon2`
 
@@ -433,7 +433,7 @@ Vitest, three layers mirroring first render A.12 and Decision 13:
 - **e2e lifecycle** — walk invite → accept → grant → enroll → record visit → audit walk → `/audit/verify` returns "Verified N events", driving the running server (Playwright or fetch against `next start`).
 - **tamper** — directly `UPDATE event_log SET payload_json=…` and assert `verifyChain` flags the exact row id.
 
-Add a **concurrency test that has no first-render counterpart**: fire two `enrollSubject` (or two `issueInvitation`) calls concurrently and assert the chain remains linear and `verifyChain` passes — i.e., the advisory lock actually serialized them. This is the test that proves §4's mechanism works; the SQLite render never needed it.
+Add a **concurrency test that has no first-render counterpart**: fire two `enrollSubject` (or two `issueInvitation`) calls concurrently and assert the chain remains linear and `verifyChain` passes — i.e., the advisory lock actually serialized them. This is the test that proves section 4's mechanism works; the SQLite render never needed it.
 
 ---
 
@@ -442,7 +442,7 @@ Add a **concurrency test that has no first-render counterpart**: fire two `enrol
 Same provider as the first render, different shape.
 
 - **App:** a persistent Fly machine running `next start` from the standalone build. `fly.toml` keeps `min_machines_running = 1` for the writer-connection stability the advisory lock wants (a cold-started second machine is fine for reads; the single writer connection lives on the primary). No volume mount (Postgres is the store, not a SQLite file).
-- **Database:** Fly Managed Postgres, attached to the app; `DATABASE_URL` injected as a secret. **Use the direct/session connection string, not a transaction-pooled one** (Decision 2 / §4.2) or the advisory locks silently stop holding — this is the single deploy gotcha worth a bold line.
+- **Database:** Fly Managed Postgres, attached to the app; `DATABASE_URL` injected as a secret. **Use the direct/session connection string, not a transaction-pooled one** (Decision 2 / section 4.2) or the advisory locks silently stop holding — this is the single deploy gotcha worth a bold line.
 - **Migrate + seed:** a Fly release command (`migrate && seed`) so the schema and the PI/CRA/study seed land on deploy. Idempotent, so re-deploys are safe.
 - **Dockerfile:** multi-stage — `next build` (standalone) in a builder, copy the standalone output into a slim `node:22-slim` runner, confirm `@node-rs/argon2`'s prebuilt linux binary is present. Sizing: a small shared machine with ~512 MB–1 GB is plenty; Argon2id is the only real compute and the demo is single-tenant.
 - **Versioning note (confirm at deploy day):** Fly has reshuffled its Postgres offering (legacy unmanaged app vs. Managed Postgres); pin the exact `fly mpg create` / attach commands when we deploy rather than trusting a remembered incantation. The last deploy was a few minutes of work and this stays that way as long as the connection-mode gotcha above is respected.
@@ -455,13 +455,13 @@ The render succeeds as a thesis demonstration if, at the end:
 
 1. **The spec-derived layers moved nearly verbatim.** `domain/*`, `composition.ts`, `lib/canonical.ts`, `lib/hash.ts`, the action codes, the actor roster, the permission gates — these should diff against the first render as *dialect + async*, not *redesign*. If any of them needed real rethinking, that is a finding: a stack assumption had leaked into a spec-derived layer in the first render.
 2. **The two renders agree on the audit contract.** Same action codes, same payload fields, same hashed shape; a chain from either verifies under either's `verifyChain`.
-3. **The only genuinely new code is the render adapter + the concurrency mechanism** (§4) + the view rewrite (§7.5). The concurrency adapter is *expected* new work — it is the implicit ordering assumption made explicit, not a defect.
+3. **The only genuinely new code is the render adapter + the concurrency mechanism** (section 4) + the view rewrite (section 7.5). The concurrency adapter is *expected* new work — it is the implicit ordering assumption made explicit, not a defect.
 
 **Divergence log (keep in CORNERS as you build).** Every place the second render is forced to differ is a data point about where the first render's English was under-specified or stack-dependent. Known going in:
-- **Global serialization mechanism** (§4) — the big one; conflict-protocol case 3 made explicit.
-- **`event_log.id` cannot be a bare IDENTITY** because it is hashed (§5.1) — a portability constraint the SQLite AUTOINCREMENT happened to satisfy.
-- **`occurred_at` kept as TEXT, not `timestamptz`** to protect the hash input (§5.1).
-- **No-JS degradation is partial** under RSC for live swaps (§7.6).
+- **Global serialization mechanism** (section 4) — the big one; conflict-protocol case 3 made explicit.
+- **`event_log.id` cannot be a bare IDENTITY** because it is hashed (section 5.1) — a portability constraint the SQLite AUTOINCREMENT happened to satisfy.
+- **`occurred_at` kept as TEXT, not `timestamptz`** to protect the hash input (section 5.1).
+- **No-JS degradation is partial** under RSC for live swaps (section 7.6).
 Any divergence *beyond* adapter + concurrency + these four is a new finding to route to the library, not patch silently.
 
 ---
@@ -471,10 +471,10 @@ Any divergence *beyond* adapter + concurrency + these four is a new finding to r
 Front-load the concurrency adapter, because it is where the signal and the risk live; the view layer is boring volume.
 
 1. **Scaffold** — Next App Router, `package.json`, `docker-compose.yml` (local pg), `lib/db.ts` (pool + writer + `withTx` + **advisory lock**), inkset stylesheet wired into the root layout, `/` landing page.
-2. **Schema + migrate/seed** — port `migrations/0001_init.sql` (§5), `scripts/migrate.ts`, `scripts/seed.ts` (PI Anya, CRA Jordan, permission catalog, study `BCN-OX-201`).
+2. **Schema + migrate/seed** — port `migrations/0001_init.sql` (section 5), `scripts/migrate.ts`, `scripts/seed.ts` (PI Anya, CRA Jordan, permission catalog, study `BCN-OX-201`).
 3. **`lib/canonical.ts` + `lib/hash.ts` ported byte-identical; `domain/event_log.ts` `appendEvent` (id-under-lock) + `verifyChain`; the tamper test.** Prove the chain before anything is built on it.
 4. **Atom modules** (`domain/*`) + their unit tests (ephemeral pg schema fixture).
-5. **`lib/password.ts`** (@node-rs/argon2) + **`composition.ts`** (all nine functions, async, library-spec doc comments) + the **rollback test** + the **concurrency test** (§7.9). By here the spec layer is proven end-to-end against a test client.
+5. **`lib/password.ts`** (@node-rs/argon2) + **`composition.ts`** (all nine functions, async, library-spec doc comments) + the **rollback test** + the **concurrency test** (section 7.9). By here the spec layer is proven end-to-end against a test client.
 6. **`auth/current.ts` + `auth/permit.ts`**, then the Server Components + Server Actions for login/onboarding/people.
 7. **Subjects + visits** surface (RSC pages + `enrollSubject`/`recordVisit` server actions).
 8. **Audit surface** — `/audit` (filter + running verdict + `audit.viewed`), `/audit/verify`, `/audit/export.csv` route handler.
@@ -491,9 +491,9 @@ By step 5 the contracts are verified in isolation; by step 8 the demo runs end-t
 
 Open the build with these known divergences-vs-spec / deferrals already written down (per the CLAUDE.md implementation-discovered-findings discipline — these are *preferences/boundaries*, not contradictions in the Grace Commons spec layer):
 
-- **Global advisory lock = global mutation serialization.** Inherent to a single global hash chain; fine for a single-site demo, a scaling ceiling for multi-site. The real fix is a **spec change** (shard the chain per study/site — alters the Audit Trail composition contract; route to the library, not a code commit). Documented in §4.4.
+- **Global advisory lock = global mutation serialization.** Inherent to a single global hash chain; fine for a single-site demo, a scaling ceiling for multi-site. The real fix is a **spec change** (shard the chain per study/site — alters the Audit Trail composition contract; route to the library, not a code commit). Documented in section 4.4.
 - **`event_log` append-only by convention, not by trigger.** Faithful port of the first render's convention-based approach. Defense-in-depth upgrade available: a `BEFORE UPDATE/DELETE … RAISE EXCEPTION` trigger (the Postgres analog of the Multi-Party Approval demo's append-only triggers). Deferred to keep v1 a faithful port.
-- **No-JS degradation is partial under RSC.** Core flows use `<form action={serverAction}>` (work JS-off); live in-place swaps are progressive enhancement only. The first render's full HTMX no-JS parity is not reproduced for the swap interactions (§7.6).
+- **No-JS degradation is partial under RSC.** Core flows use `<form action={serverAction}>` (work JS-off); live in-place swaps are progressive enhancement only. The first render's full HTMX no-JS parity is not reproduced for the swap interactions (section 7.6).
 - **`occurred_at` stored as TEXT, not `timestamptz`.** Protects the hash input from driver-side timestamp renormalization. A production schema might want a real timestamp column *plus* the hashed string, accepting the redundancy.
 - **First-render `withTx` doc-comment debt.** The first render should note that its global audit-chain serialization is load-bearing and provided by the SQLite single-writer engine — so nobody "optimizes" it away. This is a finding *about the first render* surfaced by building the second; route it to that demo's CORNERS.
 - **Library cross-link + second-render framing in README.** README must open by framing this as the *second render of the same specs*, link each composition/atom to the library, and link the first render for side-by-side diffing.
@@ -509,8 +509,8 @@ Items the spec itself already defers (named so they are not mistaken for cuts th
 | Composition coverage (C16/C13/C14/APA/C1) | `composition.ts` (the five mutating compositions) + `auth/*` (C14 gates) |
 | Action-code vocabulary | `composition.ts` (transcribed from first render) + `/audit` & export handlers (meta-events) |
 | Hash-chain contract | `lib/canonical.ts` + `lib/hash.ts` (byte-identical) + `domain/event_log.ts` (`appendEvent`, `verifyChain`) |
-| Global total ordering of the chain | `lib/db.ts` `withTx` → `pg_advisory_xact_lock` (§4) |
-| `id` known-before-insert (hashed) | `domain/event_log.ts` `MAX(id)+1` under the lock (§5.1, §6.4) |
+| Global total ordering of the chain | `lib/db.ts` `withTx` → `pg_advisory_xact_lock` (section 4) |
+| `id` known-before-insert (hashed) | `domain/event_log.ts` `MAX(id)+1` under the lock (section 5.1, section 6.4) |
 | All-or-nothing atom + audit write | `withTx` (async pg transaction) + the rollback test |
 | `composition.ts` = only mutation surface | code review + every Server Action calls only `composition.ts`; no atom write outside it |
 | Authorization model (codes, `own`/`all` scope) | `auth/permit.ts` + per-handler `requirePermission` calls |
@@ -520,4 +520,4 @@ Items the spec itself already defers (named so they are not mistaken for cuts th
 
 ---
 
-*The shortest path to a convincing second render is to prove the hash-chain contract (step 3) and the concurrency adapter (§4) before building anything on top of them, then let the spec-derived layers port nearly verbatim and the view layer be boring volume. The thesis is not "Next.js can build a clinical-trial portal" — everyone knows that. The thesis is "the same public specs produced both renders, the audit contract is identical across them, and the only real new code was the adapter the swap forced into the open." If that holds, the spec was canonical.*
+*The shortest path to a convincing second render is to prove the hash-chain contract (step 3) and the concurrency adapter (section 4) before building anything on top of them, then let the spec-derived layers port nearly verbatim and the view layer be boring volume. The thesis is not "Next.js can build a clinical-trial portal" — everyone knows that. The thesis is "the same public specs produced both renders, the audit contract is identical across them, and the only real new code was the adapter the swap forced into the open." If that holds, the spec was canonical.*

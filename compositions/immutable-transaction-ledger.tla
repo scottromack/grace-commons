@@ -2,7 +2,7 @@
 \* Grace Commons — Immutable Transaction Ledger with Selective Disclosure.
 \* Spec-level formal sibling of compositions/immutable-transaction-ledger.md.
 \* Derived validator; the English spec is the single source of truth. On any
-\* disagreement, diagnose per pressure-testing.md §The conflict protocol.
+\* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS (revised 2026-06-10, Refactor 1 — compensated arm + derived-index reclassification)
 \* The composition's load-bearing wiring decision is Invariant 1 (disclosure-
@@ -30,7 +30,7 @@
 \*                     one.
 \*
 \* Per disclosure d, TWO truth-bearing sub-writes (the disclosure_to_event map
-\* is a derived index per execution-contract.md §Composition state — rebuildable
+\* is a derived index per execution-contract.md section Composition state — rebuildable
 \* by enumerating `ledger.disclosed` events; outside the atomicity surface;
 \* omitted from the model per that section's obligation 2):
 \*   sdState    : absent | present                      (Selective Disclosure record)
@@ -68,7 +68,7 @@
 \*   semantics rule, not an interleaving; RetryAudit abstracts both compensation
 \*   attestations into the one `recovered` outcome.
 \* - the disclosure_to_event derived index (outside the atomicity surface per
-\*   execution-contract.md §Composition state; a lost entry is a rebuild
+\*   execution-contract.md section Composition state; a lost entry is a rebuild
 \*   trigger, not data loss).
 \* - verify_disclosure / verify_ledger outcome plumbing (Invariants 2, 4) —
 \*   query-shape properties.

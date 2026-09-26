@@ -25,7 +25,7 @@ The gate is audited in both directions — an event when it allows a destruction
 
 Every destroyed record leaves three things behind: a destruction event naming what the hold store hold instant gate time, a retention record standing purged, and a tamper-evident seal once the seal cadence covers the event. Together they prove the destruction was lawful, attributed and unaltered — for as long as the audit records themselves are kept, which is the deployment's own ordering obligation rather than this composition's guarantee.
 
-Its most common uses are financial records governance under SOX (Sarbanes-Oxley Act) §802, patient records under HIPAA (US Health Insurance Portability and Accountability Act) §164.530(j), electronically stored information subject to FRCP (Federal Rules of Civil Procedure) Rule 37(e) litigation holds, and broker-dealer communications under SEC (US Securities and Exchange Commission) Rule 17a-4. Any system that must prove it did not destroy records while a legal or regulatory hold was active — and that it did eventually destroy them once the hold was released and the retention window had closed — is a candidate for this composition.
+Its most common uses are financial records governance under SOX (Sarbanes-Oxley Act) section 802, patient records under HIPAA (US Health Insurance Portability and Accountability Act) section 164.530(j), electronically stored information subject to FRCP (Federal Rules of Civil Procedure) Rule 37(e) litigation holds, and broker-dealer communications under SEC (US Securities and Exchange Commission) Rule 17a-4. Any system that must prove it did not destroy records while a legal or regulatory hold was active — and that it did eventually destroy them once the hold was released and the retention window had closed — is a candidate for this composition.
 
 ---
 
@@ -630,7 +630,7 @@ Each emerges from the composition; none belongs to one constituent.
 
 ## Examples
 
-### Walkthrough — regulated bank under SOX §802 and FRCP Rule 37(e)
+### Walkthrough — regulated bank under SOX section 802 and FRCP Rule 37(e)
 
 A multinational bank governs its general-ledger transaction records with this instance. The deployment sets `hold_check_mode = strict` and configures the audit instance with a nine-year policy against a seven-year business policy, so the evidence floor sits inside the audit horizon.
 
@@ -644,7 +644,7 @@ A multinational bank governs its general-ledger transaction records with this in
 
 5. **Purge proceeds.** `purge_eligible()` now answers `ret-0441` with `hold_count = 0`. `purge_record("ret-0441", "records_system", credential)`: the sibling set is empty, the gate reads no active hold, the named retention is elapsed, a purge_intended record lands carrying `inv-c2`, `RetentionWindow.purge` destroys the record, and a record_purged outcome lands carrying `inv-c2`, `purged_retention_ids: [{ret-0441, purged}]`, `hold_check_result: empty`, `hold_override: false` and `purged_at: 2033-05-15`. The two index entries are removed. Returns ok.
 
-6. **SOX §404 audit.** The auditor walks `Check 1.1` through `Check 5.6` over the trail and the two constituent stores. The full arc reads: placement intent, placement, hold intent, hold, blocked purge, release intent, release, purge intent, purge. `verify_record` answers `verified` on each outcome the seal cadence covers. The auditor confirms that no destruction occurred while the hold was active, that the destruction landed inside the allowable window — retention deadline at or before `purged_at`, and `purged_at` below purge deadline — and that every act was attributed actors a named actor whose credential the substrate verified before the act committed.
+6. **SOX section 404 audit.** The auditor walks `Check 1.1` through `Check 5.6` over the trail and the two constituent stores. The full arc reads: placement intent, placement, hold intent, hold, blocked purge, release intent, release, purge intent, purge. `verify_record` answers `verified` on each outcome the seal cadence covers. The auditor confirms that no destruction occurred while the hold was active, that the destruction landed inside the allowable window — retention deadline at or before `purged_at`, and `purged_at` below purge deadline — and that every act was attributed actors a named actor whose credential the substrate verified before the act committed.
 
 ### A sibling retention blocks, then travels with the destruction
 
@@ -654,7 +654,7 @@ The same record acquires a second retention in 2030 under a policy transition: `
 
 A bank faces simultaneous DOJ (US Department of Justice) criminal and SEC civil enforcement, and both demand preservation of the same trading records. Two independent hold sets are placed under `case_ref: "doj-crim-2026-0011"` and `case_ref: "sec-enf-2026-0087"`. When DOJ closes, every `hold-doj-*` hold is released; `purge_eligible()` still answers the records hold-blocked with `hold_count = 1`, because `Invariant 7.1` makes releasing a subset no release at all. Only when the SEC holds are released do the records become purge-ready.
 
-### Healthcare — HIPAA §164.530(j) records under HHS OCR investigation
+### Healthcare — HIPAA section 164.530(j) records under HHS OCR investigation
 
 HHS (the US Department of Health and Human Services) and its OCR (Office for Civil Rights, which enforces HIPAA) open a breach investigation while a hospital's patient encounter records sit under a six-year retention policy. Compliance places holds under `case_ref: "ocr-hipaa-inv-2026-0334"`. The six-year windows elapse during the investigation and `purge_eligible()` answers the affected records hold-blocked throughout. After the investigation closes, the holds are released and the records are purged in the next run. Each record's trail reads placement, hold, release, destruction — the arc an OCR auditor reads to confirm the preservation obligation was honoured.
 
@@ -1028,14 +1028,14 @@ Projection: hold-check-unavailable
 ## Standards references
 
 - **Federal Rules of Civil Procedure Rule 37(e)** — the preservation duty for ESI (electronically stored information). A party that fails to preserve when a hold should have been in place faces sanctions including adverse inference. `Invariant 1` and `Invariant 8` are the structural forms of the reasonable-steps obligation; the trail is the evidence.
-- **Sarbanes-Oxley §802 (18 U.S.C. — the United States Code — §1519)** — criminal obstruction for destroying records subject to a federal investigation. The gate is the structural defence and the destruction record carrying an empty [Hold Check Result] is the evidence that a destruction was not obstruction.
-- **Sarbanes-Oxley §404** — internal controls over financial reporting, retention and destruction controls included. The composition is the structural form of those controls.
-- **HIPAA §164.530(j)** — documentation retention, a six-year federal baseline and longer under state law. The composition governs the PHI (protected health information) retention and hold-during-investigation lifecycle; the substrate provides the attribution trail HIPAA's audit controls require.
+- **Sarbanes-Oxley section 802 (18 U.S.C. — the United States Code — section 1519)** — criminal obstruction for destroying records subject to a federal investigation. The gate is the structural defence and the destruction record carrying an empty [Hold Check Result] is the evidence that a destruction was not obstruction.
+- **Sarbanes-Oxley section 404** — internal controls over financial reporting, retention and destruction controls included. The composition is the structural form of those controls.
+- **HIPAA section 164.530(j)** — documentation retention, a six-year federal baseline and longer under state law. The composition governs the PHI (protected health information) retention and hold-during-investigation lifecycle; the substrate provides the attribution trail HIPAA's audit controls require.
 - **SEC Rule 17a-4(f)** — broker-dealer preservation in non-rewriteable, non-erasable form. The substrate's Tamper Evidence satisfies the integrity half and the gate the non-premature-destruction half.
 - **GDPR Article 17 (right to erasure)** — the composition answers whether an erasure is permissible: an active hold establishes the legal-claims exception under Article 17(3)(e), a live retention the legal-obligation ground under Article 17(3)(b).
 - **GDPR Article 5(1)(e) (storage limitation)** — personal data must not be kept longer than necessary. [Purge Eligible] surfaces every retention past retention deadline with its purge deadline, so a caller identifies overshoot; the destruction record proves timely destruction.
 - **Federal Rules of Civil Procedure Rule 26(b)** — proportionality in preservation. Legal Hold's `hold_reason` and case reference document each hold's proportionality; the composition preserves the record without adjudicating it (`Non-goal 7`).
-- **ISO 15489-1 (records management)** — §9.7, suspension of disposition, maps to the gate; the two-state hold lifecycle maps to the standard's hold lifecycle.
+- **ISO 15489-1 (records management)** — clause 9.7, suspension of disposition, maps to the gate; the two-state hold lifecycle maps to the standard's hold lifecycle.
 
 The three constituents carry their own standards inheritance — see each constituent's own Standards references.
 

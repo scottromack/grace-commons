@@ -2,7 +2,7 @@
 //
 // Two layers:
 //   1. Named scenario tests — explicit expected values for key cases,
-//      cross-referenced to the spec's worked examples and BUILD_PLAN.md §6.
+//      cross-referenced to the spec's worked examples and section 6 of BUILD_PLAN.md.
 //   2. Property sweep — all valid (a,r,w,p) tuples for n=1..5 under each
 //      quorum kind, verifying internal consistency invariants that must hold
 //      regardless of the specific output.
@@ -63,7 +63,7 @@ Deno.test("all-of-N: withdrawal only (r=0) → Withdrawn", () => {
   assertEquals(evaluate("all-of-N", null, v(0, 0, 3, 0)), "Withdrawn");
 });
 
-// SOX walkthrough from spec §Examples:
+// SOX walkthrough from spec section Examples:
 // chain-2026-0441, all-of-N, n=3
 Deno.test("all-of-N: SOX walkthrough progression", () => {
   assertEquals(evaluate("all-of-N", null, v(0, 0, 0, 3)), "Pending"); // initial
@@ -108,7 +108,7 @@ Deno.test("M-of-N: rejection priority over withdrawal when quorum unreachable", 
   assertEquals(evaluate("M-of-N", 3, v(0, 1, 1, 2)), "Rejected");
 });
 
-// FDA walkthrough from spec §Examples:
+// FDA walkthrough from spec section Examples:
 // batch-release, M-of-N(2), n=3
 Deno.test("M-of-N: FDA batch-release walkthrough", () => {
   assertEquals(evaluate("M-of-N", 2, v(0, 0, 0, 3)), "Pending");  // initial

@@ -1,6 +1,6 @@
 # GRACE lang surface checker
 
-The mechanical slice of [`GRACE-lang.md`](../../GRACE-lang.md): what a form-reader can decide about a spec's normative surface without semantics. It is the forerunner of the parser §11 obliges, not the parser — it resolves no identifiers (Closed vocabulary 4), matches no value against a value set (Hard invariant 14), and normalizes nothing (§16).
+The mechanical slice of [`GRACE-lang.md`](../../GRACE-lang.md): what a form-reader can decide about a spec's normative surface without semantics. It is the forerunner of the parser section 11 obliges, not the parser — it resolves no identifiers (Closed vocabulary 4), matches no value against a value set (Hard invariant 14), and normalizes nothing (section 16).
 
 ```
 python3 tools/grace/check.py                 # GRACE-lang.md + every spec declaring itself migrated
@@ -10,7 +10,7 @@ python3 tools/grace/check.py --gate          # exit 1 on any non-advisory findin
 
 Both tools read one whitelist: a spec is scanned when its `Term qualifiers` line declares `migrated`. Nothing is inferred from the presence of a fence, so an unmigrated spec that grows one is not suddenly held to the language.
 
-Standard library only. One finding per line, `path:line: [CODE] message`. Non-gating by default — landed 2026-09-11 against a corpus of three migrated documents, and it starts by measuring, not defending (the linter's rule for a new check, `tools/linter/README.md` §Advisory codes).
+Standard library only. One finding per line, `path:line: [CODE] message`. Non-gating by default — landed 2026-09-11 against a corpus of three migrated documents, and it starts by measuring, not defending (the linter's rule for a new check, `tools/linter/README.md` section Advisory codes).
 
 | Code | What it reads |
 |---|---|
@@ -42,9 +42,9 @@ Standard library only. One finding per line, `path:line: [CODE] message`. Non-ga
 | **D-tombstone-form** | A tombstone not in the one form, `Deleted: Label. The owner, and why.`, or still in the retired `NOTE: … deleted` shape, which reserves nothing. A tombstone is no surface prefix, so `Surface 18` counts it with a labelled rule and a tombstone written first no longer demotes the block beneath it — the trap the retired `F-prefix-first` caught twice (council read 15, council read 76; GRACE-lang v0.46). |
 | **V-dup-vocab** | A `Term record verbs` or `Term terms` line naming the same name twice. The corpus's rewrite template shipped `identify` twice and five atoms inherited it, plus two compositions with their own — the defect a template repeats is the defect no reader sees (council read 16). |
 | **E-not-exclusive** *(advisory)* | An `EXACTLY ONE OF` whose members are not exclusive — one member containing another, so the exclusive choice does not exclude (Earned vocabulary 4). Two instances on file before it landed, both in a self-containment invariant, both repaired by declaring the set as a term (council read 9, council read 13). |
-| **W-or-word / W-watch-word / W-term-unused** *(advisory)* | A lower-case `or` inside an obligation; `after`, `before`, `until`, `while`, `unless` inside a rule (§18's watch list); a `Term` declaration nothing uses. The watch words read past a declared name — *retention until* is a name, not a retention and an until — and past a **borrowed** one since council read 139: the names on a `Term cited:` line and those the specifications on `Term constituents:` declare, read one level, because a composition's rules are written in its constituents' vocabulary and a borrowed name's words belong to the name exactly as a local one's do. |
+| **W-or-word / W-watch-word / W-term-unused** *(advisory)* | A lower-case `or` inside an obligation; `after`, `before`, `until`, `while`, `unless` inside a rule (section 18's watch list); a `Term` declaration nothing uses. The watch words read past a declared name — *retention until* is a name, not a retention and an until — and past a **borrowed** one since council read 139: the names on a `Term cited:` line and those the specifications on `Term constituents:` declare, read one level, because a composition's rules are written in its constituents' vocabulary and a borrowed name's words belong to the name exactly as a local one's do. |
 
-A code span inside a rule is read as quoted text, never as the rule's own tokens — the grammar's meta-rules mention the tokens they govern (`GRACE-lang.md` §18, provisional).
+A code span inside a rule is read as quoted text, never as the rule's own tokens — the grammar's meta-rules mention the tokens they govern (Section 18 of `GRACE-lang.md`, provisional).
 
 ## What re-opens when a rule changes
 

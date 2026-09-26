@@ -8,7 +8,7 @@ is the disposable part — and exists to test the one dimension the first two do
 cover: **a different language.** The canonical-JSON serializer, the SHA-256 hash
 chain, and the `composition.ts` transaction shape have only ever been expressed in
 TypeScript; this re-expresses the spec-derived core in Go and proves a Go-produced
-audit chain verifies under the *TypeScript* contract (BUILD_PLAN §6.3, made literal
+audit chain verifies under the *TypeScript* contract (section 6.3 of BUILD_PLAN, made literal
 across a language boundary).
 
 ## What's here
@@ -67,7 +67,7 @@ invariant:
 - **Deterministic inputs.** Timestamps and the invitation token are pinned so the
   three languages produce a byte-identical chain to diff. Live renders use
   wall-clock `occurred_at` and random tokens — which is *why* two live renders'
-  hashes differ while both still verify (BUILD_PLAN §6.3).
+  hashes differ while both still verify (section 6.3) of BUILD_PLAN.
 - **Go was not compiled in the build sandbox.** The proxy blocks `go.dev` and the
   Google mirrors and there's no root for `apt`, so the in-sandbox verification ran
   through the Python twin + `verify.mjs` (the committed golden). The Go is written

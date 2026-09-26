@@ -6,11 +6,11 @@ This file tracks every place where the demo's implementation falls short of, def
 - New entries land *during* the build, not after — the moment the implementation makes a choice that deviates from the spec, the entry is written.
 - This file is the honest counterpart to the demo. A reader who has only the demo and `CORNERS.md` knows exactly how the demo deviates from the spec.
 
-The rule for *what* belongs here vs. what belongs as a spec finding is in [`CLAUDE.md` § Implementation-discovered findings](../../CLAUDE.md): contradictions go to Lineage notes via a review pass; preferences and rendering-target collapses go here.
+The rule for *what* belongs here vs. what belongs as a spec finding is in [`CLAUDE.md` section Implementation-discovered findings](../../CLAUDE.md): contradictions go to Lineage notes via a review pass; preferences and rendering-target collapses go here.
 
 ---
 
-## Pre-known entries (named in `BUILD_PLAN.md` §13 and §15)
+## Pre-known entries (named in section 13 of `BUILD_PLAN.md` and section 15)
 
 ### Audit table collapse
 
@@ -64,20 +64,20 @@ These are *not* corners the demo cut — they are items the spec explicitly name
 
 ### retention_policy not stored on chain row
 
-- **Spec section:** BUILD_PLAN.md §4.6 (`audit_event.retention_policy`); §11 (per-scenario policies).
+- **Spec section:** section 4.6 of BUILD_PLAN.md (`audit_event.retention_policy`); section 11 (per-scenario policies).
 - **Cut made:** `initiate_chain` accepts `retention_policy` and uses it for the `chain_initiated` audit event, but does not store it on the `chain` row. Step-level audit events (`step_approved`, `step_rejected`, `step_withdrawn`, `chain_resolved`) always use `AUDIT_TRAIL_RETENTION_POLICY` (default `sox_7_year`), regardless of the chain's declared policy. Result: a chain initiated with `ich_e6_tmf` will have its step events recorded under `sox_7_year`.
 - **Relaxation cost:** Add `retention_policy TEXT NOT NULL` column to `chain` table; read it in `stepDecision` and `handleTerminalTransition`. ~30 min including migration.
 
 ### Audit trail records `actor_ref`, not `display_name`
 
 - **Spec section:** *Composes — Audit Trail; Actor Identity*.
-- **Design note (not a cut):** `audit_event.actor_ref` stores the stable, immutable identity token — not the display name. If an actor's `display_name` changes after the fact (name change, title change, system update), every historical event still accurately reflects who acted. Surfaces correctly in the audit log UI: `actor_ref` is the durable identity; `display_name` is a mutable label. This is intentional and required for SOX §302 / FDA Part 11 / ICH E6 attribution integrity.
+- **Design note (not a cut):** `audit_event.actor_ref` stores the stable, immutable identity token — not the display name. If an actor's `display_name` changes after the fact (name change, title change, system update), every historical event still accurately reflects who acted. Surfaces correctly in the audit log UI: `actor_ref` is the durable identity; `display_name` is a mutable label. This is intentional and required for SOX section 302 / FDA Part 11 / ICH E6 attribution integrity.
 - **Relaxation cost:** N/A — this is correct behaviour, not a deviation.
 
 ---
 
 ### `actor_ref` for pi_müller normalised to ASCII
 
-- **Spec section:** BUILD_PLAN.md §11 (seed actors).
+- **Spec section:** section 11 of BUILD_PLAN.md (seed actors).
 - **Cut made:** Plan names the actor_ref as `pi_müller` (with ü). Seed uses `pi_mueller` because actor_refs appear in cookie values and URL path segments in later steps; non-ASCII refs create percent-encoding noise with no spec benefit. Display name remains `Müller (PI)`.
 - **Relaxation cost:** Trivial rename in seed.ts and any test fixtures that reference this ref, once the URL/cookie layer is confirmed safe with non-ASCII values. ~10 min.

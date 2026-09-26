@@ -4,41 +4,41 @@ Deferred-vs-spec tracker. Per the repo's implementation-discovered-findings
 discipline, these are **preferences and boundaries of this render**, not
 contradictions in the Grace Commons spec layer. Every divergence beyond the
 adapter + concurrency mechanism is a data point about where the first render's
-English was stack-dependent (BUILD_PLAN §9).
+English was stack-dependent (section 9) of BUILD_PLAN.
 
 ## Open — divergences & deferrals
 
-### Carried in from the plan (BUILD_PLAN §11)
+### Carried in from the plan (section 11) of BUILD_PLAN
 
 - **Global advisory lock = global mutation serialization.** Inherent to a single
   global hash chain; fine for a single-site demo, a scaling ceiling for
   multi-site. The real fix is a **spec change** — shard the chain per study/site
   (a chain-key column, `prev_hash` per key), which alters the Audit Trail
   composition's contract and must go through the library's review channel, not a
-  code commit (BUILD_PLAN §4.4).
+  code commit (section 4.4) of BUILD_PLAN.
 - **The serialization *invariant* is not new — only the mechanism is.** Event Log
   already mandates total order (Invariant 3) and that "the underlying implementation
   must serialize them." So `pg_advisory_xact_lock` is render 2's *conforming
   mechanism* for an existing atom clause, and SQLite's single-writer is render 1's —
   one atom clause, three mechanisms (render 3's Go `sync.Mutex` is the third),
-  nothing added to the spec. (BUILD_PLAN §4.3's "under-specified" wording was
+  nothing added to the spec. (section 4.3 of BUILD_PLAN's "under-specified" wording was
   reconciled to match.) The cross-render mapping now lives canonically in
   [`execution-contract.md`](../../execution-contract.md) (Data layer contract); see
   also [`discoveries.md`](../../discoveries.md) (2026-06-06).
 - **`event_log` append-only by convention, not by trigger.** Faithful port of
   render 1. Defense-in-depth upgrade available: a `BEFORE UPDATE/DELETE … RAISE
   EXCEPTION` trigger (the Postgres analog of the Multi-Party Approval demo's
-  append-only triggers). Deferred to keep v1 a faithful port (BUILD_PLAN §5.2).
+  append-only triggers). Deferred to keep v1 a faithful port (section 5.2) of BUILD_PLAN.
 - **No-JS degradation is partial under RSC.** Every mutating flow is a plain
   `<form action={serverAction}>`, so the core lifecycle works with JS off. The
   *live in-place swaps* — the invite-result card (`InviteResultCard`) and the
   running verify verdict (`VerifyChip`) — require the client runtime and are
   progressive enhancement only. Render 1's full HTMX no-JS parity for those swap
-  interactions is not reproduced (BUILD_PLAN §7.6). The `/audit/verify` full
+  interactions is not reproduced (section 7.6) of BUILD_PLAN. The `/audit/verify` full
   report exists precisely as the no-JS path for verification.
 - **`occurred_at` stored as TEXT, not `timestamptz`.** Protects the hashed
   timestamp string from driver-side renormalization. A production schema might
-  want a real timestamp column *plus* the hashed string (BUILD_PLAN §5.1).
+  want a real timestamp column *plus* the hashed string (section 5.1) of BUILD_PLAN.
 - **First-render `withTx` doc-comment debt.** Render 1 should note that its
   global audit-chain serialization is load-bearing and provided by the SQLite
   single-writer engine, so nobody "optimizes" it into per-row connections. This
@@ -50,7 +50,7 @@ English was stack-dependent (BUILD_PLAN §9).
 - **Driver: `pg` + `@electric-sql/pglite` behind one `query(text, params)` seam**
   (`lib/db.ts`), instead of the plan's `postgres.js` (Decision 1). Both are raw
   SQL, no ORM — honoring A.14/Decision 1. pglite is the zero-setup **embedded**
-  default (a single in-process backend = the §4 single-writer model, ideal for
+  default (a single in-process backend = the section 4 single-writer model, ideal for
   local dev and CI); `pg` is used when `DATABASE_URL` points at a real server.
   One code path for `domain/`/`composition.ts`. *(Backend decision — listed here
   for completeness; not introduced by the UI work.)*
@@ -63,7 +63,7 @@ English was stack-dependent (BUILD_PLAN §9).
 - **Inks.css is reused as render 1's *compiled* stylesheet** (`public/beacon.css`,
   linked from `app/layout.tsx`), rather than rebuilt through Tailwind v4's PostCSS
   inside the Next build. This guarantees pixel parity *by construction* (BUILD_PLAN
-  §7.8) and avoids wiring `@tailwindcss/postcss`, which is not installed here. The
+  section 7.8) and avoids wiring `@tailwindcss/postcss`, which is not installed here. The
   Tailwind **source** is still kept in `styles/inkset.css` + `styles/tailwind.css`
   for fidelity to the plan's file layout; re-wire the build for production if a
   source-of-truth CSS pipeline is wanted. Components only ever reuse render 1's
@@ -83,9 +83,9 @@ English was stack-dependent (BUILD_PLAN §9).
   parity) and renders newest-first for readability; the CSV export stays
   oldest-first (chain order) so an external verifier can re-walk it.
 
-### Test layer (BUILD_PLAN §7)
+### Test layer (section 7) of BUILD_PLAN
 
-- **Ported to `node:test`, not Vitest.** BUILD_PLAN §7 planned Vitest + Playwright;
+- **Ported to `node:test`, not Vitest.** section 7 of BUILD_PLAN planned Vitest + Playwright;
   the suite is instead **`node --test` + `node:assert/strict`** — zero new
   dependencies (the repo's dependency-light house style), driven against an
   ephemeral in-memory pglite (`PGLITE_DIR="memory://"`, the seam `lib/db.ts`
@@ -98,7 +98,7 @@ English was stack-dependent (BUILD_PLAN §9).
   init per test. `e2e.test.ts` drives the `composition.ts` surface directly (render
   1 drove HTTP routes; render 2 has none to POST to) and asserts the audit log
   equals the lifecycle's events *in exact order* (stronger than render 1's
-  set-membership). This closes the §7 gap — until now the render shipped a `test`
+  set-membership). This closes the section 7 gap — until now the render shipped a `test`
   script with no tests behind it.
 - **`test` script fixed.** Was `node --test tests/` — a trailing-slash directory
   arg node 22.22 resolves as a missing module (the script never ran). Now
