@@ -6,6 +6,8 @@ Beacon was built from structured Grace Commons specifications. There is no hidde
 
 ## Spec drift since this render (measured 2026-09-26)
 
+**A revoked credential leaves its sessions live.** The portal has no `revoke_sessions_for_credential` and no map from a credential to its sessions, so nothing ends a session when its credential is revoked. The [Login](../../compositions/login.md) spec cascades the revocation (Wiring decision 2). Measured 2026-09-27 against the [Login regeneration](../login-regen/).
+
 The portal's login answers `{ ok: false, reason: "invalid_credentials" }` and records `unknown_email`, `bad_password`, `no_credential` and `no_actor` as audit detail. The [Login](../../compositions/login.md) spec answers `invalid-credential` — renamed from `credential-invalid` on 2026-09-26 so the corpus spells one refusal one way — and does not name the detail reasons. The second and third renders (`-next`, `-mongo`) carry the same reasons. A render that adopts the spec's token changes the login route and the conformance manifest's expectations together.
 
 ## Open
