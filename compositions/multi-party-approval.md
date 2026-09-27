@@ -441,6 +441,7 @@ Action wiring 58: An invocation MUST release the chain exclusion at EVERY answer
 Action wiring 59: [Approve Step] MUST call Approval Step's approve as the decision's step write.
 Action wiring 60: [Reject Step] MUST call Approval Step's reject as the decision's step write.
 Action wiring 61: [Withdraw Step] MUST call Approval Step's withdraw as the decision's step write.
+Action wiring 62: IF the initiation recovery runs inside the invocation THEN [Initiate Chain] MUST answer recording-failure carrying outcome.
 ```
 
 Term minted id: a chain id, a step id or an assignment id.
@@ -485,7 +486,7 @@ Term trailing flag: [Trailing] — true where the chain state did not equal Pend
 
 Term cascade flag: cascade — true only on the step withdrawal events a cascade records.
 
-Term partial flag: cascade_partial set to true on a terminal event or a decision's outcome whose cascade or recall left a call unanswered on a transient arm.
+Term partial flag: cascade_partial set to true on a terminal event or a decision's outcome whose cascade or recall left a call unanswered on a transient arm, with each such call named by its step id and its call — the calls the flag names.
 
 Term recovery flag: recovery set to true on every event the composition records outside the invocation that owed it.
 
@@ -603,7 +604,7 @@ Reconciliation 6: The sweep MUST NOT pre-check a chain BEFORE taking the chain e
 Reconciliation 7: IF another holder holds the chain exclusion THEN the sweep MUST leave the chain to the sweep's next run.
 Reconciliation 8: IF a chain record inside the audit horizon carries no chain-shape event THEN the initiation leg MUST run the initiation recovery.
 Reconciliation 9: The initiation recovery MUST run the chain evaluation.
-Reconciliation 10: IF the chain state DOES NOT EQUAL Pending THEN the initiation recovery MUST record the initiation event carrying the chain shape from the chain record AND the recovery flag.
+Reconciliation 10: IF the chain state DOES NOT EQUAL Pending THEN the initiation recovery MUST record the initiation event carrying the chain shape from the chain record, disposition d AND the recovery flag.
 Reconciliation 11: IF the chain state EQUALS Pending THEN the initiation recovery MUST set the quarantine flag.
 Reconciliation 12: IF the chain state EQUALS Pending THEN the initiation recovery MUST record the initiation-failed record carrying the chain shape from the chain record, the disposition AND the initiator reference under the service identity.
 Reconciliation 13: IF the initiation-failed record lands THEN the initiation recovery MUST set the chain state to Withdrawn AND run the cascade with the recovery reason.
@@ -683,7 +684,7 @@ WHY:
 
 **The initiation recovery evaluates first** (Reconciliation 8 through 16; 2026-08-29-t, -o). Nothing gates decisions on the quarantine flag — approvers must be able to act on a chain whose only defect is a missing record — so a quarantined chain can reach a lawful terminal before the recovery runs, and withdrawing it then would overturn a credential-verified approval in the initiator's name. So the recovery evaluates, and a terminal chain is re-audited, not withdrawn — disposition d, the only case that lands an initiation event rather than an initiation-failed record; cases a, b and c close with the initiation-failed record and an audited withdrawal. The withdrawal event carries the initiation-failed record's id as its provenance and no intent event id: no withdrawal was ever intended. The chainless-step scan is sibling-safe because the prefix names the chain: two chains one initiator opens concurrently over one subject and scope are serialized per chain, not against each other, and a subject-keyed scan would withdraw the sibling's step. A missing assignment is a map miss, never dialed.
 
-**The transition leg re-emits only what an intent authorizes** (Reconciliation 17 through 22). A transition matches only an outcome-shaped record — an intent never does, or a lost outcome would read as audited and the marker would close without opening. The re-emission names the candidates rather than choosing: nothing in the comparison says which invocation's intent owned the lost call, and a step can be named by several. Two inferences are admitted and carried by the recovery flag — the re-emitted trailing flag is derived from the chain's terminal stamps, and a re-emitted resolution's recalled steps are the best-effort set (Reconciliation 34). **The closure duty re-runs the skipped logic**, not only the record: a crash can skip the recall and the evaluation even where every record landed, which is why the evaluation and recall legs exist — a quorum-satisfied chain can never sit Pending for want of another decision call.
+**The transition leg re-emits only what an intent authorizes** (Reconciliation 17 through 22). A transition matches only an outcome-shaped record — an intent never does, or a lost outcome would read as audited and the marker would close without opening. The re-emission names the candidates rather than choosing: nothing in the comparison says which invocation's intent owned the lost call, and a step can be named by several. One inference is admitted and carried by the recovery flag — a re-emitted resolution's recalled steps are the best-effort set (Reconciliation 34). The re-emitted trailing flag is read from the candidates' decision intents, which carry it (Action wiring 20), never derived from stamps (Clock semantics 2). **The closure duty re-runs the skipped logic**, not only the record: a crash can skip the recall and the evaluation even where every record landed, which is why the evaluation and recall legs exist — a quorum-satisfied chain can never sit Pending for want of another decision call.
 
 **Retry transience, partitioned** (Reconciliation 26, 27 and 30 through 33; 2026-08-26-f). A retry is well formed only over a transient arm, with a landing for every deterministic one — a loop over an arm that answers the same way every time is not a recovery. The transient arms are three, not one. A retried withdrawal answered not-pending was overtaken by the step's named approver in the open window — lawful, and it closes as a supersession; a retried recall answered not-known closes with the anomaly mark so its partial flag cannot stand forever. The substrate's invalid-request is foreclosed for caller input and, from its retention source, arrives with the event appended and nothing owed. invalid-credential on a retry cannot be a caller's — every retry is the service identity's — so it is the deployment's own credential, paged until rotated. Past the window an open marker is escalated as an unresolved finding rather than left as a loop nobody can tell from an abandoned one.
 
@@ -836,7 +837,7 @@ A clinical trial protocol deviation at a multi-site study can be approved by any
 
 ### Rejection path — all-of-N quorum, one approver rejects
 
-In the SOX walkthrough above, suppose the CEO finds the entry suspicious and rejects: `reject_step(actor_ref=ceo_walsh, credential=walsh_credential, chain_id=chain-2026-0441, step_id=step-003, reason="Counterparty not on approved-affiliates list; refer back to finance team for review")` → rejected_outcome. Quorum evaluation: `R = 1 ≥ 1`; under all-of-N the chain transitions to **Rejected** with reason `"quorum unreachable: all-of-N requires every approval; step step-003 was rejected"`. `chain_terminal_at` is set; the audit trail records the chain resolution. JE-2026-0441 is not released for posting; the composing workflow routes the entry back to the controller, who must initiate a new chain for the corrected entry (a fresh chain_id, fresh step ids — no editing of the rejected chain's records).
+In the SOX walkthrough above, suppose the CEO finds the entry suspicious and rejects: `reject_step(actor_ref=ceo_walsh, credential=walsh_credential, chain_id=chain-2026-0441, step_id=step-003, reason="Counterparty not on approved-affiliates list; refer back to finance team for review")` → rejected_outcome. Quorum evaluation: `R = 1 ≥ 1`; under all-of-N the chain transitions to **Rejected** with reason `"quorum unreachable: all-of-N; 2 remain achievable; rejections present"`. `chain_terminal_at` is set; the audit trail records the chain resolution. JE-2026-0441 is not released for posting; the composing workflow routes the entry back to the controller, who must initiate a new chain for the corrected entry (a fresh chain_id, fresh step ids — no editing of the rejected chain's records).
 
 ### Rejection path — chain withdrawal by initiator
 
@@ -882,7 +883,7 @@ Check 4.1: An auditor MUST find EVERY quiescent chain's assignments PER Invarian
 Check 4.2: An auditor MUST read an Active assignment under an open partial flag as an open marker (Invariant 4.2).
 Check 5.1: An auditor MUST find EXACTLY ONE audit record for EVERY committed transition on a quiescent chain (Invariant 5.1).
 Check 5.2: An auditor MUST find EVERY chain namespace event other than an intent naming a chain the chain store carries (Invariant 5.2).
-Check 5.3: An auditor MUST find the service identity attesting EVERY resolution event, closure record, initiation-failed record AND recovery-flagged event, AND nothing else (Capability requirement 12).
+Check 5.3: An auditor MUST find the service identity attesting EVERY resolution event, closure record, initiation-failed record, recovery intent AND recovery-flagged event, AND nothing else (Capability requirement 12).
 Check 5.4: An auditor MUST find a closure record for EVERY call a partial flag names on a quiescent chain (Reconciliation 30).
 Check 6.1: An auditor MUST clear Approval Step's Generation acceptance over the Approval Step instance (Composes 5).
 Check 6.2: An auditor MUST clear Permissions' Generation acceptance over the Permissions instance (Composes 5).

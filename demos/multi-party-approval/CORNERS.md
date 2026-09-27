@@ -89,6 +89,7 @@ These are *not* corners the demo cut — they are items the spec explicitly name
 The render predates the spec's rewrite in GRACE lang (council read 196). Read against the spec's signatures today, the demo differs in shape, not only in spelling:
 
 - **No intent records, no credential.** The spec records an intent under the actor's credential before each state change and answers `invalid-credential` when it does not validate (Invariant 10). The demo writes the change and its audit row in one transaction under the act-as picker, with no caller credential. `invalid-credential` is never answered.
+- **It attests with secrets it should never hold.** Cascade withdrawals and resolutions are attested by reading the actor's stored secret from the actor table. The spec attests a cascade under the initiator's credential validated at the intent, or under the service identity (Cascade 5 and 6), and the composition never inspects a credential (Primitive policy 15). A reader who copies this render copies the pattern.
 - **`recording-failure` carries no position.** The spec answers `recording-failure(position)`, `intent` or `outcome`; with no intent record, the demo's failure has no position to carry.
 - **Invariant numbers** were aligned with the spec on 2026-09-25 (council read 208); the coverage header in `tests/invariants.test.ts` names what is and is not covered.
 

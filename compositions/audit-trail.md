@@ -52,7 +52,7 @@ Composes 7: The composition MUST read an attestation's surviving fields through 
 Composes 8: The composition MUST NOT delete an attestation.
 Composes 9: The composition MUST call RetentionWindow.place_under_retention at [Record Action] step 4 and at the third half's compensating placement alone.
 Composes 10: The composition MUST call RetentionWindow.purge at [Purge Event] step 1 alone.
-Composes 11: [Purge Eligible] MUST delegate eligibility to RetentionWindow.purge_eligible.
+Composes 11: [Purge Eligible] MUST read eligibility through Retention Window's declared read.
 Composes 12: The composition MUST NOT evaluate an eligibility clock.
 Composes 13: The composition MUST call TamperEvidence.seal from [Seal Now] alone.
 Composes 14: The composition MUST call TamperEvidence.verify at [Verify Record] step 5 alone.
@@ -816,7 +816,7 @@ purge_eligible()
 ```
 
 ```
-purge eligible 1: [Purge Eligible] MUST delegate eligibility to RetentionWindow.purge_eligible.
+purge eligible 1: [Purge Eligible] MUST read eligibility through Retention Window's declared read.
 purge eligible 2: [Purge Eligible] MUST map each eligible retention id to the event id through the retention record's record reference.
 purge eligible 3: [Purge Eligible] MUST NOT re-derive eligibility.
 purge eligible 4: [Purge Eligible] MUST NOT share the projection's now reading with a later RetentionWindow.purge.
