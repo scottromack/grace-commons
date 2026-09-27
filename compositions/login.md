@@ -202,16 +202,16 @@ login(principal_ref, credential_type, presented_material, issued_by_ref, optiona
 
 logout(session_token, revoked_by_ref, reason)
   answers ok
-  refuses invalid-request | not-known
+  refuses invalid-request | not-known | already-terminal | storage-failure
 
 revoke_sessions_for_credential(credential_id, revoked_by_ref, reason)
   answers revocation tally
-  refuses invalid-request
+  refuses invalid-request | storage-failure
 ```
 
 Term login result: session token and expiry instant — what login answers.
 
-Term revocation tally: revoked, skipped and failed — what revoke_sessions_for_credential answers.
+Term revocation tally: revoked, skipped, failed and not-found — the four counts revoke_sessions_for_credential answers.
 
 ```
 Action wiring 1: An admitted login MUST call Credential's verify with the principal reference, the credential type AND the presented material.
@@ -220,7 +220,7 @@ Action wiring 3: An admitted login MUST NOT answer Credential's verify reason to
 Action wiring 4: An admitted login MUST call Session's issue ONLY AFTER Credential's verify answers verified.
 Action wiring 5: An admitted login MUST read the credential id of the effective-active credential for the pair.
 Action wiring 6: An admitted login MUST read the credential id again ONLY AFTER Session's issue commits.
-Action wiring 7: IF the two credential id reads disagree THEN an admitted login MUST answer storage-failure naming the stage.
+Action wiring 7: IF the two credential id reads disagree THEN an admitted login MUST answer storage-failure naming the credential-id-confirm stage.
 Action wiring 8: An admitted login MUST call Session's issue with the principal reference, the issued by reference AND the session duration.
 Action wiring 9: An admitted login MUST write both maps ONLY AFTER Session's issue commits.
 Action wiring 10: IF the map write fails THEN an admitted login MUST answer the session token.
@@ -235,11 +235,21 @@ Action wiring 18: An admitted cascade MUST read the cascade set as the union of 
 Action wiring 19: An admitted cascade MUST call Session's validate for EVERY session token the cascade set carries.
 Action wiring 20: An admitted cascade MUST call Session's revoke for EVERY session token Session's validate answers valid for.
 Action wiring 21: An admitted cascade MUST NOT call Session's revoke for a session token Session's validate answers invalid for.
-Action wiring 22: An admitted cascade MUST count a skipped session token.
+Action wiring 22: IF Session's validate answers expired OR revoked THEN an admitted cascade MUST count the session token as skipped.
 Action wiring 23: An admitted cascade MUST record a session revoked event per revoked session token.
 Action wiring 24: An admitted cascade MUST NOT change the credential-to-sessions map.
-Action wiring 25: An admitted cascade MUST record a cascade completion event naming the initiation.
-Action wiring 26: An admitted cascade MUST answer the revoked count, the skipped count AND the failed count.
+Action wiring 25: An admitted cascade MUST record a cascade completion event carrying the initiation event's id AND the four counts.
+Action wiring 26: An admitted cascade MUST answer the revocation tally.
+Action wiring 27: IF Session's revoke answers already-terminal THEN an admitted logout MUST answer already-terminal.
+Action wiring 28: IF Session's revoke answers storage-failure THEN an admitted logout MUST answer storage-failure.
+Action wiring 29: IF Session's revoke answers invalid-request THEN an admitted logout MUST answer invalid-request.
+Action wiring 30: IF the first credential id read finds no effective-active credential THEN an admitted login MUST answer storage-failure naming the credential-id-lookup stage.
+Action wiring 31: IF Session's issue answers storage-failure THEN an admitted login MUST answer storage-failure naming the session-issue stage.
+Action wiring 32: A cascade initiation event MUST carry the credential id, the revoked by reference AND the reason.
+Action wiring 33: IF Audit Trail refuses the cascade initiation event THEN an admitted cascade MUST answer storage-failure.
+Action wiring 34: An admitted cascade MUST call Session's revoke with the cascade reason.
+Action wiring 35: IF Session's validate answers not-known THEN an admitted cascade MUST count the session token as not-found AND record a session not found event.
+Action wiring 36: IF Session's revoke refuses a session token THEN an admitted cascade MUST count the session token as failed AND record a revoke failure event.
 ```
 
 Term admitted login: a login call whose inputs cleared the boundary predicate.
@@ -248,6 +258,8 @@ Term admitted logout: a logout call whose inputs cleared the boundary predicate.
 
 Term admitted cascade: a [Revoke Sessions For Credential] call whose inputs cleared the boundary predicate.
 
+Term cascade reason: "credential-revocation-cascade:" and the cascade initiation event's id, then ": " and the caller's reason — the join key the revoked Session record keeps.
+Term cascade events: credential_revocation_cascade_initiated, session_revoked_by_cascade, session_revoke_failure_during_cascade, session_not_found_during_cascade, credential_revocation_cascade_completed and credential_revocation_cascade_abandoned — the substrate's events a cascade and the sweep's abandonment record.
 Term cascade set: the union of the credential-to-sessions map's entry for a credential id and the event-derived set the substrate's login-family events carry for it.
 
 WHY:
@@ -288,11 +300,20 @@ Reconciliation 9: The sweep MUST record an orphan session revoked event for a se
 Reconciliation 10: The sweep MUST record a revocation-family event for a revoked session carrying none.
 Reconciliation 11: The sweep MUST NOT examine a cascade initiation younger than the login completion bound.
 Reconciliation 12: The sweep MUST record a cascade abandoned event for an initiation carrying no completion.
+Reconciliation 15: The sweep MUST record the stored-reason member for a revoked session carrying no revocation-family event.
+Reconciliation 16: The sweep MUST revoke a session under the orphan reason.
+Reconciliation 17: The sweep MUST call [Revoke Sessions For Credential] again for an abandoned initiation's credential id with the initiation's revoked by reference AND reason.
+Reconciliation 18: The sweep MUST revoke a session ONLY AFTER recording a recovery intent.
+Reconciliation 19: The sweep MUST call a cascade again ONLY AFTER recording a recovery intent.
+Reconciliation 20: The sweep MUST write the pair a map write failure event carries into both maps.
 Reconciliation 13: The sweep MUST escalate a discrepancy the reconciliation window did not close.
 Reconciliation 14: The sweep MUST NOT examine an event the substrate's horizon EXCEEDS.
 ```
 
 Term revocation-family event: logout_succeeded | session_revoked_by_cascade | orphan_session_revoked — the exact family a revoked session's record must belong to.
+Term orphan reason: "unattributed-issuance-recovery" — the reason the sweep revokes a session no record names.
+Term stored-reason member: session_revoked_by_cascade where the stored reason begins with the cascade reason's prefix; orphan_session_revoked where the stored reason equals the orphan reason; logout_succeeded otherwise.
+Term recovery intent: the login_recovery_intended event, carrying the session token or the initiation event's id the sweep is about to act on.
 
 WHY:
 The sweep is four comparisons and each closes a different partial. **Entry versus events** re-emits a record the log holds and the trail lacks — which is why the log's durability is a Composition state rule and not an implementation note, since the entry *is* the intent the re-emission is built from. **Sessions versus records** finds a session the constituent holds and neither the trail nor the log names: a login that died between issuing and recording, which is the one comparison that *revokes* rather than records, because a session nobody can attribute is a session nobody can audit. **Revocations versus events** finds the mirror case, a revoked session with no revocation-family event. **Initiations versus completions** finds a cascade that died mid-flight and abandons it explicitly rather than leaving an initiation open forever.
@@ -361,13 +382,13 @@ The user enters an incorrect password. `login(user_u91, "password", <wrong-passw
 
 ### Logout
 
-The user clicks "Log out." The host system calls `logout(session_token: tok_abc123, actor_ref: user_u91, reason: "user-initiated-logout")`. Step 2: `Session.revoke(tok_abc123, user_u91, "user-initiated-logout") → revoked`. Step 3: Audit Trail logout_succeeded (composition-attributed; `requested_by: user_u91` in the data). Return: `logged-out`. Subsequent `Session.validate(tok_abc123) → invalid(revoked)`.
+The user clicks "Log out." The host system calls `logout(session_token: tok_abc123, revoked_by_ref: user_u91, reason: "user-initiated-logout")`. Step 2: `Session.revoke(tok_abc123, user_u91, "user-initiated-logout") → revoked`. Step 3: Audit Trail logout_succeeded (composition-attributed; `requested_by: user_u91` in the data). Return: ok. Subsequent `Session.validate(tok_abc123) → invalid(revoked)`.
 
 ### Cascading revocation — compromise response
 
 An incident-response team determines that `cred_c01` (user_u91's password credential) was likely compromised. The identity-management surface calls `Credential.revoke(cred_c01, revoked_by_ref: security_team_s01, reason: "suspected-compromise-2026-09-12")`. The response team then calls `revoke_sessions_for_credential(credential_id: cred_c01, revoked_by_ref: security_team_s01, reason: "suspected-compromise-2026-09-12")`.
 
-Step 2: `credential_to_sessions[cred_c01]` = `{tok_abc123, tok_def456}` (two sessions were issued over the credential's lifetime). Step 3: Audit Trail `credential_revocation_cascade_initiated` event for `cred_c01`, `session_count: 2`. Step 5a — `tok_abc123`: `Session.validate → valid(...)` → `Session.revoke(tok_abc123, security_team_s01, "credential-revocation-cascade: suspected-compromise-2026-09-12") → revoked`; Audit Trail session_revoked_by_cascade. Step 5b — `tok_def456`: `Session.validate → invalid(expired)` → skipped (dead by derivation; no revocation write needed). Return: `{revoked: 1, skipped: 1, failures: 0, not_found: 0}`.
+Step 2: `credential_to_sessions[cred_c01]` = `{tok_abc123, tok_def456}` (two sessions were issued over the credential's lifetime). Step 3: Audit Trail `credential_revocation_cascade_initiated` event `ev_c01` for `cred_c01`, carrying the revoking reference and the reason. Step 5a — `tok_abc123`: `Session.validate → valid(...)` → `Session.revoke(tok_abc123, security_team_s01, "credential-revocation-cascade:ev_c01: suspected-compromise-2026-09-12") → revoked`; Audit Trail session_revoked_by_cascade. Step 5b — `tok_def456`: `Session.validate → invalid(expired)` → skipped (dead by derivation; no revocation write needed). Audit Trail `credential_revocation_cascade_completed` naming `ev_c01` with the four counts. Return: `{revoked: 1, skipped: 1, failed: 0, not_found: 0}`.
 
 Any subsequent Privileged Access Provisioning `exercise_access` call under `tok_abc123` will return `session-invalid` at step 1, before the Capability is presented.
 
@@ -395,7 +416,7 @@ Check 1.2: An auditor MUST find EVERY session-to-credential entry naming a crede
 Check 2.1: An auditor MUST find the credential-to-sessions map AND the session-to-credential map agreeing (Invariant 6.1).
 Check 2.2: An auditor MUST rebuild both maps from the substrate's login-family events (Composition state 7).
 Check 2.3: An auditor MUST find EVERY map write failure event's session token carrying EXACTLY ONE OF an entry in both maps, an invalid answer from Session's validate (Action wiring 11).
-Check 3.1: An auditor MUST find EVERY login call reaching an outcome carrying one login event log entry (Invariant 4.1).
+Check 3.1: An auditor MUST find EVERY login call reaching an outcome carrying one login event log entry (Composition state 10).
 Check 3.2: An auditor MUST find EVERY login event log entry's outcome matching the mirrored event's action reference (Composition state 10).
 Check 3.3: An auditor MUST rebuild a principal reference's session set from the login event log AND the orphan session revoked events naming the principal reference (Invariant 4.2).
 Check 4.1: An auditor MUST find EVERY cascade initiation event older than the login completion bound carrying EXACTLY ONE OF a completion event, an abandoned event (Reconciliation 12).
@@ -473,7 +494,7 @@ Composition note 3 is the cascade's trigger and it is the deployment's to pull. 
 
 ## Terms
 
-The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the emergent cascade action it exposes ([Revoke Sessions For Credential]) — the load-bearing surface neither constituent provides — its own login rejection ([Invalid Credential]), the distinctive `login_event_log` classifications it records ([Outcome], with its [Success With Map Failure] and [Failed Storage Failure] members), and the cascade result's integrity-gap counter ([Not Known]). The two eponymous thin-wrapper actions — login (verify → issue) and logout (revoke) — are left backticked (their names would also collide with the page heading and the *Logout* example anchor). Its emergent state — the cascade maps (`credential_to_sessions`, `session_to_credential`) and the `login_event_log` — is a composition-introduced surface no constituent provides, left as backticked store tokens. References to the constituent atoms and their operations — Credential's `verify` / `register` / `revoke`, Session's `issue` / `revoke` / `validate`, Audit Trail's `record_action` — the relayed tokens (principal reference, credential id, session token, credential type), the constituent states (`Active` / `Revoked`, and the derived `Expired` effective status), the Audit Trail event types (login_succeeded, session_revoked_by_cascade, orphan_session_revoked, …), and the inherited rejections (invalid-request, not-known, `already-terminal`, storage-failure) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+The canonical concepts this spec refers to. Each `term` marker in the prose above links to its term entry here. A term entry states what the concept *is*, in plain English, plus its **Kind** — one of five: **Type** (a thing or category), **Operation** (a behavior), **Member** (a value of an enumerated Type), or, for a named datum, **Field** (a datum a Type carries — *what does it carry?*) or **Parameter** (a value an Operation needs — *what does it need?*). A term entry also names the Type it is a **Member of** / **Field of**, the Operation it is a **Parameter of**, and its **Role** where the domain assigns one. A term entry carries one **Projection** line — the concept's single canonical lowering token, the one place the concrete name stays visible on the page — for every Field, Parameter, and pinned/wire Member. Everything else about casing (each target's snake / camel / pascal / const / wire form) is **derived** from that one token by [`tools/harness/term-adapter.mjs`](../tools/harness/term-adapter.mjs), never hand-written. This is a composition, so its own concepts are the emergent cascade action it exposes ([Revoke Sessions For Credential]) — the load-bearing surface neither constituent provides — its own login rejection ([Invalid Credential]), the distinctive `login_event_log` classifications it records ([Outcome], with its [Success With Map Failure] and [Failed Storage Failure] members), and the cascade result's integrity-gap counter ([Not Known]). The two eponymous thin-wrapper actions — login (verify → issue) and logout (revoke) — are left backticked (their names would also collide with the page heading and the *Logout* example anchor). Its emergent state — the cascade maps (`credential_to_sessions`, `session_to_credential`) and the `login_event_log` — is a composition-introduced surface no constituent provides, left as backticked store tokens. References to the constituent atoms and their operations — Credential's `verify` / `register` / `revoke`, Session's `issue` / `revoke` / `validate`, Audit Trail's `record_action` — the relayed tokens (principal reference, credential id, session token, credential type), the constituent states (`Active` / `Revoked`, and the derived `Expired` effective status), the Audit Trail event types (login_succeeded, session_revoked_by_cascade, orphan_session_revoked, …), and the inherited rejections (invalid-request, not-known, already-terminal, storage-failure) remain qualified/backticked, not carded here. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
@@ -489,7 +510,7 @@ Term cited: Execution Contract Conformance 8 — recursive conformance and the i
 
 #### Revoke Sessions For Credential
 
-The composition's load-bearing emergent action: given a credential id, it walks `credential_to_sessions[credential_id]` and revokes every still-`Active` derived session through `Session.revoke`, recording an initiation event, one event per session it acted on (already-terminal sessions are counted, not recorded), and a completion event carrying the counters. Returns `{revoked, skipped, failures, not_found}` (the snapshot accounting), or an inherited rejection. Called *after* an external `Credential.revoke`; it never revokes the credential itself. Neither constituent carries this cascade.
+The composition's load-bearing emergent action: given a credential id, it walks `credential_to_sessions[credential_id]` and revokes every still-`Active` derived session through `Session.revoke`, recording an initiation event, one event per session it acted on (already-terminal sessions are counted, not recorded), and a completion event carrying the counters. Returns `{revoked, skipped, failed, not_found}` (the snapshot accounting), or an inherited rejection. Called *after* an external `Credential.revoke`; it never revokes the credential itself. Neither constituent carries this cascade.
 
 Kind: Operation
 
@@ -631,5 +652,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Audit arm`, `Action wiring`, `Wiring decision`, `Reconciliation` as the surfaces, the six invariant numbers unchanged, and an acceptance section distributed from the checks the prose already named. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. **No preservation claim was collapsed** — this is the first composition of the epoch carrying none, because every invariant here already emerges and the constituents' guarantees were carried as citations rather than as invariants of their own. The three tombstones it does carry are re-homings inside the spec rather than collapses: `Invariant 4.1` to `Composition state 10`, `Non-goal 3` to `Wiring decision 3`, `Non-goal 14` to `Invariant 2.2`.
 - **2026-09-14 — `Reconciliation` reaches recurrence in consecutive migrations, and the decision not to merge it with `Eviction` holds.** *Chose:* to take `Reconciliation` for the issuance-reconciliation sweep. *Over:* minting a third name, or folding it into `Composition state`. *Because:* [Authenticated Actor](./authenticated-actor.md) minted it one migration earlier for the orphaned-credential leg, and this sweep is the same family rather than the same shape: both run outside any invocation, both report or close rather than serve a caller, both owe an age edge. [Idempotent Reservation](./idempotent-reservation.md)'s `Eviction` shares the *shape* and remains separate for the reason council read 61 stated — it evicts where these report, and the difference decides whether a liveness bound is owed. Two consecutive specs is Principle 2's recurrence bar met for `Reconciliation`; `Eviction` stays at one and stays flagged (council read 62).
 - **2026-09-14 — The first composition to name a composition as a constituent.** *Chose:* `Composes 6` and `Composes 7`, citing the section titled Substrate composition invocation in `execution-contract.md`, with `External check 6` sending an auditor to [Audit Trail](./audit-trail.md)'s own acceptance rather than re-verifying it here. *Over:* listing Event Log, Actor Identity, Retention Window and Tamper Evidence as this composition's constituents, which is what the atom-only reading of `Composes` would have produced. *Because:* the substrate's guarantees are inherited by reference — that is the point of naming a substrate — and re-listing its constituents would have claimed instances this composition does not hold. The corpus composes compositions and this is the first migrated spec where the rule surface has to say so.
+
+- **2026-09-27 — What the rewrite dropped, restored.** *Chose:* the arms and names the prose spec carried and the 2026-09-14 rewrite left out: logout relaying Session's already-terminal, storage-failure and invalid-request (Action wiring 27 through 29); the two named stages login's storage-failure lands at before a session exists (Action wiring 30, 31); the cascade's initiation data, its storage-failure answer, its join key in the revoke reason, its not-found count and its failure and not-found events (Action wiring 32 through 36, the revocation tally, the cascade events); the sweep's stored-reason choice of revocation-family member, its orphan reason, its abandon-and-re-run and its recovery intent (Reconciliation 15 through 19). One rule is new rather than restored: the sweep writes a map write failure's pair into both maps (Reconciliation 20), because Check 2.3 waits on that backfill and no rule wrote it. *Over:* a rewrite that claimed nothing but language changed. *Because:* a cold regeneration of the demo met each as a point the page left undecided, and each was decided in the prose spec and in this page's own Decisions of 2026-08-28 and 2026-08-29 (council read 234). Where the rewrite had changed a design on purpose — the credential id read twice rather than the credential verified twice — the rewrite's design stands.
 
 NOTE: End of Login.

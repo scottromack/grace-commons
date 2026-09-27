@@ -1,6 +1,6 @@
 # Beacon Clinical Research — Demo Application
 
-> **Scope.** Rendered 2026-05-21 through 2026-06-05, against the specs as they stood then. Later commits changed deploy settings and citation wording; nothing was re-rendered. The specs have moved since; what moved is measured in `CORNERS.md`, the section titled *Spec drift since this render*.
+> **Scope.** Rendered 2026-05-21 through 2026-06-05, against the specs as they stood then. Later commits changed deploy settings and citation wording; nothing was re-rendered. The specs have moved since; what moved is measured in `CORNERS.md`, the section titled *Spec drift since this render*. A cold regeneration of its Login from the current specs sits in [`../login-regen/`](../login-regen/).
 
 **Thesis:** The spec is canonical. This regulated-grade application is one *render* of structured natural-language compositions from the Grace Commons library into a concrete stack, with every seam observable to an end user.
 
