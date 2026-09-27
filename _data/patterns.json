@@ -1422,7 +1422,7 @@
    "session",
    "permissions"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 4,
   "kind": "composition",
   "models": {
@@ -1439,7 +1439,7 @@
    "OWASP ASVS",
    "PCI DSS"
   ],
-  "status": "grounded on Final Critique 8 \u2014 2026-08-26",
+  "status": "partially resolved",
   "substrates": [],
   "title": "Session-Gated Authorization"
  },

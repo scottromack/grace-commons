@@ -89,10 +89,11 @@ Primitive policy 6: [Check Permitted] MUST NOT trim an input.
 Primitive policy 7: [Check Permitted] MUST NOT case-fold an input.
 Primitive policy 8: [Check Permitted] MUST NOT normalize an input.
 Primitive policy 9: [Check Permitted] MUST NOT call a constituent for an input the boundary predicate refuses.
+Primitive policy 10: The length bound MUST NOT EXCEED the Permissions instance's string cap.
 ```
 
 WHY:
-invalid-request is composition-introduced: neither wired constituent operation declares it, and Primitive policy 9 is why neither is consulted when it fires. That matters for a reason the outcome set makes plain — [Permissions](../atoms/permissions.md) answers an empty `subject_ref` or action scope with denied under its own default-deny posture, so a composition that let a malformed argument through would report *the answer is no* where the truth is *the request was not well-formed enough to ask*. Primitive policy 2 through 4 keep the three outcome classes distinct, which is Invariant 3's discipline applied to inputs rather than to answers.
+invalid-request is composition-introduced: neither wired constituent operation declares it, and Primitive policy 9 is why neither is consulted when it fires. That matters for a reason the outcome set makes plain — [Permissions](../atoms/permissions.md) answers an empty `subject_ref` or action scope with denied under its own default-deny posture, so a composition that let a malformed argument through would report *the answer is no* where the truth is *the request was not well-formed enough to ask*. Primitive policy 2 through 4 keep the three outcome classes distinct, which is Invariant 3's discipline applied to inputs rather than to answers. Primitive policy 10 closes the one route around them: Permissions reads an over-length argument as matching nothing (Permissions String 7), so a bound above the Permissions instance's string cap would admit a scope the boundary should refuse and report it denied.
 
 ### Action wiring
 
@@ -267,7 +268,7 @@ Internally: `Session.validate("tok_abc123") → valid(principal_ref: "usr_42", .
 
 **Regulator audit.** An auditor queries whether the system enforces access control at session-expiry boundaries — specifically, whether an expired session is permitted to evaluate any authorization query. By Invariant 1, any [Check Permitted] call with an expired session token returns `session-invalid(expired)` before Permissions is consulted. The session expiry state is verifiable from Session's own records; the composition's invariant is derivable from the action wiring alone, without inspecting runtime logs. If Audit Trail is composed in as a substrate, the individual [Check Permitted] records confirm the rejected outcome directly.
 
-**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revocation instant time T; (b) any [Check Permitted] call after T with that session token returned `session-invalid(revoked)`, not permitted or denied. Session's state records the revocation timestamp. The composition's Invariant 1 establishes that Permissions was never reached after revocation. If Audit Trail is composed in, the dispute is answerable from records alone. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that an invalid session cannot produce a permitted or denied result.
+**Disputed access.** A data subject asserts that their account was accessed after they logged out — which revoked their session. The dispute requires establishing: (a) the session was revoked at time T; (b) any [Check Permitted] call after T with that session token returned `session-invalid(revoked)`, not permitted or denied. Session's state records the revocation timestamp. The composition's Invariant 1 establishes that Permissions was never reached after revocation. If Audit Trail is composed in, the dispute is answerable from records alone. If not, the argument is structural: the session was invalid (revoked) as of T, and the composition guarantees that an invalid session cannot produce a permitted or denied result.
 
 **Breach forensics.** An investigator determines that a session token was stolen and seeks to establish what permissions were exercised under it before revocation. This composition does not maintain an authorization event log; forensic coverage of individual [Check Permitted] calls requires [Audit Trail](./audit-trail.md) composed in as a substrate (see *Composition notes*). Without Audit Trail, the investigator can establish from Session's state that the session was active for a given window and was eventually revoked, and from Permissions' state what grants the principal held during that window — but cannot enumerate individual [Check Permitted] calls or their outcomes from the composition's own state. This is a known scope limitation that composition with Audit Trail resolves.
 
@@ -281,8 +282,8 @@ This composition introduces no per-call event log, so the acceptance bar has two
 
 ```
 Check 1.1: An auditor MUST find Session's state naming a disputed session token's status at the disputed instant (Invariant 1.1).
-Check 1.2: An auditor MUST find no permitted answer for a session token Session's state shows lapse instant the disputed instant (Invariant 1.1, Session Composition note 4).
-Check 1.3: An auditor MUST find no permitted answer for a session token Session's state shows revocation instant the disputed instant (Invariant 1.1, Session Composition note 4).
+Check 1.2: An auditor MUST find no permitted answer for a session token Session's state shows expired at the disputed instant (Invariant 1.1, Session Composition note 4).
+Check 1.3: An auditor MUST find no permitted answer for a session token Session's state shows revoked at the disputed instant (Invariant 1.1, Session Composition note 4).
 Check 2.1: An auditor MUST find Session's state naming the principal reference a disputed permitted answer rests on (Invariant 2.1).
 Check 2.2: An auditor MUST find Permissions' state carrying an active grant for the disputed pair at the disputed instant (Invariant 4.1).
 Check 3.1: An auditor MUST find EVERY answer of the composition that EQUALS EXACTLY ONE OF permitted, denied, invalid-request, session-invalid (Invariant 3.1, Invariant 3.2).
@@ -344,7 +345,7 @@ Concurrency 3: A deployment needing a bound on a revocation's effect MUST bound 
 ```
 
 WHY:
-The gate is point-in-time at the instant `Session.validate` runs. A revocation landing after that instant and before Permissions answers leaves a call that clears the gate and returns permitted or denied on a session that is revoking actor the time the caller reads the answer. This is stated rather than cured: curing it would need a lock across two atoms that declare no such surface, and the honest bound is the session's own duration (Concurrency 3).
+The gate is point-in-time at the instant `Session.validate` runs. A revocation landing after that instant and before Permissions answers leaves a call that clears the gate and returns permitted or denied on a session that is revoked by the time the caller reads the answer. This is stated rather than cured: curing it would need a lock across two atoms that declare no such surface, and the honest bound is the session's own duration (Concurrency 3).
 
 ---
 
@@ -449,16 +450,17 @@ Projection: length_bound
 
 ## Status
 
-`grounded on Final Critique 8 — 2026-08-26` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 8 — 2026-08-26
+status: partially resolved
 formal: verified — session-gated-authorization.als, no twin, 2026-06-03
 last gate: 2026-08-26 — Final Critique 8, fresh reader — clean
 
-open: none
+open:
+- 2026-09-27-a · refining · Primitive policy 10 · added from the cold regeneration's finding (council read 236), a load-bearing touch → the three-pass round the entry *Touch triggers re-pass* in `pressure-testing.md` requires
 ```
 
 ## Decisions
@@ -467,5 +469,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the single action as a signature block with `Action wiring` carrying the two-step gate, `Primitive policy` carrying the boundary predicate, `Concurrency` carrying the revocation race, the four invariant numbers unchanged, and the acceptance section's two declared tiers split into `Check` and `External check` exactly as the prose divided them. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label, so the rewrite is free of frozen-number risk. The families are the wiring surfaces this composition actually has — no `Event schema`, no `Replay`, because it stores nothing and rebuilds nothing.
 - **2026-09-14 — The gate is Session's, the closure is this composition's, and the Summary said both were emergent.** *Chose:* to cite the gate and own the closure — `Composes 7` names [Session](../atoms/session.md)'s `Composition note 4`, `Invariant 1.2` through `Invariant 1.4` are tombstoned to it, `Invariant 1.1` stands, and the Summary now claims exactly the two rules this composition holds. *Over:* carrying the prose's *emergent* claim unchanged, which the atom contradicts; and over deleting Invariant 1 entirely, which was the reviewer's counsel and cuts one rule too deep. *Because:* `Composition note 4` fires on an invalid answer *given* and `Invariant 1.1` fires on no valid answer *given*, so they do not normalize identically (Authority 4) — a deployment that skipped `validate` altogether would satisfy the note and breach the invariant. `Authority 6` forbids a citing spec to restate a rule, which is what the three enumerations did; it does not reach a rule that is strictly stronger. [Permissions](../atoms/permissions.md)'s `Composition note 3` is the third shape again: it assigns the caller-to-subject binding without stating it, so `Invariant 2` is owned here outright. The maintainer's ruling settles the row titled *Which direction a rule may point across a seam* in `open-questions.md`, open since council read 36: **atoms may bind compositions; a composition cites what the composition inherits and owns what the composition adds** (council read 53).
+
+- **2026-09-27 — The length bound sits under the Permissions string cap, and the page steps down to run the round that rule owes.** *Chose:* Primitive policy 10, and `partially resolved` until a three-pass round clears it. *Over:* a routed line on a grounded page. *Because:* a cold regeneration met the gap — Permissions answers an over-length argument denied, so a bound above its cap reports a malformed request as a refusal, the collapse Primitive policy 2 through 4 exist to prevent — and the entry *Touch triggers re-pass* in `pressure-testing.md` downgrades a grounded page for a load-bearing edit (council read 236).
 
 NOTE: End of Session-Gated Authorization.
