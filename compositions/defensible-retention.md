@@ -327,7 +327,7 @@ purge_record(retention_id, actor_ref, credential)
   refuses invalid-request | invalid-credential | not-known | not-eligible | under-active-retention | under-legal-hold(hold_ids, count) | hold-check-unavailable | storage-failure | recording-failure(position)
 ```
 
-Term position: intent | outcome — the record a write lands: the intent or the outcome.
+Term position: intent | outcome | gate — the record a write lands: the intent, the outcome or the gate record.
 
 ```
 Action wiring 1: The composition MUST NOT record an intent BEFORE the boundary predicate passes.
@@ -375,7 +375,7 @@ Action wiring 42: [Purge Eligible] MUST NOT refuse a call.
 Action wiring 43: A reader MUST NOT read [Purge Eligible]'s answer as a sibling statement.
 Action wiring 44: The composition MUST NOT answer not-known for a purge BEFORE rebuilding the retention-to-record index.
 Action wiring 45: IF the retention id IS NOT IN the retention-to-record index THEN [Purge Record] MUST answer not-known.
-Action wiring 47: IF the sibling set carries a retention outside elapsed retention THEN [Purge Record] MUST answer under-active-retention.
+Action wiring 47: IF the hold check admitted the destruction AND the named retention IS IN the elapsed retentions AND the sibling set carries a retention outside elapsed retention THEN [Purge Record] MUST answer under-active-retention.
 Action wiring 48: A purge MUST call Legal Hold's read with the record reference AND the active state.
 Action wiring 49: A purge MUST call Legal Hold's read whatever the named retention's eligibility.
 Action wiring 50: IF Legal Hold refuses the read THEN [Purge Record] MUST answer hold-check-unavailable.
@@ -384,7 +384,7 @@ Action wiring 53: IF the hold check result stands non-empty AND the hold check m
 Action wiring 54: IF the hold check result stands non-empty AND the hold check mode EQUALS strict THEN a purge MUST NOT call Retention Window's purge.
 Action wiring 55: IF the hold check result stands non-empty AND the hold check mode EQUALS advisory THEN a purge MUST record the hold override.
 Action wiring 56: IF the hold check result stands non-empty AND the hold check mode EQUALS advisory THEN a purge MUST NOT record a purge blocked gate record.
-Action wiring 57: IF the named retention IS NOT IN the elapsed retentions THEN a purge MUST answer not-eligible.
+Action wiring 57: IF the hold check admitted the destruction AND the named retention IS NOT IN the elapsed retentions THEN a purge MUST answer not-eligible.
 Action wiring 58: An admitted purge MUST call Retention Window's purge with the retention id.
 Action wiring 59: An admitted purge MUST call Retention Window's purge PER sibling set member.
 Action wiring 60: An admitted purge MUST record a record purged outcome carrying the retention id, the record reference, the purged retention ids, the hold check result, the hold override AND the injected now as purge instant.
@@ -403,13 +403,14 @@ Action wiring 72: The sweep MUST own a yielded invocation's owed record.
 Action wiring 73: A caller MUST read a not-known on a re-invoked purge as a committed destruction.
 Action wiring 74: The composition MUST read an invalid-query answer from Legal Hold's read as the composition's own defect.
 Action wiring 75: The composition MUST answer hold-check-unavailable for a hold store fault outside Legal Hold's read contract.
+Action wiring 76: A purge intent MUST carry the hold check result.
 Deleted: Action wiring 46. Composition state 19 owns it.
 Deleted: Action wiring 51. Invariant 1.3 owns it.
 ```
 
 Term intent: the record_action call naming what an invocation is about to do, written before any committing call — retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended.
 
-Term outcome: the record_action call naming what an invocation did — retention_placed | hold_placed | hold_released | record_purged.
+Term outcome: the record_action call naming what an invocation did — retention_placed | hold_placed | hold_released | record_purged | intent_abandoned.
 
 Term gate record: the purge_blocked_by_hold record a strict-mode refusal writes at the gate — a self-standing record, neither an intent nor an outcome.
 
@@ -436,7 +437,7 @@ Term purged retention ids: the named retention and every sibling set member a re
 Term sweep: the reconciliation leg `Reconciliation 1` through `Reconciliation 24` state.
 
 WHY:
-Action wiring 1 and Action wiring 2 are the whole authentication story, and they are two rules rather than one because they order three things, not two. The commit-free checks come first — a malformed argument, an unknown id, a released hold, a live sibling, an unreadable hold store — so a premature call leaves nothing in the trail at all. The intent comes next, and it is where the caller's credential is verified, because the substrate validates it inside record_action against the registry's material for the supplied actor. The committing call comes last. An invalid-credential is therefore always a pre-state refusal with nothing committed and nothing destroyed, which is `Invariant 10`, and the intent is simultaneously the recovery marker `Reconciliation 5` reads.
+Action wiring 1 and Action wiring 2 are the whole authentication story, and they are two rules rather than one because they order three things, not two. The commit-free checks come first — a malformed argument, an unknown id, a released hold, an unreadable hold store, a live sibling — so a premature call leaves nothing in the trail at all. The intent comes next, and it is where the caller's credential is verified, because the substrate validates it inside record_action against the registry's material for the supplied actor. The committing call comes last. An invalid-credential is therefore always a pre-state refusal with nothing committed and nothing destroyed, which is `Invariant 10`, and the intent is simultaneously the recovery marker `Reconciliation 5` reads.
 
 Action wiring 44 and Action wiring 45 keep a rebuild between an index miss and a refusal. The index is rebuild-on-miss by classification, and a not-known answered from a lost entry would report a live retention as absent — the one reading of a derived index the corpus forbids outright.
 
@@ -448,7 +449,7 @@ Action wiring 61, Action wiring 62 and Action wiring 68 carry the sibling discip
 
 Action wiring 71 and Action wiring 72 give the owed outcome record exactly one writer. The invocation retries until the retention completion bound and then yields; past the bound the record is the sweep's, and the sweep's own pre-check runs under the act's key. Two writers on one act was reachable while both the out-of-band retry and the sweep owed the same record with nothing between them, and a second record_purged for one destruction is a record the trail then protects forever.
 
-The four refusals this composition mints are worth telling apart, because three of them look alike to a caller and mean different things. [Under Legal Hold] says a preservation obligation covers the record and no clock overrides it. [Not Eligible] says the **named** retention is still running. [Under Active Retention] says the named retention has elapsed and a **sibling** has not, which is the one a caller reasoning about a single retention id does not expect. And [Hold Check Unavailable] says the gate could not be evaluated at all — a refusal about the instrument rather than about the record, and the only one a retry may clear without anything changing in either store.
+The four refusals this composition mints are worth telling apart, because three of them look alike to a caller and mean different things. [Under Legal Hold] says a preservation obligation covers the record and no clock overrides it. [Not Eligible] says the **named** retention is still running. [Under Active Retention] says the named retention has elapsed and a **sibling** has not, which is the one a caller reasoning about a single retention id does not expect. And [Hold Check Unavailable] says the gate could not be evaluated at all — a refusal about the instrument rather than about the record, and the only one a retry may clear without anything changing in either store. Where several apply, the gate answers first — `Invariant 1.2` admits no clock refusal over an active hold under strict mode — then the named retention, then its siblings (Action wiring 47, Action wiring 57).
 
 Action wiring 73 is the caller's disambiguation and it is structural rather than token-borne. Re-invoking [Purge Record] after an outcome-position failure is destruction-safe, because Retention Window's terminal purged state refuses a second destruction — so a not-known on re-invocation says the destruction committed and its audit is owed, where a repeat of the intent-position arm says nothing has been destroyed yet.
 
@@ -519,7 +520,7 @@ Term recovery marker: the marker a recovery outcome carries so a reader tells a 
 
 Term recovery outcome: the outcome the sweep emits for a committed act whose own invocation did not record one.
 
-Term intent abandoned: the closing the sweep writes over an open marker whose act it does not recover (Reconciliation 9, Reconciliation 10, Reconciliation 27).
+Term intent abandoned: intent_abandoned — the outcome the sweep writes over an open marker whose act it does not recover (Reconciliation 9, Reconciliation 10, Reconciliation 27).
 
 Term attributed actors: the actor reference of every candidate marker, carried by a recovery outcome (Reconciliation 14).
 
@@ -530,7 +531,7 @@ Reconciliation 6 and Reconciliation 7 are the pairing, and the pairing has to be
 
 Reconciliation 4 and Reconciliation 23 are the two edges. Below the retention completion bound an invocation may still be between its committing call and its outcome, and a re-emission fired there lands a second outcome for one act — which the invocation id match cannot prevent, because the invocation has not written yet. Above the audit horizon the intent's payload is destroyed, so there is no marker to read and the constituent store's own state is the only answer.
 
-Reconciliation 26 and Reconciliation 27 are the re-derivability test stated as an obligation. A re-emitted outcome is built from what the constituent stores and the surviving trail still carry; where a datum lived only in the outcome that never landed, the sweep does not invent it — the marker closes as abandoned and the liveness arm degrades to *surfaced*, which is what the records can actually support.
+Reconciliation 26 and Reconciliation 27 are the re-derivability test stated as an obligation. A re-emitted outcome is built from what the constituent stores and the surviving trail still carry; where a datum lived only in the outcome that never landed, the sweep does not invent it — the marker closes as abandoned and the liveness arm degrades to *surfaced*, which is what the records can actually support. The one datum a destruction's outcome needs that no store carries is the hold check result, so the purge intent carries it (`Action wiring 76`), and the owed destruction record `Action wiring 72` gives the sweep is one the sweep can write. The closing is itself an outcome, so a closed marker is never read open again (`Reconciliation 5`).
 
 ---
 
@@ -568,7 +569,7 @@ Each emerges from the composition; none belongs to one constituent.
   Invariant 4.3: EVERY purge the gate refused under strict mode MUST carry a gate record.
   Invariant 4.4: A record purged outcome MUST carry the hold check result.
   Invariant 4.5: A gate record MUST carry the blocking hold ids AND the blocking count.
-  Invariant 4.6: The composition MUST NOT record an outcome for a refusal outside the gate.
+  Invariant 4.6: The composition MUST NOT record an outcome for a refusal no intent preceded.
   ```
   WHY: Invariant 4.3 is the half a reader forgets. Recording only the passings would leave an auditor unable to tell a gate that never fired from a gate that was never wired, and the two event classes together are what make the gate's behaviour readable in both directions.
 - **Invariant 5 — Audit completeness modulo the substrate's partial-attestation contract.**
@@ -914,7 +915,7 @@ Term cadences: reconciliation cadence, seal cadence.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term value sets: hold check mode = strict | advisory. hold check result = empty | the blocking hold ids with the blocking count. intent = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. outcome = retention_placed | hold_placed | hold_released | record_purged. sibling disposition = purged | pending.
+Term value sets: hold check mode = strict | advisory. hold check result = empty | the blocking hold ids with the blocking count. intent = retention_placement_intended | hold_placement_intended | hold_release_intended | purge_intended. outcome = retention_placed | hold_placed | hold_released | record_purged | intent_abandoned. sibling disposition = purged | pending.
 
 Term terms: composition, constituents, business retention instance, service identity, record, record-to-retentions index, retention-to-record index, audit horizon, surviving placement event, purged placement event, rebuild, sibling set, pending sibling, seam, transition, evidence floor, closure floor, retention completion bound, hold check mode, blank, boundary predicate, opaque input, landed record, owed record, intent, outcome, gate record, committing call, admitted placement, admitted hold placement, admitted hold release, admitted purge, elapsed retention, hold check result, hold override, unavailable sentinel, purged retention ids, sweep, open marker, young marker, aged-out event, recovery intent, recovery marker, recovery outcome, clock offset allowance, constituent commit, gate read, seal coverage, yielded invocation, post-destruction hold, late hold, position, invocation id, intent instant, intent abandoned, attributed actors.
 
@@ -1060,6 +1061,7 @@ open:
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/defensible-retention.md`.
 
+- **2026-09-27 — The sweep can write the destruction record it owns, a closed marker stays closed, and the purge refusals take an order.** *Chose:* the purge intent carries the hold check result (Action wiring 76); intent_abandoned is an outcome; the not-eligible and under-active-retention rules apply only once the hold check admitted the destruction, and the second only over an elapsed named retention; a gate record that cannot land answers `recording-failure(gate)`. *Over:* a recovery outcome needing a hold check result no store carried, so every owed destruction record closed as abandoned; a closing no rule counted as an outcome, so the sweep re-closed it every run and Invariant 5.6 failed for every abandoned invocation; three refusal rules that could each demand their own answer for one call; and a position token with no member for the gate record. *Because:* the cold regeneration of 2026-09-27 met each — the owed record the 2026-09-14 decision gave the sweep could never be written.
 - **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except two rejection surfaces the prose misnamed.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Identity`, `Audit arm`, `Action wiring`, `Wiring decision` and `Reconciliation` as the wiring surfaces, with `Concurrency`, `Clock semantics` and `Atomic writes` as the edge-case families; the ten invariant numbers unchanged; the acceptance section's own two tiers carried across as `Check` and `External check`. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into defensible-retention` finds nothing in the corpus citing this composition by label, so the rewrite carried no frozen-number risk. **No family was minted.** Every one of the sixteen is standard or already recurring, and two of them move: `Audit arm`, which [Login](./login.md) minted one migration earlier, reaches two specs and so meets Principle 2's recurrence half; `Reconciliation` reaches three and so stands as a promotion candidate under `GRACE-lang.md` Standard label 4. `Identity` is the grammar's own standard family taken for the first time by a composition — thirty specs carry it, all of them atoms that mint ids, and this composition mints none: what it owns is an equality the gate evaluates, which is the same question one layer out.
 - **2026-09-14 — A constituent's storage failure surfaces as itself, and this composition's own recording failure carries its position.** *Chose:* storage-failure exported unchanged from all four state-changing actions, and `recording-failure(intent | outcome)` on every one of them. *Over:* the prose's mapping of a constituent storage-failure onto recording-failure, and a bare recording-failure on the three non-destructive actions. *Because:* the first renamed a failure to *write a record* into a failure to *record it*, which is a different fact and a different repair; the second put one token on both sides of the commit, so a caller who retried on it could not know whether anything had committed — which the corpus's own rule requires the exported code to answer.
 - **2026-09-14 — The owed destruction record has exactly one writer.** *Chose:* an invocation retries its outcome until the retention completion bound and then yields; past the bound the record belongs to the sweep, which serializes its leg on the act's invocation id and re-reads the act's outcome under that serialization. *Over:* an out-of-band retry and a sweep both owing the same record with nothing between them. *Because:* two writers over one destruction land two record_purged events for one act, and the trail then protects both — the one failure a compensating write cannot undo.
