@@ -230,7 +230,7 @@ The same atom, five domains, identical mechanic.
 
 ### Banking — segregation of duties on high-value transfers
 
-Regulatory policy requires that no single employee can both initiate and approve a wire transfer above $25,000. Two grants are issuance instant onboarding: `grant(teller_t9, initiate:transfer) → grant_id g1` and `grant(supervisor_s4, approve:transfer) → grant_id g2`. When teller_t9 attempts to approve their own wire, the system calls `permitted(teller_t9, approve:transfer)` — denied. Only supervisor_s4 holds an active grant covering `approve:transfer`. SOX (Sarbanes-Oxley Act) requires this segregation to be demonstrable from records; the grant store is that demonstration.
+Regulatory policy requires that no single employee can both initiate and approve a wire transfer above $25,000. Two grants are issued at onboarding: `grant(teller_t9, initiate:transfer) → grant_id g1` and `grant(supervisor_s4, approve:transfer) → grant_id g2`. When teller_t9 attempts to approve their own wire, the system calls `permitted(teller_t9, approve:transfer)` — denied. Only supervisor_s4 holds an active grant covering `approve:transfer`. SOX (Sarbanes-Oxley Act) requires this segregation to be demonstrable from records; the grant store is that demonstration.
 
 ### Healthcare — HIPAA minimum necessary access
 
@@ -431,7 +431,7 @@ Kind: Operation
 
 #### Grant Id
 
-The opaque, immutable identity of a grant, host-allocation instant the I/O seam on [Grant] and never reused. The [Subject Reference] and [Action Scope] are properties of the grant, not its identity; the id is the handle [Revoke] uses.
+The opaque, immutable identity of a grant, host-allocated at the I/O seam on [Grant] and never reused. The [Subject Reference] and [Action Scope] are properties of the grant, not its identity; the id is the handle [Revoke] uses.
 
 Kind:       Field
 Field of:   Permissions

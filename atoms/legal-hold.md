@@ -89,7 +89,7 @@ Term release reason: the ground the obligation ended on — a [Release Reason].
 Term release instant: the instant the obligation was documented as ended — a [Release Instant].
 
 WHY:
-There is no aggregate *is this record held* field, because an aggregate is a second copy of the truth that drifts the moment a hold is placed or released; the question is answered by reading the active holds over the record (State 9, Operation 20). A released hold stays in the store because it is the proof the obligation was honoured and lawfully lifted — the evidence a court asks for, deleting actor nobody (State 7, Invariant 8.1).
+There is no aggregate *is this record held* field, because an aggregate is a second copy of the truth that drifts the moment a hold is placed or released; the question is answered by reading the active holds over the record (State 9, Operation 20). A released hold stays in the store because it is the proof the obligation was honoured and lawfully lifted — the evidence a court asks for, deleted by nobody (State 7, Invariant 8.1).
 
 ### Capability requirement
 
@@ -173,7 +173,7 @@ Term admitted axis: hold id | record reference | placing actor | case reference 
 
 Term resolved release instant: the release instant the release records — the caller's value where one is supplied, the injected now otherwise.
 
-Term hold instant an instant: placement instant at or before the instant, and either the hold state EQUALS active or the hold carries a release instant after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
+Term held at an instant: placement instant at or before the instant, and either the hold state EQUALS active or the hold carries a release instant after the instant — the reconstruction an auditor runs over stored fields, never over the hold's present state.
 
 The case space, and the rule that owns each case:
 
@@ -215,7 +215,7 @@ A blank hold id is refused before the store is consulted, because *you passed ga
   ```
   Invariant 4.1: A release MUST NOT change another hold's state.
   Invariant 4.2: A hold's state MUST rest on that hold's own release alone.
-  Invariant 4.3: A record MUST read as hold instant an instant ONLY IF a hold over the record is hold instant an instant.
+  Invariant 4.3: A record MUST read as held at an instant ONLY IF a hold over the record is held at an instant.
   ```
 - **Invariant 5 — Release attribution is complete.**
   ```
@@ -514,7 +514,7 @@ Projection: state
 
 #### Releasing Actor
 
-The opaque reference to the actor releasing the hold. Set Instant [Release], immutable; present on [Released] holds only. Non-null required (Invariant 5).
+The opaque reference to the actor releasing the hold. Set at [Release], immutable; present on [Released] holds only. Non-null required (Invariant 5).
 
 Kind:       Field
 Field of:   the hold record
@@ -522,7 +522,7 @@ Projection: released_by
 
 #### Release Reason
 
-The required, non-empty reason for the release — written from the [Reason] parameter at [Release]. Set Instant [Release], immutable; present on [Released] holds only (Invariant 5).
+The required, non-empty reason for the release — written from the [Reason] parameter at [Release]. Set at [Release], immutable; present on [Released] holds only (Invariant 5).
 
 Kind:       Field
 Field of:   the hold record
@@ -530,7 +530,7 @@ Projection: release_reason
 
 #### Release Instant
 
-The timestamp the hold was released — supplied or defaulted to wall clock; must not be future and must be ≥ [Placement Instant] (Invariant 6). Set Instant [Release], immutable; present on [Released] holds only.
+The timestamp the hold was released — supplied or defaulted to wall clock; must not be future and must be ≥ [Placement Instant] (Invariant 6). Set at [Release], immutable; present on [Released] holds only.
 
 Kind:       Field
 Field of:   the hold record

@@ -68,7 +68,7 @@ Identity 16: An action MUST NOT accept a store name.
 
 Term observation: one recorded measurement about one subject — a value, a unit, a type, an observer and an instant; the record this atom holds.
 
-Term observation id: the opaque value naming one observation — an [Observation Id]; host-allocation instant the seam.
+Term observation id: the opaque value naming one observation — an [Observation Id]; host-allocated at the seam.
 
 Term subject reference: the opaque reference naming what the measurement is about — a [Subject Reference]; a property of the observation, never the observation's identity.
 
@@ -535,7 +535,7 @@ Composition note 10: A composing pattern reading the observation store MUST NOT 
 WHY:
 [Event Log](./event-log.md) is the structural cousin and not a constituent: this store is append-only with immutable entries ordered by an instant, which is an event log's shape, and it carries amendment and retraction semantics an event log has none of. A deployment may layer one as the persistence substrate; that is an implementation choice rather than a composition this atom names.
 
-[Actor Identity](./actor-identity.md) is what makes recording actor, amending actor and retracting actor more than opaque strings — the attestation that the reference names a real, credentialed observer at the time of recording, which a disputed-authorship challenge needs and this atom cannot supply. [Permissions](./permissions.md) answers the different question of whether that observer was *allowed* to record, and the two are often confused: the atom records who, the attestation proves who, the permission proves may.
+[Actor Identity](./actor-identity.md) is what makes recording actor, amending actor and retracted by more than opaque strings — the attestation that the reference names a real, credentialed observer at the time of recording, which a disputed-authorship challenge needs and this atom cannot supply. [Permissions](./permissions.md) answers the different question of whether that observer was *allowed* to record, and the two are often confused: the atom records who, the attestation proves who, the permission proves may.
 
 [Tamper Evidence](./tamper-evidence.md) lifts immutability from a specification guarantee to a cryptographic one. [Retention Window](./retention-window.md) and [Legal Hold](./legal-hold.md) own the clocks this atom refuses to hold (State 4, Non-goal 14 through 16), and [Audit Trail](../compositions/audit-trail.md) is the regulated record-keeping stack this store feeds. [Medication Order](./medication-order.md) carries an opaque reference to the observations that informed a prescribing decision — advisory, unidirectional, and no dependency in this direction: this atom is the upstream evidence and does not know what was done with it.
 
@@ -689,7 +689,7 @@ Projection: amendment_reason
 
 #### Retracting Actor
 
-The opaque reference to the observer who withdrew an observation — set instant [Retract] time, immutable thereafter (Invariant 9).
+The opaque reference to the observer who withdrew an observation — set at [Retract] time, immutable thereafter (Invariant 9).
 
 Kind:       Field
 Field of:   Observation
@@ -697,7 +697,7 @@ Projection: retracted_by
 
 #### Retraction Reason
 
-The required, non-empty reason for a retraction — set instant [Retract] time, immutable thereafter. A blank reason is rejected.
+The required, non-empty reason for a retraction — set at [Retract] time, immutable thereafter. A blank reason is rejected.
 
 Kind:       Field
 Field of:   Observation
@@ -882,7 +882,7 @@ open: none
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/clinical-observation.md`.
 
-- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section with its semantics — taken before the state check, released on return or death, a lease's expiry the invocation's terminus, a stalled invocation re-reading the state under the critical section and landing [Already Amended]; a deployment-declared clock offset allowance under which the future-dated check on a caller-supplied [Recording Instant] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction, beside a caller told to read the original and retry; a future-dated refusal deciding actor comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 7 says never exists, could relink one dangling shape but not the other — the successor's content is nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an act the caller's retry could already have landed; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone* — with *Recovery commits under a declared service identity … and what cannot be re-derived is re-run*, frozen 2026-08-29).
+- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section with its semantics — taken before the state check, released on return or death, a lease's expiry the invocation's terminus, a stalled invocation re-reading the state under the critical section and landing [Already Amended]; a deployment-declared clock offset allowance under which the future-dated check on a caller-supplied [Recording Instant] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction, beside a caller told to read the original and retry; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 7 says never exists, could relink one dangling shape but not the other — the successor's content is nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an act the caller's retry could already have landed; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *A stamp from another seam never decides a write alone* — with *Recovery commits under a declared service identity … and what cannot be re-derived is re-run*, frozen 2026-08-29).
 
 - **2026-09-13 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the four actions as a signature block, Invariant 1 through 9 keeping their numbers, every success effect conditioned on a declared admitted record, admitted amend, admitted retract or admitted read (Hard invariant 16), [Amend] and [Retract] unified under a declared chain action so their shared guards are stated once, the per-action *rejection priority* paragraph collapsed to one seven-row case space, the arithmetic in `recorded_at ≤ now + clock_offset_allowance` routed through a declared future bound so no rule carries a sum (Closed vocabulary 9), the five acceptance areas opened into `Check 1.1 through 6.1` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and four edge-case families. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into clinical-observation` found nothing citing this atom by label. 61.2 KB → 60.7 KB, the smallest reduction of the migration — this atom's prose carried almost no restatement, and what came out was one repeated precedence paragraph.
 

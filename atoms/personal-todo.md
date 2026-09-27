@@ -425,7 +425,7 @@ Kind: Operation
 
 #### Id
 
-The opaque, immutable identity of a unit, host-allocation instant the I/O seam on [Add] and never changed. The unit's [Description] is a property under uniqueness constraint, not its identity — two units with the same [Description] still have different ids.
+The opaque, immutable identity of a unit, host-allocated at the I/O seam on [Add] and never changed. The unit's [Description] is a property under uniqueness constraint, not its identity — two units with the same [Description] still have different ids.
 
 Kind:       Field
 Field of:   Personal Todo

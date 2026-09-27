@@ -68,7 +68,7 @@ Identity 14: The deployment MUST supply a reference in one canonical byte form.
 
 Term step: one authorization gate — one subject, one approver, one submitter, one scope and one outcome; the record this atom holds.
 
-Term step id: the opaque value naming one step — a [Step Id]; host-allocation instant the seam.
+Term step id: the opaque value naming one step — a [Step Id]; host-allocated at the seam.
 
 Term subject reference: the opaque reference naming the thing being approved — a [Subject Reference]; a property of the step, never the step's identity.
 
@@ -272,7 +272,7 @@ Row 1 precedes the store lookup because a blank step id is garbage, not a refere
 
 Operation 19 states the within-step temporal bound as a precedence rather than as a comparison, so no rule here spells `≥` as a two-arm disjunction. A decision recorded *at* the instant of submission is legal, and `precedes` admits it in one arm.
 
-Operation 43 is the filter rule an auditor has to understand before trusting a result set: an instant-range filter on decision instant answers only steps carrying a decision instant, so pending and withdrawn steps are excluded whether or not a state filter says so. The alternative — treating an absent field as unmatched-but-present — would make *every step decided in March* silently include steps that were never decision instant all.
+Operation 43 is the filter rule an auditor has to understand before trusting a result set: an instant-range filter on decision instant answers only steps carrying a decision instant, so pending and withdrawn steps are excluded whether or not a state filter says so. The alternative — treating an absent field as unmatched-but-present — would make *every step decided in March* silently include steps that were never decided at all.
 
 ### Invariants
 
@@ -447,7 +447,7 @@ Non-goal 13 is the one that looks like a missing control. A [Submit] naming the 
 
 Non-goal 18 and Non-goal 19 are the completeness boundary. This atom records the gates that were submitted and cannot record the ones that were not; a query over what exists cannot see an absence. The required-gate mapping — *every journal entry above $10K needs a controller and a CFO approval* — is the calling system's business-rule layer, and the comparison is a composition's (External check 2).
 
-Non-goal 20 keeps submission instant unbounded below on purpose. A gate is routinely recording actor a workflow bridge after the request was actually made through another channel — an email, a meeting, a paper form — and refusing the earlier instant would force the record to misstate when the request happened. The future bound refuses the one direction that is always fabrication; the defence against a step back-inserted into the past is the composing [Audit Trail](../compositions/audit-trail.md) and [Tamper Evidence](./tamper-evidence.md) layer, which makes the record's creation order itself evident.
+Non-goal 20 keeps submission instant unbounded below on purpose. A gate is routinely recorded by a workflow bridge after the request was actually made through another channel — an email, a meeting, a paper form — and refusing the earlier instant would force the record to misstate when the request happened. The future bound refuses the one direction that is always fabrication; the defence against a step back-inserted into the past is the composing [Audit Trail](../compositions/audit-trail.md) and [Tamper Evidence](./tamper-evidence.md) layer, which makes the record's creation order itself evident.
 
 ---
 

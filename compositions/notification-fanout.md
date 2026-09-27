@@ -99,7 +99,7 @@ Term entropy floor: 128 bits of entropy per id, or a generator whose coordinatio
 Term read latency bound: the deployment's disclosed bound on the interval between the composition dispatching subscribers_for and the subscription store executing it — a [Read Latency Bound].
 
 WHY:
-Capability requirement 3 is a floor neither constituent supplies. [Subscription](../atoms/subscription.md) declares the same floor for its own record ids and [Notification](../atoms/notification.md) declares none, so the requirement is this composition's dependency on its host and is attributed actors neither atom — which is what makes it a `Capability requirement` rather than an inherited guarantee.
+Capability requirement 3 is a floor neither constituent supplies. [Subscription](../atoms/subscription.md) declares the same floor for its own record ids and [Notification](../atoms/notification.md) declares none, so the requirement is this composition's dependency on its host and is attributed to neither atom — which is what makes it a `Capability requirement` rather than an inherited guarantee.
 
 Capability requirement 6 and Capability requirement 7 are the two halves of the boundary window Check 1 needs. Neither is a record, both are operating facts a deployment states, and without them the window is not computable and the audit degrades to a caveat.
 
@@ -298,7 +298,7 @@ A derived implementation is acceptable when an external auditor, given the subsc
 
 ```
 Check 1.1: An auditor MUST read a fanout's event scope and firing instant from the composed Event Log entry (Invariant 8.3).
-Check 1.2: An auditor MUST reconstruct the active subscriber set instant the firing instant from Subscription's historical-state filter (Invariant 1.2).
+Check 1.2: An auditor MUST reconstruct the active subscriber set at the firing instant from Subscription's historical-state filter (Invariant 1.2).
 Check 1.3: An auditor MUST find EVERY reconstructed subscriber reference in EXACTLY ONE OF the created list, the failed list (Invariant 1.2).
 Check 1.4: An auditor MUST find the created list's count AND the failed list's count summing to the reconstructed set's count (Invariant 1.2).
 Check 1.5: An auditor MUST read a count mismatch inside the boundary window as boundary-adjacent (Capability requirement 6, Capability requirement 7).
@@ -353,7 +353,7 @@ Non-goal 14: The composition MUST NOT bound the fan-out's cost.
 ```
 
 WHY:
-Non-goal 5 and Non-goal 6 are one decision seen from two sides: the subscriber set is the active set instant the instant the store executed the query, and the composition neither re-reads it nor filters it afterwards. A subscriber who cancels between the query and their create still receives a record, and one who subscribes after does not — both correct, both consequences of reading once.
+Non-goal 5 and Non-goal 6 are one decision seen from two sides: the subscriber set is the active set at the instant the store executed the query, and the composition neither re-reads it nor filters it afterwards. A subscriber who cancels between the query and their create still receives a record, and one who subscribes after does not — both correct, both consequences of reading once.
 
 Non-goal 3 is the crash bound. A fan-out that dies mid-flight answers nothing, so there is no result to carry an account and no entry for a composed Event Log to hold; the coverage claim is over invocations that answered and says nothing about the ones that did not.
 
@@ -482,7 +482,7 @@ Projection: subscribers-unavailable
 
 #### Entropy Floor
 
-The uniqueness bound this composition places on its host's id source: 128 bits of entropy per id, or a generator whose coordination gives the same uniqueness. [Subscription](../atoms/subscription.md) declares the same floor for its own record ids and [Notification](../atoms/notification.md) declares none, so the bound is attributed actors neither constituent and stated here as a Capability requirement (Capability requirement 3, Invariant 8.1).
+The uniqueness bound this composition places on its host's id source: 128 bits of entropy per id, or a generator whose coordination gives the same uniqueness. [Subscription](../atoms/subscription.md) declares the same floor for its own record ids and [Notification](../atoms/notification.md) declares none, so the bound is attributed to neither constituent and stated here as a Capability requirement (Capability requirement 3, Invariant 8.1).
 
 Kind:      Parameter
 Parameter of: the host

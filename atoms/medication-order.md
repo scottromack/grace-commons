@@ -80,7 +80,7 @@ Term transition: the atom's evaluation of one call against the order store, as `
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
 WHY:
-Identity 11 and Identity 13 are the atom's sharpest refusal, and the one a clinical reader expects to find broken. This spec never reads what a medication reference *means* — not its schedule, not its interactions, not its formulary status — which is why it can be one atom rather than a pharmacopoeia. What it guarantees is that the reference recording instant placement is the reference on every record downstream, and Invariant 2.1 makes changing it structurally impossible rather than merely refused: [Amend] does not take a medication reference at all.
+Identity 11 and Identity 13 are the atom's sharpest refusal, and the one a clinical reader expects to find broken. This spec never reads what a medication reference *means* — not its schedule, not its interactions, not its formulary status — which is why it can be one atom rather than a pharmacopoeia. What it guarantees is that the reference recorded at placement is the reference on every record downstream, and Invariant 2.1 makes changing it structurally impossible rather than merely refused: [Amend] does not take a medication reference at all.
 
 Identity 15 is the store-instance boundary stated as a refusal. Instances exist per health system, facility, department or care team, and an order id means nothing outside the one it was assigned in; a patient reference is the thing that spans them, which is why it is not this atom's identity (Identity 7).
 
@@ -524,7 +524,7 @@ Non-goal 25: A deployment needing a verifiable time anchor MUST compose a truste
 WHY:
 Non-goal 4 through 7 are the refusal a clinical reader least expects and the one that keeps this atom small. Nothing here knows whether 10 mg is a reasonable dose, whether the drug interacts with another on the patient's list, or whether the patient is allergic to it. Every one of those is a judgment about a medication this atom holds only as an opaque reference, and building any of them in would require the atom to know what the drug *is*.
 
-Non-goal 10 is worth stating because a clinical system usually has that state. An order placing actor mistake — wrong patient, duplicate submission, system glitch — is cancelled with a reason that says so, and the cancellation reason carries the difference between a clinical decision and a clerical one. A separate state would split the pre-dispensing terminal in two and make every downstream count ask which of the two it meant.
+Non-goal 10 is worth stating because a clinical system usually has that state. An order placed by mistake — wrong patient, duplicate submission, system glitch — is cancelled with a reason that says so, and the cancellation reason carries the difference between a clinical decision and a clerical one. A separate state would split the pre-dispensing terminal in two and make every downstream count ask which of the two it meant.
 
 Non-goal 24 is the honest limit. An open-ended order — one placed with no duration — stands active until someone completes or discontinues it, and nothing here makes that happen.
 
@@ -748,7 +748,7 @@ Projection: order_id
 
 #### Patient Reference
 
-The opaque reference naming whose prescription this is. Set Instant placement, immutable, inherited unchanged by every successor, and scoped globally rather than per store instance.
+The opaque reference naming whose prescription this is. Set at placement, immutable, inherited unchanged by every successor, and scoped globally rather than per store instance.
 
 Kind:       Field
 Field of:   Order
@@ -884,7 +884,7 @@ Projection: dispenser_ref
 
 #### Quantity
 
-How much was release instant [Dispense]. Positive; written once.
+How much was released at [Dispense]. Positive; written once.
 
 Kind:       Field
 Field of:   Order
@@ -1305,6 +1305,6 @@ Directional changes only — the turns a future reader must know the pattern too
   What does not strip is the *graph*. Nine states in this topology, with the amendment boundary and the cancel/discontinue split landing on exactly the dispensing edge, is not derivable from neutral primitives — a generic state machine plus a supplied graph is just this atom with the domain moved into a parameter, and the parameter would carry every clinical judgment the graph encodes. The domain hides in the shape, not in the words and not in the rules. The formal layer corroborates: this is the only atom in the migrated set carrying both an Alloy model and a TLA model, and the Alloy model exists because the *structure* needed checking rather than the timing.
 
   Three specimens now, three hiding places: [Observation](./observation.md) hid nothing and was renamed; [Party Identity](./party-identity.md) hid it in the field schema and kept both name and no tag; this one hides it in the graph and keeps the tag. The test's site-census grows by one per specimen, which is the argument for running it on every atom rather than on the ones that look domain-shaped.
-- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity of the atom's own store as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section — taken before the state check, released on return or death — with a stalled or re-issued invocation re-reading under the critical section and landing an existing rejection; a re-entry arm for a caller whose [Amend] lost its response, retrying only where the original is still amendable; and a deployment-declared clock offset allowance under which the future-dated check on a supplied [Order Instant] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction; a caller left to retry [Amend] blind, which on an original still [Ordered] creates a second successor; a future-dated refusal deciding actor comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 14.2 says never exists, could relink one dangling shape but not the other — the successor's dosing parameters, [Amending Actor] and its amendment reason are nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an amendment the caller's retry could already have landed, branching a chain Invariant 4.1 keeps linear; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page.
+- **2026-08-30 — One writer per transition, and no repair leg.** *Chose:* transactional atomicity of the atom's own store as the only conforming implementation of [Amend]'s two writes, the crash-recovery scan withdrawn; the per-id serialization stated as a critical section — taken before the state check, released on return or death — with a stalled or re-issued invocation re-reading under the critical section and landing an existing rejection; a re-entry arm for a caller whose [Amend] lost its response, retrying only where the original is still amendable; and a deployment-declared clock offset allowance under which the future-dated check on a supplied [Order Instant] runs. *Over:* a scan "that detects and repairs dangling amendment links on restart" offered as an equal alternative to a transaction; a caller left to retry [Amend] blind, which on an original still [Ordered] creates a second successor; a future-dated refusal decided by comparing the caller's stamp to the node's clock with no margin. *Because:* the scan presumed a visible partial record that Invariant 14.2 says never exists, could relink one dangling shape but not the other — the successor's dosing parameters, [Amending Actor] and its amendment reason are nowhere in the store, and un-marking the original rewrites a write-once field — and made a second writer for an amendment the caller's retry could already have landed, branching a chain Invariant 4.1 keeps linear; and a caller's stamp and the node's reading are two clocks, so a refusal resting on their comparison needs the margin on the page.
 
 NOTE: End of Medication Order.

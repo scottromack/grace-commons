@@ -35,7 +35,7 @@ A system that authenticates once and then permits action across many requests ne
 
 The atom isolates that attestation from everything around it. It does not verify credentials — that is [Credential](./credential.md)'s surface. It does not decide what the principal may do — that is [Permissions](./permissions.md)'. It does not sequence the login flow, the multi-factor challenge and the issuance — that is [Login](../compositions/login.md)'s. It answers one structural question: given this token, is there an active, unexpired, unrevoked session for a known principal? And the answer is one of four outcomes, derivable from the records alone.
 
-The time bound is the atom's core commitment, and the discipline around it is where most session designs go wrong. expiry instant is set instant issue and never mutated. A session needing a longer life is re-issued — a new record, a new token — never extended in place. That immutability is what makes every session's window auditable from one record: no history table, no event log, no developer's account of whether an extension was granted. The record says when validity ends, and that field never changes.
+The time bound is the atom's core commitment, and the discipline around it is where most session designs go wrong. expiry instant is set at issue and never mutated. A session needing a longer life is re-issued — a new record, a new token — never extended in place. That immutability is what makes every session's window auditable from one record: no history table, no event log, no developer's account of whether an extension was granted. The record says when validity ends, and that field never changes.
 
 The second commitment is that lapsing is *derived*, not written. There is no `expire` action, no `expired_at` column, and no stored [Expired] status. A session past its deadline is computed as lapse instant read time from the immutable deadline against the injected clock. Nothing fires, nothing is stamped, no scheduler is needed — and the stored state space stays exactly two values, which removes the failure mode where a flag lags the clock it is meant to idealize.
 
@@ -60,7 +60,7 @@ Identity 12: The atom MUST NOT confirm that a principal reference names an authe
 
 Term session: one bounded-lifetime attestation that a principal completed authentication — a [Session], the record this atom holds.
 
-Term session token: the opaque value naming one session — a [Session Token]; unguessable, host-allocation instant the seam, and the capability [Validate] and [Revoke] accept.
+Term session token: the opaque value naming one session — a [Session Token]; unguessable, host-allocated at the seam, and the capability [Validate] and [Revoke] accept.
 
 Term principal reference: the opaque reference naming the authenticated principal — a [Principal Reference].
 
@@ -73,7 +73,7 @@ Term transition: the atom's evaluation of one call against the session store, as
 WHY:
 The token is both identity and bearer credential, and that is deliberate rather than a shortcut: it is how session systems actually work — the cookie *is* the session identifier — and it makes [Validate] a lookup rather than a join. A separate opaque id beside the token would add indirection and buy nothing at this atom's scope (Identity 7).
 
-Because the token is the credential, its security properties are structural and not deployment taste. Two sessions for one principal issuance instant different moments have unrelated tokens, and nothing about a token is derivable from the principal or the issue time (Identity 9, Identity 10, Capability requirement 3, Operation 49, Capability requirement 4).
+Because the token is the credential, its security properties are structural and not deployment taste. Two sessions for one principal issued at different moments have unrelated tokens, and nothing about a token is derivable from the principal or the issue time (Identity 9, Identity 10, Capability requirement 3, Operation 49, Capability requirement 4).
 
 ### State
 
@@ -419,7 +419,7 @@ Check 6.1: An auditor MUST find no revoked session whose status EQUALS active (I
 NOTE: EVERY check names the rule the check tests.
 
 WHY:
-Check 3.1 is the reconstruction [Validate] itself applies: a session was in force at an instant when its issuance instant does not follow that instant, its expiry instant does, and its revocation instant is either absent or later. The stored status need not be consulted beyond *not revocation instant that instant*, because the lapse is computed from the deadline rather than remembered — which is the whole point of Invariant 12 and the reason this check needs the store and a clock and nothing else.
+Check 3.1 is the reconstruction [Validate] itself applies: a session was in force at an instant when its issuance instant does not follow that instant, its expiry instant does, and its revocation instant is either absent or later. The stored status need not be consulted beyond *not revoked at that instant*, because the lapse is computed from the deadline rather than remembered — which is the whole point of Invariant 12 and the reason this check needs the store and a clock and nothing else.
 
 Check 5.1 is the one check that reads a contract rather than records. Four distinguishable answers is a behavioural commitment, and no arrangement of stored fields can evidence it — a conforming store behind an implementation that collapses [Invalid Expired] and [Invalid Revoked] into one boolean fails Invariant 6.2 while every record looks correct.
 

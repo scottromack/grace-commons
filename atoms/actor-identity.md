@@ -431,7 +431,7 @@ Projection: actor_ref
 
 #### Attestation Id
 
-The opaque, immutable identity of an [Attestation], host-allocation instant the I/O seam on [Attest] and never reused. The [Action Reference], [Actor Reference], [Proof], and [Attestation Instant] are properties of the [Attestation], not its identity.
+The opaque, immutable identity of an [Attestation], host-allocated at the I/O seam on [Attest] and never reused. The [Action Reference], [Actor Reference], [Proof], and [Attestation Instant] are properties of the [Attestation], not its identity.
 
 Kind:       Field
 Field of:   Attestation

@@ -63,7 +63,7 @@ Identity 15: The deployment MUST choose a disclosure id format that sorts in lex
 
 Term disclosure record: one recorded disclosure of one subject's data to one recipient under one authority — the record this atom holds.
 
-Term disclosure id: the opaque value naming one disclosure record — a [Disclosure Id]; host-allocation instant the seam, fresh per call by the seam's construction.
+Term disclosure id: the opaque value naming one disclosure record — a [Disclosure Id]; host-allocated at the seam, fresh per call by the seam's construction.
 
 Term subject reference: the opaque reference naming the data subject whose data was disclosed — a [Subject Reference]; a property of the record, never the record's identity.
 
@@ -179,7 +179,7 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term authority: the structured field naming the basis the disclosure was made under — an [Authority]; carries authority type and authority reference and nothing else.
 
-Term authority type: consent | legal-hold | regulatory — an [Authority Type], set instant record and never changed.
+Term authority type: consent | legal-hold | regulatory — an [Authority Type], set at record and never changed.
 
 Term authority types: the three members of authority type, cited here from that declaration (Closed vocabulary 15).
 
@@ -305,7 +305,7 @@ Check 2.3: An auditor MUST find EVERY disclosure record whose authority type IS 
 Check 3.1: An auditor MUST find a re-read disclosure record's fields unchanged from the prior read (Invariant 1.1).
 Check 3.2: An auditor MUST find no disclosure record absent from a later unfiltered read (Invariant 6.1, State 9).
 Check 4.1: An auditor MUST find [Record] answering unknown-authority-type for an authority type that IS NOT IN the authority types (Operation 9).
-Check 4.2: An auditor MUST find no disclosure record recording actor a refused [Record] (Operation 16).
+Check 4.2: An auditor MUST find no disclosure record recorded by a refused [Record] (Operation 16).
 Check 5.1: An auditor MUST find a subject reference query answering EVERY disclosure record carrying the subject reference (Operation 27).
 Check 5.2: An auditor MUST find an authority type query answering ONLY the disclosure records carrying the authority type (Operation 28).
 Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
@@ -358,7 +358,7 @@ Non-goal 23: A deployment needing a verifiable time anchor MUST compose a truste
 ```
 
 WHY:
-Non-goal 4 is the one a reader most often mistakes for a defect. The scope is the calling system's declaration of what it shared, and the atom records it without checking it — a system recording `scope: "contact-fields-only"` while transmitting a full medical record has produced an inaccurate disclosure record, and that is a calling-system failure the atom cannot see. What the atom guarantees is that the declaration is durable, attributed actors a subject and a recipient, and impossible to revise later.
+Non-goal 4 is the one a reader most often mistakes for a defect. The scope is the calling system's declaration of what it shared, and the atom records it without checking it — a system recording `scope: "contact-fields-only"` while transmitting a full medical record has produced an inaccurate disclosure record, and that is a calling-system failure the atom cannot see. What the atom guarantees is that the declaration is durable, attributed to a subject and a recipient, and impossible to revise later.
 
 Non-goal 5 and Non-goal 6 are where a structurally valid record can still fail the regulation. GDPR Article 15(1)(c) requires the recipients and the categories of data to be named in terms the data subject can act on; `scope: "tbl_disc_oncology_42"` and `recipient: "partner-AV7"` satisfy every rule here and satisfy no data subject. Choosing a vocabulary the regulatory audience can read is the calling system's obligation, and an auditor cannot clear it from the records without knowing that vocabulary.
 

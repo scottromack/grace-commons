@@ -75,7 +75,7 @@ Term proof: the artifact the mechanism produced over the record set — a [Proof
 
 Term sealing instant: the wall-time instant the evidence was recorded, stamped from the injected now — a [Sealing Instant].
 
-Term anchoring instant: the time an external anchor recording instant seal time — an [Anchoring Instant]; absent where the mechanism anchors nothing.
+Term anchoring instant: the time an external anchor recorded at seal time — an [Anchoring Instant]; absent where the mechanism anchors nothing.
 
 Term mechanism credential: the material the mechanism consumes to produce the proof — a [Mechanism Credential]; keying material for a keyed mechanism, and an empty value — present, carrying nothing — for an unkeyed one. Absent is not empty: Operation 7 refuses the input that was never supplied, Operation 8 accepts the one supplied with no content.
 
@@ -242,7 +242,7 @@ A developer pushes a commit. Git computes the cryptographic hash (a fixed-length
 
 ### Legal — document notarization under RFC 3161 trusted timestamping
 
-A law firm timestamps an executed contract via a qualified Time-Stamp Authority (TSA — a trusted third party that issues signed proofs that data existed at a given time). The mechanism is RFC 3161: a hash of the contract is submitted to the TSA; the TSA returns a signed TimeStampToken binding the hash to a trusted time. The token *is* the [Proof]; [Anchoring Instant] is set from the TSA's timestamp. Any future dispute — opposing counsel claims the contract was modified post-signing — is resolving actor `verify(evidence, contract_pdf) → verified | failed-verification(proof-invalid)`. eIDAS Regulation (Electronic Identification, Authentication and Trust Services — the EU regulation governing electronic signatures and timestamps) gives qualified electronic timestamps presumed evidentiary effect across the EU.
+A law firm timestamps an executed contract via a qualified Time-Stamp Authority (TSA — a trusted third party that issues signed proofs that data existed at a given time). The mechanism is RFC 3161: a hash of the contract is submitted to the TSA; the TSA returns a signed TimeStampToken binding the hash to a trusted time. The token *is* the [Proof]; [Anchoring Instant] is set from the TSA's timestamp. Any future dispute — opposing counsel claims the contract was modified post-signing — is resolved by `verify(evidence, contract_pdf) → verified | failed-verification(proof-invalid)`. eIDAS Regulation (Electronic Identification, Authentication and Trust Services — the EU regulation governing electronic signatures and timestamps) gives qualified electronic timestamps presumed evidentiary effect across the EU.
 
 ### Payments — PAN-handling audit under PCI DSS
 
@@ -444,7 +444,7 @@ Kind: Operation
 
 #### Evidence Id
 
-The opaque, immutable identity of an [Evidence], host-allocation instant the I/O seam on [Seal] and never reused. The [Record Set Reference], [Proof], [Sealing Instant], and [Anchoring Instant] are properties of the [Evidence], not its identity.
+The opaque, immutable identity of an [Evidence], host-allocated at the I/O seam on [Seal] and never reused. The [Record Set Reference], [Proof], [Sealing Instant], and [Anchoring Instant] are properties of the [Evidence], not its identity.
 
 Kind:       Field
 Field of:   Evidence

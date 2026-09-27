@@ -468,7 +468,7 @@ Kind: Operation
 
 #### Retention Id
 
-The opaque, immutable identity of a retention, host-allocation instant the I/O seam on [Place Under Retention] and never reused. The [Record Reference], [Policy Reference], and the derived deadlines are properties of the retention, not its identity.
+The opaque, immutable identity of a retention, host-allocated at the I/O seam on [Place Under Retention] and never reused. The [Record Reference], [Policy Reference], and the derived deadlines are properties of the retention, not its identity.
 
 Kind:       Field
 Field of:   Retention Window

@@ -55,7 +55,7 @@ Identity 10: The atom MUST match a principal reference exactly.
 Identity 11: The deployment MUST canonicalize a principal reference.
 ```
 
-Term preference id: the opaque value naming one preference record — a [Preference Id]; host-allocation instant the seam, never reused.
+Term preference id: the opaque value naming one preference record — a [Preference Id]; host-allocated at the seam, never reused.
 
 Term principal reference: the opaque reference naming the principal whose preferences the record holds — a [Principal Reference]; compared by exact equality.
 
@@ -342,7 +342,7 @@ Instance 5: The atom MUST NOT accept a store name as an input.
 Instance 6: A preference record MUST NOT carry a store name.
 Instance 7: The atom MUST NOT hold the declared channel set.
 Instance 8: The atom MUST NOT offer an action that changes the declared channel set.
-Instance 9: The host MUST resolve the declared channel set instant the seam.
+Instance 9: The host MUST resolve the declared channel set at the seam.
 Instance 10: The host MUST inject the declared channel set into EVERY [Set] transition.
 Instance 11: The host MUST NOT inject a degenerate declared channel set.
 Instance 12: [Set] MUST stamp the injected declared channel set onto the new preference record as declared channels.
@@ -647,7 +647,7 @@ Kind: Operation
 
 #### Preference Id
 
-The opaque, immutable identity of a preference record, host-allocation instant the I/O seam on [Set], never reused (Invariant 8). The principal reference and the preference values are properties of the record, not its identity.
+The opaque, immutable identity of a preference record, host-allocated at the I/O seam on [Set], never reused (Invariant 8). The principal reference and the preference values are properties of the record, not its identity.
 
 Kind:       Field
 Field of:   the preference record
@@ -760,7 +760,7 @@ Projection: undeclared-channel
 
 #### Storage Failure
 
-The rejection any state-changing action returns when the write fails after all preconditions pass. Fail-closure instant the write: nothing observable was written — for [Set] with supersession, neither half landed (Invariant 4); for [Suspend] and [Delete], no status moved. Which record keeps governing after a refused [Set] is Invariant 4.3's answer, not this term entry's: the prior record stays in effect, so a failed write is fail-closed on the store and not on whatever the new record was carrying.
+The rejection any state-changing action returns when the write fails after all preconditions pass. Fail-closed at the write: nothing observable was written — for [Set] with supersession, neither half landed (Invariant 4); for [Suspend] and [Delete], no status moved. Which record keeps governing after a refused [Set] is Invariant 4.3's answer, not this term entry's: the prior record stays in effect, so a failed write is fail-closed on the store and not on whatever the new record was carrying.
 
 Kind:       Member
 Member of:  the action rejection

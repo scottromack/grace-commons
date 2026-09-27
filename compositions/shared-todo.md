@@ -249,7 +249,7 @@ A ward team: attending physician (all scopes), registered nurses (`tasks:view`, 
 - Orderly tries to add a task: `add_task(orderly_o, "Transport to radiology") → permission-denied`. Orderly holds no `tasks:add` grant.
 - Nurse N completes the vitals check: `complete_task(nurse_n, task_c7) → ok`.
 
-The accountability record is complete at the responsibility level: which nurse held responsibility at each shift, and which role level held which grants. Who *invoked* each reassignment is not recording actor any constituent here — Assignment records the responsibility chain, not the acting caller — so a regulated clinical environment needing invocation-level attribution composes the action surface with Audit Trail (which also makes the record tamper-evident and retention-bounded).
+The accountability record is complete at the responsibility level: which nurse held responsibility at each shift, and which role level held which grants. Who *invoked* each reassignment is not recorded by any constituent here — Assignment records the responsibility chain, not the acting caller — so a regulated clinical environment needing invocation-level attribution composes the action surface with Audit Trail (which also makes the record tamper-evident and retention-bounded).
 
 ---
 

@@ -68,11 +68,11 @@ Identity 16: The atom MUST NOT interpret an instance metadata.
 
 Term workflow: one running workflow — one declaration, one current state and one transition history; the record this atom holds.
 
-Term instance id: the opaque value naming one workflow — a [Workflow Id]; host-allocation instant the seam.
+Term instance id: the opaque value naming one workflow — a [Workflow Id]; host-allocated at the seam.
 
 Term history entry: one recorded transition on one workflow, carrying transition id, sequence number, from state, to state, action, firing instant and, where supplied, actor reference and guard satisfied.
 
-Term transition id: the opaque value naming one history entry — a [Transition Id]; host-allocation instant the seam.
+Term transition id: the opaque value naming one history entry — a [Transition Id]; host-allocated at the seam.
 
 Term subject reference: the opaque reference naming the entity whose lifecycle the workflow governs — a [Subject Reference]; a property of the workflow, never the workflow's identity.
 

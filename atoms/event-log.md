@@ -52,7 +52,7 @@ Term transition: the atom's evaluation of one call against the log, as the secti
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
 WHY:
-Identity is allocation instant the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is sequence number's alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
+Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is sequence number's alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
 
 ### State
 

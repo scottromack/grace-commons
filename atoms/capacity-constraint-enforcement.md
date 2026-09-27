@@ -20,7 +20,7 @@ Capacity Constraint Enforcement holds one number against another. A pool declare
 
 A pool is [Open], [Suspended] or [Closed]. Suspending halts new allocations without unwinding the existing ones; closing is terminal. [Release] is admitted in every state, including [Closed], so a composing pattern can unwind in-flight allocations after the pool is shut.
 
-Every successful change appends an attributed event carrying before-and-after snapshots, so an auditor can verify the bound hold instant any point from a single event rather than replaying the whole log. Rejections write nothing, which is a deliberate boundary rather than an omission.
+Every successful change appends an attributed event carrying before-and-after snapshots, so an auditor can verify the bound held at any point from a single event rather than replaying the whole log. Rejections write nothing, which is a deliberate boundary rather than an omission.
 
 This is the mechanism behind seat inventory, credit headroom, ward beds, connection pools and warehouse stock. It does not decide who may allocate, what a unit means, or what happens when the pool runs dry.
 
@@ -62,7 +62,7 @@ Identity 18: The atom MUST NOT hold a per-unit identity.
 
 Term pool: one bounded resource with a declared maximum and a running total — the record this atom holds.
 
-Term pool id: the opaque value naming one pool — a [Pool Id]; host-allocation instant the seam, compared by exact byte identity.
+Term pool id: the opaque value naming one pool — a [Pool Id]; host-allocated at the seam, compared by exact byte identity.
 
 Term colliding write: a [Declare Pool] write whose injected pool id a live pool already carries.
 
@@ -109,7 +109,7 @@ State 22: The atom MUST NOT hold a cross-pool bound.
 State 23: The atom MUST NOT interpret a unit.
 ```
 
-Term declaration field: pool id | declaration instant | declaring actor reference | declaration reason — set instant [Declare Pool] and never changed.
+Term declaration field: pool id | declaration instant | declaring actor reference | declaration reason — set at [Declare Pool] and never changed.
 
 Term opening balance: the running total an audit event found — an [Opening Balance].
 
@@ -258,7 +258,7 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term capacity: the declared maximum a pool admits — a [Capacity]; a whole count, set instant declaration and changed only by [Adjust Capacity].
+Term capacity: the declared maximum a pool admits — a [Capacity]; a whole count, set at declaration and changed only by [Adjust Capacity].
 
 Term allocated: the pool's running total — an [Allocated]; changed only by [Allocate] and [Release].
 
@@ -697,7 +697,7 @@ Kind: Operation
 
 #### Pool Id
 
-The opaque, immutable identity of a pool, host-allocation instant the I/O seam on [Declare Pool] and never reused. The declaration metadata, [Capacity], [Allocated], and [State] are properties of the pool, not its identity.
+The opaque, immutable identity of a pool, host-allocated at the I/O seam on [Declare Pool] and never reused. The declaration metadata, [Capacity], [Allocated], and [State] are properties of the pool, not its identity.
 
 Kind:       Field
 Field of:   Pool
@@ -753,7 +753,7 @@ Projection: declaring_actor_ref
 
 #### Declaration Reason
 
-The caller-supplied reason recording instant [Declare Pool]. Immutable thereafter.
+The caller-supplied reason recorded at [Declare Pool]. Immutable thereafter.
 
 Kind:       Field
 Field of:   Pool
@@ -761,7 +761,7 @@ Projection: declaration_reason
 
 #### Allocation Event Id
 
-The opaque, immutable id of an allocation event, host-allocation instant the I/O seam on each [Allocate] and individually addressable on the pool's audit log. Composing patterns key against it.
+The opaque, immutable id of an allocation event, host-allocated at the I/O seam on each [Allocate] and individually addressable on the pool's audit log. Composing patterns key against it.
 
 Kind:       Field
 Field of:   the allocation event
@@ -769,7 +769,7 @@ Projection: allocation_event_id
 
 #### Release Event Id
 
-The opaque, immutable id of a release event, host-allocation instant the I/O seam on each [Release].
+The opaque, immutable id of a release event, host-allocated at the I/O seam on each [Release].
 
 Kind:       Field
 Field of:   the release event
@@ -777,7 +777,7 @@ Projection: release_event_id
 
 #### Adjustment Event Id
 
-The opaque, immutable id of a capacity-adjustment event, host-allocation instant the I/O seam on each [Adjust Capacity].
+The opaque, immutable id of a capacity-adjustment event, host-allocated at the I/O seam on each [Adjust Capacity].
 
 Kind:       Field
 Field of:   the capacity-adjustment event
@@ -785,7 +785,7 @@ Projection: adjustment_event_id
 
 #### State Change Id
 
-The opaque, immutable id of a state-change event, host-allocation instant the I/O seam on each [Suspend Pool], [Resume Pool], or [Close Pool].
+The opaque, immutable id of a state-change event, host-allocated at the I/O seam on each [Suspend Pool], [Resume Pool], or [Close Pool].
 
 Kind:       Field
 Field of:   the state-change event

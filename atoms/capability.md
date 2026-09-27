@@ -59,7 +59,7 @@ Identity 13: The atom MUST NOT confirm an allocator reference's authority.
 
 Term capability: one bearer-token authorization with a redemption envelope — the record this atom holds.
 
-Term capability token: the opaque value naming one capability — a [Capability Token]; unguessable, host-allocation instant the seam, and the capability [Redeem] and [Revoke] accept.
+Term capability token: the opaque value naming one capability — a [Capability Token]; unguessable, host-allocated at the seam, and the capability [Redeem] and [Revoke] accept.
 
 Term allocator reference: the opaque reference naming the actor that created the capability — an [Allocator Reference].
 
@@ -225,7 +225,7 @@ Term now: the wall-time reading the host takes at the seam and hands to the tran
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-Term max redemptions: the number of redemptions the capability permits — a [Max Redemptions]; set instant allocation, never changed.
+Term max redemptions: the number of redemptions the capability permits — a [Max Redemptions]; set at allocation, never changed.
 
 Term single-use default: a max redemptions of one — what [Allocate] applies where the call supplies none.
 
@@ -424,7 +424,7 @@ The window closes with two redemptions unspent. **Nothing is called and nothing 
 ### Regulated adversarial scenarios
 
 - **Regulator audit — who authorized a disclosure.** An auditor asks under what authority a document was released. The store yields the capability: `allocator_ref: share_svc_s02`, `scope: "read::document::doc_d448"`, `max_redemptions: 5`, allocation instant, expiry instant. Invariant 1.1 is the answer — the envelope is immutable and readable from one record. What the store *cannot* answer is who fetched the document, and the auditor must be told that up front: attribution for the redemption side lives in the composing [Audit Trail](../compositions/audit-trail.md), never here (Invariant 5.2, Composition note 4).
-- **Disputed reset — the account owner denies resetting.** The store shows `cap_tok_7f3a` allocated to `recovery_svc_r01` at `09:00`, redemption instant `09:12`, exhausted. It does not show who redeemed it, and no amount of reading will make it. That is the structural finding, not a gap: the capability is evidence that *someone holding the link* reset the password within the window, which is exactly what a bearer credential attests (Invariant 3.4, Invariant 5.3).
+- **Disputed reset — the account owner denies resetting.** The store shows `cap_tok_7f3a` allocated to `recovery_svc_r01` at `09:00`, redeemed at `09:12`, exhausted. It does not show who redeemed it, and no amount of reading will make it. That is the structural finding, not a gap: the capability is evidence that *someone holding the link* reset the password within the window, which is exactly what a bearer credential attests (Invariant 3.4, Invariant 5.3).
 - **Breach triage — which capabilities are still redeemable.** Tokens appear in an exposed log. The investigator reads each record's effective status against the investigation clock: which are live, which lapsed, which exhausted or revoked. Every live one is revoked with attribution. The lapsed ones **cannot** be revoked — they answer [Already Terminal] — so the attributed closure a [Session](./session.md) breach response can record is not available here, and the triage record has to lean on the [Audit Trail](../compositions/audit-trail.md) instead (Operation 38, Composition note 4).
 
 ---

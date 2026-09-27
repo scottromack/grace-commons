@@ -269,7 +269,7 @@ A composing system attempts to create a notification with an empty recipient ref
 Three scenarios the notification store must survive in regulated contexts:
 
 - **Regulator audit — demonstrate all notifications for a compliance event.** A compliance auditor asks *"show all notifications created for the policy:updated event on 2025-03-14, and whether each was delivered."* The auditor queries the notification store for notifications where creation instant falls on 2025-03-14 and the payload references the relevant policy. [Status Of] for each returned id shows the delivery outcome — [Delivery Instant], [Failure Instant], or [Lapse Instant]. The notification store answers from stored fields alone; Invariants 1 and 3-4 guarantee the delivery record is complete and unambiguous.
-- **Disputed delivery — actor claims they were not notified.** Officer_a claims they received no notification of policy update p7. The investigator queries the notification store for notifications where `recipient_ref = officer_a` and the payload references `policy_id: p7`. If a record exists with [Delivery Instant] set, Invariant 1 (notification immutability) is the structural answer: the notification was created with that recipient and delivery was confirmation instant that time. If the record shows [Failure Instant] or [Lapse Instant], the store confirms delivery was not completed and documents why. The notification store is the single source of truth; no external corroboration is required.
+- **Disputed delivery — actor claims they were not notified.** Officer_a claims they received no notification of policy update p7. The investigator queries the notification store for notifications where `recipient_ref = officer_a` and the payload references `policy_id: p7`. If a record exists with [Delivery Instant] set, Invariant 1 (notification immutability) is the structural answer: the notification was created with that recipient and delivery was confirmed at that time. If the record shows [Failure Instant] or [Lapse Instant], the store confirms delivery was not completed and documents why. The notification store is the single source of truth; no external corroboration is required.
 - **Breach investigation — identify Pending notifications that may have exposed payload data.** A security incident requires identifying all notifications that were [Pending] at the time of breach (2025-06-01T03:00Z) and may have carried sensitive payload data. The investigator queries for notifications where `created_at ≤ 2025-06-01T03:00Z` and either `status = pending` (still unresolved now) or the applicable terminal timestamp falls after 2025-06-01T03:00Z (meaning the notification was [Pending] during the breach window but has since resolved). The reconstruction logic mirrors the Subscription pattern: `created_at ≤ T` and (`status = pending` or `delivered_at > T` or `failed_at > T` or `expired_at > T`). [Status Of] for each candidate returns the current record; creation instant confirms the exposure window. The notification store answers the exposure scope question from stored fields alone without recourse to logs or developer narration.
 
 ---
@@ -431,7 +431,7 @@ Term terms: notification, notification id, recipient reference, payload, seam, t
 
 #### Create
 
-The behavior that records a new delivery record. It assigns a fresh [Notification Id] (host-allocation instant the seam), records [Recipient Reference], [Payload], and [Creation Instant], and returns the [Notification Id] (or [Invalid Request]). The record enters [Pending].
+The behavior that records a new delivery record. It assigns a fresh [Notification Id] (host-allocated at the seam), records [Recipient Reference], [Payload], and [Creation Instant], and returns the [Notification Id] (or [Invalid Request]). The record enters [Pending].
 
 Kind: Operation
 
@@ -467,7 +467,7 @@ Kind: Operation
 
 #### Notification Id
 
-The opaque, immutable identity of a notification — host-allocation instant the I/O seam (the injected id), produced by [Create], never reused (Invariant 6). The recipient and payload are properties of the notification, not its identity.
+The opaque, immutable identity of a notification — host-allocated at the I/O seam (the injected id), produced by [Create], never reused (Invariant 6). The recipient and payload are properties of the notification, not its identity.
 
 Kind:       Field
 Field of:   the notification record

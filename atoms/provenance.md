@@ -65,11 +65,11 @@ Term chain: one artifact's custody history for one episode, from a genesis entry
 
 Term entry: one appended event on a chain, carrying an entry id, a sequence number, an event type, a custodian and a recording instant.
 
-Term chain id: the opaque value naming one chain — a [Chain Id]; host-allocation instant the seam.
+Term chain id: the opaque value naming one chain — a [Chain Id]; host-allocated at the seam.
 
 Term artifact reference: the opaque reference naming what a chain tracks — an [Artifact Reference]; a property of the chain, never the chain's identity.
 
-Term entry id: the opaque value naming one entry — an [Entry Id]; host-allocation instant the seam.
+Term entry id: the opaque value naming one entry — an [Entry Id]; host-allocated at the seam.
 
 Term custodian reference: the opaque reference naming who holds the artifact — a [Custodian Reference]; compared by exact byte identity.
 
@@ -109,7 +109,7 @@ State 19: next sequence number MUST survive a restart.
 ```
 
 WHY:
-The current custodian is a projection, not a fact of its own: replay the entries in sequence order and the value falls out. It is cached as chain state so a guard need not walk the chain, and the cache is never the authority — a disagreement between cache and replay is resolving actor the replay and is itself a conformance failure (State 17, Check 3.2). No invariant here rests on the cache being right; every one is stated over the entries.
+The current custodian is a projection, not a fact of its own: replay the entries in sequence order and the value falls out. It is cached as chain state so a guard need not walk the chain, and the cache is never the authority — a disagreement between cache and replay is resolved by the replay and is itself a conformance failure (State 17, Check 3.2). No invariant here rests on the cache being right; every one is stated over the entries.
 
 next sequence number is persistent state and the one piece of this atom that a volatile implementation silently breaks. A counter that resets on restart reuses numbers, and the dense sequence — the thing that distinguishes this chain from a gap-permitting stream — is gone without any single action having misbehaved (State 18, Invariant 5.2).
 
@@ -222,7 +222,7 @@ Term genesis type: the call input selecting a genesis entry's event type — a [
 
 Term genesis types: originated | received — what a genesis entry's event type may be.
 
-Term event type: originated | received | transferred | transformed | disclosed | archived — an [Event Type], set instant append and never changed.
+Term event type: originated | received | transferred | transformed | disclosed | archived — an [Event Type], set at append and never changed.
 
 Term event types: the six members of event type, cited here from that declaration (Closed vocabulary 15).
 
@@ -639,7 +639,7 @@ Projection: chain_id
 
 #### Artifact Reference
 
-The opaque reference to *what* the chain tracks. Set Instant genesis, immutable; the atom neither validates nor interprets it. The same reference may recur across store instances for genuinely different artifacts.
+The opaque reference to *what* the chain tracks. Set at genesis, immutable; the atom neither validates nor interprets it. The same reference may recur across store instances for genuinely different artifacts.
 
 Kind:       Field
 Field of:   the chain
@@ -671,7 +671,7 @@ Projection: next_sequence_number
 
 #### Entry Id
 
-The opaque, immutable, system-generated identity of a custody entry — assignment instant append, unique within the chain, never reused (Invariants 1 and 9).
+The opaque, immutable, system-generated identity of a custody entry — assigned at append, unique within the chain, never reused (Invariants 1 and 9).
 
 Kind:       Field
 Field of:   the entry
@@ -687,7 +687,7 @@ Projection: sequence_number
 
 #### Event Type
 
-The entry's kind — one of originated, received, transferred, transformed, disclosed, or archived (Invariant 8). Set Instant append, immutable. The [Genesis Type] argument selects the genesis entry's value.
+The entry's kind — one of originated, received, transferred, transformed, disclosed, or archived (Invariant 8). Set at append, immutable. The [Genesis Type] argument selects the genesis entry's value.
 
 Kind:       Field
 Field of:   the entry

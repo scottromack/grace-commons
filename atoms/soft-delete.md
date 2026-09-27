@@ -35,7 +35,7 @@ Most systems eventually need to delete records, and the naive implementation —
 
 This atom separates the two concepts a hard delete conflates. *Deletion* means the record is marked removed, excluded from normal read surfaces, and no longer available for ordinary use — while remaining retained, attributable and recoverable. *Purge* means permanent destruction, with full attribution of who authorized it and when. Between the two, restoration is always available: the record returns to active as though it had never been deleted.
 
-The three-state lifecycle appears in nearly every domain that handles records with lifecycle significance — content moderation, account management, clinical records, financial reconciliation, e-discovery — and the states are constant across them even where the vocabulary is not. *Archived*, *deactivated*, *tombstoned* and *voided* are all deleting actor another name.
+The three-state lifecycle appears in nearly every domain that handles records with lifecycle significance — content moderation, account management, clinical records, financial reconciliation, e-discovery — and the states are constant across them even where the vocabulary is not. *Archived*, *deactivated*, *tombstoned* and *voided* are all deleted by another name.
 
 What the atom deliberately does not define is what *hidden from normal query* means operationally. That is deployment policy: a social platform hides deleted posts from public feeds and may surface them in moderator queues; a clinical system hides deleted observations from summaries and returns them on full audit export. Neither is wrong, and both correctly implement the deleted state. The atom defines the state and the recoverability guarantee, and leaves the read surfaces to the deployment.
 
