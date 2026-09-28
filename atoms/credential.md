@@ -514,7 +514,9 @@ String 3: The atom MUST NOT normalize a string input.
 String 4: The atom MUST NOT case-fold a string input.
 String 5: The atom MUST read a whitespace-only string input as blank.
 String 6: The atom MUST read an absent string input as blank.
-String 7: IF a string input EXCEEDS the length bound THEN an action MUST answer invalid-request.
+String 7: IF a string input EXCEEDS the length bound THEN [Register] MUST answer invalid-request.
+String 8: IF a string input EXCEEDS the length bound THEN [Rotate] MUST answer invalid-request.
+String 9: IF a string input EXCEEDS the length bound THEN [Revoke] MUST answer invalid-request.
 ```
 
 Term string input: a reference, credential type OR reason — every caller-supplied string this atom accepts beside material.
@@ -523,6 +525,8 @@ Term length bound: the maximum length the deployment declares for a string input
 
 
 WHY:
+String 7 through 9 name the three actions whose signatures carry invalid-request. [Verify] and [Read] carry none, and need none: no credential is stored under an over-long reference or type, so a verify naming one answers no-active-credential and a read filtering on one matches nothing.
+
 Byte-exactness bites hardest on credential type, because that string is half the key Invariant 2.1 ranges over: under a folding comparison `password` and `Password ` would be one type, and under a byte-exact one they are two, so a principal could hold two effective-active credentials that no invariant catches. Identity 11 is what closes it — a type naming no derivation function is refused, so the near-duplicate never reaches the store. Material is exempt from the length bound only insofar as a derivation function declares its own (Capability requirement 14).
 
 ---
@@ -920,16 +924,17 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 5 — 2026-06-23` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 5 — 2026-06-23
+status: partially resolved
 formal: verified — credential.tla + 2 twins, 2026-06-04
 last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
 
 open:
+- 2026-09-28-a · refining · String 7 through 9 · scoped from *an action* to the three actions whose signatures carry invalid-request, found reading Login's Ledger (council read 246), a load-bearing touch → the three-pass round the entry *Touch triggers re-pass* in `pressure-testing.md` requires
 - 2026-09-13-a · refining · Capability requirement 8 / formal · the prose named a store constraint that cannot be built — a unique partial index whose predicate would have to reference `now`, whose clock-free half forbids the lapsed-beside-successor case Operation 8 permits; the obligation is unchanged and is now a critical section over the pair, but `credential-buggy-toctou.tla` was built against the index reading → re-check the twin against the critical section reading
 ```
 
@@ -937,6 +942,7 @@ open:
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/credential.md`.
 
+- **2026-09-28 — The length bound answers only where a signature can carry it.** *Chose:* String 7 through 9 name [Register], [Rotate] and [Revoke]. *Over:* *an action*, which obliged [Verify] and [Read] to answer an arm their signatures do not carry. *Because:* the rule and the signature block contradicted each other, and the two reads already answer an over-long input correctly without the arm.
 - **2026-09-13 — Effective-active uniqueness is enforced by a critical section over the pair, not by a unique partial index.** *Chose:* Capability requirement 8 — the store runs the effective-active check and the register write for one pair as one critical section. *Over:* the store constraint the prose named, *a unique partial index on `(principal_ref, credential_type)` where `status = Active` and the credential is not past expiry instant*. *Because:* an index predicate cannot reference now, and the half of it that can — `where status = Active` — forbids exactly the case Operation 8 permits, a lapsed record standing in active beside its successor. The obligation the prose was reaching for is unchanged; only the mechanism is, and the formal twin built against the old reading is an open Ledger line rather than a silent inheritance.
 - **2026-09-13 — Every bound, guard and lookup means effective-active, declared once.** *Chose:* window reading: live | lapsed, and effective-active credential as a credential standing in active that reads live. *Over:* restating *stored active and now < expiry instant* at the uniqueness guard, the verify lookup, the rotate precondition and the revoke precondition, which is how the prose carried it four times. *Because:* a spec pays for a proposition once (GRACE-lang Authority 3), and this is the atom's single most misreadable claim — an implementation that reads the stored flag at any one of those four sites is the hazard `credential-buggy-toctou.tla` exists to catch.
 - **2026-09-13 — live admits an absent deadline, which the corpus's other two window readings do not.** *Chose:* a two-member reading whose live member covers both *no deadline* and *deadline not yet reached*. *Over:* a three-member reading separating the unbounded case. *Because:* nothing in this atom treats an unbounded credential differently from one inside its window — every guard asks the same question and gets the same answer — so a third member would be a distinction no rule consumes. It is worth recording because [Provisional Commitment](./provisional-commitment.md) and [Invitation](./invitation.md) both declare a window reading over a *mandatory* deadline, and this is the first where the deadline is optional.
