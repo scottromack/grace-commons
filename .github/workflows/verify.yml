@@ -12,8 +12,10 @@ name: Verify corpus claims
 #
 #   formal-models  bootstrap the checkers (npm-only; JRE 17 to /tmp) and audit
 #                  every .tla/.als model in the corpus: correct models must
-#                  hold, buggy twins must be rejected (audit.mjs exits non-zero
-#                  otherwise).
+#                  hold, buggy twins and reachability probes must be rejected
+#                  (audit.mjs exits non-zero otherwise). Recoverable
+#                  Invocation's models run as a job of their own: they are
+#                  nearly all of the audit's time, about 37 minutes of 38.
 #
 # status.md publishes these runs' live state via the GitHub API — the page
 # renders GitHub's record of the actual runs, never a hand-written mirror.
@@ -33,6 +35,10 @@ on:
   schedule:
     - cron: '0 6 * * 6'   # Saturdays 06:00 UTC — the weekend rescan window
 
+env:
+  # Recoverable Invocation's model, its twins, its isolations and its probes.
+  RECOVERABLE_INVOCATION: '^compositions/(recoverable-invocation|iso-|probe-|reach-)'
+
 concurrency:
   group: verify-${{ github.ref }}
   cancel-in-progress: true
@@ -48,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
 
@@ -96,19 +102,39 @@ jobs:
   formal-models:
     name: Formal models — hold; twins rejected
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: tools/harness
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
 
       - name: Bootstrap checkers (npm-only; JRE 17 to /tmp)
         run: bash bootstrap.sh
 
-      - name: Audit every model — correct hold, buggy twins rejected
-        run: node audit.mjs
+      - name: Audit every model but Recoverable Invocation's — correct hold, buggy twins rejected
+        run: node audit.mjs --except "$RECOVERABLE_INVOCATION"
+
+  formal-models-recoverable-invocation:
+    name: Formal models — Recoverable Invocation
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: tools/harness
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Bootstrap checkers (npm-only; JRE 17 to /tmp)
+        run: bash bootstrap.sh
+
+      - name: Audit Recoverable Invocation's models — correct hold, twins and probes rejected
+        run: node audit.mjs --only "$RECOVERABLE_INVOCATION"

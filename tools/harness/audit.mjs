@@ -5,7 +5,9 @@
 // (a reachability probe checking a deliberate falsehood). Everything else is a
 // correct model (must hold / be non-vacuous).
 //
-//   node audit.mjs
+//   node audit.mjs                    every model
+//   node audit.mjs --only <regex>     models whose repo-relative path matches
+//   node audit.mjs --except <regex>   models whose repo-relative path does not
 
 import { execFileSync } from "node:child_process";
 import { dirname, join, relative, basename } from "node:path";
@@ -26,7 +28,12 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-const models = walk(REPO).sort();
+const flag = (name) => { const i = process.argv.indexOf(name); return i < 0 ? null : new RegExp(process.argv[i + 1]); };
+const only = flag("--only"), except = flag("--except");
+const models = walk(REPO).sort().filter((m) => {
+  const rel = relative(REPO, m);
+  return (!only || only.test(rel)) && (!except || !except.test(rel));
+});
 const rows = [];
 for (const m of models) {
   const expectsViolation = (readFileSync(m, "utf-8").split("\n")[1] ?? "").startsWith("\\* EXPECT: violation");

@@ -145,7 +145,7 @@ ALLOY session-gated-authorization.als     -> all guarantees hold, all runs non-v
 ALLOY permissions-buggy.als               -> 2 checks find COUNTEREXAMPLEs PASS  (twin correctly rejected)
 ```
 
-To run **every** model in the corpus (several minutes; the tool's output is the authoritative count):
+To run **every** model in the corpus (about forty minutes, nearly all of it Recoverable Invocation's model and its isolations, which `--except '^compositions/(recoverable-invocation|iso-|probe-|reach-)'` leaves out; the tool's output is the authoritative count):
 
 ```bash
 node audit.mjs
