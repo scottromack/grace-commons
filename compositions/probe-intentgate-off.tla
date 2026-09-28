@@ -1,4 +1,5 @@
----- MODULE recoverable-invocation-buggy-intentgate ----
+---- MODULE probe-intentgate-off ----
+\* Holds, and is meant to: Invariant 7 at these constants with the intent write ungated (IntentGated = FALSE), beside probe-intentgate-clean with it gated. Both holding is the evidence for Recoverable Invocation's decision of 2026-09-10 — the fence earns the invariant and the lease gate does not. It was filed as a buggy twin of a remedy the page then declined.
 \* Grace Commons — Recoverable Invocation: the protocol every regulated
 \* composition follows around an irreversible act. Spec-level formal sibling of
 \* compositions/recoverable-invocation.md. Derived validator; the English spec

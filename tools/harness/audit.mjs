@@ -1,14 +1,16 @@
 // Grace Commons — audit every existing formal model through the harness.
 // Walks the repo for .als/.tla, runs each via check.mjs, and prints a summary.
-// A file whose name contains "buggy" is treated as a buggy twin (must be
-// rejected); everything else is a correct model (must hold / be non-vacuous).
+// A model the checker must reject is marked one of two ways: its file name
+// contains "buggy" (a twin), or its second line reads `\* EXPECT: violation`
+// (a reachability probe checking a deliberate falsehood). Everything else is a
+// correct model (must hold / be non-vacuous).
 //
 //   node audit.mjs
 
 import { execFileSync } from "node:child_process";
 import { dirname, join, relative, basename } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, "../..");
@@ -27,7 +29,8 @@ function walk(dir, acc = []) {
 const models = walk(REPO).sort();
 const rows = [];
 for (const m of models) {
-  const buggy = /buggy/i.test(basename(m));
+  const expectsViolation = (readFileSync(m, "utf-8").split("\n")[1] ?? "").startsWith("\\* EXPECT: violation");
+  const buggy = /buggy/i.test(basename(m)) || expectsViolation;
   const argv = buggy ? [join(HERE, "check.mjs"), m, "--buggy"] : [join(HERE, "check.mjs"), m];
   let pass = false, log = "";
   try {

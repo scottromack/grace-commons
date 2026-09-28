@@ -36,6 +36,7 @@ Exit code `0` = the twin behaved as its role requires; `1` = it did not.
 
 - **TLA+ constants** come from a sibling `<base>.constants.json` (e.g. `{ "Actors": ["a1","a2","a3"], "K": 2 }`) when the `.cfg` does not inline them.
 - **Buggy twins** are deliberately-wrong variants the checker *must* reject — the guard against a vacuously-passing model. A buggy `.tla` must produce an invariant violation; a buggy `.als` must produce at least one `check` counterexample (SAT).
+- **Reachability probes** check a deliberate falsehood — *the operator never writes* — so that an invariant is known to be reachable before it is trusted. The checker must reject them too. `audit.mjs` finds them by a second line reading `\* EXPECT: violation`, since their names start `probe-` or `reach-` and some models with those names are meant to hold.
 - **A model that does not typecheck is a HARD FAIL.** An assertion that never typechecks was never actually checked — see the `capability.als` finding (a `no (boolean)` type error that hid an unchecked assertion behind a `grounded` status).
 
 ## What the harness checks (Alloy)
