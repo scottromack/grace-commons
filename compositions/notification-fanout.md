@@ -117,7 +117,7 @@ Capability requirement 6 and Capability requirement 7 are the two halves of the 
 
 ```
 Primitive policy 1: [Fanout] MUST answer invalid-request for a blank event scope.
-Primitive policy 2: [Fanout] MUST answer invalid-request for a payload that EQUALS blank.
+Primitive policy 2: [Fanout] MUST answer invalid-request for an absent payload.
 Primitive policy 3: The composition MUST take the fanout id ONLY AFTER the inputs clear the boundary predicate.
 Primitive policy 4: [Fanout] MUST NOT call a constituent for an input the boundary predicate refuses.
 Primitive policy 5: The composition MUST compare an event scope byte-exact.
@@ -127,7 +127,7 @@ Primitive policy 7: [Fanout] MUST NOT bound a payload's length.
 
 
 WHY:
-invalid-request here is the composition's own and nothing is inherited. The check is *consistent* with both constituents' postures — [Notification](../atoms/notification.md)'s `create` refuses a payload that does not exist, and [Subscription](../atoms/subscription.md)'s write surface refuses a blank event scope — but this composition never calls `subscribe`, so no constituent contract governs the check and no constituent is consulted when it fires (Ledger 2026-08-27-k: the provenance is stated once, here).
+invalid-request here is the composition's own and nothing is inherited. The event scope check is *consistent* with [Subscription](../atoms/subscription.md)'s write surface, which refuses a blank event scope; the payload check refuses only an absent payload, because [Notification](../atoms/notification.md)'s `create` accepts an empty one (Notification Operation 5), so an empty payload is a payload — but this composition never calls `subscribe`, so no constituent contract governs the check and no constituent is consulted when it fires (Ledger 2026-08-27-k: the provenance is stated once, here).
 
 Primitive policy 7 is a deliberate absence. A payload cap is the composing system's before [Fanout] is called; what the composition does carry is the consequence — an oversized payload is refused by every `create` and lands every subscriber in the failed list, which is the shape Indeterminate outcome 5 tells a caller to read.
 
@@ -168,12 +168,12 @@ Term created list: the notification id of EVERY create the composition saw answe
 
 Term failed list: the subscriber reference of EVERY create the composition saw answer otherwise — a [Failed] list.
 
-Term unrecordable create: a create answering no notification id and no declared rejection — the outcome the composition names at the boundary, because [Notification](../atoms/notification.md) declares no infrastructure arm.
+Term unrecordable create: a create answering neither a notification id nor one of [Notification](../atoms/notification.md)'s declared refusals — a call that timed out, or came back unacknowledged; the outcome the composition names at the boundary. Notification's own storage-failure is declared, and records nothing (Notification Operation 7).
 
 WHY:
 Action wiring 11 and Action wiring 12 are the load-bearing decision stated as rules: the fan-out continues and names its failures rather than aborting. Action wiring 15 is what makes that honest — parallel composition carries no rollback guarantee, so each create commits independently and there is no transaction to abort into.
 
-Action wiring 18 is the reason the failed list carries a `subscriber_ref` and not a reason. Two failures collapse into it — the structural invalid-request a constituent declared, and the unrecordable create the boundary named — and the composition cannot tell them apart without retrying and watching. A caller needing reason-level diagnostics composes [Event Log](../atoms/event-log.md) at the call site, which Composition state 3 already routes.
+Action wiring 18 is the reason the failed list carries a `subscriber_ref` and not a reason. Three failures collapse into it — the structural invalid-request and the storage-failure [Notification](../atoms/notification.md) declares, each recording nothing, and the unrecordable create the boundary named, which may have — and the composition cannot tell them apart without retrying and watching. A caller needing reason-level diagnostics composes [Event Log](../atoms/event-log.md) at the call site, which Composition state 3 already routes.
 
 Action wiring 5 says the rejection carries no id because the invocation did not happen. An id on a rejection would give a caller a correlation handle for an invocation that produced nothing to correlate.
 
@@ -308,7 +308,7 @@ A derived implementation is acceptable when an external auditor, given the subsc
 
 ```
 Check 1.1: An auditor MUST read a fanout's event scope and firing instant from the composed Event Log entry (Invariant 8.3).
-Check 1.2: An auditor MUST reconstruct the active subscriber set at the firing instant from Subscription's historical-state filter (Invariant 1.2).
+Check 1.2: An auditor MUST reconstruct the active subscriber set at the firing instant from the subscription store's subscribed instants AND cancelled instants (Invariant 1.2).
 Check 1.3: An auditor MUST find EVERY reconstructed subscriber reference in EXACTLY ONE OF the created list, the failed list (Invariant 1.2).
 Check 1.4: An auditor MUST find the created list's count AND the failed list's count summing to the reconstructed set's count (Invariant 1.2).
 Check 1.5: An auditor MUST read a count mismatch inside the boundary window as boundary-adjacent (Capability requirement 6, Capability requirement 7).
@@ -405,7 +405,7 @@ A create that times out or comes back unacknowledged may have committed a record
 
 So a retry of an indeterminate entry is at-least-once and a second record is a residual the caller accepts, which is why Invariant 4 is scoped to the records the composition observed. Indeterminate outcome 7 names the cure rather than promising it: closing this needs an idempotency key at a store that can honor one, which is outside this composition's surface.
 
-Indeterminate outcome 5 and Indeterminate outcome 6 are the discriminator the composition can offer without a reason field. Every subscriber failing identically is the payload outside [Notification](../atoms/notification.md)'s acceptance; one subscriber failing alone is that `subscriber_ref` outside it — [Subscription](../atoms/subscription.md) admits a whitespace-only ref and imposes no length cap where Notification refuses both, and that enumerable divergence is where a single structural failure comes from (Ledger 2026-08-27-l). Both are heuristics, which is why they are MAY: a notification store down for every create fails every subscriber alike too, and a fan-out of one cannot tell the two readings apart.
+Indeterminate outcome 5 and Indeterminate outcome 6 are the discriminator the composition can offer without a reason field. Every subscriber failing identically is the payload outside [Notification](../atoms/notification.md)'s acceptance; one subscriber failing alone is that `subscriber_ref` outside it — [Subscription](../atoms/subscription.md) imposes no length cap where Notification does, and that enumerable divergence is where a single structural failure comes from (Ledger 2026-08-27-l). Both are heuristics, which is why they are MAY: a notification store down for every create fails every subscriber alike too, and a fan-out of one cannot tell the two readings apart.
 
 ---
 
@@ -573,5 +573,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-14 — Five of the Ledger's six open lines are closed by the migration.** *Chose:* to close `2026-08-27-g`, `-h`, `-i`, `-k` and `-l` in the rewrite and strike them from the Ledger's open list, leaving `-j`. *Over:* migrating the language and leaving six known defects standing behind it. *Because:* all five were language or ownership defects a rewrite is the natural moment to fix — an unconditional coverage claim that needed the crash bound (`Wiring decision 3`, `Non-goal 3`, `Invariant 1`'s WHY), an acceptance preamble opening universally where two checks need a composed Event Log (now conditional, and stated in the preamble), Notification's own acceptance classified both record-clearable and external (classified once, as `External check 5`), invalid-request's provenance stated two ways (stated once, in `Primitive policy`'s WHY), and the two constituents' divergent non-empty definitions left unnamed (named in `Indeterminate outcome`'s WHY — Subscription admits a whitespace-only ref and caps nothing, Notification refuses both). `-j` stays open because it is a design choice rather than a defect: an Event Log entry carrying the full created and failed lists is unbounded in N against Event Log's payload cap, and bounding, chunking or digesting it is the maintainer's to pick. The `status:`, `formal:` and `last gate:` lines are untouched (council read 56).
 
 - **2026-09-28 — The 2026-08 gate's open lines, read against the rewritten page.** *Chose:* of 28 open lines, 9 were already closed by the rewrite and are removed; 19 were live and are cured here — the create bound, its disclosure and no transport retry (Capability requirement 8 through 10); Duplicate Prevention keyed by a caller-supplied event identity and the fanout-to-record relation's two sides (Composition state 5 through 7); the failure discriminator as a caller's heuristic (Indeterminate outcome 5, 6, now MAY); the cost of pairing a created id with its subscriber stated; and the summary, examples, Fanout Id entry and standards brought to the rules, including two references to sections that no longer exist. *Over:* carrying lines whose anchors — step 4, *Retry semantics*, the externally-clearable list — the rewrite removed. *Because:* a Ledger that names sections the page no longer has cannot be read against the page.
+
+- **2026-09-28 — The page brought to its constituents as they now stand.** *Chose:* the unrecordable create named by what it is — no id and none of Notification's declared refusals — with Notification's storage-failure counted as the declared, recordless refusal it now is; the payload check narrowed to an absent payload (Primitive policy 2), which is what the prose checked, since Notification accepts an empty one; Check 1.2 reading the subscription store's stored instants rather than a filter Subscription does not declare; and the one-subscriber-failing reading narrowed to the length cap, since Subscription now refuses a whitespace-only ref. *Over:* the page's claims about Notification and Subscription as they stood before 2026-09-15. *Because:* the cold regeneration of 2026-09-28 built against the constituents and met each claim false.
 
 NOTE: End of Notification Fanout.
