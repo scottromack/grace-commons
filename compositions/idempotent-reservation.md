@@ -78,9 +78,9 @@ Composition state 4: The composition MUST call Provisional Commitment ONLY AFTER
 Composition state 5: The composition MUST overwrite a pending entry in place with the constituent's answer.
 Composition state 6: EXACTLY ONE invocation MUST write an entry per act.
 Composition state 7: The composition MUST keep an entry's pending instant across the overwrite.
-Composition state 8: The composition MUST NOT evict a pending entry whose invocation returned.
 Composition state 9: The composition MUST take the parameters digest from the seam.
 Composition state 10: The transition MUST NOT compute a parameters digest.
+Deleted: Composition state 8. Housekeeping 5 owns it.
 ```
 
 Term token results map: the composition's own map from an idempotency token to a recorded outcome — a token results map; the element the section titled Composition state in `execution-contract.md` classifies extraction-pending.
@@ -110,7 +110,7 @@ Capability requirement 6: The host MUST supply one critical section per token ac
 Capability requirement 7: The host MUST release a critical section on the holder's return.
 Capability requirement 8: The host MUST release a critical section on the holder's death.
 Capability requirement 9: A deployment MUST set the reservation completion bound.
-Capability requirement 10: The reservation completion bound MUST NOT EXCEED the idempotency window.
+Capability requirement 10: A deployment MAY start an instance ONLY IF the idempotency window EXCEEDS the reservation completion bound.
 Capability requirement 11: The composition MUST refuse to start for a reservation completion bound the idempotency window does not exceed.
 Capability requirement 12: A deployment MUST hold the token results map durable across a restart.
 Capability requirement 13: A deployment MUST hold an entry durable for the entry's durability term.
@@ -184,8 +184,8 @@ Action wiring 3: The composition MUST read the token results map under the criti
 Action wiring 4: The composition MUST call Duplicate Prevention's check under the critical section.
 Action wiring 5: The composition MUST release a token's critical section on EVERY return.
 Action wiring 6: The composition MUST NOT write on the strength of a pre-check the composition read under a lapsed critical section.
-Action wiring 7: IF a complete entry's action type differs from the call's action type THEN the composition MUST answer token-collision.
-Action wiring 8: IF a complete entry's parameters digest differs from the call's parameters digest THEN the composition MUST answer token-collision.
+Action wiring 7: IF an entry's action type differs from the call's action type THEN the composition MUST answer token-collision.
+Action wiring 8: IF an entry's parameters digest differs from the call's parameters digest THEN the composition MUST answer token-collision.
 Action wiring 9: The composition MUST answer a matching complete entry's result.
 Action wiring 10: The composition MUST NOT call a constituent for a matching complete entry.
 Action wiring 11: IF Duplicate Prevention's check answers not-seen for a matching complete entry THEN the composition MUST call Duplicate Prevention's record.
@@ -202,6 +202,7 @@ Action wiring 21: The composition MUST answer Provisional Commitment's answer to
 Action wiring 22: A read-only query MUST NOT take an idempotency token.
 Action wiring 23: A read-only query MUST NOT consult the token results map.
 Action wiring 24: The composition MUST take an idempotency token on EXACTLY ONE OF place_hold, confirm, release, expire.
+Action wiring 25: The composition MUST call Duplicate Prevention's record for EVERY result that lands.
 ```
 
 Term fresh request: a call finding no entry AND Duplicate Prevention's check answering not-seen.
@@ -223,7 +224,7 @@ Action wiring 19 is the rule an earlier draft would have made a defect. A record
 Wiring decision 1: The composition MUST record EVERY constituent answer against the token.
 Wiring decision 2: The composition MUST record a constituent's rejection against the token.
 Wiring decision 3: The composition MUST NOT record an answer for a malformed idempotency token.
-Wiring decision 4: The composition MUST NOT record an answer the composition returned on a seen token carrying no entry.
+Wiring decision 4: The composition MUST NOT record a [Place Hold] answer the composition returned on a seen token carrying no entry.
 Wiring decision 5: The composition MUST NOT record a recording-failure as a result.
 ```
 
@@ -420,12 +421,14 @@ Indeterminate outcome 6: IF the candidates DOES NOT EQUAL blank THEN the composi
 Indeterminate outcome 7: An outcome-unknown answer MUST carry the candidates.
 Indeterminate outcome 8: The composition MUST mark a recovered entry.
 Indeterminate outcome 9: A resolving action MUST run again for a pending entry.
-Indeterminate outcome 10: The composition MUST answer outcome-unknown for a seen token carrying no entry.
+Indeterminate outcome 10: The composition MUST answer outcome-unknown for a [Place Hold] carrying a seen token AND no entry.
 Indeterminate outcome 11: A caller MUST resolve the candidates.
 Indeterminate outcome 12: A caller receiving a recording-failure naming the outcome MUST NOT run the act under a fresh idempotency token.
+Indeterminate outcome 13: A resolving action MUST run again for a seen token carrying no entry.
+Indeterminate outcome 14: A resolving action's outcome-unknown MUST name the call's commitment id as the candidates.
 ```
 
-Term candidates: the held commitments of the Provisional Commitment instance whose resource and requester equal a call's — a candidates set; the composition's own filter over a constituent read, never a constituent's answer.
+Term candidates: for a [Place Hold], the held commitments of the Provisional Commitment instance whose resource and requester equal the call's; for a resolving action, the one commitment the call names — a candidates set; the composition's own filter over a constituent read, never a constituent's answer.
 
 Term resolving action: [Confirm] | [Release] | [Expire].
 
@@ -436,7 +439,9 @@ Indeterminate outcome 2 is the composition's sharpest restraint. A pending entry
 
 Indeterminate outcome 5 and Indeterminate outcome 9 are the two ways the indeterminacy resolves, and they differ by what the constituent guarantees. For [Place Hold], empty candidates mean the constituent holds nothing for these parameters, so the dead invocation never reached it and the act proceeds — exact wherever the hold's duration exceeds the time to the retry, and a hold already expired by then is the resource's history rather than a live double. For a resolving action there is nothing to compute: [Provisional Commitment](../atoms/provisional-commitment.md)'s single-resolution invariant makes a second call effect-free, so the re-run either commits the transition the caller intended or answers not-held, and exactly-once survives on the constituent's own contract.
 
-Indeterminate outcome 10 is fail-closed's bill. Duplicate Prevention remembers a token the composition does not — a durability breach, or an unavailable store answering `seen` — and the composition cannot tell a lost entry from a fresh token. It does not re-delegate, records nothing, and a later call once `check` can answer is decided afresh.
+Action wiring 7 and Action wiring 8 read every entry, pending as well as complete: a pending entry already carries the action type and the digest, and without the check a confirm under a token still pending for a [Place Hold] would run under a token bound to another act. Action wiring 25 is what keeps a re-entry's result replayable — a pending [Place Hold] closed as outcome-unknown records the guard like a first invocation does, so the next call replays the answer rather than meeting the entry afresh.
+
+Indeterminate outcome 10 is fail-closed's bill. Duplicate Prevention remembers a token the composition does not — a durability breach, or an unavailable store answering `seen` — and the composition cannot tell a lost entry from a fresh token. For a [Place Hold] it does not re-delegate, records nothing, and a later call once `check` can answer is decided afresh. A resolving action runs again instead (Indeterminate outcome 13), for the reason Indeterminate outcome 9 gives: the constituent's single resolution makes the second call effect-free. Where a resolving action does answer outcome-unknown — a storage failure on a store that does not acknowledge atomically — the candidates are the one commitment the call named, since a resolving call carries no resource and no requester to filter by (Indeterminate outcome 14).
 
 ---
 
@@ -623,5 +628,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-14 — The extraction-pending element is carried as a rule surface, not softened.** *Chose:* to state the `token_results` map as nine `Composition state` rules with the classification named in the WHY, the proposed atom named, and `Capability requirement 12` through `Capability requirement 14` carrying its durability. *Over:* describing it in prose, as every other composition's state section does — because every other composition's state section had nothing to describe. *Because:* this is the corpus's first migrated composition carrying truth no replay of its constituents reproduces, and the section titled Composition state in `execution-contract.md` says an unflagged truth-bearing composition store is a conformance finding while a flagged one is scheduled debt. The flag is the whole difference, so it belongs on the rule surface where an instrument can find it rather than in a paragraph (council read 58).
 
 - **2026-09-14 — `Eviction` re-cut as `Housekeeping`, joining the leg it was kept apart from.** *Chose:* the family renamed, with the nine rules and every citation of them moving with it. *Over:* keeping a one-spec family named for what this leg happens to do. *Because:* the entry above kept `Eviction` apart from [Authenticated Actor](./authenticated-actor.md)'s `Reconciliation` on *one evicts and one reports*, and the drift pass found that axis wrong — it predicts the liveness bound on two of four legs, and this leg is one of the two it misses, because it takes a critical section and writes to the composition's own store while owing nothing. What decides the bound across all four is whether anything **awaits** the leg's output. Nothing awaits an eviction and nothing awaits an orphan report, so the two are one family; [Login](./login.md)'s and [Defensible Retention](./defensible-retention.md)'s sweeps discharge a promise and are the other. `Housekeeping 7` and `Housekeeping 8` keep their reading unchanged — they are still why this leg owes no liveness bound, and now the family name says so too (council read 64).
+
+- **2026-09-28 — What the rewrite dropped from the re-entry arms, restored.** *Chose:* the collision check over a pending entry as well as a complete one (Action wiring 7, 8); the guard recorded for every result that lands, a re-entry's included (Action wiring 25); a resolving action run again on a seen token carrying no entry, with outcome-unknown kept for [Place Hold] (Indeterminate outcome 10, 13, Wiring decision 4); a resolving action's candidates named (Indeterminate outcome 14); the window strictly longer than the completion bound (Capability requirement 10); and Composition state 8, which conditioned on a returned invocation the map cannot show, tombstoned to Housekeeping 5. *Over:* the 2026-09-14 rewrite's reading, which its Decisions entry called language only. *Because:* the prose spec it replaced decided each of these, and the cold regeneration of 2026-09-28 met every one.
 
 NOTE: End of Idempotent Reservation.
