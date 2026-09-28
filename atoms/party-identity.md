@@ -133,7 +133,7 @@ enroll(name, date_of_birth, document_type, document_ref, enrolling_actor_ref)
   refuses invalid-request | storage-failure
 
 verify(party_id, verifying_actor_ref, verification_method, verification_result, evidence_ref)
-  answers verification_result
+  answers verify answer
   refuses not-known | already-closed | invalid-request | storage-failure
 
 suspend(party_id, suspending_actor_ref, reason)
@@ -153,7 +153,7 @@ read(query)
   refuses invalid-query
 ```
 
-Term verification result: verification id and an optional state change id — what verify answers.
+Term verify answer: verification id and an optional state change id — what verify answers.
 
 ```
 Operation 1: IF a required string input EQUALS blank THEN an action MUST answer invalid-request.
@@ -558,7 +558,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: party, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, store instance, seam, transition, now, party action, transitioning action, state, state rejection, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
+Term terms: party, verify answer, party id, verification event, state change event, assigned id, enrollment field, acting reference, reference, store instance, seam, transition, now, party action, transitioning action, state, state rejection, state check, required string input, fresh verification, insertion order, length bound, reasoned action, custody field, evidence reference, query axes, admitted enroll, admitted verify, admitted suspend, admitted reinstate, admitted close, admitted read, string input, blank, verification result.
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 

@@ -453,7 +453,7 @@ The cost is stated rather than hidden: audit-event volume rises by roughly one e
 ```
 initiate_onboarding(optional party_id, optional enrollment_fields, actor_ref, credential, retention_policy_ref)
   answers case_id
-  refuses invalid-request | invalid-credential | party-not-known | party-not-admissible(state) | already-onboarded | enrollment-failed(enrollment failure) | recording-failure(position)
+  refuses invalid-request | invalid-credential | party-not-known | party-not-admissible(state) | already-onboarded | state-unavailable | enrollment-failed(enrollment failure) | recording-failure(position)
 
 record_verification(case_id, verifying_actor_ref, method, verification_result, evidence_ref, credential)
   answers recorded
@@ -478,7 +478,7 @@ activity_permitted(party_id)
 
 Term enrollment failure: invalid-request | storage-failure — Party Identity's enroll codes an initiation passes through.
 
-Term position: intent | outcome — the record a write lands: the intent or the outcome.
+Term position: intent | outcome — whether the invocation had committed a constituent write when it failed: intent where it had not, so the caller may retry the whole action; outcome where it had (Audit arm 11, Audit arm 12). A constituent's own refusal after the intent landed carries intent.
 
 ```
 Action wiring 1: [Initiate Onboarding] MUST answer invalid-request for a call carrying a party id AND enrollment fields.
@@ -486,6 +486,7 @@ Action wiring 2: [Initiate Onboarding] MUST answer invalid-request for a call ca
 Action wiring 3: [Initiate Onboarding] MUST answer invalid-request for an unset monitoring interval.
 Action wiring 4: An external path call MUST read the party through Party Identity's declared read.
 Action wiring 5: IF no party EXISTS for the party id THEN [Initiate Onboarding] MUST answer party-not-known.
+Action wiring 154: IF the external path's read stands unanswered THEN [Initiate Onboarding] MUST answer state-unavailable.
 Action wiring 6: IF the party's state IS NOT IN the admissible states THEN [Initiate Onboarding] MUST answer party-not-admissible carrying the state.
 Action wiring 7: IF an active case EXISTS for the party THEN [Initiate Onboarding] MUST answer already-onboarded.
 Action wiring 8: An admitted initiation MUST record an initiation intent.
@@ -588,7 +589,7 @@ Action wiring 102: An admitted clearance MUST record a party reinstated outcome 
 Action wiring 103: IF the party reinstated record fails THEN [Clear Review] MUST answer recording-failure carrying outcome.
 Action wiring 104: An admitted clearance MUST drop the closed triggers from the open-trigger set ONLY AFTER the landed party reinstated record.
 Action wiring 105: An admitted clearance MUST drop exactly the closed triggers the review cleared record names.
-Action wiring 106: An admitted clearance MUST NOT empty the open-trigger set.
+Action wiring 106: An admitted clearance MUST NOT drop a trigger the review cleared record does not name.
 Action wiring 107: An admitted clearance MUST advance the next review due to the party reinstated record's next review due.
 Action wiring 108: A scoped retry MUST stand inside the retrying invocation.
 Action wiring 109: A scoped retry MUST NOT cross a process boundary.
@@ -689,7 +690,7 @@ Action wiring 68 and Action wiring 69 are the renewal's unconditionality, and bo
 
 Action wiring 91 is the ordering the clearance turns on. The clearance record lands before the reinstate commits, so it must not carry the advanced deadline: a failed reinstate would otherwise leave the trail asserting an advance the freeze rule forbids for a party still `Suspended`, and the rebuild — latest schedule-bearing payload — would convict a map entry that was correct. The advance rides the reinstatement record, which lands only after the reinstate has committed.
 
-Action wiring 105 and Action wiring 106 are why a clearance drops a set rather than clearing one. Inside the window between the reinstate committing and its record landing, the party is already `Verified` and a new adverse trigger can lawfully land; a delayed completion that cleared the whole set would sweep that trigger while its own record stands and no clearance names it, leaving a `Suspended` party with an empty set and [Clear Review] unreachable.
+Action wiring 105 and Action wiring 106 are why a clearance drops a set rather than clearing one. Inside the window between the reinstate committing and its record landing, the party is already `Verified` and a new adverse trigger can lawfully land; a delayed completion that cleared the whole set would sweep that trigger while its own record stands and no clearance names it, leaving a `Suspended` party with an empty set and [Clear Review] unreachable. In the healthy path the named set is the whole open set, and the clearance leaves it empty; what the rule forbids is dropping a trigger the record does not name.
 
 Action wiring 117 and Action wiring 118 are the re-entry arm, and it is the alternative to a forbidden retry. A prior invocation that closed the party and died before placing the floor leaves a closure Party Identity committed and no record of; a fresh [Close Party] authenticates its own caller at its own intent and then completes the earlier act from the constituent's state-change record. Action wiring 133 is what that arm exists to avoid: a bare cross-invocation retry of a committing call would commit under an authentication performed in a prior invocation, which Invariant 8 forbids.
 
@@ -1399,5 +1400,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-14 — The external path admits `Unverified` and nothing else.** *Chose:* one guard and one parameterized refusal, [Party Not Admissible], naming the state found. *Over:* keeping the `party-closed` arm and adding a second arm for `Verified` and `Suspended`. *Because:* the prose guarded `Closed` alone, so a `Suspended` admit opened a case with an empty open-trigger set against a suspended party and a `Verified` admit passed the gate with no verification record of this composition's — a hole in the composition's own load-bearing guarantee, reachable from the ordinary external path. A second arm beside `party-closed` would have split one guard's answer across two codes; the fold gives the caller one code and the state it needs.
 - **2026-09-14 — state-unavailable is mapped from the seam, not from a constituent arm.** *Chose:* an unanswered constituent read is the state-unavailable of the section titled Step 1 failure in `execution-contract.md`, and Party Identity's declared `invalid-query` arm maps to invalid-request as this composition's own defect. *Over:* continuing to map state-unavailable from Party Identity's `read`. *Because:* that atom's `read` declares two answers — the matching parties, or `invalid-query` — and neither is an unreadable store, so the mapping named a contract the constituent does not have. The gate's fail-closed behaviour is unchanged; what changed is where the page says it comes from.
 - **2026-09-14 — Rewritten in GRACE lang v0.41.** *Chose:* 180.5 KB of prose replaced by labelled rules across fifteen families, eight invariant numbers unchanged, thirty-eight of thirty-nine Ledger lines closed by the rewrite. *Over:* a mechanical transliteration that would have carried the page's four internal contradictions into the rule surface. *Because:* a defect the rewrite finds is repaired in the pass that finds it; the repairs are named in the entries above and in the commit that lands this.
+
+- **2026-09-28 — What the cold regeneration met, restored.** *Chose:* a clearance forbidden to drop a trigger its record does not name (Action wiring 106), where the rule had forbidden emptying the set — which every healthy clearance does; the external path's unanswered read answered state-unavailable (Action wiring 154), as the trigger and the gate already answer it; and position defined by what the rules use it for — whether a constituent write had committed — rather than by which record failed, which eleven rules contradicted, Action wiring 17 and 62 among them. *Over:* the 2026-09-14 rewrite's readings. *Because:* the prose said *never clear the set*, meaning never sweep it wholesale, and the rewrite made it a prohibition the page's own walkthrough breaks; and a read with no answer had no landing at initiation.
 
 NOTE: End of Customer Onboarding.
