@@ -25,6 +25,12 @@
 \* that must use injected `now` is split from its commit, so the time-of-check
 \* value of the clock no longer governs the committed write.
 \*
+\* Read against Capability requirement 8 (2026-09-13): the correct model's
+\* RegisterAtomic is the critical section over the pair, check and write in one
+\* step, and this twin is that section's absence. No index appears in either
+\* model. Re-checked 2026-09-28: checked alone, Inv_EffectiveActiveUniqueness
+\* is violated and Inv_RotationChain holds.
+\*
 \* Expected result: Safety VIOLATED (Inv_EffectiveActiveUniqueness).  Sequence:
 \* RegisterObserve(1), RegisterObserve(2) (both see EffActiveCount = 0),
 \* RegisterCommit(1), RegisterCommit(2) -> two effective-Active credentials.

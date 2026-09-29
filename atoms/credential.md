@@ -935,7 +935,6 @@ last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
 
 open:
 - 2026-09-28-a · refining · String 7 through 9 · scoped from *an action* to the three actions whose signatures carry invalid-request, found reading Login's Ledger (council read 246), a load-bearing touch → the three-pass round the entry *Touch triggers re-pass* in `pressure-testing.md` requires
-- 2026-09-13-a · refining · Capability requirement 8 / formal · the prose named a store constraint that cannot be built — a unique partial index whose predicate would have to reference `now`, whose clock-free half forbids the lapsed-beside-successor case Operation 8 permits; the obligation is unchanged and is now a critical section over the pair, but `credential-buggy-toctou.tla` was built against the index reading → re-check the twin against the critical section reading
 ```
 
 ## Decisions
