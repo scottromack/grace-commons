@@ -91,7 +91,7 @@ State 3: EVERY rotated credential MUST carry rotation instant and successor cred
 State 4: EVERY revoked credential MUST carry revocation instant, revoked by reference and revocation reason.
 State 5: An active credential MUST NOT carry a terminal field.
 State 6: The atom MUST NOT store expired as a status.
-State 7: A credential MUST NOT carry an expiry instant.
+State 7: A credential MUST NOT carry a lapse instant.
 State 8: The atom MUST NOT expose a verifier.
 State 9: A credential MUST NOT carry credential material.
 State 10: A credential MUST NOT carry presented material.
@@ -102,10 +102,12 @@ State 14: The atom MUST NOT offer a verifier migration surface.
 State 15: The store instance's credential count MUST NOT fall.
 ```
 
+Term lapse instant: an instant a store writes when a credential starts to read lapsed, beside a status that stays active — the materialized lapse; never stored here, because lapse is read, not written.
+
 WHY:
 State 9 and State 10 bound the record; Operation 17 and Operation 25 bound the action, and the two are different claims. A store that holds no plaintext password still fails this atom's purpose if the material was written to a log on its way in, which is what *retain* forbids and *carry* does not reach. Neither leaves evidence in the store, which is why External check 1 exists at all — this is the atom's foundational security commitment and the one no conformance check can clear.
 
-State 6 and State 7 are the derived-expiry posture on the record surface, two rules because an implementation can breach each without the other: a stored expired status, and an `expired_at` column beside a status that stays active.
+State 6 and State 7 are the derived-expiry posture on the record surface, two rules because an implementation can breach each without the other: a stored expired status, and a lapse instant beside a status that stays active. The expiry instant is the deadline and is carried (State 2); what State 7 forbids is the record of having passed it.
 
 State 14 names an absence a deployment eventually wants. When a deployment upgrades its derivation function, existing verifiers stay valid under the function they were made with; migrating them is a deployment operation, not an action here, because a migration would have to read material this atom has already discarded (Non-goal 18).
 
@@ -141,9 +143,6 @@ WHY:
 Capability requirement 8 is a correction, and the correction is worth stating because the prose it replaces named a mechanism that cannot work. A draft of this atom asked the store to enforce effective-active uniqueness with *a unique partial index on the pair where status is active and the credential is not past its deadline* — and no index predicate can reference now. The clock-free half of that index, `where status = active`, forbids exactly the case Operation 8 permits: a lapsed record standing in active beside its successor. So the index is either unimplementable or wrong, and the obligation it was reaching for is a critical section over the pair — the same shape [Provisional Commitment](./provisional-commitment.md)'s registry carries. The obligation is unchanged; only the mechanism illustration is gone, and it is recorded in the Ledger rather than quietly dropped.
 
 Capability requirement 14 is the delegated cap. This atom declares no maximum length for a string input and obliges the deployment to declare one, which is one of the postures the *input-handling regime* docket row counts; the material is exempt only insofar as a derivation function states its own bounds.
-
-WHY:
-Non-goal 27 is the price of the derivation and it is cheaper here than it looks. Two readers with skewed clocks can disagree near a deadline about whether a credential reads expired — and no verified is answered for a lapsed credential under *either* reader's clock, no record diverges, and nothing is written. The disagreement is about a projection, not about state.
 
 ### Operations
 
@@ -399,7 +398,7 @@ This atom's acceptance is what an external auditor can clear from the credential
 Check 1.1: An auditor MUST find no two effective-active credentials sharing a pair, against a clock the auditor supplies (Invariant 2.1).
 Check 1.2: An auditor MUST read effective-active from the window reading and NOT from the stored status (Operation 8, Invariant 2.1).
 Check 2.1: An auditor MUST find no credential storing expired as a status (State 6).
-Check 2.2: An auditor MUST find no credential carrying an expiry instant (State 7).
+Check 2.2: An auditor MUST find no credential carrying a lapse instant (State 7).
 Check 2.3: An auditor MUST reproduce an admitted read's effective status from the credential's expiry instant and a clock the auditor supplies (Invariant 12.2).
 Check 3.1: An auditor MUST find a successor credential id naming a credential on EVERY rotated credential (Invariant 7.1).
 Check 3.2: An auditor MUST find EVERY rotated credential's successor carrying the rotated credential's pair (Invariant 7.2).
@@ -479,6 +478,8 @@ Non-goal 15 and Non-goal 16 are the boundary NIST SP 800-63B is usually read as 
 Non-goal 19 is the compromise case and the reason the store is append-only in spirit as well as in rule. A credential later found to have been compromised before it was revoked does not cause any record here to change; a composing pattern writes *new* records that reframe the prior answers as untrustworthy. The store stays immutable and the meaning of its records changes by composition.
 
 Non-goal 26 is the honest limit on the stored terminals. A credential nobody rotates or revokes stays standing in active forever, reading expired once its deadline passes — and if it carries no deadline it reads active forever. Nothing here makes that end.
+
+Non-goal 27 is the price of the derivation and it is cheaper here than it looks. Two readers with skewed clocks can disagree near a deadline about whether a credential reads expired — and no verified is answered for a lapsed credential under *either* reader's clock, no record diverges, and nothing is written. The disagreement is about a projection, not about state.
 
 ---
 
@@ -576,7 +577,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: credential, credential id, pair, property, reference, store instance, seam, transition, now, transitioning write, stored terminal, status, standing check, standing rejection, well-formedness check, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, default expiry instant, terminal field, resolution instant, admitted register, admitted rotate, admitted revoke, admitted read, string input, blank, verification failure.
+Term terms: credential, credential id, lapse instant, pair, property, reference, store instance, seam, transition, now, transitioning write, stored terminal, status, standing check, standing rejection, well-formedness check, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, default expiry instant, terminal field, resolution instant, admitted register, admitted rotate, admitted revoke, admitted read, string input, blank, verification failure.
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -756,7 +757,7 @@ Projection:   reason
 The wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it — never read inside the transition and never supplied by the business caller. Consumed by the window reading, by a write's stamps, and by [Read]'s [Effective Status] projection.
 
 Kind:         Parameter
-Parameter of: Register
+Parameter of: Register, Verify, Rotate, Revoke and Read
 Projection:   now
 
 #### Active
@@ -811,7 +812,7 @@ Projection: no-active-credential
 
 #### Invalid Request
 
-The refusal returned when a required argument is blank, a [Credential Type] names no derivation function, a supplied [Expiry Instant] does not exceed [Now], or a string input exceeds the deployment's length bound. On a transitioning write it is reached only after every standing check passes.
+The refusal returned when a required argument is blank, a [Credential Type] names no derivation function, a supplied [Expiry Instant] does not exceed [Now], or — on [Register], [Rotate] and [Revoke] only — a string input exceeds the deployment's length bound. On a transitioning write it is reached only after every standing check passes.
 
 Kind:       Member
 Member of:  the action rejection
@@ -918,7 +919,7 @@ Projection: storage-failure
 It inherits from:
 
 - **Daniel Jackson, *The Essence of Software*** — the freestanding-atom posture, and the discipline of composing identity proofing, sessions, authorization and multi-factor orchestration as separate atoms rather than absorbing them here.
-- **NIST 800-132 (password-based key derivation)** — the reference for which derivation functions satisfy the one-way property Invariant 8.2 requires.
+- **NIST 800-132 (password-based key derivation)** — the reference for which derivation functions satisfy the one-way property Capability requirement 5 requires.
 
 ---
 
@@ -931,16 +932,17 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — credential.tla + 2 twins, 2026-06-04
-last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
+last gate: 2026-09-29 — Final Critique 6, fresh reader — 1 foundational, 3 refining, 1 rhetorical (all since closed)
 
 open:
-- 2026-09-28-a · refining · String 7 through 9 · scoped from *an action* to the three actions whose signatures carry invalid-request, found reading Login's Ledger (council read 246), a load-bearing touch → the three-pass round the entry *Touch triggers re-pass* in `pressure-testing.md` requires
+- 2026-09-28-a · refining · String 7 through 9 / State 7 · the round ran (Final Critique 6, 2026-09-29): String 7 through 9 held; the gate found State 7 forbidding the expiry instant the page's own rules record, cured with a lapse instant, and three refining and one rhetorical, cured → a fresh reader on the cure
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/credential.md`.
 
+- **2026-09-29 — The forbidden marker gets its own name.** *Chose:* lapse instant, the instant a store would write when a credential starts to read lapsed, as what State 7 and Check 2.2 forbid. *Over:* *expiry instant*, the page's name for the deadline, which State 2 permits, Operation 12 and 13 record and Invariant 12.2 and Check 2.3 read — so State 7 forbade what four rules require and Check 2.2 failed every store holding a deadline. *Because:* the WHY always meant the `expired_at` column beside a status that stays active; the term it needed did not exist, and it borrowed the nearest one (Final Critique 6, GLM).
 - **2026-09-28 — The length bound answers only where a signature can carry it.** *Chose:* String 7 through 9 name [Register], [Rotate] and [Revoke]. *Over:* *an action*, which obliged [Verify] and [Read] to answer an arm their signatures do not carry. *Because:* the rule and the signature block contradicted each other, and the two reads already answer an over-long input correctly without the arm.
 - **2026-09-13 — Effective-active uniqueness is enforced by a critical section over the pair, not by a unique partial index.** *Chose:* Capability requirement 8 — the store runs the effective-active check and the register write for one pair as one critical section. *Over:* the store constraint the prose named, *a unique partial index on `(principal_ref, credential_type)` where `status = Active` and the credential is not past expiry instant*. *Because:* an index predicate cannot reference now, and the half of it that can — `where status = Active` — forbids exactly the case Operation 8 permits, a lapsed record standing in active beside its successor. The obligation the prose was reaching for is unchanged; only the mechanism is, and the formal twin built against the old reading is an open Ledger line rather than a silent inheritance.
 - **2026-09-13 — Every bound, guard and lookup means effective-active, declared once.** *Chose:* window reading: live | lapsed, and effective-active credential as a credential standing in active that reads live. *Over:* restating *stored active and now < expiry instant* at the uniqueness guard, the verify lookup, the rotate precondition and the revoke precondition, which is how the prose carried it four times. *Because:* a spec pays for a proposition once (GRACE-lang Authority 3), and this is the atom's single most misreadable claim — an implementation that reads the stored flag at any one of those four sites is the hazard `credential-buggy-toctou.tla` exists to catch.
