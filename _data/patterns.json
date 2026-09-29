@@ -1449,7 +1449,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -1459,7 +1459,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "grounded on Final Critique 6 \u2014 2026-08-26",
+  "status": "partially resolved",
   "substrates": [],
   "title": "Shared Todo"
  },
