@@ -194,7 +194,7 @@ Wiring decision 1: The composition MUST restore an undone delete's unit at the u
 Wiring decision 2: The composition MUST restore an undone delete's unit carrying the unit's original instants.
 Wiring decision 3: The composition MUST restore an undone delete's unit through the replay.
 Wiring decision 4: The composition MUST NOT restore an undone delete's unit from the snapshot.
-Wiring decision 5: The composition MUST NOT call Personal Todo's add to restore an undone delete's unit.
+Wiring decision 5: The composition MUST NOT append an add event to restore an undone delete's unit.
 ```
 
 WHY:
@@ -203,6 +203,8 @@ The principle: when a user undoes a delete, the unit must come back at its origi
 The likely objection: *could the delete save a snapshot and the undo restore from it?* Per-action snapshots — the Memento shape — restore the state and produce a new copy of the unit. A fresh add against Personal Todo issues a new id, resets the instants and loses the unit's history.
 
 The mechanism: the original add event is still in the log. Undoing the delete appends a compensating event and re-replays, skipping the delete — so the unit is reconstructed from its own add, at its own id, with its own instants. Personal Todo's delete is terminal and irreversible; this composition does not overturn that, it operates at the log level where the delete simply never happened.
+
+Wiring decision 5 forbids a new add, not the replay's: the replay runs the unit's own add event again, at its own id and instant (Replay 6, 7), and that is the only add a restore involves.
 
 The result: Invariant 6.1 falls out of the replay rather than being designed in as a special case. The atoms are unchanged; the composition is entirely in the wiring.
 
@@ -225,6 +227,7 @@ Event schema 5: An admitted edit MUST record the unit's prior description on the
 Event schema 6: The replay MUST NOT read a snapshot.
 Event schema 7: The replay MUST NOT read a prior description.
 Event schema 8: The composition MUST NOT answer Event Log's invalid-payload to a caller.
+Event schema 9: The largest event the five schemas carry MUST NOT EXCEED the event log instance's payload cap.
 ```
 
 Term event type: add | edit | complete | delete | undo.
@@ -238,7 +241,7 @@ Event schema 6 and Event schema 7 are the load-bearing absence. Both fields exis
 
 The undo schema is the only one carrying two fields of its own: [Undone Event Id], which the replay builds the undone set from (Replay 2), and [Undone Event Type], which the undo answers to the caller (Action wiring 18).
 
-Event schema 8 is a foreclosure rather than a mapping. [Event Log](../atoms/event-log.md)'s `append` declares an `invalid-payload` arm, and every payload this composition appends is one of five fixed schemas built by machine from already-validated inputs — so the arm cannot be reached, and reaching it would be a defect in this composition rather than a caller's fault. It surfaces as a deployment fault and is mapped to no caller rejection.
+Event schema 8 is a foreclosure rather than a mapping. [Event Log](../atoms/event-log.md)'s `append` declares an `invalid-payload` arm, and every payload this composition appends is one of five fixed schemas built by machine from already-validated inputs — so the arm cannot be reached while Event schema 9 holds, and reaching it would be a defect in this composition or its deployment rather than a caller's fault. Event schema 9 is what the claim rests on: Personal Todo bounds a description by its description cap and Event Log bounds data by its payload cap, the deployment sets both, and an edit event carries two descriptions. At the two atoms' defaults the largest event fits with room; a deployment that lowers the one or raises the other can make it not fit, and nothing else on the page would say so. It surfaces as a deployment fault and is mapped to no caller rejection.
 
 ---
 
@@ -574,16 +577,17 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 6 — 2026-08-26` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 6 — 2026-08-26
+status: partially resolved
 formal: verified — undo-history.tla + 3 twins, 2026-06-14
 last gate: 2026-08-26 — Final Critique 6, fresh reader — clean
 
-open: none
+open:
+- 2026-09-28-a · refining · Event schema 9 / Wiring decision 5 · the cold regeneration declared the payload cap Event schema 8's foreclosure rests on, and aimed Wiring decision 5 at a new add event where it forbade the call the replay makes — load-bearing touches → the three-pass round the entry *Touch triggers re-pass* in `pressure-testing.md` requires
 ```
 
 ## Decisions
@@ -592,5 +596,7 @@ Directional changes only — the turns a future reader must know the pattern too
 
 - **2026-09-14 — The first composition migrated after the atom set, and the shape it sets.** *Chose:* `Composes` for the constituent contract, then a family per wiring surface — `Event schema`, `Action wiring`, `Replay`, `Wiring decision` — above the composition-level `Invariant` family, with `Check` and `External check` below it. *Over:* folding the wiring into `Operation`, which is what an atom uses. *Because:* a composition's rules are about *where a call goes* rather than about what one record does, and the families name the surfaces a reader has to hold apart: what gets written, what each action does with it, how the state is rebuilt, and the one decision the whole composition exists to enforce. `Operation` would have flattened four different kinds of claim into one family.
 - **2026-09-14 — The acceptance section is written from one sentence the prose already carried, and nothing more.** *Chose:* thirteen `Check` rules and four `External check` rules, each naming the rule it tests. *Over:* leaving acceptance unwritten, which is how the prose stood — it claimed only that *the verification surface is records-alone: every invariant above is checkable by replay*. *Because:* that sentence is a claim per invariant, and distributing it is language rather than new obligation. Where the prose gave no basis for a check, none was invented; the four External checks are the four assumptions the prose already named as outside the composition's reach.
+
+- **2026-09-28 — What the cold regeneration met.** *Chose:* Event schema 9, the largest event within the event log instance's payload cap, where Event schema 8's WHY called invalid-payload unreachable on the strength of inputs Personal Todo validates against its own description cap — a bound that says nothing about Event Log's; and Wiring decision 5 forbidding a new add event, where it forbade calling Personal Todo's add at all, which the replay does for every unit it restores and the Composes WHY says it does. *Over:* the pilot's readings, which the 2026-09-14 rewrite carried unchanged. *Because:* a foreclosure is only as sound as the capability it rests on, and a rule the page's own mechanism breaks is not the rule the page means. The re-pass is owed.
 
 NOTE: End of Undo History.
