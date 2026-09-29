@@ -12,7 +12,8 @@ parent: Evidence
 
 | Gate | What it enforces | Live |
 |---|---|---|
-| **Verify corpus claims** | Five independent renders built from a cold checkout must agree 100% on the conformance checks; the injected-defect negative control must be caught and localized; every formal model must hold and every buggy twin must be rejected. Runs on every push touching the corpus, and weekly on the rescan cadence. | [![Verify](https://img.shields.io/github/actions/workflow/status/scottromack/grace-commons/verify.yml?branch=main&label=verify)](https://github.com/scottromack/grace-commons/actions/workflows/verify.yml) |
+| **Verify corpus claims** | Five independent renders built from a cold checkout must agree 100% on the conformance checks; the injected-defect negative control must be caught and localized; every formal model outside Recoverable Invocation's must hold and every buggy twin and probe must be rejected. Runs on every push touching the corpus, and weekly on the rescan cadence. | [![Verify](https://img.shields.io/github/actions/workflow/status/scottromack/grace-commons/verify.yml?branch=main&label=verify)](https://github.com/scottromack/grace-commons/actions/workflows/verify.yml) |
+| **Verify Recoverable Invocation's models** | Recoverable Invocation's model, its twins, its isolations and its probes — about 37 minutes of model checking: every correct model must hold and every twin and probe must be rejected. Runs when those models or the harness change, and weekly; a newer push never cancels it. | [![Verify Recoverable Invocation](https://img.shields.io/github/actions/workflow/status/scottromack/grace-commons/verify-recoverable-invocation.yml?branch=main&label=recoverable%20invocation)](https://github.com/scottromack/grace-commons/actions/workflows/verify-recoverable-invocation.yml) |
 | **Lint spec corpus** | The mechanical cross-reference gate: dangling links, invariant-count drift, missing models and twins, stale forthcoming-markers, count drift, out-of-range invariant references, vocabulary rules. Runs on every push and pull request. | [![Lint](https://img.shields.io/github/actions/workflow/status/scottromack/grace-commons/lint.yml?branch=main&label=lint)](https://github.com/scottromack/grace-commons/actions/workflows/lint.yml) |
 
 ## Latest runs
@@ -22,7 +23,7 @@ parent: Evidence
 <script>
 (function () {
   var repo = "scottromack/grace-commons";
-  var workflows = ["verify.yml", "lint.yml"];
+  var workflows = ["verify.yml", "verify-recoverable-invocation.yml", "lint.yml"];
   var el = document.getElementById("live-status");
 
   function fmtDuration(a, b) {
