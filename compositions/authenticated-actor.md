@@ -145,7 +145,7 @@ Capability requirement 10 exists because this composition's records carry **thre
 Primitive policy 1: The composition MUST answer invalid-request for a blank principal reference.
 Primitive policy 2: The composition MUST answer invalid-request for a blank actor reference.
 Primitive policy 3: The composition MUST answer invalid-request for a blank credential material.
-Primitive policy 4: The composition MUST answer invalid-request for a blank credential type.
+Primitive policy 4: The composition MUST answer invalid-request for a blank credential type the caller supplies.
 Primitive policy 5: The composition MUST answer invalid-request for a blank action reference.
 Primitive policy 6: The composition MUST answer invalid-request for a blank attest credential.
 Primitive policy 7: The composition MUST answer invalid-request for an expiry instant the clock reading DOES NOT PRECEDE.
@@ -187,7 +187,7 @@ Term conflict position: guard | binding — where a namespace conflict is found:
 
 Term storage position: credential | binding — the write that failed: the credential or the binding.
 
-Term attest position: attestation | `log(attestation_id)` — where an attest failed: at the attestation, or at the log write carrying the attestation id.
+Term attest position: attestation | log | `log(attestation_id)` — where an attest failed: at the attestation; at the log write of a call that committed no attestation; or at the log write carrying the committed attestation's id.
 
 ```
 Action wiring 1: An admitted registration MUST run the guard ONLY AFTER taking the principal's critical section.
@@ -206,19 +206,27 @@ Action wiring 13: A re-run guard finding the principal reference bound MUST answ
 Action wiring 14: An admitted attestation MUST resolve the actor reference from the principal binding.
 Action wiring 15: IF the principal binding carries no principal reference THEN an admitted attestation MUST answer not-bound.
 Action wiring 16: An admitted attestation MUST read the gate ONLY AFTER taking the principal's critical section.
-Action wiring 17: An admitted attestation MUST read Credential's effective status for the principal reference AND the credential type.
+Action wiring 17: An admitted attestation MUST read Credential's effective status for the principal reference AND the bound credential type.
 Action wiring 18: IF no effective-active credential EXISTS THEN an admitted attestation MUST answer credential-not-active.
 Action wiring 19: An admitted attestation MUST call Actor Identity's attest ONLY AFTER the gate read answers effective-active.
 Action wiring 20: An admitted attestation MUST call Actor Identity's attest with the bound actor reference.
 Action wiring 21: An admitted attestation MUST NOT call Actor Identity's attest with a caller-supplied actor reference.
 Action wiring 22: An admitted attestation MUST call Actor Identity's attest with the caller's attest credential.
 Action wiring 23: An admitted attestation MUST NOT call Actor Identity's attest with the credential material.
-Action wiring 24: An admitted attestation MUST append an attest log entry carrying the gate's credential id.
-Action wiring 25: IF the append fails THEN an admitted attestation MUST answer attest-failed naming the log AND the attestation id.
+Action wiring 24: An admitted attestation passing the gate MUST append an attest log entry carrying the gate's credential id.
+Action wiring 25: IF a success entry's append fails THEN an admitted attestation MUST answer attest-failed naming the log AND the attestation id.
 Action wiring 26: [Verify Actor Attestation] MUST call Actor Identity's verify with the attestation id.
-Action wiring 27: [Verify Actor Attestation] MUST resolve the verified attestation's actor reference through the inverse map.
+Action wiring 27: [Verify Actor Attestation] MUST resolve a known attestation's actor reference through the inverse map.
 Action wiring 28: [Verify Actor Attestation] MUST NOT write.
 Action wiring 29: The composition MUST take a principal reference, an actor reference AND a credential material on register_authenticated_actor.
+Action wiring 30: An admitted registration MUST pass the gating credential type default for an absent credential type.
+Action wiring 31: IF Credential's register answers invalid-request THEN an admitted registration MUST answer invalid-request.
+Action wiring 32: IF Credential's register answers storage-failure THEN an admitted registration MUST answer storage-failure naming the credential.
+Action wiring 33: A re-run guard finding the actor reference bound MUST answer namespace-conflict naming the binding.
+Action wiring 34: IF the gate read finds no effective-active credential THEN the attest log entry MUST carry the observed status AND the most recent credential record's credential id.
+Action wiring 35: IF a refused call's append fails THEN the composition MUST answer attest-failed naming the log.
+Action wiring 36: An admitted attestation holding a lapsed critical section AND no attestation id MUST read the gate again ONLY AFTER taking the critical section again.
+Action wiring 37: An admitted attestation holding a lapsed critical section AND an attestation id MUST append ONLY AFTER taking the critical section again.
 ```
 
 Term admitted registration: a [Register Authenticated Actor] call whose inputs cleared the boundary predicate.
@@ -232,7 +240,7 @@ Action wiring 5 through 8 are the re-entry arm, and possession is what makes it 
 
 Action wiring 10 through 13 carry the retry bit in the rejection's own position. guard and credential mean nothing committed and the whole action may be retried; binding means the credential **exists** and a retry re-enters through the arm rather than registering a second one; orphan-credential means another invocation bound this principal while the critical section lapsed, so the caller does not re-run at all and the named credential is the reconciliation leg's to surface.
 
-Action wiring 25 is the same discipline one action over. attestation means nothing committed; `log` means the attestation committed and carries its id, so the caller holds a valid attestation and must not re-run — a re-run would produce a second, equally valid one, because [Actor Identity](../atoms/actor-identity.md) records a fresh attestation per call and nothing keys one to the invocation that produced it.
+Action wiring 25 and 35 are the same discipline one action over. attestation and a bare log mean nothing committed; log carrying an id means the attestation committed, so the caller holds a valid attestation and must not re-run — a re-run would produce a second, equally valid one, because [Actor Identity](../atoms/actor-identity.md) records a fresh attestation per call and nothing keys one to the invocation that produced it.
 
 ### Wiring decision
 
@@ -255,12 +263,14 @@ Housekeeping 2: The orphaned-credential leg MUST run every reconciliation cadenc
 Housekeeping 3: The orphaned-credential leg MUST NOT write.
 Housekeeping 4: The orphaned-credential leg MUST NOT take a critical section.
 Housekeeping 5: The orphaned-credential leg MUST NOT examine a credential younger than the registration completion bound AND the clock offset allowance.
-Housekeeping 6: The orphaned-credential leg MUST report a credential the principal binding binds to no entry.
+Housekeeping 6: The orphaned-credential leg MUST report a credential whose principal reference AND credential type no principal binding carries.
 Housekeeping 7: The orphaned-credential leg MUST NOT promise a closure window.
 ```
 
 WHY:
 The leg reports and does not repair, and every other rule follows from that. Because it writes nothing and holds nothing, two runs at once — a restart beside the cadence, or two nodes — produce at worst two reports of one credential and never two acts (Housekeeping 3, Housekeeping 4). Because it reports rather than closes, no liveness inequality is owed (Housekeeping 7): the report lands as a finding on the deployment's compliance surface, where the identity-management surface acts on it under its own identity.
+
+Housekeeping 6 keys on the pair for the reason the gate does (Composes 9): a rotation's successor carries an id no binding names, and is no orphan.
 
 Housekeeping 5 is the age edge. A credential younger than the registration bound plus the clock offset allowance is a registration in flight, not an orphan, and a leg that reported it would be filing against a correct invocation inside its critical section.
 
@@ -293,8 +303,8 @@ Each emerges from the composition; none belongs to one constituent. Each carries
   WHY: the guard looks and the constraint decides. Invariant 3.3's failure is evidence of a failed atomic write rather than a race, because Composition state 3 puts both directions in one transaction.
 - **Invariant 4 — Attestation traceability.**
   ```
-  Invariant 4.1: EVERY [Attest As Actor] call MUST append EXACTLY ONE attest log entry.
-  Invariant 4.2: An admitted attestation answering attest-failed naming the log MUST NOT append an attest log entry.
+  Invariant 4.1: EVERY [Attest As Actor] call not answering attest-failed naming the log MUST append EXACTLY ONE attest log entry.
+  Invariant 4.2: An [Attest As Actor] call answering attest-failed naming the log MUST NOT append an attest log entry.
   Invariant 4.3: EVERY success entry MUST carry the attestation id AND the gate's credential id.
   Deleted: Invariant 5. Composes 4 owns it.
   ```
@@ -350,10 +360,10 @@ Check 2.1: An auditor MUST find EVERY success entry carrying the credential id t
 Check 2.2: An auditor MUST read a success entry whose attestation instant follows the gate credential's revoked instant beyond the clock offset allowance AND the attest completion bound as an Invariant 1.1 violation.
 Check 2.3: An auditor MUST read a success entry inside that window as the declared residue (Concurrency 3).
 Check 3.1: An auditor MUST find EVERY [Attest As Actor] call carrying one attest log entry (Invariant 4.1).
-Check 3.2: An auditor MUST find EVERY credential-not-active entry carrying the observed status (Composition state 8).
+Check 3.2: An auditor MUST find EVERY credential-not-active entry carrying the observed status (Action wiring 34).
 Check 4.1: An auditor MUST find EVERY attestation older than the attest completion bound AND the clock offset allowance carrying an attest log entry (Invariant 4.2).
 Check 5.1: An auditor MUST find no attest log entry changed (Composition state 9).
-Check 6.1: An auditor MUST find EVERY registered credential older than the registration completion bound AND the clock offset allowance bound in the principal binding (Housekeeping 6).
+Check 6.1: An auditor MUST find EVERY registered credential older than the registration completion bound AND the clock offset allowance carrying a principal reference AND credential type the principal binding carries (Housekeeping 6).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -455,7 +465,7 @@ Term actors: the composition; the constituents; the host; a deployment; an audit
 
 Term cited: Execution Contract Conformance 8 — recursive conformance and the inherited guarantee. The section titled Composition state in `execution-contract.md` — the extraction-pending classification. The section titled Capability provenance in `pressure-testing.md` — the declared-source discipline every invariant's rests-on clause follows.
 
-Term attest credential: attest_credential — the credential the composition presents to the journal when it attests.
+Term attest credential: attest_credential — the signing material the caller presents for Actor Identity's attest; never the credential material.
 
 #### Register Authenticated Actor
 
@@ -465,7 +475,7 @@ Kind: Operation
 
 #### Attest As Actor
 
-The composition's load-bearing emergent action: it produces a non-repudiable attestation for the bound actor **only if** the principal's gating credential is currently `Active` — the revocation cascade, enforced as a forward gate read under `principal_section` immediately before the attestation write (Invariant 1). Returns the attestation id, or [Not Bound] (principal never bound), [Credential Not Active] (the gate is closed), [Invalid Attest Credential] (signing key invalid), or [Attest Failed] — positioned attestation (nothing committed) or `log(attestation_id)` (the attestation committed, the entry did not). Every call appends exactly one [Outcome] to the `attest_log`, except the `log` landing, which check 4 surfaces.
+The composition's load-bearing emergent action: it produces a non-repudiable attestation for the bound actor **only if** the principal's gating credential is currently `Active` — the revocation cascade, enforced as a forward gate read under `principal_section` immediately before the attestation write (Invariant 1). Returns the attestation id, or [Not Bound] (principal never bound), [Credential Not Active] (the gate is closed), [Invalid Attest Credential] (signing key invalid), or [Attest Failed] — positioned attestation or log (nothing committed) or `log(attestation_id)` (the attestation committed, the entry did not). Every call appends exactly one [Outcome] to the `attest_log`, except the log landings; check 4 surfaces the one carrying an id.
 
 Kind: Operation
 
@@ -531,7 +541,7 @@ Projection: invalid-attest-credential
 
 #### Attest Failed
 
-The composition's own rejection from [Attest As Actor], positioned. attestation: the mapping of `Actor Identity.attest`'s storage-failure — nothing was recorded, the whole action may be retried. `log(attestation_id)`: the attestation was recorded and the `attest_log` append failed — the caller holds the committed id and must not re-run the action; check 4 surfaces the unlogged attestation.
+The composition's own rejection from [Attest As Actor], positioned. attestation: the mapping of `Actor Identity.attest`'s storage-failure — nothing was recorded, the whole action may be retried. log: a refused call's `attest_log` append failed — nothing was recorded. `log(attestation_id)`: the attestation was recorded and the `attest_log` append failed — the caller holds the committed id and must not re-run the action; check 4 surfaces the unlogged attestation.
 
 Kind:       Member
 Member of:  the attest rejection
@@ -540,7 +550,7 @@ Projection: attest-failed
 
 #### Outcome
 
-The attest-log entry's classification of an [Attest As Actor] call: `success`, or one of the named rejection reasons ([Not Bound], [Credential Not Active], [Invalid Attest Credential], [Attest Failed] at its attestation position only, invalid-request). Every call appends exactly one entry except the `log` landing of [Attest Failed], which is the one call that commits an attestation and writes no entry (Invariant 4); the log is the composition's records-alone audit surface.
+The attest-log entry's classification of an [Attest As Actor] call: `success`, or one of the named rejection reasons ([Not Bound], [Credential Not Active], [Invalid Attest Credential], [Attest Failed] at its attestation position only, invalid-request). Every call appends exactly one entry except the log landings of [Attest Failed]; `log(attestation_id)` is the one call that commits an attestation and writes no entry (Invariant 4); the log is the composition's records-alone audit surface.
 
 Kind:       Field
 Field of:   the attest-log entry
@@ -618,5 +628,7 @@ Directional changes only — the turns a future reader must know the pattern too
 - **2026-09-14 — Both extraction-pending elements were classified before the rewrite began.** *Chose:* to declare the classification against the prose spec at council read 59 and carry it into the rules here unchanged. *Over:* discovering it during the migration, which is when every other composition's state question surfaced. *Because:* the classification does not depend on the language — the section titled Composition state in `execution-contract.md` turns on whether the truth is reconstructible from constituent stores, which is a fact about the wiring — and settling it first made the `Composition state` family write itself. That order is worth keeping: classify, then migrate.
 
 - **2026-09-14 — `Reconciliation` re-cut as `Housekeeping`, on a discriminator the first cut got wrong.** *Chose:* the family renamed, with the seven rules and every citation of them moving with it. *Over:* keeping the name and letting `Reconciliation` reach three specs. *Because:* the entry above split this leg from [Idempotent Reservation](./idempotent-reservation.md)'s on *one evicts and one reports*, and the drift pass `GRACE-lang.md` Standard label 7 requires found that axis predicts the liveness bound on **two of four** legs — this leg reports and owes none, Eviction takes a critical section and writes and owes none, and the verb decides neither. What survives every member is whether anything **awaits** the leg's output: [Login](./login.md)'s and [Defensible Retention](./defensible-retention.md)'s sweeps discharge a promise inside a declared window and owe a bound; this leg and idempotent reservation's evict or report with nobody waiting and owe none. Two families of two, cut on the guarantee rather than on the verb (council read 64).
+
+- **2026-09-28 — What the cold regeneration met, restored.** *Chose:* an absent credential type passing the gating default (Action wiring 30), where Primitive policy 4 refused it as blank and the default had no reader; Credential's register refusals landing (Action wiring 31, 32), where storage-failure naming the credential sat on the signature with no rule; a lapsed holder finding its actor reference bound answering namespace-conflict naming the binding (Action wiring 33), where only the principal side had a landing and the guard's own answer would have said nothing committed; the refused entry's observed status and credential id stated (Action wiring 34), as the prose stated them; where Check 3.2 cited a rule that says neither; a refused call's failed append answering attest-failed naming a bare log (Action wiring 35), where Action wiring 25 demanded an attestation id no refusal has, and Invariant 4.1 scoped to the calls that append; the orphaned-credential leg keyed on the pair (Housekeeping 6), where keying on the binding's initial credential id reported every rotation's successor as an orphan; a known attestation resolved whatever its verification result (Action wiring 27), where the rewrite resolved only a verified one; and the attest lease's two termini (Action wiring 36, 37), which the prose carried and the rewrite left to a WHY. *Over:* the 2026-09-14 rewrite's readings. *Because:* each was a rule the page's own signature, walkthrough or checks contradicted, or a decision the prose made and the rewrite dropped, found by building it; the pair is the key the gate already uses (Composes 9).
 
 NOTE: End of Authenticated Actor.
