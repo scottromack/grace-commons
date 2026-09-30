@@ -1,3 +1,10 @@
+---
+title: Lease
+parent: Atomic Concepts
+has_toc: true
+toc: true
+---
+
 # Lease
 
 ## Summary
