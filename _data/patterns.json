@@ -430,7 +430,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 2
+   "twins": 4
   },
   "regulated_by": [
    "actor-suspension",
@@ -458,7 +458,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded (English) on Final Critique 12 \u2014 2026-09-29 \u2014 formal layer pending",
+  "status": "grounded on Final Critique 12 \u2014 2026-09-29",
   "title": "Credential"
  },
  "customer-onboarding": {

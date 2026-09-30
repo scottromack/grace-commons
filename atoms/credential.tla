@@ -1,144 +1,191 @@
 ---- MODULE credential ----
-\* Grace Commons — Credential atom (execution/render-time refactor, 2026-06-21).
-\* Spec-level formal sibling of atoms/credential.md.
+\* Grace Commons — Credential atom. Spec-level formal sibling of atoms/credential.md,
+\* re-derived 2026-09-29 against the page grounded in English on Final Critique 12.
 \* Derived validator; the English spec is the single source of truth. On any
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
-\* WHAT THIS MODEL CHECKS
-\* (1) Active uniqueness over EFFECTIVE-Active (Inv 2): at most one credential
-\*     per (principal_ref, credential_type) pair is EFFECTIVE-Active, where
-\*     EFFECTIVE-Active == stored Active AND now < ExpiresAt. This is the
-\*     load-bearing subtlety of the refactor: a stored-Active-but-now-expired
-\*     credential does NOT occupy the Active slot, so register/rotate guard on
-\*     effective-Active (reading the injected clock), not on the stored flag.
-\*     The interesting race is still two concurrent atomic registers, but the
-\*     uniqueness predicate is now phrased against the derivation.
-\* (2) Rotation-chain integrity (Inv 7): every slot in Rotated status has a
-\*     non-null successor link (successor[k] # 0). In this model all slots share
-\*     one (principal, type) pair by construction, so the same-pair clause of
-\*     Inv 7 is satisfied structurally — the asserted check covers the
-\*     non-null-successor-link half, and the same-pair half is by-construction
-\*     (recorded honestly in tools/harness/coverage/credential.md).
-\* (3) Expiry is DERIVED, never written. There is NO stored Expired status and
-\*     no action that writes one. `Expired` is the read-time projection
-\*     EffStatus(k, now). A resolving/lifecycle write fires only while a slot is
-\*     stored-Active (revoke, rotate) and, for register/rotate's uniqueness
-\*     guard, only while no slot is effective-Active. The store never holds an
-\*     "Expired" value (Inv_NoStoredExpired), and the derivation never
-\*     misclassifies a written terminal (Inv_DerivedExpiryCoherent).
+\* WHAT THIS MODEL CHECKS, for one pair
+\* (1) Invariant 2.1 at every settled reading: no two credentials effective-active
+\*     at a reading no registration instant of the pair follows.
+\* (2) Invariant 7.1: every rotated credential carries a successor link.
+\* (3) State 6, 7 and Invariant 12: expiry is derived at a reading, never stored.
 \*
-\* MODELING CHOICES
-\* - One (principal, type) pair with up to `MaxC` credential slots, each in the
-\*   STORED set {none, Active, Rotated, Revoked} — NO stored Expired.
-\* - `now` is an injected clock that only advances (Tick); `ExpiresAt` is a fixed
-\*   deadline shared by every slot (one pair, one expiry window in this model).
-\*   The injected `now` is READ in the effective-Active guard (pure), never used
-\*   to WRITE an Expired state.
-\* - successor: 1..MaxC -> 0..MaxC ; 0 = null (no link), k = slot index of the
-\*   successor credential. Set by RotateAtomic; never mutated thereafter.
+\* WHAT THE RE-DERIVATION ADDS (the 2026-09-29 Ledger line)
+\* - Per-credential deadlines: register and rotate each record their own
+\*   deadline after their reading, or none (Operation 12, 13, 61, 62, 71, 72).
+\* - Two readings: a call takes its reading when it begins and holds it to its
+\*   commit; the clock may advance in between (Capability requirement 1).
+\* - The pair's critical section for register and rotate (Capability
+\*   requirement 8): the standing and uniqueness checks run inside it at the
+\*   call's reading (Operation 6, 28, 65), and the commit lands only if the call
+\*   still holds the section (Capability requirement 22, 23). A holder may be
+\*   released as overdue at any moment, which is how its lease lapsing is modelled.
+\* - Revoke takes no section: its standing check and write are one step
+\*   (Concurrency 1).
 \*
-\* NOT MODELED (out of scope, named): id discipline, verify/material derivation,
-\* per-credential distinct expires_at values (one shared deadline here), and the
-\* immutability of stored fields (structural).
+\* NOT MODELED (named): id material and its uniqueness (Capability requirement 34,
+\* 35), derivation and check functions, verify (a read that writes nothing), and
+\* field immutability beyond what the actions never write.
 
 EXTENDS Naturals, FiniteSets
 
-CONSTANT ExpiresAt          \* fixed deadline (a natural; lapsed once now >= ExpiresAt)
-CONSTANT MaxClock           \* clock saturation bound (raise until state count stops growing)
-CONSTANT MaxC               \* credential slots for the (principal, type) pair
+CONSTANT MaxClock           \* the clock saturates here
+CONSTANT MaxC               \* credential slots for the pair
+CONSTANT Calls              \* concurrent register and rotate calls
 
+Slots      == 1..MaxC
+Ids        == 1..Calls
+NoDeadline == MaxClock + 1  \* a credential with no expiry instant (never lapses)
 StoredStatus == {"none", "Active", "Rotated", "Revoked"}
 
 VARIABLES
-    status,                 \* 1..MaxC -> StoredStatus  (NO stored Expired)
-    successor,              \* 1..MaxC -> 0..MaxC  (0 = null successor link)
-    now                     \* injected clock
+    status,      \* Slots -> StoredStatus; no stored Expired (State 6)
+    successor,   \* Slots -> 0..MaxC; 0 = no link
+    deadline,    \* Slots -> 0..NoDeadline; the credential's own expiry instant
+    registered,  \* Slots -> 0..MaxClock; the registration instant
+    now,         \* the host clock
+    kind,        \* Ids -> {"idle", "reg", "rot", "done"}
+    reading,     \* Ids -> 0..MaxClock; the call's one reading of now
+    target,      \* Ids -> 0..MaxC; the prior credential a rotate names
+    phase,       \* Ids -> {"begun", "checked"}
+    holder       \* 0..Calls; who holds the pair's critical section
 
-vars == <<status, successor, now>>
+vars == <<status, successor, deadline, registered, now, kind, reading, target, phase, holder>>
 
 TypeOK ==
-    /\ status \in [1..MaxC -> StoredStatus]
-    /\ successor \in [1..MaxC -> 0..MaxC]
+    /\ status \in [Slots -> StoredStatus]
+    /\ successor \in [Slots -> 0..MaxC]
+    /\ deadline \in [Slots -> 0..NoDeadline]
+    /\ registered \in [Slots -> 0..MaxClock]
     /\ now \in 0..MaxClock
+    /\ kind \in [Ids -> {"idle", "reg", "rot", "done"}]
+    /\ reading \in [Ids -> 0..MaxClock]
+    /\ target \in [Ids -> 0..MaxC]
+    /\ phase \in [Ids -> {"begun", "checked"}]
+    /\ holder \in 0..Calls
 
+\* The store may begin empty or holding one active credential registered at 0,
+\* with any deadline or none, so two calls reach every race over one prior.
 Init ==
-    /\ status    = [k \in 1..MaxC |-> "none"]
-    /\ successor = [k \in 1..MaxC |-> 0]
-    /\ now       = 0
+    /\ status \in {[k \in Slots |-> IF k = 1 THEN s1 ELSE "none"] : s1 \in {"none", "Active"}}
+    /\ deadline \in {[k \in Slots |-> IF k = 1 THEN d1 ELSE 0] : d1 \in 1..NoDeadline}
+    /\ successor = [k \in Slots |-> 0]
+    /\ registered = [k \in Slots |-> 0]
+    /\ now = 0
+    /\ kind = [i \in Ids |-> "idle"]
+    /\ reading = [i \in Ids |-> 0]
+    /\ target = [i \in Ids |-> 0]
+    /\ phase = [i \in Ids |-> "begun"]
+    /\ holder = 0
 
-\* Derived, read-time effective status (render time). Never stored. A stored-Active
-\* slot whose window has lapsed reads "Expired"; every other slot reads its stored
-\* status. EffStatus is a pure projection over the slot and the injected clock.
-Lapsed(k, c)    == (status[k] = "Active") /\ (c >= ExpiresAt)
+\* The window reading (Term live, lapsed): a stored-active credential reads
+\* lapsed once the reading does not precede its deadline. Derived, never stored.
+Lapsed(k, c)    == status[k] = "Active" /\ c >= deadline[k]
+EffActive(k, c) == status[k] = "Active" /\ ~Lapsed(k, c)
+EffActiveCount(c) == Cardinality({k \in Slots : EffActive(k, c)})
 EffStatus(k, c) == IF Lapsed(k, c) THEN "Expired" ELSE status[k]
 
-\* EFFECTIVE-Active is the load-bearing notion: stored Active AND not yet lapsed.
-\* The uniqueness rule (Inv 2) ranges over THIS, not over the stored flag.
-EffActive(k, c)    == EffStatus(k, c) = "Active"
-EffActiveCount(c)  == Cardinality({k \in 1..MaxC : EffActive(k, c)})
+\* A settled reading: no registration instant of the pair follows it.
+Settled(c) == \A k \in Slots : status[k] # "none" => registered[k] <= c
 
-\* The injected clock advances at the I/O seam; it writes nothing else.
 Tick ==
     /\ now < MaxClock
     /\ now' = now + 1
-    /\ UNCHANGED <<status, successor>>
+    /\ UNCHANGED <<status, successor, deadline, registered, kind, reading, target, phase, holder>>
 
-\* CORRECT register: atomic check-and-commit — register Active only when no
-\* EFFECTIVE-Active credential exists for the pair, in one step. The uniqueness
-\* guard reads the injected `now` (pure): a stored-Active-but-lapsed slot does
-\* NOT block registration, because it does not occupy the effective-Active slot.
-RegisterAtomic ==
-    /\ EffActiveCount(now) = 0
-    /\ \E m \in 1..MaxC :
+\* A call begins: it takes its one reading of now.
+BeginRegister(i) ==
+    /\ kind[i] = "idle"
+    /\ kind' = [kind EXCEPT ![i] = "reg"]
+    /\ reading' = [reading EXCEPT ![i] = now]
+    /\ UNCHANGED <<status, successor, deadline, registered, now, target, phase, holder>>
+
+BeginRotate(i) ==
+    /\ kind[i] = "idle"
+    /\ \E t \in Slots :
+        /\ status[t] # "none"                      \* Operation 27: a known credential
+        /\ kind' = [kind EXCEPT ![i] = "rot"]
+        /\ target' = [target EXCEPT ![i] = t]
+        /\ reading' = [reading EXCEPT ![i] = now]
+    /\ UNCHANGED <<status, successor, deadline, registered, now, phase, holder>>
+
+\* The call takes the pair's section and runs its checks at its own reading.
+Pass(i) ==
+    LET r == reading[i]
+        t == target[i]
+    IN  IF kind[i] = "reg"
+        THEN EffActiveCount(r) = 0                  \* Operation 6, 8
+        ELSE EffActive(t, r) /\ ~(\E k \in Slots : k # t /\ EffActive(k, r))           \* Operation 28, 65
+
+Enter(i) ==
+    /\ kind[i] \in {"reg", "rot"}
+    /\ phase[i] = "begun"
+    /\ holder = 0
+    /\ IF Pass(i)
+       THEN /\ phase' = [phase EXCEPT ![i] = "checked"]
+            /\ holder' = i
+            /\ UNCHANGED kind
+       ELSE /\ kind' = [kind EXCEPT ![i] = "done"]    \* refused; the section is not kept
+            /\ UNCHANGED <<phase, holder>>
+    /\ UNCHANGED <<status, successor, deadline, registered, now, reading, target>>
+
+\* The commit: a fresh slot, the call's reading as registration instant, and a
+\* deadline after the reading or none (Operation 5, 12, 13, 61 through 63, 71, 72).
+Commit(i) ==
+    /\ phase[i] = "checked"
+    /\ kind[i] \in {"reg", "rot"}
+    /\ holder = i
+    /\ \E m \in Slots, d \in (reading[i] + 1)..NoDeadline :
         /\ status[m] = "none"
-        /\ status'    = [status    EXCEPT ![m] = "Active"]
-        /\ successor' = [successor EXCEPT ![m] = 0]
-        /\ UNCHANGED now
+        /\ registered' = [registered EXCEPT ![m] = reading[i]]
+        /\ deadline' = [deadline EXCEPT ![m] = d]
+        /\ IF kind[i] = "reg"
+           THEN /\ status' = [status EXCEPT ![m] = "Active"]
+                /\ UNCHANGED successor
+           ELSE /\ status' = [status EXCEPT ![m] = "Active", ![target[i]] = "Rotated"]
+                /\ successor' = [successor EXCEPT ![target[i]] = m]
+    /\ kind' = [kind EXCEPT ![i] = "done"]
+    /\ holder' = 0
+    /\ UNCHANGED <<now, reading, target, phase>>
 
-\* CORRECT rotate: prior EFFECTIVE-Active -> Rotated and successor -> Active,
-\* atomically. Sets successor[k] = m so the rotation-chain link is non-null on the
-\* prior slot. rotate guards on EFFECTIVE-Active: a lapsed slot cannot be rotated
-\* (it reads Expired by derivation) — verify/rotate/revoke treat it as terminal.
-RotateAtomic ==
-    /\ \E k, m \in 1..MaxC :
-        /\ EffActive(k, now)
-        /\ status[m] = "none"
-        /\ k # m
-        /\ status'    = [status    EXCEPT ![k] = "Rotated", ![m] = "Active"]
-        /\ successor' = [successor EXCEPT ![k] = m,         ![m] = 0]
-        /\ UNCHANGED now
+\* A holder released as overdue (Capability requirement 21, 22), and its write
+\* then refused as storage-failure (Capability requirement 23).
+Overdue(i) ==
+    /\ holder = i
+    /\ holder' = 0
+    /\ UNCHANGED <<status, successor, deadline, registered, now, kind, reading, target, phase>>
 
-\* revoke guards on EFFECTIVE-Active: a lapsed slot reads Expired by derivation
-\* and is treated as terminal, so revoke does not fire against it (no write).
+Refused(i) ==
+    /\ phase[i] = "checked"
+    /\ kind[i] \in {"reg", "rot"}
+    /\ holder # i
+    /\ kind' = [kind EXCEPT ![i] = "done"]
+    /\ UNCHANGED <<status, successor, deadline, registered, now, reading, target, phase, holder>>
+
+\* Revoke: no section; the standing check and the write are one step at now.
 Revoke ==
-    /\ \E k \in 1..MaxC :
+    /\ \E k \in Slots :
         /\ EffActive(k, now)
-        /\ status'    = [status    EXCEPT ![k] = "Revoked"]
-        /\ UNCHANGED <<successor, now>>
+        /\ status' = [status EXCEPT ![k] = "Revoked"]
+    /\ UNCHANGED <<successor, deadline, registered, now, kind, reading, target, phase, holder>>
 
-Next == RegisterAtomic \/ RotateAtomic \/ Revoke \/ Tick
+Next ==
+    \/ Tick \/ Revoke
+    \/ \E i \in Ids : BeginRegister(i) \/ BeginRotate(i) \/ Enter(i) \/ Commit(i) \/ Overdue(i) \/ Refused(i)
+
 Spec == Init /\ [][Next]_vars
 
-\* Inv 2 (reworded for the refactor): at most one EFFECTIVE-Active credential per
-\* (principal, type) pair — stored Active AND now < ExpiresAt. A stored-Active
-\* slot past the deadline does not count, so two such slots are NOT a violation
-\* (neither occupies the effective-Active slot); the slot they would both block
-\* is the effective one.
-Inv_EffectiveActiveUniqueness == EffActiveCount(now) <= 1
+\* Invariant 2.1, at every settled reading.
+Inv_EffectiveActiveUniqueness ==
+    \A c \in 0..MaxClock : Settled(c) => EffActiveCount(c) <= 1
 
-\* Inv 7: every Rotated slot has a non-null successor link.
-\* Same-pair clause holds by-construction (single-pair model scope).
-Inv_RotationChain == \A k \in 1..MaxC : status[k] = "Rotated" => successor[k] # 0
+\* Invariant 7.1.
+Inv_RotationChain == \A k \in Slots : status[k] = "Rotated" => successor[k] # 0
 
-\* Expiry is derived, never written: the store never holds an "Expired" value
-\* (by construction — no action writes it; promoted to an explicit check so a
-\* future edit that re-introduces a stored Expired is caught).
-Inv_NoStoredExpired == \A k \in 1..MaxC : status[k] \in StoredStatus
-
-\* The derivation never misclassifies a written terminal as Expired: a stored
-\* terminal (Rotated/Revoked) always reads back as itself, never "Expired".
+\* State 6: no stored Expired; Invariant 12: a stored terminal reads as itself.
+Inv_NoStoredExpired == \A k \in Slots : status[k] \in StoredStatus
 Inv_DerivedExpiryCoherent ==
-    \A k \in 1..MaxC : status[k] \in {"Rotated", "Revoked"} => (EffStatus(k, now) = status[k])
+    \A k \in Slots, c \in 0..MaxClock : status[k] \in {"Rotated", "Revoked"} => EffStatus(k, c) = status[k]
 
 Safety ==
     /\ TypeOK
@@ -146,14 +193,5 @@ Safety ==
     /\ Inv_RotationChain
     /\ Inv_NoStoredExpired
     /\ Inv_DerivedExpiryCoherent
-
-\* NOTE rotate atomicity is what holds effective-active uniqueness THROUGH a
-\* rotation: RotateAtomic is one step, so no reachable state shows two
-\* effective-Active credentials. The two isolated buggy twins cover:
-\*   - credential-buggy-toctou.tla: Inv_EffectiveActiveUniqueness via a split
-\*     register check-then-commit (the duplicate-active-credential TOCTOU race),
-\*     reintroducing the time-of-check/time-of-use hazard.
-\*   - credential-buggy.tla: Inv_RotationChain via rotate setting Rotated without
-\*     writing the successor link (a dangling chain).
 
 ====

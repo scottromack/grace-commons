@@ -1,8 +1,9 @@
----- MODULE credential-buggy-toctou ----
-\* Grace Commons — Credential atom: BUGGY TWIN — Capability requirement 8.
-\* Mirrors credential.tla (re-derived 2026-09-29) with the pair's critical section
-\* removed: a register or rotate checks and commits with no section held, so two
-\* calls both pass the uniqueness check at their readings and both commit.
+---- MODULE credential-buggy-overdue ----
+\* Grace Commons — Credential atom: BUGGY TWIN — Capability requirement 23.
+\* Mirrors credential.tla (re-derived 2026-09-29) with one change: a call whose
+\* section was released as overdue still commits. A second register takes the
+\* section, passes its check and commits, and the overdue holder's stale commit
+\* lands beside it.
 \* Expected result: Safety VIOLATED (Inv_EffectiveActiveUniqueness).
 
 EXTENDS Naturals, FiniteSets
@@ -98,10 +99,10 @@ Pass(i) ==
 Enter(i) ==
     /\ kind[i] \in {"reg", "rot"}
     /\ phase[i] = "begun"
-    /\ TRUE
+    /\ holder = 0
     /\ IF Pass(i)
        THEN /\ phase' = [phase EXCEPT ![i] = "checked"]
-            /\ UNCHANGED holder
+            /\ holder' = i
             /\ UNCHANGED kind
        ELSE /\ kind' = [kind EXCEPT ![i] = "done"]    \* refused; the section is not kept
             /\ UNCHANGED <<phase, holder>>
@@ -123,7 +124,7 @@ Commit(i) ==
            ELSE /\ status' = [status EXCEPT ![m] = "Active", ![target[i]] = "Rotated"]
                 /\ successor' = [successor EXCEPT ![target[i]] = m]
     /\ kind' = [kind EXCEPT ![i] = "done"]
-    /\ UNCHANGED holder
+    /\ holder' = 0
     /\ UNCHANGED <<now, reading, target, phase>>
 
 \* A holder released as overdue (Capability requirement 21, 22), and its write

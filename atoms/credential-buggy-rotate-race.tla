@@ -1,8 +1,10 @@
----- MODULE credential-buggy-toctou ----
-\* Grace Commons — Credential atom: BUGGY TWIN — Capability requirement 8.
-\* Mirrors credential.tla (re-derived 2026-09-29) with the pair's critical section
-\* removed: a register or rotate checks and commits with no section held, so two
-\* calls both pass the uniqueness check at their readings and both commit.
+---- MODULE credential-buggy-rotate-race ----
+\* Grace Commons — Credential atom: BUGGY TWIN — Operation 65.
+\* Mirrors credential.tla (re-derived 2026-09-29) with one check removed: a
+\* rotate does not refuse when another credential of the pair is effective-active
+\* at its reading. A register on a late reading commits first; a rotate begun on
+\* an early reading, when the prior was still live, then commits its successor
+\* beside the register's credential.
 \* Expected result: Safety VIOLATED (Inv_EffectiveActiveUniqueness).
 
 EXTENDS Naturals, FiniteSets
@@ -93,15 +95,15 @@ Pass(i) ==
         t == target[i]
     IN  IF kind[i] = "reg"
         THEN EffActiveCount(r) = 0                  \* Operation 6, 8
-        ELSE EffActive(t, r) /\ ~(\E k \in Slots : k # t /\ EffActive(k, r))           \* Operation 28, 65
+        ELSE EffActive(t, r) /\ TRUE           \* Operation 28, 65
 
 Enter(i) ==
     /\ kind[i] \in {"reg", "rot"}
     /\ phase[i] = "begun"
-    /\ TRUE
+    /\ holder = 0
     /\ IF Pass(i)
        THEN /\ phase' = [phase EXCEPT ![i] = "checked"]
-            /\ UNCHANGED holder
+            /\ holder' = i
             /\ UNCHANGED kind
        ELSE /\ kind' = [kind EXCEPT ![i] = "done"]    \* refused; the section is not kept
             /\ UNCHANGED <<phase, holder>>
@@ -112,7 +114,7 @@ Enter(i) ==
 Commit(i) ==
     /\ phase[i] = "checked"
     /\ kind[i] \in {"reg", "rot"}
-    /\ TRUE
+    /\ holder = i
     /\ \E m \in Slots, d \in (reading[i] + 1)..NoDeadline :
         /\ status[m] = "none"
         /\ registered' = [registered EXCEPT ![m] = reading[i]]
@@ -123,7 +125,7 @@ Commit(i) ==
            ELSE /\ status' = [status EXCEPT ![m] = "Active", ![target[i]] = "Rotated"]
                 /\ successor' = [successor EXCEPT ![target[i]] = m]
     /\ kind' = [kind EXCEPT ![i] = "done"]
-    /\ UNCHANGED holder
+    /\ holder' = 0
     /\ UNCHANGED <<now, reading, target, phase>>
 
 \* A holder released as overdue (Capability requirement 21, 22), and its write
