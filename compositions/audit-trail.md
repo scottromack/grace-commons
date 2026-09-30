@@ -1703,7 +1703,7 @@ The composition is the structural form of what every major audit regime requires
 
 ```
 status: partially resolved
-formal: pending — re-derivation, 2026-09-30: audit-trail.tla v2 carries the cascade in the declared order under a lease, with a holder that may die, mid-cascade expiry and the scan's first half as a second process, and two twins (lease ignored, delegation before the destruction record); the record action and the scan's second and third halves are not modelled; was verified — audit-trail.tla + 1 twin, 2026-06-03 (atomic cascade)
+formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and audit-trail-record.tla + 2 twins (record action; scan second and third halves), 2026-09-30
 last gate: 2026-08-25 — Final Critique 11, fresh reader — clean
 
 open:
@@ -1711,7 +1711,6 @@ open:
 - 2026-08-30-b · refining · [Record Action] step 7, `recording-failure(step-4)` · the appended event's `event_id` is never returned, so a caller's retry appends a second attested event for one act and nothing marks the first a dead duplicate → carry the committed `event_id` in the `(step-4)` payload; contract-shaped — ripples to every composer that transcribes the `recording-failure(step)` payload, own round
 - 2026-08-30-c · refining · Composes, Event Log · every rebuild, the scan's binding set, and [Read Record] step 3's "unreachable by construction" fourth cell rest on the audit log surviving a restart, which Event Log disclaims ("persistence across process restarts is handled at the deployment layer") and no Composes requirement or Configuration entry declares → declare the audit log instance's durability (including `next_sequence_number`) as an instance capability requirement routed to an externally-clearable check; contract-shaped — ripples to every composer whose Rests-on lines transcribe the substrate's durability, own round
 - 2026-08-30-d · refining · Invariant 8 liveness; the scan's first half · a delegation whose outcome record was never written is re-driven "until a `destroyed` outcome lands" against content the mechanism may only ever answer `destruction-failed` for → an *abandoned* record under the operator identity after a declared bound, the arm degrading to *surfaced*; contract-shaped — ripples to every composer that transcribes Invariant 8's unconditional lawfully-destroyed-versus-missing distinction, own round
-- 2026-08-30-e · refining · formal · the model has no [Record Action] leg and no second or third half (orphan attestation, unretained event, compensation) as a second process over one act with its own critical section and age-bounded scan → a second model over one record action; the cascade and first half landed 2026-09-30
 ```
 
 ## Decisions
