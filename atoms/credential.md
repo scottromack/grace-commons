@@ -1055,18 +1055,18 @@ It inherits from:
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded (English) on Final Critique 12 — 2026-09-29 — formal layer pending` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded (English) on Final Critique 12 — 2026-09-29 — formal layer pending
 formal: pending — re-derivation, 2026-09-29: the model carries one deadline for every credential and one clock reading per step, so a successor's own deadline, a rotate racing a register under two readings (Capability requirement 8, Operation 65) and a writer whose section ends before its commit (Capability requirement 22, 23) are unmodeled; was verified — credential.tla + 2 twins, 2026-06-04
-last gate: 2026-09-29 — Final Critique 11, cold reader — 2 foundational (closed), 13 refining and 1 rhetorical (routed open)
+last gate: 2026-09-29 — Final Critique 12, cold reader — 0 foundational, 12 refining (routed open)
 
 open:
+- 2026-09-29-e · refining · Final Critique 12 · routed open, non-blocking: precondition, material bound and blank used as terms with no entry; the NIST verifier-storage claim against Non-goal 39 and Capability requirement 5; Capability requirement 35's WHY narrowing id non-reuse to before a commit, which a purge would reopen; a read naming neither a pair nor an id has no routing across store instances; a type withdrawn from the registry leaves verify and rotate with no answer; a store read failure has no arm on verify or read; a public key's check normalizes nothing the page names; the Summary's at-most-one claim unscoped to a settled reading; the regulator scenario's no rotation is omitted overclaims Invariant 7; Operation 69's direction and collation; a lapse reopens a principal reference to any enrollment proof, unstated; one snapshot for verify's window reading, selection and check, unpinned → one refining pass
 - 2026-09-29-d · refining · Final Critique 11 · routed open, non-blocking: Invariant 1.2's WHY claims a reachable violation Operation 28 and 29 already refuse; Operation 24 binds the host's check and sits among the transition's rules; Capability requirement 21 through 23 restate a lease beside the draft Lease atom, and overdue has no time base; Invariant 7 declares no acyclicity or single predecessor; no External check reaches Capability requirement 33, 35 or 36; Identity 5 global against a per-instance store term, and Capability requirement 13's opaque reference reaching credential ids; the NIST line's verifier-storage claim beside Non-goal 39; fido2 and canonicalizes before their glosses; Operation 69's tie order unexplained; Example 1's deadline assumes an unbounded default; Indeterminate outcome 3 and 4 read another caller's landing as the first call's; the Revocation after exposure example revokes on 2026-09-12 a credential that lapsed on 2026-07-01, which answers already-terminal; the Clock semantics tombstones inside the Capability requirement block → one refining pass, gated with the rest
-- 2026-09-29-c · refining · Final Critique 10's cures · the section that ends only at its lease and the write judged at its commit (Capability requirement 22, 23), the canonicalized reference (Capability requirement 13), and Non-goal 38 and 39, String 10 and External check 14 and 15 are new load-bearing text → a fresh reader on the cure
 - 2026-09-29-b · refining · formal · per-credential deadlines, a rotate racing a register under two readings, and a writer whose section ends before its commit → extend credential.tla and its TOCTOU twin
 ```
 
