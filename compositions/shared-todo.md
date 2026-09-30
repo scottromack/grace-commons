@@ -156,6 +156,7 @@ Action wiring 18: The composition MUST answer the constituent's answer.
 Action wiring 19: The composition MUST NOT answer an empty task set for a denied tasks:view.
 Action wiring 20: [Responsible Actor] MUST answer not-known for a task id the Personal Todo instance does not carry.
 Action wiring 21: [Responsible Actor] MUST answer unassigned for a task carrying no active assignment.
+Action wiring 22: IF the recall answers not-active THEN an admitted delete MUST run Action wiring 9 again.
 ```
 
 Term admitted add: an [Add Task] call whose tasks:add check answered permitted.
@@ -176,6 +177,8 @@ WHY:
 Action wiring 1 through 3 are the whole gate, stated once for seven actions rather than seven times. Every action's shape is identical — check, then call — and the rules below name only what each action does *after* the gate clears.
 
 Action wiring 13 and Action wiring 14 pick up the referential-integrity delegation [Assignment](../atoms/assignment.md)'s `Composition note 2` hands to a composing pattern. Personal Todo retires an id permanently, so a deleted task id can never return to legitimize a dangling assignment, which is what makes Invariant 3's *no active assignment on a deleted task* standing rather than delete-time only.
+
+Action wiring 22 closes the gap Concurrency 1 leaves. The host serializes calls naming one task id, and [Reassign Task] and [Recall Assignment] name an assignment id, which Assignment gives no way to trace back to its task — so one of them can land between a delete's read of the active assignment and its recall. The recall then answers not-active, and the delete reads the task's active assignment again and recalls whatever stands now, or finds none; Action wiring 10 still holds the delete until a recall commits. Without the rule, one implementation refused with an answer the signature does not carry and another recalled the new assignment and deleted.
 
 Action wiring 19 is a refusal to be helpful. An empty answer is a fact about the task set; a denied read is a fact about the caller, and a composition that returned the first for the second would make the two indistinguishable and would vary by deployment.
 
@@ -408,7 +411,7 @@ Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
 Term terms: composition, constituents, responsible actor, visible tasks, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall, task id, actor reference.
 
-Term record verbs: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, recheck, rest, leave, wrap, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply.
+Term record verbs: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, recheck, rest, leave, wrap, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply, run.
 
 Term actors: the composition; the constituents; a deployment; an auditor; an actor; an assignee; a task; an assignment; a grant; a caller.
 
@@ -578,10 +581,10 @@ Shared Todo is a wiring of three primitives and not a regulated pattern, so it c
 ```
 status: partially resolved
 formal: verified — shared-todo.tla + 1 twin, 2026-06-03
-last gate: 2026-08-26 — Final Critique 6, fresh reader — clean
+last gate: 2026-09-30 — Final Critique 7, cold reader — 1 foundational (closed), 9 refining (routed open)
 
 open:
-- 2026-09-28-a · refining · Action wiring 20, 21 / Invariant 5.2 / signatures · the cold regeneration restored the nine signatures and Responsible Actor's two answers the rewrite dropped, and restated Invariant 5.2, whose check keyed a grant on a task id no grant carries — load-bearing touches → the three-pass round the entry *Touch triggers re-pass* in `pressure-testing.md` requires
+- 2026-09-30-a · refining · Final Critique 7 · routed open, non-blocking: Action wiring 8 bars recall-on-complete that Non-goal 4 leaves to the deployment; the Summary's and Intent's overclaims (the list beyond granted permissions, owners-only editing, a query no single pattern answers); the unconditional Composition note 2 beside the conditional Non-goal 13; whether a finer scope replaces or adds to the canonical one; the edge case's concurrent-delete not-known beside a standing task; Assignment Composition note 3 and Permissions note 5 neither discharged nor declined, Personal Todo Concurrency 3 uncited, host serialization, clock and ids absent from the deployment's notes; the delete with no active assignment unstated, Action wiring 14's arguments, Action wiring 1's wording; happy-path examples and the cascade recall's scope shown only in an example; the model's DeleteTask fusing the recall and the delete Wiring decision 2 keeps apart, with no reassign → one refining pass
 ```
 
 ## Decisions
