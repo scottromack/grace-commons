@@ -67,6 +67,10 @@ parent: Evidence
     el.innerHTML = "<table><thead><tr><th>Workflow</th><th>Result</th><th>Started</th><th>Duration</th><th>Commit</th></tr></thead><tbody>" + rows + "</tbody></table>" +
       "<p class='text-small text-grey-dk-000'>Fetched live from the GitHub API at page load. Click a workflow for the full log — the counts (checks passed, models audited, twins rejected) are in the run output itself.</p>";
   }).catch(function () {
+    Object.keys(gateIds).forEach(function (wf) {
+      var g = document.getElementById(gateIds[wf]);
+      if (g) g.innerHTML = "⚠ <a href='https://github.com/" + repo + "/actions'>unreachable</a>";
+    });
     el.innerHTML = "<p>Could not reach the GitHub API just now (rate limit or network), so the gate marks and the table are unavailable — the run history is on <a href='https://github.com/" + repo + "/actions'>the Actions page</a>.</p>";
   });
 })();

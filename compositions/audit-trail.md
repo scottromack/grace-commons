@@ -204,7 +204,7 @@ An index entry is evidence that the truth-bearing writes committed, never a peer
   reported beyond horizon 2: The rebuild MUST keep, from the full enumeration, EVERY event whose action reference EQUALS audit.reconciliation AND whose payload subject EQUALS attestation AND whose payload disposition EQUALS beyond-horizon, and take the attestation id each names.
   reported beyond horizon 3: The rebuild MUST cover the audit.reconciliation events live in the log.
   ```
-  WHY: the orphan is permanent, so without the marker the report would be written every cadence; with it, an orphan past the horizon is reported at most once per retention period of the report itself, and a short rebuild produces a duplicate report, never a false one.
+  WHY: the orphan is permanent, so without the marker the report would be written every cadence; with it, an orphan past the horizon is reported at most once per retention period of the report itself — an orphan the attestation store still holds when its report's own retention ends is reported again, because the marker lasts exactly as long as the report — and a short rebuild produces a duplicate report, never a false one.
 
 ### Capability requirement
 
@@ -1166,7 +1166,7 @@ WHY: reconciliation is itself a [Record Action] against the attestation, log and
   Invariant 1.4: The scan MUST surface and reconcile EVERY orphan WITHIN compensation window of the orphan's attestation instant.
   Invariant 1.5: WHEN quiescence EXISTS:
       Invariant 1.5a: For EVERY event id recorded through [Record Action], event to attestation's entry MUST reference a recorded attestation carrying a readable action reference and actor reference.
-      Invariant 1.5b: EVERY attestation in the store MUST fall in EXACTLY ONE OF the binding set, compensated attestations.
+      Invariant 1.5b: IF an attestation id IS NOT IN the binding set AND IS NOT IN compensated attestations AND IS NOT IN reported beyond horizon THEN the scan MUST report the attestation as an orphan.
   Invariant 1.6: WHEN retention state DOES NOT EQUAL Purged:
       Invariant 1.6a: The attestation's action reference and actor reference MUST match the event payload's, byte for byte.
   Invariant 1.7: WHEN retention state EQUALS Purged:
@@ -1513,7 +1513,7 @@ WHY: event to retention's rebuild-on-miss is load-bearing because Invariant 2's 
 
 ### Partial attestation on step failure
 
-The state, the surfacing and the closure are owned where they happen: the invocation surfaces the orphan in `recording-failure(step-3)` and writes no compensation (record action step 7.2, record action step 7.8); the scan is the one writer of the compensating record (Second half 12), finds the orphan by the binding set (Second half 1, Second half 2), examines nothing younger than record edge (Second half 3), and pre-checks compensated attestations (Second half 9); reconciled has the observable form the term reconciled names; the compensating record is an audit event (Compensation 4). High-assurance deployments treat any orphan not in the set, past the window, as a gap in the audit surface and alert.
+The state, the surfacing and the closure are owned where they happen: the invocation surfaces the orphan in `recording-failure(step-3)` and writes no compensation (record action step 7.2, record action step 7.8); the scan is the one writer of the compensating record (Second half 12), finds the orphan by the binding set (Second half 1, Second half 2), examines nothing younger than record edge (Second half 3), and pre-checks compensated attestations (Second half 9); reconciled has the observable form the term reconciled names; the compensating record is an audit event (Compensation 4). High-assurance deployments treat any orphan in none of the binding set, compensated attestations and reported beyond horizon, past the window, as a gap in the audit surface and alert.
 
 ### Verification of the unsealed tail
 
