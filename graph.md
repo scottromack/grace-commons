@@ -43,7 +43,7 @@ pattern count hides.
 | [Subscription](./atoms/subscription.html) | 2 | notification-fanout, preference-aware-notification-fanout |
 | [Capacity Constraint Enforcement](./atoms/capacity-constraint-enforcement.html) | 1 | reserve-from-pool |
 | [Invitation](./atoms/invitation.html) | 1 | external-onboarding |
-| [lease](./atoms/lease.html) | 1 | recoverable-invocation |
+| [Lease](./atoms/lease.html) | 1 | recoverable-invocation |
 | [Legal Hold](./atoms/legal-hold.html) | 1 | defensible-retention |
 | [Message Preference](./atoms/message-preference.html) | 1 | preference-aware-notification-fanout |
 | [Provenance](./atoms/provenance.html) | 1 | chain-of-custody |
@@ -128,7 +128,7 @@ flowchart LR
     a_duplicate_prevention["Duplicate Prevention · 2"]
     a_event_log["Event Log · 5"]
     a_invitation["Invitation · 1"]
-    a_lease["lease · 1"]
+    a_lease["Lease · 1"]
     a_legal_hold["Legal Hold · 1"]
     a_medication_order["Medication Order"]
     a_message_preference["Message Preference · 1"]

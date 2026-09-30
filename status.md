@@ -12,9 +12,9 @@ parent: Evidence
 
 | Gate | What it enforces | Live |
 |---|---|---|
-| **Verify corpus claims** | Five independent renders built from a cold checkout must agree 100% on the conformance checks; the injected-defect negative control must be caught and localized; every formal model outside Recoverable Invocation's must hold and every buggy twin and probe must be rejected. Runs on every push touching the corpus, and weekly on the rescan cadence. | [![Verify](https://github.com/scottromack/grace-commons/actions/workflows/verify.yml/badge.svg?branch=main)](https://github.com/scottromack/grace-commons/actions/workflows/verify.yml) |
-| **Verify Recoverable Invocation's models** | Recoverable Invocation's model, its twins, its isolations and its probes — about 37 minutes of model checking: every correct model must hold and every twin and probe must be rejected. Runs when those models or the harness change, and weekly; a newer push never cancels it. | [![Verify Recoverable Invocation](https://github.com/scottromack/grace-commons/actions/workflows/verify-recoverable-invocation.yml/badge.svg?branch=main)](https://github.com/scottromack/grace-commons/actions/workflows/verify-recoverable-invocation.yml) |
-| **Lint spec corpus** | The mechanical cross-reference gate: dangling links, invariant-count drift, missing models and twins, stale forthcoming-markers, count drift, out-of-range invariant references, vocabulary rules. Runs on every push and pull request. | [![Lint](https://github.com/scottromack/grace-commons/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/scottromack/grace-commons/actions/workflows/lint.yml) |
+| **Verify corpus claims** | Five independent renders built from a cold checkout must agree 100% on the conformance checks; the injected-defect negative control must be caught and localized; every formal model outside Recoverable Invocation's must hold and every buggy twin and probe must be rejected. Runs on every push touching the corpus, and weekly on the rescan cadence. | <span id="gate-verify-yml">⏳ …</span> |
+| **Verify Recoverable Invocation's models** | Recoverable Invocation's model, its twins, its isolations and its probes — about 37 minutes of model checking: every correct model must hold and every twin and probe must be rejected. Runs when those models or the harness change, and weekly; a newer push never cancels it. | <span id="gate-verify-recoverable-invocation-yml">⏳ …</span> |
+| **Lint spec corpus** | The mechanical cross-reference gate: dangling links, invariant-count drift, missing models and twins, stale forthcoming-markers, count drift, out-of-range invariant references, vocabulary rules. Runs on every push and pull request. | <span id="gate-lint-yml">⏳ …</span> |
 
 ## Latest runs
 
@@ -31,11 +31,26 @@ parent: Evidence
     return s >= 60 ? Math.floor(s / 60) + "m " + (s % 60) + "s" : s + "s";
   }
 
+  var gateIds = {
+    "verify.yml": "gate-verify-yml",
+    "verify-recoverable-invocation.yml": "gate-verify-recoverable-invocation-yml",
+    "lint.yml": "gate-lint-yml"
+  };
+
   Promise.all(workflows.map(function (wf) {
     return fetch("https://api.github.com/repos/" + repo + "/actions/workflows/" + wf + "/runs?branch=main&per_page=1")
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (d) { return { wf: wf, run: (d.workflow_runs || [])[0] }; });
   })).then(function (results) {
+    results.forEach(function (x) {
+      var g = document.getElementById(gateIds[x.wf]);
+      if (!g) return;
+      if (!x.run) { g.textContent = "— no runs yet"; return; }
+      var r = x.run;
+      var mark = r.conclusion === "success" ? "✅ passing"
+        : (r.conclusion ? "❌ " + r.conclusion : "⏳ running");
+      g.innerHTML = "<a href='" + r.html_url + "'>" + mark + "</a>";
+    });
     var rows = results.map(function (x) {
       if (!x.run) return "<tr><td>" + x.wf + "</td><td colspan='4'>no runs yet</td></tr>";
       var r = x.run;
@@ -52,7 +67,7 @@ parent: Evidence
     el.innerHTML = "<table><thead><tr><th>Workflow</th><th>Result</th><th>Started</th><th>Duration</th><th>Commit</th></tr></thead><tbody>" + rows + "</tbody></table>" +
       "<p class='text-small text-grey-dk-000'>Fetched live from the GitHub API at page load. Click a workflow for the full log — the counts (checks passed, models audited, twins rejected) are in the run output itself.</p>";
   }).catch(function () {
-    el.innerHTML = "<p>Could not reach the GitHub API just now (rate limit or network). The badges above are still live, and the run history is on <a href='https://github.com/" + repo + "/actions'>the Actions page</a>.</p>";
+    el.innerHTML = "<p>Could not reach the GitHub API just now (rate limit or network), so the gate marks and the table are unavailable — the run history is on <a href='https://github.com/" + repo + "/actions'>the Actions page</a>.</p>";
   });
 })();
 </script>

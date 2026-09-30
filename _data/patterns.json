@@ -787,7 +787,7 @@
    "SOX"
   ],
   "status": "draft",
-  "title": "lease"
+  "title": "Lease"
  },
  "legal-hold": {
   "composed_by": [
@@ -1449,7 +1449,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -1459,7 +1459,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 9 \u2014 2026-09-30",
   "substrates": [],
   "title": "Shared Todo"
  },

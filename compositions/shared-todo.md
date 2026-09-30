@@ -583,19 +583,21 @@ Shared Todo is a wiring of three primitives and not a regulated pattern, so it c
 
 ## Status
 
-`partially resolved` — see the Ledger.
+`grounded on Final Critique 9 — 2026-09-30` — see the Ledger.
 
 ## Ledger
 
 ```
-status: partially resolved
+status: grounded on Final Critique 9 — 2026-09-30
 formal: verified — shared-todo.tla + 1 twin, 2026-06-03
-last gate: 2026-09-30 — Final Critique 8, cold reader — 1 foundational (closed), 10 refining (routed open), 2 rhetorical (routed open)
+last gate: 2026-09-30 — Final Critique 9, cold reader — 0 foundational, 14 refining (8 already open, 6 routed open), 3 rhetorical (routed open)
 
 open:
 - 2026-09-30-a · refining · Final Critique 7 · routed open, non-blocking: Action wiring 8 bars recall-on-complete that Non-goal 4 leaves to the deployment; the Summary's and Intent's overclaims (the list beyond granted permissions, owners-only editing, a query no single pattern answers); the unconditional Composition note 2 beside the conditional Non-goal 13; whether a finer scope replaces or adds to the canonical one; the edge case's concurrent-delete not-known beside a standing task; Assignment Composition note 3 and Permissions note 5 neither discharged nor declined, clock and ids absent from the deployment's notes; the delete with no active assignment unstated, Action wiring 14's arguments, Action wiring 1's wording; happy-path examples and the cascade recall's scope shown only in an example; the model's DeleteTask fusing the recall and the delete Wiring decision 2 keeps apart, with no reassign → one refining pass
 - 2026-09-30-b · refining · Final Critique 8 · routed open, non-blocking: Action wiring 13, 14 and 20's existence check is a filter the composition runs over Personal Todo's Read (Operation 28), which offers no lookup by id, and no rule names it; Composes 5's caller surface read against Composition note 4's grant administration, which needs a Permissions surface the literal replacement removes; the clinical Example 3 invokes a regulated domain and Regulated adversarial scenarios stand nowhere in the examples, beside Standards references calling the pattern not regulated; Example 1's Recalled-on-delete is no fact of any record, since Assignment stores recalled and no cause; the model's Assign fusing the existence check with the write Action wiring 14 separates → one refining pass
 - 2026-09-30-c · rhetorical · Final Critique 8 · Term responsible actor says none where Action wiring 21 answers unassigned, and Tasks View promises the tasks and their assignees where Visible Tasks answers tasks only → one word for the absent answer; the term's promise cut to what the query returns
+- 2026-09-30-d · refining · Final Critique 9 · routed open, non-blocking: Action wiring 22's re-read has no terminus beside a stream of reassigns, the retry-loop check of Pass 1; Action wiring 18 answers the constituent's answer where a delete makes two constituent calls and responsible_actor answers an assignee where active_for answers an assignment; Concurrency 4's a call's start names neither side of the serialization wait; Concurrency 6 discharges Personal Todo's Concurrency 3, which asks for a concurrency-resolution pattern, by host serialization; the sentence before the invariants says none is available from one atom, false for Invariants 2, 4 and 5, and Invariant 5.1 pins a by-subject history on Permissions, whose only read is every grant; Check 1.1 names a deleted task no store holds and collapses into Check 1.2 → one refining pass
+- 2026-09-30-e · rhetorical · Final Critique 9 · the WHY under Composes attributes to Conformance 8 a sentence from the neighbouring paragraph of execution-contract.md; Wiring decision 1 restates Action wiring 10; Example 3's which role level held which grants names roles Permissions does not hold → quote the contract's own sentence; drop the restatement; say which actor reference held which grants
 ```
 
 ## Decisions
