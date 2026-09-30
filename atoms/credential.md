@@ -49,6 +49,7 @@ Identity 3: The atom MUST NOT generate a credential id.
 Identity 4: The atom MUST NOT change a credential's credential id.
 Identity 5: Two credentials MUST NOT share a credential id.
 Identity 13: The deployment MUST supply id material naming no credential of the store instance.
+Identity 14: The deployment MUST NOT supply the same id material to two calls.
 Identity 6: The atom MUST NOT identify a credential by the pair.
 Identity 7: The atom MUST compare a reference byte-exactly.
 Identity 8: The atom MUST NOT normalize a reference.
@@ -56,11 +57,12 @@ Identity 9: The atom MUST NOT confirm that a principal reference names a known p
 Identity 10: The atom MUST NOT confirm that a revoked by reference names a known actor.
 Identity 11: The atom MUST confirm that a credential type names a derivation function in the derivation registry.
 Identity 12: The deployment MUST route EVERY call naming one pair to the same store instance.
+Identity 15: The deployment MUST route EVERY call naming a credential id to the store instance that assigned the credential id.
 ```
 
 Term credential: the record this atom holds — one principal's binding to one verifier, for one credential type.
 
-Term fresh credential id: a credential id naming no credential of the store instance, assigned from the id material the seam supplies (Identity 13).
+Term fresh credential id: a credential id naming no credential of the store instance, assigned from the id material the seam supplies (Identity 13, Identity 14).
 
 Term credential id: the opaque value naming one credential — a [Credential Id]; assigned from the id material the seam supplies.
 
@@ -84,6 +86,8 @@ Identity 6 is the one that earns the opaque id. Keying a credential by its pair 
 Identity 11 is this atom's one departure from the corpus's usual *confirm nothing* posture, and the departure is deliberate. principal reference and revoked by reference stay opaque, but credential type is not a name the atom merely records — it selects the derivation function that produces the verifier, so a type naming no function has no way to produce one.
 
 Identity 11 also narrows the near-duplicate a byte-exact key otherwise admits — `password` and `Password ` are two types here, and a principal holding one effective-active credential under each breaches nothing Invariant 2.1 can see. It does not *close* it: a deployment free to register both variants against one derivation function re-opens the hole through the registry, which Identity 11 then waves through. Capability requirement 6 is the half that closes it, and it is the deployment's because the registry is.
+
+Identity 13 and Identity 14 together carry Identity 5. Identity 13 shuts out an id the store already holds; Identity 14 shuts out one id handed to two calls before either commits, which two calls on different pairs — so under different critical sections — can otherwise do, and which the store's contents cannot show.
 
 ### State
 
@@ -140,19 +144,19 @@ Deleted: Clock semantics 3. Execution Contract Logic confinement 3 owns it.
 Deleted: Clock semantics 5. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 6. Non-goal 27 owns it.
 Deleted: Clock semantics 7. Non-goal 28 owns it.
-Capability requirement 17: The store MUST release the critical section ONLY AFTER the store answers the write.
+Capability requirement 17: IF the caller writes THEN the store MUST release the critical section on the caller's return ONLY AFTER the store answers the write.
 Capability requirement 18: The deployment MUST declare a check function PER credential type the deployment serves.
 Capability requirement 19: The deployment MUST NOT rebind a credential type a credential carries to another derivation function.
 Capability requirement 20: The deployment MUST NOT rebind a credential type a credential carries to another check function.
 Capability requirement 21: The deployment MUST declare the critical section's lease.
-Capability requirement 22: The store MUST release a critical section whose lease lapsed.
-Capability requirement 23: The store MUST refuse the write of a holder whose lease lapsed.
+Capability requirement 22: The store MUST release the critical section of an overdue holder.
+Capability requirement 23: The store MUST refuse the write of an overdue holder.
 ```
 
 WHY:
 Capability requirement 8 names a critical section rather than a store constraint because the constraint that suggests itself cannot work. *A unique partial index on the pair where status is active and the credential is not past its deadline* needs an index predicate that references now, which no index can. The clock-free half of that index, `where status = active`, forbids exactly the case Operation 8 permits: a lapsed record standing in active beside its successor. So the index is either unimplementable or wrong, and the obligation it was reaching for is a critical section over the pair — the same shape [Provisional Commitment](./provisional-commitment.md)'s registry carries. [Rotate] runs under the same section: a rotate admitted on a reading before the prior credential's deadline and a register admitted on a reading after it would otherwise both commit, leaving the pair two effective-active credentials, and Operation 65 is what the section lets [Rotate] check.
 
-Capability requirement 21 through 23 are the stalled holder. Release on return and on death (Capability requirement 9, 10) leaves a holder alive and stuck, blocking the pair; the lease bounds it, and a lapsed holder's write is refused as storage-failure, so a write never lands outside the section that checked it.
+Capability requirement 21 through 23 are the stalled holder. Release on return and on death (Capability requirement 9, 10) leaves a holder alive and stuck, blocking the pair; the lease bounds it, and an overdue holder's write is refused as storage-failure, so a write never lands outside the section that checked it. Capability requirement 17 keeps the section through a returning caller's write; the caller's death and the lease are the only other ends it has.
 
 Capability requirement 18 is what lets one verify serve every type. A salted hash is checked by re-deriving under the salt the verifier carries, a public key by checking a signature against it; neither is *derive, then compare equal*, and a check function is what each type declares for it. A type whose check needs the secret back — a one-time-code seed — cannot be served here, because Capability requirement 5 makes the verifier one-way.
 
@@ -260,7 +264,7 @@ Term stored terminal: rotated | revoked.
 
 Term status: active | rotated | revoked — the value a credential stores.
 
-Term standing check: Operation 27, Operation 28, Operation 29 and Operation 65 — every check a transitioning write makes on the credential's own standing before reading the call's inputs.
+Term standing check: Operation 27, Operation 28, Operation 29 and Operation 65 — every check a transitioning write makes on standing, the credential's own or, for [Rotate], the pair's, before reading the call's inputs.
 
 Term standing rejection: not-active | already-terminal.
 
@@ -293,6 +297,8 @@ Term default validity: the duration the deployment declares for a [Register] or 
 Term check function: the deployment's function, declared for one credential type beside its derivation function, answering whether presented material matches a recorded verifier.
 
 Term lease: the longest the deployment lets one holder keep a pair's critical section.
+
+Term overdue holder: a holder that has kept a pair's critical section longer than the lease.
 
 Term filter: principal reference, credential type, credential id, OR any combination of them; a filter naming no field matches EVERY credential.
 
@@ -409,7 +415,7 @@ Tokens for `svc_s03` turn up in a log file. `revoke(cred_c11, admin_a01, "log-ex
 
 ### Rejection paths
 
-`register(user_u91, "x", "password")` on a pair that already holds an effective-active credential → duplicate-active-credential; the caller rotates instead. `register(user_u91, "x", "Password ")` → invalid-request, because no derivation function is registered for that type — which is also what stops a byte-exact key from quietly admitting a second effective-active credential under a near-duplicate name. `rotate(cred_unknown, "x")` → not-known. `rotate(cred_c07, "y")` while a register for the same pair committed a newer effective-active credential under its own reading → not-active, the rotate losing inside the pair's section (Operation 65). `register(user_u92, "z", "password")` whose store write fails → storage-failure, and no record exists (Operation 48). `revoke(cred_c07, admin_a01, "  ")` on the already-rotated record → already-terminal, not invalid-request: the standing check runs first (Operation 34).
+`register(user_u91, "x", "password")` on a pair that already holds an effective-active credential → duplicate-active-credential; the caller rotates instead. `register(user_u91, "x", "Password ")` → invalid-request, because no derivation function is registered for that type — which is also what stops a byte-exact key from quietly admitting a second effective-active credential under a near-duplicate name. `rotate(cred_unknown, "x")` → not-known. `rotate(cred_c11, "y")` on a reading before 2026-07-01, beside a `register(svc_s03, "z", "api-token")` that took its reading after 2026-07-01 and committed first → not-active: the register found `cred_c11` lapsed and was admitted, and the rotate, reading `cred_c11` live, finds the register's credential effective-active beside it (Operation 65). `register(user_u92, "z", "password")` whose store write fails → storage-failure, and no record exists (Operation 48). `revoke(cred_c07, admin_a01, "  ")` on the already-rotated record → already-terminal, not invalid-request: the standing check runs first (Operation 34).
 
 ### Regulated adversarial scenarios
 
@@ -541,7 +547,7 @@ Atomic writes 5 is the half of rotation a partial write breaks. Two records chan
 ```
 Concurrency 1: The implementation MUST commit the standing check and the status change of a transitioning write as one atomic operation.
 Concurrency 2: A transitioning write finding the credential a concurrent write already moved MUST answer a standing rejection.
-Concurrency 3: A [Register] finding a concurrent register's committed credential for the pair MUST answer duplicate-active-credential.
+Concurrency 3: A [Register] finding an effective-active credential a concurrent register committed for the pair MUST answer duplicate-active-credential.
 ```
 
 ### String policy
@@ -564,7 +570,7 @@ Term length bound: the maximum length the deployment declares for a string input
 
 
 WHY:
-String 7 and String 9 name the two actions whose string inputs can exceed the bound. [Rotate]'s only string input is the credential id, and an over-long one names no credential, so Operation 27 answers not-known first; String 8 said invalid-request for the same input and could never fire. [Verify] and [Read] carry none, and need none: no credential is stored under an over-long reference or type, so a verify naming one answers no-active-credential and a read filtering on one matches nothing.
+String 7 and String 9 name the two actions whose string inputs can exceed the bound. [Rotate]'s only string input is the credential id, and an over-long one names no credential, so Operation 27 answers not-known first. [Verify] and [Read] carry none, and need none: no credential is stored under an over-long reference or type, so a verify naming one answers no-active-credential and a read filtering on one matches nothing.
 
 Byte-exactness bites hardest on credential type, because that string is half the key Invariant 2.1 ranges over: under a folding comparison `password` and `Password ` would be one type, and under a byte-exact one they are two, so a principal could hold two effective-active credentials that no invariant catches. Identity 11 is what closes it — a type naming no derivation function is refused, so the near-duplicate never reaches the store. Material is exempt from the length bound only insofar as a derivation function declares its own (Capability requirement 14).
 
@@ -607,7 +613,7 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the deployment; the implementation; the store; the seam; the transition; a composing pattern; a caller; a principal; an auditor; a regulator; an investigator; a reader; a credential; an active credential; an effective-active credential; a lapsed credential; a rotated credential; a revoked credential; a successor credential; a prior credential; an action; a transitioning write; a losing transitioning write; a losing [Register]; a refused action; a refused rotate; a rejection; an answer; a derivation function; an opaque reference; a string input; a filter; the store instance's credential count.
+Term actors: the atom; the deployment; the implementation; the store; the seam; the transition; a composing pattern; a caller; a principal; an auditor; a regulator; an investigator; a reader; a credential; an active credential; an effective-active credential; a lapsed credential; a rotated credential; a revoked credential; a successor credential; a prior credential; an action; a transitioning write; a refused action; a refused rotate; a rejection; an answer; a derivation function; an opaque reference; a string input; a filter; the store instance's credential count.
 
 Term records: credential — one principal's binding to one verifier for one credential type, carrying credential id, principal reference, credential type, verifier, registration instant, a status and, where supplied or set, expiry instant, rotation instant, successor credential id, revocation instant, revoked by reference and revocation reason.
 
@@ -621,7 +627,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: credential, credential id, lapse instant, pair, property, reference, store instance, seam, transition, now, transitioning write, stored terminal, status, standing check, standing rejection, well-formedness check, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, default validity, check function, filter, fresh credential id, lease, terminal field, admitted register, admitted rotate, admitted revoke, admitted read, string input, blank, verification failure.
+Term terms: credential, credential id, lapse instant, pair, property, reference, store instance, seam, transition, now, transitioning write, stored terminal, status, standing check, standing rejection, well-formedness check, window reading, live, lapsed, effective-active credential, lapsed credential, proceeding verify, effective status, verifier, derivation function, derivation registry, foldable difference, length bound, default validity, check function, filter, fresh credential id, lease, overdue holder, terminal field, admitted register, admitted rotate, admitted revoke, admitted read, string input, blank, verification failure.
 
 Term cited: the section titled Logic Confinement Principle in `execution-contract.md` — the seam and the transition.
 
@@ -645,7 +651,7 @@ Kind: Operation
 
 #### Rotate
 
-The transitioning write that replaces a credential — recording a successor in [Active] for the same pair — a fresh [Credential Id], a [Verifier] derived from the new credential material, its own registration instant and [Expiry Instant] — standing the prior credential in [Rotated], and stamping [Rotation Instant] and [Successor Credential Id] on it. Both writes commit together. Legal only against an effective-active credential; otherwise [Not Active].
+The transitioning write that replaces a credential — recording a successor in [Active] for the same pair — a fresh [Credential Id], a [Verifier] derived from the new credential material, its own registration instant and [Expiry Instant] — standing the prior credential in [Rotated], and stamping [Rotation Instant] and [Successor Credential Id] on it. Both writes commit together. Legal only against an effective-active credential with no other effective-active credential beside it for the pair; otherwise [Not Active].
 
 Kind: Operation
 
@@ -782,7 +788,7 @@ Projection:   credential_material
 
 #### Presented Material
 
-The raw secret the principal supplies to [Verify]. Derived and compared against the stored [Verifier], then discarded. Never stored.
+The raw secret the principal supplies to [Verify]. Checked against the stored [Verifier] through the credential type's check function, then discarded. Never stored.
 
 Kind:         Parameter
 Parameter of: Verify
@@ -838,7 +844,7 @@ Role:      Outcome
 
 #### Material Mismatch
 
-The [Verify] answer when an effective-active credential exists for the pair and the presented material derives to a different verifier. A first-class result of a query, not a rejection.
+The [Verify] answer when an effective-active credential exists for the pair and the type's check function answers no match or refuses the presented material. A first-class result of a query, not a rejection.
 
 Kind:       Member
 Member of:  the failed-verification reason
@@ -856,7 +862,7 @@ Projection: no-active-credential
 
 #### Invalid Request
 
-The refusal returned when a required argument is blank, a [Credential Type] names no derivation function, a supplied [Expiry Instant] does not exceed [Now], or — on [Register], [Rotate] and [Revoke] only — a string input exceeds the deployment's length bound. On a transitioning write it is reached only after every standing check passes.
+The refusal returned when a required argument is blank, a [Credential Type] names no derivation function, a supplied [Expiry Instant] does not exceed [Now], the derivation function refuses the material, or — on [Register] and [Revoke] only — a string input exceeds the deployment's length bound. On a transitioning write it is reached only after every standing check passes.
 
 Kind:       Member
 Member of:  the action rejection
@@ -883,7 +889,7 @@ Projection: not-known
 
 #### Not Active
 
-The refusal [Rotate] returns, after [Not Known] is ruled out, when the credential is not effective-active — either a stored terminal, or standing in [Active] and reading lapsed. Two mechanisms, one answer.
+The refusal [Rotate] returns, after [Not Known] is ruled out, when the credential is not effective-active — either a stored terminal, or standing in [Active] and reading lapsed — or when the credential is effective-active and another credential beside it for the pair is too (Operation 65). Three mechanisms, one answer.
 
 Kind:       Member
 Member of:  the Rotate rejection
@@ -987,7 +993,7 @@ open:
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/credential.md`.
 
-- **2026-09-29 — What a cold reader found the page never said.** *Chose:* a rotate that states its successor whole (Operation 58 through 64) and may carry the successor's own deadline, with the default a validity duration rather than an instant (Capability requirement 7), since a fixed default instant registers credentials born lapsed once it passes; [Rotate] under the pair's critical section beside [Register], refused when another credential is effective-active for the pair (Capability requirement 8, Operation 65), since a rotate on an early reading and a register on a late one otherwise both commit; a check function per type (Capability requirement 18), since *derive, then compare equal* cannot check a salted hash or a signature, and one-time-code seeds out of scope, since their verifier is not one-way; a type never rebound to another function (Capability requirement 19, 20), since the record carries its type and not its function; the three writes callable only after the composing pattern authenticates the caller, who is what revoked by reference names (Composition note 12 through 15); and a check or external check for each of the seven invariants no check named. *Over:* the page as the 2026-09-13 rewrite left it and Final Critique 6 passed it. *Because:* Final Critique 7, a cold reader (Sonnet), whose findings a–h were each something a conforming implementation needs and the page did not state.
+- **2026-09-29 — What a cold reader found the page never said.** *Chose:* a rotate that states its successor whole (Operation 58 through 64) and may carry the successor's own deadline, with the default a validity duration rather than an instant (Capability requirement 7), since a fixed default instant registers credentials born lapsed once it passes; [Rotate] under the pair's critical section beside [Register], refused when another credential is effective-active for the pair (Capability requirement 8, Operation 65), since a rotate on an early reading and a register on a late one otherwise both commit; a check function per type (Capability requirement 18), since *derive, then compare equal* cannot check a salted hash or a signature, and one-time-code seeds out of scope, since their verifier is not one-way; a type never rebound to another function (Capability requirement 19, 20), since the record carries its type and not its function; the three writes callable only after the composing pattern authenticates the caller, who is what revoked by reference names (Composition note 12 through 15); and a check or external check for each of the seven invariants no check named; and String 7 through 9 narrowed to String 7 and String 9, since [Rotate]'s only string input is the credential id, which an over-long value leaves naming no credential, so Operation 27 answers not-known first and String 8 could never fire. *Over:* the page as the 2026-09-13 rewrite left it and Final Critique 6 passed it. *Because:* Final Critique 7, a cold reader (Sonnet), whose findings a–h were each something a conforming implementation needs and the page did not state.
 - **2026-09-29 — The forbidden marker gets its own name.** *Chose:* lapse instant, the instant a store would write when a credential starts to read lapsed, as what State 7 and Check 2.2 forbid. *Over:* *expiry instant*, the page's name for the deadline, which State 2 permits, Operation 12 and 13 record and Invariant 12.2 and Check 2.3 read — so State 7 forbade what four rules require and Check 2.2 failed every store holding a deadline. *Because:* the WHY always meant the `expired_at` column beside a status that stays active; the term it needed did not exist, and it borrowed the nearest one (Final Critique 6, GLM).
 - **2026-09-28 — The length bound answers only where a signature can carry it.** *Chose:* String 7 through 9 name [Register], [Rotate] and [Revoke]. *Over:* *an action*, which obliged [Verify] and [Read] to answer an arm their signatures do not carry. *Because:* the rule and the signature block contradicted each other, and the two reads already answer an over-long input correctly without the arm.
 - **2026-09-13 — Effective-active uniqueness is enforced by a critical section over the pair, not by a unique partial index.** *Chose:* Capability requirement 8 — the store runs the effective-active check and the register write for one pair as one critical section. *Over:* the store constraint the prose named, *a unique partial index on `(principal_ref, credential_type)` where `status = Active` and the credential is not past expiry instant*. *Because:* an index predicate cannot reference now, and the half of it that can — `where status = Active` — forbids exactly the case Operation 8 permits, a lapsed record standing in active beside its successor. The obligation the prose was reaching for is unchanged; only the mechanism is, and the formal twin built against the old reading is an open Ledger line rather than a silent inheritance.
