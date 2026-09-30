@@ -1,5 +1,5 @@
----- MODULE audit-trail-buggy ----
-\* BUGGY TWIN (vacuity guard): the invocation never notices its lease has gone and keeps writing after it expired (Per-act critical section 9b violated).
+---- MODULE audit-trail-buggy-order ----
+\* BUGGY TWIN (vacuity guard): the cascade delegates destruction BEFORE writing the destruction record (purge event step 2.4 violated).
 EXTENDS Naturals
 
 CONSTANTS LeaseLen, SweepLease, Cadence, MaxTime, MechOk
@@ -79,7 +79,7 @@ IStart ==
 \* Step 0: covering seal exists before step 1 (purge event step 0.3).
 IStep0 ==
     /\ ipc = "s0"
-    /\ ipc # "idle" /\ ipc # "dead" /\ ipc # "done"
+    /\ Live("inv")
     /\ sealed' = TRUE
     /\ ipc' = "s1"
     /\ UNCHANGED <<now, ret, pInst, destRec, deleg, outc, content, holder, exp, spc, lastRun, foreign, dup, crashes>>
@@ -87,46 +87,44 @@ IStep0 ==
 \* Step 1: retention Purged, purge instant stamped.
 IStep1 ==
     /\ ipc = "s1"
-    /\ ipc # "idle" /\ ipc # "dead" /\ ipc # "done"
+    /\ Live("inv")
     /\ sealed
     /\ ret' = "Purged"
     /\ pInst' = now
     /\ ipc' = "s2"
     /\ UNCHANGED <<now, sealed, destRec, deleg, outc, content, holder, exp, spc, lastRun, foreign, dup, crashes>>
 
-\* Step 2: destruction record (membership + pair) in one durable write, before anything is destroyed.
+\* BUG: delegates destruction BEFORE the destruction record (purge event step 2.4 violated).
 IStep2 ==
     /\ ipc = "s2"
-    /\ ipc # "idle" /\ ipc # "dead" /\ ipc # "done"
-    /\ destRec' = TRUE
-    /\ ipc' = "s3"
-    /\ UNCHANGED <<now, ret, pInst, sealed, deleg, outc, content, holder, exp, spc, lastRun, foreign, dup, crashes>>
-
-\* Step 3: delegate destruction to the erasure mechanism (issued once per attempt).
-IStep3 ==
-    /\ ipc = "s3"
-    /\ ipc # "idle" /\ ipc # "dead" /\ ipc # "done"
-    /\ destRec
+    /\ Live("inv")
     /\ deleg' = deleg + 1
     /\ dup' = IF outc = "destroyed" THEN TRUE ELSE dup
     /\ content' = IF MechOk THEN "destroyed" ELSE content
+    /\ ipc' = "s3"
+    /\ UNCHANGED <<now, ret, pInst, sealed, destRec, outc, holder, exp, spc, lastRun, foreign, crashes>>
+
+IStep3 ==
+    /\ ipc = "s3"
+    /\ Live("inv")
+    /\ destRec' = TRUE
     /\ ipc' = "s4"
-    /\ foreign' = IF holder # "inv" THEN TRUE ELSE foreign
-    /\ UNCHANGED <<now, ret, pInst, sealed, destRec, outc, holder, exp, spc, lastRun, crashes>>
+    /\ UNCHANGED <<now, ret, pInst, sealed, deleg, outc, content, holder, exp, spc, lastRun, foreign, dup, crashes>>
 
 \* Step 3 close: the outcome record lands; the section is released on return.
 IStep4 ==
     /\ ipc = "s4"
-    /\ ipc # "idle" /\ ipc # "dead" /\ ipc # "done"
+    /\ Live("inv")
     /\ outc' = IF MechOk THEN "destroyed" ELSE "failed"
     /\ ipc' = "done"
     /\ holder' = IF holder = "inv" THEN "none" ELSE holder
     /\ foreign' = IF holder # "inv" THEN TRUE ELSE foreign
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, content, exp, spc, lastRun, dup, crashes>>
 
-\* BUG: the invocation never notices its lease has gone.
+\* Mid-cascade expiry (purge event 7): the lease is gone, no further write issues, the invocation returns cascade-failure(step).
 IAbort ==
-    /\ FALSE
+    /\ ipc \in {"s0", "s1", "s2", "s3", "s4"}
+    /\ ~Live("inv")
     /\ ipc' = "dead"
     /\ UNCHANGED <<now, ret, pInst, sealed, destRec, deleg, outc, content, holder, exp, spc, lastRun, foreign, dup, crashes>>
 

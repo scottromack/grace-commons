@@ -64,7 +64,7 @@ parent: Evidence
         "<td><code>" + r.head_sha.slice(0, 7) + "</code></td>" +
         "</tr>";
     }).join("");
-    el.innerHTML = "<table><thead><tr><th>Workflow</th><th>Result</th><th>Started</th><th>Duration</th><th>Commit</th></tr></thead><tbody>" + rows + "</tbody></table>" +
+    el.innerHTML = "<div class='table-wrapper'><table><thead><tr><th>Workflow</th><th>Result</th><th>Started</th><th>Duration</th><th>Commit</th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
       "<p class='text-small text-grey-dk-000'>Fetched live from the GitHub API at page load. Click a workflow for the full log — the counts (checks passed, models audited, twins rejected) are in the run output itself.</p>";
   }).catch(function () {
     Object.keys(gateIds).forEach(function (wf) {
