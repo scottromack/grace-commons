@@ -60,7 +60,7 @@ export class Credential {
   verify(principal_ref: string, credential_type: string, presented_material: string):
     "verified" | { "failed-verification": "material-mismatch" | "no-active-credential" } {
     const now = this.seam.now();
-    const c = this.pair(principal_ref, credential_type).find((r) => effectiveActive(r, now)); // the window reading first (20)
+    const c = this.pair(principal_ref, credential_type).filter((r) => effectiveActive(r, now)).at(-1); // the window reading first (20); the later registration (70)
     if (!c) return { "failed-verification": "no-active-credential" };                      // 18, 19
     const r = this.registry[credential_type].check(presented_material ?? "", c.verifier);  // at the seam (21, 24)
     return r === "match" ? "verified" : { "failed-verification": "material-mismatch" };      // 22, 23, 68
