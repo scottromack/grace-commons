@@ -200,14 +200,16 @@ Audit arm 5: The composition MUST alert on an invalid-credential answer.
 Audit arm 6: The composition MUST read an invalid-request answer as a deployment fault.
 Audit arm 7: The composition MUST NOT read an invalid-request answer as unreachable.
 Audit arm 8: The composition MUST NOT retry an invalid-request answer in a loop.
-Audit arm 9: The composition MUST read a retention-sourced invalid-request as a record already landed.
-Audit arm 10: The composition MUST read a cap-sourced invalid-request as a record still owed.
+Audit arm 9: The composition MUST read an invalid-request(step-4) answer as a record already landed.
+Audit arm 10: The composition MUST read an invalid-request(step-3) answer as a record still owed.
+Audit arm 11: The composition MUST read an invalid-request(step-1) or invalid-request(step-2) answer as a record still owed with nothing committed.
+Audit arm 12: The composition MUST NOT retry an invalid-request(step-3) or invalid-request(step-4) answer.
 ```
 
 WHY:
 One arm rule for every `record_action` this composition makes, stated once here and cited at each site, because a site that claimed an arm unreachable would be wrong about this substrate. `recording-failure` is the transient arm — owed, retried, re-derived by the sweep if the process dies first. invalid-credential is the composition's own credential being bad, which is a deployment fault rather than a caller outcome.
 
-invalid-request is the arm a reader most wants to call unreachable and cannot. The substrate raises it not only for an over-cap payload — which the boundary predicate forecloses for validated inputs — but for its own retention-configuration faults and for an Event Log cap disagreement, neither of which any caller input controls. **Its two sources land differently and the sweep must tell them apart** (Audit arm 9, Audit arm 10): on the retention source the event is *already appended and attested*, because the substrate places retention after the append, so nothing is owed and the unretained event is the substrate's own reconciliation's; on the cap source nothing was appended, the record stays owed, and it lands once the deployment corrects the cap.
+invalid-request is the arm a reader most wants to call unreachable and cannot. The substrate raises it not only for an over-cap payload — which the boundary predicate forecloses for validated inputs — but for its own retention-configuration faults and for an Event Log cap disagreement, neither of which any caller input controls. **Its steps land differently and the sweep must tell them apart by the step the answer carries** (Audit arm 9 through 12): at step-4, the retention source, the event is *already appended and attested*, because the substrate places retention after the append, so nothing is owed and the unretained event is the substrate's own reconciliation's; at step-3, the cap source, the attestation committed and nothing was appended, the record stays owed, and it lands once the deployment corrects the cap; at step-1 and step-2 nothing committed and the record stays owed. A bare token would land on both sides of the commit and tell the sweep a committed act could be run again, which mints a second attestation, so neither step-3 nor step-4 is retried in place.
 
 ### Action wiring
 

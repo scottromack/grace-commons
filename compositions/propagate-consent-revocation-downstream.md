@@ -347,13 +347,13 @@ WHY:
 
 ```
 Audit arm 1: IF Audit Trail answers invalid-credential at an intent THEN the action MUST answer invalid-credential.
-Audit arm 2: IF Audit Trail answers invalid-request at an intent THEN the action MUST answer invalid-request.
+Audit arm 2: IF Audit Trail answers invalid-request carrying any step at an intent THEN the action MUST answer invalid-request.
 Audit arm 3: IF Audit Trail answers recording-failure at an intent THEN the action MUST answer recording-failure carrying intent.
 Audit arm 4: The composition MUST NOT retry an invalid-request answer.
 Audit arm 5: IF Audit Trail answers recording-failure carrying the retention step at a later write THEN the invocation MUST proceed as landed.
 Audit arm 6: The deployment MUST alert on EVERY later write landed with the retention step failed.
 Audit arm 7: IF Audit Trail answers invalid-credential at a later write THEN the action MUST answer invalid-credential.
-Audit arm 8: IF Audit Trail answers invalid-request at a later write THEN the action MUST answer invalid-request.
+Audit arm 8: IF Audit Trail answers invalid-request carrying step-1, step-2 or step-3 at a single write THEN the action MUST answer invalid-request.
 Audit arm 9: The deployment MUST alert on EVERY invalid-request at a later write as a deployment fault.
 Audit arm 10: IF Audit Trail answers recording-failure carrying a pre-append step at an outcome THEN the invocation MUST retry the outcome under the consent exclusion.
 Audit arm 11: An invocation's retries of one outcome MUST NOT EXCEED the outcome retry attempts.
@@ -361,6 +361,8 @@ Audit arm 12: IF the invocation's retries find no outcome landed THEN the action
 Audit arm 13: IF Audit Trail answers recording-failure carrying a pre-append step at a single write THEN the action MUST answer recording-failure.
 Audit arm 14: A caller MUST read recording-failure carrying intent as a committed nothing.
 Audit arm 15: A caller MUST read recording-failure carrying outcome as a committed Consent record.
+Audit arm 16: IF Audit Trail answers invalid-request carrying the retention step at a later write THEN the invocation MUST proceed as landed.
+Audit arm 17: IF Audit Trail answers invalid-request carrying step-1, step-2 or step-3 at an outcome THEN the action MUST answer recording-failure carrying outcome.
 ```
 
 Term intent: a grant intent or a withdrawal intent — the audit write an action makes before its first Consent write, the one that verifies the caller's credential.
@@ -373,16 +375,16 @@ Term later write: an outcome or a single write.
 
 Term pre-append step: a recording-failure step naming a step before the substrate's append — step-2 or step-3; the event is not in the log.
 
-Term retention step: the recording-failure step naming the substrate's retention placement — step-4; the event is appended and attested.
+Term retention step: the step naming the substrate's retention placement on a recording-failure or an invalid-request — step-4; the event is appended and attested.
 
 Term position: intent | outcome — where a recording-failure sat: intent, nothing committed and the whole action may be re-run; outcome, the Consent record committed and its audit event is owed.
 
 WHY:
-**Mapped by position relative to the commit, and by step** (the section titled *A transcribed rejection arm keeps its payload and its reachability* in `pressure-testing.md`). The substrate attests at its step 2, appends at step 3 and places retention at step 4: a pre-append step means the event is not in the log, the retention step means it is, and a retry from there would append a second one. The retention-arm gap is the substrate's own Invariant 2 reconciliation's, and the composition treats the event as landed (Audit arm 5 and 6). Its invalid-request has two faces — the envelope inequality forecloses the caller-input source, but the substrate routes its own retention-configuration faults onto the same token with the event already appended — so it is a deployment fault at every later write, alerted naming both causes, and the reconciliation's pre-check is what tells an appended event from an absent one (Audit arm 8 and 9).
+**Mapped by position relative to the commit, and by step** (the section titled *A transcribed rejection arm keeps its payload and its reachability* in `pressure-testing.md`). The substrate attests at its step 2, appends at step 3 and places retention at step 4: a pre-append step means the event is not in the log, the retention step means it is, and a retry from there would append a second one. The retention-arm gap is the substrate's own Invariant 2 reconciliation's, and the composition treats the event as landed (Audit arm 5 and 6). Its invalid-request carries the step too — the envelope inequality forecloses the caller-input source, but the substrate routes its own retention-configuration faults onto the same arm at the retention step with the event already appended — so it is a deployment fault at every later write, alerted naming the step (Audit arm 9). The retention step proceeds as landed (Audit arm 16); at an outcome, step-1 through step-3 leave the Consent record committed and no event, so the action lands recording-failure carrying outcome and the reconciliation owns the event (Audit arm 17), never a bare invalid-request over a committed act; at a single write they commit nothing of the action and stay a clean refusal (Audit arm 8).
 
-**At an intent nothing has committed** (Audit arm 1 through 4): invalid-credential is the caller's, refused with nothing in any store; a recording-failure is the one retryable arm, as a fresh intent, leaving a standing intent where the retention step failed — expected residue either way. **At an outcome the Consent record is terminal or granted** (Audit arm 5 through 12): no arm can refuse the act, only report it. invalid-credential there survives only as a mid-flight revocation or key rotation, since the same credential validated at the intent, and is surfaced as itself so an operator does not go hunting for a malformed payload. **A single write is its action's credential check** (Audit arm 13): [Register Processing] and [Read Consent History] commit nothing before it, so they need no intent and export the bare token lawfully; on the retention step the event is appended, the binding is added or the records returned, with the alert.
+**At an intent nothing has committed** (Audit arm 1 through 4): invalid-credential is the caller's, refused with nothing in any store; a recording-failure is the one retryable arm, as a fresh intent, leaving a standing intent where the retention step failed — expected residue either way, and the same for an invalid-request at any of the substrate's four steps, which lands clean because a landed intent is not the act and the composition itself never retries it (Audit arm 4). **At an outcome the Consent record is terminal or granted** (Audit arm 5 through 12): no arm can refuse the act, only report it. invalid-credential there survives only as a mid-flight revocation or key rotation, since the same credential validated at the intent, and is surfaced as itself so an operator does not go hunting for a malformed payload. **A single write is its action's credential check** (Audit arm 13): [Register Processing] and [Read Consent History] commit nothing before it, so they need no intent and export the bare token lawfully; on the retention step the event is appended, the binding is added or the records returned, with the alert.
 
-**The position rides the exported code** (Audit arm 14 and 15; the section titled *A composition's own rejection arm carries the retry bit* in `pressure-testing.md`): intent means re-run the whole action; outcome means the Consent record exists, the reconciliation owns its missing event, and a re-run would be a second act — refused, as it happens, by already-granted and by Consent's already-revoked, which is also what keeps the post-commit invalid-request landings retry-safe under a bare token.
+**The position rides the exported code** (Audit arm 14 and 15; the section titled *A composition's own rejection arm carries the retry bit* in `pressure-testing.md`): intent means re-run the whole action; outcome means the Consent record exists, the reconciliation owns its missing event, and a re-run would be a second act — refused, as it happens, by already-granted and by Consent's already-revoked, which is why no post-commit invalid-request reaches the caller bare: at an outcome it lands recording-failure carrying outcome (Audit arm 17).
 
 ### Action wiring
 
@@ -567,7 +569,7 @@ WHY:
 
 **The outcome is pre-checked under the exclusion and an existing one adopted** (Action wiring 43 through 47; the section titled *A compensator is exclusive* in `pressure-testing.md`). The reconciliation compensates an orphan while an invocation stalled past the bound, or an acknowledgment is lost; a second outcome for one consent is the duplicate Invariant 3.2 forbids and the seal would then protect. An invocation whose lease expired **has yielded**: it re-takes the exclusion before its pre-check, adopts what it finds or answers recording-failure carrying outcome, and appends nothing, so it can never resume between the reconciliation's pre-check and its append. The in-invocation retry is the invocation's own write under the operator's credential, never a compensation, and carries no recovery flag.
 
-**[Read Consent History] gates the result on the access event** (Action wiring 48 through 52): under the regimes this composition serves, access to consent records is itself auditable, so an access that cannot be recorded is not returned. One write is reachable before authentication and is named: a Consent instance implementing expiry lazily writes the Expired transition inside the read that first evaluates a record past its expiry (Consent Invariant 6). It is outside Invariant 8 by the rule's own terms — it materializes a value already true of the record, carries no caller content and relies on no actor's authority. Where the substrate appends the access event and answers invalid-request, the trail records an access whose result was refused — the safe direction.
+**[Read Consent History] gates the result on the access event** (Action wiring 48 through 52): under the regimes this composition serves, access to consent records is itself auditable, so an access that cannot be recorded is not returned. One write is reachable before authentication and is named: a Consent instance implementing expiry lazily writes the Expired transition inside the read that first evaluates a record past its expiry (Consent Invariant 6). It is outside Invariant 8 by the rule's own terms — it materializes a value already true of the record, carries no caller content and relies on no actor's authority. Where the substrate appends the access event and answers invalid-request carrying the retention step, the action proceeds as landed (Audit arm 16) and the trail records the access — the safe direction.
 
 **[Processing Permitted] delegates the predicate and records nothing** (Action wiring 53 through 57). Its validation is load-bearing for the signal's honesty: the consent check never refuses, so a malformed subject reference would otherwise flow through to not-known — *this subject never consented* where the truth is *your input is malformed*. The point-in-time evaluation is Consent's, against the reading injected at Consent's own seam; the composition passes no instant and adds no predicate. The withheld state is named so the caller can tell *never consented* from *withdrawn* from *lapsed* — request consent, honor the withdrawal, request renewal. A read-only query recording an audit event would falsely populate the action record with non-actions.
 
@@ -680,7 +682,7 @@ Term planned writes: the placement and the event a grant recovery will make, or 
 
 Term escalation: the consent.propagation_escalated event — the closed-state marker for an orphan the reconciliation will not compensate.
 
-Term cause: recording-failure carrying a step | invalid-request | no-candidate | candidates-over-cap | policy-unresolved — what the reconciliation observed.
+Term cause: recording-failure carrying a step | invalid-request carrying a step | no-candidate | candidates-over-cap | policy-unresolved — what the reconciliation observed.
 
 Term uncompensable cause: an ungranted record's candidate count EQUALS zero — no-candidate; an orphan's candidate count EXCEEDS the intent candidates cap — candidates-over-cap; or an ungranted record lacking its consent retention whose candidates carry different retention policy references — policy-unresolved.
 

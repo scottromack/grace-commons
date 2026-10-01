@@ -39,7 +39,7 @@ Not a transaction, not the adopter's store, not an audit journal, not a class. A
 ## Composes
 
 - **[Lease](../atoms/lease.md)** — the per-key grant of exclusive standing whose terminus is an instant. The act's critical section is a lease, and so are both fences. This page binds the atom's parameters — which key, which holder, how long, which arm maps to which code — and restates none of its semantics. What the atom refuses to own and this page adds: which key protects which work, and how long a grant must last.
-- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event id and refuses `invalid-credential | invalid-request | recording-failure(step)`, for every record this page writes, and `read_record(event_id)`, which answers `audit_record | not-known`, where an event id is in hand. Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
+- **[Audit Trail](./audit-trail.md)** — the regulated-audit substrate and this composition's journal, its four constituents (Event Log, Actor Identity, Tamper Evidence, Retention Window) reached transitively per *Compositions of compositions* ([`spec-format.md`](../spec-format.md)). Consumed at the declared contract `record_action(action_ref, actor_ref, credential, data)`, which answers event id and refuses `invalid-credential | invalid-request(step) | recording-failure(step)`, for every record this page writes, and `read_record(event_id)`, which answers `audit_record | not-known`, where an event id is in hand. Attribution, retention and sealing of every record here are Audit Trail Invariants 1, 2 and 3; destruction of a payload at the horizon is Audit Trail Invariants 4 and 8.
 - **The bound act** — not a constituent. The adopter's constituent commit call, supplied as a binding together with the read that tells whether it committed. The constituent's own contract governs the commit.
 - **The act's critical section** — keyed by the act, supplied by the deployment (*Capability requirement*, act section). No constituent grants it.
 
@@ -314,7 +314,7 @@ The four seam-against-stamp comparisons — step 3's age, the retention drop, th
 ```
 Primitive policy 19: IF position EQUALS intent THEN invalid-credential MUST pass through unchanged with nothing written.
 NOTE: watch position scoping — every rule of this family scopes by IF position = … (Primitive policy 19 through 40); the corpus's answer is the condition, not a new form.
-Primitive policy 20: IF position EQUALS intent THEN [Open] MUST NOT report invalid-request BEFORE reading back by invocation id.
+Primitive policy 20: IF position EQUALS intent THEN [Open] MUST NOT report invalid-request(step-4) BEFORE reading back by invocation id.
 Primitive policy 21: WHEN the intent-position read-back finds the record:
     Primitive policy 21a: The action MUST proceed with a hard alert.
 Primitive policy 22: WHEN the intent-position read-back finds nothing:
@@ -323,8 +323,8 @@ Primitive policy 23: IF position EQUALS intent THEN recording-failure(step-2) an
 Primitive policy 24: IF position EQUALS intent THEN the action MUST read intent event id back for recording-failure(step-4).
 Primitive policy 25: IF position EQUALS intent THEN the action MUST proceed with a hard alert for recording-failure(step-4).
 Primitive policy 26: The action MUST NOT retry after recording-failure(step-4).
-Primitive policy 27: IF position EQUALS outcome THEN the action MUST read event id back by invocation id for recording-failure(step-4) and for a retention-source invalid-request.
-Primitive policy 28: IF position EQUALS outcome THEN the action MUST return success with a hard alert for recording-failure(step-4) and for a retention-source invalid-request.
+Primitive policy 27: IF position EQUALS outcome THEN the action MUST read event id back by invocation id for recording-failure(step-4) and for invalid-request(step-4).
+Primitive policy 28: IF position EQUALS outcome THEN the action MUST return success with a hard alert for recording-failure(step-4) and for invalid-request(step-4).
 Primitive policy 29: IF position EQUALS outcome THEN the writer MUST retry recording-failure(step-2) and recording-failure(step-3) under the critical section, to the terminus at most.
 Primitive policy 30: A retry that reaches the terminus MUST land recording-failure(outcome).
 Primitive policy 31: IF position EQUALS outcome THEN invalid-credential MUST land recording-failure(outcome).
@@ -338,11 +338,14 @@ Primitive policy 37: WHEN the read-back finds nothing:
     Primitive policy 37a: The composition MAY retry.
 Primitive policy 38: The composition MUST take the intent's sequence number and recording instant from the filtered range read.
 Primitive policy 39: The composition MUST NOT take the intent's sequence number and recording instant from read_record.
-Primitive policy 40: IF position EQUALS outcome THEN an invalid-request whose read-back finds nothing MUST land recording-failure(outcome) with a hard alert.
+Primitive policy 40: IF position EQUALS outcome THEN an invalid-request(step-4) whose read-back finds nothing MUST land recording-failure(outcome) with a hard alert.
+Primitive policy 41: IF position EQUALS intent THEN invalid-request(step-1), invalid-request(step-2) and invalid-request(step-3) MUST land invalid-request.
+Primitive policy 42: IF position EQUALS outcome THEN invalid-request(step-1), invalid-request(step-2) and invalid-request(step-3) MUST land recording-failure(outcome) with a hard alert.
+Primitive policy 43: The action MUST NOT retry after invalid-request(step-3) or invalid-request(step-4).
 ```
 
 WHY:
-Intent-position invalid-request has four sources — the substrate's input check, Actor Identity's, the payload fault, the retention configuration — and only the retention source leaves the intent appended; a retry after `step-4` appends a second intent. At the outcome position the act has committed and no arm can refuse it, only report it. The read-back's completeness rests on Event Log Invariant 5 through Audit Trail Invariant 5 and on read-your-writes (Capability requirement 7).
+Intent-position invalid-request has four sources, one per step it carries — the substrate's input check (`step-1`), Actor Identity's (`step-2`), the payload fault (`step-3`), the retention configuration (`step-4`) — and only `step-4` leaves the intent appended; a retry after `step-4` appends a second intent, and a retry after `step-3` mints a second attestation beside the orphan (Audit Trail's record action step 7.13). At the outcome position the act has committed and no arm can refuse it, only report it: `step-4` read back and proceeded as landed, `step-1` through `step-3` landed as recording-failure(outcome), never a bare invalid-request over a committed act. The read-back's completeness rests on Event Log Invariant 5 through Audit Trail Invariant 5 and on read-your-writes (Capability requirement 7).
 
 ### Action wiring
 
@@ -517,7 +520,7 @@ Steps:
    ```
    close step 3.1: [Close] MUST write AuditTrail.record_action(action reference set to outcome action reference, actor reference, credential, data set to outcome payload), answering outcome event id.
    close step 3.2: Step 3's arms MUST follow the outcome position of the rejection-mapping rule.
-   close step 3.3: A non-retention invalid-request at step 3 MUST land recording-failure(outcome) with a hard alert.
+   close step 3.3: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) at step 3 MUST land recording-failure(outcome) with a hard alert.
    close step 3.4: [Close] MUST NOT retry after recording-failure(step-2), recording-failure(step-3) or a lost reply BEFORE re-running step 2.
    close step 3.5: IF journal write bound EXCEEDS remaining THEN [Close] MUST NOT retry.
    close step 3.6: WHEN retry terminus EQUALS counted(n):
@@ -575,12 +578,12 @@ Steps:
    ```
    refuse step 3.1: [Refuse] MUST write `<kind>.refused` carrying invocation id, intent event id, kind, act key, reason and constituent code under the caller's credential.
    refuse step 3.2: The refusal record's arms MUST follow the intent position.
-   refuse step 3.3: [Refuse] MUST read the refusal back by invocation id for recording-failure(step-4) and for a retention-source invalid-request.
-   refuse step 3.4: [Refuse] MUST NOT retry after step-4 or the retention-source invalid-request.
+   refuse step 3.3: [Refuse] MUST read the refusal back by invocation id for recording-failure(step-4) and for invalid-request(step-4).
+   refuse step 3.4: [Refuse] MUST NOT retry after step-4, invalid-request(step-3) or invalid-request(step-4).
    refuse step 3.5: recording-failure(step-2) and recording-failure(step-3) MUST land recording-failure(refusal, constituent code) with the intent left open.
    refuse step 3.6: A lost reply whose one read-back finds nothing MUST land recording-failure(refusal, constituent code) with the intent left open.
    refuse step 3.7: invalid-credential MUST land recording-failure(refusal, constituent code) with the intent left open.
-   refuse step 3.8: A non-retention invalid-request MUST land recording-failure(refusal, constituent code) with the intent left open.
+   refuse step 3.8: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) MUST land recording-failure(refusal, constituent code) with the intent left open.
    refuse step 3.9: [Refuse] MUST clear the map.
    refuse step 3.10: [Refuse] MUST release the critical section.
    refuse step 3.11: The composition MUST NOT suppress a refusal record.
@@ -645,11 +648,12 @@ resolve 20: WHEN commit fence EQUALS none:
 resolve 21: [Resolve] MUST write the closing record under the operator's own credential with recovery set to true, resolving actor set to actor reference, acting actor reference set to the intent's actor reference, and no recovery_intended.
 resolve 22: [Resolve] MUST release after the write.
 resolve 23: The closing write's arms MUST follow the outcome position.
-resolve 24: After step-4 or the retention-source invalid-request, [Resolve] MUST read the record back by invocation id and return success with a hard alert.
-resolve 25: [Resolve] MUST NOT retry after step-4 or the retention-source invalid-request.
+resolve 24: After step-4 or invalid-request(step-4), [Resolve] MUST read the record back by invocation id and return success with a hard alert.
+resolve 25: [Resolve] MUST NOT retry after step-4, invalid-request(step-3) or invalid-request(step-4).
 resolve 26: step-2, step-3 and a lost reply after an empty read-back MUST land recording-failure(resolution).
 resolve 27: invalid-request MUST carry the cause: malformed, candidates-over-cap, purged, already-abandoned, too-young.
 resolve 28: A candidate list exceeding intent candidates cap MUST land invalid-request(candidates-over-cap).
+resolve 29: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) from the closing write MUST land recording-failure(resolution) with a hard alert.
 ```
 
 WHY:
@@ -756,11 +760,11 @@ Without reconcile 1 a journal outage returns zero counts and step 5 surfaces not
        reconcile step 3.13c: The run MUST open or advance the instance finding store-unavailable for the act's kind.
    reconcile step 3.14: The sweep MUST NOT write abandoned for a store outage.
    reconcile step 3.15: EVERY closing write's arms MUST follow the outcome position.
-   reconcile step 3.16: After step-4 or the retention-source invalid-request, the run MUST read the record back.
+   reconcile step 3.16: After step-4 or invalid-request(step-4), the run MUST read the record back.
    reconcile step 3.17: The run MUST leave EVERY step-2 arm and step-3 arm not landed within the lease for the next run.
    reconcile step 3.18: The run MUST surface an invalid-credential for the service identity on compliance surface at once.
    reconcile step 3.19: The run MUST NOT write further under the credential until reconfigured.
-   reconcile step 3.20: A non-retention invalid-request on a closing write MUST close the act as `<kind>.escalated` with cause set to outcome-unrecordable.
+   reconcile step 3.20: An invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) on a closing write MUST close the act as `<kind>.escalated` with cause set to outcome-unrecordable.
    ```
 4. **Update and release.**
    ```

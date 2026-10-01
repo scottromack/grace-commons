@@ -456,10 +456,10 @@ Primitive policy 1: action reference MUST stand non-blank.
 Primitive policy 2: actor reference MUST stand non-blank.
 Primitive policy 3: [Record Action] step 1 MUST validate action reference and actor reference at this layer.
 Primitive policy 4: [Record Action] MUST NOT call a constituent BEFORE step 1 completes.
-Primitive policy 5: [Record Action] step 1 MUST land invalid-request for a malformed reference, with nothing recorded.
+Primitive policy 5: [Record Action] step 1 MUST land invalid-request(step-1) for a malformed reference, with nothing recorded.
 Primitive policy 6: The composition MUST NOT normalize any input.
 Primitive policy 7: The composition MUST compare references by byte-identity.
-Primitive policy 8: [Record Action] step 1 MUST land invalid-request for an action reference whose bytes begin with the prefix audit. from a caller whose actor reference DOES NOT EQUAL reconciliation operator, with nothing recorded.
+Primitive policy 8: [Record Action] step 1 MUST land invalid-request(step-1) for an action reference whose bytes begin with the prefix audit. from a caller whose actor reference DOES NOT EQUAL reconciliation operator, with nothing recorded.
 Primitive policy 9: The reconciliation path MAY record under the reserved namespace ONLY IF the action reference EQUALS audit.compensation OR the action reference EQUALS audit.reconciliation.
 Primitive policy 10: The composition MUST consume credential through ActorIdentity.attest alone.
 Primitive policy 11: The composition MUST NOT inspect credential.
@@ -473,7 +473,7 @@ Primitive policy 18: The composition MUST NOT retain what the selector reads.
 Primitive policy 19: The composition MUST NOT log what the selector reads.
 Primitive policy 20: The composition MAY read inside a payload ONLY IF the payload's action reference EQUALS audit.compensation OR the payload's action reference EQUALS audit.reconciliation.
 Primitive policy 21: [Record Action] step 1 MUST measure the serialized envelope of the full constructed payload against payload cap, sized with attestation id width.
-Primitive policy 22: [Record Action] step 1 MUST land invalid-request for an oversize payload, with nothing recorded.
+Primitive policy 22: [Record Action] step 1 MUST land invalid-request(step-1) for an oversize payload, with nothing recorded.
 Primitive policy 23: An empty data MUST count as valid.
 Primitive policy 24: An unknown event id MUST yield not-known from the addressed action.
 Primitive policy 25: The composition MUST pass original event payload through to TamperEvidence.verify unchanged.
@@ -514,7 +514,7 @@ Both range shapes are declared query shapes on Event Log's read. Every event ref
 ```
 record_action(action_ref, actor_ref, credential, data)
   answers event_id
-  refuses invalid-credential | invalid-request | recording-failure(step)
+  refuses invalid-credential | invalid-request(step) | recording-failure(step)
 ```
 
 Validates the caller's primitives, attests the actor, appends the event, places the retention, links the three in the derived indexes, and under per-event cadence fires a seal.
@@ -533,8 +533,8 @@ Steps:
    record action step 1.2: [Record Action] step 1 MUST size the full constructed payload per Primitive policy 21 and Primitive policy 22.
    record action step 1.3: A step-1 refusal MUST record nothing.
    record action step 1.4: WHEN actor reference EQUALS reconciliation operator:
-       record action step 1.4a: [Record Action] step 1 MUST land invalid-request for an audit.compensation payload carrying no subject-kind discriminator.
-       record action step 1.4b: [Record Action] step 1 MUST land invalid-request for an audit.compensation payload carrying no id for the subject.
+       record action step 1.4a: [Record Action] step 1 MUST land invalid-request(step-1) for an audit.compensation payload carrying no subject-kind discriminator.
+       record action step 1.4b: [Record Action] step 1 MUST land invalid-request(step-1) for an audit.compensation payload carrying no id for the subject.
    record action step 1.5: [Record Action] step 1 MUST NOT validate the shape of a payload written outside the reserved namespace.
    ```
    Term subject-kind discriminator: the payload field subject = attestation | event; with subject set to attestation the payload carries the orphan's attestation id, with subject set to event the event id whose retention was placed.
@@ -544,7 +544,7 @@ Steps:
    ```
    record action step 2.1: [Record Action] step 2 MUST call ActorIdentity.attest(action reference, actor reference, credential), answering attestation id.
    record action step 2.2: [Record Action] step 2 MUST pass invalid-credential through unchanged.
-   record action step 2.3: [Record Action] step 2 MUST pass invalid-request through unchanged.
+   record action step 2.3: [Record Action] step 2 MUST land invalid-request as invalid-request(step-2).
    record action step 2.4: [Record Action] step 2 MUST land storage-failure as [Recording Failure].
    record action step 2.5: A step-2 refusal MUST record nothing further.
    record action step 2.6: [Record Action] MUST take the per-act critical section on the attestation id step 2 returned.
@@ -557,7 +557,7 @@ Steps:
    record action step 3.1: [Record Action] step 3 MUST call EventLog.append with the full constructed payload, answering event id.
    record action step 3.2: The composition MUST NOT supply recording instant.
    record action step 3.3: [Record Action] step 3 MUST land storage-failure as [Recording Failure].
-   record action step 3.4: [Record Action] step 3 MUST land invalid-payload as invalid-request.
+   record action step 3.4: [Record Action] step 3 MUST land invalid-payload as invalid-request(step-3).
    ```
    WHY: Event Log stamps recording instant at its own seam from the host-injected clock, and that stamp is the audit event's timestamp wherever it is read back; a business event-time lives inside the opaque data. invalid-payload is reachable — data is caller-supplied and Event Log enforces a cap — which is why step 1 sizes first; reaching the arm after step 1 passed means payload cap and the wired instance's cap disagree, a deployment fault (payload cap 4), not a caller rejection.
 4. **Place under retention.**
@@ -566,8 +566,8 @@ Steps:
    record action step 4.2: IF a retention for the event id EXISTS THEN [Record Action] step 4 MUST adopt the retention as landed and continue to step 5.
    record action step 4.3: [Record Action] step 4 MUST call RetentionWindow.place_under_retention(event id, resolved policy) with record reference set to event id, answering retention id.
    record action step 4.4: IF lease EQUALS expired THEN [Record Action] step 4 MUST NOT place.
-   record action step 4.5: [Record Action] step 4 MUST pass invalid-request through unchanged.
-   record action step 4.6: [Record Action] step 4 MUST land invalid-policy and policy-not-found as invalid-request.
+   record action step 4.5: [Record Action] step 4 MUST land invalid-request as invalid-request(step-4).
+   record action step 4.6: [Record Action] step 4 MUST land invalid-policy and policy-not-found as invalid-request(step-4).
    record action step 4.7: The deployment MUST alert on invalid-policy and policy-not-found as a deployment fault.
    record action step 4.8: [Record Action] step 4 MUST land storage-failure as [Recording Failure].
    ```
@@ -614,6 +614,11 @@ Steps:
        record action step 7.6c: [Record Action] MUST release the critical section.
    record action step 7.7: An invocation past step 4 at the bound MUST complete step 5 and return event id.
    record action step 7.8: The invocation MUST NOT write a compensation for the partial state the invocation left.
+   record action step 7.9: An invalid-request refusal MUST carry the step that landed it: step-1, step-2, step-3 or step-4.
+   record action step 7.10: An invalid-request(step-1) or invalid-request(step-2) refusal MUST leave nothing committed.
+   record action step 7.11: An invalid-request(step-3) refusal MUST leave the step-2 attestation committed, and an invalid-request(step-4) refusal MUST leave the step-2 attestation and the step-3 event committed.
+   record action step 7.12: An invalid-request(step-3) or invalid-request(step-4) refusal MUST surface the partial state the invocation left.
+   record action step 7.13: A caller MUST NOT retry [Record Action] on an invalid-request(step-3) or invalid-request(step-4) refusal.
    ```
    Term step-3 storage failure: `EventLog.append` answering storage-failure with step 2's attestation committed.
 
@@ -623,7 +628,7 @@ Steps:
 
    Term non-storage refusal: invalid-payload at step 3; invalid-request, invalid-policy or policy-not-found at step 4.
 
-   WHY: step 3 failing after step 2 leaves an orphan attestation, closed by Invariant 1's liveness arm and found by the binding-set half; step 4 failing after step 3 leaves an unretained event, closed by Invariant 2's arm and found by the third half. The two are not interchangeable, and which one the operator is looking at is read off the step. record action step 7.5's refusals leave the same partial state but are input or deployment faults, and collapsing them into recording-failure would misname the cause. record action step 7.6b names step-3 or step-4, never `step-5`; a later success is the leg's. On a death-detected host the terminus is step 4's pre-check-and-adopt (Per-act critical section 10).
+   WHY: step 3 failing after step 2 leaves an orphan attestation, closed by Invariant 1's liveness arm and found by the binding-set half; step 4 failing after step 3 leaves an unretained event, closed by Invariant 2's arm and found by the third half. The two are not interchangeable, and which one the operator is looking at is read off the step. record action step 7.5's refusals leave the same partial state but are input or deployment faults, and collapsing them into recording-failure would misname the cause; they land invalid-request carrying the step, because one bare token landing at steps 1 and 2 with nothing committed and at steps 3 and 4 after the attestation committed would tell a caller the act can be retried when a retry commits a second attestation (record action step 7.9 through 7.13). record action step 7.6b names step-3 or step-4, never `step-5`; a later success is the leg's. On a death-detected host the terminus is step 4's pre-check-and-adopt (Per-act critical section 10).
 
 ---
 
@@ -1286,7 +1291,7 @@ A regulated bank deploys the composition as the canonical audit trail for its co
 4. The composition returns `recording-failure(step-3)` and, in the same outcome, surfaces `a45` as an orphan; it writes nothing further, releases its critical section on `a45`, and yields. Once `a45`'s attestation instant is older than 30 + 2 seconds, the scan takes the critical section on `a45`, records an `audit.reconciliation` finding naming it, then a compensating record naming `a45` as unbound — through [Record Action] under `audit.compensation`, attributed to the bank's operator identity, raised as a high-priority compliance finding. The scan found `a45` by the binding-set test — in the attestation store, in no live payload, in no destruction record — and, finding it absent from compensated attestations, wrote the one compensation; the next scan leaves it alone.
 5. The caller retries after the store recovers and gets a fresh `attestation_a46` and `event_e9303`. `a45` remains in the store forever as a surfaced, reconciled orphan — the honest record of what happened rather than a defect to be hidden.
 
-Had data been 80 KB, the rejection would have arrived at step 1 as invalid-request with nothing recorded — no attestation to orphan; that is why the size check sits where it does.
+Had data been 80 KB, the rejection would have arrived at step 1 as invalid-request(step-1) with nothing recorded — no attestation to orphan; that is why the size check sits where it does.
 
 **not-eligible — a purge attempted before the window elapses.** In 2030 a records-management job misconfigured with a five-year policy calls `purge_event(e9301)`.
 
@@ -1543,7 +1548,7 @@ Term record verbs: serve, call, read, delete, evaluate, write, dispose, seal, ex
 
 Term cited: append, read, event id, sequence number, recording instant, data, next sequence number, invalid-query, invalid-payload, storage-failure: Event Log. attest, verify, attestation id, action reference, actor reference, attestation instant, proof, invalid-credential, invalid-request, not-known, registry-unavailable: Actor Identity. place_under_retention, purge, purge eligible, retention id, policy reference, record reference, retention deadline, purge deadline, purge instant, retention-period-not-elapsed, not-retained, invalid-policy, policy-not-found: Retention Window. seal, evidence id, record set reference, sealing instant, anchoring instant, `mechanism-failure(reason)`, mechanism-verification-unavailable, seal-record-set-mismatch, seal-proof-invalid: Tamper Evidence.
 
-Term value sets: retention_state = Retained | Purged. seal cadence = per-event | interval-based | on-demand. unsealed tail mode = strict | lenient. mechanism class = unkeyed | keyed | anchored. erasure outcome = destroyed | destruction-failed(reason). coverage status = covered | unsealed tail | records-purged | partially purged. verify outcome = verified | failed-verification(reason) | unverifiable(reason). unverifiable reasons = attestation-registry-unavailable | seal-mechanism-verification-unavailable | partially-purged-coverage. composition-introduced failed-verification reasons = unsealed | purged | attestation-not-known | seal-not-known, plus the constituents' reasons prefixed `attestation-` and `seal-`. subject = attestation | event. disposition = beyond-horizon. cascade-failure step = seal | step-1 | step-2 | step-3. recording-failure step = step-3 | step-4. classification = derived index | extraction-pending. section kind = lease | death-detected. lease = live | expired. `Legal Hold` = composed | absent. retention status on the audit record = the retention record's state | unresolved (compensation window). attribution on the audit record = the surviving fields | not-recoverable. reserved references = audit.compensation | audit.reconciliation. event standing = retained | lawfully destroyed.
+Term value sets: retention_state = Retained | Purged. seal cadence = per-event | interval-based | on-demand. unsealed tail mode = strict | lenient. mechanism class = unkeyed | keyed | anchored. erasure outcome = destroyed | destruction-failed(reason). coverage status = covered | unsealed tail | records-purged | partially purged. verify outcome = verified | failed-verification(reason) | unverifiable(reason). unverifiable reasons = attestation-registry-unavailable | seal-mechanism-verification-unavailable | partially-purged-coverage. composition-introduced failed-verification reasons = unsealed | purged | attestation-not-known | seal-not-known, plus the constituents' reasons prefixed `attestation-` and `seal-`. subject = attestation | event. disposition = beyond-horizon. cascade-failure step = seal | step-1 | step-2 | step-3. recording-failure step = step-3 | step-4. invalid-request step = step-1 | step-2 | step-3 | step-4. classification = derived index | extraction-pending. section kind = lease | death-detected. lease = live | expired. `Legal Hold` = composed | absent. retention status on the audit record = the retention record's state | unresolved (compensation window). attribution on the audit record = the surviving fields | not-recoverable. reserved references = audit.compensation | audit.reconciliation. event standing = retained | lawfully destroyed.
 
 Term bounds: compensation window, record action completion bound, purge completion bound, compensation closure latency, clock offset allowance, payload cap, reference length cap, attestation id width.
 
@@ -1707,7 +1712,6 @@ formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and au
 last gate: 2026-08-25 — Final Critique 11, fresh reader — clean
 
 open:
-- 2026-08-30-a · refining · [Record Action] signature, `invalid-request` · one bare token lands at steps 1–2 with nothing committed and at steps 3–4 after the attestation (and the event) committed, so a caller told `invalid-request` retries a committed act → carry the position (`invalid-request(step)`, or a `deployment-fault(step)` code) in the signature block; contract-shaped — ripples to every composer that transcribes `record_action`'s `invalid-request` arm as a clean pre-state rejection, own round
 - 2026-08-30-b · refining · [Record Action] step 7, `recording-failure(step-4)` · the appended event's `event_id` is never returned, so a caller's retry appends a second attested event for one act and nothing marks the first a dead duplicate → carry the committed `event_id` in the `(step-4)` payload; contract-shaped — ripples to every composer that transcribes the `recording-failure(step)` payload, own round
 - 2026-08-30-c · refining · Composes, Event Log · every rebuild, the scan's binding set, and [Read Record] step 3's "unreachable by construction" fourth cell rest on the audit log surviving a restart, which Event Log disclaims ("persistence across process restarts is handled at the deployment layer") and no Composes requirement or Configuration entry declares → declare the audit log instance's durability (including `next_sequence_number`) as an instance capability requirement routed to an externally-clearable check; contract-shaped — ripples to every composer whose Rests-on lines transcribe the substrate's durability, own round
 - 2026-08-30-d · refining · Invariant 8 liveness; the scan's first half · a delegation whose outcome record was never written is re-driven "until a `destroyed` outcome lands" against content the mechanism may only ever answer `destruction-failed` for → an *abandoned* record under the operator identity after a declared bound, the arm degrading to *surfaced*; contract-shaped — ripples to every composer that transcribes Invariant 8's unconditional lawfully-destroyed-versus-missing distinction, own round
@@ -1717,6 +1721,7 @@ open:
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/audit-trail.md`.
 
+- **2026-09-30 — `invalid-request` carries the step, as `recording-failure` does.** *Chose:* `record_action` refuses `invalid-request(step)`, step-1 through step-4, and a caller is told not to retry on step-3 or step-4 (record action step 7.9 through 7.13); every composer that transcribes the arm reads the step. *Over:* a bare token, and a second refusal code. *Because:* the bare token landed at steps 1–2 with nothing committed and at steps 3–4 after the attestation and the event committed, so a caller told *invalid-request* could retry a committed act and mint a second attestation; the frozen rule that a composition's own rejection arm carries the retry bit, and the precedent `recording-failure(step)` already set, decide it. The cold gate of 2026-09-30 found it; closes the 2026-08-30-a ledger line.
 - **2026-09-27 — A finding is narrated once, and the cascade's re-drive reads what already landed.** *Chose:* a finding's intent carries its subject and id, and the scan reads *narrated* under the critical section before writing one (Compensation 9 through 11); the pre-check names the destruction record and a destroyed outcome, the reads *proceed as landed* already named. *Over:* leaving the next run to re-detect the finding and narrate it again, and a pre-check list that left a re-driven cascade free to rewrite its destruction record or re-delegate a completed destruction. *Because:* the cold regeneration of 2026-09-27 wrote two intents for one orphan and two for one unretained event whenever the repair failed after its intent landed, against one record per finding (Compensation 2).
 - **2026-09-11 — Rewritten in GRACE lang v0.31; nothing but language changed.** *Chose:* labelled rules in fenced blocks, rationale under `WHY:`, terms declared where they are used, the Ledger and the invariant numbers unchanged; the instance-start conditions given one owner (the section titled *Instance start*), the class boundary and the scan's halves cited by label from every site that used to restate them. *Over:* the prose spec. *Because:* the migration plan — the corpus is being rewritten in the language, and a spec whose obligations have one owner each is what the reverse diff reads.
 - **2026-08-30 — The reconciliation is one writer per act, bounded at both edges, and the scan writes its intent before its repair.** *Chose:* a per-act critical section keyed by the act's id (attestation id for a record action, event id for a cascade), declared as an instance capability requirement with lease semantics, held by the invocation from its first write and taken by every scan half before its pre-check; two completion bounds (record action completion bound, purge completion bound) below which no half examines anything and at which the invocation yields; a horizon at which the second half reports rather than re-compensates, once, behind a reported beyond horizon marker; compensation closure latency and clock offset allowance declared, the window measured from the finding's creation, the three-term inequality checked at start; the scan reading its own now once per run; `audit.reconciliation` written one record per finding before the act it announces, under a declared reconciliation operator credential; the scan as the sole writer of an orphan's compensation. *Over:* a third half whose placement raced the invocation's own step 4 under no shared key; halves with no lower edge, compensating attestations and events whose [Record Action] was still between two steps; a window measured from detection and an inequality with one term; a findings record of unbounded size and unstated position. *Because:* two writers over one act land two records the seal protects forever, a leg with no lower edge reads work in flight as an orphan and corrects it, and a liveness promise is arithmetic or it is nothing (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *Liveness is arithmetic*, *A stamp from another seam never decides a write alone*, *An outcome is sized before the intent*, and *Capability provenance*; with the section titled *A reconciliation is bounded at both ends* in `pressure-testing.md` and the section titled *Recovery commits under a declared service identity* in `pressure-testing.md`). The four contract-shaped sites — invalid-request's position, `recording-failure(step-4)`'s event id, the Event Log durability obligation, Invariant 8's abandoned terminus — are routed as open lines rather than fixed, because every composer transcribes them. *Round 2, same day:* the inequality gained its skew term and its closure latency (the whole closure, intent through compensation, or a cascade round-trip); the per-act critical section gained its non-lease branch — a leg skips a held act and never blocks, a host that cannot detect death must lease, and the non-lease terminus is *proceed as landed* behind step 4's pre-check; the lease terminus is confined to steps 2–4 inclusive, an invocation past step 4 completing its index writes; the beyond-horizon report and the recording-half detector both gained the horizon; and every *all succeed or none* sentence over un-withdrawable writes was restated as ordered writes plus compensation. The five *until a destroyed outcome lands* loops are bounded by open line 2026-08-30-d rather than given a terminus here.

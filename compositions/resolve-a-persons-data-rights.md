@@ -271,13 +271,13 @@ Every string-typed input is validated here or by a constituent, and nothing is c
 
 ```
 Audit arm 1: IF Audit Trail answers recording-failure carrying the retention step at a record THEN the composition MUST read the record back.
-Audit arm 2: IF Audit Trail answers invalid-request at a record THEN the composition MUST read the record back.
+Audit arm 2: IF Audit Trail answers invalid-request(step-4) at a record THEN the composition MUST read the record back.
 Audit arm 3: IF the read-back finds the record THEN the composition MUST proceed as landed.
 Audit arm 4: The composition MUST NOT retry a record the read-back finds.
 Audit arm 5: The read-back MUST match a record by the request id AND the record's action reference.
 Audit arm 6: IF Audit Trail answers invalid-credential at a pre-effect record THEN the action MUST answer invalid-credential.
 Audit arm 7: IF Audit Trail answers recording-failure carrying a pre-append step at a pre-effect record THEN the action MUST answer recording-failure carrying intent.
-Audit arm 8: IF the read-back finds no pre-effect record after an invalid-request THEN the action MUST answer invalid-request.
+Audit arm 8: IF the read-back finds no pre-effect record after an invalid-request(step-4) THEN the action MUST answer invalid-request.
 Audit arm 9: The composition MUST NOT retry an invalid-request answer.
 Audit arm 10: IF Audit Trail refuses a fulfilled event THEN the fulfillment MUST answer recording-failure carrying outcome.
 Audit arm 11: The invocation MUST NOT retry a fulfilled event BEFORE reading the trail for a fulfilled event carrying the request id.
@@ -289,6 +289,7 @@ Audit arm 16: A caller MUST read recording-failure carrying intent as a committe
 Audit arm 17: A caller MUST read recording-failure carrying outcome as a committed irreversible act.
 Audit arm 18: The deployment MUST alert on a record read back as landed carrying no retention.
 Audit arm 19: The deployment MUST alert on an invalid-request from Audit Trail as a deployment fault.
+Audit arm 20: IF Audit Trail answers invalid-request(step-1), invalid-request(step-2) or invalid-request(step-3) at a pre-effect record THEN the action MUST answer invalid-request.
 ```
 
 Term pre-effect record: the intake event, the access intent or the erasure intent — a record written before any irreversible act.
@@ -304,9 +305,9 @@ Term spent invocation: an invocation whose `intended instant + fulfillment compl
 Term compensation flag: cascade_recovery set to true on a fulfilled event that landed through compensation rather than in the original invocation.
 
 WHY:
-The substrate's taxonomy maps **by the record's position relative to the irreversible act**, and every action places one record before it (the section titled *A transcribed rejection arm keeps its payload and its reachability* in `pressure-testing.md`). **The retention step means the event is in the log** (Audit arm 1 through 5): the substrate places retention after it appends, so a failure there is an appended, attested event, and the composition reads it back and proceeds. This arm was unlanded before this rewrite at the pre-effect records, and the omission was not cosmetic: an intent appended under a retention-step failure and answered as a retryable refusal left an open intent, so the caller's retry met the request Committing and was refused compensation-pending for a fulfillment that had done nothing. The substrate's invalid-request has the same two faces — its retention-configuration source appends, its cap source does not — and the read-back tells them apart.
+The substrate's taxonomy maps **by the record's position relative to the irreversible act**, and every action places one record before it (the section titled *A transcribed rejection arm keeps its payload and its reachability* in `pressure-testing.md`). **The retention step means the event is in the log** (Audit arm 1 through 5): the substrate places retention after it appends, so a failure there is an appended, attested event, and the composition reads it back and proceeds. This arm was unlanded before this rewrite at the pre-effect records, and the omission was not cosmetic: an intent appended under a retention-step failure and answered as a retryable refusal left an open intent, so the caller's retry met the request Committing and was refused compensation-pending for a fulfillment that had done nothing. The substrate's invalid-request carries the step that tells its two faces apart — `step-4`, the retention-configuration source, appends and is read back (Audit arm 2); `step-1` through `step-3`, the cap source among them, append no event (Audit arm 20) — where a bare token left the read-back to do it.
 
-**Before the irreversible act, every arm is a clean refusal** (Audit arm 6 through 9): invalid-credential is the caller's; a pre-append step is the one retryable arm; invalid-request with nothing appended is a deployment fault, never retried, since a retry re-sends the identical payload. The intake's own invalid-credential answers as itself, which is what the uniform rule said and the intake's step and signature did not (2026-08-26-f, 2026-08-29-b).
+**Before the irreversible act, every arm is a clean refusal** (Audit arm 6 through 9): invalid-credential is the caller's; a pre-append step is the one retryable arm; invalid-request at `step-1` through `step-3`, with nothing appended, is a deployment fault, never retried, since a retry re-sends the identical payload (and after `step-3` mints a second attestation beside the orphan: Audit Trail's record action step 7.13). The intake's own invalid-credential answers as itself, which is what the uniform rule said and the intake's step and signature did not (2026-08-26-f, 2026-08-29-b).
 
 **After it, no arm can refuse the act, only report it** (Audit arm 10 through 15). The fulfilled event follows a permanent disclosure, and on the erasure path committed destructions. A retry is preceded by a read for a fulfilled event already carrying the request id, because an append that landed and was not acknowledged, retried blind, mints two fulfilled events for one request (2026-08-29-i). The invocation retries only inside its bound, and past it the event is the reconciliation's alone — one writer (the section titled *A compensator is exclusive* in `pressure-testing.md`). An invalid-credential there is the operator's registration changing between the writes; the reconciliation re-emits under the service identity with the operator named and the compensation flag set.
 

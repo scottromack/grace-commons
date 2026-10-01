@@ -292,7 +292,7 @@ Capability requirement 20 is the duration obligation stated as the strict lower 
 
 Capability requirement 27 is the liveness arithmetic written out. An open marker is invisible to the reconciliation until the onboarding completion bound has passed, the reconciliation then sees it no sooner than the next cadence, and the record it writes takes the audit write latency to land — so a compensation window shorter than that sum is a promise the deployment cannot keep, and the rule refuses the instance rather than the finding.
 
-Capability requirement 32 is the repair for a payload that had no bound. [Clear Review]'s clearance intent and clearance record and [Close Party]'s closure record each embed the case's open-trigger set verbatim, and nothing capped it — so a long investigation accumulating triggers could produce a closure event the substrate refuses with invalid-request, which is the one arm that cannot recur-and-clear. Past the cap the payload carries the trigger count and a digest of the set, and the full set stays reconstructable from the monitoring triggered events the range read returns.
+Capability requirement 32 is the repair for a payload that had no bound. [Clear Review]'s clearance intent and clearance record and [Close Party]'s closure record each embed the case's open-trigger set verbatim, and nothing capped it — so a long investigation accumulating triggers could produce a closure event the substrate refuses with `invalid-request(step-1)`, which is the one arm that cannot recur-and-clear. Past the cap the payload carries the trigger count and a digest of the set, and the full set stays reconstructable from the monitoring triggered events the range read returns.
 
 Capability requirement 39 is the deployment half of the gate, and it is an obligation rather than advice. If each activity system reads Party Identity and applies its own `Verified` check, the gate is re-implemented per system, and the first system that forgets it, reads a stale state, or applies a subtly different predicate breaks the before-activity guarantee silently and per-system. Centralizing it at [Activity Permitted] makes the guarantee exist exactly once; a deployment that bypasses it is a composition-bypass finding, and Invariant 1.3 is where the property is quantified.
 
@@ -404,13 +404,13 @@ Identity 17 is why [Trigger Monitoring Review] needs no separate intent: its mon
 ```
 Audit arm 1: An invocation MUST make a committing call ONLY AFTER the landed intent.
 Audit arm 2: IF Audit Trail answers invalid-credential at an intent THEN the action MUST answer invalid-credential.
-Audit arm 3: IF Audit Trail answers invalid-request at an intent THEN the action MUST answer invalid-request.
+Audit arm 3: IF Audit Trail answers invalid-request(step-1 | step-2) at an intent THEN the action MUST answer invalid-request.
 Audit arm 4: IF Audit Trail answers recording-failure at an intent THEN the action MUST answer recording-failure carrying intent.
 Audit arm 5: IF Audit Trail answers recording-failure carrying the retention step at an intent THEN the invocation MUST NOT make a committing call.
 Audit arm 6: IF Audit Trail answers recording-failure carrying the retention step at an intent THEN the invocation MUST NOT retry the intent.
 Audit arm 7: The composition MUST leave an appended intent standing as an open marker.
 Audit arm 8: IF Audit Trail answers invalid-credential at an outcome THEN the action MUST answer recording-failure carrying outcome.
-Audit arm 9: IF Audit Trail answers invalid-request at an outcome THEN the action MUST answer recording-failure carrying outcome.
+Audit arm 9: IF Audit Trail answers invalid-request carrying any step at an outcome THEN the action MUST answer recording-failure carrying outcome.
 Audit arm 10: IF Audit Trail answers recording-failure at an outcome THEN the action MUST answer recording-failure carrying outcome.
 Audit arm 11: A caller MUST read recording-failure carrying intent as a committed nothing.
 Audit arm 12: A caller MUST read recording-failure carrying outcome as a committed act.
@@ -425,6 +425,8 @@ Audit arm 20: The composition MUST NOT read an invalid-request answer as a trans
 Audit arm 21: The composition MUST read an invalid-request answer as a deployment fault.
 Audit arm 22: A recovery outcome MUST carry the recovery marker.
 Audit arm 23: A recovery outcome MUST name the acting human in the outcome's data.
+Audit arm 24: IF Audit Trail answers invalid-request(step-3 | step-4) at an intent THEN the action MUST answer recording-failure carrying intent.
+Audit arm 25: The composition MUST NOT retry an invalid-request(step-3 | step-4) answer.
 ```
 
 Term landed intent: the invocation's intent the substrate has appended and attested and answered.
@@ -440,9 +442,9 @@ Term recovery marker: recovery — the marker a recovery outcome carries so a re
 Term recovery outcome: the outcome the reconciliation emits for a committed act whose own invocation did not record one.
 
 WHY:
-The substrate answers one taxonomy — invalid-credential, invalid-request, `recording-failure(step)` — and this composition maps it **by the call's position relative to the constituent write**, not uniformly. At an intent nothing has committed, so every arm is a clean pre-state rejection and the caller may retry the whole action. At an outcome a constituent write exists, so no arm can refuse the act, only report it, and a re-run would commit it a second time. Audit arm 11 through 13 are that distinction exported: intent tells the caller nothing committed, outcome tells the caller an act exists and the reconciliation owns the record — the frozen rule *A composition's own rejection arm carries the retry bit*.
+The substrate answers one taxonomy — invalid-credential, `invalid-request(step)`, `recording-failure(step)` — and this composition maps it **by the call's position relative to the constituent write**, not uniformly. At an intent nothing has committed, so every arm is a clean pre-state rejection and the caller may retry the whole action. At an outcome a constituent write exists, so no arm can refuse the act, only report it, and a re-run would commit it a second time. Audit arm 11 through 13 are that distinction exported: intent tells the caller nothing committed, outcome tells the caller an act exists and the reconciliation owns the record — the frozen rule *A composition's own rejection arm carries the retry bit*.
 
-Audit arm 5 through 7 are the one arm that is neither. The substrate's retention step refuses *after* the event is appended and attested, so the credential was verified and the call still failed: the invocation aborts with nothing committed, and the appended intent stands as an open marker the reconciliation will resolve. Re-recording it would double-append, which is why Audit arm 18 sends that arm to the substrate's own reconciliation rather than retrying it here.
+Audit arm 5 through 7 are the one arm that is neither. The substrate's retention step refuses *after* the event is appended and attested, so the credential was verified and the call still failed: the invocation aborts with nothing committed, and the appended intent stands as an open marker the reconciliation will resolve. Re-recording it would double-append, which is why Audit arm 18 sends that arm to the substrate's own reconciliation rather than retrying it here. `invalid-request(step-3)` and `invalid-request(step-4)` land in the same state — the attestation committed, and at step-4 the event too — so an intent-position one is answered as `recording-failure` carrying intent (Audit arm 24) and neither is retried at either position (Audit arm 25), because a retry mints a second attestation; `invalid-request(step-1)` and `invalid-request(step-2)` commit nothing and stay the clean refusal of Audit arm 3. At an outcome the step changes nothing for the caller (Audit arm 9): the act committed either way, and the action's own answer is `recording-failure` carrying outcome.
 
 Audit arm 14 through 17 bound the retry at both ends. Inside the completion bound the owed record is the invocation's, because the reconciliation cannot see an invocation that has not written yet and a re-emission fired at it would land a second outcome for one act. Past it the record is the reconciliation's, and every compensating write is preceded by a traversal for an outcome already carrying this intent event id — matched by equality, never by resemblance of payload.
 

@@ -402,7 +402,7 @@ Audit arm 6: IF Audit Trail answers recording-failure carrying the append step a
 Audit arm 7: IF Audit Trail answers recording-failure carrying the retention step at an intent THEN the invocation MUST read the intent back.
 Audit arm 8: IF the read-back finds the intent THEN the invocation MUST proceed on the intent as landed.
 Audit arm 9: IF the read-back finds no intent THEN the action MUST answer recording-failure carrying intent.
-Audit arm 10: IF Audit Trail answers invalid-request at an intent THEN the invocation MUST read the intent back.
+Audit arm 10: IF Audit Trail answers invalid-request(step-4) at an intent THEN the invocation MUST read the intent back.
 Audit arm 11: The composition MUST alert on a retention step answer.
 Audit arm 12: The composition MUST NOT record a second intent for a read-back that found the intent.
 Audit arm 13: The read-back MUST select an event by the tail read.
@@ -410,7 +410,7 @@ Audit arm 14: The read-back MUST select an event carrying the invocation's invoc
 Audit arm 15: IF Audit Trail answers invalid-credential at an outcome THEN the action MUST answer invalid-credential carrying outcome.
 Audit arm 16: IF Audit Trail answers recording-failure carrying the retention step at an outcome THEN the invocation MUST read the outcome back.
 Audit arm 17: IF Audit Trail answers recording-failure carrying the append step at an outcome THEN the action MUST answer recording-failure carrying outcome.
-Audit arm 18: IF Audit Trail answers invalid-request at an outcome THEN the invocation MUST read the outcome back.
+Audit arm 18: IF Audit Trail answers invalid-request(step-4) at an outcome THEN the invocation MUST read the outcome back.
 Audit arm 19: A caller MUST read an arm carrying intent as a committed nothing.
 Audit arm 20: A caller MUST read an arm carrying outcome as a committed revocation.
 Audit arm 21: A caller MUST NOT restart a cascade answering an arm carrying outcome.
@@ -421,6 +421,9 @@ Audit arm 25: The composition MUST NOT retry an intent the read-back found.
 Audit arm 26: The composition MUST read an invalid-request answer as a deployment fault.
 Audit arm 27: The composition MUST NOT read an invalid-request answer as a transient fault.
 Audit arm 28: The composition MUST alert on an owed outcome.
+Audit arm 29: IF Audit Trail answers invalid-request(step-1 | step-2 | step-3) at an intent THEN the action MUST answer recording-failure carrying intent.
+Audit arm 30: IF Audit Trail answers invalid-request(step-1 | step-2 | step-3) at an outcome THEN the action MUST answer recording-failure carrying outcome.
+Audit arm 31: The composition MUST NOT retry an invalid-request(step-3 | step-4) answer.
 ```
 
 Term landed intent: an intent the substrate has appended and attested, whatever the substrate then answered.
@@ -434,7 +437,7 @@ Term read-back: the tail read filtered to an event of the invocation's own class
 Term owed outcome: an outcome this composition must write for a cascade whose revocations have committed and the substrate has not appended.
 
 WHY:
-**The substrate's step payload is load-bearing at every position, the intent's included, and that is the arm this page most nearly got wrong.** record_action refuses at four steps, and its retention step refuses *after* the event is appended and attested — so a caller told *nothing committed* retries as a fresh call and lands a second plan for one actor: two intents for the sweep to pair, then two completions, a Check 3.1 breach. Audit arm 7 through 12 make the invocation read the log before it decides which happened, and Audit arm 25 forbids the retry that reading exists to prevent. The same read-back settles the substrate's invalid-request, which is a deployment fault reachable from two sources — a mis-derived payload cap, on which nothing is appended, and the substrate's own retention configuration, on which the event is.
+**The substrate's step payload is load-bearing at every position, the intent's included, and that is the arm this page most nearly got wrong.** record_action refuses at four steps, and its retention step refuses *after* the event is appended and attested — so a caller told *nothing committed* retries as a fresh call and lands a second plan for one actor: two intents for the sweep to pair, then two completions, a Check 3.1 breach. Audit arm 7 through 12 make the invocation read the log before it decides which happened, and Audit arm 25 forbids the retry that reading exists to prevent. The substrate's invalid-request is a deployment fault reachable from two sources — a mis-derived payload cap, on which nothing is appended, and the substrate's own retention configuration, on which the event is — and the step it carries tells them apart: only `invalid-request(step-4)` leaves the event appended, so only it needs the read-back (Audit arm 10 and Audit arm 18), while steps 1 through 3 leave no event and land as the append step does (Audit arm 29 and Audit arm 30). A retry of step-3 or step-4 mints a second attestation, which is Audit arm 31.
 
 **What this composition exports carries the position, not the step.** Audit arm 19 through 22 are that distinction: intent tells the caller nothing of this call is committed and the whole action may be re-run as a fresh call; outcome tells the caller the revocations **stand**, so a re-run would restart a cascade that has already closed doors, and what is available instead is a resume — the section titled *A composition's own rejection arm carries the retry bit* in `pressure-testing.md`.
 
