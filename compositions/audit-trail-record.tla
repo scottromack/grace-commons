@@ -34,13 +34,14 @@
 \* - The binding-set predicate against an in-flight cascade (Second half 14, Second half 15):
 \*   audit-trail-binding.tla. The scan's retry of an invalid-request refusal on the next run
 \*   (Compensation 15), and Tamper Evidence's record set match (Capability requirement 5): not carried.
-\* - Not carried, each on the page and unverified here: the death-detected section kind and its bound on live holders
-\*   (Per-act critical section 10c, 10d); the Legal Hold gate and its serialization (purge event 5c, Capability
-\*   requirement 7); the [Seal Now] crash gap and its rebuild (seal now 13, 14); the [Verify Record] re-read against a
+\* - ITake fuses the outlived check (record action step 2.10) with the take (step 2.6), so the 2 * RecBound term is validated only under that fusion; IPlace omits step 4.1-4.2's re-read and adopt.
+\* - Not carried, each on the page and unverified here: the Legal Hold gate and its serialization (purge event 5c, Capability
+\*   requirement 7); the [Seal Now] crash gap and its rebuild (seal now 13 through 18, the sealing lock's lease); the [Verify Record] re-read against a
 \*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (purge event step 0.7); the third half's
 \*   policy resolution (Third half 15). Both models are single-act: the cross-act serializations of Concurrency 1 and 3 are
 \*   absent, and Invariant 3 is unmodelled.
-\*   Also not carried: a constituent call's timeout and its landing arm (Per-act critical section 10e); the scan's
+\* - The constants breach Instance start 18 and 19 (SweepLease = 1 against a closure floor of 4); a conforming regime exceeds the harness's depth cap (MaxDepthExceeded: 41). The twin -nopre drops the outlived check and the pre-check together and so attributes neither.
+\*   Also not carried: the scan's
 \*   one attempt per finding per run and its alert (Third half 11, Compensation 16); the hold's active state (Term hold);
 \*   a caller-driven re-entry of [Purge Event] on a Purged retention (purge event step 1.4).
 \* - Small constants: "all invariants hold" is a statement within MaxTime ticks at these constants.
@@ -171,7 +172,7 @@ IRefused ==
     /\ holder' = IF holder = "inv" THEN "none" ELSE holder
     /\ UNCHANGED <<now, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Step 4: place under retention; re-reads event to retention first and adopts a placement that landed (record action step 4.1-4.2).
+\* Step 4: place under retention. The page's re-read and adopt (record action step 4.1-4.2) is NOT carried: plc increments unconditionally, so plc <= 1 rests on section exclusion alone.
 IPlace ==
     /\ ipc = "a4"
     /\ Live("inv")
@@ -193,7 +194,7 @@ ICrash ==
     /\ ipc' = "dead"
     /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Second half: an attestation absent from the binding set and older than record edge (Second half 1-3); takes the critical section keyed by its id.
+\* Second half: an attestation absent from the binding set and older than record edge (Second half 1-3); takes the critical section keyed by its id and re-tests the predicate under it in the one step (Second half 16), so the page's examine-then-take gap is closed by that rule, not modelled apart.
 TakeOrphan1 ==
     /\ spc1 = "idle"
     /\ holder = "none"
@@ -276,7 +277,7 @@ SCrash1 ==
     /\ crashes' = crashes + 1
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Second half: an attestation absent from the binding set and older than record edge (Second half 1-3); takes the critical section keyed by its id.
+\* Second half: an attestation absent from the binding set and older than record edge (Second half 1-3); takes the critical section keyed by its id and re-tests the predicate under it in the one step (Second half 16), so the page's examine-then-take gap is closed by that rule, not modelled apart.
 TakeOrphan2 ==
     /\ spc2 = "idle"
     /\ holder = "none"

@@ -3,6 +3,7 @@
 \* One attestation: either its event exists (hasEvent) and is purged by [Purge Event] steps 1, 2, 3, or no event exists (a real orphan).
 \* The scan reads the payloads first, then the destruction records, and compensates an attestation in neither read.
 \* NOT MODELED: the critical sections, the age filters, the horizon, the reconciliation writes themselves (audit-trail.tla, audit-trail-record.tla carry those).
+\* The scan's read of a purged event's payload as unreadable rather than refused or omitted rests on erasure mechanism 6a, which the model assumes.
 EXTENDS Naturals
 
 VARIABLES hasEvent, ret, dest, content, sc, seenP, seenD, comp
