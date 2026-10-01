@@ -17,14 +17,18 @@
 \* WHAT THIS MODEL CHECKS  Invariants 4 (order), 8 (honest destruction; and its liveness
 \* arm, bounded), and the one-writer discipline of the per-act critical section.
 \*
-\* NOT MODELED (Ledger 2026-08-30-e stays open for these)
-\* - [Record Action], and the scan's second and third halves (orphan attestation,
-\*   unretained event, compensation): the record-action leg is a separate model.
-\* - Where the model is more generous than the page: a write issued inside the lease lands
-\*   inside it (the page's premise: purge completion bound is set from worst-case latency,
-\*   purge completion bound 1); no fence is modelled; clock offset allowance is 0; a scan
-\*   run finishes inside its lease or dies (compensation closure latency 1 is a declared bound).
-\* - The erasure mechanism answers destroyed on re-delegation (Ledger 2026-08-30-d).
+\* NOT MODELED
+\* - [Record Action], and the scan's second and third halves: audit-trail-record.tla. Invariants 3, 5,
+\*   6 and 7, [Read Record], [Verify Record], and the return arms of [Purge Event].
+\* - The first half writes no audit.reconciliation intent (Compensation 12): none is modelled.
+\* - The restart-triggered scan run; the single scan-crash budget is shared by the scan's runs.
+\* - Where the model is more generous than the page: a write issued inside the lease lands inside it
+\*   (the page's premise, made an obligation by purge completion bound 2: the pause between a lease
+\*   check and its write is inside the bound; no constituent write carries a fence); clock offset
+\*   allowance 0; the first half re-drives the cascade itself, where the page re-drives through
+\*   [Purge Event] under the section the first half holds (Per-act critical section 14).
+\* - The erasure mechanism answers destroyed on re-delegation: with an outcome unrecorded, a
+\*   re-delegation over destroyed content is the page's own open edge (Ledger 2026-08-30-d).
 \* - Cadence, lease lengths and the horizon are small constants; "all invariants hold"
 \*   is a statement within MaxTime ticks at these constants and nothing more.
 EXTENDS Naturals

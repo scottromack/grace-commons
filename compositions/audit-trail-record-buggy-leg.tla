@@ -1,5 +1,5 @@
----- MODULE audit-trail-record-buggy ----
-\* BUGGY TWIN (vacuity guard): a scan half writes without re-reading compensated attestations / event to retention under the section (Second half 9, Third half 6 violated).
+---- MODULE audit-trail-record-buggy-leg ----
+\* BUGGY TWIN (vacuity guard): a scan leg keeps writing after its lease has run out and nothing stops time passing under it, so a second run takes the section and both compensate the same orphan (Per-act critical section 13b, 13c violated).
 EXTENDS Naturals
 
 CONSTANTS RecBound, SweepLease, Cadence, MaxTime
@@ -63,8 +63,6 @@ Tick ==
     /\ ~(spc1 = "idle" /\ now - lr1 >= Cadence)
     /\ ~(spc2 = "idle" /\ now - lr2 >= Cadence)
     /\ ~(holder # "none" /\ now >= exp)
-    /\ ~(spc1 # "idle" /\ now + 1 >= exp)
-    /\ ~(spc2 # "idle" /\ now + 1 >= exp)
     /\ now' = now + 1
     /\ UNCHANGED <<ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
@@ -182,26 +180,27 @@ Skip1 ==
     /\ lr1' = now
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, spc2, tgt2, lr2>>
 
-\* BUG: no pre-check of compensated attestations / event to retention under the section.
+\* Re-read compensated attestations / event to retention under the section before any write (Second half 9, Third half 6).
 Check1 ==
     /\ spc1 = "held"
-    /\ Live("s1")
-    /\ spc1' = "w1"
-    /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, tgt1, lr1, spc2, tgt2, lr2>>
+    /\ spc1 # "idle"
+    /\ spc1' = IF tgt1 = "O" THEN (IF cO > 0 THEN "idle" ELSE "w1") ELSE (IF cU > 0 /\ plc > 0 THEN "idle" ELSE "w1")
+    /\ holder' = IF (tgt1 = "O" /\ cO > 0) \/ (tgt1 = "U" /\ cU > 0 /\ plc > 0) THEN "none" ELSE holder
+    /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Intent record (audit.reconciliation), written before the repair (Compensation 3).
+\* Intent record (audit.reconciliation), once per finding: narrated is read first (Compensation 9-11).
 Intent1 ==
     /\ spc1 = "w1"
-    /\ Live("s1")
-    /\ nO' = IF tgt1 = "O" THEN nO + 1 ELSE nO
-    /\ nU' = IF tgt1 = "U" THEN nU + 1 ELSE nU
+    /\ spc1 # "idle"
+    /\ nO' = IF tgt1 = "O" /\ nO = 0 THEN 1 ELSE nO
+    /\ nU' = IF tgt1 = "U" /\ nU = 0 THEN 1 ELSE nU
     /\ spc1' = "w2"
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, cO, cU, crashes, tgt1, lr1, spc2, tgt2, lr2>>
 
 \* The compensating act: for an unretained event, the placement (only where none exists).
 Repair1 ==
     /\ spc1 = "w2"
-    /\ Live("s1")
+    /\ spc1 # "idle"
     /\ plc' = IF tgt1 = "U" /\ plc = 0 THEN 1 ELSE plc
     /\ spc1' = "w3"
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, nO, cO, nU, cU, crashes, tgt1, lr1, spc2, tgt2, lr2>>
@@ -209,19 +208,12 @@ Repair1 ==
 \* The audit.compensation record closes the finding; the section is released.
 Compensate1 ==
     /\ spc1 = "w3"
-    /\ Live("s1")
+    /\ spc1 # "idle"
     /\ cO' = IF tgt1 = "O" THEN cO + 1 ELSE cO
     /\ cU' = IF tgt1 = "U" THEN cU + 1 ELSE cU
     /\ spc1' = "idle"
     /\ holder' = "none"
     /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, nU, crashes, tgt1, lr1, spc2, tgt2, lr2>>
-
-\* A scan run whose lease is gone abandons the run (Per-act critical section 13b, 13c).
-SAbort1 ==
-    /\ spc1 # "idle"
-    /\ ~Live("s1")
-    /\ spc1' = "idle"
-    /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, tgt1, lr1, spc2, tgt2, lr2>>
 
 \* The scan run may die once.
 SCrash1 ==
@@ -264,26 +256,27 @@ Skip2 ==
     /\ lr2' = now
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2>>
 
-\* BUG: no pre-check of compensated attestations / event to retention under the section.
+\* Re-read compensated attestations / event to retention under the section before any write (Second half 9, Third half 6).
 Check2 ==
     /\ spc2 = "held"
-    /\ Live("s2")
-    /\ spc2' = "w1"
-    /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, tgt2, lr2>>
+    /\ spc2 # "idle"
+    /\ spc2' = IF tgt2 = "O" THEN (IF cO > 0 THEN "idle" ELSE "w1") ELSE (IF cU > 0 /\ plc > 0 THEN "idle" ELSE "w1")
+    /\ holder' = IF (tgt2 = "O" /\ cO > 0) \/ (tgt2 = "U" /\ cU > 0 /\ plc > 0) THEN "none" ELSE holder
+    /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, tgt2, lr2>>
 
-\* Intent record (audit.reconciliation), written before the repair (Compensation 3).
+\* Intent record (audit.reconciliation), once per finding: narrated is read first (Compensation 9-11).
 Intent2 ==
     /\ spc2 = "w1"
-    /\ Live("s2")
-    /\ nO' = IF tgt2 = "O" THEN nO + 1 ELSE nO
-    /\ nU' = IF tgt2 = "U" THEN nU + 1 ELSE nU
+    /\ spc2 # "idle"
+    /\ nO' = IF tgt2 = "O" /\ nO = 0 THEN 1 ELSE nO
+    /\ nU' = IF tgt2 = "U" /\ nU = 0 THEN 1 ELSE nU
     /\ spc2' = "w2"
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, cO, cU, crashes, spc1, tgt1, lr1, tgt2, lr2>>
 
 \* The compensating act: for an unretained event, the placement (only where none exists).
 Repair2 ==
     /\ spc2 = "w2"
-    /\ Live("s2")
+    /\ spc2 # "idle"
     /\ plc' = IF tgt2 = "U" /\ plc = 0 THEN 1 ELSE plc
     /\ spc2' = "w3"
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, tgt2, lr2>>
@@ -291,19 +284,12 @@ Repair2 ==
 \* The audit.compensation record closes the finding; the section is released.
 Compensate2 ==
     /\ spc2 = "w3"
-    /\ Live("s2")
+    /\ spc2 # "idle"
     /\ cO' = IF tgt2 = "O" THEN cO + 1 ELSE cO
     /\ cU' = IF tgt2 = "U" THEN cU + 1 ELSE cU
     /\ spc2' = "idle"
     /\ holder' = "none"
     /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, nU, crashes, spc1, tgt1, lr1, tgt2, lr2>>
-
-\* A scan run whose lease is gone abandons the run (Per-act critical section 13b, 13c).
-SAbort2 ==
-    /\ spc2 # "idle"
-    /\ ~Live("s2")
-    /\ spc2' = "idle"
-    /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, tgt2, lr2>>
 
 \* The scan run may die once.
 SCrash2 ==
@@ -332,7 +318,6 @@ Next ==
     \/ Intent1
     \/ Repair1
     \/ Compensate1
-    \/ SAbort1
     \/ SCrash1
     \/ TakeOrphan2
     \/ TakeUnretained2
@@ -341,7 +326,6 @@ Next ==
     \/ Intent2
     \/ Repair2
     \/ Compensate2
-    \/ SAbort2
     \/ SCrash2
 
 Spec == Init /\ [][Next]_vars

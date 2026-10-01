@@ -8,13 +8,13 @@ VARIABLES now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, cras
 vars == <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
 Edge == RecBound   \* record edge = record action completion bound + clock offset allowance (0 here)
-ClosureBound == Edge + 2 * (Cadence + SweepLease)
+ClosureBound == 2 * RecBound + 2 * (Cadence + SweepLease)   \* the page's closure sum: max(2 * record bound, purge bound) + allowance + 2 * (cadence + closure latency)
 
 Live(who) == holder = who /\ now < exp
 
 TypeOK ==
     /\ now \in 0..MaxTime
-    /\ ipc \in {"idle", "a2", "a3", "a4", "done", "dead"}
+    /\ ipc \in {"idle", "t", "a3", "a4", "done", "dead"}
     /\ holder \in {"none", "inv", "s1", "s2"}
     /\ exp \in 0..(MaxTime + RecBound + SweepLease)
     /\ att \in BOOLEAN
@@ -75,33 +75,57 @@ HostRelease ==
     /\ holder' = "none"
     /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* [Record Action]: the critical section is taken at the act's first write, keyed by the attestation id (Concurrency 6).
-IStart ==
+\* Step 2: attest. The critical section does not exist yet: its key is the attestation id this step returns (Per-act critical section, record action step 2.6).
+IAttest ==
     /\ ipc = "idle"
+    /\ att' = TRUE
+    /\ attAt' = now
+    /\ ipc' = "t"
+    /\ UNCHANGED <<now, holder, exp, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
+
+\* Step 2.6: take the section keyed by the attestation id; the lease begins here, after the attestation committed.
+ITake ==
+    /\ ipc = "t"
     /\ holder = "none"
-    /\ ipc' = "a2"
+    /\ now - attAt < RecBound
+    /\ ipc' = "a3"
     /\ holder' = "inv"
     /\ exp' = now + RecBound
     /\ UNCHANGED <<now, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Step 2: attest (Invariant 1.2: attest before append).
-IAttest ==
-    /\ ipc = "a2"
-    /\ ipc # "idle" /\ ipc # "dead" /\ ipc # "done"
-    /\ att' = TRUE
-    /\ attAt' = now
-    /\ ipc' = "a3"
-    /\ UNCHANGED <<now, holder, exp, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
+\* record action step 2.10-2.11: the invocation has outlived record action completion bound, takes no section and appends nothing.
+IOutlived ==
+    /\ ipc = "t"
+    /\ now - attAt >= RecBound
+    /\ ipc' = "dead"
+    /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Step 3: append, the attestation id inside the payload.
+\* record action step 2.9: the section is held (a scan half has it), so the invocation does not append; mid-record expiry arm.
+IHeld ==
+    /\ ipc = "t"
+    /\ holder # "none"
+    /\ ipc' = "dead"
+    /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
+
+\* Step 3: append, after reading compensated attestations under the held section (record action step 3.5, 3.6).
 IAppend ==
     /\ ipc = "a3"
     /\ ipc # "idle" /\ ipc # "dead" /\ ipc # "done"
     /\ att
+    /\ cO = 0
     /\ ev' = TRUE
     /\ evAt' = now
     /\ ipc' = "a4"
     /\ UNCHANGED <<now, holder, exp, att, attAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
+
+\* record action step 3.6: the orphan was already compensated, nothing is appended, the section is released.
+IRefused ==
+    /\ ipc = "a3"
+    /\ ipc # "idle" /\ ipc # "dead" /\ ipc # "done"
+    /\ cO > 0
+    /\ ipc' = "dead"
+    /\ holder' = IF holder = "inv" THEN "none" ELSE holder
+    /\ UNCHANGED <<now, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
 \* Step 4: place under retention; re-reads event to retention first and adopts a placement that landed (record action step 4.1-4.2).
 IPlace ==
@@ -112,7 +136,7 @@ IPlace ==
     /\ holder' = IF holder = "inv" THEN "none" ELSE holder
     /\ UNCHANGED <<now, exp, att, attAt, ev, evAt, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Mid-record expiry (record action step 7.6): no further write; the partial state is the scan's.
+\* BUG: the invocation never notices its lease has gone.
 IAbort ==
     /\ FALSE
     /\ ipc' = "dead"
@@ -120,7 +144,7 @@ IAbort ==
 
 \* The invocation may die at any point.
 ICrash ==
-    /\ ipc \in {"a2", "a3", "a4"}
+    /\ ipc \in {"t", "a3", "a4"}
     /\ ipc' = "dead"
     /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
@@ -192,7 +216,7 @@ Compensate1 ==
     /\ holder' = "none"
     /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, nU, crashes, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* A scan run whose lease is gone abandons the run.
+\* A scan run whose lease is gone abandons the run (Per-act critical section 13b, 13c).
 SAbort1 ==
     /\ spc1 # "idle"
     /\ ~Live("s1")
@@ -275,7 +299,7 @@ Compensate2 ==
     /\ holder' = "none"
     /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, nU, crashes, spc1, tgt1, lr1, tgt2, lr2>>
 
-\* A scan run whose lease is gone abandons the run.
+\* A scan run whose lease is gone abandons the run (Per-act critical section 13b, 13c).
 SAbort2 ==
     /\ spc2 # "idle"
     /\ ~Live("s2")
@@ -293,9 +317,12 @@ SCrash2 ==
 Next ==
     \/ Tick
     \/ HostRelease
-    \/ IStart
     \/ IAttest
+    \/ ITake
+    \/ IOutlived
+    \/ IHeld
     \/ IAppend
+    \/ IRefused
     \/ IPlace
     \/ IAbort
     \/ ICrash

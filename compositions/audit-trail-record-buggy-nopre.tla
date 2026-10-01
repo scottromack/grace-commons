@@ -1,5 +1,5 @@
----- MODULE audit-trail-record-buggy ----
-\* BUGGY TWIN (vacuity guard): a scan half writes without re-reading compensated attestations / event to retention under the section (Second half 9, Third half 6 violated).
+---- MODULE audit-trail-record-buggy-nopre ----
+\* BUGGY TWIN (vacuity guard): the invocation neither checks that it has outlived its bound (record action step 2.10, 2.11) nor reads compensated attestations under the section (step 3.5, 3.6), so a stalled invocation appends under an attestation a scan half already compensated.
 EXTENDS Naturals
 
 CONSTANTS RecBound, SweepLease, Cadence, MaxTime
@@ -87,7 +87,6 @@ IAttest ==
 ITake ==
     /\ ipc = "t"
     /\ holder = "none"
-    /\ now - attAt < RecBound
     /\ ipc' = "a3"
     /\ holder' = "inv"
     /\ exp' = now + RecBound
@@ -95,8 +94,7 @@ ITake ==
 
 \* record action step 2.10-2.11: the invocation has outlived record action completion bound, takes no section and appends nothing.
 IOutlived ==
-    /\ ipc = "t"
-    /\ now - attAt >= RecBound
+    /\ FALSE
     /\ ipc' = "dead"
     /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
@@ -107,25 +105,15 @@ IHeld ==
     /\ ipc' = "dead"
     /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Step 3: append, after reading compensated attestations under the held section (record action step 3.5, 3.6).
+\* BUG: appends without reading compensated attestations under the section (record action step 3.5, 3.6 violated).
 IAppend ==
     /\ ipc = "a3"
     /\ Live("inv")
     /\ att
-    /\ cO = 0
     /\ ev' = TRUE
     /\ evAt' = now
     /\ ipc' = "a4"
     /\ UNCHANGED <<now, holder, exp, att, attAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
-
-\* record action step 3.6: the orphan was already compensated, nothing is appended, the section is released.
-IRefused ==
-    /\ ipc = "a3"
-    /\ Live("inv")
-    /\ cO > 0
-    /\ ipc' = "dead"
-    /\ holder' = IF holder = "inv" THEN "none" ELSE holder
-    /\ UNCHANGED <<now, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
 \* Step 4: place under retention; re-reads event to retention first and adopts a placement that landed (record action step 4.1-4.2).
 IPlace ==
@@ -182,19 +170,20 @@ Skip1 ==
     /\ lr1' = now
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, spc2, tgt2, lr2>>
 
-\* BUG: no pre-check of compensated attestations / event to retention under the section.
+\* Re-read compensated attestations / event to retention under the section before any write (Second half 9, Third half 6).
 Check1 ==
     /\ spc1 = "held"
     /\ Live("s1")
-    /\ spc1' = "w1"
-    /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, tgt1, lr1, spc2, tgt2, lr2>>
+    /\ spc1' = IF tgt1 = "O" THEN (IF cO > 0 THEN "idle" ELSE "w1") ELSE (IF cU > 0 /\ plc > 0 THEN "idle" ELSE "w1")
+    /\ holder' = IF (tgt1 = "O" /\ cO > 0) \/ (tgt1 = "U" /\ cU > 0 /\ plc > 0) THEN "none" ELSE holder
+    /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Intent record (audit.reconciliation), written before the repair (Compensation 3).
+\* Intent record (audit.reconciliation), once per finding: narrated is read first (Compensation 9-11).
 Intent1 ==
     /\ spc1 = "w1"
     /\ Live("s1")
-    /\ nO' = IF tgt1 = "O" THEN nO + 1 ELSE nO
-    /\ nU' = IF tgt1 = "U" THEN nU + 1 ELSE nU
+    /\ nO' = IF tgt1 = "O" /\ nO = 0 THEN 1 ELSE nO
+    /\ nU' = IF tgt1 = "U" /\ nU = 0 THEN 1 ELSE nU
     /\ spc1' = "w2"
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, cO, cU, crashes, tgt1, lr1, spc2, tgt2, lr2>>
 
@@ -264,19 +253,20 @@ Skip2 ==
     /\ lr2' = now
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2>>
 
-\* BUG: no pre-check of compensated attestations / event to retention under the section.
+\* Re-read compensated attestations / event to retention under the section before any write (Second half 9, Third half 6).
 Check2 ==
     /\ spc2 = "held"
     /\ Live("s2")
-    /\ spc2' = "w1"
-    /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, tgt2, lr2>>
+    /\ spc2' = IF tgt2 = "O" THEN (IF cO > 0 THEN "idle" ELSE "w1") ELSE (IF cU > 0 /\ plc > 0 THEN "idle" ELSE "w1")
+    /\ holder' = IF (tgt2 = "O" /\ cO > 0) \/ (tgt2 = "U" /\ cU > 0 /\ plc > 0) THEN "none" ELSE holder
+    /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, tgt2, lr2>>
 
-\* Intent record (audit.reconciliation), written before the repair (Compensation 3).
+\* Intent record (audit.reconciliation), once per finding: narrated is read first (Compensation 9-11).
 Intent2 ==
     /\ spc2 = "w1"
     /\ Live("s2")
-    /\ nO' = IF tgt2 = "O" THEN nO + 1 ELSE nO
-    /\ nU' = IF tgt2 = "U" THEN nU + 1 ELSE nU
+    /\ nO' = IF tgt2 = "O" /\ nO = 0 THEN 1 ELSE nO
+    /\ nU' = IF tgt2 = "U" /\ nU = 0 THEN 1 ELSE nU
     /\ spc2' = "w2"
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, cO, cU, crashes, spc1, tgt1, lr1, tgt2, lr2>>
 
@@ -321,7 +311,6 @@ Next ==
     \/ IOutlived
     \/ IHeld
     \/ IAppend
-    \/ IRefused
     \/ IPlace
     \/ IAbort
     \/ ICrash
