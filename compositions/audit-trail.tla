@@ -21,6 +21,9 @@
 \* - [Record Action], and the scan's second and third halves: audit-trail-record.tla. Invariants 3, 5,
 \*   6 and 7, [Read Record], [Verify Record], and the return arms of [Purge Event].
 \* - The first half writes no audit.reconciliation intent (Compensation 12): none is modelled.
+\* - The leg abort (Per-act critical section 13b, 13c) is NOT exercised: the Tick guard holds time while
+\*   a run is in flight (compensation closure latency 1), so no leg outlives its lease.
+\* - The binding-set predicate against an in-flight cascade: audit-trail-binding.tla.
 \* - The restart-triggered scan run; the single scan-crash budget is shared by the scan's runs.
 \* - Where the model is more generous than the page: a write issued inside the lease lands inside it
 \*   (the page's premise, made an obligation by purge completion bound 2: the pause between a lease

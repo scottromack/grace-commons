@@ -28,8 +28,12 @@
 \*   (the page's premise, made an obligation by record action completion bound 2: the pause between a
 \*   lease check and its write is inside the bound; no constituent write carries a fence); clock
 \*   offset allowance 0; narrated is a flag, not a read of the log.
-\* - SweepLease = 1 here: a leg finishes in the tick it takes the section, so a leg that overruns its
-\*   lease (Per-act critical section 13) is carried by audit-trail.tla, where SweepLease = 2.
+\* - The leg abort (Per-act critical section 13b, 13c) is NOT exercised: SAbort1 and SAbort2 are
+\*   unreachable, because Tick holds time while a run is in flight (compensation closure latency 1),
+\*   so no leg outlives its lease. The page's abort arm is unverified here and in audit-trail.tla.
+\* - The binding-set predicate against an in-flight cascade (Second half 14, Second half 15):
+\*   audit-trail-binding.tla. The scan's retry of an invalid-request refusal on the next run
+\*   (Compensation 15), and Tamper Evidence's record set match (Capability requirement 5): not carried.
 \* - Small constants: "all invariants hold" is a statement within MaxTime ticks at these constants.
 EXTENDS Naturals
 
