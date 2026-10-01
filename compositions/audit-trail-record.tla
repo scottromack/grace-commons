@@ -34,6 +34,15 @@
 \* - The binding-set predicate against an in-flight cascade (Second half 14, Second half 15):
 \*   audit-trail-binding.tla. The scan's retry of an invalid-request refusal on the next run
 \*   (Compensation 15), and Tamper Evidence's record set match (Capability requirement 5): not carried.
+\* - Not carried, each on the page and unverified here: the death-detected section kind and its bound on live holders
+\*   (Per-act critical section 10c, 10d); the Legal Hold gate and its serialization (purge event 5c, Capability
+\*   requirement 7); the [Seal Now] crash gap and its rebuild (seal now 13, 14); the [Verify Record] re-read against a
+\*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (purge event step 0.7); the third half's
+\*   policy resolution (Third half 15). Both models are single-act: the cross-act serializations of Concurrency 1 and 3 are
+\*   absent, and Invariant 3 is unmodelled.
+\*   Also not carried: a constituent call's timeout and its landing arm (Per-act critical section 10e); the scan's
+\*   one attempt per finding per run and its alert (Third half 11, Compensation 16); the hold's active state (Term hold);
+\*   a caller-driven re-entry of [Purge Event] on a Purged retention (purge event step 1.4).
 \* - Small constants: "all invariants hold" is a statement within MaxTime ticks at these constants.
 EXTENDS Naturals
 
