@@ -8,6 +8,7 @@
 |---|---|---|---|---|---|
 | 18 (2026-10-02) | 5, 2, 3 = 10 | all A | 7 : 3 | 0 of 10 (one closed by dated record) | about +5 |
 | 19 (2026-10-02), frozen tree | 3, 2, 5 = 10 | 7 A, 3 C | 9 : 1 | 0 of 10 | about +4 |
+| 20 (2026-10-02), frozen tree | 2, 0, 5 = 7 | 6 A, 1 C | 6 : 1 | 0 of 7 | about +3 |
 
 Before the template (rounds 9 to 17): 3 to 10 foundational per round, about half in rules added the round before.
 
@@ -50,3 +51,4 @@ Before the template (rounds 9 to 17): 3 to 10 foundational per round, about half
 
 - 2026-10-02 · round 18 · opened; numbers above.
 - 2026-10-02 · round 19 · frozen-tree test (idea 1). Three readers on one tree, no edits between. Fresh share rose from 7:3 to 9:1, so the churn is not the tree changing under the readers; it is the previous round's cures. Ten cures in round 18 were followed by nine fresh findings in round 19. Overlap: the hold-release window restart was hit by two readers and the horizon selector by two, a third pair (the stale enumeration measurement and the third half's second enumeration) was related; about 8 distinct findings in 10. Both double-hit findings were round-18 cures or older refining items that had not reached every reader of the fact they changed. Eight cures this round, each carried to the other readers of the changed fact (idea 2); ledger `last gate` line fixed (idea 7). Prediction to check in round 20: if the sibling sweep works, the fresh share falls below half.
+- 2026-10-02 · round 20 · frozen tree again. Seven foundational raw, five distinct (two findings hit by two readers; the third reader's stale-measurement finding recurs from round 19). The EOS pass returned zero for the first time. Fresh share 6:1, still high, so cures keep seeding the next round, but the count fell 10 to 7 raw and about 8 to 5 distinct. Five cures at the reader and its owner, three repeated refining findings amended in place instead of added to (Compensation 2 and purge event 3a had each been reported in three readers across two rounds). Repeat refining findings seen by two or more readers are cheap kind A cures and the largest source of noise; worth always cleaning at the round close.
