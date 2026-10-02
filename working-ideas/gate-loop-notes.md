@@ -7,6 +7,7 @@
 | Round | Foundational by reader (GRID, EOS, Linus) | Kind | Blame fresh : older | Rejected on triage | Net rules |
 |---|---|---|---|---|---|
 | 18 (2026-10-02) | 5, 2, 3 = 10 | all A | 7 : 3 | 0 of 10 (one closed by dated record) | about +5 |
+| 19 (2026-10-02), frozen tree | 3, 2, 5 = 10 | 7 A, 3 C | 9 : 1 | 0 of 10 | about +4 |
 
 Before the template (rounds 9 to 17): 3 to 10 foundational per round, about half in rules added the round before.
 
@@ -48,3 +49,4 @@ Before the template (rounds 9 to 17): 3 to 10 foundational per round, about half
 ## Log
 
 - 2026-10-02 · round 18 · opened; numbers above.
+- 2026-10-02 · round 19 · frozen-tree test (idea 1). Three readers on one tree, no edits between. Fresh share rose from 7:3 to 9:1, so the churn is not the tree changing under the readers; it is the previous round's cures. Ten cures in round 18 were followed by nine fresh findings in round 19. Overlap: the hold-release window restart was hit by two readers and the horizon selector by two, a third pair (the stale enumeration measurement and the third half's second enumeration) was related; about 8 distinct findings in 10. Both double-hit findings were round-18 cures or older refining items that had not reached every reader of the fact they changed. Eight cures this round, each carried to the other readers of the changed fact (idea 2); ledger `last gate` line fixed (idea 7). Prediction to check in round 20: if the sibling sweep works, the fresh share falls below half.
