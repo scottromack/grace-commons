@@ -19,6 +19,13 @@
 \* orphan never acquires its event).
 \*
 \* NOT MODELED
+\* - The carried ids of record action step 7.15 and 7.16 and the two-call margin of Term lease are not modelled.
+\* - The call pause bound margin: the model's lease is live until its tick, so the margin is zero (call pause bound 1).
+\* - The lease call kind and a take with no answer (Per-act critical section 15, 16; mid-record expiry) are not modelled.
+\* - The outlived test measures from the invocation's own reading before the attest call (record action step 2.12);
+\*   the model hands the take the attestation instant, the same at zero attest latency.
+\* - Invariant 1.10's circuit break is carried only as far as the compensation being one write; the run's end
+\*   at the first refusal that left an orphan, and [Read Record] step 4.5 and 4.6, are not modelled.
 \* - Invariant 8, the cascade and the first half: audit-trail.tla. The beyond-horizon report and the
 \*   horizon. Invariants 3, 5, 6 and 7, [Read Record] and [Verify Record], and the return arms of step 7.
 \* - The compensating record is one write; the page's own record-action steps inside it, and the
@@ -36,7 +43,7 @@
 \*   (Compensation 15), and Tamper Evidence's record set match (Capability requirement 5): not carried.
 \* - ITake fuses the outlived check (record action step 2.10) with the take (step 2.6), so the 2 * RecBound term is validated only under that fusion; IPlace omits step 4.1-4.2's re-read and adopt.
 \* - Not carried, each on the page and unverified here: the Legal Hold gate and its serialization (purge event 5c, Capability
-\*   requirement 7); the [Seal Now] crash gap and its rebuild (seal now 13 through 18, the sealing lock's lease); the [Verify Record] re-read against a
+\*   requirement 7); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1e, the sealing lock's lease and its abandoned-call rule); the start checks Instance start 21 and 22 (horizon); a hold placement as a bounded holder (Capability requirement 7c through 7e); a leg's placement or a seal abandoned and the holder released early is carried by audit-trail-abandon.tla; the cascade's erasure delegation and a hold placement's own write are carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
 \*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (purge event step 0.7); the third half's
 \*   policy resolution (Third half 15). Both models are single-act: the cross-act serializations of Concurrency 1 and 3 are
 \*   absent, and Invariant 3 is unmodelled.

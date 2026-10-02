@@ -18,6 +18,20 @@
 \* arm, bounded), and the one-writer discipline of the per-act critical section.
 \*
 \* NOT MODELED
+\* - No-answer arms (record action step 3.7, 4.9, purge event step 1.6, 2.8, seal now 24, Per-act critical section 17), the leg's in-lease reads
+\*   in the work bound (Per-act critical section 13e, 13g) and Non-goal 11 are not modelled.
+\* - The mark's holder compare (seal now 22, 23), a leg's margin before a [Record Action] (Per-act critical section 13f), the doubled skew term
+\*   (the model runs A = 0) and the measured enumeration (Instance start 28) are not modelled.
+\* - The call pause bound margin (Term lease, Term outlived, Per-act critical section 13a), the probe of Invariant 1.10 through 1.12, the outage restart
+\*   (Composition-level invariant 1c), the scan scheduler and the first half's upper edge (First half 12) are not modelled.
+\* - Scan legs run concurrently and a leg's lease is sized from the run's elapsed time (Reconciliation 1a, Per-act critical section 13a, 13d, 13e): runs are
+\*   instantaneous here. The lease call kinds (Per-act critical section 15, 16), erasure mechanism 7a (the mechanism answers destroyed over destroyed
+\*   content: here every delegation lands) and the outage window extension (Composition-level invariant 1c) are not modelled.
+\* - A scan leg's lease sized from the run's elapsed time (Per-act critical section 13a, 13d): runs are instantaneous here,
+\*   so the lease is the whole bound; Durability 8 (a lost coverage entry) and event to attestation's split key.
+\* - The hold read's failure arm (purge event 5e, cascade-failure(hold) with no step executed), Concurrency 3a's
+\*   lease on the serialization, Concurrency 1b1 and 1f (the uncovered mark apart from the grant, a fresh holder
+\*   per seal attempt), and Invariant 1.10's circuit break (a run ends at the first refusal that left an orphan).
 \* - [Record Action], and the scan's second and third halves: audit-trail-record.tla. Invariants 3, 5,
 \*   6 and 7, [Read Record], [Verify Record], and the return arms of [Purge Event].
 \* - The first half writes no audit.reconciliation intent (Compensation 12): none is modelled.
@@ -25,13 +39,14 @@
 \*   a run is in flight (compensation closure latency 1), so no leg outlives its lease.
 \* - The binding-set predicate against an in-flight cascade: audit-trail-binding.tla.
 \* - Not carried, each on the page and unverified here: the Legal Hold gate and its serialization (purge event 5c, Capability
-\*   requirement 7); the [Seal Now] crash gap and its rebuild (seal now 13 through 18, the sealing lock's lease); the [Verify Record] re-read against a
+\*   requirement 7); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1e, the sealing lock's lease and its abandoned-call rule); the start checks Instance start 21 and 22 (horizon); a hold placement as a bounded holder (Capability requirement 7c through 7e); a leg's placement or a seal abandoned and the holder released early is carried by audit-trail-abandon.tla; the cascade's erasure delegation and a hold placement's own write are carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
 \*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (purge event step 0.7); the third half's
 \*   policy resolution (Third half 15). Both models are single-act: the cross-act serializations of Concurrency 1 and 3 are
 \*   absent, and Invariant 3 is unmodelled.
 \*   Also not carried: the scan's
 \*   one attempt per finding per run and its alert (Third half 11, Compensation 16); the hold's active state (Term hold);
 \*   a caller-driven re-entry of [Purge Event] on a Purged retention (purge event step 1.4).
+\* - MechOk = TRUE only: the destruction-failed loop (First half 4, Boundary one 3 through 6, Ledger 2026-08-30-d) is not explored, and Inv_BoundedClosure is vacuous over it; MechOk = FALSE overflows the deleg counter and then the harness depth cap.
 \* - The restart-triggered scan run; the single scan-crash budget is shared by the scan's runs.
 \* - Where the model is more generous than the page: a write issued inside the lease lands inside it
 \*   (the page's premise, made an obligation by purge completion bound 2: the pause between a lease
