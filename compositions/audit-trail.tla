@@ -46,6 +46,9 @@
 \*   Also not carried: the scan's
 \*   one attempt per finding per run and its alert (Third half 11, Compensation 16); the hold's active state (Term hold);
 \*   a caller-driven re-entry of [Purge Event] on a Purged retention (purge event step 1.4).
+\*   Also not carried (round 18): the no-answer arms of the step-0 and step-0½ reads (purge event step 0.11, 0½.6) and the
+\*   serialization's expiry gate under a re-drive (Concurrency 3c), both single-act and cross-act respectively; the model's cascade
+\*   has no read that answers no answer and no serialization to expire.
 \* - MechOk = TRUE only: the destruction-failed loop (First half 4, Boundary one 3 through 6, Ledger 2026-08-30-d) is not explored, and Inv_BoundedClosure is vacuous over it; MechOk = FALSE overflows the deleg counter and then the harness depth cap.
 \* - The restart-triggered scan run; the single scan-crash budget is shared by the scan's runs.
 \* - Where the model is more generous than the page: a write issued inside the lease lands inside it
