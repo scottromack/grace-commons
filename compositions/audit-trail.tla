@@ -38,13 +38,13 @@
 \* - The leg abort (Per-act critical section 13b, 13c) is NOT exercised: the Tick guard holds time while
 \*   a run is in flight (compensation closure latency 1), so no leg outlives its lease.
 \* - The binding-set predicate against an in-flight cascade: audit-trail-binding.tla.
-\* - Not carried, each on the page and unverified here: the Legal Hold gate and its serialization (purge event 5c, Capability
-\*   requirement 7); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1e, the sealing lock's lease and its abandoned-call rule); the start checks Instance start 21 and 22 (horizon); a hold placement as a bounded holder (Capability requirement 7c through 7e); a leg's placement or a seal abandoned and the holder released early is carried by audit-trail-abandon.tla; the cascade's erasure delegation and a hold placement's own write are carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
+\* - Not carried, each on the page and unverified here: the Legal Hold gate over a first cascade (purge event 5c; over a re-driven entry, with the placement's
+\*   serialization and the hold-release restart, it is audit-trail-hold.tla's); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1e, the sealing lock's lease and its abandoned-call rule); the start checks Instance start 21 and 22 (horizon); a leg's placement or a seal abandoned and the holder released early is carried by audit-trail-abandon.tla; the cascade's erasure delegation abandoned is carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
 \*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (purge event step 0.7); the third half's
 \*   policy resolution (Third half 15). Both models are single-act: the cross-act serializations of Concurrency 1 and 3 are
 \*   absent, and Invariant 3 is unmodelled.
 \*   Also not carried: the scan's
-\*   one attempt per finding per run and its alert (Third half 11, Compensation 16); the hold's active state (Term hold);
+\*   one attempt per finding per run and its alert (Third half 11, Compensation 16);
 \*   a caller-driven re-entry of [Purge Event] on a Purged retention (purge event step 1.4).
 \*   Also not carried (round 18): the no-answer arms of the step-0 and step-0½ reads (purge event step 0.11, 0½.6) and the
 \*   serialization's expiry gate under a re-drive (Concurrency 3c), both single-act and cross-act respectively; the model's cascade

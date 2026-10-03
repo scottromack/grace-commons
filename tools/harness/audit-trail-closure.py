@@ -11,8 +11,8 @@ outside-the-frame finding names the instrument you are missing*: a bound over a 
 wants an enumerator.
 
 What is read from the page, so the page and this script cannot drift apart silently:
-  Term closure sum, Term closure floor (both parts), Term closure spend, Term re-drive
-  spend, Term record edge, Term purge edge  — evaluated as written.
+  Term closure sum (both parts), Term closure floor (both parts), Term closure spend, Term
+  re-drive spend, Term record edge, Term purge edge  — evaluated as written.
 What is encoded here, each line citing the rule it transcribes; every cited label must
 exist on the page or the run fails:
   the leg timeline (TIMELINE below), Term work bound's enumeration counts, Instance start
@@ -39,11 +39,15 @@ SAFE = re.compile(r'^[\sa-z_0-9+*(),]+$')
 def read_page(path=PAGE):
     text = open(path, encoding='utf-8').read()
     terms = {}
-    for name in ['closure sum', 'closure spend', 're-drive spend', 'record edge', 'purge edge']:
+    for name in ['closure spend', 're-drive spend', 'record edge', 'purge edge']:
         m = re.search(r'^Term %s: `([^`]+)`' % re.escape(name), text, re.M)
         if not m:
             sys.exit('page changed: Term %s has no formula in a code span' % name)
         terms[name] = m.group(1)
+    m = re.search(r'^Term closure sum: `([^`]+)`, plus `([^`]+)` WHERE Legal Hold EQUALS composed', text, re.M)
+    if not m:
+        sys.exit('page changed: Term closure sum is not "`formula`, plus `formula` WHERE Legal Hold EQUALS composed"')
+    terms['closure sum'], terms['closure sum legal-hold'] = m.group(1), m.group(2)
     m = re.search(r'^Term closure floor: `([^`]+)`, plus `([^`]+)` WHERE seal cadence EQUALS per-event', text, re.M)
     if not m:
         sys.exit('page changed: Term closure floor is not "`formula`, plus `formula` WHERE seal cadence EQUALS per-event"')
@@ -91,6 +95,8 @@ TIMELINE = [
  ('Per-act critical section 9a',      'an invocation\'s lease is its completion bound, so a dead holder strands the act that long'),
  ('record action step 2.10',          'the take lands no later than one record bound after the invocation\'s reading: the section frees by 2 record bounds'),
  ('compensation closure latency 1',   'one whole closure lands within closure latency of the run\'s start'),
+ ('Capability requirement 7c',        'a hold placement holds the event\'s section as a lease of the purge bound'),
+ ('Per-act critical section 15a',     'a hold placement waits for a held section and takes it when it frees; a leg does not wait'),
  ('Instance start 16',                'window > closure sum'),
  ('Instance start 18',                'closure latency > closure spend'),
  ('Instance start 19',                'closure latency > re-drive spend'),
@@ -112,7 +118,8 @@ def derive(p, terms):
     d = dict(me=me, floor=floor,
              spend=ev(terms['closure spend'], env), respend=ev(terms['re-drive spend'], env),
              record_edge=ev(terms['record edge'], env), purge_edge=ev(terms['purge edge'], env))
-    d['sum_of'] = lambda lat: ev(terms['closure sum'], dict(env, compensation_closure_latency=lat))
+    d['sum_of'] = lambda lat: (ev(terms['closure sum'], dict(env, compensation_closure_latency=lat))
+                               + (ev(terms['closure sum legal-hold'], env) if p['legal_hold'] else 0))
     return d
 
 def pretake(p, half, reading):
@@ -157,7 +164,8 @@ def leg(p, d, lat, half, reading):
     return None
 
 def worst_landing(p, lat, half, reading):
-    """C3: the latest a closure can land after the finding's creation, one dead run budgeted."""
+    """C3: the latest a closure can land after the finding's creation: one dead run budgeted, and,
+    where Legal Hold is composed, one hold placement over a first-half entry."""
     cpb, C, A = p['cpb'], p['C'], p['A']
     bound = p['pcb'] if half == 'first' else p['rab']
     t_age = bound + 2 * A
@@ -165,23 +173,30 @@ def worst_landing(p, lat, half, reading):
     emax = pretake(p, half, reading)
     sys.setrecursionlimit(100000)
 
+    places0 = 1 if (p['legal_hold'] and half == 'first') else 0     # a hold placement keys on the event id: the first half's section
+    pcb = p['pcb']
+
     @lru_cache(maxsize=None)
-    def go(s, free_at, deaths):
+    def go(s, free_at, deaths, places):
         best = 0
         take_possible = s >= t_age and s + emax >= free_at
         must_take = s >= t_age and s >= free_at            # every e succeeds
         if take_possible:
             best = s + lat                                    # the leg lives and closes
             if deaths:
-                best = max(best, nxt(s, s + lat - cpb, deaths - 1))   # it dies; its lease stands to s + lat - cpb
+                best = max(best, nxt(s, s + lat - cpb, deaths - 1, places))   # it dies; its lease stands to s + lat - cpb
+            if places:                                        # a placement takes the free section just ahead of the leg's
+                best = max(best, nxt(s, s + emax + pcb, deaths, places - 1))  # try-take and holds it one purge bound (7c)
+        if places and free_at > s:                            # a placement waiting on a held section takes it at the
+            best = max(best, go(s, free_at + pcb, deaths, places - 1))        # instant it frees (Per-act critical section 15a)
         if not must_take:
-            best = max(best, nxt(s, free_at, deaths))         # the adversary's e skips it
+            best = max(best, nxt(s, free_at, deaths, places)) # the adversary's e skips it
         return best
 
-    def nxt(s, free_at, deaths):
-        return max(go(s + g, free_at, deaths) for g in range(1, C + 1))
+    def nxt(s, free_at, deaths, places):
+        return max(go(s + g, free_at, deaths, places) for g in range(1, C + 1))
 
-    return max(go(s0, free0, 1) for s0 in range(-(C - 1), 1))
+    return max(go(s0, free0, 1, places0) for s0 in range(-(C - 1), 1))
 
 # ---------------------------------------------------------------- tuples
 # Two grids. A leg's arithmetic (C1) does not read the allowance or the cadence; the schedule (C3)
@@ -189,8 +204,8 @@ def worst_landing(p, lat, half, reading):
 # start 23 and 25 by construction and takes the least closure latency Instance start 18 and 19
 # admit, and one looser.
 BASE = dict(cpb=[1, 2], rab_over=[1, 2, 6], scb_over=[1, 4], pcb_over=[1, 5], per_event=[False, True], lat_over=[1, 4])
-LEG_GRID = dict(BASE, E_log=[0, 1, 3], E_dest=[0, 1], E_att=[0, 2, 4], E_ret=[0, 1, 4], A=[0], C=[1])
-SCHED_GRID = dict(BASE, E=[(0, 0, 0, 0), (1, 1, 2, 1), (3, 1, 4, 4)], A=[0, 1, 3], C=[1, 4, 9])
+LEG_GRID = dict(BASE, E_log=[0, 1, 3], E_dest=[0, 1], E_att=[0, 2, 4], E_ret=[0, 1, 4], A=[0], C=[1], legal_hold=[False])
+SCHED_GRID = dict(BASE, E=[(0, 0, 0, 0), (1, 1, 2, 1), (3, 1, 4, 4)], A=[0, 1, 3], C=[1, 4, 9], legal_hold=[False, True])
 
 def tuples(terms, grid):
     keys = list(grid)
@@ -203,12 +218,16 @@ def tuples(terms, grid):
         scb = 2 * cpb + g['scb_over']                         # Instance start 25
         pcb = 2 * scb + g['pcb_over']                         # Instance start 23 (and 25)
         p = dict(cpb=cpb, rab=rab, scb=scb, pcb=pcb, A=g['A'], C=g['C'], E_log=g['E_log'], E_dest=g['E_dest'],
-                 E_att=g['E_att'], E_ret=g['E_ret'], per_event=g['per_event'])
+                 E_att=g['E_att'], E_ret=g['E_ret'], per_event=g['per_event'], legal_hold=g['legal_hold'])
         d = derive(p, terms)
         lat = max(d['spend'], d['respend']) + g['lat_over']   # Instance start 18, 19
         yield p, d, lat
 
-def run(terms, reading='sequential'):
+def run(terms, reading='sequential', schedule=True, stop_at_first=False):
+    """Count breaches. The schedule is searched under the sequential reading only: it is the longer
+    time before the take, so every schedule the concurrent reading admits is among its own. Where
+    Legal Hold is composed only the first half is searched: a hold placement keys on the event id,
+    and the other halves' schedules are those of the absent case against a larger closure sum."""
     n1 = n3 = c1 = c3 = 0
     first = {}
     slack = None
@@ -219,15 +238,16 @@ def run(terms, reading='sequential'):
             if why:
                 c1 += 1
                 first.setdefault('C1 ' + half, (p, lat, why))
-    for p, d, lat in tuples(terms, SCHED_GRID):
-        n3 += 1
-        for half in HALVES:
-            w = worst_landing(p, lat, half, reading)
-            s = d['sum_of'](lat) - w
-            slack = s if slack is None else min(slack, s)
-            if s < 0:
-                c3 += 1
-                first.setdefault('C3 ' + half, (p, lat, 'lands %d after creation; closure sum %d' % (w, d['sum_of'](lat))))
+    if schedule and not (stop_at_first and c1):
+        for p, d, lat in tuples(terms, SCHED_GRID):
+            n3 += 1
+            for half in (('first',) if p['legal_hold'] else HALVES):
+                w = worst_landing(p, lat, half, 'sequential')
+                s = d['sum_of'](lat) - w
+                slack = s if slack is None else min(slack, s)
+                if s < 0:
+                    c3 += 1
+                    first.setdefault('C3 ' + half, (p, lat, 'lands %d after creation; closure sum %d' % (w, d['sum_of'](lat))))
     return (n1, n3), c1, c3, slack, first
 
 TWINS = [
@@ -237,12 +257,14 @@ TWINS = [
   'the take\'s own call pause uncounted'),
  ('floor-no-probe', 'closure floor', '3 * record_action_completion_bound + 6 * call_pause_bound',
   'the probe\'s wait uncounted'),
+ ('sum-no-placement', 'closure sum legal-hold', '0 * purge_completion_bound',
+  'no hold placement budgeted where Legal Hold is composed'),
  ('sum-one-run',   'closure sum',
   'max(2 * record_action_completion_bound, purge_completion_bound) + 2 * clock_offset_allowance + reconciliation_cadence + compensation_closure_latency',
   'no dead run budgeted'),
 ]
 
-WALKTHROUGH = dict(cpb=2, rab=30, scb=120, pcb=300, A=2, C=60, E_log=38, E_dest=2, E_att=40, E_ret=40, per_event=False)
+WALKTHROUGH = dict(cpb=2, rab=30, scb=120, pcb=300, A=2, C=60, E_log=38, E_dest=2, E_att=40, E_ret=40, per_event=False, legal_hold=False)
 WALK_LAT, WALK_WINDOW = 360, 86400
 
 def main():
@@ -251,10 +273,13 @@ def main():
     ok = True
     print('Audit Trail closure arithmetic — %s' % os.path.relpath(PAGE, os.path.join(HERE, '..', '..')))
     for reading in ('sequential', 'concurrent'):
-        n, c1, c3, slack, first = run(terms, reading)
+        n, c1, c3, slack, first = run(terms, reading, schedule=(reading == 'sequential'))
         verdict = 'HOLDS' if not (c1 or c3) else 'BREACH'
-        print('  page, %-10s pre-take enumerations: %d leg tuples and %d schedule tuples, x 3 halves; leg cannot finish on %d; outlives closure sum on %d; least slack %d  -> %s'
-              % (reading, n[0], n[1], c1, c3, slack, verdict))
+        if reading == 'sequential':
+            print('  page, enumerations before the take one after another: %d leg tuples x 3 halves, leg cannot finish on %d; %d schedule tuples, a finding outlives closure sum on %d, least slack %d  -> %s'
+                  % (n[0], c1, n[1], c3, slack, verdict))
+        else:
+            print('  page, enumerations before the take together:          %d leg tuples x 3 halves, leg cannot finish on %d  -> %s' % (n[0], c1, verdict))
         if c1 or c3:
             ok = False
             for k, (p, lat, why) in first.items():
@@ -269,9 +294,9 @@ def main():
     for name, term, formula, what in TWINS:
         t = dict(terms)
         t[term] = formula
-        n, c1, c3, slack, first = run(t, 'sequential')
+        n, c1, c3, slack, first = run(t, 'sequential', stop_at_first=True)
         rejected = bool(c1 or c3)
-        print('  twin %-15s leg %4d, sum %4d -> %-21s %s' % (name, c1, c3, 'BREACH (as required)' if rejected else 'HOLDS: THE TWIN FAILED', what))
+        print('  twin %-17s leg %4d, schedule %5d -> %-21s %s' % (name, c1, c3, 'BREACH (as required)' if rejected else 'HOLDS: THE TWIN FAILED', what))
         if verbose and first:
             k, (p, lat, why) = next(iter(first.items()))
             print('      first %s: %s | closure latency %d | %s' % (k, p, lat, why))
