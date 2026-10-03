@@ -409,30 +409,30 @@ Nineteen knobs and four instance capability requirements — the per-act critica
   Term record action completion bound: the longest a [Record Action] may take between its first committed write (step 2's attestation, stamped attestation instant at Actor Identity's seam) and its last (step 5's index writes). *Default:* none.
   ```
   record action completion bound 1: The deployment MUST set record action completion bound from the observed worst-case latency of [Record Action] steps 2 through 5 with headroom, constituent round-trips included.
-  record action completion bound 2: The deployment MUST include in record action completion bound the call pause bound.
+  record action completion bound 2: The deployment MUST include in record action completion bound the call pause bound (Lease Sizing 4).
   ```
   WHY: a write issued inside the bound must also have landed inside it, and no constituent write carries a fence, so the bound is the only thing that makes a lease check sufficient: the pause between checking the lease and issuing the write is part of the latency the bound must cover (record action completion bound 2, purge completion bound 2). The bound does three jobs, each stated where it happens: the lower edge of the scan's second and third halves (record edge), the per-act lease length for a record action (Per-act critical section 9a), and the invocation's terminus (record action step 7.6).
 - **purge completion bound**
   Term purge completion bound: the longest a [Purge Event] may take between taking the per-act critical section and step 3's outcome record, step 0 included. *Default:* none.
   ```
   purge completion bound 1: The deployment MUST set purge completion bound from the observed worst-case latency of [Purge Event] steps 0 through 3 with headroom, the erasure mechanism's round-trip and the wait of Concurrency 3b included.
-  purge completion bound 2: The deployment MUST include in purge completion bound the call pause bound.
+  purge completion bound 2: The deployment MUST include in purge completion bound the call pause bound (Lease Sizing 4).
   ```
   WHY: the lower edge of the scan's first half (purge edge), the lease length for a cascade's critical section, and the cascade's terminus, on the record action's terms. The lease begins at taking the section, never after step 1 stamps purge instant, so a lease has run out before purge age reaches purge edge.
 - **seal completion bound**
   Term seal completion bound: the longest a [Seal Now] may take between taking the sealing lock and step 5's coverage entry, the mechanism's round-trip included. *Default:* none.
   ```
   seal completion bound 1: The deployment MUST set seal completion bound from the observed worst-case latency of [Seal Now] steps 1 through 5 with headroom, the rebuild of seal now 13 and the clear of seal now 23 included.
-  seal completion bound 2: The deployment MUST include in seal completion bound the call pause bound.
+  seal completion bound 2: The deployment MUST include in seal completion bound the call pause bound (Lease Sizing 4).
   ```
   WHY: the sealing lock is a lease of this length (Concurrency 1c), so a seal the holder issued inside the lease has landed when the lease has run out, and the next taker's rebuild sees every seal that will ever exist over the slice it is about to cut. The holder checks the lease before each write and issues none once it has expired (seal now 19), as a record action and a cascade do (Per-act critical section 9b); a holder that stalls before its seal and wakes after the next taker has sealed and covered writes nothing, and the next taker's rebuild finds nothing of the stalled holder's to cover.
 - **call pause bound**
-  Term call pause bound: the longest time from a holder's decision to issue one call — a lease take, a lease check, a write to a constituent, a delegation to the erasure mechanism, never a whole [Record Action] — to the moment the call has taken effect or failed. *Default:* none.
+  Term call pause bound: this composition's value of [Lease](../atoms/lease.md)'s call pause bound: the longest time from a holder's decision to issue one call — a lease take, a lease check, a write to a constituent, a delegation to the erasure mechanism, never a whole [Record Action] — to the moment the call has taken effect or failed. *Default:* none.
   ```
   call pause bound 1: The deployment MUST set call pause bound from the observed worst-case latency of a host or constituent call with headroom.
   call pause bound 2: The deployment MUST declare EVERY completion bound as exceeding twice call pause bound.
   ```
-  WHY: the lease is the only fence, and no constituent write carries one, so the margin is spent in the composition's own seam: Term lease reads *expired* unless the host's remaining term exceeds twice this bound, the check's answer and the write being two calls, so a write issued on a live lease lands inside it; the sizing reading subtracts it, so a grant that lands up to this long after the reading ends no later than the bound the reading was counted from; the outlived test subtracts it, so a take issued on a passing test lands inside the bound. A deployment whose calls stall longer than the declared value breaches a premise External check 12 audits, not an arithmetic the page leaves open.
+  WHY: no constituent write carries a fence, so the lease is the only one and the atom's sizing rules apply (Lease Sizing 1 through 9); the margin is spent in the composition's own seam: the sizing reading subtracts this bound (Per-act critical section 13a), so a grant that lands up to this long after the reading ends no later than the bound the reading was counted from; the outlived test subtracts it, so a take issued on a passing test lands inside the bound. A deployment whose calls stall longer than the declared value breaches a premise External check 12 audits, not an arithmetic the page leaves open.
 - **compensation closure latency**
   Term compensation closure latency: the deployment's disclosed bound on one whole closure landing, from the moment a scan run starts to the moment the closure's last record has landed, the run's enumeration before it reaches the act included. *Default:* none.
   ```
@@ -459,6 +459,7 @@ Nineteen knobs and four instance capability requirements — the per-act critica
   Per-act critical section 1a: The host MUST namespace a critical section's key by the act's kind.
   Per-act critical section 1b: The host MUST share the critical section across EVERY process serving the instance.
   Per-act critical section 1c: A holder MUST present a holder value minted fresh for EACH attempt.
+  Per-act critical section 1d: The composition MUST bind [Lease](../atoms/lease.md) Sizing 1 through 9, with call pause bound as the atom's call pause bound and EVERY completion bound, the scan leg's budget and the half's work bound as its work bounds.
   Per-act critical section 2: The host MUST release the critical section ONLY on the holder's release or at the lease's instant.
   Per-act critical section 2a: A holder that abandoned a call MUST NOT release the critical section BEFORE the lease's instant.
   Per-act critical section 2b: A holder MUST release the critical section on return WHEN the holder abandoned no call.
@@ -477,12 +478,12 @@ Nineteen knobs and four instance capability requirements — the per-act critica
   Per-act critical section 11: A writer without the critical section MUST NOT read a pre-check BEFORE re-taking the critical section.
   Per-act critical section 12: A writer MUST re-read the pre-check under the re-taken critical section.
 Per-act critical section 13: The host MUST hold a scan leg's critical section as a lease:
-    Per-act critical section 13a: The host MUST set a scan leg's lease to compensation closure latency less the time the run has spent before the take, measured at the scan's own seam, less call pause bound.
+    Per-act critical section 13a: The host MUST set a scan leg's lease to compensation closure latency less the time the run has spent before the take, measured at the scan's own seam, less call pause bound (Lease Sizing 6).
     Per-act critical section 13b: IF a leg's lease EQUALS expired THEN the leg MUST NOT issue a further write.
     Per-act critical section 13c: A leg whose lease EQUALS expired MUST skip the act for the rest of the run.
     Per-act critical section 13d: IF that remainder DOES NOT EXCEED the half's work bound THEN the leg MUST NOT take the critical section AND MUST skip the act for the rest of the run.
     Per-act critical section 13e: A skip under 13d, a start declined under 13f, a leg stopped by an expired lease under 13b or a run whose enumerations took longer than measured enumeration MUST surface a compliance alert as a deployment fault AND the deployment MUST re-declare compensation closure latency AND the instance MUST re-run Instance start 16, 18, 19 and 28.
-    Per-act critical section 13f: A leg MUST NOT start a [Record Action] WHILE the lease's remaining term DOES NOT EXCEED record action completion bound plus twice call pause bound.
+    Per-act critical section 13f: A leg MUST NOT start a [Record Action] WHILE the lease's remaining term DOES NOT EXCEED record action completion bound plus twice call pause bound (Lease Sizing 5).
     Per-act critical section 13h: A [Record Action] a leg starts MUST complete its truth-bearing writes WITHIN record action completion bound, inside the leg's lease.
     Per-act critical section 13g: A leg that declines a start under 13f MUST skip the act for the rest of the run.
     Per-act critical section 13i: IF a re-run of Instance start 16, 18, 19 or 28 fails on a running instance THEN the deployment MUST surface a compliance alert as a deployment fault until a re-declaration passes it AND the instance MUST go on accepting [Record Action].
@@ -490,16 +491,16 @@ Per-act critical section 14: A [Purge Event] re-driven by the first half MUST NO
 Per-act critical section 15: A record action, a cascade and a scan leg MUST take the critical section by [Try Take](../atoms/lease.md).
 Per-act critical section 15a: A hold placement MUST take the critical section by [Take](../atoms/lease.md), waiting no longer than the atom's arrival term.
 Per-act critical section 15b: IF a hold placement's take answers unavailable OR no answer THEN the placement MUST NOT write AND MUST be reported to its caller as not placed.
-Per-act critical section 16: IF a `take`, `try_take` or `remaining` on a lease this composition takes — the per-act critical section, the sealing lock, the serialization of Concurrency 3a — answers no answer THEN the holder MUST treat the lease as expired.
-Per-act critical section 17: A holder MUST NOT re-issue, within its lease, a call that answered no answer.
+Per-act critical section 16: IF a `take`, `try_take` or `remaining` on a lease this composition takes — the per-act critical section, the sealing lock, the serialization of Concurrency 3a — answers no answer THEN the holder MUST treat the lease as expired (Lease Sizing 7).
+Per-act critical section 17: A holder MUST NOT re-issue, within its lease, a call that answered no answer (Lease Sizing 8).
   ```
   Term act's completion bound: record action completion bound for a record action; purge completion bound for a cascade.
 
-  Term lease: live WHEN the host's remaining term EXCEEDS twice call pause bound — a check's answer and the write it guards are two calls; expired otherwise, a remaining that answers none or no answer included.
+  Term lease: live or expired as [Lease](../atoms/lease.md) Sizing 2 reads it, a remaining that answers none or no answer included.
 
   Term abandoned call: a call the holder issued to any store or mechanism, constituent or not — the erasure mechanism and the Legal Hold store included — and stopped waiting for without an answer, whose write may still land inside the lease.
 
-  Term no answer: a call that returns neither its answers nor a refusal within call pause bound, or, for a blocking take, within its arrival term and call pause bound.
+  Term no answer: as [Lease](../atoms/lease.md) Sizing 7 reads it, a blocking take's arrival term included.
 
   Term work bound: closure floor plus one measured enumeration for the second half — the one enumeration under the section of Second half 17 — and two for the third half, the audit-log enumeration that reads narrated and the retention-store enumeration of a true miss in event to retention (Third half 6); purge completion bound for the first half.
 
@@ -1295,7 +1296,7 @@ Instance start 21: The instance MUST resolve horizon at start from retention pol
 Instance start 22: The instance MAY start ONLY IF horizon EXCEEDS compensation window.
 Instance start 23: The instance MAY start ONLY IF purge completion bound EXCEEDS twice seal completion bound.
 Instance start 24: IF call pause bound EQUALS blank THEN the instance MUST NOT start.
-Instance start 25: The instance MAY start ONLY IF EVERY completion bound EXCEEDS twice call pause bound.
+Instance start 25: The instance MAY start ONLY IF EVERY completion bound EXCEEDS twice call pause bound (Lease Sizing 9).
 Instance start 26: IF no scan scheduler EXISTS THEN the instance MUST NOT start.
 Instance start 27: IF no sealing lock EXISTS THEN the instance MUST NOT start.
 Instance start 28: The instance MUST run one enumeration of the audit log followed by one read of the destruction records, one of the attestation store and one of the retention store at start.
@@ -1926,12 +1927,15 @@ formal: verified — audit-trail.tla + 2 twins (cascade; scan first half) and au
 last gate: 2026-10-02 — Final Critique 33, fresh reader, three passes — 5 foundational (7 reports), 37 refining reports, 9 rhetorical reports
 
 open:
+- 2026-10-02-a · refining · Capability requirement; Per-act critical section · the page cites Lease Sizing 1 through 9, a section with no gate yet (atoms/lease.md open line 2026-10-02-a) → gate the atom section before this page is called grounded.
 - 2026-08-30-d · refining · Invariant 8 liveness; the scan's first half · a delegation whose outcome record was never written is re-driven "until a `destroyed` outcome lands" against content the mechanism may only ever answer `destruction-failed` for → an *abandoned* record under the operator identity after a declared bound, the arm degrading to *surfaced* (the already-destroyed case closed by erasure mechanism 7a on 2026-10-01; what remains is a mechanism that only ever answers `destruction-failed`); contract-shaped — ripples to every composer that transcribes Invariant 8's unconditional lawfully-destroyed-versus-missing distinction, own round
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/audit-trail.md`.
+
+- **2026-10-02 — The generic lease sizing rules are the Lease atom's; the closure arithmetic stays here.** *Chose:* the call pause bound, the live reading, the no-answer arm, the start margin and the share-of-budget rule cited from the Lease atom's Sizing 1 through 9 (Per-act critical section 1d), the page keeping its own bounds, closure sum, closure floor, work bound and measured enumeration. *Over:* moving the closure arithmetic into the atom, and over leaving the generic rules restated here. *Because:* the generic rules are the same for any pattern whose writes carry no fence, and are now gated once at the atom; the closure arithmetic prices this page's own work, which Non-goal 10 of the atom forbids it to choose.
 
 - **2026-10-02 — Round 22 on a frozen tree: five findings; the unreadable payload becomes an outage, the hold restart needs an observed hold, and the growth of the enumerated population is a named non-goal.** *Chose:* a standing unreadable payload read as an outage of Event Log, so the liveness arms suspend, the window restarts at its end and the deployment records it, with the deployment owning the clearing (Term store outage, Second half 18); a hold-release restart only for an entry a run landed under-legal-hold and a later run found free, with both instants on the operational record and an entry no run saw held left alone (Composition-level invariant 1e, 1e1 to 1e3, External check 13); a miss at the invocation's own keys under its live critical section the answer, without a rebuild (Composition state 2); the growth of the enumerated population a named non-goal owned by the deployment, which rotates the audit instance (Non-goal 12); a retention policy change for the two reserved references held until the horizon checks pass against it (retention policy 7); and three repeated refining findings amended in place — the audit edge capped at the horizon, Invariant 6.2 scoped to answering reads, the duplicate erasure mechanism label renamed 6c. *Over:* a run that halts compensation with nothing to end it, a restart that needs a memory no rule owns, a rebuild on every write of a new event, and a start check that no later change to the policy can fail. *Because:* two readers reached the halt and two the growth, and the hold restart was found for the fourth round running; each now names its owner or its instants. Not changed: the refining and rhetorical findings not named, held for the round's close. Not cured: the closure arithmetic as a whole, which belongs to the Lease atom's sizing rule (its open line 2026-09-10-a).
 - **2026-10-02 — Round 21 on a frozen tree: five findings, each cured at the reader and its owner.** *Chose:* a run stopped by a refusal that left any committed state, an orphan or an unretained event, so a retention-store outage mints one unretained event and not one per leg (Invariant 1.12); a second half that writes no compensation in a run whose enumeration returns an unreadable payload no destruction record names, with the erasure mechanism owning that unreadable means destroyed (Second half 18, erasure mechanism 6c); a blocking take reading as no answer only past its arrival term and the call pause bound (Term no answer); a run whose enumerations outgrow the start-time measurement raising the re-declaration alert before a leg skips, and a failing re-run leaving the instance accepting record actions under an alert (Per-act critical section 13e, 13i); an outage restart that stops at the horizon, past which the finding is reported (Composition-level invariant 1c); and three repeated refining findings amended in place, not added to (Compensation 2, purge event 3a, Check 5.1). *Over:* reading an orphan as any unbound attestation, a blocking take counted against the two-second pause bound, a running instance that refuses record actions when its arithmetic fails, and a window the outage may carry past the horizon. *Because:* the readers of round 21 agreed on the two findings two of them reached, and the one pass that found none read a page whose capability provenance and past-horizon classification held; the cures name the owner where the page is not the owner. Not changed: the refining and rhetorical findings not named, held for the round's close.

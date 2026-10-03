@@ -135,6 +135,29 @@ A key frees by release or by the current holder's instant passing. The bound is 
   Invariant 6.2: The holder MUST mint EVERY such instant independently.
   ```
 
+### Sizing a grant for unfenced work
+
+```
+Sizing 1: A composing pattern whose work under a lease carries no fence MUST declare a [Call Pause Bound].
+Sizing 2: A lease MUST read live WHEN the host's remaining term EXCEEDS twice the [Call Pause Bound], AND MUST read expired otherwise.
+Sizing 3: A holder MUST NOT issue a write under a lease that reads expired.
+Sizing 4: A lease's term MUST NOT fall short of the work's bound, AND the work's bound MUST include the [Call Pause Bound].
+Sizing 5: A holder MUST NOT start a unit of work WHILE the lease's remaining term DOES NOT EXCEED the unit's bound plus twice the [Call Pause Bound].
+Sizing 6: A lease granted for a share of a larger budget MUST be set to the budget less the time spent before the take, measured at the holder's own seam, less the [Call Pause Bound].
+Sizing 7: IF a [Take], a [Try Take] or a [Remaining] answers no answer THEN the holder MUST treat the lease as expired.
+Sizing 8: A holder MUST NOT re-issue, within its lease, a call that answered no answer.
+Sizing 9: A pattern MUST refuse to start WHILE any work bound it declares fails to EXCEED twice the [Call Pause Bound].
+```
+
+Term live: a lease whose remaining term EXCEEDS twice the call pause bound — a check's answer and the write it guards are two calls.
+
+Term expired: a lease that is not live, a [Remaining] that answers none or no answer included — a reading the holder acts on, never a transition the host makes (Invariant 2.2).
+
+Term no answer: a call that returns neither its answers nor a refusal within the call pause bound, or, for a blocking [Take], within its arrival term and the call pause bound.
+
+WHY:
+A fence is the only thing that stops a holder's late write, and work carrying none has the lease alone to rely on. The holder checks the lease and then writes, and those are two calls with a pause that can fall between them; a write issued on a lease with less than two pauses left can land after the next holder has read (Sizing 2, Sizing 3). The term must cover the work including one pause, or a conforming holder is evicted inside its own work (Sizing 4); no unit may start that the remaining term cannot finish with its two-call margin (Sizing 5); a holder given a share of a longer budget spends the time it has already used and the pause before the grant lands (Sizing 6). A host that does not answer is a lease the holder cannot read, and a call re-issued within the lease may land twice (Sizing 7, Sizing 8). A pattern whose declared bounds do not clear the margin has a lease that reads expired from the first call, so it refuses to start rather than run (Sizing 9). The host's grant is untouched throughout: expired is a holder's reading and the grant still ends at the instant (Invariant 2.1, Invariant 2.2). The atom gives the form, never the numbers: the call pause bound and every unit's bound are the pattern's (Non-goal 10, Non-goal 12).
+
 ### The terminus, and carrying it as a fence
 
 ```
@@ -190,6 +213,11 @@ Check 5.1: An auditor MUST confirm that [Remaining] answers none and [Release] a
 Check 5.2: An auditor MUST confirm that neither answer writes anything (Invariant 5.1).
 Check 6.1: An auditor MUST confirm that the allowance does not exceed the fence margin of any handed instant (Fence 5, Invariant 6.1).
 Check 6.2: An auditor MUST confirm that an instant derived from another is minted with the allowance rather than inheriting the allowance (Fence 8, Fence 9, Invariant 6.2).
+Check 7.1: An auditor MUST confirm that a holder of unfenced work issues no write under a lease whose remaining term does not exceed twice the call pause bound (Sizing 2, Sizing 3).
+Check 7.2: An auditor MUST confirm that every lease term set for unfenced work is no shorter than the work's bound and that the bound includes the call pause bound (Sizing 4, Sizing 6).
+Check 7.3: An auditor MUST confirm that no unit of work starts on a remaining term that does not exceed the unit's bound plus twice the call pause bound (Sizing 5).
+Check 7.4: An auditor MUST confirm that a no answer is treated as expired and the call is not re-issued within the lease (Sizing 7, Sizing 8).
+Check 7.5: An auditor MUST confirm that the pattern refuses to start WHILE a declared work bound does not exceed twice the call pause bound (Sizing 9).
 ```
 
 Term fence margin: `expires_at − fence`.
@@ -209,7 +237,8 @@ Non-goal 7: The atom MUST NOT isolate a holder's partial work from a reader.
 Non-goal 8: The atom MUST NOT write a record.
 Non-goal 9: A pattern that must prove a critical section was held MUST record the critical section.
 Non-goal 10: The atom MUST NOT choose a grant's duration.
-Non-goal 11: A pattern that needs the term to cover the pattern's work MUST state and check that obligation.
+Non-goal 11: A pattern that needs the term to cover the pattern's work MUST state and check that obligation by Sizing 4.
+Non-goal 12: The atom MUST NOT set the call pause bound or any unit's bound.
 ```
 
 WHY:
@@ -225,10 +254,11 @@ Composition note 4: A composing pattern MUST own which key protects which work.
 Composition note 5: A composing pattern MUST own how long the grant lasts.
 Composition note 6: A pattern fencing a downstream system MUST carry expires_at per Fence 1 through 9.
 Composition note 7: A pattern MUST NOT invent a second deadline concept for a fence.
+Composition note 8: A pattern whose work under a lease carries no fence MUST bind Sizing 1 through 9 and name which bound is each unit's.
 ```
 
 WHY:
-A critical section held on one node and not another is no critical section (Composition note 3). A pattern whose work can exceed the term it asks for has a defect this atom will not catch — it will hand the key on at the instant, exactly as specified (Composition note 5, Non-goal 11). A store deadline and a journal deadline are two uses of one atom (Composition note 6, Composition note 7).
+A critical section held on one node and not another is no critical section (Composition note 3). A pattern whose work can exceed the term it asks for has a defect this atom will not catch — it will hand the key on at the instant, exactly as specified (Composition note 5, Non-goal 11). A store deadline and a journal deadline are two uses of one atom (Composition note 6, Composition note 7). Work no fence reaches is sized by the one rule set the atom carries, with the pattern's own bounds as its numbers (Composition note 8).
 
 ## Terms
 
@@ -244,13 +274,13 @@ Term record verbs: identify, compare, normalize, hold, derive, store, wait, succ
 
 Term value sets: lease state = free | held. grant terminus = release | instant.
 
-Term bounds: duration (the term a take asks for); the allowance; the fence ceiling.
+Term bounds: duration (the term a take asks for); the allowance; the fence ceiling; the call pause bound.
 
 Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11).
 
-Term terms: key, holder, lease state, question, waiting term, remaining term, arrival term, asking party, the holder, fence, fence ceiling, effect instant, allowance, fenced party, fence margin, and expires_at ([Expiry Instant]).
+Term terms: key, holder, lease state, question, waiting term, remaining term, arrival term, asking party, the holder, fence, fence ceiling, effect instant, allowance, fenced party, fence margin, call pause bound ([Call Pause Bound]), live, expired, no answer, and expires_at ([Expiry Instant]).
 
 #### Lease
 
@@ -306,7 +336,14 @@ An instant no later than expires_at less the allowance, handed to a third party 
 
 Kind: Type
 
+#### Call Pause Bound
+
+The longest time from a holder's decision to issue one call — a lease take, a lease check, a write under the lease, a delegation — to the moment the call has taken effect or failed; never a whole unit of work. Declared by the composing pattern.
+
+Kind: Parameter
+
 [Key]: #key
+[Call Pause Bound]: #call-pause-bound
 [Holder]: #holder
 [Take]: #take
 [Try Take]: #try-take
@@ -322,7 +359,7 @@ The concept is not itself regulated. It appears in regulated patterns as the mec
 
 ## Status
 
-`draft` — first draft 2026-09-10, extracted from two patterns that described it in prose; the three passes and a fresh-reader gate are owed before any pattern cites it as grounded.
+`draft` — first draft 2026-09-10, extracted from two patterns that described it in prose; the three passes and a fresh-reader gate are owed before any pattern cites it as grounded. The Sizing section was added 2026-10-02 and has had no gate of its own.
 
 ## Ledger
 
@@ -332,12 +369,14 @@ formal: not applicable — the atom's invariants are conformance obligations on 
 last gate: none
 
 open:
-- 2026-09-10-a · refining · Composition notes · the composing pattern owes an obligation that its work fits inside the term it asks for, and this atom states the obligation without giving it a checkable form → decide whether the check belongs here or in each composing pattern.
+- 2026-10-02-a · refining · Sizing · the section was written to carry the lease arithmetic of Audit Trail, which composes this atom, and has had no gate → three passes and a fresh-reader gate before any pattern cites the atom as grounded.
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/lease.md`.
+
+- **2026-10-02 — The atom gives the form of a lease's sizing for unfenced work, and none of its numbers.** *Chose:* Sizing 1 through 9 — a declared call pause bound, a lease that reads expired below twice that bound, no write on an expired reading, a term no shorter than the work's bound, a start margin, a share-of-budget rule, a no-answer arm — with Non-goal 10 kept and Non-goal 12 added, and the Ledger's open question answered: the checkable form lives here, the numbers in each composing pattern. *Over:* leaving the form in each composing pattern, and over moving the closure sum, closure floor and measured enumeration into the atom. *Because:* the form is the same for every pattern whose writes carry no fence, and it was being restated, and re-attacked, inside one 281 KB composition; the numbers price a pattern's own work (how many record actions, how many enumerations) and an atom that chose them would own a duration, which Non-goal 10 forbids.
 
 - **2026-09-11 — Rewritten in GRACE lang v0.33; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the operations as a signature block, rationale under `WHY:`, terms declared where they are used, the invariant numbers and the Ledger unchanged. *Over:* the prose draft. *Because:* the migration plan — atoms first, since they declare the vocabulary compositions cite.
 
