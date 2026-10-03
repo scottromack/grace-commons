@@ -26,7 +26,8 @@
 | 19 | 30 | 3 passes | 5 + 2 + 3 = 10 | 10 | 32 / 8 | `3760070` |
 | 20 | 31 | 3 passes, frozen tree | 3 + 2 + 5 = 10 | 8 | 31 / 6 | `e85690e` |
 | 21 | 32 | 3 passes, frozen tree | 2 + 0 + 5 = 7 | 5 | 39 / 13 | `607c5f5` |
-| 22 | 33 | 3 passes, frozen tree | 3 + 2 + 2 = 7 | 5 | 37 / 9 | this commit |
+| 22 | 33 | 3 passes, frozen tree | 3 + 2 + 2 = 7 | 5 | 37 / 9 | `cf8e56b` |
+| 23 | 34 | 3 passes, frozen tree, cold to Status | 3 + 5 + 2 = 10 | 10 | 47 / 14 | this commit |
 
 Rounds 12 to 18 counts are each reader's own count line; reader reports were not grouped across readers then, and the round-16 and round-18 refining counts are lower bounds (a reader's count was lost to a context compaction, or a borderline finding was counted apart). A "+" marks that.
 
@@ -84,14 +85,39 @@ Rounds 12 to 18 counts are each reader's own count line; reader reports were not
 
 **Repeats.** Groups that were cured and found again: round 20, 1 of 8 (20-1); round 21, 2 of 5 (21-2, 21-4); round 22, 2 of 5 (22-2, 22-5), and one more spawned by a round-21 cure (22-1). Across rounds 12 to 21 two defects recur far more than any other, by reader report: the *window counted from the hold's release* (rounds 13, 14, 15 twice, 16, then 19, 20 and 22) and the *closure floor undercounts* (rounds 13, 14, 16, 19 to 22, as the enumeration cost).
 
+**Round 23** (frozen tree at `10a1796`, after the closure arithmetic and the hold went to instruments in `bbe773a` and `10a1796`; 10 reports, 10 groups; kind A 6, C 4; fresh 1, older 9; none rejected on triage; rules added 7, removed 0, one term)
+
+A different format from rounds 19 to 22, so compare with care (rule 6): the readers ran on Opus, were capped at five ranked foundational findings each, and read the spec down to `## Status` only — not the Ledger, not Decisions, no model, no history.
+
+| Group | Defect | Readers | Kind | Blame | Repeat of | Outcome |
+|---|---|---|---|---|---|---|
+| 23-1 | A hold can sit over content a delegation already destroyed; the page called it held over readable content | GRID | A | older | | cured |
+| 23-2 | A Retained event with unreadable data and no destruction record has no read answer and no exit | GRID | A | fresh | 21-1, 22-1 | cured (read arm, exit); the unrestorable case recorded, Ledger 2026-10-03-d |
+| 23-3 | The destruction-failed re-drive has no terminus | GRID (Linus as refining) | C | older | | already recorded, Ledger 2026-08-30-d |
+| 23-4 | Retention Window's Record divergence rules are declined and the atom has not accepted it | EOS | C | older | | recorded, Ledger 2026-10-03-a |
+| 23-5 | Nothing ties a member of purged events to a Purged retention; one stray member silences a whole seal | EOS | A | older | | cured |
+| 23-6 | Unreadable is an answer neither constituent read declares | EOS | C | older | | recorded, Ledger 2026-10-03-b |
+| 23-7 | The outage join is the deployment's and unbounded | EOS | A | older | | cured |
+| 23-8 | No carrier for which mechanism cut which seal | EOS | C | older | | recorded, Ledger 2026-10-03-c |
+| 23-9 | Record set match cannot be judged where the log has sequence gaps | Linus | A | older | | cured |
+| 23-10 | A record action a leg starts can write after the leg's lease has ended | Linus | A | older | closure floor family | cured; enumerator twin |
+
+One of the ten is lease timing, group 23-10. The hold-release restart did not appear. The adversarial pass recomputed closure sum with one dead run, closure spend, re-drive spend and the walkthrough and reported them sound. 23-10 sits in a premise the enumerator had transcribed from Per-act critical section 13h instead of deriving; it derives it now.
+
+Refining reports seen by two readers, routed as Ledger lines 2026-10-03-e through i: no answer outside the signatures; [Seal Now] cited by step with no numbered steps; coverage ranges derived and durable at once; Retention Window's not-known passed through at purge; a bare recording-failure on [Seal Now]. The destruction-failed terminus was also one reader's refining report.
+
+Refining reports seen by one reader, held here and not on the Ledger: the event and attestation relation called mandatory on both sides though reconciled orphans are permanent; `audit.reconciliation` payloads unvalidated at step 1 and no refusal for another operator-attributed `audit.*` name; regulation and vendor acronyms undefined at first use, and the seal cadence WHY pointing at Edge cases for text under Non-goals; Lease bound but absent from Composes, with no instance count or acceptance bar; Legal Hold named never a constituent while its store is read; no page owning a hold placement over an audit event; the uncovered mark a compare-and-clear state on a Lease that declares no carried record, outside the eight state elements; the suspended entry's run instants on an operational record while Generation acceptance promises records alone; Per-act critical section 2, 3, 4, 9b, 13a, 16, 17 and Instance start 25 restating Lease rules; Non-goal 12's rotation with no owning pattern; [Purge Event] taking no actor and writing no audit event; `recording-failure(step-3)` and step-2 by no answer landing on both sides of a commit with no position; purge completion bound's wait of Concurrency 3b reaching the purge bound itself while Instance start 23 checks only the seal bound.
+
 ## Totals
 
 | Format | Rounds | Foundational reports | Per reader | Distinct groups |
 |---|---|---|---|---|
 | Two readers | 12 to 18 | 8, 8, 10, 9, 7, 5, 5 | 4.0, 4.0, 5.0, 4.5, 3.5, 2.5, 2.5 | not grouped |
 | Three passes | 19 to 22 | 10, 10, 7, 7 | 3.3, 3.3, 2.3, 2.3 | 10, 8, 5, 5 |
+| Three passes, cold to Status | 23 | 10 | 3.3 | 10 |
 
 ## Log
 
 - 2026-10-02 · opened. Rounds 19 to 21 itemised from the reader reports; rounds 12 to 18 from each reader's count line; rounds 1 to 11 not recoverable. Numbering of the last three commits corrected by this file.
 - 2026-10-02 · round 22 itemised. The Ledger's Final Critique number is now 33.
+- 2026-10-03 · round 23 itemised; the Ledger's Final Critique number is now 34. The readers stopped at `## Status`, which earlier rounds' readers did not, so the stale-Ledger reports of those rounds have no counterpart here.

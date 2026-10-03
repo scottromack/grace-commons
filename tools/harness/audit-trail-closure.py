@@ -12,7 +12,7 @@ wants an enumerator.
 
 What is read from the page, so the page and this script cannot drift apart silently:
   Term closure sum (both parts), Term closure floor (both parts), Term closure spend, Term
-  re-drive spend, Term record edge, Term purge edge  — evaluated as written.
+  re-drive spend, Term start margin, Term record edge, Term purge edge  — evaluated as written.
 What is encoded here, each line citing the rule it transcribes; every cited label must
 exist on the page or the run fails:
   the leg timeline (TIMELINE below), Term work bound's enumeration counts, Instance start
@@ -39,8 +39,8 @@ SAFE = re.compile(r'^[\sa-z_0-9+*(),]+$')
 def read_page(path=PAGE):
     text = open(path, encoding='utf-8').read()
     terms = {}
-    for name in ['closure spend', 're-drive spend', 'record edge', 'purge edge']:
-        m = re.search(r'^Term %s: `([^`]+)`' % re.escape(name), text, re.M)
+    for name in ['closure spend', 're-drive spend', 'record edge', 'purge edge', 'start margin']:
+        m = re.search(r'^\s*Term %s: `([^`]+)`' % re.escape(name), text, re.M)
         if not m:
             sys.exit('page changed: Term %s has no formula in a code span' % name)
         terms[name] = m.group(1)
@@ -86,7 +86,8 @@ TIMELINE = [
  ('Invariant 1.11',                   '... and the others wait for its RETURN: one record action, its per-event seal included'),
  ('Per-act critical section 9c',      'a record action seals at step 6 before it returns under per-event cadence'),
  ('Instance start 23',                'a seal call is priced at twice the seal bound; purge bound exceeds it'),
- ('Per-act critical section 13f',     'a leg starts a record action only while remaining > record bound + 2 call pauses'),
+ ('Per-act critical section 13f',     'a leg starts a record action only while remaining > start margin'),
+ ('start margin',                     'read from the page; checked here against how late a stalled record action can write'),
  ('Per-act critical section 13h',     'a record action a leg starts completes its truth-bearing writes inside the leg\'s lease'),
  ('record action completion bound',   'the bound runs from the first committed write; the attest call ahead of it is one call'),
  ('Third half 8',                     'intent before placement'),
@@ -117,7 +118,8 @@ def derive(p, terms):
     env['closure_floor'] = floor
     d = dict(me=me, floor=floor,
              spend=ev(terms['closure spend'], env), respend=ev(terms['re-drive spend'], env),
-             record_edge=ev(terms['record edge'], env), purge_edge=ev(terms['purge edge'], env))
+             record_edge=ev(terms['record edge'], env), purge_edge=ev(terms['purge edge'], env),
+             margin=ev(terms['start margin'], env))
     d['sum_of'] = lambda lat: (ev(terms['closure sum'], dict(env, compensation_closure_latency=lat))
                                + (ev(terms['closure sum legal-hold'], env) if p['legal_hold'] else 0))
     return d
@@ -143,21 +145,24 @@ def leg(p, d, lat, half, reading):
     if half == 'first':
         return None                                           # every cascade write is gated live; L > purge bound finishes it
     seal = 2 * p['scb'] if p['per_event'] else 0
-    ra = cpb + rab + seal                                     # one record action, call to return
+    ra = cpb + rab + seal                                     # one record action, call to return, when it does not stall
+    reach = cpb + 2 * rab                                     # ... and how late its last write can land when it does: its
+                                                              # reading, a take up to one bound later (step 2.10), a lease of one bound (9a)
+    if d['margin'] < cpb + reach:                             # the reading 13f acts on is one call old
+        return '13h: a record action started on a passing 13f can write %d after the leg\'s lease has ended' % (cpb + reach - d['margin'])
     t = (p['E_log'] + p['E_dest']) if half == 'second' else (p['E_log'] + p['E_ret'])
     t += ra                                                   # the probe's wait
-    t += cpb                                                  # remaining, read for 13f
-    if not L - t > rab + 2 * cpb:
-        return '13f declines the intent: remaining %d' % (L - t)
-    t += ra
-    if half == 'third':
-        t += cpb                                              # remaining, read for the placement
-        if not L - t > 2 * cpb:
-            return 'lease reads expired at the placement: remaining %d' % (L - t)
-        t += cpb                                              # the placement
-    t += cpb
-    if not L - t > rab + 2 * cpb:
-        return '13f declines the compensation: remaining %d' % (L - t)
+    for which in ('intent', 'compensation'):
+        if which == 'compensation' and half == 'third':
+            t += cpb                                          # remaining, read for the placement
+            if not L - t > 2 * cpb:
+                return 'lease reads expired at the placement: remaining %d' % (L - t)
+            t += cpb                                          # the placement
+        t += cpb                                              # remaining, read for 13f
+        if not L - t > d['margin']:
+            return '13f declines the %s: remaining %d' % (which, L - t)
+        if which == 'intent':
+            t += ra
     t += cpb + rab
     if t > L:
         return '13h: the compensation lands outside the lease'
@@ -257,6 +262,8 @@ TWINS = [
   'the take\'s own call pause uncounted'),
  ('floor-no-probe', 'closure floor', '3 * record_action_completion_bound + 6 * call_pause_bound',
   'the probe\'s wait uncounted'),
+ ('margin-one-bound', 'start margin', 'record_action_completion_bound + 2 * call_pause_bound',
+  'a started record action priced at one bound, though a stalled one writes for two (the page as it stood at 10a1796)'),
  ('sum-no-placement', 'closure sum legal-hold', '0 * purge_completion_bound',
   'no hold placement budgeted where Legal Hold is composed'),
  ('sum-one-run',   'closure sum',
