@@ -26,6 +26,7 @@
 | 19 | 30 | 3 passes | 5 + 2 + 3 = 10 | 10 | 32 / 8 | `3760070` |
 | 20 | 31 | 3 passes, frozen tree | 3 + 2 + 5 = 10 | 8 | 31 / 6 | `e85690e` |
 | 21 | 32 | 3 passes, frozen tree | 2 + 0 + 5 = 7 | 5 | 39 / 13 | `607c5f5` |
+| 22 | 33 | 3 passes, frozen tree | 3 + 2 + 2 = 7 | 5 | 37 / 9 | this commit |
 
 Rounds 12 to 18 counts are each reader's own count line; reader reports were not grouped across readers then, and the round-16 and round-18 refining counts are lower bounds (a reader's count was lost to a context compaction, or a borderline finding was counted apart). A "+" marks that.
 
@@ -71,15 +72,26 @@ Rounds 12 to 18 counts are each reader's own count line; reader reports were not
 | 21-4 | Liveness arithmetic is measured once; no failing-run arm | Linus | fresh | 20-2 | cured |
 | 21-5 | An outage restart can carry a finding past the horizon | Linus | fresh | | cured |
 
-**Repeats.** Groups that were cured and found again: round 20, 1 of 8 (20-1); round 21, 2 of 5 (21-2, 21-4). Across rounds 12 to 21 two defects recur far more than any other, by reader report: the *window counted from the hold's release* (rounds 13, 14, 15 twice, 16, then 19 to 20) and the *closure floor undercounts* (rounds 13, 14, 16, 19 to 21).
+**Round 22** (frozen tree; 7 reports, 5 groups; kind A 3, C 2; blame by reports fresh 5, older 2)
+
+| Group | Defect | Readers | Blame | Repeat of | Outcome |
+|---|---|---|---|---|---|
+| 22-1 | Second half 18 halts compensation for the run and nothing ends it | EOS, Linus | fresh | cure-spawned (21-1) | cured |
+| 22-2 | Every scan-side cost grows with the log, inside a fixed window | GRID (C), Linus (C) | fresh / older | 21-4, 20-2 | named non-goal with owner |
+| 22-3 | Rebuild-on-miss at sites where a miss is the normal case | GRID | older | refining since round 19 | cured |
+| 22-4 | Horizon and window arithmetic validated only at start | GRID (C) | fresh | | cured (capability requirement) |
+| 22-5 | The hold-release restart rests on an observation no store holds | EOS | fresh | 20-1, 19-5, 19-9 | cured |
+
+**Repeats.** Groups that were cured and found again: round 20, 1 of 8 (20-1); round 21, 2 of 5 (21-2, 21-4); round 22, 2 of 5 (22-2, 22-5), and one more spawned by a round-21 cure (22-1). Across rounds 12 to 21 two defects recur far more than any other, by reader report: the *window counted from the hold's release* (rounds 13, 14, 15 twice, 16, then 19, 20 and 22) and the *closure floor undercounts* (rounds 13, 14, 16, 19 to 22, as the enumeration cost).
 
 ## Totals
 
 | Format | Rounds | Foundational reports | Per reader | Distinct groups |
 |---|---|---|---|---|
 | Two readers | 12 to 18 | 8, 8, 10, 9, 7, 5, 5 | 4.0, 4.0, 5.0, 4.5, 3.5, 2.5, 2.5 | not grouped |
-| Three passes | 19 to 21 | 10, 10, 7 | 3.3, 3.3, 2.3 | 10, 8, 5 |
+| Three passes | 19 to 22 | 10, 10, 7, 7 | 3.3, 3.3, 2.3, 2.3 | 10, 8, 5, 5 |
 
 ## Log
 
 - 2026-10-02 · opened. Rounds 19 to 21 itemised from the reader reports; rounds 12 to 18 from each reader's count line; rounds 1 to 11 not recoverable. Numbering of the last three commits corrected by this file.
+- 2026-10-02 · round 22 itemised. The Ledger's Final Critique number is now 33.
