@@ -58,6 +58,8 @@
 \*   [Purge Event] under the section the first half holds (Per-act critical section 14).
 \* - The erasure mechanism answers destroyed on re-delegation: with an outcome unrecorded, a
 \*   re-delegation over destroyed content is the page's own open edge (Ledger 2026-08-30-d).
+\* - The leg arithmetic at conforming constants (Per-act critical section 13a, 13d, 13f, 13h, Term closure spend, Term re-drive spend,
+\*   Term closure floor, Term work bound) and closure sum's schedule are carried by tools/harness/audit-trail-closure.py, not here.
 \* - Cadence, lease lengths and the horizon are small constants; "all invariants hold"
 \*   is a statement within MaxTime ticks at these constants and nothing more.
 EXTENDS Naturals

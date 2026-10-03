@@ -32,6 +32,10 @@ node audit.mjs
 
 Exit code `0` = the twin behaved as its role requires; `1` = it did not.
 
+## The closure enumerator
+
+`python3 audit-trail-closure.py` checks Audit Trail's closure arithmetic at conforming constants, which the TLA+ models cannot reach inside the checker's depth cap. It reads the term formulas from `compositions/audit-trail.md` (closure sum, closure floor, closure spend, re-drive spend, record edge, purge edge), enumerates the parameter tuples Instance start admits, walks each scan leg's timeline as the page's rules state it, and reports any admitted tuple on which a conforming leg cannot finish or a finding outlives closure sum. Its twins each override one formula and must breach; a twin that holds fails the run. Every rule the timeline transcribes is listed in the script with its label, and a label or a formula the page no longer carries stops the run with *page changed*. `AUDIT_TRAIL_PAGE=<path>` points it at another copy of the page. About 50 seconds.
+
 ## Conventions
 
 - **TLA+ constants** come from a sibling `<base>.constants.json` (e.g. `{ "Actors": ["a1","a2","a3"], "K": 2 }`) when the `.cfg` does not inline them.

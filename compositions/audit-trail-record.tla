@@ -47,7 +47,7 @@
 \*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (purge event step 0.7); the third half's
 \*   policy resolution (Third half 15). Both models are single-act: the cross-act serializations of Concurrency 1 and 3 are
 \*   absent, and Invariant 3 is unmodelled.
-\* - The constants breach Instance start 18 and 19 (SweepLease = 1 against a closure floor of 4); a conforming regime exceeds the harness's depth cap (MaxDepthExceeded: 41). The twin -nopre drops the outlived check and the pre-check together and so attributes neither.
+\* - The constants breach Instance start 18 and 19 (SweepLease = 1 against a closure floor of 4); a conforming regime exceeds the harness's depth cap (MaxDepthExceeded: 41); the arithmetic at conforming constants is carried by tools/harness/audit-trail-closure.py. The twin -nopre drops the outlived check and the pre-check together and so attributes neither.
 \*   Also not carried: the scan's
 \*   one attempt per finding per run and its alert (Third half 11, Compensation 16); the hold's active state (Term hold);
 \*   a caller-driven re-entry of [Purge Event] on a Purged retention (purge event step 1.4).
