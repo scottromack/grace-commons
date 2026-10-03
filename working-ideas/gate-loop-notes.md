@@ -6,15 +6,15 @@
 
 | Round | Foundational by reader (GRID, EOS, Linus) | Kind | Blame fresh : older | Rejected on triage | Net rules |
 |---|---|---|---|---|---|
-| 18 (2026-10-02) | 5, 2, 3 = 10 | all A | 7 : 3 | 0 of 10 (one closed by dated record) | about +5 |
-| 19 (2026-10-02), frozen tree | 3, 2, 5 = 10 | 7 A, 3 C | 9 : 1 | 0 of 10 | about +4 |
-| 20 (2026-10-02), frozen tree | 2, 0, 5 = 7 | 6 A, 1 C | 6 : 1 | 0 of 7 | about +3 |
+| 19 (2026-10-02) | 5, 2, 3 = 10 | all A | 7 : 3 | 0 of 10 (one closed by dated record) | about +5 |
+| 20 (2026-10-02), frozen tree | 3, 2, 5 = 10 | 7 A, 3 C | 9 : 1 | 0 of 10 | about +4 |
+| 21 (2026-10-02), frozen tree | 2, 0, 5 = 7 | 6 A, 1 C | 6 : 1 | 0 of 7 | about +3 |
 
-Before the template (rounds 9 to 17): 3 to 10 foundational per round, about half in rules added the round before.
+Before the template (rounds 12 to 18, two readers each): 5 to 10 raw foundational reports per round; itemised in [the gate record](audit-trail-gate-record.md), which also corrects this file's round numbers (they were one low).
 
 ## What works
 
-- **Readers find real defects.** Every round-18 foundational finding named a reachable state or two diverging implementations; none was rejected as wrong.
+- **Readers find real defects.** Every round-19 foundational finding named a reachable state or two diverging implementations; none was rejected as wrong.
 - **The blame field shows churn.** Seven of ten findings sat in rules changed within two rounds. Without the field it reads as ten new gaps.
 - **A dated record is a real exit.** One finding closed as a recorded behavior the page already declared for derived indexes, with an owner, and nothing was added to the page's protocol.
 - **One reader at a time runs.** Parallel readers stall the machine. Reports under 900 words are readable.
@@ -49,6 +49,7 @@ Before the template (rounds 9 to 17): 3 to 10 foundational per round, about half
 
 ## Log
 
-- 2026-10-02 · round 18 · opened; numbers above.
-- 2026-10-02 · round 19 · frozen-tree test (idea 1). Three readers on one tree, no edits between. Fresh share rose from 7:3 to 9:1, so the churn is not the tree changing under the readers; it is the previous round's cures. Ten cures in round 18 were followed by nine fresh findings in round 19. Overlap: the hold-release window restart was hit by two readers and the horizon selector by two, a third pair (the stale enumeration measurement and the third half's second enumeration) was related; about 8 distinct findings in 10. Both double-hit findings were round-18 cures or older refining items that had not reached every reader of the fact they changed. Eight cures this round, each carried to the other readers of the changed fact (idea 2); ledger `last gate` line fixed (idea 7). Prediction to check in round 20: if the sibling sweep works, the fresh share falls below half.
-- 2026-10-02 · round 20 · frozen tree again. Seven foundational raw, five distinct (two findings hit by two readers; the third reader's stale-measurement finding recurs from round 19). The EOS pass returned zero for the first time. Fresh share 6:1, still high, so cures keep seeding the next round, but the count fell 10 to 7 raw and about 8 to 5 distinct. Five cures at the reader and its owner, three repeated refining findings amended in place instead of added to (Compensation 2 and purge event 3a had each been reported in three readers across two rounds). Repeat refining findings seen by two or more readers are cheap kind A cures and the largest source of noise; worth always cleaning at the round close.
+- 2026-10-02 · round 19 · opened; numbers above.
+- 2026-10-02 · round 20 · frozen-tree test (idea 1). Three readers on one tree, no edits between. Fresh share rose from 7:3 to 9:1, so the churn is not the tree changing under the readers; it is the previous round's cures. Ten cures in round 19 were followed by nine fresh findings in round 20. Overlap: the hold-release window restart was hit by two readers and the horizon selector by two, a third pair (the stale enumeration measurement and the third half's second enumeration) was related; about 8 distinct findings in 10. Both double-hit findings were round-19 cures or older refining items that had not reached every reader of the fact they changed. Eight cures this round, each carried to the other readers of the changed fact (idea 2); ledger `last gate` line fixed (idea 7). Prediction to check in round 21: if the sibling sweep works, the fresh share falls below half.
+- 2026-10-02 · round 21 · frozen tree again. Seven foundational raw, five distinct (two findings hit by two readers; the third reader's stale-measurement finding recurs from round 20). The EOS pass returned zero for the first time. Fresh share 6:1, still high, so cures keep seeding the next round, but the count fell 10 to 7 raw and about 8 to 5 distinct. Five cures at the reader and its owner, three repeated refining findings amended in place instead of added to (Compensation 2 and purge event 3a had each been reported in three readers across two rounds). Repeat refining findings seen by two or more readers are cheap kind A cures and the largest source of noise; worth always cleaning at the round close.
+- 2026-10-02 · numbering. The rounds in this file were first logged as 18, 19 and 20; they are 19, 20 and 21. The counts now live in `audit-trail-gate-record.md`.
