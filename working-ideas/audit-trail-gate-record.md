@@ -28,7 +28,8 @@
 | 21 | 32 | 3 passes, frozen tree | 2 + 0 + 5 = 7 | 5 | 39 / 13 | `607c5f5` |
 | 22 | 33 | 3 passes, frozen tree | 3 + 2 + 2 = 7 | 5 | 37 / 9 | `cf8e56b` |
 | 23 | 34 | 3 passes, frozen tree, cold to Status | 3 + 5 + 2 = 10 | 10 | 47 / 14 | `116c123` |
-| 24 | 35 | 3 passes, frozen tree, cold to Status | 3 + 2 + 3 = 8 | 6 | 48 / 22 | this commit |
+| 24 | 35 | 3 passes, frozen tree, cold to Status | 3 + 2 + 3 = 8 | 6 | 48 / 22 | `a3aadc6` |
+| 25 | 36 | 3 passes, frozen tree, cold to Status | 2 + 2 + 3 = 7 | 7 | 59 / 19 | this commit |
 
 Rounds 12 to 18 counts are each reader's own count line; reader reports were not grouped across readers then, and the round-16 and round-18 refining counts are lower bounds (a reader's count was lost to a context compaction, or a borderline finding was counted apart). A "+" marks that.
 
@@ -126,13 +127,31 @@ Refining reports seen in both rounds or by two readers, routed as Ledger lines 2
 
 Refining reports seen by one reader, held here: acronyms never spelled out, and Summary words unglossed; `Legal Hold` and mechanism class with no knob entry or start rule; *Rests on:* lines omitting the sealing lock, Concurrency 3 and the first half; Invariant 4.1 unconditional against the cascade-failure arms; Capability requirement 10a's record unclassified; six composition-code filters over the log where Event Log routes a payload lookup to a reverse index; reconciliation operator provisioned in an attestation store that holds no actors; the erasure mechanism's contract specified here while Retention Window names Cryptographic Shredding its owner; record action step 3.5 vacuous where no rule populates compensated attestations outside a rebuild; per-event sealing alerting on benign lock contention, and the last event before a quiet period left unsealed; a timed-out verify call neither a constituent read nor unverifiable; the walkthrough's measured enumeration a start-time figure with no rotation shown.
 
+**Round 25** (frozen tree at `c4bbdd7`, the same brief; the third pass stopped on a usage limit and was run again whole on the same tree; 7 reports, 7 groups; kind A 3, B 1, C 3; fresh 2, older 5; none rejected on triage; rules added 10, one tombstoned, ten amended)
+
+| Group | Defect | Readers | Kind | Blame | Repeat of | Outcome |
+|---|---|---|---|---|---|---|
+| 25-1 | Restart persistence is declared for the audit log alone | GRID | C | older | | recorded, Ledger 2026-10-03-s |
+| 25-2 | The range pass-through has no answer, refusal or payload rule | GRID | A | older | refining in 23 and 24 | cured |
+| 25-3 | The record that decides a late closure is unclassified, outside the nine elements | EOS | A | fresh | 24-4 | cured: a state element, extraction-pending |
+| 25-4 | A gated hold placement is an action no spec owns | EOS | C | older | refining in 23 and 24 | recorded, Ledger 2026-10-03-p |
+| 25-5 | Any failure longer than a call pause restarts every finding's whole window | Linus | A | older | 23-7 | cured: the window runs to closure sum after the outage |
+| 25-6 | A seal call slower than its lease leaves two seals over one range; the re-declaration does not fire on that exit | Linus | C | fresh | 24-1 | cured: a slice cap |
+| 25-7 | verified can stand over a stored entry altered after sealing | Linus | B | older | | recorded, Ledger 2026-10-03-t |
+
+Groups by round on this brief: 10, 6, 7. The count is not falling. Two clusters account for it: the outage rules (23-7, 24-4, 25-3, 25-5) and the sealing lock (24-1, 25-6), neither carried by a model or the enumerator, each cured in rounds 23 and 24 by a clause that answered the report. This round they are cured by structure: a classified state element and a rule tied to closure sum; a cap. The scan's lease arithmetic and the hold again drew no finding, and the third pass recomputed 1144 s, 298 s and 342 s.
+
+Refining reports seen in two rounds or by two readers and already Ledger lines: no answer outside the signatures (e), [Seal Now] cited by step (f), coverage ranges derived and durable (g), Retention Window's not-known at purge (h), a bare recording-failure on [Seal Now] (i), the uncovered mark (o), `recording-failure(step-3)` with no position (q). New lines u and v: the dead pre-check at record action step 3.5, and `Legal Hold` not a knob. One was of the last unit's cure and is amended: purge eligible 9 had no hold exception.
+
+Refining reports seen by one reader, held here: Event Log's serialized append absent from the six serialization obligations; references to a Lease edge case, External Anchoring and Credential management that resolve to nothing; the third half's placement mapping two of its refusals; Primitive policy 9 with no landing; the erasure mechanism specified here as a knob; the cadence driver, the scan scheduler and the purge sweep as one concept under three contracts, the sweep with no cadence; the Legal Hold store's instance topology; [Purge Event] carrying no actor; record action step 5.5's fallback enumeration against a 30-second bound; Per-act critical section 13e alerting with no headroom on a log that only grows; closure floor pricing the probe and the intent at one bound where start margin admits two.
+
 ## Totals
 
 | Format | Rounds | Foundational reports | Per reader | Distinct groups |
 |---|---|---|---|---|
 | Two readers | 12 to 18 | 8, 8, 10, 9, 7, 5, 5 | 4.0, 4.0, 5.0, 4.5, 3.5, 2.5, 2.5 | not grouped |
 | Three passes | 19 to 22 | 10, 10, 7, 7 | 3.3, 3.3, 2.3, 2.3 | 10, 8, 5, 5 |
-| Three passes, cold to Status | 23, 24 | 10, 8 | 3.3, 2.7 | 10, 6 |
+| Three passes, cold to Status | 23, 24, 25 | 10, 8, 7 | 3.3, 2.7, 2.3 | 10, 6, 7 |
 
 ## Log
 
@@ -140,3 +159,4 @@ Refining reports seen by one reader, held here: acronyms never spelled out, and 
 - 2026-10-02 · round 22 itemised. The Ledger's Final Critique number is now 33.
 - 2026-10-03 · round 23 itemised; the Ledger's Final Critique number is now 34. The readers stopped at `## Status`, which earlier rounds' readers did not, so the stale-Ledger reports of those rounds have no counterpart here.
 - 2026-10-03 · round 24 itemised; the Ledger's Final Critique number is now 35.
+- 2026-10-03 · round 25 itemised; the Ledger's Final Critique number is now 36.
