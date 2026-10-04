@@ -336,7 +336,7 @@ The nineteen C-numbered compositions are catalogued below (C1–C18, plus Compen
 | — | Personal Todo, Assignment | Atoms | Personal Todo: `grounded` 2026-05-13; Assignment: `grounded` 2026-05-13 | `productivity` |
 | — | Duplicate Prevention, Event Log | Atoms | `grounded` 2026-05-13 | `temporal` |
 | — | Provisional Commitment | Atom | `grounded on Final Critique 4 — 2026-06-18` | `resource-lifecycle` |
-| — | Actor Identity, Retention Window, Tamper Evidence, Permissions | Atoms | Actor Identity, Tamper Evidence, Permissions: `grounded` 2026-05-13; Retention Window: `grounded on Final Critique 5 — 2026-06-23` | `compliance` |
+| — | Actor Identity, Retention Window, Tamper Evidence, Permissions | Atoms | Actor Identity, Tamper Evidence, Permissions: `grounded` 2026-05-13; Retention Window: `grounded on Final Critique 7 — 2026-10-03` | `compliance` |
 | — | Subscription, Notification | Atoms | `grounded` 2026-05-13 | `messaging` |
 | — | Clinical Observation, Medication Order | Atoms | `grounded` 2026-05-13 | `healthcare` (outside core sequence) |
 | 1 | Legal Hold | Atom | `grounded — 2026-05-20` | C1, C7 |

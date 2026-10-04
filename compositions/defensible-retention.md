@@ -1055,6 +1055,7 @@ last gate: 2026-08-28 — second gate after closure, fresh reader — 4 foundati
 
 open:
 - 2026-08-29-a · refining · formal · the model's sweep carries no age bound, no identity, and no recovery record → extend it
+- 2026-10-03-a · foundational · Capability requirement 34, 35; Composition state 16; Action wiring 47 · Retention Window now obliges the pattern that owns joint enforcement to serialize a placement with the sibling read and the purge over one record reference, and the deployment to place through that pattern alone (its Simultaneous retention 5, 6); this composition serializes a hold check and a hold placement against the purge and admits retentions it did not place, so a placement landing between the sibling read and the purge leaves the record destroyed under a live retention → serialize the placement with the gate and the purge per record reference, and say what a retention placed outside the composition does to the gate
 ```
 
 ## Decisions
