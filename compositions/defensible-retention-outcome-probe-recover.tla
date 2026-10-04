@@ -1,4 +1,5 @@
----- MODULE defensible-retention ----
+---- MODULE defensible-retention-outcome-probe-recover ----
+\* EXPECT: violation — reachability probe: the sweep, not the invocation, writes the one outcome, never.
 \* Grace Commons — Defensible Retention. Spec-level formal sibling of compositions/defensible-retention.md.
 \* Derived validator; the English spec is the single source of truth. On any disagreement,
 \* diagnose per the entry *The conflict protocol* in pressure-testing.md.

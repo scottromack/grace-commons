@@ -1,4 +1,5 @@
----- MODULE defensible-retention ----
+---- MODULE defensible-retention-buggy-margin ----
+\* BUGGY TWIN: a committing call is issued on one call pause of margin where the write margin is two (Concurrency 14 violated).
 \* Grace Commons — Defensible Retention. Spec-level formal sibling of compositions/defensible-retention.md.
 \* Derived validator; the English spec is the single source of truth. On any disagreement,
 \* diagnose per the entry *The conflict protocol* in pressure-testing.md.

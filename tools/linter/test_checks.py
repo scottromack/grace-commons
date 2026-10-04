@@ -1098,6 +1098,16 @@ def check_range_form_synthetic(problems: list[str]) -> int:
                      encoding="utf-8")
         if not any(x.code == "X-ref" and "Operation 5" in x.message for x in scan(f)):
             problems.append("check.py X-ref: a range whose last label is missing resolved")
+        f.write_text("Term qualifiers: `migrated` — rewritten in GRACE lang v0.47 (2026-09-15).\n\n"
+                     "Term record verbs: read.\n\nSee [Ghost](./ghost.md).\n\n## Structure\n\n### Operations\n\n```\n"
+                     "Operation 1: The atom MUST read the store (Ghost Operation 9c).\n"
+                     "Operation 2: The atom MUST read the store (Wisp Operation 8).\n```\n",
+                     encoding="utf-8")
+        got = [x.message for x in scan(f) if x.code == "X-ref"]
+        if any("Operation 9c" in m for m in got):
+            problems.append("check.py X-ref: fired on a linked spec's label cited by the spec's name")
+        if not any("Operation 8" in m for m in got):
+            problems.append("check.py X-ref: a label after a name the file does not link resolved")
     covers = [("Invariant 4.2", True), ("Invariant 1", True), ("Invariant 5.1", False),
               ("Operation 2", False), ("Invariant step 2.1", False)]
     for label, want in covers:

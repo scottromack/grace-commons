@@ -1,4 +1,5 @@
----- MODULE defensible-retention ----
+---- MODULE defensible-retention-outcome-buggy-floor ----
+\* BUGGY TWIN: an outcome is started with the audit write latency left and no write margin (Concurrency 17 violated).
 \* Grace Commons — Defensible Retention. Spec-level formal sibling of compositions/defensible-retention.md.
 \* Derived validator; the English spec is the single source of truth. On any disagreement,
 \* diagnose per the entry *The conflict protocol* in pressure-testing.md.

@@ -996,6 +996,10 @@ def scan(path: Path) -> list[Finding]:
             groups.add(f"{parts.group('name')} {parts.group('major')}")
         if parts.group("step"):
             groups.add(f"{parts.group('name')} step {parts.group('step')}")
+    # the specs this file links to: a label written after one of their names is theirs,
+    # whatever its family -- `Lease Composition note 5c` in a spec with its own Composition notes
+    linked = {m.group(1) for raw in lines
+              for m in re.finditer(r"\[([A-Z][^\]]*)\]\((?:\.{1,2}/)[^)\s]*\.md[^)]*\)", raw)}
     if names:
         name_re = re.compile(r"(?<![\w-])(" + "|".join(re.escape(x) for x in sorted(names, key=len, reverse=True)) +
                              r")( step [\d½]+(?:\.\d+[a-z]?)?| \d+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
@@ -1013,6 +1017,8 @@ def scan(path: Path) -> list[Finding]:
                 before = raw[:fm.start()]
                 if re.search(r"[A-Z][\w'’]*\s$", before) and fm.group(1) in ("Invariant", "Check"):
                     continue  # another spec's invariant or check, cited by the corpus form
+                if any(before.endswith(t + " ") for t in linked):
+                    continue  # a linked spec's rule, cited by that spec's name
                 for ref in refs:
                     if ref in labels or ref in tombstones or ref in exemplars or ref in groups or ref in seen:
                         continue

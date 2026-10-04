@@ -1,4 +1,5 @@
----- MODULE defensible-retention ----
+---- MODULE defensible-retention-buggy-gate ----
+\* BUGGY TWIN: the gate is read before the record section is taken (Concurrency 6, 7 violated).
 \* Grace Commons — Defensible Retention. Spec-level formal sibling of compositions/defensible-retention.md.
 \* Derived validator; the English spec is the single source of truth. On any disagreement,
 \* diagnose per the entry *The conflict protocol* in pressure-testing.md.

@@ -1080,6 +1080,7 @@ last gate: 2026-08-29 — second gate after closure, fresh reader — 6 foundati
 
 open:
 - 2026-08-29-r · refining · formal · the model's scan carries no lower edge and no recovery record → extend it
+- 2026-10-04-a · foundational · Disposition 21 through 24 · Defensible Retention re-grounded on Final Critique 11 with a refusal this composition lands nowhere: its purge now answers section-unavailable where another act holds the record, and not-known for a retention over a record already destroyed → land section-unavailable as a retry, and say what a not-known over a destroyed record does to the disposition
 ```
 
 ## Decisions
