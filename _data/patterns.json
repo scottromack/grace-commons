@@ -767,13 +767,13 @@
    "recoverable-invocation"
   ],
   "domain": null,
-  "grounded": false,
+  "grounded": true,
   "invariants": 6,
   "kind": "atom",
   "models": {
    "als": false,
-   "tla": false,
-   "twins": 0
+   "tla": true,
+   "twins": 4
   },
   "regulated_by": [
    "recoverable-invocation"
@@ -786,7 +786,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "draft",
+  "status": "grounded on Final Critique 4 \u2014 2026-10-04",
   "title": "Lease"
  },
  "legal-hold": {
