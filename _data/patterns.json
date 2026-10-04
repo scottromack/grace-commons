@@ -176,7 +176,7 @@
    "retention-window",
    "tamper-evidence"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -201,7 +201,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 37 \u2014 2026-10-04",
   "substrate_of": [
    "actor-suspension",
    "capability-backed-sharing",

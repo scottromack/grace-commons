@@ -396,8 +396,10 @@ def check_models_present(patterns: dict[Path, Pattern]) -> list[Finding]:
 # a forthcoming marker that DECORATES a link: `](path)` then, within a short
 # window, a `(forthcoming...)` marker — meaning the linked pattern itself is
 # being called forthcoming. (Not merely the word appearing elsewhere on the line.)
+# A semicolon ends a list item, so the window stops at one: in
+# `[A](./a.md); B *(forthcoming)*` the marker is B's, not A's.
 DECORATING_FORTHCOMING = re.compile(
-    r"\]\((\.{1,2}/[^)]+?\.md)(?:#[^)]*)?\)[^.\n]{0,40}?\(forthcoming",
+    r"\]\((\.{1,2}/[^)]+?\.md)(?:#[^)]*)?\)[^.;\n]{0,40}?\(forthcoming",
     re.I,
 )
 

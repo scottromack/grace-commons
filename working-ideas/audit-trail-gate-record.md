@@ -29,7 +29,8 @@
 | 22 | 33 | 3 passes, frozen tree | 3 + 2 + 2 = 7 | 5 | 37 / 9 | `cf8e56b` |
 | 23 | 34 | 3 passes, frozen tree, cold to Status | 3 + 5 + 2 = 10 | 10 | 47 / 14 | `116c123` |
 | 24 | 35 | 3 passes, frozen tree, cold to Status | 3 + 2 + 3 = 8 | 6 | 48 / 22 | `a3aadc6` |
-| 25 | 36 | 3 passes, frozen tree, cold to Status | 2 + 2 + 3 = 7 | 7 | 59 / 19 | this commit |
+| 25 | 36 | 3 passes, frozen tree, cold to Status | 2 + 2 + 3 = 7 | 7 | 59 / 19 | `fa2f26c` |
+| 26 | 37 | 3 passes, one frozen text, cold to Status | 0 + 0 + 0 = 0 | 0 | 53 / 26 | this commit |
 
 Rounds 12 to 18 counts are each reader's own count line; reader reports were not grouped across readers then, and the round-16 and round-18 refining counts are lower bounds (a reader's count was lost to a context compaction, or a borderline finding was counted apart). A "+" marks that.
 
@@ -145,13 +146,19 @@ Refining reports seen in two rounds or by two readers and already Ledger lines: 
 
 Refining reports seen by one reader, held here: Event Log's serialized append absent from the six serialization obligations; references to a Lease edge case, External Anchoring and Credential management that resolve to nothing; the third half's placement mapping two of its refusals; Primitive policy 9 with no landing; the erasure mechanism specified here as a knob; the cadence driver, the scan scheduler and the purge sweep as one concept under three contracts, the sweep with no cadence; the Legal Hold store's instance topology; [Purge Event] carrying no actor; record action step 5.5's fallback enumeration against a 30-second bound; Per-act critical section 13e alerting with no headroom on a log that only grows; closure floor pricing the probe and the intent at one bound where start margin admits two.
 
+**Round 26** (one frozen text, body hash `45ae204` over lines 1 to 1994, file hash `8b2bd62`; no edit between passes; the brief of rounds 23 to 25 with two additions: a reader commits to a class and may not report *foundational, but triage may downgrade it*, and a state where every record is safe and the only cost is a bounded delay, a held key or a surfaced alert is out of scope; 0 reports)
+
+Between rounds 25 and 26 no reader ran on this page. The work was on what the page stands on: the capability sweep (Ledger lines s, m, o), Retention Window re-grounded with an owner of the destruction it accepts (line a), Lease grounded with a model (2026-10-02-a), and the hold placement given to the deployment (lines p, v). Every one was a kind C finding of rounds 23 to 25. The third pass's hardest attack, a stalled record action appending after its attestation was compensated, fails with zero slack, and it recomputed 19 min 4 s, 298 s and 342 s.
+
+Refining reports routed as Ledger lines 2026-10-04-a through q. One is a propagation miss of this campaign: Lease Sizing 4a wants a lease that exceeds the work's bound and Per-act critical section 9a sets it equal (line a); the worst reachable state is a refused last write at the exact worst-case latency, so it is refining, and it is the first cure the next load-bearing touch owes. Reported again and already lines: no answer outside the signatures (e), coverage ranges derived and durable (g), Retention Window's not-known at purge (h), `recording-failure(step-3)` with no position (q), the pre-check that reads an index only a rebuild writes (u).
+
 ## Totals
 
 | Format | Rounds | Foundational reports | Per reader | Distinct groups |
 |---|---|---|---|---|
 | Two readers | 12 to 18 | 8, 8, 10, 9, 7, 5, 5 | 4.0, 4.0, 5.0, 4.5, 3.5, 2.5, 2.5 | not grouped |
 | Three passes | 19 to 22 | 10, 10, 7, 7 | 3.3, 3.3, 2.3, 2.3 | 10, 8, 5, 5 |
-| Three passes, cold to Status | 23, 24, 25 | 10, 8, 7 | 3.3, 2.7, 2.3 | 10, 6, 7 |
+| Three passes, cold to Status | 23, 24, 25, 26 | 10, 8, 7, 0 | 3.3, 2.7, 2.3, 0 | 10, 6, 7, 0 |
 
 ## Log
 
@@ -160,3 +167,4 @@ Refining reports seen by one reader, held here: Event Log's serialized append ab
 - 2026-10-03 · round 23 itemised; the Ledger's Final Critique number is now 34. The readers stopped at `## Status`, which earlier rounds' readers did not, so the stale-Ledger reports of those rounds have no counterpart here.
 - 2026-10-03 · round 24 itemised; the Ledger's Final Critique number is now 35.
 - 2026-10-03 · round 25 itemised; the Ledger's Final Critique number is now 36.
+- 2026-10-04 · round 26 itemised: zero foundational from three passes on one text; the Ledger's Final Critique number is now 37 and the status is grounded.

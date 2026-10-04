@@ -59,6 +59,7 @@ from lint import (  # noqa: E402
     check_stale_census,
     check_acceptance_surface,
     check_orphan_forthcoming,
+    DECORATING_FORTHCOMING,
     load_patterns,
 )
 
@@ -822,6 +823,24 @@ def check_orphan_synthetic(problems: list[str]) -> None:
     if got:
         problems.append("M-orphan-forthcoming: fired on a single-word fragment — "
                         "a pattern name carries a space or a hyphen")
+
+
+# ── D-stale-forthcoming's window, pinned synthetically ───────────────────── #
+# The marker must decorate the link it follows. Reserve from Pool lists
+# `[Audit Trail](./audit-trail.md); Reversal *(forthcoming)*`, and the day Audit
+# Trail grounded the check read Reversal's marker as Audit Trail's (2026-10-04).
+
+def check_stale_forthcoming_window(problems: list[str]) -> None:
+    if not DECORATING_FORTHCOMING.search("See [Ghost](./ghost.md) *(forthcoming)*."):
+        problems.append("D-stale-forthcoming: a marker directly after its link "
+                        "is no longer read as decorating the link")
+    if not DECORATING_FORTHCOMING.search("[Ghost](./ghost.md), an atom *(forthcoming)*"):
+        problems.append("D-stale-forthcoming: a marker a few words after its "
+                        "link is no longer read as decorating the link")
+    if DECORATING_FORTHCOMING.search(
+            "[Ghost](./ghost.md); Spectre Ledger *(forthcoming)*; [Wisp](./wisp.md)"):
+        problems.append("D-stale-forthcoming: the next list item's marker is "
+                        "read as decorating the link before the semicolon")
 
 
 # ── Y-acceptance-surface, pinned synthetically ────────────────────────────── #
@@ -2115,6 +2134,14 @@ def main(argv: list[str]) -> int:
         print("M-orphan-forthcoming: 5 synthetic fixtures hold (an unlisted "
               "forthcoming fires; a listed one, a linked one, an unmigrated "
               "spec and a single-word fragment stay silent) \u2713")
+
+    window_problems: list[str] = []
+    check_stale_forthcoming_window(window_problems)
+    failures.extend(window_problems)
+    if not window_problems:
+        print("D-stale-forthcoming: 3 synthetic fixtures hold (a marker after "
+              "its link and one a few words on fire; the next list item's "
+              "marker stays silent) \u2713")
 
     doubled_problems: list[str] = []
     check_doubled_section_synthetic(doubled_problems)
