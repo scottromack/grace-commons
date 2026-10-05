@@ -421,9 +421,9 @@ Audit arm 25: The composition MUST NOT retry an intent the read-back found.
 Audit arm 26: The composition MUST read an invalid-request answer as a deployment fault.
 Audit arm 27: The composition MUST NOT read an invalid-request answer as a transient fault.
 Audit arm 28: The composition MUST alert on an owed outcome.
-Audit arm 29: IF Audit Trail answers invalid-request(step-1 | step-2 | step-3) at an intent THEN the action MUST answer recording-failure carrying intent.
-Audit arm 30: IF Audit Trail answers invalid-request(step-1 | step-2 | step-3) at an outcome THEN the action MUST answer recording-failure carrying outcome.
-Audit arm 31: The composition MUST NOT retry an invalid-request(step-3 | step-4) answer.
+Audit arm 29: IF Audit Trail answers invalid-request carrying a step below step-4 at an intent THEN the action MUST answer recording-failure carrying intent.
+Audit arm 30: IF Audit Trail answers invalid-request carrying a step below step-4 at an outcome THEN the action MUST answer recording-failure carrying outcome.
+Audit arm 31: The composition MUST NOT retry an invalid-request answer carrying a step above step-2.
 ```
 
 Term landed intent: an intent the substrate has appended and attested, whatever the substrate then answered.

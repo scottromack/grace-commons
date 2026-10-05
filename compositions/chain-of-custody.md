@@ -256,7 +256,7 @@ WHY:
 
 ```
 Audit arm 1: IF Audit Trail answers invalid-credential at an intent THEN the custody action MUST answer invalid-credential.
-Audit arm 2: IF Audit Trail answers invalid-request(step-1 | step-2) at an intent THEN the custody action MUST answer invalid-request.
+Audit arm 2: IF Audit Trail answers invalid-request carrying a step below step-3 at an intent THEN the custody action MUST answer invalid-request.
 Audit arm 3: IF Audit Trail answers recording-failure at an intent THEN the custody action MUST answer recording-failure carrying intent.
 Audit arm 4: The composition MUST NOT retry an invalid-request answer.
 Audit arm 5: IF Audit Trail answers recording-failure carrying the retention step at an outcome THEN the invocation MUST read the outcome event back.
@@ -279,8 +279,8 @@ Audit arm 21: IF the invocation's lease expired THEN the invocation MUST NOT re-
 Audit arm 22: An invocation whose lease expired MUST NOT append an outcome.
 Audit arm 23: A caller MUST read recording-failure carrying intent as a committed nothing.
 Audit arm 24: A caller MUST read recording-failure carrying outcome as a committed custody entry.
-Audit arm 25: IF Audit Trail answers invalid-request(step-3 | step-4) at an intent THEN the custody action MUST answer recording-failure carrying intent.
-Audit arm 26: IF Audit Trail answers invalid-request(step-1 | step-2 | step-3) at an outcome THEN the invocation MUST escalate the orphan as a deployment fault.
+Audit arm 25: IF Audit Trail answers invalid-request carrying a step above step-2 at an intent THEN the custody action MUST answer recording-failure carrying intent.
+Audit arm 26: IF Audit Trail answers invalid-request carrying a step below step-4 at an outcome THEN the invocation MUST escalate the orphan as a deployment fault.
 ```
 
 Term intent: the custody action's record before its Provenance write — custody.originate_intended, custody.transfer_intended, custody.transform_intended, custody.disclose_intended or custody.archive_intended; carrying the invocation's parameters and no constituent-minted id.
@@ -296,7 +296,7 @@ Term recovery intent: the custody.recovery_intended event — naming the chain i
 Term recovery flag: cascade_recovery set to true — carried by an outcome attested under the recovery identity, and by no other.
 
 WHY:
-**Mapped by position relative to the Provenance write** (the section titled *A transcribed rejection arm keeps its payload and its reachability* in `pressure-testing.md`). **At the intent nothing has committed**, so every arm is a clean refusal (Audit arm 1 through 4): invalid-credential is the caller's; invalid-request is a deployment fault — a misconfigured retention policy, or an over-cap payload the input caps nearly foreclose — pageable and never retried, since a retry re-sends the identical payload; a recording-failure is the one retryable arm. The substrate's invalid-request carries its step, and only steps 1 and 2 commit nothing: `invalid-request(step-3)` and `invalid-request(step-4)` leave the attestation, and at step-4 the intent event, committed, so they land as the intent's own recording-failure does — `recording-failure` carrying intent, the open intent the reconciliation's (Audit arm 25) — and the clean invalid-request is Audit arm 2's alone.
+**Mapped by position relative to the Provenance write** (the section titled *A transcribed rejection arm keeps its payload and its reachability* in `pressure-testing.md`). **At the intent nothing has committed**, so every arm is a clean refusal (Audit arm 1 through 4): invalid-credential is the caller's; invalid-request is a deployment fault — a misconfigured retention policy, or an over-cap payload the input caps nearly foreclose — pageable and never retried, since a retry re-sends the identical payload; a recording-failure is the one retryable arm. The substrate's invalid-request carries its step, and only steps 1 and 2 commit nothing: `invalid-request(step-3)` and `invalid-request(step-4)` leave the attestation, and at step-4 the intent event, committed, so they land as the intent's own recording-failure does — recording-failure carrying intent, the open intent the reconciliation's (Audit arm 25) — and the clean invalid-request is Audit arm 2's alone.
 
 **At the outcome the Provenance entry is immutable**, so no arm can refuse the act, only report it — and two arms report that it succeeded (Audit arm 5 through 11). The retention step means the event is appended; the substrate's invalid-request has two sources, and its step tells them apart — its cap, which the input caps foreclose, at step-1 through step-3 with nothing appended, and its retention configuration at step-4 with the event appended — so `invalid-request(step-4)` takes the read-back, from the log's start, which is total for a live payload and survives a replica behind the append (2026-08-30-d). Found, the invocation proceeds; `invalid-request(step-1 | step-2 | step-3)` (Audit arm 26), or not found after step-4, is a deployment fault no compensation can land — the orphan **escalated, never bound** (2026-08-30-o), since re-attestation changes who attests and never the payload the substrate refused.
 

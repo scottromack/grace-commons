@@ -17,12 +17,12 @@
 \*     (Legal Hold Operation 39, 41).
 \* The deployment's operational record is the last of: no run has landed the entry
 \* under-legal-hold; a run landed it under-legal-hold; a later run read no active hold, at a
-\* recorded instant (Composition-level invariant 1e2).
+\* recorded instant (Composition-level invariant 1h).
 \*
 \* WHAT THIS MODEL CHECKS
 \*   Inv_NoDestroyUnderHold  no content is destroyed while a hold is active (purge event 5b).
 \*   Inv_ReDriveAfterRelease after a release, a run reads no active hold within GapMax (First half 10).
-\*   Inv_ClosureAfterRestart after the recorded hold-free run the entry closes (Composition-level invariant 1e1).
+\*   Inv_ClosureAfterRestart after the recorded hold-free run the entry closes (Composition-level invariant 1e).
 \*   Inv_BoundedClosure      read as an auditor reads it, from the stores and the operational
 \*                           record alone: an open entry that is neither held nor a suspended
 \*                           entry is closed within closure sum of its start, the start being
@@ -162,8 +162,8 @@ SLandHeld ==
     /\ UNCHANGED <<zpc, now, exp, hold, content, closed, lastRun, runAt, freeRunAt, ppc, placed, relInst, relSeen, faults, bad, gap>>
 
 \* No active hold: the run goes on. Where an earlier run landed the entry under-legal-hold, this is
-\* the hold-free run, and its instant is recorded (Composition-level invariant 1e, 1e2); an entry
-\* no run landed under-legal-hold does not restart (Composition-level invariant 1e3).
+\* the hold-free run, and its instant is recorded (Composition-level invariant 1e, 1h); an entry
+\* no run landed under-legal-hold does not restart (Composition-level invariant 1i).
 SReadFree ==
     /\ spc = "took"
     /\ Live("scan")
@@ -332,7 +332,7 @@ Inv_BoundedClosure == (~closed /\ Counted) => (now <= Start + Window)
 \* First half 10, bounded: once the hold is released, a run reads no active hold within GapMax.
 Inv_ReDriveAfterRelease == gap <= GapMax
 
-\* Composition-level invariant 1e1, in the stronger form the model can reach inside its horizon:
+\* Composition-level invariant 1e, in the stronger form the model can reach inside its horizon:
 \* after the recorded hold-free run the entry closes within closure sum's two-run term.
 Inv_ClosureAfterRestart == (rec = "freed" /\ ~closed) => (now <= freeRunAt + GapMax)
 

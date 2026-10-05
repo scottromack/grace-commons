@@ -404,7 +404,7 @@ Identity 17 is why [Trigger Monitoring Review] needs no separate intent: its mon
 ```
 Audit arm 1: An invocation MUST make a committing call ONLY AFTER the landed intent.
 Audit arm 2: IF Audit Trail answers invalid-credential at an intent THEN the action MUST answer invalid-credential.
-Audit arm 3: IF Audit Trail answers invalid-request(step-1 | step-2) at an intent THEN the action MUST answer invalid-request.
+Audit arm 3: IF Audit Trail answers invalid-request carrying a step below step-3 at an intent THEN the action MUST answer invalid-request.
 Audit arm 4: IF Audit Trail answers recording-failure at an intent THEN the action MUST answer recording-failure carrying intent.
 Audit arm 5: IF Audit Trail answers recording-failure carrying the retention step at an intent THEN the invocation MUST NOT make a committing call.
 Audit arm 6: IF Audit Trail answers recording-failure carrying the retention step at an intent THEN the invocation MUST NOT retry the intent.
@@ -425,8 +425,8 @@ Audit arm 20: The composition MUST NOT read an invalid-request answer as a trans
 Audit arm 21: The composition MUST read an invalid-request answer as a deployment fault.
 Audit arm 22: A recovery outcome MUST carry the recovery marker.
 Audit arm 23: A recovery outcome MUST name the acting human in the outcome's data.
-Audit arm 24: IF Audit Trail answers invalid-request(step-3 | step-4) at an intent THEN the action MUST answer recording-failure carrying intent.
-Audit arm 25: The composition MUST NOT retry an invalid-request(step-3 | step-4) answer.
+Audit arm 24: IF Audit Trail answers invalid-request carrying a step above step-2 at an intent THEN the action MUST answer recording-failure carrying intent.
+Audit arm 25: The composition MUST NOT retry an invalid-request answer carrying a step above step-2.
 ```
 
 Term landed intent: the invocation's intent the substrate has appended and attested and answered.
@@ -444,7 +444,7 @@ Term recovery outcome: the outcome the reconciliation emits for a committed act 
 WHY:
 The substrate answers one taxonomy — invalid-credential, `invalid-request(step)`, `recording-failure(step)` — and this composition maps it **by the call's position relative to the constituent write**, not uniformly. At an intent nothing has committed, so every arm is a clean pre-state rejection and the caller may retry the whole action. At an outcome a constituent write exists, so no arm can refuse the act, only report it, and a re-run would commit it a second time. Audit arm 11 through 13 are that distinction exported: intent tells the caller nothing committed, outcome tells the caller an act exists and the reconciliation owns the record — the frozen rule *A composition's own rejection arm carries the retry bit*.
 
-Audit arm 5 through 7 are the one arm that is neither. The substrate's retention step refuses *after* the event is appended and attested, so the credential was verified and the call still failed: the invocation aborts with nothing committed, and the appended intent stands as an open marker the reconciliation will resolve. Re-recording it would double-append, which is why Audit arm 18 sends that arm to the substrate's own reconciliation rather than retrying it here. `invalid-request(step-3)` and `invalid-request(step-4)` land in the same state — the attestation committed, and at step-4 the event too — so an intent-position one is answered as `recording-failure` carrying intent (Audit arm 24) and neither is retried at either position (Audit arm 25), because a retry mints a second attestation; `invalid-request(step-1)` and `invalid-request(step-2)` commit nothing and stay the clean refusal of Audit arm 3. At an outcome the step changes nothing for the caller (Audit arm 9): the act committed either way, and the action's own answer is `recording-failure` carrying outcome.
+Audit arm 5 through 7 are the one arm that is neither. The substrate's retention step refuses *after* the event is appended and attested, so the credential was verified and the call still failed: the invocation aborts with nothing committed, and the appended intent stands as an open marker the reconciliation will resolve. Re-recording it would double-append, which is why Audit arm 18 sends that arm to the substrate's own reconciliation rather than retrying it here. `invalid-request(step-3)` and `invalid-request(step-4)` land in the same state — the attestation committed, and at step-4 the event too — so an intent-position one is answered as recording-failure carrying intent (Audit arm 24) and neither is retried at either position (Audit arm 25), because a retry mints a second attestation; `invalid-request(step-1)` and `invalid-request(step-2)` commit nothing and stay the clean refusal of Audit arm 3. At an outcome the step changes nothing for the caller (Audit arm 9): the act committed either way, and the action's own answer is recording-failure carrying outcome.
 
 Audit arm 14 through 17 bound the retry at both ends. Inside the completion bound the owed record is the invocation's, because the reconciliation cannot see an invocation that has not written yet and a re-emission fired at it would land a second outcome for one act. Past it the record is the reconciliation's, and every compensating write is preceded by a traversal for an outcome already carrying this intent event id — matched by equality, never by resemblance of payload.
 

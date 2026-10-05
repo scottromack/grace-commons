@@ -272,7 +272,7 @@ Audit arm 4: IF Audit Trail answers invalid-request(step-4) at a record THEN the
 Audit arm 5: IF the read-back finds the record THEN the composition MUST proceed as landed.
 Audit arm 6: The composition MUST name a record read back as landed in the unretained field.
 Audit arm 7: The composition MUST NOT retry a record the read-back finds.
-Audit arm 8: IF Audit Trail answers invalid-request(step-1 | step-2 | step-3) at an intent record THEN the lifecycle action MUST answer invalid-request.
+Audit arm 8: IF Audit Trail answers invalid-request carrying a step below step-4 at an intent record THEN the lifecycle action MUST answer invalid-request.
 Audit arm 9: The composition MUST NOT retry an intent record answered with invalid-request.
 Audit arm 10: IF Audit Trail answers recording-failure carrying a pre-append step at an outcome record THEN the invocation MUST retry the outcome record under the record exclusion.
 Audit arm 11: The invocation's retries of one outcome record MUST NOT EXCEED the outcome retry attempts.
@@ -280,7 +280,7 @@ Audit arm 12: IF Audit Trail answers invalid-credential at an outcome record THE
 Audit arm 13: A re-attested outcome record MUST carry the recovery flag AND the actor reference as the acting actor reference.
 Audit arm 14: The invocation MUST NOT record a re-attested outcome record BEFORE the recovery intent lands.
 Audit arm 15: IF no outcome record lands THEN the lifecycle action MUST answer recording-failure carrying outcome AND the finding.
-Audit arm 16: IF Audit Trail answers invalid-request(step-1 | step-2 | step-3) at an outcome record THEN the finding MUST carry invalid-request as the cause.
+Audit arm 16: IF Audit Trail answers invalid-request carrying a step below step-4 at an outcome record THEN the finding MUST carry invalid-request as the cause.
 Audit arm 17: The composition MUST escalate an orphan whose cause EQUALS invalid-request.
 Audit arm 18: An invocation answering recording-failure carrying outcome MUST release the record exclusion.
 Audit arm 19: The invocation MUST NOT append an outcome record BEFORE re-reading the lifecycle enumeration for an outcome naming the intent event id under the record exclusion.
@@ -516,7 +516,7 @@ Reconciliation 14: IF the candidate count EXCEEDS one THEN the compensating even
 Reconciliation 15: IF the candidate count EXCEEDS the intent candidates cap THEN the reconciliation MUST NOT compensate the orphan.
 Reconciliation 16: IF the candidate count EXCEEDS the intent candidates cap THEN the reconciliation MUST escalate the orphan.
 Reconciliation 17: The reconciliation MUST insert a compensating event's lifecycle entry at the earliest intent position the intent reference names.
-Reconciliation 18: The reconciliation MUST NOT re-send a payload Audit Trail refused with invalid-request(step-1 | step-2 | step-3).
+Reconciliation 18: The reconciliation MUST NOT re-send a payload Audit Trail refused with invalid-request carrying a step below step-4.
 Reconciliation 19: The reconciliation MUST escalate EVERY overdue orphan as an unresolved finding.
 Reconciliation 20: The reconciliation MUST surface EVERY pending orphan to the compliance dashboard.
 Reconciliation 21: A regulated deployment MUST alert on a pending orphan of a purge.

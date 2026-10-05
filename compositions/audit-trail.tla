@@ -30,7 +30,7 @@
 \* - A scan leg's lease sized from the run's elapsed time (Per-act critical section 13a, 13d): runs are instantaneous here,
 \*   so the lease is the whole bound; Durability 8 (a lost coverage entry) and event to attestation's split key.
 \* - The hold read's failure arm (purge event 5e, cascade-failure(hold) with no step executed), Concurrency 3a's
-\*   lease on the serialization, Concurrency 1b1 and 1f (the uncovered mark apart from the grant, a fresh holder
+\*   lease on the serialization, Concurrency 1h and 1f (the uncovered mark apart from the grant, a fresh holder
 \*   per seal attempt), and Invariant 1.10's circuit break (a run ends at the first refusal that left an orphan).
 \* - [Record Action], and the scan's second and third halves: audit-trail-record.tla. Invariants 3, 5,
 \*   6 and 7, [Read Record], [Verify Record], and the return arms of [Purge Event].
