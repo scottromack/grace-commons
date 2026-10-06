@@ -1337,6 +1337,7 @@ open:
 - 2026-10-05-x · refining · Disposition 3, 4, 6; Invariant 4.1; Check 4.1 · no rule puts the determination's reference in an access reason, which the invariant and the check require → add it
 - 2026-10-05-y · refining · Term alert floor; Capability requirement 48 · the floor counts on an answer inside the window that no requirement obliges of the deployment → state it
 - 2026-10-05-z · rhetorical · Term fulfillment; Term reconciliation; Term leg; the reason value sets · fulfillment names the call and the bound triple, reconciliation is defined as the leg and run is undeclared, and three reasons each cover two causes → one name each
+- 2026-10-06-a · refining · Term alert floor; Capability requirement 48, 49; Reconciliation 34 · the floor counts no time for a run's enumeration, which nothing bounds, so an intent can age while a run is still reading toward it; and Defensible Retention now sets one policy over every event of the shared audit instance and keeps its action references to itself, which this page states for its own references alone → that page's enumeration bound; cite Defensible Retention Capability requirement 57 and 64; found by that page's Final Critique 13 and swept here ahead of this page's confirming round
 ```
 
 ## Decisions
