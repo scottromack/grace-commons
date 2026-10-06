@@ -802,6 +802,7 @@ open:
 - 2026-10-03-k · refining · Identity 5, 10; Invariant 9.1; Capability requirement 8, 9 · non-reuse has two owners and a colliding id has no refusal arm, and no action performs the comparison Identity 10 obliges → one owner; an arm or a named non-goal
 - 2026-10-03-l · refining · Operation 24a; Identity 6; [Read] · the day a calendar period counts from is in a WHY, a reference is checked for blank alone, and [Read] has no order or bound → pin each or name the owner
 - 2026-10-03-m · refining · acronyms; edge-case labels · SEC, FDA, DoD, IRS, NARA and CVV are not spelled out, four label families do not name their headings, and five rules carry two obligations → mechanical
+- 2026-10-05-a · refining · Operation 29, 33; [Read] · the read answers every retention of the instance with no key, so a composing pattern's read by retention id or by record is a whole-store enumeration under its lease, and state-unavailable or no answer on a read that must not refuse is left to the composer → a keyed read; an arm; reported by Defensible Retention's and Resolve a Person's Data Rights' gates
 ```
 
 ## Decisions

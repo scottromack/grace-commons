@@ -679,7 +679,9 @@ status: grounded on Final Critique 4 — 2026-05-20
 formal: verified — legal-hold.tla + 2 twins, 2026-06-04
 last gate: 2026-05-20 — Final Critique 4, fresh reader — clean
 
-open: none
+open:
+- 2026-10-05-a · refining · State 2; Operation 10 · a hold carries a placement instant a caller may assert and no instant the system stamped at entry, so a composing pattern cannot age or order a hold whose audit record is gone → an entry instant; reported by Defensible Retention's gate
+- 2026-10-05-b · refining · Place persistence 2; Operation 8, 17; Composition note 3 through 6 · a place or a release that answers no answer or state-unavailable has no rule, a future placement instant and a release ahead of the placement are refused only at the atom's seam, after a composing pattern's intent, and the notes that give authority and bulk to a composing pattern admit no pass-down → state each; reported by the same gate
 ```
 
 ## Decisions

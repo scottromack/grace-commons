@@ -3,6 +3,7 @@
 - **Pattern:** `compositions/defensible-retention.md`
 - **Model:** `defensible-retention.tla` + `-buggy`, `-buggy-sibling`, `-buggy-gate`, `-buggy-margin`, `-buggy-release` + probe `-probe-after`; `defensible-retention-outcome.tla` + `-outcome-buggy-floor`, `-outcome-buggy-sweep`, `-outcome-buggy-refused` + probe `-outcome-probe-recover`. One module body, twelve files; the two base files differ by which parties run.
 - **Reviewer / date:** the model's author, same session as the re-derivation — 2026-10-04. Not a fresh-context read; the next scheduled rescan owes one.
+- **Touch of 2026-10-05 (Final Critique 12):** the rules the two models read — Invariant 1, 9 and 5.6, Concurrency 4, 13 through 17, 22 and 25, Reconciliation 20 and 21 — are as they were; the cures of that round sit on the NOT MODELED list (the audit horizon and the stand-in, the sizing of a record, the audit arms, the indexes and the listing). The twelve files are unchanged and were run again: 12 models, 0 FAIL.
 - **Formal-layer vote load-bearing claims:** Invariant 1 (hold-blocks-purge, the race against a hold placement included); Invariant 9 (no destruction while a sibling retention lives, the race against a placement included); Invariant 5.6 with Concurrency 4 (one outcome per act, the invocation against the sweep). The vote is yes: each is a claim over interleavings, which the page alone cannot settle.
 
 ## Step 1 — harness re-run (must pass)

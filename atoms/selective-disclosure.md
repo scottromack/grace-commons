@@ -616,7 +616,9 @@ status: grounded on Final Critique 5 — 2026-06-23
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
 
-open: none
+open:
+- 2026-10-05-a · refining · Composition note 9 · read to the letter it forbids a pattern that reads the disclosure store from writing to it at all, where the atom's own account of Resolve a Person's Data Rights has that composition read and record through the atom's surfaces → say no write beside [Record]; reported by that composition's gate
+- 2026-10-05-b · refining · Non-goal 19; Composition note 5, 6; Invariant 6.1 · a retention bound is to be composed over a store the atom must never remove a record from, and the owner of the seal and the retention is a composing pattern the notes do not let pass the duty down → say who guarantees persistence; reported by the same gate
 ```
 
 ## Decisions

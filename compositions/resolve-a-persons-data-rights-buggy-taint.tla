@@ -1,5 +1,5 @@
----- MODULE resolve-a-persons-data-rights-buggy ----
-\* BUGGY TWIN: a leg closes an open intent without taking the request section (Reconciliation 17 violated).
+---- MODULE resolve-a-persons-data-rights-buggy-taint ----
+\* BUGGY TWIN: a purge that answered storage-failure and then a refusal is sealed retained (Term purge reading violated).
 \* Grace Commons — Resolve a Person's Data Rights. Spec-level formal sibling of
 \* compositions/resolve-a-persons-data-rights.md. Derived validator; the English spec is the single
 \* source of truth. On any disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.

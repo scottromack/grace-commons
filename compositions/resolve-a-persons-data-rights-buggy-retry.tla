@@ -1,5 +1,5 @@
----- MODULE resolve-a-persons-data-rights-buggy ----
-\* BUGGY TWIN: a leg closes an open intent without taking the request section (Reconciliation 17 violated).
+---- MODULE resolve-a-persons-data-rights-buggy-retry ----
+\* BUGGY TWIN: the invocation issues its fulfilled event a second time after a step-3 refusal (Audit arm 21 violated).
 \* Grace Commons — Resolve a Person's Data Rights. Spec-level formal sibling of
 \* compositions/resolve-a-persons-data-rights.md. Derived validator; the English spec is the single
 \* source of truth. On any disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.

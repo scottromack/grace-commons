@@ -511,7 +511,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 11 \u2014 2026-10-04",
+  "status": "grounded on Final Critique 12 \u2014 2026-10-05",
   "substrate_of": [
    "resolve-a-persons-data-rights"
   ],
@@ -1273,13 +1273,13 @@
    "selective-disclosure",
    "consent"
   ],
-  "grounded": false,
+  "grounded": true,
   "invariants": 8,
   "kind": "composition",
   "models": {
    "als": false,
    "tla": true,
-   "twins": 2
+   "twins": 9
   },
   "regulated": true,
   "standards": [
@@ -1290,7 +1290,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "partially resolved",
+  "status": "grounded on Final Critique 10 \u2014 2026-10-05",
   "substrates": [
    "defensible-retention"
   ],

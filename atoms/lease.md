@@ -470,6 +470,7 @@ open:
 - 2026-10-04-i · refining · Non-goals; label families · five non-goals name no owner, three are obligations on a caller or a pattern, two label families do not name their headings, and instance, lease call, bare, arrival order and process are undeclared → mechanical
 - 2026-10-04-j · refining · Summary; Intent; Examples; Standards references · the summary is not plain language, the intent is corpus history, no example carries a value or walks no answer, not-held, a restart or a budget share, and a deadline is called the same rule as a fencing token → rewrite at the level the rules hold
 - 2026-10-04-k · refining · Operation 1, 2b; Capability requirement 1 · a blocking take reads the host's clock twice and waits, and the page never says the host is a capability outside the Execution Contract's pipeline → say so, citing Logic confinement 3 and 6
+- 2026-10-05-a · refining · Term unit of work; Sizing 2a, 5; Capability requirement 7 · a unit's bound runs from the reading's ask where an adopter's latency runs from the call's issue, a remaining that answers none is classed by no sizing rule, and every unfenced write inside the call pause bound cannot hold for an adopter's one-call unit run to its own bound → one origin; an arm; scope the requirement; reported by Defensible Retention's and Resolve a Person's Data Rights' gates
 ```
 
 ## Decisions

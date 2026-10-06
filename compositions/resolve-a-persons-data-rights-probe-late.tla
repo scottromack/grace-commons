@@ -1,5 +1,5 @@
----- MODULE resolve-a-persons-data-rights-buggy ----
-\* BUGGY TWIN: a leg closes an open intent without taking the request section (Reconciliation 17 violated).
+---- MODULE resolve-a-persons-data-rights-probe-late ----
+\* EXPECT: violation — reachability probe: a fulfilled event whose write answered a step-3 refusal lands afterwards and is the one fulfilled event, never.
 \* Grace Commons — Resolve a Person's Data Rights. Spec-level formal sibling of
 \* compositions/resolve-a-persons-data-rights.md. Derived validator; the English spec is the single
 \* source of truth. On any disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
