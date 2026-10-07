@@ -730,7 +730,8 @@
   ],
   "status": "partially resolved",
   "substrates": [
-   "audit-trail"
+   "audit-trail",
+   "recoverable-invocation"
   ],
   "title": "Immutable Transaction Ledger with Selective Disclosure"
  },
@@ -1239,6 +1240,9 @@
    "SOX"
   ],
   "status": "draft",
+  "substrate_of": [
+   "immutable-transaction-ledger"
+  ],
   "substrates": [
    "audit-trail"
   ],

@@ -62,6 +62,7 @@ constituents reached transitively). This is the load-bearing spine of the librar
 | [Audit Trail](./compositions/audit-trail.html) | 14 | actor-suspension, capability-backed-sharing, chain-of-custody, customer-onboarding, defensible-retention, execute-gated-workflow, external-onboarding, forensic-recovery, immutable-transaction-ledger, login, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, recoverable-invocation |
 | [Defensible Retention](./compositions/defensible-retention.html) | 1 | resolve-a-persons-data-rights |
 | [Multi-Party Approval](./compositions/multi-party-approval.html) | 1 | privileged-access-provisioning |
+| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 1 | immutable-transaction-ledger |
 
 ## The substrate spine
 
@@ -85,7 +86,7 @@ flowchart LR
   multi_party_approval["Multi-Party Approval · 1"]
   privileged_access_provisioning["Privileged Access Provisioning"]
   propagate_consent_revocation_downstream["Propagate Consent Revocation Downstream"]
-  recoverable_invocation["Recoverable Invocation"]
+  recoverable_invocation["Recoverable Invocation · 1"]
   resolve_a_persons_data_rights["Resolve a Person's Data Rights"]
   actor_suspension -.-> audit_trail
   capability_backed_sharing -.-> audit_trail
@@ -96,6 +97,7 @@ flowchart LR
   external_onboarding -.-> audit_trail
   forensic_recovery -.-> audit_trail
   immutable_transaction_ledger -.-> audit_trail
+  immutable_transaction_ledger -.-> recoverable_invocation
   login -.-> audit_trail
   multi_party_approval -.-> audit_trail
   privileged_access_provisioning -.-> audit_trail
@@ -106,7 +108,7 @@ flowchart LR
   classDef comp fill:#3b2a52,stroke:#c7a8e8,color:#f2ebfa;
   classDef spine fill:#52341f,stroke:#f0b27a,color:#fdf2e9;
   class actor_suspension,audit_trail,capability_backed_sharing,chain_of_custody,customer_onboarding,defensible_retention,execute_gated_workflow,external_onboarding,forensic_recovery,immutable_transaction_ledger,login,multi_party_approval,privileged_access_provisioning,propagate_consent_revocation_downstream,recoverable_invocation,resolve_a_persons_data_rights comp;
-  class audit_trail,defensible_retention,multi_party_approval spine;
+  class audit_trail,defensible_retention,multi_party_approval,recoverable_invocation spine;
 ```
 
 ## The full graph
@@ -248,6 +250,7 @@ flowchart LR
   c_external_onboarding -.-> c_audit_trail
   c_forensic_recovery -.-> c_audit_trail
   c_immutable_transaction_ledger -.-> c_audit_trail
+  c_immutable_transaction_ledger -.-> c_recoverable_invocation
   c_login -.-> c_audit_trail
   c_multi_party_approval -.-> c_audit_trail
   c_privileged_access_provisioning -.-> c_audit_trail

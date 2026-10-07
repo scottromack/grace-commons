@@ -1570,7 +1570,7 @@ The composition anchors the accountability every regulated adopter's regime requ
 
 ## Status
 
-`draft` — first draft 2026-08-30 (corpus date); twelve fresh-reader gates on the prose draft through 2026-09-10, council read 7 on the GRACE lang rewrite, council read 50 on the current state. The Ledger carries every gate's counts. The word stays `draft` because no adopter has bound to it yet, not because the passes are owed — they ran, and this line said otherwise for a month (council read 50).
+`draft` — first draft 2026-08-30 (corpus date); twelve fresh-reader gates on the prose draft through 2026-09-10, council read 7 on the GRACE lang rewrite, council read 50 on the current state. The Ledger carries every gate's counts. Immutable Transaction Ledger bound to it as the pilot adopter on 2026-10-07. The word stays `draft` until the bound pair has been read by a fresh reader, and while the foundational line 2026-10-04-a stands open; the passes on this page alone ran, and this line said otherwise for a month (council read 50).
 
 ## Ledger
 
@@ -1585,6 +1585,12 @@ open:
 - 2026-10-04-a · foundational · close step 2.3b, 3.7, 3.8; yield 1, yield 2 · Lease now forbids releasing a grant under which a call is in flight (its Composition note 5c), and these arms release after a write whose reply may be lost, so the next holder can read ahead of a write that then lands → hold the grant to its instant on those arms, or bring the read-your-writes capability to Lease as a named exception with the moment it shows the landing
 - 2026-10-04-b · refining · the journal fence terms · the fence instant is said to be minted by the critical section host; Lease has the holder mint it (its Invariant 6.2, Fence 8) → the holder mints
 - 2026-10-04-c · refining · commit fence none; reconcile step 2.1; act section 14 · the fenceless arm issues unfenced writes with no call pause bound declared and no Lease Sizing rule stated (its Sizing 1, Composition note 8), one run id is the holder value of every sweep take (its Identity 6), and the holder re-enters a key it holds (its Non-goal 1) → state the sizing, mint a holder value per take, say what re-entry answers
+- 2026-10-07-a · refining · act key 2; pairing datum 4; Deviation 4 · the obligation that no two serialized invocations carry one reading is scoped to one act key, so an adopter that keys a repeatable act per invocation meets it with nothing to serialize, and probe then pairs an intent that died ahead of its commit to another invocation's record at the same reading — a second outcome over one store record, with every rule obeyed → oblige the bound key of a repeatable act to be the key probe reads the store by; found binding the pilot adopter
+- 2026-10-07-b · refining · Invariant 5.3; probe 6; Bindings · a datum the outcome must show and the store does not hold has no stated home, so an adopter's outcome comes in two shapes — the invocation's with it, the sweep's without — unless the adopter moves the datum to intent data, which the pilot did → say so in Bindings
+- 2026-10-07-c · refining · read invocation 2, 3 · the read by act key answers the most recent read cap of invocations with no cursor, so an adopter whose key many repeatable acts share cannot reach an older invocation by key and reads the journal for the id itself → a cursor, or a read by pairing datum
+- 2026-10-07-d · refining · Primitive policy 1, 8; Bindings · the adopter's obligations to cap act key and actor reference ahead of [Open] sit in Primitive policy and nowhere in Bindings, where an adopter reads what is owed → cite them there
+- 2026-10-07-e · refining · Invariant 2.4; journal fence none 1 · an adopter's own uniqueness invariant over its store's key degrades with this page's, and nothing tells the adopter to state it at quiescence; the pilot's had claimed it outright → a line for adopters under the degradation
+- 2026-10-07-f · refining · reconcile step 1 · the sweep starts from intents, so a store record no intent carries is invisible to it; the pilot keeps its own read of the store for that → name it as the adopter's, where the composition says what the sweep never does
 ```
 
 ## Decisions
