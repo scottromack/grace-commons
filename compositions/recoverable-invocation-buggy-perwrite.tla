@@ -16,6 +16,9 @@
 \*
 \* Expected result: Inv2_OneWriter VIOLATED — the read-back misses a write
 \* still in flight and the retry is the second record. Gate 7, F2.
+\* The configuration checks Inv2_OneWriter alone. At this cadence a sweep's next
+\* run leaves the type invariant's range, and the Safety conjunction reported
+\* that first, so the twin was being rejected for a reason it does not name.
 
 
 EXTENDS Naturals

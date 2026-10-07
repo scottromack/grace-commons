@@ -5,6 +5,57 @@
 \* is the single source of truth. On any disagreement, diagnose per
 \* the entry *The conflict protocol* in pressure-testing.md.
 \*
+\* VERSION 6 (2026-10-07) brings the invocation's lost-reply path into step
+\* with the grounded Lease atom, which forbids a holder to release a grant
+\* under which a call is in flight (its Composition note 5c) and to issue a
+\* second time, under one lease, an unfenced call that answered no answer (its
+\* Sizing 8). v3 to v5 released after the read-back and at [Yield], as the page
+\* did. Two constants:
+\*   HoldUnanswered  — TRUE: an invocation one of whose calls has not answered
+\*                     — a commit still in flight at [Yield], an outcome write
+\*                     whose reply was lost, whether the read-back found it,
+\*                     missed it, or a retry then landed — does not release;
+\*                     the grant runs to its instant. FALSE is the page through
+\*                     2026-10-06.
+\*   RetryUnanswered — TRUE: a write whose reply was lost is issued again when
+\*                     the read-back finds nothing. The page keeps that where
+\*                     the journal fence is declared, the per-write instant
+\*                     being what makes it safe, and forbids it where the
+\*                     fence is none, the write then being unfenced.
+\* The main configuration is the fenced deployment: TRUE and TRUE. No twin
+\* file is added for HoldUnanswered. Flipped alone it holds — at the main
+\* constants (21,974 states, v5's count) and at the longer horizon below —
+\* because every other writer here waits for the examine edge, which is never
+\* earlier than the invocation's own expiry. Flipped together with the
+\* operator's reading one tick ahead (OperatorSkew = 1, ServiceIdentity =
+\* FALSE: the -buggy-opclock defect) it is what lets the false abandonment
+\* land: at the main constants Inv5_NoFalseAbandon is VIOLATED with
+\* HoldUnanswered = FALSE (3,642 states) and holds with TRUE (28,114). So the
+\* hold is a second defence against the operator's clock, and -buggy-opclock,
+\* a copy of v4, is rejected for a race this version no longer has. The rule
+\* itself is the constituent's and its rejected twin is the constituent's own
+\* (atoms/lease-buggy-release.tla). What this version adds is the other
+\* direction — holding to the instant breaks nothing here — and three runs at
+\* a horizon long enough to reach the retry race (CompletionBound = 6,
+\* SweepLease = 6, MaxLand = 4, MaxTime = 9, Cadence = 10, LateLanding = 2,
+\* OpenBy = 0, MaxSweepDeaths = 0, MaxPauses = 0, the type invariant left out
+\* because a sweep's next run leaves its range at that cadence), each with
+\* PerWriteFence = FALSE:
+\*   retry kept             — Inv2_OneWriter VIOLATED: the -buggy-perwrite race.
+\*   retry dropped          — every invariant holds.
+\*   retry dropped, early release — every invariant holds.
+\* So the retry and the per-write instant stand or fall together: either the
+\* instant is minted or the write is not issued twice. The page keeps the pair
+\* under a declared fence and has neither under none; whether the pair earns
+\* its place is an open line in the page's Ledger.
+\* What the retry's safety rests on here is narrower than "the retry holds":
+\* with the instant minted a read-back never misses a write this model has
+\* issued (Probe_ReadBackNeverMisses holds at the main constants, 22,158
+\* states, and at the longer horizon, 18,162), so the retry branch is not
+\* reached and RetryUnanswered changes no state under the main configuration.
+\* The retry the page keeps is of a write that never landed, and this model
+\* issues no such write.
+\*
 \* VERSION 5 (2026-09-09) splits [OPEN] and raises the resolve budget. The
 \* tenth gate found the first MODEL-WRONG finding since the sixth: v4 made the
 \* intent's return and visibility one event on the argument that the section
@@ -177,8 +228,8 @@
 \*   write where a handoff DOES depend on the gap (outcome, closing) carries
 \*   both ticks.
 \* - The act kind (fenced store or not) is chosen at Init: one run covers both.
-\* - Skew IS modeled, between the two clocks the fence spans: the section host
-\*   mints the instant, the substrate judges the refusal, and JournalSkew is the
+\* - Skew IS modeled, between the two clocks the fence spans: the instant is
+\*   read on the section host's clock, the substrate judges the refusal, and JournalSkew is the
 \*   second clock's offset from the first. Every other comparison still reads one
 \*   clock; the spec's clock_offset_allowance widens those edges by a constant and
 \*   the model checks their shape, not their width.
@@ -202,6 +253,10 @@
 \* taxonomy, since the model counts records and never names a code (F2); the
 \* derived indexes and what a delta-bounded read can still see (F3); the
 \* compliance surface and outage reporting (F4);
+\* the call pause bound and the sizing the page binds from Lease — the gates
+\* here compare against JournalWriteBound alone, which stands for the page's
+\* write floor, and the bound commit is issued ungated, which is wider than the
+\* page's reading before it;
 \* and the SWEEP's own lost-reply retry — the read-back path is modeled for the
 \* invocation's outcome only, so a run whose closing write's reply is lost is
 \* outside the frame exactly as the invocation's was before v3.
@@ -216,7 +271,16 @@
 \*   recoverable-invocation-buggy-perwrite.tla — PerWriteFence = FALSE (gate 7, F2).
 \*   recoverable-invocation-buggy-supersede.tla — SupersedesNamed = FALSE (gate 9, F6).
 \*   recoverable-invocation-buggy-opclock.tla  — OperatorSkew > 0 (gate 9, F7).
-\*   recoverable-invocation-buggy-intentgate.tla — IntentGated = FALSE (gate 10, F6).
+\* IntentGated = FALSE (gate 10, F6) is run as a configuration of this module
+\* — the intent probes the page's Ledger names — and has no twin file.
+\* The nine twin files are full copies of v4 at their own constants: seven
+\* ticks, eleven for -buggy-perwrite. Run instead as configurations of THIS
+\* module at the main constants (v6, 2026-10-07), four of the six that are one
+\* constant's flip are rejected — JournalFence (1,042 states), VisibleOnReturn
+\* (15,537), FenceMargin (1,002), SupersedesNamed (18,965) — and two hold:
+\* PerWriteFence (22,250; its race needs nine ticks and the retry) and
+\* OperatorSkew (28,114; its race needs the early release). The other three
+\* are structural and have no constant here.
 
 EXTENDS Naturals
 
@@ -243,7 +307,9 @@ CONSTANTS
     SupersedesNamed,    \* TRUE: a resolution names the record it closes over
     OperatorSkew,       \* how far the operator's own reading may run ahead
     IntentGated,        \* TRUE: the intent write passes the lease gate too
-    ReadBound           \* the disclosed bound on the under-section pre-check read
+    ReadBound,          \* the disclosed bound on the under-section pre-check read
+    HoldUnanswered,     \* TRUE: no release while a call is in flight or unanswered
+    RetryUnanswered     \* TRUE: a lost-reply write is re-issued on an empty read-back
 
 Sweeps == {"A", "B"}
 
@@ -427,8 +493,9 @@ LegalWrite(r, v) ==
 \* A fenced journal refuses a write that would become visible past the fence
 \* instant it was given, exactly as a store-level commit_fence refuses a late
 \* commit. Two clocks meet here and that is the point of modeling it:
-\*   - the fence INSTANT is minted by the section host, from `expires_at`,
-\*     less FenceMargin (the page as written mints it bare: FenceMargin = 0);
+\*   - the fence INSTANT is minted by the holder, from the `expires_at` the
+\*     section host answered, less FenceMargin (FenceMargin = 0 is the bare
+\*     instant of the -buggy-skew twin);
 \*   - the REFUSAL is judged by the substrate, on the substrate's own clock,
 \*     which reads `now + JournalSkew`.
 \* A substrate lagging the host (JournalSkew < 0) therefore admits a write the
@@ -693,8 +760,8 @@ Yield ==
     /\ invPhase \in {"opened", "committed"}
     /\ ~InvGateOpen
     /\ invPhase' = "yielded"
-    /\ holder' = IF holder = "inv" THEN "none" ELSE holder
-    /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
+    /\ holder' = IF holder = "inv" /\ ~(HoldUnanswered /\ invPhase = "committed" /\ storeState = "pending") THEN "none" ELSE holder
+    /\ heldUntil' = IF holder = "inv" /\ ~(HoldUnanswered /\ invPhase = "committed" /\ storeState = "pending") THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invExpiry, intentState,
                    intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
                    outcomeState, outcomeReturnAt, outcomeVisibleAt,
@@ -727,8 +794,8 @@ ReadBackFound ==
     /\ invPhase = "readback"
     /\ outcomeState = "visible"
     /\ invPhase' = "done"
-    /\ holder' = IF holder = "inv" THEN "none" ELSE holder
-    /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
+    /\ holder' = IF holder = "inv" /\ ~HoldUnanswered THEN "none" ELSE holder
+    /\ heldUntil' = IF holder = "inv" /\ ~HoldUnanswered THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invExpiry, intentState, intentAt,
                    intentReturnAt, intentVisibleAt, storeState, storeLandAt, outcomeState,
                    outcomeIssuedAt, outcomeReplyLost, outcomeReturnAt,
@@ -743,6 +810,7 @@ ReadBackFound ==
 ReadBackMiss ==
     /\ invPhase = "readback"
     /\ outcomeState /= "visible"
+    /\ RetryUnanswered
     /\ \E r \in (now + 1)..(now + MaxLand) :
          \E v \in r..(now + MaxLand) :
             /\ LegalWrite(r, v)
@@ -765,11 +833,31 @@ ReadBackMiss ==
 ReadBackFenced ==
     /\ invPhase = "readback"
     /\ outcomeState /= "visible"
+    /\ RetryUnanswered
     /\ JournalFence
     /\ Fenced(now + 1, invExpiry)
     /\ invPhase' = "yielded"
-    /\ holder' = IF holder = "inv" THEN "none" ELSE holder
-    /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
+    /\ holder' = IF holder = "inv" /\ ~HoldUnanswered THEN "none" ELSE holder
+    /\ heldUntil' = IF holder = "inv" /\ ~HoldUnanswered THEN 0 ELSE heldUntil
+    /\ UNCHANGED <<now, fence, invExpiry, intentState, intentAt,
+                   intentReturnAt, intentVisibleAt, storeState, storeLandAt, outcomeState,
+                   outcomeIssuedAt, outcomeReplyLost, outcomeReturnAt,
+                   outcomeVisibleAt, outcomeRecords, closingKind, closingState,
+                   closingReturnAt, closingVisibleAt, closingRecords,
+                   sweepNextA, sweepNextB, sweepPhaseA, sweepPhaseB,
+                   sweepDeaths, pauses, opPhase, opKind, opState,
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
+
+\* v6. The read-back does not find it and the write is NOT issued again: a call
+\* that answered no answer is never re-issued under one lease (Lease Sizing 8).
+\* The act is the sweep's, and the grant runs to its instant.
+ReadBackGiveUp ==
+    /\ invPhase = "readback"
+    /\ outcomeState /= "visible"
+    /\ ~RetryUnanswered
+    /\ invPhase' = "yielded"
+    /\ holder' = IF holder = "inv" /\ ~HoldUnanswered THEN "none" ELSE holder
+    /\ heldUntil' = IF holder = "inv" /\ ~HoldUnanswered THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invExpiry, intentState, intentAt,
                    intentReturnAt, intentVisibleAt, storeState, storeLandAt, outcomeState,
                    outcomeIssuedAt, outcomeReplyLost, outcomeReturnAt,
@@ -781,13 +869,17 @@ ReadBackFenced ==
 
 \* [Close] step 4: the write RETURNED. Release and return — not "the write is
 \* visible": nothing tells the caller that.
+\* v6: while the invocation is still the holder no other writer has written,
+\* so a second outcome record means this write is a retry and the first one's
+\* reply never came — a call in flight for the rest of the grant, under which
+\* the holder does not release.
 FinishInv ==
     /\ invPhase = "closing"
     /\ ~outcomeReplyLost
     /\ outcomeState \in {"returned", "visible"}
     /\ invPhase' = "done"
-    /\ holder' = IF holder = "inv" THEN "none" ELSE holder
-    /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
+    /\ holder' = IF holder = "inv" /\ ~(HoldUnanswered /\ outcomeRecords > 1) THEN "none" ELSE holder
+    /\ heldUntil' = IF holder = "inv" /\ ~(HoldUnanswered /\ outcomeRecords > 1) THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invExpiry, intentState,
                    intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
                    outcomeState, outcomeReturnAt, outcomeVisibleAt,
@@ -1311,6 +1403,7 @@ Next ==
     \/ ReadBackFound
     \/ ReadBackMiss
     \/ ReadBackFenced
+    \/ ReadBackGiveUp
     \/ FinishInv
     \/ Crash
     \/ \E s \in Sweeps : SweepSelect(s)
@@ -1403,6 +1496,9 @@ Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter /\ Inv4_BoundedClosure
 \* "all invariants hold" is worth nothing for a behaviour the configuration
 \* cannot reach. A new component earns its invariants only after its probe
 \* fails. Run with --buggy: a violation is the pass.
+\* v6. Not a falsehood but a dependency made checkable: TRUE under PerWriteFence
+\* (a lost-reply write has landed by its read-back), VIOLATED without it.
+Probe_ReadBackNeverMisses == ~(invPhase = "readback" /\ outcomeState /= "visible")
 Probe_OperatorNeverWrites == opRecords = 0
 Probe_OperatorNeverSupersedes ==
     ~(opRecords > 0 /\ closingRecords + outcomeRecords > 0)

@@ -446,7 +446,7 @@ Term invocation close: Recoverable Invocation's close — writing the outcome, o
 
 Term invocation refusal: Recoverable Invocation's refuse — closing an intent whose commit a pre-commit arm refused.
 
-Term invocation yield: Recoverable Invocation's yield — releasing the critical section with nothing written, the intent left to the sweep.
+Term invocation yield: Recoverable Invocation's yield — nothing written, the intent left to the sweep, and the critical section released or left to end at its instant as that page's yield decides.
 
 Term invocation read: Recoverable Invocation's read_invocation on the act kind, an act key and an invocation id — answering the invocation's state as that page reads which closing stands.
 
@@ -1097,7 +1097,6 @@ last gate: 2026-08-30 — third gate, fresh reader, under the frozen rules — 5
 open:
 - 2026-08-29-a · refining · formal · the model predates the binding: its compensation, its one-step outcome and its absent sweep are Recoverable Invocation's protocol now, proved in that page's model, and what is this page's own — the binding index written every run, the disclosure probe's four answers, the reading of two stores for a record no intent carries — is in no model → re-derive over those, against that page's contracts
 - 2026-10-07-a · refining · Composes 12 through 15; the disclosure binding · bound to Recoverable Invocation as the pilot adopter, and no pass has read the bound text → three passes over this page with that page as a constituent
-- 2026-10-07-b · refining · Action wiring 51, 52 · the unknown partition yields, and that page's yield releases a grant under which the accounting write may still be in flight, which Lease forbids — its open foundational line 2026-10-04-a, met here at the first adopter → follow that line's cure
 - 2026-10-07-c · refining · Verdict 4, 15; Reconciliation 14 · the record's invocation is found by this page's own read of the intents, because the protocol's read by act key is capped and a key shared by many disclosures outruns the cap → a keyed read past the cap, on that page
 - 2026-10-07-d · refining · Composition state 16; Check 5.7 · the disclosed set lives in the intent alone, so a purge landing between the intent's retention deadline and the outcome's leaves a live outcome whose set reads unverifiable → accept, or mirror the set where the invocation itself closes
 - 2026-10-07-e · refining · Term act key; Primitive policy 14 · the act key's four fields together must fit the substrate's reference length cap, so a disclosure with a long scope is refused where it was accepted before the binding; and a disclosure whose invocation died holds its key until the sweep closes it, up to the compensation window → a digest as the key, admitted on that page; state the cost to a caller
