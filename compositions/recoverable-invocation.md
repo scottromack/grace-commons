@@ -90,7 +90,7 @@ Three surfaces make journal fence none 2 checkable and read the section titled *
 Term quiescence: no invocation in flight and no sweep run mid-pass.
 
 WHY:
-No auditor can enumerate which writers were paused, so the guarantee is over records alone. The scan rides the delta, where a late append appears, because step 1 keeps only open intents and an act with two closings is not open. The intent is inside this: [Open] releases on the intent write's return, so a late-landing intent leaves the next waiter's pre-check reading nothing and a second live intent appears, both escalating (Invariant 3) — invisible to any surface keyed on invocation id, hence the intents key. The fence prevents it and the gate does not (`probe-fenceless-intent` violates, `probe-fenced-ungated-intent` holds); the gate is kept because it is this page's rule for every write. With the fence none of this machinery fires.
+No auditor can enumerate which writers were paused, so the guarantee is over records alone. The scan rides the delta, where a late append appears, because step 1 keeps only open intents and an act with two closings is not open. The intent is inside this: [Open] releases on the intent write's return, so a late-landing intent leaves the next waiter's pre-check reading nothing and a second live intent appears, both escalating (Invariant 3) — invisible to any surface keyed on invocation id, hence the intents key. The fence prevents it and the gate does not (`probe-fenceless-intent` violates, `probe-fenced-ungated-intent` holds); the gate is kept because it is this page's rule for every write. With the fence none of this machinery fires. An adopter that states one outcome per record of its own store states it at quiescence under this branch, and no stronger (Invariant 2.4).
 
 ---
 
@@ -485,6 +485,7 @@ close 1: The adopter MUST pass [Close] the actor reference [Open] was given for 
 close 2: The composition MUST NOT retain state between [Open] and [Close].
 close 3: [Close] and [Refuse] MUST take intent event id.
 close 4: The adopter's action MUST decide not-open from the invocation's own [Open] result ([Not Open]).
+close 5: The adopter MUST pass [Close] outcome data carrying only what probe answers for the act.
 ```
 
 Steps:
@@ -536,7 +537,7 @@ Steps:
    ```
 
 WHY:
-Check 2 reads an outcome without recovery whose actor reference differs from its intent's as a conformance failure (close 1). Every route from an id to an event id reads the intent's payload, which [Resolve] takes an argument to avoid (close 3). close step 1.2 cannot tell a yielded invocation from one never opened; step 0 is the caller's precondition. close step 2.3: an abandonment or escalation says the act was not accounted for, and the correction is [Resolve]'s `supersedes` path. close step 2.4 lands on the position's own arm because the act has committed and the caller's next move is fixed. Step 2 under a fence cannot land a write; without one it is load-bearing — a paused invocation passes step 1, wakes after the sweep closed the act, and the re-read stops a second outcome — and still a mitigation, since a pause between step 2 and the write appends beside the sweep's record (journal fence none 1). close step 3.3's act is escalated as outcome-unrecordable.
+Check 2 reads an outcome without recovery whose actor reference differs from its intent's as a conformance failure (close 1). close 5 keeps one outcome shape: the sweep writes only what probe re-derives (Invariant 5.3), so an invocation that wrote more would give the act two; a datum the store does not hold is a parameter and rides intent data (Primitive policy 9). Every route from an id to an event id reads the intent's payload, which [Resolve] takes an argument to avoid (close 3). close step 1.2 cannot tell a yielded invocation from one never opened; step 0 is the caller's precondition. close step 2.3: an abandonment or escalation says the act was not accounted for, and the correction is [Resolve]'s `supersedes` path. close step 2.4 lands on the position's own arm because the act has committed and the caller's next move is fixed. Step 2 under a fence cannot land a write; without one it is load-bearing — a paused invocation passes step 1, wakes after the sweep closed the act, and the re-read stops a second outcome — and still a mitigation, since a pause between step 2 and the write appends beside the sweep's record (journal fence none 1). close step 3.3's act is escalated as outcome-unrecordable.
 
 ---
 
@@ -861,7 +862,7 @@ Binding 8: The adopter MUST declare a need outside the bindings as a deviation (
 ```
 
 WHY:
-An unbound kind has no probe, no completion bound and no retention period, so nothing downstream can close or enumerate it. Unbinding is a deployment-plane operation with no signature block and no code. Check 3 exempts Binding 4's intents.
+An unbound kind has no probe, no completion bound and no retention period, so nothing downstream can close or enumerate it. Unbinding is a deployment-plane operation with no signature block and no code. Check 3 exempts Binding 4's intents. Two obligations on what an adopter passes sit in Primitive policy and bind under every binding: act key and actor reference are capped under reference length cap ahead of [Open] (Primitive policy 1, Primitive policy 8).
 
 - **act key**
   Term act key: the identity of one act, opaque and adopter-typed, with equality by byte-identity: the field or tuple under which two invocations are the same act. The critical section is keyed by it; the sweep pairs by it; the pre-check reads by it.
@@ -925,8 +926,11 @@ An unbound kind has no probe, no completion bound and no retention period, so no
   probe 6: outcome data MUST carry only what the store re-derives.
   probe 7: WHEN the outcome's authoritative datum exists nowhere but in the dead invocation's memory:
       probe 7a: probe MUST answer undecidable.
+  probe 8: probe MAY answer committed ONLY IF the matching store record carries EVERY field of act key.
   ```
   Term payload match: pairing datum EQUALS none AND at least one store record matches the intent's payload.
+
+  WHY: probe 8 is what keeps a key the store cannot show from pairing. A repeatable act keyed fresh per invocation meets pairing datum 4 with nothing to serialize, and without probe 8 an intent that died ahead of its commit pairs to another invocation's record at the same reading — a second outcome over one store record, with every other rule obeyed.
 - **completion bound**
   Term completion bound: the longest a conforming invocation of the kind takes from [Open]'s critical section take to [Close]'s last write, including the constituent round-trip. The lease length of the critical section, the lower edge of the sweep, the first term of the liveness inequality. Read against the seam clock [Open] was injected with.
 - **commit round trip**
@@ -1194,32 +1198,32 @@ An escalated entry becomes resolved when an operator's abandonment names it, and
 
 ### Walkthrough — a disclosure, three ways
 
-The adopter is Immutable Transaction Ledger's `disclose_subset`, bound as:
+The adopter is [Immutable Transaction Ledger](./immutable-transaction-ledger.md)'s `disclose_subset`, the pilot adopter, as that page binds the kind `ledger.disclosure`:
 
-- act key = disclosure of `(subject_ref, recipient, scope, authority)` by actor reference.
+- act key = `(subject_ref, recipient, scope, authority)` — the minted-key deviation, the disclosure id being minted by the commit.
 - commit = `SelectiveDisclosure.record(subject_ref, recipient, scope, authority, disclosed_at = now)`; invalid-request, `unknown-authority-type` and `storage-failure` are pre-commit as the constituent declares them; a lost reply is unknown.
 - pairing datum = `disclosed_at`, the seam-injected now, carried in intent data and passed into commit. Selective Disclosure admits no nonce, so the binding declares pairing datum 4's obligation and discharges it by minting `disclosed_at` from a per-node monotonic source whose low bits carry the node, the tag below the resolution at which the constituent's not-in-future guard discriminates, both seams sharing one clock authority (a declared deployment obligation). A deployment whose authority ticks at or below the tag's resolution tags elsewhere.
-- probe = read Selective Disclosure's store by `subject_ref` and `recipient` and select, in the adopter's code, the record whose `scope`, authority and `disclosed_at` equal the intent's: `committed(ledger.disclosed, {disclosure_id, disclosed_at})` on exactly one match, not-committed on none, `undecidable(candidates)` on several, unavailable on any read outage — the constituent's `invalid-query` is unavailable to the sweep and surfaced on compliance surface.
+- probe = read Selective Disclosure's store by `subject_ref` and `recipient` and select, in the adopter's code, the record whose `scope`, authority and `disclosed_at` equal the intent's: `committed(ledger.disclosure.disclosed, {disclosure_id, subject_ref, recipient, scope, authority, disclosed_at})` on exactly one match, not-committed on none, `undecidable(candidates)` on several, unavailable on any read outage — the constituent's `invalid-query` is unavailable to the sweep and surfaced on compliance surface.
 - `commit_fence = none`; `repeatable = yes`; `completion_bound = 30 s`; `commit_round_trip = 1 s`; `probe_round_trip = 1 s`; `service_identity = ledger-reconciler`.
 - Instance: `reconciliation_cadence = 60 s`; `clock_offset_allowance = 2 s`; `closure_latency = 12 s`; `run_bound = 135 s` (a backlog of three orphans, sequentially, each at worst one holder's remaining lease and one closure: `3 × (30 + 12) = 126 s`, the balance headroom); `journal_write_bound = 3 s`; `read_bound = 2 s`; `compensation_window = 10 min`.
 
 **The five conditions of instance start, against these numbers:**
 
 1. `30 + 2×2 + 2×60 + 3×135 = 559 s < 600 s`.
-2. `30 + 2 + 600 = 632 s < retention_period` — `ledger.*` carries a period above 632 s.
+2. `30 + 2 + 600 = 632 s < retention_period` — `ledger.disclosure.*` carries a period above 632 s.
 3. `30 s > 2×2 + 2×3 + 1 = 11 s`; neither fence is declared, so no allowance is charged.
 4. `135 s ≥ max(30, 12 + 3) + 12 = 42 s`.
 5. `12 s > 2 + 2×3 + 1 = 9 s`.
 
 The sweep's lease is `12 + 3 = 15 s`; one closure inside it spends `2 + 1 + 3 + 3 = 9 s`, clearing the gate before both writes. (An earlier draft bound `closure_latency = 5 s`, which breaches condition 5: the second gate fails for any probe latency, the sweep re-opens a recovery intent every cadence and never lands a closing.) The instance starts.
 
-**The clean run.** `disclose_subset(...)` validates; [Open] takes the critical section, sizes the outcome (`disclosed_entry_ids` under the ledger's cardinality cap) and the compensation, writes `ledger.disclose_intended` (`inv-7f2`) under the discloser's credential, and returns. `SelectiveDisclosure.record` → `dsc-411`. [Close] finds no outcome for `inv-7f2` under the critical section, writes `ledger.disclosed` with `{invocation_id: inv-7f2, intent_event_id, disclosure_id: dsc-411, ...}`, releases, returns `landed_by = invocation`. One intent, one outcome, one writer.
+**The clean run.** `disclose_subset(...)` validates; [Open] takes the critical section, sizes the intent data (`disclosed_entry_ids` under the ledger's cardinality cap, which the intent alone carries) with the kind's largest record, writes `ledger.disclosure.intended` (`inv-7f2`) under the discloser's credential, and returns. `SelectiveDisclosure.record` → `dsc-411`. [Close] finds no outcome for `inv-7f2` under the critical section, writes `ledger.disclosure.disclosed` with `{invocation_id: inv-7f2, intent_event_id, disclosure_id: dsc-411, ...}`, releases, returns `landed_by = invocation`. One intent, one outcome, one writer.
 
-**The crash.** The run dies between `SelectiveDisclosure.record` returning `dsc-411` and [Close]. The critical section stays held until its lease runs out at `t + 30 s`; the host does not see the death. Thirty-two seconds later a [Reconcile] run keeps `inv-7f2` (older than `30 + 2 s`, inside the horizon), takes the critical section, re-reads — still open — and probes: exactly one record matches → `committed(ledger.disclosed, {disclosure_id: dsc-411, disclosed_at})`. The sweep writes `ledger.recovery_intended` then `ledger.disclosed` with `recovery = true, acting_actor_ref = <the discloser>`, both under `ledger-reconciler`, and releases. Accounted for within about forty-five seconds, inside the ten-minute window, by the one writer left alive.
+**The crash.** The run dies between `SelectiveDisclosure.record` returning `dsc-411` and [Close]. The critical section stays held until its lease runs out at `t + 30 s`; the host does not see the death. Thirty-two seconds later a [Reconcile] run keeps `inv-7f2` (older than `30 + 2 s`, inside the horizon), takes the critical section, re-reads — still open — and probes: exactly one record matches → `committed(ledger.disclosure.disclosed, {disclosure_id: dsc-411, ...})`. The sweep writes `ledger.disclosure.recovery_intended` then `ledger.disclosure.disclosed` with `recovery = true, acting_actor_ref = <the discloser>`, both under `ledger-reconciler`, and releases. Accounted for within about forty-five seconds, inside the ten-minute window, by the one writer left alive.
 
 **The stall.** The run does not die; `SelectiveDisclosure.record` is slow. The store applies the write at eight seconds and the invocation reaches [Close] at forty: remaining answers none (the lease expired at thirty), the invocation writes nothing and returns `recording-failure(outcome)`, and the sweep at thirty-five probed committed and closed it, or will. Or the store never applied the write, [Refuse] failed too, and probe answers not-committed — not final under `commit_fence = none`, since a process paused past the lease could still land the write at forty-five. The sweep writes escalated with `cause = not-observed`; the operator writes the abandonment through [Resolve] once the store has been quiet long enough. A write landing at fifty after a sweep read the store empty at thirty-five is survivable: the escalation stands, the operator's later probe finds the record, and the disposition is outcome. A store-level fence makes that order unreachable and gets abandoned from the sweep.
 
-**The refusal.** A different caller opens a disclosure and `SelectiveDisclosure.record` refuses invalid-request. The adopter partitions the arm pre-commit and calls [Refuse]; `ledger.disclosure_refused` lands with the reason; the intent is closed; the trail keeps the authenticated attempt. Nothing for the sweep.
+**The refusal.** A different caller opens a disclosure and `SelectiveDisclosure.record` refuses invalid-request. The adopter partitions the arm pre-commit and calls [Refuse]; `ledger.disclosure.refused` lands with the reason; the intent is closed; the trail keeps the authenticated attempt. Nothing for the sweep.
 
 ### Rejection path — a second invocation of the same act
 
@@ -1316,7 +1320,10 @@ WHY: an adopter needing a withdrawable act composes a Transaction pattern *(fort
 ```
 Sweep never 1: The sweep MUST NOT run adopter code other than probe.
 Sweep never 2: The sweep MUST NOT write under a human's credential.
+Sweep never 3: The sweep MUST NOT read the adopter's store other than through probe.
 ```
+
+WHY: the sweep starts from intents and reaches a store through probe, one intent at a time. A store record no intent carries — written to the constituent outside the adopter's action — is invisible to it, and finding one is the adopter's own read of its own store.
 
 ## Edge cases
 
@@ -1585,18 +1592,14 @@ open:
 - 2026-10-04-a · foundational · close step 2.3b, 3.7, 3.8; yield 1, yield 2 · Lease now forbids releasing a grant under which a call is in flight (its Composition note 5c), and these arms release after a write whose reply may be lost, so the next holder can read ahead of a write that then lands → hold the grant to its instant on those arms, or bring the read-your-writes capability to Lease as a named exception with the moment it shows the landing
 - 2026-10-04-b · refining · the journal fence terms · the fence instant is said to be minted by the critical section host; Lease has the holder mint it (its Invariant 6.2, Fence 8) → the holder mints
 - 2026-10-04-c · refining · commit fence none; reconcile step 2.1; act section 14 · the fenceless arm issues unfenced writes with no call pause bound declared and no Lease Sizing rule stated (its Sizing 1, Composition note 8), one run id is the holder value of every sweep take (its Identity 6), and the holder re-enters a key it holds (its Non-goal 1) → state the sizing, mint a holder value per take, say what re-entry answers
-- 2026-10-07-a · refining · act key 2; pairing datum 4; Deviation 4 · the obligation that no two serialized invocations carry one reading is scoped to one act key, so an adopter that keys a repeatable act per invocation meets it with nothing to serialize, and probe then pairs an intent that died ahead of its commit to another invocation's record at the same reading — a second outcome over one store record, with every rule obeyed → oblige the bound key of a repeatable act to be the key probe reads the store by; found binding the pilot adopter
-- 2026-10-07-b · refining · Invariant 5.3; probe 6; Bindings · a datum the outcome must show and the store does not hold has no stated home, so an adopter's outcome comes in two shapes — the invocation's with it, the sweep's without — unless the adopter moves the datum to intent data, which the pilot did → say so in Bindings
 - 2026-10-07-c · refining · read invocation 2, 3 · the read by act key answers the most recent read cap of invocations with no cursor, so an adopter whose key many repeatable acts share cannot reach an older invocation by key and reads the journal for the id itself → a cursor, or a read by pairing datum
-- 2026-10-07-d · refining · Primitive policy 1, 8; Bindings · the adopter's obligations to cap act key and actor reference ahead of [Open] sit in Primitive policy and nowhere in Bindings, where an adopter reads what is owed → cite them there
-- 2026-10-07-e · refining · Invariant 2.4; journal fence none 1 · an adopter's own uniqueness invariant over its store's key degrades with this page's, and nothing tells the adopter to state it at quiescence; the pilot's had claimed it outright → a line for adopters under the degradation
-- 2026-10-07-f · refining · reconcile step 1 · the sweep starts from intents, so a store record no intent carries is invisible to it; the pilot keeps its own read of the store for that → name it as the adopter's, where the composition says what the sweep never does
 ```
 
 ## Decisions
 
 Directional changes only. Everything smaller lives in the commit that made it: `git log -- compositions/recoverable-invocation.md`.
 
+- **2026-10-07 — The first adopter bound, and the binding surface says what the binding found.** *Chose:* probe answers committed only for a store record carrying every field of act key (probe 8); an invocation's outcome data carries only what probe answers (close 5); the sweep reads an adopter's store through probe and no other way (Sweep never 3); the walkthrough's adopter is the pilot's binding as that page states it, the kind `ledger.disclosure` and its vocabulary. *Over:* a binding surface that let a repeatable act be keyed fresh per invocation, where pairing datum 4's obligation has nothing to serialize and a dead intent pairs to another invocation's record; an outcome in two shapes, the invocation's and the sweep's; and a walkthrough whose record names fit no kind's vocabulary. *Because:* Immutable Transaction Ledger bound as the pilot adopter and each of these was met in writing its binding; none changes a step of the protocol, and the model reads none of them. The lines against Lease (2026-10-04-a through c) are untouched and are the protocol's next unit, model first.
 - **2026-09-10 — Rewritten in GRACE lang v0.28; nothing but language changed.** *Chose:* labelled rules, rationale under `WHY:`, the Ledger and invariant numbers unchanged. *Over:* the prose draft. *Because:* the migration plan.
 - **2026-09-10 — Instance start in controlled form.** *Chose:* five terms, five one-line conditions, the round-trips as bindings. *Over:* inline inequalities marked `STRICTLY`. *Because:* arithmetic lives in term declarations, and a named term gives each expression one owner for the prose-versus-model diff.
 - **2026-09-10 — Lease is the atom; what a fence costs stays here.** *Chose:* [`atoms/lease.md`](../atoms/lease.md) owning the critical section's lease and both fences as one concept; the binding and the three payments here. *Over:* an atom covering the critical section alone. *Because:* the atom declines what carrying an instant costs; lease-owned findings went 3 → 1 → 0 across the extraction.
