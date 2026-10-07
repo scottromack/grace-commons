@@ -864,7 +864,7 @@ read invocation 15: An adopter that decides a write on [Read Invocation]'s answe
 ```
 
 WHY:
-The rebuild's comparisons are against the substrate's stamps, so the reader is a seam (read invocation 1). Closings are capped because the degraded Invariant 2 admits them in plurality. Without read invocation 11 the cheapest implementation answers not-known for a key whose intent and outcome are sitting in the journal. read invocation 12 is also what a wholly purged act answers — the destroyed payload carried the key — the one admitted exception to the section titled *Lawful destruction is answered before absence* in `pressure-testing.md`; read_record by event id still answers *Purged*.
+The rebuild's comparisons are against the substrate's stamps, so the reader is a seam (read invocation 1). Closings are capped because the degraded Invariant 2 admits them in plurality. Without read invocation 11 the cheapest implementation answers not-known for a key whose intent and outcome are sitting in the journal. An invocation older than the cap is reached by its invocation id (read invocation 3) and not by the act key: the read by key offers no cursor, and an adopter whose key many repeatable acts share finds an old invocation's id in the journal itself. read invocation 12 is also what a wholly purged act answers — the destroyed payload carried the key — the one admitted exception to the section titled *Lawful destruction is answered before absence* in `pressure-testing.md`; read_record by event id still answers *Purged*.
 
 ### Wiring decision
 
@@ -1015,7 +1015,7 @@ Term lease spend: `2 × read_bound + 2 × journal_write_bound + commit_round_tri
 
 Term run floor: `max(completion_bound, closure_latency + journal_write_bound) + closure_latency`.
 
-Term closure spend: `read_bound + 2 × journal_write_bound + probe_round_trip + 6 × call_pause_bound`.
+Term closure spend: `max(read_bound + 2 × journal_write_bound + probe_round_trip + 6 × call_pause_bound, 2 × read_bound + journal_write_bound + 5 × call_pause_bound)` — the sweep's closure, or [Resolve]'s work under the same lease, whichever is longer.
 
 ```
 Instance start 4: The instance MAY start ONLY IF compensation window EXCEEDS worst closure.
@@ -1036,7 +1036,7 @@ WHY:
 
 *Condition 4's `max`.* The holder a run waits out may be an invocation (completion bound) or a dead run or operator (`closure_latency + journal_write_bound`); the old floor `2 × closure_latency + journal_write_bound` charged the shorter. Over the same 432 tuples the old floor admits 324 and condition 1 breaches on 15; this one admits 288 and breaches on none.
 
-*Condition 5.* A closure holds one read and two writes; below their sum the run passes the gate for the first write, fails it for the second, and repeats every run. The six call pauses are the take's answer, step 2's reading, the reading before each write, and the two-call margin; the sweep lease exceeds closure spend by more than one write.
+*Condition 5.* A closure holds one read and two writes; below their sum the run passes the gate for the first write, fails it for the second, and repeats every run. The six call pauses are the take's answer, step 2's reading, the reading before each write, and the two-call margin; the sweep lease exceeds closure spend by more than one write. [Resolve] takes the same lease for two reads and one write — the re-read, the intent by its event id, the closing — with five pauses, and the condition charges whichever is longer, so a conforming operator is never refused the reading for the one write [Resolve] makes.
 
 *No sixth condition.* `max(completion_bound, closure_latency) > closure_latency + journal_write_bound` reduces to `0 > journal_write_bound` whenever closure latency reaches completion bound, so a closure slower than the act's bound could not be configured; the lease is stated directly (sweep lease).
 
@@ -1241,7 +1241,7 @@ The adopter is [Immutable Transaction Ledger](./immutable-transaction-ledger.md)
 2. `30 + 2 + 600 = 632 s < retention_period` — `ledger.disclosure.*` carries a period above 632 s.
 3. `30 s > 2×2 + 2×3 + 1 + 8×0.25 = 13 s`; neither fence is declared, so no allowance is charged.
 4. `135 s ≥ max(30, 12 + 3) + 12 = 42 s`.
-5. `12 s > 2 + 2×3 + 1 + 6×0.25 = 10.5 s`.
+5. `12 s > 2 + 2×3 + 1 + 6×0.25 = 10.5 s`, the sweep's closure being the longer; [Resolve]'s work is `2×2 + 3 + 5×0.25 = 8.25 s`.
 
 The sweep's lease is `12 + 3 = 15 s`; one closure inside it spends `2 + 1 + 3 + 3 = 9 s` and six call pauses, clearing the gate — a write floor of `3 + 3×0.25 = 3.75 s` — before both writes. (An earlier draft bound `closure_latency = 5 s`, which breaches condition 5: the second gate fails for any probe latency, the sweep re-opens a recovery intent every cadence and never lands a closing.) The instance starts.
 
@@ -1622,7 +1622,6 @@ open:
 - 2026-10-07-c · refining · read invocation 2, 3 · the read by act key answers the most recent read cap of invocations with no cursor, so an adopter whose key many repeatable acts share cannot reach an older invocation by key and reads the journal for the id itself → a cursor, or a read by pairing datum
 - 2026-10-07-d · refining · Primitive policy 37a; Term journal fence per-write terminus; Allowance 13 · the retry of a lost-reply write and the per-write instant stand or fall together — with the instant unminted the retry kept lands two outcomes and the retry dropped holds, and with it minted the model never reaches the retry — so the pair buys only the second issue of a write that never landed, for a third minted instant, a headroom rule and line 2026-09-10-b → decide whether the pair earns its place; without it no lost-reply write is issued twice under either fence value
 - 2026-10-07-e · refining · formal · the nine twins are copies of v4, and against the v6 module at its own constants two of the six that are one constant's flip hold: the per-write race needs nine ticks, and the operator-clock race needs the release at [Yield] that act section 15 removed, so no run shows resolve 19 load-bearing on the page as it stands → re-derive the twins as configurations of the current module, each at the shortest horizon that reaches it, and name the rules a second defence now covers
-- 2026-10-07-f · refining · resolve 4, 7, 8, 11; Instance start · [Resolve] takes the sweep lease and spends two journal reads and a write under it, which no condition of instance start charges: where read bound exceeds twice journal write bound, a probe round trip and a call pause, a conforming operator's write is refused its reading → charge [Resolve]'s work, or give it a term of its own
 ```
 
 ## Decisions
