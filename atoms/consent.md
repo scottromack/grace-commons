@@ -852,6 +852,7 @@ last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
 open:
 - 2026-10-05-a · refining · Operation 36; Invariant 6.3; Stored state 2, 4 · [Check] must not write, and a lazy write of an elapsed record's stored state is required inside the operation that answers the caller → say which holds; reported by Resolve a Person's Data Rights' gate, whose Invariant 7 rests on Operation 36
 - 2026-10-05-b · refining · Invariant 10.4; Clock semantics 8 · a repeated [Check] carrying one at time is said to answer alike, and a revocation recorded later with an earlier instant changes the answer → qualify the invariant; reported by the same gate
+- 2026-10-06-a · refining · Non-goal 19; Invariant 8.1 · a retention bound is to be composed over a store the atom must never remove a record from → say who guarantees persistence; Resolve a Person's Data Rights now forbids the bound over its own Consent instance; reported by that composition's round of 2026-10-06
 ```
 
 ## Decisions

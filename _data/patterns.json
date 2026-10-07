@@ -1273,7 +1273,7 @@
    "selective-disclosure",
    "consent"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "composition",
   "models": {
@@ -1290,7 +1290,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 10 \u2014 2026-10-05",
+  "status": "partially resolved",
   "substrates": [
    "defensible-retention"
   ],
