@@ -41,7 +41,7 @@ When drafting a new pattern, additionally read the most structurally adjacent ex
 - [`open-questions.md`](./open-questions.md) — SSOT for deliberately-deferred architectural decisions. Read before touching anything it names.
 - [`discoveries.md`](./discoveries.md) — dated findings log (the mirror of open-questions: found things vs. open things).
 - [`risks.md`](./risks.md) — the risk register and dated maturity estimate; owned, re-assessed on dated markers.
-- [`changelog.md`](./changelog.md) — dated change records.
+- [`changelog.md`](./changelog.md) — dated change records through 2026-07-12; closed 2026-10-07. What changed since is in the commit that made it and in each pattern's Decisions.
 - [`governance.md`](./governance.md) — draft admission/sealing proposal. [`measurement.md`](./measurement.md) — token-cost ledger. [`demos.md`](./demos.md) — live renders. [`glossary.md`](./glossary.md) — strict definitions for load-bearing English. [`ai-usage-log.md`](./ai-usage-log.md) — AI-assistance disclosure.
 - [`atoms/index.md`](./atoms/index.md) — generated browse-by-overlay catalog (regenerate via `python3 tools/taxonomy/generate_views.py .`). [`compositions/README.md`](./compositions/README.md) — compositions catalog.
 

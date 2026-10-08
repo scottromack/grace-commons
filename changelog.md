@@ -6,6 +6,8 @@ parent: Project Log
 
 # Changelog
 
+> **Closed 2026-10-07.** The last entry below is dated 2026-07-12, and nothing since has been recorded here. What changed is recorded where the change is made: in the commit that made it (`git log -- <file>`), in each pattern's Decisions and Ledger, and on the roadmap, which is the single source of truth for library state. A second list of the same changes is a mirror, and this one stopped being kept. It is closed and not deleted, so the record through 2026-07-12 stands as written.
+
 All notable changes to Grace Commons are recorded here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project has not yet
 cut a versioned release, so everything below sits under **Unreleased**.
