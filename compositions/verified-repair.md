@@ -48,7 +48,7 @@ Term constituents: [Recoverable Invocation](./recoverable-invocation.md), [Audit
 
 Term commit binding: the act kind's bindings, each under the name Recoverable Invocation gives it. act key — the repository. commit — the repository commit, read through the commit partition. commit fence — none. pairing datum — the council nonce, which the intent data carries and the store keeps in the commit's trailer: an adopter-minted nonce the store stores. repeatable — yes. probe — the commit probe. completion bound — the commit completion bound. commit round trip and probe round trip — the deployment's disclosed bounds. journal — the composition's Audit Trail instance, with council.commit.intended, the one outcome council.commit.committed, and council.commit.refused. retention period — the journal retention policy's. service identity — the sweep identity. outcome envelope — the commit envelope. retry terminus — lease. Deviations: none.
 
-Term commit partition: committed — the store answers a commit id; pre-commit — the store refuses with nothing written, carrying lock-held, conflict where the head is not the commit's parent (Capability requirement 13) OR hook-rejected — the codes the store's contract declares pre-commit; unknown — no answer, or a reply the store's contract does not declare.
+Term commit partition: committed — the store answers a commit id; pre-commit — the store refuses with nothing written, carrying lock-held, conflict where the head is not the commit's parent (Capability requirement 13) OR hook-rejected — the codes the store's contract declares pre-commit (Capability requirement 15); unknown — no answer, or a reply the store's contract does not declare.
 
 Term commit probe: the repository read of the commits from the snapshot's base commit to the head, kept to the commits whose trailer carries the intent's council nonce — committed carrying council.commit.committed and the commit id where exactly one does, not-committed where none does, undecidable carrying the commit ids where more than one does, and unavailable where the read refuses or gives no answer. The read is scoped to the act key's repository, so every commit it finds carries the act key by construction (Recoverable Invocation probe 8).
 
@@ -56,7 +56,7 @@ Term commit envelope: the act kind's outcome envelope — the largest outcome pa
 
 Term council nonce: the nonce injected at the writer's seam for one [Repair] call, unique across every commit of the repository — the act kind's pairing datum, carried in the intent data and in the commit's trailer.
 
-Term council commit: a commit of the repository whose council trailer names an intent event the journal holds under the act kind council.commit.
+Term council commit: a commit of the repository carrying a council trailer.
 
 Term council trailer: the trailer a council commit carries — the council nonce and the intent event id the invocation open answered.
 
@@ -70,13 +70,13 @@ WHY:
 ### Composition state
 
 ```
-Composition state 1: The composition MUST rebuild the round index, the triage index, the ruling index AND the round count from the journal's full enumeration (Audit Trail Capability requirement 1).
+Composition state 1: The composition MUST rebuild the round index, the triage index, the ruling index AND the round count from the journal's full enumeration, the sequence-range read Audit Trail passes through (Audit Trail Action wiring 1).
 Composition state 2: The journal MUST hold EVERY round, verdict, triage record AND ruling the composition keeps.
 ```
 
 Term round index: map from a page to the page's rounds — each round's id, snapshot and counted verdicts by pass, and whether the round has settled. Derived index.
 
-Term triage index: map from a round to the round's triage records, each finding's first, second and settling records kept apart. Derived index.
+Term triage index: map from a round to the round's triage records, each finding's first, second and third records kept apart. Derived index.
 
 Term ruling index: map from a page, and from a round and a patch id, to the maintainer's rulings naming them. Derived index.
 
@@ -101,6 +101,8 @@ Capability requirement 10: A deployment MUST provision the sweep identity apart 
 Capability requirement 11: The repository MUST NOT remove a commit.
 Capability requirement 12: The repository MUST NOT accept a push from the composition.
 Capability requirement 13: The repository's commit MUST refuse with conflict where the head DOES NOT EQUAL the commit's parent.
+Capability requirement 15: The repository's refusal with nothing written MUST carry EXACTLY ONE OF lock-held, conflict, hook-rejected.
+Capability requirement 16: A deployment MUST supply EVERY journal read the composition makes with the guarantee Recoverable Invocation Capability requirement 7 AND 8 put on the protocol's own range reads.
 Capability requirement 14: A deployment MUST settle EVERY council.commit.escalated through Recoverable Invocation's resolve, under the maintainer's actor reference, BEFORE the journal's retention period purges the escalated invocation's intent.
 ```
 
@@ -151,12 +153,13 @@ Primitive policy 4: IF the call carries no patch, a patch carries no patch id, n
 Primitive policy 5: IF the count of a commit's patches EXCEEDS the patch cap THEN [Repair] MUST answer invalid-request.
 Primitive policy 6: The composition MUST compare a snapshot hash, a commit id, a finding id AND a fragment byte-exact.
 Primitive policy 7: IF the repository's name OR the writer's actor reference EXCEEDS the reference length cap THEN [Repair] MUST answer invalid-request (Recoverable Invocation Primitive policy 1, 8).
-Primitive policy 8: An action refused under Primitive policy MUST NOT write.
+Primitive policy 8: [Freeze], [Report], [Triage], [Rule] AND [Repair] MUST NOT write BEFORE Primitive policy 1 through 7, 9, 10, 14 AND 16 have answered no refusal.
 Primitive policy 9: IF the round names no round the journal holds THEN [Report], [Triage] AND [Repair] MUST answer not-known.
 Primitive policy 10: IF a read of the repository refuses OR gives no answer THEN [Freeze] AND [Repair] MUST answer repository-unavailable.
-Primitive policy 11: IF a read of the journal the action makes directly refuses OR gives no answer THEN [Freeze], [Report], [Triage], [Rule] AND [Repair] MUST answer journal-unavailable.
+Primitive policy 11: IF a read of the journal the action makes directly OR through Recoverable Invocation's read invocation refuses OR gives no answer THEN [Freeze], [Report], [Triage], [Rule] AND [Repair] MUST answer journal-unavailable.
 Primitive policy 12: [Freeze], [Report], [Triage], [Rule] AND [Repair] MUST pass the caller's actor reference AND credential through to EVERY record_action the action calls directly.
-Primitive policy 13: IF a record_action the action calls directly refuses THEN [Freeze], [Report], [Triage], [Rule] AND [Repair] MUST answer record_action's code with the code's step.
+Primitive policy 13: IF a record_action the action calls directly refuses at a step other than step-4 THEN [Freeze], [Report], [Triage], [Rule] AND [Repair] MUST answer record_action's code with the code's step.
+Primitive policy 17: IF a record_action the action calls directly refuses at step-4 THEN the action MUST answer as an admitted call, with the event id the refusal carries (Audit Trail record action step 7.16).
 Primitive policy 14: IF the page EQUALS blank, a patch comes with no round OR a round comes with no patch THEN [Rule] MUST answer invalid-request.
 Primitive policy 15: IF an escalation's record_action refuses THEN the escalating action MUST answer record_action's code in place of the refusal that escalated.
 Primitive policy 16: IF a triage record carries no role, class, kind, blame, side OR disposition THEN [Triage] MUST answer invalid-request.
@@ -190,7 +193,7 @@ repair(round, patches, actor_ref, credential)
 
 ```
 Deleted: Action wiring 1. Primitive policy 2 owns it: the snapshot is read from the repository at the base commit, never from a checked-out copy.
-Action wiring 2: An admitted freeze MUST record the round with the page, the base commit AND the snapshot hash.
+Action wiring 2: An admitted freeze MUST record the round with the page, the base commit, the snapshot hash AND the round budget.
 Action wiring 3: An admitted freeze MUST answer the round id AND the snapshot: the snapshot hash AND the base commit.
 Action wiring 34: IF the round budget DOES NOT EXCEED the page's round count AND the page carries no standing ruling THEN [Freeze] MUST answer budget-spent AND escalate the page to the maintainer's queue.
 ```
@@ -203,8 +206,8 @@ Action wiring 5: IF a counted verdict of the round carries the verdict's pass TH
 Action wiring 6: IF the verdict carries malformed THEN [Report] MUST escalate the verdict to the maintainer's queue.
 Action wiring 7: An admitted report MUST record the verdict.
 Action wiring 47: IF the round IS IN the round index's settled rounds THEN [Report] AND [Triage] MUST answer round-closed.
-Action wiring 48: IF the round's position EXCEEDS the round budget AND the round IS NOT IN the ruled rounds THEN [Report] MUST answer budget-spent.
-Action wiring 51: [Report] MUST NOT evaluate Action wiring 6 BEFORE Action wiring 4, 47 AND 48 have answered no refusal.
+Action wiring 48: IF the round's position EXCEEDS the round budget the round's record carries AND the round IS NOT IN the ruled rounds THEN [Report] MUST answer budget-spent.
+Action wiring 51: [Report] MUST NOT evaluate Action wiring 6 BEFORE Action wiring 4, 5, 47 AND 48 have answered no refusal.
 ```
 
 Term sound verdict: a recorded verdict of a round carrying holds or counterexample — a reader's or a formal engine's.
@@ -226,12 +229,12 @@ Action wiring 10: The composition MUST record a triage record under the triager'
 Action wiring 11: IF the round's foundational count EQUALS zero THEN the composition MUST NOT count the round as settled BEFORE a second triager has triaged EVERY counted finding of the round.
 Action wiring 12: The second triager's brief MUST carry the findings, the first triage's downgraded and rejected findings, the method's test AND the blame rule.
 Action wiring 13: The second triager's brief MUST NOT carry the threshold the count is read against.
-Action wiring 14: IF the first and second triages of a finding differ on the class, the side OR the disposition THEN the composition MUST NOT count the round as settled BEFORE a third triager records a settling triage record carrying the text that settles the finding.
+Action wiring 14: IF the first and second triages of a finding differ on the class, the side OR the disposition THEN the composition MUST NOT count the round as settled BEFORE a third triager records a third triage carrying the text that settles the finding.
 Action wiring 35: IF no sound verdict of the round carries the finding THEN [Triage] MUST answer not-known.
 Action wiring 36: IF the round carries a triage record of the finding in the record's role THEN [Triage] MUST answer already-triaged.
 Action wiring 37: IF the round carries a triage record of the finding in another role under the caller's actor reference THEN [Triage] MUST answer invalid-request.
 Action wiring 43: IF the record's role EQUALS second AND the round carries no first triage of the finding THEN [Triage] MUST answer invalid-request.
-Action wiring 44: IF the record's role EQUALS settling AND the round carries no second triage of the finding THEN [Triage] MUST answer invalid-request.
+Action wiring 44: IF the record's role EQUALS third AND the round carries no second triage of the finding THEN [Triage] MUST answer invalid-request.
 ```
 
 Term class: foundational | refining | rhetorical — as the section titled What "grounded" means in `pressure-testing.md` defines each.
@@ -248,11 +251,11 @@ Term deciding count: a count an outcome turns on — a round's foundational coun
 
 Term foundational count: the number of a round's counted findings whose settled triage carries the class foundational and a disposition other than reject.
 
-Term role: first | second | settling — which triage of a finding a record is.
+Term role: first | second | third — which triage of a finding a record is.
 
-Term triage record: one triager's sorting of one finding of a round — the role, class, kind, blame, side and disposition, a reason where a formal engine's finding is sided other than model, and for a settling record the text that settles — recorded under the triager's actor reference.
+Term triage record: one triager's sorting of one finding of a round — the role, class, kind, blame, side and disposition, a reason where a formal engine's finding is sided other than model, and for a third triage the text that settles — recorded under the triager's actor reference.
 
-Term settled triage: among a finding's triage records up to the round's settling record, the earliest settling one where one exists, otherwise the earliest second, otherwise the earliest first.
+Term settled triage: among a finding's triage records up to the round's settling record, the earliest third where one exists, otherwise the earliest second, otherwise the earliest first.
 
 Term settled round: a round with a settling record — reading the round's records in the journal's order, the first record after which the round carries a counted verdict for each reader pass and every counted finding carries a settled triage, under Action wiring 11 and 14; a triage record later in the order counts for nothing.
 
@@ -291,7 +294,7 @@ Action wiring 26: An opened repair MUST commit the repair tree with the head Act
 Action wiring 27: IF the commit answers a commit id THEN [Repair] MUST call the invocation close with the act kind, the act key, the open result, the writer's actor reference AND credential, council.commit.committed AND the commit id as the outcome data (Recoverable Invocation close 5).
 Action wiring 28: IF the commit's arm EQUALS pre-commit THEN [Repair] MUST call the invocation refusal with the act kind, the act key, the open result, the writer's actor reference AND credential, AND the store's code as the reason AND as the constituent code (Recoverable Invocation commit 2).
 Action wiring 29: IF the commit's arm EQUALS unknown THEN [Repair] MUST call the invocation yield with the act kind, the act key AND the invocation id, carrying the reply that Recoverable Invocation yield 7 names for the arm, AND answer recording-failure(outcome) (Recoverable Invocation commit 8d).
-Action wiring 30: IF [Repair] answers gated under Action wiring 19 THEN [Repair] MUST escalate the patch to the maintainer's queue.
+Action wiring 30: IF [Repair] answers gated under Action wiring 19 OR 56 THEN [Repair] MUST escalate the patch to the maintainer's queue.
 Action wiring 31: IF the round IS NOT IN the round index's settled rounds THEN [Repair] MUST answer unsettled.
 Action wiring 32: [Repair] MUST NOT push.
 Action wiring 33: [Repair] MUST NOT call the invocation open BEFORE the corpus gate AND the diff check have answered over the repair tree.
@@ -299,10 +302,13 @@ Action wiring 40: IF a patch answers a finding that carries no settled triage of
 Action wiring 41: IF a patch answers no finding AND a fragment of the patch IS NOT IN the records fragments THEN [Repair] MUST answer unresolved.
 Action wiring 42: IF the invocation open, close OR refusal refuses THEN [Repair] MUST answer the code Recoverable Invocation Action wiring 2 exports for the refusal.
 Action wiring 45: IF the invocation refusal answers a refusal event id THEN [Repair] MUST answer the store's code (Recoverable Invocation commit 3).
-Action wiring 46: [Repair] MUST NOT evaluate Action wiring 17 through 20, 40 AND 41 BEFORE Primitive policy, Action wiring 15, 31, 49 AND 52 have answered no refusal.
+Action wiring 46: [Repair] MUST NOT evaluate Action wiring 17 through 20, 40, 41 AND 55 BEFORE Primitive policy, Action wiring 15, 31, 49 AND 52 have answered no refusal.
 Action wiring 49: IF the actor reference DOES NOT EQUAL the writer's actor reference THEN [Repair] MUST answer invalid-credential.
-Action wiring 50: [Repair] MUST NOT evaluate Action wiring 19 BEFORE Action wiring 17, 18, 20, 24, 25, 40 AND 41 have answered no refusal.
+Action wiring 50: [Repair] MUST NOT evaluate Action wiring 19 AND 56 BEFORE Action wiring 17, 18, 20, 24, 25, 40, 41, 53 AND 55 have answered no refusal.
 Action wiring 52: IF the settle bound EXCEEDS the age of the round's settling record THEN [Repair] MUST answer unsettled.
+Action wiring 54: [Repair] MUST NOT evaluate Action wiring 31 BEFORE reading the round's records from the journal once Action wiring 52 has answered no refusal (Capability requirement 16).
+Action wiring 55: IF two fragments of the change set overlap in one site THEN [Repair] MUST answer mismatch.
+Action wiring 56: IF a declared name of a fragment IS IN the claim families AND no maintainer's ruling carries the round AND the fragment's patch byte-exact THEN [Repair] MUST answer gated.
 Action wiring 53: IF the foundational count a records fragment's new last gate line carries DOES NOT EQUAL the round's foundational count THEN [Repair] MUST answer mismatch.
 ```
 
@@ -310,9 +316,11 @@ Term patch: a patch id, the finding it answers, and one fragment for each senten
 
 Term fragment: a target, an old text and a new text — one sentence's change; an empty new text deletes.
 
+Term declared name: a rule label or a Term name a fragment's new text declares.
+
 Term target: what a fragment changes, named by its site — the rule label or Term name the sentence sits in, the label of the rule a WHY sentence sits under, or a records site.
 
-Term claim families: Invariant, Check, External check — the page's claims — with every Term a rule of theirs names, and the page's status line.
+Term claim families: Invariant, Check, External check — the page's claims — with every Term their rules name, directly or through another Term's definition, and the page's status line.
 
 Term round's records: the Ledger lines, the last gate line, the Decisions entry and the status the round owes, written by the council.
 
@@ -323,7 +331,7 @@ Term change set: every fragment of the patches one [Repair] call carries — the
 Term repair tree: the files of the head [Repair] read, with the change set applied — built by one [Repair] call apart from every other call's tree and every checked-out copy, and committed whole.
 
 WHY:
-**Every check is evaluated by the writer, from what the writer holds** (Action wiring 15 through 20, 31, 40, 41). The writer holds the snapshot from the round's record, the head from the repository, the patch from the triager, and the settled triages and rulings from the journal; no precondition asks it to know what a verifier thought. **A patch is the rule and every sentence that restates it** (Term patch): a third of one round's findings in this corpus were sentences left saying what a rule used to say, so every fragment is resolved, matched and gated on its own (Action wiring 17 through 19), and the exact-diff check (Action wiring 25) compares the commit with the whole set. **The repair builds its own tree** (Action wiring 23, 26): a working copy two calls share carries one call's lines into the other's commit, and a working copy a refused call left changed blocks every call after it; a tree built from the head and committed whole leaves nothing behind but itself, and the repository takes it only on that head (Capability requirement 13). **Refusals in order** (Action wiring 46): a patch sorted against a page that moved, or in a round that has not settled, is not the maintainer's to read, so staleness and settlement are answered before any gate escalates, and the claim gate is read last, so the maintainer is asked only about a patch nothing else refuses. **A settled round stays settled** (Term settled round, Action wiring 52): a triage that lands after the round settled counts for nothing, and [Repair] waits out the protocol's settle bound, so a record the journal has not yet shown cannot reorder the round under the commit. **The escalation is the council's record, not the act's** (Action wiring 30): it is written before any intent, so Recoverable Invocation Action wiring 6, which keeps an adopter's journal writes for the act to the protocol's own actions, does not reach it. **The side decides the target** (Action wiring 9, 20): a model is derived and falls behind the page, and a counterexample read straight into a page patch mends the truth to match its shadow; a finding from an engine is the model's until the triage record says why the model is right.
+**Every check is evaluated by the writer, from what the writer holds** (Action wiring 15 through 20, 31, 40, 41). The writer holds the snapshot from the round's record, the head from the repository, the patch from the triager, and the settled triages and rulings from the journal; no precondition asks it to know what a verifier thought. **A patch is the rule and every sentence that restates it** (Term patch): a third of one round's findings in this corpus were sentences left saying what a rule used to say, so every fragment is resolved, matched and gated on its own (Action wiring 17 through 19), and the exact-diff check (Action wiring 25) compares the commit with the whole set. **The repair builds its own tree** (Action wiring 23, 26): a working copy two calls share carries one call's lines into the other's commit, and a working copy a refused call left changed blocks every call after it; a tree built from the head and committed whole leaves nothing behind but itself, and the repository takes it only on that head (Capability requirement 13). **Refusals in order** (Action wiring 46): a patch sorted against a page that moved, or in a round that has not settled, is not the maintainer's to read, so staleness and settlement are answered before any gate escalates, and the claim gate is read last, so the maintainer is asked only about a patch nothing else refuses. **A settled round stays settled** (Term settled round, Action wiring 52): a triage that lands after the round settled counts for nothing, and [Repair] waits out the protocol's settle bound and then reads the round from the journal, whose reads the deployment holds to the protocol's own visibility guarantee (Capability requirement 16), so a record the journal had not yet shown cannot reorder the round under the commit. **The escalation is the council's record, not the act's** (Action wiring 30): it is written before any intent, so Recoverable Invocation Action wiring 6, which keeps an adopter's journal writes for the act to the protocol's own actions, does not reach it. **The side decides the target** (Action wiring 9, 20): a model is derived and falls behind the page, and a counterexample read straight into a page patch mends the truth to match its shadow; a finding from an engine is the model's until the triage record says why the model is right.
 
 ### Wiring decision
 
@@ -411,7 +419,7 @@ WHY:
   WHY: from a commit to its intent, from the intent to its round, from the round to its verdicts and triage records. Invariant 7.2 does for this page's checks what Recoverable Invocation Invariant 7.3 does for the protocol's, and reaches no check of that page: the council's own records are written before the intent and may purge first, so a check of this page reads a commit, a round or a verdict only while every record it reads for it stands. *Rests on* Action wiring 22, 26 and Recoverable Invocation Invariant 1 and 7.
 - **Invariant 8 — Repair is bounded.**
   ```
-  Invariant 8.1: IF a round's position EXCEEDS the round budget AND the round IS NOT IN the ruled rounds THEN the composition MUST NOT count a verdict toward the round.
+  Invariant 8.1: IF a round's position EXCEEDS the round budget the round's record carries AND the round IS NOT IN the ruled rounds THEN the composition MUST NOT count a verdict toward the round.
   ```
   WHY: a page that does not converge is a decision for a person. Two [Freeze] calls that read one count both record a round, so the journal's order, not [Freeze]'s read, decides which of them is past the budget, and the later one's verdicts are refused. *Rests on* Action wiring 34, 38 and 48.
 
@@ -419,9 +427,9 @@ WHY:
 
 ## Examples
 
-### Walkthrough — a clean round grounds a page
+### Walkthrough — a clean round
 
-The council freezes `compositions/immutable-transaction-ledger.md` at base commit `2f1b5c1`: [Freeze] reads the page at that commit from the repository and records round `r-14` with snapshot hash `a1a6621b…`. Three readers, none of whom has read an earlier round, are handed the snapshot and run GRID, EOS with the builder's reading, and Linus; each verdict carries `a1a6621b…` and its pass, so each counts (Invariant 1.2, Action wiring 5). The verdicts are holds, holds and counterexample — one foundational finding, an operator's closing never sized. The first triager rejects it: the protocol's open sizes against the kind's largest record, which Term true maximum on [Recoverable Invocation](./recoverable-invocation.md) makes the operator's closing too. The round's foundational count is now zero, so the count decides the round clean and is a deciding count: every counted finding goes to a second triager, another actor, whose brief carries the findings, the first triage's rejection, the method's test and the blame rule, and not the threshold (Action wiring 11 through 13, 37). The second triager rejects it on the same text, and the round settles. [Repair] then carries the round's records and the refining cures that add no rule: the page at the head is still the snapshot, every cure answers a finding settled as cure, every fragment resolves to one site on the page and its old text is found verbatim, none sits in the claim families, the gate reports nothing over the repair tree it does not report over the head, the tree's diff is exactly the change set, and the commit lands on the head it was built from, carrying the council trailer. The round is clean.
+The council freezes `compositions/immutable-transaction-ledger.md` at base commit `2f1b5c1`: [Freeze] reads the page at that commit from the repository and records round `r-14` with snapshot hash `a1a6621b…`. Three readers, none of whom has read an earlier round, are handed the snapshot and run GRID, EOS with the builder's reading, and Linus; each verdict carries `a1a6621b…` and its pass, so each counts (Invariant 1.2, Action wiring 5). The verdicts are holds, holds and counterexample — one foundational finding, an operator's closing never sized. The first triager rejects it: the protocol's open sizes against the kind's largest record, which Term true maximum on [Recoverable Invocation](./recoverable-invocation.md) makes the operator's closing too. The round's foundational count is now zero, so the count decides the round clean and is a deciding count: every counted finding goes to a second triager, another actor, whose brief carries the findings, the first triage's rejection, the method's test and the blame rule, and not the threshold (Action wiring 11 through 13, 37). The second triager rejects it on the same text, and the round settles. [Repair] then carries the round's records and the refining cures that add no rule: the page at the head is still the snapshot, every cure answers a finding settled as cure, every fragment resolves to one site on the page and its old text is found verbatim, none sits in the claim families — the records leave the status line to the maintainer's ruling — the gate reports nothing over the repair tree it does not report over the head, the tree's diff is exactly the change set, and the commit lands on the head it was built from, carrying the council trailer. The round is clean.
 
 ### Rejection path — the page moved under the round
 
@@ -454,13 +462,13 @@ Check 1.1: An auditor MUST find no council commit whose intent PRECEDES the sett
 Check 1.2: An auditor MUST find EVERY counted verdict carrying the round's snapshot hash (Invariant 1.2).
 Check 2.1: An auditor MUST find EVERY council commit's parent carrying the round's snapshot bytes for the page (Invariant 2.1).
 Check 2.2: An auditor MUST find EVERY line a council commit changes in the round's change set (Invariant 2.2).
-Check 3.1: An auditor MUST find a maintainer's ruling for EVERY council commit changing a rule in the claim families (Invariant 3.1).
+Check 3.1: An auditor MUST find, for EVERY council commit changing a rule in the claim families, a maintainer's ruling carrying the commit's round AND the patch byte for byte (Invariant 3.1).
 Check 4.1: An auditor MUST find no council commit's page patch answering a finding whose settled triage's side EQUALS model (Invariant 4.1).
 Check 5.1: An auditor MUST find two triages under two actor references for EVERY counted finding of a settled round whose foundational count is zero (Invariant 5.1).
 Check 6.1: An auditor MUST find no council commit answering a malformed verdict (Invariant 6.1).
-Check 7.1: An auditor MUST find EVERY council commit's trailer naming an intent event in the journal (Invariant 7.1).
+Check 7.1: An auditor MUST find, for EVERY council commit, the intent event the commit's trailer names in the journal under the act kind council.commit, carrying the round, the snapshot AND EVERY patch whole (Invariant 7.1).
 Check 7.2: IF the journal reports Purged for a record a check of this page reads THEN an auditor MUST exclude from the check EVERY commit, round AND verdict the record bears on (Invariant 7.2).
-Check 8.1: An auditor MUST find no counted verdict of a round whose position EXCEEDS the round budget, other than in the ruled rounds (Invariant 8.1).
+Check 8.1: An auditor MUST find no counted verdict of a round whose position EXCEEDS the round budget the round's record carries, other than in the ruled rounds (Invariant 8.1).
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -527,13 +535,13 @@ Term records: the rounds, verdicts, triage records, rulings and escalations the 
 
 Term record verbs: clear, answer, apply, bind, build, evaluate, exclude, pass, repair, settle, call, carry, change, commit, compare, count, disclose, escalate, find, freeze, journal, provision, push, publish, rebuild, record, refuse, remove, rest, run, serialize, serve, supply, triage, write, accept, belong, privilege, judge, choose, close, hold.
 
-Term value sets: verdict = holds | counterexample | malformed. class = foundational | refining | rhetorical. kind = A | B | C | D. blame = fresh | older. side = model | english | both. disposition = cure | route | reject | decline. pass = grid | eos | linus | formal. role = first | second | settling. action reference = council.round | council.verdict | council.triage | council.ruling | council.escalation | council.commit.intended | council.commit.committed | council.commit.refused | council.commit.recovery_intended | council.commit.abandoned | council.commit.escalated.
+Term value sets: verdict = holds | counterexample | malformed. class = foundational | refining | rhetorical. kind = A | B | C | D. blame = fresh | older. side = model | english | both. disposition = cure | route | reject | decline. pass = grid | eos | linus | formal. role = first | second | third. action reference = council.round | council.verdict | council.triage | council.ruling | council.escalation | council.commit.intended | council.commit.committed | council.commit.refused | council.commit.recovery_intended | council.commit.abandoned | council.commit.escalated.
 
 Term bounds: round budget (round_budget), patch cap (patch_cap), commit completion bound (commit_completion_bound), commit round trip (commit_round_trip), probe round trip (probe_round_trip).
 
 Term qualifiers: migrated — written in GRACE lang v0.63 from the first draft (2026-10-10).
 
-Term terms: writer, diff check, admitted freeze, admitted report, admitted ruling, admitted repair, opened repair, change set, snapshot, snapshot hash, base commit, round, round id, search, clean round, settled round, repair tree, page, finding, site, pass, sound verdict, counted verdict, patch, fragment, claim families, side, role, triage record, settled triage, deciding count, round's records, records fragment, maintainer's queue, maintainer's ruling, standing ruling, round budget, patch cap, sweep identity, commit binding, commit partition, commit probe, commit envelope, council commit, council nonce, council trailer, finding id, counted finding, foundational count, round position, ruled round, target, settling record, age.
+Term terms: writer, diff check, admitted freeze, admitted report, admitted ruling, admitted repair, opened repair, change set, snapshot, snapshot hash, base commit, round, round id, search, clean round, settled round, repair tree, page, finding, site, pass, sound verdict, counted verdict, patch, fragment, claim families, side, role, triage record, settled triage, deciding count, round's records, records fragment, maintainer's queue, maintainer's ruling, standing ruling, round budget, patch cap, sweep identity, commit binding, commit partition, commit probe, commit envelope, council commit, council nonce, council trailer, finding id, counted finding, foundational count, round position, ruled round, target, settling record, age, declared name.
 
 Term snapshot: a page's bytes at a base commit, named by the base commit and the snapshot hash.
 
@@ -547,9 +555,9 @@ Term page: a canonical document under the repository — a pattern file.
 
 Term round: three passes — GRID, EOS with the builder's reading, Linus — by three readers, each handed one snapshot.
 
-Term search: passes over a page a change moved between them; it counts toward nothing.
+Term search: passes over moving text, each reading the page live rather than one snapshot; it counts toward nothing, and a round whose readers are handed the snapshot is never one.
 
-Term clean round: a settled round whose foundational count is zero and whose repair's invocation closed council.commit.committed, as Recoverable Invocation's read invocation answers it.
+Term clean round: a settled round whose foundational count is zero, as is that of every other settled round of the same snapshot hash, and whose repair's invocation closed council.commit.committed, as Recoverable Invocation's read invocation answers it.
 
 Term cited: open, close, refuse, yield, act kind, act key, commit, commit fence, pairing datum, repeatable, probe, completion bound, commit round trip, probe round trip, journal, retention period, service identity, outcome envelope, retry terminus, critical section, act-in-flight, section-unavailable, journal-unavailable, recording-failure, true maximum, resolve, intent event id, read invocation, call pause bound, open result, settle bound: Recoverable Invocation. record_action, reference length cap, full enumeration: Audit Trail. The entry A clean round is a sample, and the sections titled Order and iteration, The formal-layer vote and What "grounded" means: `pressure-testing.md`. The section titled Composition state: `execution-contract.md`.
 
@@ -567,7 +575,7 @@ Kind: Operation
 
 #### Triage
 
-The action that records one triager's sorting of one finding of a round's counted verdicts — role, class, kind, blame, side and disposition — first; second and blind, by another triager, where a count decides an outcome; and settling, by a third, where the two part.
+The action that records one triager's sorting of one finding of a round's counted verdicts — role, class, kind, blame, side and disposition — first; second and blind, by another triager, where a count decides an outcome; and third, by a third triager, where the two part.
 
 Kind: Operation
 
@@ -604,9 +612,9 @@ None. The composition makes no regulatory claim of its own; the records it keeps
 ```
 status: draft
 formal: pending — vote yes: one writer per repository, no repair before the round settles and the round's bounded repair are ordering and safety claims; no model is drafted
-last gate: 2026-10-10 — Final Critique 4, three fresh readers, three passes on one text (round 3's cures, frozen at 8795298), no lapse — 8 foundational after deduplication (15 reports), six in text rounds 2 and 3 wrote, two older; 51 refining reports, 10 rhetorical reports; not clean; every foundational finding cured in place; 2026-10-10 — Final Critique 3, three fresh readers, three passes on one text (round 2's cures, frozen at fa017b5) — 12 foundational after deduplication from the two sound passes (16 reports), six of them in text round 2's cures wrote and six older; the Linus reader lapsed, reading the Status heading and its one line past its range and no Ledger line, so under Verdict 5 its verdict is malformed and counts for nothing: the four of its findings the sound passes also reported are cured on theirs, and its one other is routed, not cured (Invariant 6.1); 46 refining reports, 12 rhetorical reports; not clean; every foundational finding of a sound pass cured in place; 2026-10-10 — Final Critique 2, three fresh readers, three passes on one text (round 1's cures, frozen at 660ecec) — 13 foundational after deduplication (25 reports), nine reached by two or three passes, all fresh, ten of them in text round 1's cures wrote; 35 refining reports, 9 rhetorical reports; not clean, so no count decided anything; every foundational finding cured in place; 2026-10-10 — Final Critique 1, three fresh readers, three passes on one text (the first draft, frozen at 47128cc) — 12 foundational after deduplication, every one reported by two or three passes, all fresh; 32 refining reports, 9 rhetorical reports; not clean, so no count decided anything and no second triage was owed (Action wiring 11); every foundational finding cured in place
+last gate: 2026-10-10 — Final Critique 5, three fresh readers, three passes on one text (round 4's cures, frozen at 1aa5a6e), no lapse — 10 foundational after deduplication (14 reports), six in text rounds 3 and 4 wrote, four older; 49 refining reports, 10 rhetorical reports; not clean; every foundational finding cured in place; 2026-10-10 — Final Critique 4, three fresh readers, three passes on one text (round 3's cures, frozen at 8795298), no lapse — 8 foundational after deduplication (15 reports), six in text rounds 2 and 3 wrote, two older; 51 refining reports, 10 rhetorical reports; not clean; every foundational finding cured in place; 2026-10-10 — Final Critique 3, three fresh readers, three passes on one text (round 2's cures, frozen at fa017b5) — 12 foundational after deduplication from the two sound passes (16 reports), six of them in text round 2's cures wrote and six older; the Linus reader lapsed, reading the Status heading and its one line past its range and no Ledger line, so under Verdict 5 its verdict is malformed and counts for nothing: the four of its findings the sound passes also reported are cured on theirs, and its one other is routed, not cured (Invariant 6.1); 46 refining reports, 12 rhetorical reports; not clean; every foundational finding of a sound pass cured in place; 2026-10-10 — Final Critique 2, three fresh readers, three passes on one text (round 1's cures, frozen at 660ecec) — 13 foundational after deduplication (25 reports), nine reached by two or three passes, all fresh, ten of them in text round 1's cures wrote; 35 refining reports, 9 rhetorical reports; not clean, so no count decided anything; every foundational finding cured in place; 2026-10-10 — Final Critique 1, three fresh readers, three passes on one text (the first draft, frozen at 47128cc) — 12 foundational after deduplication, every one reported by two or three passes, all fresh; 32 refining reports, 9 rhetorical reports; not clean, so no count decided anything and no second triage was owed (Action wiring 11); every foundational finding cured in place
 open:
-- 2026-10-10-a · refining · the whole page · round 4 read round 3's cures; its own cures made a settled round stay settled and wait out the protocol's settle bound, widened the claim families to the Terms they name and the status line, declared the target and the records sites, scoped Invariant 7.2 to this page's checks, put the claim gate after the corpus gate and returned the store's codes bare → round 5 on the cured page
+- 2026-10-10-a · refining · the whole page · round 5 read round 4's cures; its own cures made every commit with a council trailer a council commit, closed the repository's refusal codes, ordered the page's own writes after its input checks and landed a step-4 record as written, renamed the triage role "third", held the council's journal reads to the protocol's visibility guarantee, refused overlapping fragments, gated the names a fragment declares, read a clean round across its snapshot's siblings and recorded the budget in the round → round 6 on the cured page
 - 2026-10-10-b · refining · Term repository · the store the act commits to is a deployment's version-controlled repository, which no atom in this library owns → an atom for a versioned store, or the store's contract kept here
 - 2026-10-10-c · refining · Verdict 6, Verdict 7 · "the explored state count stopped growing" is a reading [Report] has no input for, and an engine run whose twin is not rejected, or whose count still grows, fits no verdict → the adapter reports its state counts and such a run answers malformed, or Verdict 7 moves to External check 2
 - 2026-10-10-d · refining · Term round count · the council's records live by the journal's retention, so past the horizon the count reads a shorter history than the page ran, Invariant 7.2 excludes a commit whose records purged first, and a lawfully purged round, verdict or triage is answered not-known as if absent; a [Freeze] retried after a lost reply records a second round that counts against the budget → a council retention no shorter than council.commit's and at least the round budget's span, a purged arm, and a freeze retry that reads its round back
@@ -618,16 +626,14 @@ open:
 - 2026-10-10-l · refining · Capability requirement 14 · the protocol's other operator duties — binding duplicates under journal fence none, findings on the compliance surface — have no owner here → the maintainer named for them, or the deployment
 - 2026-10-10-m · refining · Action wiring 25, Term records sections · the diff check compares a line diff with sentence fragments, and a fragment in the records sections names no target or insertion point → the unit stated, and the records' targets
 - 2026-10-10-n · refining · Term round · one commit per round is implied by staleness and never stated, and nothing stops one reader running two passes of a round → both stated
-- 2026-10-10-p · refining · Action wiring 17, 18, 23 · two patches carrying one old text with two new texts both pass the per-fragment checks, and the change set then either never matches the diff or loses one cure; first reported by a malformed verdict, then as a hardening by round 4's structural pass → mismatch where two fragments of one change set overlap
-- 2026-10-10-q · refining · Action wiring 13, 14 · the settling triager is not blind, so a disputed deciding count is settled by a reader who sees the threshold → the settling brief blinded as the second's is
-- 2026-10-10-r · refining · [Freeze] · several rounds may run on one snapshot, and repairing whichever settles clean resets the count past a sibling's foundational finding on the same bytes → one live round per snapshot, or a sibling's findings carried
+- 2026-10-10-q · refining · Action wiring 13, 14 · the third triager is not blind, so a disputed deciding count is settled by a reader who sees the threshold → the third triager's brief blinded as the second's is
 - 2026-10-10-s · refining · Capability requirement 14 · the time between the sweep's escalation and the intent's purge is the protocol's, and no maintainer response bound is disclosed against it → the bound disclosed and checked against the retention period
 - 2026-10-10-u · refining · Term clean round · how the round's repair invocation is found through the protocol's read is unstated, and the page's precondition reads assume the journal reads its own writes, which the protocol declares only for its own instance → both stated
 - 2026-10-10-v · refining · [Triage] · a disposition that does not fit its kind (Term disposition) is not refused → a refusal
 - 2026-10-10-w · refining · Check 2.1, Check 2.2 · neither tests that a council commit changes the round's page, so the change set applied to another file whose lines match passes both → the page named in both checks
 - 2026-10-10-x · refining · Action wiring 6, 30, 34 · every retried gated repair and every refused freeze writes a new escalation, an escalation record is never closed, and a malformed verdict's escalation has no answering action → one escalation per subject, closed by a ruling or a later round
 - 2026-10-10-y · refining · Capability requirement 3 through 6, Action wiring 12 · "permitted ranges", "Status heading", "buggy twin", "the method's test" and "the blame rule" are named and declared nowhere → Terms, or the deployment's disclosures
-- 2026-10-10-z · refining · Action wiring 9, 20 · a cure that indicts the model has no actor, action or record on this page, and the first, second and settling triage is a dual-control shape that recurs elsewhere → the model's re-derivation named, and the triage shape considered for extraction
+- 2026-10-10-z · refining · Action wiring 9, 20 · a cure that indicts the model has no actor, action or record on this page, and the first, second and third triage is a dual-control shape that recurs elsewhere → the model's re-derivation named, and the triage shape considered for extraction
 ```
 
 ## Decisions
@@ -643,5 +649,7 @@ Directional changes only. Everything smaller lives in the commit that made it: `
 - **2026-10-10 — Round 3: the journal's order decides the budget, and a settled round is closed.** *Chose:* a round's position in the journal's order, not [Freeze]'s read of a count, as what puts a round past the budget, its verdicts refused; a settled round closed to later reports and triages; every count scoped to the findings counted verdicts carry, a rejected finding counting for nothing; a finding named by its verdict and ordinal; the round's records narrowed to the shapes they take; [Repair]'s caller held to the writer. *Over:* a lock around [Freeze], and a round whose settledness later records could undo. *Because:* the same race the second round closed for verdicts reappeared at [Freeze], and the same order closes it; and a fact a commit rested on must not change after the commit.
 
 - **2026-10-10 — Round 4: a settled round stays settled, and the status is a claim.** *Chose:* a round settles at the first record in the journal's order that settles it, with later triage records counting for nothing and [Repair] waiting out the protocol's settle bound; the claim families widened to every Term their rules name and to the status line, so a page's grounding is ruled by the maintainer; the target and the records sites declared, and the last gate line checked against the round's count; the store's codes returned bare, an undeclared refusal left to the protocol's unknown arm. *Over:* a lock around [Triage], a claim gate keyed to three label families, and a wrapped store code. *Because:* every race this page met had the same shape and the same cure, and the cheapest way to weaken a claim was to change the words it is written in.
+
+- **2026-10-10 — Round 5: a council commit is any commit with the trailer, and the page's own records land like the protocol's.** *Chose:* the checks' population named by the trailer alone, so a forged trailer is found rather than defined away; the repository's pre-commit codes closed to three; the page's own writes ordered after its input checks, a step-4 record answered as written; the council's journal reads held to the visibility the protocol guarantees its own; a clean round read across every settled round of its snapshot; the round budget written into the round it governs. *Over:* a population defined by its own validity, an open code set, and a budget read from today's disclosure. *Because:* a check that cannot fail is not a check, and every number a later check reads has to be the one the action read.
 
 NOTE: End of Verified Repair.
