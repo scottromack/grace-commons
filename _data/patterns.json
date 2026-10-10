@@ -216,7 +216,8 @@
    "multi-party-approval",
    "privileged-access-provisioning",
    "propagate-consent-revocation-downstream",
-   "recoverable-invocation"
+   "recoverable-invocation",
+   "verified-repair"
   ],
   "substrates": [],
   "title": "Audit Trail"
@@ -1241,7 +1242,8 @@
   ],
   "status": "draft",
   "substrate_of": [
-   "immutable-transaction-ledger"
+   "immutable-transaction-ledger",
+   "verified-repair"
   ],
   "substrates": [
    "audit-trail"
@@ -1607,5 +1609,24 @@
   "status": "partially resolved",
   "substrates": [],
   "title": "Undo History"
+ },
+ "verified-repair": {
+  "composes": [],
+  "grounded": false,
+  "invariants": 8,
+  "kind": "composition",
+  "models": {
+   "als": false,
+   "tla": false,
+   "twins": 0
+  },
+  "regulated": true,
+  "standards": [],
+  "status": "draft",
+  "substrates": [
+   "recoverable-invocation",
+   "audit-trail"
+  ],
+  "title": "Verified Repair"
  }
 }

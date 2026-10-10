@@ -59,10 +59,10 @@ constituents reached transitively). This is the load-bearing spine of the librar
 
 | Substrate | Named by | Composers |
 |---|---|---|
-| [Audit Trail](./compositions/audit-trail.html) | 14 | actor-suspension, capability-backed-sharing, chain-of-custody, customer-onboarding, defensible-retention, execute-gated-workflow, external-onboarding, forensic-recovery, immutable-transaction-ledger, login, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, recoverable-invocation |
+| [Audit Trail](./compositions/audit-trail.html) | 15 | actor-suspension, capability-backed-sharing, chain-of-custody, customer-onboarding, defensible-retention, execute-gated-workflow, external-onboarding, forensic-recovery, immutable-transaction-ledger, login, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, recoverable-invocation, verified-repair |
+| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 2 | immutable-transaction-ledger, verified-repair |
 | [Defensible Retention](./compositions/defensible-retention.html) | 1 | resolve-a-persons-data-rights |
 | [Multi-Party Approval](./compositions/multi-party-approval.html) | 1 | privileged-access-provisioning |
-| [Recoverable Invocation](./compositions/recoverable-invocation.html) | 1 | immutable-transaction-ledger |
 
 ## The substrate spine
 
@@ -73,7 +73,7 @@ substrate it names; constituents of the substrate are reached transitively.
 %%{init: {"theme": "dark", "flowchart": {"htmlLabels": true}} }%%
 flowchart LR
   actor_suspension["Actor Suspension"]
-  audit_trail["Audit Trail · 14"]
+  audit_trail["Audit Trail · 15"]
   capability_backed_sharing["Capability-Backed Sharing"]
   chain_of_custody["Chain of Custody"]
   customer_onboarding["Customer Onboarding"]
@@ -86,8 +86,9 @@ flowchart LR
   multi_party_approval["Multi-Party Approval · 1"]
   privileged_access_provisioning["Privileged Access Provisioning"]
   propagate_consent_revocation_downstream["Propagate Consent Revocation Downstream"]
-  recoverable_invocation["Recoverable Invocation · 1"]
+  recoverable_invocation["Recoverable Invocation · 2"]
   resolve_a_persons_data_rights["Resolve a Person's Data Rights"]
+  verified_repair["Verified Repair"]
   actor_suspension -.-> audit_trail
   capability_backed_sharing -.-> audit_trail
   chain_of_custody -.-> audit_trail
@@ -105,9 +106,11 @@ flowchart LR
   propagate_consent_revocation_downstream -.-> audit_trail
   recoverable_invocation -.-> audit_trail
   resolve_a_persons_data_rights -.-> defensible_retention
+  verified_repair -.-> audit_trail
+  verified_repair -.-> recoverable_invocation
   classDef comp fill:#3b2a52,stroke:#c7a8e8,color:#f2ebfa;
   classDef spine fill:#52341f,stroke:#f0b27a,color:#fdf2e9;
-  class actor_suspension,audit_trail,capability_backed_sharing,chain_of_custody,customer_onboarding,defensible_retention,execute_gated_workflow,external_onboarding,forensic_recovery,immutable_transaction_ledger,login,multi_party_approval,privileged_access_provisioning,propagate_consent_revocation_downstream,recoverable_invocation,resolve_a_persons_data_rights comp;
+  class actor_suspension,audit_trail,capability_backed_sharing,chain_of_custody,customer_onboarding,defensible_retention,execute_gated_workflow,external_onboarding,forensic_recovery,immutable_transaction_ledger,login,multi_party_approval,privileged_access_provisioning,propagate_consent_revocation_downstream,recoverable_invocation,resolve_a_persons_data_rights,verified_repair comp;
   class audit_trail,defensible_retention,multi_party_approval,recoverable_invocation spine;
 ```
 
@@ -176,6 +179,7 @@ flowchart LR
     c_session_gated_authorization["Session-Gated Authorization"]
     c_shared_todo["Shared Todo"]
     c_undo_history["Undo History"]
+    c_verified_repair["Verified Repair"]
   end
   c_actor_suspension --> a_permissions
   c_actor_suspension --> a_session
@@ -258,14 +262,16 @@ flowchart LR
   c_propagate_consent_revocation_downstream -.-> c_audit_trail
   c_recoverable_invocation -.-> c_audit_trail
   c_resolve_a_persons_data_rights -.-> c_defensible_retention
+  c_verified_repair -.-> c_audit_trail
+  c_verified_repair -.-> c_recoverable_invocation
   classDef atom fill:#16394a,stroke:#85c1e9,color:#eaf6fc;
   classDef atomSec fill:#16394a,stroke:#f7dc6f,color:#fdfbef;
   classDef comp fill:#3b2a52,stroke:#c7a8e8,color:#f2ebfa;
   classDef compReg fill:#52341f,stroke:#f0b27a,color:#fdf2e9;
   class a_actor_identity,a_approval_step,a_assignment,a_capability,a_capacity_constraint_enforcement,a_consent,a_credential,a_duplicate_prevention,a_event_log,a_invitation,a_lease,a_legal_hold,a_medication_order,a_message_preference,a_notification,a_observation,a_party_identity,a_permissions,a_personal_todo,a_provenance,a_provisional_commitment,a_retention_window,a_selective_disclosure,a_session,a_soft_delete,a_state_machine,a_subscription,a_tamper_evidence atom;
   class a_actor_identity,a_approval_step,a_assignment,a_capability,a_credential,a_invitation,a_party_identity,a_permissions,a_session atomSec;
-  class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_forensic_recovery,c_idempotent_reservation,c_immutable_transaction_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_todo,c_undo_history comp;
-  class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_forensic_recovery,c_idempotent_reservation,c_immutable_transaction_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_todo,c_undo_history compReg;
+  class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_forensic_recovery,c_idempotent_reservation,c_immutable_transaction_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_todo,c_undo_history,c_verified_repair comp;
+  class c_actor_suspension,c_attributed_permissions_admin,c_audit_trail,c_authenticated_actor,c_capability_backed_sharing,c_chain_of_custody,c_compensable_workflow,c_customer_onboarding,c_defensible_retention,c_execute_gated_workflow,c_external_onboarding,c_forensic_recovery,c_idempotent_reservation,c_immutable_transaction_ledger,c_login,c_multi_party_approval,c_notification_fanout,c_preference_aware_notification_fanout,c_privileged_access_provisioning,c_propagate_consent_revocation_downstream,c_recoverable_invocation,c_reserve_from_pool,c_resolve_a_persons_data_rights,c_session_gated_authorization,c_shared_todo,c_undo_history,c_verified_repair compReg;
 ```
 
 </details>
