@@ -1,4 +1,4 @@
----- MODULE iso-inv5 ----
+---- MODULE recoverable-invocation-iso-inv6 ----
 \* Grace Commons — Recoverable Invocation: the protocol every regulated
 \* composition follows around an irreversible act. Spec-level formal sibling of
 \* compositions/recoverable-invocation.md. Derived validator; the English spec

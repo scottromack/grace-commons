@@ -11,7 +11,7 @@
 \* `service_identity = none`, because only in a report-only deployment does
 \* the operator decide an act's fate against the edge rather than after
 \* another writer already has. Its passing sibling is
-\* probe-reportonly-clean.tla, which differs by this one constant.
+\* recoverable-invocation-probe-reportonly-clean.tla, which differs by this one constant.
 \*
 \* Expected result: Inv5_NoFalseAbandon VIOLATED — the operator writes
 \* `abandoned` one tick before the edge, on a reading that says otherwise, and

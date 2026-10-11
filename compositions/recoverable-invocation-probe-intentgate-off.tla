@@ -1,11 +1,194 @@
----- MODULE probe-reportonly-clean ----
-\* Grace Commons — Recoverable Invocation: PASSING SIBLING.
+---- MODULE recoverable-invocation-probe-intentgate-off ----
+\* Holds, and is meant to: Invariant 7 at these constants with the intent write ungated (IntentGated = FALSE), beside recoverable-invocation-probe-intentgate-clean with it gated. Both holding is the evidence for Recoverable Invocation's decision of 2026-09-10 — the fence earns the invariant and the lease gate does not. It was filed as a buggy twin of a remedy the page then declined.
+\* Grace Commons — Recoverable Invocation: the protocol every regulated
+\* composition follows around an irreversible act. Spec-level formal sibling of
+\* compositions/recoverable-invocation.md. Derived validator; the English spec
+\* is the single source of truth. On any disagreement, diagnose per
+\* the entry *The conflict protocol* in pressure-testing.md.
 \*
-\* NOT A TWIN — the PASSING SIBLING of recoverable-invocation-buggy-opclock.
-\* The same report-only deployment with OperatorSkew = 0: `now` is injected at
-\* a declared operator seam, as every other reading on this page is injected.
-\* It must HOLD. A twin that differs from nothing is evidence of nothing.
-
+\* VERSION 5 (2026-09-09) splits [OPEN] and raises the resolve budget. The
+\* tenth gate found the first MODEL-WRONG finding since the sixth: v4 made the
+\* intent's return and visibility one event on the argument that the section
+\* holds off every racing reader, and that argument does not survive [Open]'s
+\* own steps — the under-section pre-check read has no disclosed bound and the
+\* intent write is exempt from the lease gate, so the read can consume the
+\* lease and the write can land after the section has passed on. Two new
+\* constants, each FALSE/large being the page as written:
+\*   IntentGated — TRUE: the intent write passes the same
+\*                 `remaining >= JournalWriteBound` gate as every other write.
+\*                 FALSE is the page as written ("every journal write AFTER the
+\*                 invocation's first"), and admits a second live intent for one
+\*                 act_key that no duplicate surface detects, since all three
+\*                 key on invocation_id and two invocations carry two of those.
+\*   ReadBound   — the disclosed bound on the under-section pre-check read. The
+\*                 page discloses none, which is ReadBound = CompletionBound:
+\*                 the read may consume the whole lease.
+\* And the tenth gate's other in-frame finding was a behaviour v4 could express
+\* and a CONFIGURATION CONSTANT excluded — a supersession chain needs two
+\* resolutions against MaxResolves = 1. v5 raises it, counts supersession
+\* TRANSITIVELY (the standing closing is the one no other closing names), and
+\* adds a second-occurrence probe. A probe that asks whether a thing ever
+\* happens does not ask whether it happens twice, and in a concurrency model
+\* the second occurrence is where the defects live.
+\*
+\* VERSION 4 (2026-09-08) brings [RESOLVE] — the operator, the protocol's
+\* THIRD writer — inside the frame. v1-v3 modelled two writers against a page
+\* that always had three, and the ninth gate returned five of seven
+\* foundational findings on [Resolve] and the purge, both of which v3's NOT
+\* MODELED list named. Two of those five are in the model's own domain and are
+\* carried here as constants, so that the twin with each turned off is the page
+\* as written:
+\*   SupersedesNamed — TRUE: a resolution written over an existing closing
+\*                    carries `supersedes` naming that record, so the pair is
+\*                    one act closed twice on purpose. FALSE is the page as
+\*                    written for the ESCALATED case, where the resolution
+\*                    carries only `resolved_by` — which names the operator and
+\*                    not a record, so the precedence rule and the acceptance
+\*                    check have no referent and both read a lawful resolution
+\*                    as a duplicate (gate 9, F6).
+\*   OperatorSkew   — how far the operator's own reading may run ahead of the
+\*                    true instant. 0 is a declared operator seam, injecting
+\*                    `now` as every other reading on the page is injected.
+\*                    Non-zero is the page as written, where [Resolve]'s
+\*                    too-young guard compares a reading no seam supplies
+\*                    (gate 9, F7).
+\*
+\* VERSION 3 (2026-08-30) extends v2 to the two things the seventh gate found
+\* in the frame's declared holes — the fence's two clocks, and the lost reply
+\* with its read-back and retry. Both reproduce; and the remedy the gate
+\* prescribed for the second one FAILED here until the fence margin was applied
+\* to the per-write instant as well as the lease's, which is the same skew
+\* defect a second time.
+\*
+\* VERSION 2 (2026-08-30). Version 1 held, rejected three twins, and corrected
+\* the prose twice — and then the sixth fresh-reader gate found three
+\* foundational timing defects the model had passed over. All three had one
+\* cause: AT EACH POINT THE MODEL WAS MORE DISCIPLINED THAN THE PROSE, so the
+\* model was validating a better spec than the one anybody would implement.
+\*   - v1's IssueOutcome FUSED the lease check with the write, so no time could
+\*     pass between passing `remaining >= journal_write_bound` and issuing. The
+\*     pause the spec itself admits was unrepresentable, and "a write issued
+\*     inside the lease lands inside it" was a modeling primitive rather than a
+\*     derived fact. v2 splits EVERY journal write into a Prepare (the gate) and
+\*     an Issue (the write), with Tick free to fire between them.
+\*   - v1's sweep held the section until its write LANDED; the spec releases on
+\*     `record_action`'s RETURN, and the visibility it declares is time-based
+\*     (visible once journal_write_bound has elapsed since issue), so a waiter
+\*     admitted at the release may read before the write is visible. v2 gives
+\*     every write a return tick AND a visibility tick, return <= visible, and
+\*     releases the section at return.
+\*   - v1 gave the sweep a lease of CompletionBound; the spec's is
+\*     max(completion_bound, closure_latency). v2 carries SweepLease as its own
+\*     constant, so the closure arithmetic is derived rather than assumed.
+\*
+\* The two candidate remedies are CONSTANTS, so the model answers not only
+\* "is this a defect" but "does the proposed fix close it":
+\*   JournalFence   — the substrate honours a deadline on a journal write (a
+\*                    write that would become visible past the writer's lease
+\*                    expiry is refused, as a store-level commit_fence refuses a
+\*                    late commit). FALSE is the corpus as it stands today:
+\*                    record_action(action_ref, actor_ref, credential, data)
+\*                    carries no deadline and no fence is declared anywhere.
+\*   VisibleOnReturn — a write whose record_action has RETURNED is visible to
+\*                    every subsequent range read of the instance from any node.
+\*                    FALSE is the requirement as the spec declares it today
+\*                    (visibility bounded only by time since issue).
+\* The main model sets both TRUE and holds. Each set FALSE is a twin the
+\* checker must reject — and each of those twins IS THE PROSE AS WRITTEN, which
+\* is the point.
+\*
+\* FIVE COMPONENTS over ONE act:
+\*   - the INVOCATION: opens (takes the section, issues the intent), issues the
+\*     bound commit, prepares and issues the outcome, and may crash or pause at
+\*     any point — a pause is time advancing while it does nothing;
+\*   - the SECTION HOST: a lease per holder — CompletionBound for the
+\*     invocation, SweepLease for a sweep run — released on the holder's return
+\*     and otherwise at its expiry. A holder's death is not an event the host
+\*     sees: the lease runs out;
+\*   - the STORE: the adopter's constituent. With a FENCE it never applies a
+\*     write past the fence instant it was given; without one a write may land
+\*     any time within LateLanding;
+\*   - the JOURNAL: Audit Trail. A write returns to its caller within
+\*     JournalWriteBound of issue and becomes visible to other readers no
+\*     earlier than it returns and no later than JournalWriteBound after issue;
+\*   - the SWEEP: TWO runs on two nodes, each on its own cadence, over the same
+\*     section: select at the edge, block on the take, re-read, probe, prepare,
+\*     issue, release at return. A run may die at any point.
+\*
+\* INVARIANTS (named as the spec names them)
+\*   Inv1_IntentFirst    — the store never receives the commit before the
+\*                         intent record is appended.
+\*   Inv2_OneWriter      — at most one outcome record ever exists for the act,
+\*                         and at most one closing of any kind.
+\*   Inv4_BoundedClosure — once the intent is older than the window and the
+\*                         invocation will not close it, a closing is visible.
+\*   Inv5_NoFalseAbandon — an abandonment is never contradicted by a commit
+\*                         that lands later.
+\*
+\* WHAT THE MAIN CONFIGURATION ACTUALLY CHECKS. Inv1, Inv2 and Inv5 fire at the
+\* main constants. Inv4 does NOT: its antecedent needs `now >= intentAt +
+\* Window`, and a Window the model can both reach and satisfy needs a horizon
+\* several times the main one — so at these constants the Inv4 conjunct of
+\* Safety is VACUOUS, and "all invariants hold" must not be read as evidence for
+\* it. Inv4 is checked in its own configurations, where the horizon exceeds the
+\* window and the bound is derived by controlled variation: tools/harness's
+\* window_probe.sh and delta_probe.sh, which is where the closure arithmetic in
+\* the page's Configuration section comes from. This is the vacuity trap in its
+\* arithmetic form and it is written here because it caught this model once.
+\*
+\* MODELING CHOICES
+\* - Discrete time. A write carries the ticks it will return and become visible
+\*   on, chosen when it is ISSUED — not when its gate was passed.
+\* - The sweeps are scheduled, not fair: time does not advance past a due run, a
+\*   take that can succeed, or a run's re-read and probe (one instant, inside
+\*   run_bound). Time DOES advance freely between a prepare and its issue: that
+\*   is the pause, and making it representable is the whole of v2.
+\* - The intent's return and visibility are one event. Justified, not assumed:
+\*   the intent is written by the sole holder at the start of its lease, and the
+\*   only readers who could race it — a second [Open], a sweep run — are held
+\*   off by the section itself, so the gap cannot produce a second writer. Every
+\*   write where a handoff DOES depend on the gap (outcome, closing) carries
+\*   both ticks.
+\* - The act kind (fenced store or not) is chosen at Init: one run covers both.
+\* - Skew IS modeled, between the two clocks the fence spans: the section host
+\*   mints the instant, the substrate judges the refusal, and JournalSkew is the
+\*   second clock's offset from the first. Every other comparison still reads one
+\*   clock; the spec's clock_offset_allowance widens those edges by a constant and
+\*   the model checks their shape, not their width.
+\* - A pause is free EXCEPT where it would let a run outrun `run_bound`: a
+\*   sweep run that pauses past its own lease is charged a death, because a run
+\*   that does not complete inside run_bound is not a conforming run. Without
+\*   that charge the checker starves every act at every window, which is a
+\*   statement about non-conforming runs and not about the protocol.
+\*
+\* NOT MODELED — and this list is not a disclaimer but a PREDICTION: the sixth
+\* and seventh gates found their foundational defects almost exactly here, so
+\* what follows is where the next ones will be. The eighth and ninth gates
+\* found theirs here too — the ninth returned FIVE of seven on [Resolve] and
+\* the purge — so v4 takes [Resolve] off this list and the list keeps its
+\* record. What remains, with the gate-9 finding each one hid:
+\* pairing; retention purge and the sweep's upper edge, and with it [Resolve]'s
+\* `purged` arm (F5); the refusal path; the escalation's candidate list; the
+\* recovery_intended record; the bindings table's lifecycle, and with it the
+\* `kind` half of the section's key — one act of one kind here, so a signature
+\* that omits the kind is invisible to this model (F1); the rejection-code
+\* taxonomy, since the model counts records and never names a code (F2); the
+\* derived indexes and what a delta-bounded read can still see (F3); the
+\* compliance surface and outage reporting (F4);
+\* and the SWEEP's own lost-reply retry — the read-back path is modeled for the
+\* invocation's outcome only, so a run whose closing write's reply is lost is
+\* outside the frame exactly as the invocation's was before v3.
+\*
+\* TWINS (each must be REJECTED by the checker):
+\*   recoverable-invocation-buggy-death.tla    — the host releases on death.
+\*   recoverable-invocation-buggy-reread.tla   — the sweep skips its re-read.
+\*   recoverable-invocation-buggy-fence.tla    — abandons a fenceless act.
+\*   recoverable-invocation-buggy-journal.tla  — JournalFence = FALSE (gate 6, F2).
+\*   recoverable-invocation-buggy-visible.tla  — VisibleOnReturn = FALSE (gate 6, F3).
+\*   recoverable-invocation-buggy-skew.tla     — FenceMargin = 0 (gate 7, F1).
+\*   recoverable-invocation-buggy-perwrite.tla — PerWriteFence = FALSE (gate 7, F2).
+\*   recoverable-invocation-buggy-supersede.tla — SupersedesNamed = FALSE (gate 9, F6).
+\*   recoverable-invocation-buggy-opclock.tla  — OperatorSkew > 0 (gate 9, F7).
 \*   recoverable-invocation-buggy-intentgate.tla — IntentGated = FALSE (gate 10, F6).
 
 EXTENDS Naturals
@@ -1156,18 +1339,6 @@ Inv5_NoFalseAbandon ==
 Inv6_SupersessionNamed ==
     (opRecords > 0 /\ closingRecords + outcomeRecords > 0) => opSuperseded > 0
 
-\* Gate 10, F6, stated DIRECTLY. This began life as a reachability probe and
-\* held, which is not a vacuity failure — it is the protocol obligation the
-\* fence earns, written in the wrong section. An intent must never be in flight
-\* while its own invocation no longer holds the section: the section is
-\* released on the holder's return, and the page's read-your-writes clause
-\* makes a returned record visible to the next reader, so a write still in
-\* flight at a release is a journal the next [Open] reads without seeing it.
-\* THE FENCE IS WHAT EARNS THIS, NOT THE LEASE GATE — the gate-off twin holds
-\* under a fence and the gated configuration violates without one.
-Inv8_IntentUnderItsSection ==
-    ~(intentState = "pending" /\ (holder /= "inv" \/ now >= heldUntil))
-
 \* Gate 10, F6. Under a declared service identity [Open] refuses any open
 \* intent, so at most one invocation of an act is ever between its intent and
 \* its closing. A second one getting past its own pre-check means two live
@@ -1178,7 +1349,7 @@ Inv7_OneLiveIntent == ServiceIdentity => ~secondOpened
 
 Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter /\ Inv4_BoundedClosure
           /\ Inv5_NoFalseAbandon /\ Inv6_SupersessionNamed
-          /\ Inv7_OneLiveIntent /\ Inv8_IntentUnderItsSection
+          /\ Inv7_OneLiveIntent
 
 \* ---- reachability probes --------------------------------------------------
 \* Each of these is a DELIBERATE FALSEHOOD, and the checker must REJECT it.
@@ -1197,5 +1368,7 @@ Probe_OperatorNeverHoldsSection == holder /= "op"
 \* whether it happens TWICE, which is where a concurrency defect lives.
 Probe_NeverTwoResolutions == opRecords < 2
 Probe_NeverASupersessionChain == ~(opSuperseded >= 2)
+Probe_IntentNeverInFlightUnheld ==
+    ~(intentState = "pending" /\ (holder /= "inv" \/ now >= heldUntil))
 
 ====

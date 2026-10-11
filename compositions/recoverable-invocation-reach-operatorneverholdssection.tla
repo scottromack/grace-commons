@@ -1,10 +1,42 @@
----- MODULE probe-operatorneverholdssection ----
+---- MODULE recoverable-invocation-reach-operatorneverholdssection ----
 \* EXPECT: violation — this configuration checks a deliberate falsehood (see the reachability probes at the foot of this file); the audit runs it as a twin the checker must reject.
 \* Grace Commons — Recoverable Invocation: the protocol every regulated
 \* composition follows around an irreversible act. Spec-level formal sibling of
 \* compositions/recoverable-invocation.md. Derived validator; the English spec
 \* is the single source of truth. On any disagreement, diagnose per
 \* the entry *The conflict protocol* in pressure-testing.md.
+\*
+\* VERSION 5 (2026-09-09) splits [OPEN] and raises the resolve budget. The
+\* tenth gate found the first MODEL-WRONG finding since the sixth: v4 made the
+\* intent's return and visibility one event on the argument that the section
+\* holds off every racing reader, and that argument does not survive [Open]'s
+\* own steps — the under-section pre-check read has no disclosed bound and the
+\* intent write is exempt from the lease gate, so the read can consume the
+\* lease and the write can land after the section has passed on. Two new
+\* constants, each FALSE/large being the page as written:
+\*   IntentGated — TRUE: the intent write passes the same
+\*                 `remaining >= JournalWriteBound` gate as every other write.
+\*                 FALSE is the page as written ("every journal write AFTER the
+\*                 invocation's first"), and admits a second live intent for one
+\*                 act_key that no duplicate surface detects, since all three
+\*                 key on invocation_id and two invocations carry two of those.
+\*   ReadBound   — the disclosed bound on the under-section pre-check read. The
+\*                 page discloses none, which is ReadBound = CompletionBound:
+\*                 the read may consume the whole lease. THE MAIN
+\*                 CONFIGURATION SETS IT TO 1 and factors the read's duration
+\*                 out, exactly as Inv4's window is factored out: a read that
+\*                 consumes the lease is the variable under test in the
+\*                 Inv7_OneLiveIntent configurations, and carrying it in the
+\*                 main run as well costs a state space the harness cannot
+\*                 finish. "All invariants hold" here therefore says nothing
+\*                 about a long read, and the Inv7 pair is where that is said.
+\* And the tenth gate's other in-frame finding was a behaviour v4 could express
+\* and a CONFIGURATION CONSTANT excluded — a supersession chain needs two
+\* resolutions against MaxResolves = 1. v5 raises it, counts supersession
+\* TRANSITIVELY (the standing closing is the one no other closing names), and
+\* adds a second-occurrence probe. A probe that asks whether a thing ever
+\* happens does not ask whether it happens twice, and in a concurrency model
+\* the second occurrence is where the defects live.
 \*
 \* VERSION 4 (2026-09-08) brings [RESOLVE] — the operator, the protocol's
 \* THIRD writer — inside the frame. v1-v3 modelled two writers against a page
@@ -100,6 +132,27 @@
 \*   Inv5_NoFalseAbandon — an abandonment is never contradicted by a commit
 \*                         that lands later.
 \*
+\* THE HORIZON IS PART OF THE CLAIM, AND THE CLAIM IS BOUNDED BY IT.
+\* v5's four-phase [Open] costs roughly a factor of ten in states per tick, and
+\* the main configuration does not finish at MaxTime 6 or 7 inside the
+\* harness's window. It runs at MaxTime = 5. "All invariants hold" therefore
+\* means HOLD WITHIN FIVE TICKS OF DISCRETE TIME AT THESE CONSTANTS, and
+\* nothing more: no monotonicity argument is offered here that would make five
+\* sufficient for a longer behaviour, and none should be assumed.
+\*
+\* What makes that bound usable rather than a shrug is that each property's
+\* WITNESS LENGTH is measured rather than guessed. A twin that still fails at a
+\* horizon is proof that the horizon covers that property's witness — the twin
+\* exhibits the violation, so the chain that produces it fits. So the twin
+\* suite is re-run at every horizon change and its results are the evidence
+\* that the main run is not vacuous for the invariant each twin attacks. Where
+\* a property's witness does NOT fit — F6's needs a take, a read, a write that
+\* lands past the lease, the section expiring, and a second take, which is
+\* about seven ticks at these constants — the property gets its own
+\* configuration with a horizon that covers it, exactly as Inv4's window does.
+\* A property checked only in the main run and never exhibited by a twin is
+\* checked at five ticks and claimed at five ticks.
+\*
 \* WHAT THE MAIN CONFIGURATION ACTUALLY CHECKS. Inv1, Inv2 and Inv5 fire at the
 \* main constants. Inv4 does NOT: its antecedent needs `now >= intentAt +
 \* Window`, and a Window the model can both reach and satisfy needs a horizon
@@ -164,6 +217,7 @@
 \*   recoverable-invocation-buggy-perwrite.tla — PerWriteFence = FALSE (gate 7, F2).
 \*   recoverable-invocation-buggy-supersede.tla — SupersedesNamed = FALSE (gate 9, F6).
 \*   recoverable-invocation-buggy-opclock.tla  — OperatorSkew > 0 (gate 9, F7).
+\*   recoverable-invocation-buggy-intentgate.tla — IntentGated = FALSE (gate 10, F6).
 
 EXTENDS Naturals
 
@@ -188,7 +242,9 @@ CONSTANTS
     ServiceIdentity,    \* TRUE: the sweep closes acts; FALSE: report-only
     MaxResolves,        \* how many [Resolve] calls the model admits
     SupersedesNamed,    \* TRUE: a resolution names the record it closes over
-    OperatorSkew        \* how far the operator's own reading may run ahead
+    OperatorSkew,       \* how far the operator's own reading may run ahead
+    IntentGated,        \* TRUE: the intent write passes the lease gate too
+    ReadBound           \* the disclosed bound on the under-section pre-check read
 
 Sweeps == {"A", "B"}
 
@@ -199,7 +255,8 @@ VARIABLES
     holder,           \* "none" "inv" "A" "B"
     invExpiry,        \* the invocation's lease expiry: its fence instant
     heldUntil,        \* the current holder's lease expiry (0 when free)
-    intentState,      \* "absent" "pending" "visible"
+    intentState,      \* "absent" "pending" "returned" "visible"
+    intentReturnAt,   \* the tick its record_action returns to [Open]
     intentAt,         \* the intent's recorded_at
     intentVisibleAt,
     storeState,       \* "none" "pending" "committed" "dropped"
@@ -227,29 +284,35 @@ VARIABLES
     opReturnAt,
     opVisibleAt,
     opRecords,        \* the operator's closing records
-    opNamed           \* TRUE: that record carries `supersedes` naming another
+    opSuperseded,     \* how many records those resolutions superseded BY NAME
+    secondOpened      \* TRUE: a second invocation of this act got past its
+                      \* own under-section pre-check while the first's intent
+                      \* was still in flight
 
 vars == <<now, fence, invPhase, holder, invExpiry, heldUntil,
-          intentState, intentAt, intentVisibleAt, storeState, storeLandAt,
+          intentState, intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
           outcomeState, outcomeIssuedAt, outcomeReplyLost, outcomeReturnAt,
           outcomeVisibleAt, outcomeRecords,
           closingKind, closingState, closingReturnAt, closingVisibleAt,
           closingRecords, sweepNextA, sweepNextB, sweepPhaseA, sweepPhaseB,
           sweepDeaths, pauses,
-          opPhase, opKind, opState, opReturnAt, opVisibleAt, opRecords, opNamed>>
+          opPhase, opKind, opState, opReturnAt, opVisibleAt, opRecords,
+          opSuperseded, secondOpened>>
 
-opVars == <<opPhase, opKind, opState, opReturnAt, opVisibleAt, opRecords, opNamed>>
+opVars == <<opPhase, opKind, opState, opReturnAt, opVisibleAt, opRecords,
+            opSuperseded, secondOpened>>
 
 Horizon == MaxTime + SweepLease + LateLanding + MaxLand
 
 TypeOK ==
     /\ now \in 0..MaxTime
     /\ fence \in BOOLEAN
-    /\ invPhase \in {"idle", "opened", "committed", "prepared", "closing", "readback", "done", "crashed", "yielded"}
+    /\ invPhase \in {"idle", "reading", "checked", "prepIntent", "issuing", "opened", "committed", "prepared", "closing", "readback", "done", "crashed", "yielded"}
     /\ holder \in {"none", "inv", "A", "B", "op"}
     /\ invExpiry \in 0..Horizon
     /\ heldUntil \in 0..Horizon
-    /\ intentState \in {"absent", "pending", "visible"}
+    /\ intentState \in {"absent", "pending", "returned", "visible"}
+    /\ intentReturnAt \in 0..Horizon
     /\ intentAt \in 0..Horizon
     /\ intentVisibleAt \in 0..Horizon
     /\ storeState \in {"none", "pending", "committed", "dropped"}
@@ -277,7 +340,8 @@ TypeOK ==
     /\ opReturnAt \in 0..Horizon
     /\ opVisibleAt \in 0..Horizon
     /\ opRecords \in 0..MaxResolves
-    /\ opNamed \in BOOLEAN
+    /\ opSuperseded \in 0..MaxResolves
+    /\ secondOpened \in BOOLEAN
 
 Init ==
     /\ now = 0
@@ -287,6 +351,7 @@ Init ==
     /\ invExpiry = 0
     /\ heldUntil = 0
     /\ intentState = "absent"
+    /\ intentReturnAt = 0
     /\ intentAt = 0
     /\ intentVisibleAt = 0
     /\ storeState = "none"
@@ -314,7 +379,8 @@ Init ==
     /\ opReturnAt = 0
     /\ opVisibleAt = 0
     /\ opRecords = 0
-    /\ opNamed = FALSE
+    /\ opSuperseded = 0
+    /\ secondOpened = FALSE
 
 \* ---- helpers -------------------------------------------------------------
 
@@ -396,29 +462,151 @@ AnySweepDeciding == (sweepPhaseA = "holding" /\ holder = "A") \/ (sweepPhaseB = 
 \* without fairness and starves the act at every window — a statement about
 \* fairness, not about this protocol.
 PreparedPhase(s) == PhaseOf(s) \in {"prepOutcome", "prepClosing"}
-Preparing == invPhase = "prepared" \/ PreparedPhase("A") \/ PreparedPhase("B") \/ opPhase = "prepared"
+Preparing == invPhase \in {"prepared", "reading", "prepIntent"} \/ PreparedPhase("A") \/ PreparedPhase("B") \/ opPhase = "prepared"
 
 \* ---- the invocation -------------------------------------------------------
 
 \* [Open]: take the section, issue the intent. Its return and its visibility
 \* are one event here (see MODELING CHOICES).
-Open ==
+\* [Open] step 2: TAKE THE SECTION. The lease starts here, and everything
+\* below runs inside it.
+OpenTake ==
     /\ invPhase = "idle"
     /\ now <= OpenBy
     /\ SectionFree
     /\ holder' = "inv"
     /\ invExpiry' = now + CompletionBound
     /\ heldUntil' = now + CompletionBound
-    /\ intentState' = "pending"
-    /\ intentAt' = now
-    /\ \E d \in 1..JournalWriteBound : intentVisibleAt' = now + d
-    /\ invPhase' = "opened"
-    /\ UNCHANGED <<now, fence, storeState, storeLandAt,
+    /\ invPhase' = "reading"
+    /\ UNCHANGED <<now, fence, intentState, intentAt, intentReturnAt, intentVisibleAt,
+                   storeState, storeLandAt,
                    outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
-                   sweepPhaseA, sweepPhaseB, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   sweepPhaseA, sweepPhaseB, sweepDeaths, pauses,
+                   outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
+
+\* [Open] step 3: THE UNDER-SECTION PRE-CHECK READ COMPLETES. It is a journal
+\* range read and it takes time. The page discloses no bound on it anywhere —
+\* JournalWriteBound covers writes, closure_latency covers the sweep — which is
+\* ReadBound = CompletionBound here: the read may consume the whole lease.
+\* Time passes freely while invPhase = "reading"; this action is the read
+\* RETURNING, and its guard is the bound.
+OpenRead ==
+    /\ invPhase = "reading"
+    /\ now <= invExpiry - CompletionBound + ReadBound
+    /\ invPhase' = "checked"
+    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
+                   storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
+                   outcomeRecords, closingKind, closingState, closingReturnAt,
+                   closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
+                   sweepPhaseA, sweepPhaseB, sweepDeaths, pauses,
+                   outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
+
+\* [Open] step 4a: THE GATE. Every other journal write on this page passes
+\* `remaining >= journal_write_bound` before it is issued. The page exempts
+\* this one — "every journal write AFTER the invocation's first" — which is
+\* IntentGated = FALSE, and is the page as written.
+PrepareIntent ==
+    /\ invPhase = "checked"
+    /\ IntentGated => InvGateOpen
+    /\ invPhase' = "prepIntent"
+    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
+                   storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
+                   outcomeRecords, closingKind, closingState, closingReturnAt,
+                   closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
+                   sweepPhaseA, sweepPhaseB, sweepDeaths, pauses,
+                   outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
+
+\* [Open] step 4b: THE INTENT WRITE. Return and visibility are separate
+\* instants like every other write — v4 made them one and justified it by the
+\* section holding off every racing reader, which the read above refutes.
+IssueIntent ==
+    /\ invPhase = "prepIntent"
+    /\ \E r \in (now + 1)..(now + MaxLand) :
+         \E v \in r..(now + MaxLand) :
+            /\ LegalWrite(r, v)
+            /\ ~Fenced(v, IF holder = "inv" THEN invExpiry ELSE 0)
+            /\ intentReturnAt' = r
+            /\ intentVisibleAt' = v
+    /\ intentState' = "pending"
+    /\ intentAt' = now
+    /\ invPhase' = "issuing"
+    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+                   storeState, storeLandAt,
+                   outcomeState, outcomeReturnAt, outcomeVisibleAt,
+                   outcomeRecords, closingKind, closingState, closingReturnAt,
+                   closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
+                   sweepPhaseA, sweepPhaseB, sweepDeaths, pauses,
+                   outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
+
+\* [Open] RETURNS TO ITS CALLER. Not when the write is issued — when it has
+\* returned. This is what lets the section be released safely later: the page's
+\* read-your-writes clause is stated on the record_action's RETURN, so a
+\* released section hands the next reader a journal that already shows the
+\* intent. v5's first cut set this phase at ISSUE, which let [Yield] free the
+\* section with the write in flight — a state the protocol does not admit,
+\* since [Yield] is the adopter's `unknown` partition and runs long after
+\* [Open] returned.
+OpenReturn ==
+    /\ invPhase = "issuing"
+    /\ intentState \in {"returned", "visible"}
+    /\ invPhase' = "opened"
+    /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt,
+                   storeState, storeLandAt, outcomeState, outcomeReturnAt,
+                   outcomeVisibleAt, outcomeRecords, closingKind, closingState,
+                   closingReturnAt, closingVisibleAt, closingRecords,
+                   sweepNextA, sweepNextB, sweepPhaseA, sweepPhaseB,
+                   sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost,
+                   opPhase, opKind, opState, opReturnAt, opVisibleAt,
+                   opRecords, opSuperseded, secondOpened>>
+
+\* The lease will not cover the intent write, because the read consumed it.
+\* [Open] HAS NO DECLARED ARM FOR THIS STATE — which is itself a prose finding —
+\* so the model gives it the only safe behaviour: release, write nothing.
+OpenYield ==
+    /\ invPhase = "checked"
+    /\ IntentGated
+    /\ ~InvGateOpen
+    /\ invPhase' = "yielded"
+    /\ holder' = IF holder = "inv" THEN "none" ELSE holder
+    /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
+    /\ UNCHANGED <<now, fence, invExpiry,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
+                   storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
+                   outcomeRecords, closingKind, closingState, closingReturnAt,
+                   closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
+                   sweepPhaseA, sweepPhaseB, sweepDeaths, pauses,
+                   outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
+
+\* A SECOND INVOCATION of the same act. Modelled as one atomic step, because
+\* what matters for the invariant is whether it can get past its own
+\* under-section pre-check while the first invocation's intent is still in
+\* flight — not what it does afterwards. It takes the section (so it is free),
+\* re-reads (so no intent is visible), and appends its own intent.
+SecondOpen ==
+    /\ ServiceIdentity
+    /\ ~secondOpened
+    /\ SectionFree
+    /\ intentState = "pending"       \* not yet visible to its range read
+    /\ ~Closed
+    /\ secondOpened' = TRUE
+    /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
+                   storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
+                   outcomeRecords, closingKind, closingState, closingReturnAt,
+                   closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
+                   sweepPhaseA, sweepPhaseB, sweepDeaths, pauses,
+                   outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded>>
 
 \* The bound commit. Not gated on the lease — a paused process may issue it
 \* late — which is why the store-level fence exists.
@@ -436,12 +624,12 @@ IssueCommit ==
           /\ \E d \in 1..LateLanding :
                 storeState' = "pending" /\ storeLandAt' = now + d
     /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, outcomeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, outcomeState,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* [Close] steps 1 and 2: the commit landed, the lease covers a write, no
 \* outcome is visible — the invocation decides to write. THE WRITE IS NOT
@@ -454,12 +642,12 @@ PrepareOutcome ==
     /\ outcomeState = "absent"
     /\ invPhase' = "prepared"
     /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepPhaseA, sweepPhaseB, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* [Close] step 3: the write goes out. The lease is NOT re-checked — nothing
 \* re-checks it in the spec either, and a relative gate cannot bind a process
@@ -478,11 +666,11 @@ IssueOutcomeInv ==
     /\ outcomeRecords' = outcomeRecords + 1
     /\ invPhase' = "closing"
     /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepPhaseA, sweepPhaseB, sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The fenced journal refuses the late write: no record, recording-failure to
 \* the caller, the act is the sweep's.
@@ -494,12 +682,12 @@ DropOutcomeInv ==
     /\ holder' = IF holder = "inv" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invExpiry, intentState,
-                   intentAt, intentVisibleAt, storeState, storeLandAt,
+                   intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
                    outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepPhaseA, sweepPhaseB, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* [Close] step 1, the other arm: the lease no longer covers a write. Yield.
 Yield ==
@@ -509,12 +697,12 @@ Yield ==
     /\ holder' = IF holder = "inv" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invExpiry, intentState,
-                   intentAt, intentVisibleAt, storeState, storeLandAt,
+                   intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
                    outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepPhaseA, sweepPhaseB, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* Primitive policies: a `record_action` whose reply is LOST is never retried
 \* blind — the caller waits out the disclosed bound, reads back, and retries
@@ -527,13 +715,13 @@ ReadBackDue ==
     /\ now >= outcomeIssuedAt + JournalWriteBound
     /\ invPhase' = "readback"
     /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil, intentState,
-                   intentAt, intentVisibleAt, storeState, storeLandAt,
+                   intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
                    outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The read-back finds it: adopt, release, return.
 ReadBackFound ==
@@ -543,13 +731,13 @@ ReadBackFound ==
     /\ holder' = IF holder = "inv" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invExpiry, intentState, intentAt,
-                   intentVisibleAt, storeState, storeLandAt, outcomeState,
+                   intentReturnAt, intentVisibleAt, storeState, storeLandAt, outcomeState,
                    outcomeIssuedAt, outcomeReplyLost, outcomeReturnAt,
                    outcomeVisibleAt, outcomeRecords, closingKind, closingState,
                    closingReturnAt, closingVisibleAt, closingRecords,
                    sweepNextA, sweepNextB, sweepPhaseA, sweepPhaseB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The read-back does NOT find it, so the caller retries — and the first write
 \* may still be in flight. That is the second record Invariant 2 forbids.
@@ -568,11 +756,11 @@ ReadBackMiss ==
     /\ outcomeRecords' = outcomeRecords + 1
     /\ invPhase' = "closing"
     /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil, intentState,
-                   intentAt, intentVisibleAt, storeState, storeLandAt,
+                   intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The retry is fenced out: nothing more is written; the act is the sweep's.
 ReadBackFenced ==
@@ -584,13 +772,13 @@ ReadBackFenced ==
     /\ holder' = IF holder = "inv" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invExpiry, intentState, intentAt,
-                   intentVisibleAt, storeState, storeLandAt, outcomeState,
+                   intentReturnAt, intentVisibleAt, storeState, storeLandAt, outcomeState,
                    outcomeIssuedAt, outcomeReplyLost, outcomeReturnAt,
                    outcomeVisibleAt, outcomeRecords, closingKind, closingState,
                    closingReturnAt, closingVisibleAt, closingRecords,
                    sweepNextA, sweepNextB, sweepPhaseA, sweepPhaseB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* [Close] step 4: the write RETURNED. Release and return — not "the write is
 \* visible": nothing tells the caller that.
@@ -602,25 +790,25 @@ FinishInv ==
     /\ holder' = IF holder = "inv" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "inv" THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invExpiry, intentState,
-                   intentAt, intentVisibleAt, storeState, storeLandAt,
+                   intentAt, intentReturnAt, intentVisibleAt, storeState, storeLandAt,
                    outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepPhaseA, sweepPhaseB, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The process dies. A write already issued still lands. The host does not see
 \* the death: the lease runs out.
 Crash ==
-    /\ invPhase \in {"opened", "committed", "prepared", "closing", "readback"}
+    /\ invPhase \in {"issuing", "opened", "committed", "prepared", "closing", "readback"}
     /\ invPhase' = "crashed"
     /\ UNCHANGED <<now, fence, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepPhaseA, sweepPhaseB, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* ---- the sweep ------------------------------------------------------------
 
@@ -638,11 +826,11 @@ SweepSelect(s) ==
     /\ SetPhase(s, "waiting")
     /\ SetNext(s, now + Cadence)
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The take succeeds. The run's lease is SweepLease, not the act's bound.
 SweepTake(s) ==
@@ -652,11 +840,11 @@ SweepTake(s) ==
     /\ heldUntil' = now + SweepLease
     /\ SetPhase(s, "holding")
     /\ UNCHANGED <<now, fence, invPhase, invExpiry, intentState, intentAt,
-                   intentVisibleAt, storeState, storeLandAt, outcomeState,
+                   intentReturnAt, intentVisibleAt, storeState, storeLandAt, outcomeState,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* [Reconcile] step 2: the re-read under the section finds a visible closing.
 \* Nothing to do; release.
@@ -668,12 +856,12 @@ SweepSeen(s) ==
     /\ holder' = "none"
     /\ heldUntil' = 0
     /\ UNCHANGED <<now, fence, invPhase, invExpiry,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The lease will not cover a write: write nothing, leave it for the next run.
 SweepYield(s) ==
@@ -685,12 +873,12 @@ SweepYield(s) ==
     /\ holder' = "none"
     /\ heldUntil' = 0
     /\ UNCHANGED <<now, fence, invPhase, invExpiry,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The probe answers committed: the run decides on the outcome record.
 SweepPrepareOutcome(s) ==
@@ -702,12 +890,12 @@ SweepPrepareOutcome(s) ==
     /\ storeState = "committed"
     /\ SetPhase(s, "prepOutcome")
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The probe answers not-committed: abandoned under a fence, escalated without.
 SweepPrepareClosing(s) ==
@@ -719,12 +907,12 @@ SweepPrepareClosing(s) ==
     /\ storeState \in {"none", "pending", "dropped"}
     /\ SetPhase(s, "prepClosing")
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 SweepIssueOutcome(s) ==
     /\ PhaseOf(s) = "prepOutcome"
@@ -740,11 +928,11 @@ SweepIssueOutcome(s) ==
     /\ outcomeRecords' = outcomeRecords + 1
     /\ SetPhase(s, "issued")
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 SweepIssueClosing(s) ==
     /\ PhaseOf(s) = "prepClosing"
@@ -759,10 +947,10 @@ SweepIssueClosing(s) ==
     /\ closingRecords' = closingRecords + 1
     /\ SetPhase(s, "issued")
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, sweepNextA, sweepNextB, sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The fenced journal refuses the run's late write: nothing is recorded, the
 \* run counts the act skipped, and the next run takes it.
@@ -775,11 +963,11 @@ SweepDropWrite(s) ==
     /\ holder' = IF holder = s THEN "none" ELSE holder
     /\ heldUntil' = IF holder = s THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invPhase, invExpiry,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The run's write RETURNED: release and return. Not "became visible" — the
 \* spec releases on the holder's return.
@@ -791,12 +979,12 @@ SweepReturn(s) ==
     /\ holder' = IF holder = s THEN "none" ELSE holder
     /\ heldUntil' = IF holder = s THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invPhase, invExpiry,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB,
                    sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* A run dies. Its pending write still lands; its lease runs out.
 SweepCrash(s) ==
@@ -805,11 +993,11 @@ SweepCrash(s) ==
     /\ sweepDeaths' = sweepDeaths + 1
     /\ SetPhase(s, "idle")
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepNextA, sweepNextB, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* A scheduled run with nothing to examine reschedules.
 SweepSkip(s) ==
@@ -817,12 +1005,12 @@ SweepSkip(s) ==
     /\ ~SweepDue(s)
     /\ SetNext(s, now + Cadence)
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeReturnAt, outcomeVisibleAt,
                    outcomeRecords, closingKind, closingState, closingReturnAt,
                    closingVisibleAt, closingRecords, sweepPhaseA, sweepPhaseB,
                    sweepDeaths, pauses, outcomeIssuedAt, outcomeReplyLost, opPhase, opKind, opState,
-                   opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 
 \* ---- the operator: [Resolve] ----------------------------------------------
@@ -872,13 +1060,13 @@ OpSelect ==
     /\ OpDue
     /\ opPhase' = "waiting"
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses,
-                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* [Resolve] takes the SAME section on the same key, for the same reason — it
 \* is a writer like the others and is serialized like the others.
@@ -889,13 +1077,13 @@ OpTake ==
     /\ heldUntil' = now + SweepLease
     /\ opPhase' = "holding"
     /\ UNCHANGED <<now, fence, invPhase, invExpiry,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses,
-                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The re-read under the section finds an outcome: nothing left to resolve.
 OpSeen ==
@@ -906,13 +1094,13 @@ OpSeen ==
     /\ holder' = "none"
     /\ heldUntil' = 0
     /\ UNCHANGED <<now, fence, invPhase, invExpiry,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses,
-                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The lease will not cover the write: [Resolve] gates on `remaining` as
 \* [Close] does, and writes nothing.
@@ -925,13 +1113,13 @@ OpYield ==
     /\ holder' = "none"
     /\ heldUntil' = 0
     /\ UNCHANGED <<now, fence, invPhase, invExpiry,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses,
-                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The operator ran the probe themselves and it says the act happened: they
 \* write the closing the sweep could not, over whatever record stands.
@@ -944,13 +1132,13 @@ OpPrepareOutcome ==
     /\ opKind' = "outcome"
     /\ opPhase' = "prepared"
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses,
-                   opState, opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opState, opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The operator attests the act did not happen. The page gates this on the
 \* intent being older than the edge — compared against THE OPERATOR'S OWN
@@ -966,13 +1154,13 @@ OpPrepareAbandon ==
     /\ opKind' = "abandoned"
     /\ opPhase' = "prepared"
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses,
-                   opState, opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opState, opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 OpIssue ==
     /\ opPhase = "prepared"
@@ -984,15 +1172,15 @@ OpIssue ==
             /\ opVisibleAt' = v
     /\ opState' = "pending"
     /\ opRecords' = opRecords + 1
-    /\ opNamed' = OpWouldName
+    /\ opSuperseded' = opSuperseded + (IF OpWouldName THEN 1 ELSE 0)
     /\ opPhase' = "issued"
     /\ UNCHANGED <<now, fence, invPhase, holder, invExpiry, heldUntil,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
-                   sweepPhaseB, sweepDeaths, pauses, opKind>>
+                   sweepPhaseB, sweepDeaths, pauses, opKind, secondOpened>>
 
 \* The fenced journal refuses the operator's late write: nothing is recorded.
 OpDropWrite ==
@@ -1003,13 +1191,13 @@ OpDropWrite ==
     /\ holder' = IF holder = "op" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "op" THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invPhase, invExpiry,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses,
-                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* The write RETURNED: release. Not "became visible" — the page releases on the
 \* holder's return, which is the handoff the read-your-writes clause covers.
@@ -1020,22 +1208,26 @@ OpReturn ==
     /\ holder' = IF holder = "op" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "op" THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invPhase, invExpiry,
-                   intentState, intentAt, intentVisibleAt, storeState,
+                   intentState, intentAt, intentReturnAt, intentVisibleAt, storeState,
                    storeLandAt, outcomeState, outcomeIssuedAt, outcomeReplyLost,
                    outcomeReturnAt, outcomeVisibleAt, outcomeRecords,
                    closingKind, closingState, closingReturnAt, closingVisibleAt,
                    closingRecords, sweepNextA, sweepNextB, sweepPhaseA,
                    sweepPhaseB, sweepDeaths, pauses,
-                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opNamed>>
+                   opKind, opState, opReturnAt, opVisibleAt, opRecords, opSuperseded, secondOpened>>
 
 \* ---- time -----------------------------------------------------------------
 
 \* Writes return and become visible at their ticks. Time does not advance past
 \* a scheduled run, a take that can succeed, or a run's re-read and probe. It
 \* DOES advance between a prepare and its issue: that is the pause.
-NextIntent == IF intentState = "pending" /\ intentVisibleAt = now + 1
+NextIntent == IF intentState = "pending" /\ intentReturnAt = now + 1
+              THEN (IF intentVisibleAt = now + 1 THEN "visible" ELSE "returned")
+              ELSE IF intentState \in {"pending", "returned"} /\ intentVisibleAt = now + 1
               THEN "visible" ELSE intentState
-AfterIntentVis == IF intentState = "pending" /\ intentVisibleAt = now + 1
+AfterIntentRet == IF intentState = "pending" /\ intentReturnAt = now + 1
+                  THEN 0 ELSE intentReturnAt
+AfterIntentVis == IF intentState \in {"pending", "returned"} /\ intentVisibleAt = now + 1
                   THEN 0 ELSE intentVisibleAt
 NextStore == IF storeState = "pending" /\ storeLandAt = now + 1
              THEN "committed" ELSE storeState
@@ -1081,6 +1273,7 @@ Tick ==
     /\ storeState' = NextStore
     /\ outcomeState' = NextOutcome
     /\ closingState' = NextClosing
+    /\ intentReturnAt' = AfterIntentRet
     /\ intentVisibleAt' = AfterIntentVis
     /\ storeLandAt' = AfterStoreLand
     /\ outcomeReturnAt' = AfterOutcomeRet
@@ -1094,10 +1287,16 @@ Tick ==
                    intentAt, outcomeIssuedAt, outcomeReplyLost,
                    outcomeRecords, closingKind, closingRecords,
                    sweepNextA, sweepNextB, sweepPhaseA, sweepPhaseB,
-                   sweepDeaths, opPhase, opKind, opRecords, opNamed>>
+                   sweepDeaths, opPhase, opKind, opRecords, opSuperseded, secondOpened>>
 
 Next ==
-    \/ Open
+    \/ OpenTake
+    \/ OpenRead
+    \/ PrepareIntent
+    \/ IssueIntent
+    \/ OpenReturn
+    \/ OpenYield
+    \/ SecondOpen
     \/ IssueCommit
     \/ PrepareOutcome
     \/ IssueOutcomeInv
@@ -1139,11 +1338,13 @@ Spec == Init /\ [][Next]_vars
 Inv1_IntentFirst ==
     (storeState /= "none") => intentState = "visible"
 
-\* A resolution that NAMES the record it closes over, and that record, are one
-\* act closed twice on purpose and count as one. A resolution that names
-\* nothing is a second closing like any other — which is the whole of F6.
-ClosingCount == outcomeRecords + closingRecords + opRecords
-                - (IF opNamed THEN 1 ELSE 0)
+\* Supersession is counted TRANSITIVELY: the standing closing is the one no
+\* other closing names, and everything reachable through `supersedes` counts
+\* with it as one. Gate 10's F5 is that the page's rules are stated over PAIRS,
+\* so a chain — an escalation superseded by an abandonment superseded by an
+\* outcome — double-counts its middle record and leaves two standing. A chain
+\* needs two resolutions, which MaxResolves = 1 had switched off.
+ClosingCount == outcomeRecords + closingRecords + opRecords - opSuperseded
 
 Inv2_OneWriter ==
     /\ outcomeRecords <= 1
@@ -1164,10 +1365,31 @@ Inv5_NoFalseAbandon ==
 \* without the name the precedence rule and Generation acceptance check 2 have
 \* no referent, and both read a lawful resolution as a duplicate.
 Inv6_SupersessionNamed ==
-    (opRecords > 0 /\ closingRecords + outcomeRecords > 0) => opNamed
+    (opRecords > 0 /\ closingRecords + outcomeRecords > 0) => opSuperseded > 0
+
+\* Gate 10, F6, stated DIRECTLY. This began life as a reachability probe and
+\* held, which is not a vacuity failure — it is the protocol obligation the
+\* fence earns, written in the wrong section. An intent must never be in flight
+\* while its own invocation no longer holds the section: the section is
+\* released on the holder's return, and the page's read-your-writes clause
+\* makes a returned record visible to the next reader, so a write still in
+\* flight at a release is a journal the next [Open] reads without seeing it.
+\* THE FENCE IS WHAT EARNS THIS, NOT THE LEASE GATE — the gate-off twin holds
+\* under a fence and the gated configuration violates without one.
+Inv8_IntentUnderItsSection ==
+    ~(intentState = "pending" /\ (holder /= "inv" \/ now >= heldUntil))
+
+\* Gate 10, F6. Under a declared service identity [Open] refuses any open
+\* intent, so at most one invocation of an act is ever between its intent and
+\* its closing. A second one getting past its own pre-check means two live
+\* intents on one act_key, which degrades `probe` to undecidable for both and
+\* which NO duplicate surface on the page detects: all three key on
+\* invocation_id, and two invocations carry two of those.
+Inv7_OneLiveIntent == ServiceIdentity => ~secondOpened
 
 Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter /\ Inv4_BoundedClosure
           /\ Inv5_NoFalseAbandon /\ Inv6_SupersessionNamed
+          /\ Inv7_OneLiveIntent /\ Inv8_IntentUnderItsSection
 
 \* ---- reachability probes --------------------------------------------------
 \* Each of these is a DELIBERATE FALSEHOOD, and the checker must REJECT it.
@@ -1180,5 +1402,11 @@ Probe_OperatorNeverWrites == opRecords = 0
 Probe_OperatorNeverSupersedes ==
     ~(opRecords > 0 /\ closingRecords + outcomeRecords > 0)
 Probe_OperatorNeverHoldsSection == holder /= "op"
+\* SECOND-OCCURRENCE probes. Gate 10's F5 was a behaviour the model could
+\* express and a budget constant excluded, and the first round of probes did
+\* not catch it because they asked whether a thing ever happens. These ask
+\* whether it happens TWICE, which is where a concurrency defect lives.
+Probe_NeverTwoResolutions == opRecords < 2
+Probe_NeverASupersessionChain == ~(opSuperseded >= 2)
 
 ====

@@ -205,7 +205,7 @@ twins["opclock"] = twin("opclock",
 \\* `service_identity = none`, because only in a report-only deployment does
 \\* the operator decide an act's fate against the edge rather than after
 \\* another writer already has. Its passing sibling is
-\\* probe-reportonly-clean.tla, which differs by this one constant.
+\\* recoverable-invocation-probe-reportonly-clean.tla, which differs by this one constant.
 \\*
 \\* Expected result: Inv5_NoFalseAbandon VIOLATED — the operator writes
 \\* `abandoned` one tick before the edge, on a reading that says otherwise, and
@@ -244,8 +244,8 @@ sib = twin("REPLACE",
 \\* a declared operator seam, as every other reading on this page is injected.
 \\* It must HOLD. A twin that differs from nothing is evidence of nothing.
 """, (), REPORT_ONLY)[0].replace("recoverable-invocation-buggy-REPLACE",
-                                "probe-reportonly-clean")
+                                "recoverable-invocation-probe-reportonly-clean")
 sib = sib.replace("BUGGY TWIN (vacuity guard)", "PASSING SIBLING")
-open(os.path.join(D, "probe-reportonly-clean.tla"), "w").write(sib)
-open(os.path.join(D, "probe-reportonly-clean.cfg"), "w").write(REPORT_ONLY)
+open(os.path.join(D, "recoverable-invocation-probe-reportonly-clean.tla"), "w").write(sib)
+open(os.path.join(D, "recoverable-invocation-probe-reportonly-clean.cfg"), "w").write(REPORT_ONLY)
 print("wrote %d twins + the report-only passing sibling" % len(twins))

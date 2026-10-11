@@ -1,5 +1,4 @@
----- MODULE reach-operatorneverholdssection ----
-\* EXPECT: violation — this configuration checks a deliberate falsehood (see the reachability probes at the foot of this file); the audit runs it as a twin the checker must reject.
+---- MODULE recoverable-invocation-probe-fenced-ungated-intent ----
 \* Grace Commons — Recoverable Invocation: the protocol every regulated
 \* composition follows around an irreversible act. Spec-level formal sibling of
 \* compositions/recoverable-invocation.md. Derived validator; the English spec

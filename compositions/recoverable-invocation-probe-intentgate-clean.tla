@@ -1,4 +1,4 @@
----- MODULE iso-chain-safety ----
+---- MODULE recoverable-invocation-probe-intentgate-clean ----
 \* Grace Commons — Recoverable Invocation: the protocol every regulated
 \* composition follows around an irreversible act. Spec-level formal sibling of
 \* compositions/recoverable-invocation.md. Derived validator; the English spec
@@ -21,14 +21,7 @@
 \*                 key on invocation_id and two invocations carry two of those.
 \*   ReadBound   — the disclosed bound on the under-section pre-check read. The
 \*                 page discloses none, which is ReadBound = CompletionBound:
-\*                 the read may consume the whole lease. THE MAIN
-\*                 CONFIGURATION SETS IT TO 1 and factors the read's duration
-\*                 out, exactly as Inv4's window is factored out: a read that
-\*                 consumes the lease is the variable under test in the
-\*                 Inv7_OneLiveIntent configurations, and carrying it in the
-\*                 main run as well costs a state space the harness cannot
-\*                 finish. "All invariants hold" here therefore says nothing
-\*                 about a long read, and the Inv7 pair is where that is said.
+\*                 the read may consume the whole lease.
 \* And the tenth gate's other in-frame finding was a behaviour v4 could express
 \* and a CONFIGURATION CONSTANT excluded — a supersession chain needs two
 \* resolutions against MaxResolves = 1. v5 raises it, counts supersession
@@ -130,27 +123,6 @@
 \*                         invocation will not close it, a closing is visible.
 \*   Inv5_NoFalseAbandon — an abandonment is never contradicted by a commit
 \*                         that lands later.
-\*
-\* THE HORIZON IS PART OF THE CLAIM, AND THE CLAIM IS BOUNDED BY IT.
-\* v5's four-phase [Open] costs roughly a factor of ten in states per tick, and
-\* the main configuration does not finish at MaxTime 6 or 7 inside the
-\* harness's window. It runs at MaxTime = 5. "All invariants hold" therefore
-\* means HOLD WITHIN FIVE TICKS OF DISCRETE TIME AT THESE CONSTANTS, and
-\* nothing more: no monotonicity argument is offered here that would make five
-\* sufficient for a longer behaviour, and none should be assumed.
-\*
-\* What makes that bound usable rather than a shrug is that each property's
-\* WITNESS LENGTH is measured rather than guessed. A twin that still fails at a
-\* horizon is proof that the horizon covers that property's witness — the twin
-\* exhibits the violation, so the chain that produces it fits. So the twin
-\* suite is re-run at every horizon change and its results are the evidence
-\* that the main run is not vacuous for the invariant each twin attacks. Where
-\* a property's witness does NOT fit — F6's needs a take, a read, a write that
-\* lands past the lease, the section expiring, and a second take, which is
-\* about seven ticks at these constants — the property gets its own
-\* configuration with a horizon that covers it, exactly as Inv4's window does.
-\* A property checked only in the main run and never exhibited by a twin is
-\* checked at five ticks and claimed at five ticks.
 \*
 \* WHAT THE MAIN CONFIGURATION ACTUALLY CHECKS. Inv1, Inv2 and Inv5 fire at the
 \* main constants. Inv4 does NOT: its antecedent needs `now >= intentAt +
@@ -1203,13 +1175,7 @@ OpDropWrite ==
 OpReturn ==
     /\ opPhase = "issued"
     /\ opState \in {"returned", "visible"}
-    \* THE OPERATOR RE-ARMS. An operator who resolves an act may be called
-    \* again on it — that is how a false abandonment is corrected, and it is
-    \* the page's own section check 6 path. v5's first cut left this phase terminal,
-    \* so MaxResolves was never the binding constraint and raising it changed
-    \* nothing: the SWITCH THAT WAS OFF WAS A PHASE, NOT THE CONSTANT NAMED IN
-    \* THE CONFIGURATION. The chain probe is what found that, by holding twice.
-    /\ opPhase' = IF opRecords < MaxResolves THEN "idle" ELSE "done"
+    /\ opPhase' = "done"
     /\ holder' = IF holder = "op" THEN "none" ELSE holder
     /\ heldUntil' = IF holder = "op" THEN 0 ELSE heldUntil
     /\ UNCHANGED <<now, fence, invPhase, invExpiry,
@@ -1372,18 +1338,6 @@ Inv5_NoFalseAbandon ==
 Inv6_SupersessionNamed ==
     (opRecords > 0 /\ closingRecords + outcomeRecords > 0) => opSuperseded > 0
 
-\* Gate 10, F6, stated DIRECTLY. This began life as a reachability probe and
-\* held, which is not a vacuity failure — it is the protocol obligation the
-\* fence earns, written in the wrong section. An intent must never be in flight
-\* while its own invocation no longer holds the section: the section is
-\* released on the holder's return, and the page's read-your-writes clause
-\* makes a returned record visible to the next reader, so a write still in
-\* flight at a release is a journal the next [Open] reads without seeing it.
-\* THE FENCE IS WHAT EARNS THIS, NOT THE LEASE GATE — the gate-off twin holds
-\* under a fence and the gated configuration violates without one.
-Inv8_IntentUnderItsSection ==
-    ~(intentState = "pending" /\ (holder /= "inv" \/ now >= heldUntil))
-
 \* Gate 10, F6. Under a declared service identity [Open] refuses any open
 \* intent, so at most one invocation of an act is ever between its intent and
 \* its closing. A second one getting past its own pre-check means two live
@@ -1394,7 +1348,7 @@ Inv7_OneLiveIntent == ServiceIdentity => ~secondOpened
 
 Safety == TypeOK /\ Inv1_IntentFirst /\ Inv2_OneWriter /\ Inv4_BoundedClosure
           /\ Inv5_NoFalseAbandon /\ Inv6_SupersessionNamed
-          /\ Inv7_OneLiveIntent /\ Inv8_IntentUnderItsSection
+          /\ Inv7_OneLiveIntent
 
 \* ---- reachability probes --------------------------------------------------
 \* Each of these is a DELIBERATE FALSEHOOD, and the checker must REJECT it.
@@ -1413,5 +1367,7 @@ Probe_OperatorNeverHoldsSection == holder /= "op"
 \* whether it happens TWICE, which is where a concurrency defect lives.
 Probe_NeverTwoResolutions == opRecords < 2
 Probe_NeverASupersessionChain == ~(opSuperseded >= 2)
+Probe_IntentNeverInFlightUnheld ==
+    ~(intentState = "pending" /\ (holder /= "inv" \/ now >= heldUntil))
 
 ====

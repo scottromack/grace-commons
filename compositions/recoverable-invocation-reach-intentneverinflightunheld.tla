@@ -1,4 +1,4 @@
----- MODULE reach-intentneverinflightunheld ----
+---- MODULE recoverable-invocation-reach-intentneverinflightunheld ----
 \* Grace Commons — Recoverable Invocation: the protocol every regulated
 \* composition follows around an irreversible act. Spec-level formal sibling of
 \* compositions/recoverable-invocation.md. Derived validator; the English spec
