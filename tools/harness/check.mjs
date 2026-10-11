@@ -49,9 +49,26 @@ function findJava() {
     "/tmp/javajre/node_modules/javajre-linux-64/jre/bin/java",
     join(HERE, "node_modules/javajre-linux-64/jre/bin/java"),
   ];
-  const p = candidates.find(existsSync);
-  if (!p) die("JRE 17 not found — run tools/harness/bootstrap.sh first.");
+  // macOS: the npm JRE is Linux-only, so take any installed JDK 17+.
+  if (process.env.JAVA_HOME) candidates.push(join(process.env.JAVA_HOME, "bin/java"));
+  if (process.platform === "darwin") {
+    const jh = spawnSync("/usr/libexec/java_home", ["-v", "17+"], { encoding: "utf8" });
+    if (jh.status === 0 && jh.stdout.trim()) candidates.push(join(jh.stdout.trim(), "bin/java"));
+    candidates.push(
+      "/opt/homebrew/opt/openjdk@17/bin/java",
+      "/usr/local/opt/openjdk@17/bin/java",
+      "/opt/homebrew/opt/openjdk/bin/java",
+      "/usr/local/opt/openjdk/bin/java",
+    );
+  }
+  const p = candidates.find((c) => existsSync(c) && javaMajor(c) >= 17);
+  if (!p) die("JRE 17 not found — on Linux run tools/harness/bootstrap.sh; on macOS install a JDK 17+ (brew install openjdk@17) or set JAVA_HOME to one.");
   return p;
+}
+function javaMajor(java) {
+  const r = spawnSync(java, ["-version"], { encoding: "utf8" });
+  const m = /version "(\d+)/.exec(`${r.stderr || ""}${r.stdout || ""}`);
+  return m ? Number(m[1]) : 0;
 }
 function findAlloyJar() {
   const candidates = [

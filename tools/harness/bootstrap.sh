@@ -12,12 +12,20 @@ npm install --no-audit --no-fund
 
 # The JRE 17 goes on the native /tmp FS, NOT the mounted repo: unpacking the
 # JRE into the mount drops libjli.so and the launcher dies with exit 127.
+if [ "$(uname)" = Darwin ]; then
+  # The npm JRE is Linux-only. check.mjs finds a JDK 17+ via JAVA_HOME,
+  # /usr/libexec/java_home or Homebrew; install one with: brew install openjdk@17
+  JAVA="$(/usr/libexec/java_home -v 17+ 2>/dev/null || true)/bin/java"
+  [ -x "$JAVA" ] || JAVA="$(brew --prefix openjdk@17 2>/dev/null || true)/bin/java"
+  [ -x "$JAVA" ] || echo "macOS: no JDK 17+ found — run: brew install openjdk@17"
+else
 JRE_DIR=/tmp/javajre
 echo "Installing javajre-linux-64 (JRE 17) into $JRE_DIR ..."
 mkdir -p "$JRE_DIR"
 ( cd "$JRE_DIR" && npm install --no-audit --no-fund javajre-linux-64@17.0.8 )
 JAVA="$JRE_DIR/node_modules/javajre-linux-64/jre/bin/java"
 chmod +x "$JAVA" 2>/dev/null || true
+fi
 echo
 echo "TLA+ checker : $(ls node_modules/tla-checker/tla_checker_bg.wasm >/dev/null 2>&1 && echo OK || echo MISSING)"
 echo "JRE 17       : $("$JAVA" -version 2>&1 | head -1)"
