@@ -39,29 +39,34 @@ for (const m of models) {
   const expectsViolation = (readFileSync(m, "utf-8").split("\n")[1] ?? "").startsWith("\\* EXPECT: violation");
   const buggy = /buggy/i.test(basename(m)) || expectsViolation;
   const argv = buggy ? [join(HERE, "check.mjs"), m, "--buggy"] : [join(HERE, "check.mjs"), m];
-  let pass = false, log = "";
+  let code = 0, log = "";
   try {
     log = execFileSync("node", argv, { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 });
-    pass = true;
   } catch (e) {
     log = (e.stdout || "") + (e.stderr || "");
-    pass = false;
+    code = e.status ?? 2;
   }
+  const verdict = code === 0 ? (buggy ? "CAUGHT" : "HOLDS")
+    : code === 1 ? (buggy ? "MISSED" : "BROKEN")
+    : "ERROR";
   console.log("─".repeat(72));
   console.log(log.trimEnd());
-  rows.push({ file: relative(REPO, m), buggy, pass });
+  rows.push({ file: relative(REPO, m), buggy, verdict });
 }
 
 console.log("═".repeat(72));
 console.log("AUDIT SUMMARY");
 console.log("═".repeat(72));
-let fails = 0;
+// HOLDS and CAUGHT are the outcomes each model's role requires; BROKEN,
+// MISSED and ERROR are problems.
+const count = { HOLDS: 0, CAUGHT: 0, BROKEN: 0, MISSED: 0, ERROR: 0 };
 for (const r of rows) {
+  count[r.verdict]++;
   const tag = r.buggy ? "[buggy]" : "[correct]";
-  const status = r.pass ? "PASS" : "FAIL";
-  if (!r.pass) fails++;
-  console.log(`  ${status.padEnd(5)} ${tag.padEnd(10)} ${r.file}`);
+  console.log(`  ${r.verdict.padEnd(6)} ${tag.padEnd(10)} ${r.file}`);
 }
+const problems = count.BROKEN + count.MISSED + count.ERROR;
 console.log("─".repeat(72));
-console.log(`  ${rows.length} models, ${fails} FAIL`);
-process.exit(fails ? 1 : 0);
+console.log(`  ${rows.length} models: ${Object.entries(count).map(([k, v]) => `${v} ${k}`).join(", ")}`);
+console.log(`  ${problems} problem${problems === 1 ? "" : "s"}`);
+process.exit(problems ? 1 : 0);

@@ -5,8 +5,8 @@
 // TLA+ (.tla): runs the tla-checker WASM model checker against the same-name
 //   .cfg. Constants come from a sibling <base>.constants.json if present (the
 //   tla-poc convention), otherwise from the .cfg's own CONSTANTS block ({}).
-//   - default twin: PASS iff every invariant holds (no violation).
-//   - --buggy twin: PASS iff some invariant is violated (the vacuity guard:
+//   - default twin: HOLDS iff every invariant holds (no violation).
+//   - --buggy twin: CAUGHT iff some invariant is violated (the vacuity guard:
 //     a deliberately-wrong model the checker MUST reject).
 //
 // Alloy (.als): runs the alloy.dist `exec` headless under the npm JRE 17 and
@@ -14,12 +14,18 @@
 //   - check command  => UNSAT means the asserted guarantee holds.
 //   - run   command  => SAT   means the configuration space is non-empty
 //                              (the assertion is not vacuously satisfied).
-//   - default twin: PASS iff every `check` is UNSAT AND every `run` is SAT.
-//   - --buggy twin: PASS iff at least one `check` is SAT (counterexample found).
-//   A model that fails to typecheck is a HARD FAIL: an assertion that does not
+//   - default twin: HOLDS iff every `check` is UNSAT AND every `run` is SAT.
+//   - --buggy twin: CAUGHT iff at least one `check` is SAT (counterexample found).
+//   A model that fails to typecheck is an ERROR: an assertion that does not
 //   typecheck was never actually checked (see capability.als line 193).
 //
-// Exit code 0 = PASS (twin behaved as its role requires), 1 = FAIL.
+// The last line is one verdict word, each meaning one thing:
+//   HOLDS   a correct model held           exit 0
+//   CAUGHT  a buggy model was rejected     exit 0
+//   BROKEN  a correct model was violated   exit 1
+//   MISSED  a buggy model was not rejected exit 1
+//   ERROR   the model was never checked (no Java, no .cfg, a parse or
+//           type error)                     exit 2
 
 import { readFileSync, existsSync, mkdtempSync, rmSync } from "node:fs";
 import { dirname, join, basename, extname, resolve } from "node:path";
@@ -29,7 +35,7 @@ import { spawnSync } from "node:child_process";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-function die(msg) { console.error(msg); process.exit(2); }
+function die(msg) { console.error(msg); console.log("  ERROR"); process.exit(2); }
 
 // ---- locate provisioned tools (npm-only; see bootstrap.sh) -----------------
 function findTlaPkg() {
@@ -146,7 +152,7 @@ function checkAls(modelPath, buggy) {
   if (/Type error|ERROR alloy|LinkageError|Exception in thread/.test(out)) {
     const line = (out.split("\n").find(l => /Type error|ERROR alloy/.test(l)) || "").trim();
     console.log(`  ALLOY ${basename(modelPath)}`);
-    console.log(`  HARD FAIL — model does not typecheck (never actually checked):`);
+    console.log(`  model does not typecheck (never actually checked):`);
     console.log(`    ${line}`);
     return { pass: false, kind: "typecheck", detail: line };
   }
@@ -159,7 +165,7 @@ function checkAls(modelPath, buggy) {
   }
   if (cmds.length === 0) {
     console.log(`  ALLOY ${basename(modelPath)}`);
-    console.log(`  HARD FAIL — no check/run commands parsed from output.`);
+    console.log(`  no check/run commands parsed from output (never actually checked).`);
     return { pass: false, kind: "noresult" };
   }
 
@@ -179,7 +185,7 @@ function checkAls(modelPath, buggy) {
   let pass;
   if (buggy) {
     pass = counterexamples.length > 0;
-    console.log(`  -> buggy twin ${pass ? "correctly rejected" : "NOT rejected (vacuity-guard FAIL)"}`);
+    console.log(`  -> buggy twin ${pass ? "correctly rejected" : "NOT rejected (vacuity guard)"}`);
   } else {
     pass = counterexamples.length === 0 && vacuousRuns.length === 0;
     if (counterexamples.length) console.log(`  -> ${counterexamples.length} guarantee(s) broken`);
@@ -201,5 +207,8 @@ const result = ext === ".tla" ? await checkTla(model, buggy)
   : ext === ".als" ? checkAls(model, buggy)
   : die(`unsupported model type: ${ext}`);
 
-console.log(`  ${result.pass ? "PASS" : "FAIL"}`);
-process.exit(result.pass ? 0 : 1);
+const verdict = ["error", "typecheck", "noresult"].includes(result.kind) ? "ERROR"
+  : buggy ? (result.pass ? "CAUGHT" : "MISSED")
+  : (result.pass ? "HOLDS" : "BROKEN");
+console.log(`  ${verdict}`);
+process.exit(verdict === "ERROR" ? 2 : result.pass ? 0 : 1);

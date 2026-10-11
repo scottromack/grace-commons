@@ -13,8 +13,8 @@
 
 ## Step 1 — harness re-run (must pass)
 
-- Correct model: `node check.mjs ../../<path>.<tla|als>` → `PASS` ☐
-- Buggy twin: `node check.mjs ../../<path>-buggy.<tla|als> --buggy` → `PASS` (rejected) ☐
+- Correct model: `node check.mjs ../../<path>.<tla|als>` → `HOLDS` ☐
+- Buggy twin: `node check.mjs ../../<path>-buggy.<tla|als> --buggy` → `CAUGHT` ☐
 
 ## Step 2 — coverage matrix
 
