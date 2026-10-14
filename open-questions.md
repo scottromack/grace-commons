@@ -195,6 +195,21 @@ The rolling fixes cure a finding one document after it is raised; what they cann
 
 ---
 
+### Substrate specifications to extract *(added 2026-10-14)*
+
+The maintainer ruled 2026-10-12 that the corpus takes a substrate's *specification*, never the substrate: extract the capabilities and constraints a technology guarantees, derive what the specifications already oblige, keep the overlap as a contract the deployment supplies, and render it on whatever store the deployment runs. XTDB was the first, and the derivation produced the `Store` contract in `execution-contract.md` (one transaction per action, guards inside it, committed records kept across a restart, never edited by the store) plus the particular `History` and `Order` families declared only by the specs that rest on them; about 2,900 of 12,270 rules are estimated to restate it. One database only — a second store is not on the table — so each row below is a specification to measure against the corpus, not a system to adopt.
+
+| Candidate | Specs it would touch | Estimate | What it would absorb |
+|---|---|---|---|
+| **Durable execution** (Temporal's act model: a journaled act, retried activities, a sweep that closes under a service identity) | Recoverable Invocation and its adopters whose act is outside the store — Compensable Workflow, Verified Repair, Propagate Consent Revocation Downstream, notification delivery, Audit Trail's erasure mechanism | the sweep, the intent/outcome journal and the retry terminus; **not** the one-writer-per-act section or the probe, which the engine leaves to the adopter and which stay Recoverable Invocation's rules | the act side of audit, as `Store` is the record side |
+| **Verifiable ledger** (a hash chain over commit positions, an inclusion proof per record, a consistency proof between two states — immudb, QLDB) | Tamper Evidence (106 rules) and Audit Trail's seal machinery (about 100 after the Store cut) | about 80 rules, only if the spec's chain is the standard chain; rendered on the one store as generated code over its commit order | the seal family |
+| **Relation tuples with a consistency token** (Zanzibar — OpenFGA, SpiceDB) | Permissions (111), Capability (208), every composition's Scope vocabulary | under 30; those atoms are mostly domain rules | grant, revoke, permitted at a revision |
+| **Unification as validation** (CUE: a value set, a term declaration and a check are one lattice; a concrete record unifies with the spec's closed value sets or hits bottom) | no spec — the parser and the conformance suite | 0 rules; it says what Generation acceptance *is* | tooling, not corpus |
+
+**Trigger to resolve:** after the Store contract has landed across the corpus. Each row is run the way the Store derivation was — a rule-by-rule census of what the specs oblige, the overlap with the candidate's guarantees, and the contract written once in `execution-contract.md` with the specs citing it — and a row that deletes fewer rules than it adds is closed as declined, with the count.
+
+---
+
 ## What resists automation *(added 2026-09-12)*
 
 The goal is to automate as much of the pipeline as the pipeline admits. This section is the map of what does not automate, kept so that effort lands there rather than on the parts already mechanical. It is written from one measured day — seventeen atoms migrated, sixteen council reads applied — not from estimate.
