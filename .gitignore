@@ -36,3 +36,4 @@ __pycache__/
 .beads.gate.lock
 .beads-credential-key
 .claude/
+.gemini/
