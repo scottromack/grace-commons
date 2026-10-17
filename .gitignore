@@ -30,3 +30,9 @@ __pycache__/
 
 # virtiofs rename-on-unlink orphans (sandbox artifact)
 .fuse_hidden*
+
+# Gas City and beads: machine-local state, never canon
+.beads/
+.beads.gate.lock
+.beads-credential-key
+.claude/
