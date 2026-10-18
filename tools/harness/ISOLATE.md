@@ -19,7 +19,10 @@ node isolate.mjs --strict        # exit 1 if any un-annotated combined twin rema
 For every correct TLA+ model with twins, it derives the load-bearing invariant
 set (named `INVARIANT`s in the `.cfg`, plus the conjuncts of `Safety` minus
 `TypeOK`) and runs **each twin against each invariant in isolation** — synthesizing
-a single-invariant `.cfg` per run, in-process, no temp files. Each twin is then
+a single-invariant `.cfg` per run, in-process, no temp files. The synthesized `.cfg`
+keeps the twin's own constants where the twin has a `.cfg` (a twin that is the module
+byte for byte with one constant flipped carries the flip there; until 2026-10-17 the
+tool used the correct model's, and every such twin read as vacuous). Each twin is then
 classified:
 
 - **dedicated → X** — breaks exactly one load-bearing invariant (the ideal: each

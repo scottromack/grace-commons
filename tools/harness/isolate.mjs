@@ -174,7 +174,11 @@ for (const correct of correctModels) {
   // matrix[twin][inv] = violated? (in isolation)
   const matrix = new Map();
   for (const twin of twins) {
-    const cfgText = readFileSync(cfgPath, "utf-8"); // reuse the correct model's CONSTANTS/SPEC shape
+    // The twin's own .cfg where it has one: a twin that is the module byte for byte
+    // with one constant flipped carries the flip there, and run under the correct
+    // model's constants it is the correct model. Otherwise the correct model's.
+    const twinCfg = twin.slice(0, -4) + ".cfg";
+    const cfgText = readFileSync(existsSync(twinCfg) ? twinCfg : cfgPath, "utf-8");
     const consts = constantsFor(twin);
     const row = new Map();
     for (const inv of lb) {
