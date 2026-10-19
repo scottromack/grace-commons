@@ -126,7 +126,7 @@ If the store write fails after Step 2 returns pass, the pipeline aborts. The cal
 
 ### Multi-write atomicity
 
-Some transitions write to two stores (reassign in Assignment: mark old assignment Transferred, create new Active assignment; cascade-recall in Shared Todo's delete_task: recall the active assignment, then delete the task). Both writes are part of a single Step 3. The atomicity contract: both writes commit or both are rolled back. A partial state — one write committed, the other not — violates the atom's or composition's invariants and must not be observable. The implementation provides the transactional boundary; the spec names the atomicity requirement explicitly in each affected atom — Assignment's Reassign atomicity edge case is one.
+Some transitions write to two stores (reassign in Assignment: mark old assignment Transferred, create new Active assignment; cascade-recall in Shared Todo's delete_task: recall the active assignment, then delete the task). Both writes are part of a single Step 3. The atomicity contract: both writes commit or both are rolled back. A partial state — one write committed, the other not — violates the atom's or composition's invariants and must not be observable. The implementation provides the transactional boundary, and Store 1 (the section titled The Store contract) is the contract it meets, written once: a specification cites it rather than restating it.
 
 ---
 
@@ -338,6 +338,31 @@ Rules:
 
 ---
 
+## The Store contract
+
+Every specification keeps records, and every deployment keeps them in a store. What the store guarantees is the same for every specification, so it is written once, here, as Logic confinement 7 writes the clock's guarantees once: a specification that relies on one of these rules cites it by its label, `Execution Contract Store 2`, and does not restate it. The contract was derived from the specifications, not from a product: a rule-by-rule census of what the corpus obliges of its stores, kept where every specification needed it and set aside where only some did. XTDB supplies all of it natively and is the default render target; a relational database is a valid target, with the parts it lacks supplied by generated code. The store's own clocks, valid time and transaction time, are the render's business; no specification names either.
+
+**Store 1: One transaction per action.** Every write an admitted action makes, in every store its specification names, commits together or not at all. No reader ever sees some of an action's writes without the rest.
+
+**Store 2: Guards read inside the transaction.** The state an action's guards decide on is read inside the transaction that writes the action's effects, so no write commits against a state its guards did not see. Two actions on one record are serialized: the later one reads what the earlier one committed, and a conflict is answered by reading again and deciding again, never by overwriting.
+
+**Store 3: Committed means kept.** The store acknowledges a write only once it has committed, and a committed write survives a restart of the process and of the store. A write that did not commit leaves nothing any reader can see.
+
+**Store 4: The store never edits.** No committed record changes or disappears except by an action a specification declares. The store runs no trigger, default, cascade, expiry or compaction that alters or removes a committed record; erasure and purge happen only as the specification that owns them says.
+
+### Particular families: History and Order
+
+Two guarantees only some specifications need, and a specification that does not cite one may not assume it. A specification that rests on either names the label in its Capability requirement section.
+
+**History 1: Every committed version stays readable.** A record's earlier versions remain readable after it changes, each as it stood at the commit that wrote it, so a reader can ask what a record was as of any past commit.
+
+**Order 1: Commits have one order.** Every commit carries a position in a single order that only ever increases and that every reader reads the same way, so two records' commits can always be compared.
+
+On a store with no native version history, History 1 is rendered as generated append-only version tables; on a store with no native commit order, Order 1 is rendered as a sequence assigned inside the commit (Store 1). Neither is a second store.
+
+---
+
+
 ## Data layer contract
 
 The schema is derived from the SM definition. Specifically:
@@ -353,7 +378,7 @@ The schema is derived from the SM definition. Specifically:
 
 The `next_sequence_number` counter in Event Log requires atomic increment-and-append semantics — the counter increment and the event record write are a single Step 3 operation committed atomically. This is not two writes; it is a database operation that atomically increments the counter and inserts the row in one transaction.
 
-That atomicity, and the total order it protects (Event Log Invariant 3; the operational clause *"appends never fail for ordering or contention reasons — the underlying implementation must serialize them"*), is a **runtime serialization guarantee**, not portable code. The contract names the obligation; each target supplies the mechanism. Observed across four reference renders of the same Event Log spec: SQLite's single-writer lock (the storage engine provides it for free), PostgreSQL's `pg_advisory_xact_lock` held for the transaction body, a Go process's `sync.Mutex`, and MongoDB's replica-set transaction with the unique chain-position index as fork guard and optimistic retry absorbing the conflict. One invariant, four mechanisms — a worked instance of the general rule that the runtime owns serialization while the spec owns the invariant. The mechanism is the non-portable seam; the clause it satisfies is canonical. (Renders: `demos/clinical-trial-portal`, `-next`, `-go`, `-mongo`; findings logged in `discoveries.md`, 2026-06-06 and 2026-06-07.)
+That atomicity, and the total order it protects (Event Log Invariant 3; the operational clause *"appends never fail for ordering or contention reasons — the underlying implementation must serialize them"*), is a **runtime serialization guarantee**, not portable code. The contract names the obligation; each target supplies the mechanism. Observed across four reference renders of the same Event Log spec: SQLite's single-writer lock (the storage engine provides it for free), PostgreSQL's `pg_advisory_xact_lock` held for the transaction body, a Go process's `sync.Mutex`, and MongoDB's replica-set transaction with the unique chain-position index as fork guard and optimistic retry absorbing the conflict. One invariant, four mechanisms — a worked instance of the general rule that the runtime owns serialization while the spec owns the invariant. The mechanism is the non-portable seam; the clause it satisfies is canonical. Store 2 and Order 1 are the general form of that clause. (Renders: `demos/clinical-trial-portal`, `-next`, `-go`, `-mongo`; findings logged in `discoveries.md`, 2026-06-06 and 2026-06-07.)
 
 ---
 
