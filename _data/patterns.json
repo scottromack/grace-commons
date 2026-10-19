@@ -711,13 +711,13 @@
   "composes": [
    "selective-disclosure"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
    "als": false,
    "tla": true,
-   "twins": 1
+   "twins": 6
   },
   "regulated": true,
   "standards": [
@@ -729,7 +729,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded (English) on Final Critique 15 \u2014 2026-10-19 \u2014 formal layer pending",
+  "status": "partially resolved",
   "substrates": [
    "audit-trail",
    "recoverable-invocation"
