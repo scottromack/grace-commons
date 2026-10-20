@@ -59,12 +59,6 @@ Term preference id: the opaque value naming one preference record — a [Prefere
 
 Term principal reference: the opaque reference naming the principal whose preferences the record holds — a [Principal Reference]; compared by exact equality.
 
-
-WHY:
-Identity by principal alone would collapse a principal's update history into one mutable row, which is exactly the audit story the atom exists to keep: three updates are three records, three ids, three independently queryable rows. Identity by principal and timestamp would entangle identity with the clock, on an axis at-most-one already polices (Identity 6, Identity 7, Invariant 3.1). *Principal* rather than *recipient* or *subscriber* because a preference record is held against an identity, not against having been the target of anything.
-
-Equality is exact and the atom folds no case, trims no whitespace and normalizes no Unicode. At-most-one-in-force depends on consistent equality, so canonicalization is the deployment's before the call, and two references meant to denote one principal that do not compare equal are two principals here (Identity 9, Identity 11).
-
 ### State
 
 ```
@@ -110,13 +104,6 @@ Term suspension instant: the instant the preference record was paused — a [Sus
 
 Term deletion instant: the instant the preference record was retired — a [Deletion Instant].
 
-WHY:
-A deleted record stays in the store because *what this principal stated, and when* is the audit surface the atom exists to hold — the atom answers *what now* from the set currently in effect and leaves *what then* reconstructable from the three timestamps (State 17, Check 2.1). Absence is the one stored form of no-channel-preferences: a supplied-but-empty map is stored as absent, so a reader branches on presence alone and never on emptiness (Operation 6, Operation 7, State 4).
-
-An absent preference field says *the principal stated nothing on this dimension*, and the composing fanout applies a deployment default for it. That is structurally distinct from a channel carrying an explicit opt-out value, which is a stated choice. The atom keeps the distinction because a fanout that cannot see it cannot honour either (State 4, Composition note 12).
-
-Nothing about delivery lives here: what was sent, to whom, and whether the principal follows the topic belong to [Notification](./notification.md) and [Subscription](./subscription.md), and whether the system may contact the principal at all belongs to [Consent](./consent.md) (State 18 through 20).
-
 ### Capability requirement
 
 ```
@@ -125,17 +112,12 @@ Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns i
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 Capability requirement 5: The deployment MUST disclose the supersession gap bound.
+Capability requirement 6: The deployment MUST supply the preference store PER Execution Contract Store 1 through 4.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 Deleted: Clock semantics 4. Capability requirement 5 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
-WHY:
-Because no precondition consults the reading, a non-monotonic clock degrades only the annotation and never an admission decision (Operation 42, Operation 43). The declared supersession gap bound is what bounds how a supersession gap should be read, which is why Capability requirement 5 makes its disclosure an obligation rather than a deployment note, and Check 4.1 and Check 4.2 read against it.
 
 ### Operations
 
@@ -174,7 +156,7 @@ Operation 11: [Set] MUST NOT interpret metadata.
 Operation 12: [Set] MUST NOT read metadata as a preference field.
 Operation 13: [Set] MUST NOT compare the preference fields of two preference records.
 Operation 14: IF a preference record currently in effect EXISTS for the principal reference THEN [Set] MUST stand the prior preference record in deleted.
-Operation 15: [Set] MUST commit the new preference record and the supersession in one operation.
+Deleted: Operation 15. Execution Contract Store 1 owns it.
 Operation 16: IF the store refuses the write THEN [Set] MUST answer storage-failure.
 Operation 17: IF no preference record EXISTS for the preference id THEN [Suspend] MUST answer not-known.
 Operation 18: IF the preference record's status EQUALS suspended THEN [Suspend] MUST answer not-active.
@@ -189,7 +171,7 @@ Operation 26: [Delete] MUST stand the preference record in deleted.
 Operation 27: [Delete] MUST NOT remove the preference record from the store.
 Operation 28: [Delete] MUST accept the preference id as the whole authorization.
 Operation 29: IF the store refuses the write THEN [Delete] MUST answer storage-failure.
-Operation 30: A refused write MUST leave the store as the call found the store.
+Deleted: Operation 30. Execution Contract Store 1 and Execution Contract Store 3 own it.
 Operation 31: [Current For] MUST answer EXACTLY ONE OF the preference record currently in effect, none.
 Operation 32: [Current For] MUST NOT answer a deleted preference record.
 Operation 33: [Current For] MUST NOT refuse a blank input.
@@ -222,7 +204,7 @@ The case space, and the rule that owns each case:
 | Call | Case | Answer | Effect on the store |
 |---|---|---|---|
 | [Set] | principal present, a preference field present, every key declared, store accepts, no prior | the new preference id | one record lands in [Active] (Operation 1, Operation 2) |
-| [Set] | as above, with a prior currently in effect | the new preference id | the new record lands in [Active], the prior moves to [Deleted], one operation (Operation 14, Operation 15) |
+| [Set] | as above, with a prior currently in effect | the new preference id | the new record lands in [Active], the prior moves to [Deleted] (Operation 14) |
 | [Set] | blank principal reference, or no preference field, or an empty map as the only one | [Invalid Request] | none (Operation 4 through 6) |
 | [Set] | a channel preferences key outside the injected set | [Undeclared Channel] | none (Operation 8, Operation 9) |
 | [Set] | the injected declared channel set is degenerate | no conforming outcome — fail-stop | none (Instance 13 through 16) |
@@ -231,20 +213,11 @@ The case space, and the rule that owns each case:
 | [Delete] | id names a record in [Active] or [Suspended] | ok | → [Deleted], deletion instant stamped (Operation 26, State 10) |
 | [Delete] | id names a record in [Deleted] | [Already Deleted] | none (Operation 25) |
 | either write | id names nothing | [Not Known] | none (Operation 17, Operation 24) |
-| any write | store refuses | [Storage Failure] | none (Operation 16, Operation 23, Operation 29, Operation 30) |
+| any write | store refuses | [Storage Failure] | none (Operation 16, Operation 23, Operation 29) |
 | [Current For] | a record currently in effect matches the principal | that record, in full | none — the call reads (Operation 31, Operation 37) |
 | [Current For] | nothing in effect, blank argument included | [None] | none (Operation 32, Operation 33) |
 | [Read] | id names a record in any state | that record, in full | none — [Deleted] included (Operation 34, Operation 35) |
 | [Read] | id names nothing, blank argument included | [Not Known] | none (Operation 36) |
-
-WHY:
-The two queries refuse nothing, and the asymmetry with the three writes is deliberate: a write with a blank argument would record a bad row, a read with a blank argument has a correct answer — nothing matches, because no record carries a blank principal or a blank id (Operation 33, Operation 36). Neither [None] nor [Not Known] is a rejection; both are answers.
-
-[Undeclared Channel] is its own class and not a shape error because the caller's remedy differs: fix the channel name, or take the declaration question to the deployment. A composing settings page reports the two to a principal differently, which is the test for whether a rejection has earned a name (Operation 8, Operation 9).
-
-[Not Active] covers both [Suspended] and [Deleted] on a suspend, because a [Suspended] record never returns to [Active] and the caller's next move is the same either way; a caller that must tell them apart calls [Read] (Operation 18, Operation 19, Invariant 2.3). On a delete the split does matter — a [Suspended] record deletes cleanly and a [Deleted] one is [Already Deleted] — so delete carries the second code and suspend does not.
-
-The clock enters once, at the seam, and is spent on exactly one thing: stamping set instant, suspension instant and deletion instant inside a committed transition. No guard consults it, so no rejection in the taxonomy depends on it, and a skewed clock can only make a stored timestamp advisory — never admit or refuse a call (Operation 39 through 43, Execution Contract Logic confinement 7).
 
 ### Invariants
 
@@ -272,12 +245,11 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   ```
 - **Invariant 4 — Supersession atomicity.**
   ```
-  Invariant 4.1: A supersession MUST change the prior preference record and the new preference record in one operation.
-  Invariant 4.2: A reader MUST NOT observe two preference records currently in effect for one principal reference.
-  Invariant 4.3: A refused supersession MUST leave the prior preference record currently in effect.
-  Invariant 4.4: A refused supersession MUST NOT record the new preference record.
+  Deleted: Invariant 4.1. Execution Contract Store 1 owns it.
+  Deleted: Invariant 4.2. Execution Contract Store 1 owns it.
+  Deleted: Invariant 4.3. Execution Contract Store 1 and Execution Contract Store 3 own it.
+  Deleted: Invariant 4.4. Execution Contract Store 1 and Execution Contract Store 3 own it.
   ```
-  WHY: Invariant 4.1 asserts the atomic co-occurrence alone, which holds unconditionally. The timestamp relation between the prior record's deletion instant and the successor's set instant is a best-effort directional claim, and it rests on clock monotonicity the hard set does not carry — so it lives under Temporal property 4, not here.
 - **Invariant 5 — Channel preferences reference declared channels, and the proof is on the record.**
   ```
   Invariant 5.1: EVERY channel preferences key MUST stand in the preference record's own declared channels.
@@ -290,7 +262,6 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   Invariant 6.2: [Suspend] MUST NOT change a preference field.
   Invariant 6.3: [Suspend] MUST NOT change principal reference.
   ```
-  WHY: this is the structural mechanism behind cheap resumption — a composing pattern reads the suspended record's values and replays them in a fresh [Set], with no vocabulary loss and nothing for the principal to re-enter. The one caveat is that the replay is re-validated against the set injected for the later call, so a channel name dropped from the declaration in the meantime must be dropped from the replay (Resumption 1 through 4).
 - **Invariant 7 — Current For determinism.**
   ```
   Invariant 7.1: [Current For] MUST answer the preference record currently in effect for the principal reference.
@@ -307,7 +278,6 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   Invariant 9.2: The preference record count MUST NOT fall.
   Invariant 9.3: [Read] MUST answer a deleted preference record.
   ```
-  WHY: scoped to this atom's own surface on purpose. Lawful disposal under a composed [Retention Window](./retention-window.md), or a deployment's erasure obligations under GDPR (EU General Data Protection Regulation) Article 17, is that pattern's declared and recorded act — an auditor of a composed deployment reads its retention records alongside this store (Non-goal 26, Non-goal 27).
 - **Invariant 10 — Validation-context self-containment.**
   ```
   Invariant 10.1: EVERY preference record MUST carry declared channels.
@@ -323,7 +293,6 @@ The clock enters once, at the seam, and is spent on exactly one thing: stamping 
   Temporal property 4: A supersession gap MUST NOT EXCEED the supersession gap bound.
   Temporal property 5: The implementation MUST own the clock monotonicity Temporal property 1 rests on.
   ```
-  WHY: best-effort, and deliberately outside the invariant numbering — Invariant 1 through 10 are the hard set, and giving this a slot among them would read it as their peer. The hard set holds over every state the atom's own accepted actions can reach, given the named host obligations; these four inequalities hold only where the clock does not move backward. They are labelled apart because audit reconstruction depends on the directional guarantee (Check 2.1, Check 4.1), and a violation here is observable and diagnosable rather than silently corrupting.
 
 Term supersession gap: the interval from a superseded preference record's deletion instant to the successor's set instant.
 
@@ -366,13 +335,6 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the preference store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-WHY:
-The channel vocabulary is the deployment's, and the atom's job is to consume the resolution and prove the consumption — not to absorb a registry. So the set arrives at the seam like the clock and the id, the transition validates against it, and the transition stamps what it validated against onto the record (Instance 10, Instance 12). Two things follow, and both are the point. The audit surface is self-contained per record: one record, one stamped set, no cross-record join and no configuration artifact (Invariant 5.1, Invariant 10.1, Check 5.1). And a channel-set change is visible only forward — records made after the change carry the new set, historical records keep the set in force at their own creation, which is what keeps them verifiable forever.
-
-A degenerate injection is a deployment fault, not a caller error, and the split matters: with an empty set every supplied key is undeclared by construction, so validating would report a host fault as a caller's vocabulary mistake. Fail-stop instead — nothing validated, nothing written, no conforming outcome, and the fault surfaced where deployment faults are read (Instance 13 through 16).
-
-Who may change the declared set, when it changed, and the who and when of those changes all live with the deployment's configuration surface. A deployment whose regulator audits channel-set governance wraps *that* surface with [Audit Trail](../compositions/audit-trail.md) or [Actor Identity](./actor-identity.md); this store proves only, and exactly, what each record was validated against (Invariant 10.4, Non-goal 13).
-
 ## Examples
 
 Three lifecycle scenarios trace one principal (`user_u`) through onboarding, vacation suspend and account closure — the chain `pref_001 → pref_088 → pref_141`. The rejection paths and the regulated scenarios use their own principals and ids. Each deployment below carries `["email", "sms", "push", "in-app"]` on its configuration surface, injected at the seam for each set call, unless the scenario says otherwise.
@@ -383,7 +345,7 @@ A new user of a productivity app picks preferences on the settings page: email f
 
 When the composition fires an event `user_u` is subscribed to, the fanout calls `current_for(user_u)` → `pref_001`, reads the channel preferences, and creates one Notification per channel not opted out.
 
-Three weeks later the user adds SMS for urgent items and a daily cap: `set(principal_ref: user_u, channel_preferences: {email: "digest", push: "real-time", sms: "urgent-only"}, frequency_limit: {per_day: 10}, format: "plain")` → `pref_088`. `pref_001` moves to [Deleted] with deletion instant in the same operation. `current_for(user_u)` now answers `pref_088`.
+Three weeks later the user adds SMS for urgent items and a daily cap: `set(principal_ref: user_u, channel_preferences: {email: "digest", push: "real-time", sms: "urgent-only"}, frequency_limit: {per_day: 10}, format: "plain")` → `pref_088`. `pref_001` moves to [Deleted] with deletion instant. `current_for(user_u)` now answers `pref_088`.
 
 ### Marketing platform — vacation suspend
 
@@ -424,11 +386,11 @@ This atom's acceptance is what an external auditor can clear from the preference
 ```
 Check 1.1: An auditor MUST enumerate EVERY preference record's preference id, principal reference, set instant, status, suspension instant and deletion instant from the store (Invariant 9.1, Invariant 9.2).
 Check 1.2: An auditor MUST find EVERY supplied preference field on the preference record (Invariant 1.2, State 3).
-Check 2.1: An auditor MUST reconstruct the preference record currently in effect for a principal reference at a past instant from set instant, status and deletion instant (Invariant 3.1, Invariant 4.1).
-Check 2.2: An auditor MUST read a currency interval as half-open from set instant to deletion instant (Invariant 4.1).
-Check 3.1: An auditor MUST find no two preference records currently in effect sharing a principal reference (Invariant 3.1, Invariant 4.2).
-Check 4.1: An auditor MUST read a supersession gap within the supersession gap bound as a supersession (Invariant 4.1, Temporal property 4).
-Check 4.2: An auditor MUST mark a supersession gap exceeding the supersession gap bound ambiguous (Invariant 4.1).
+Check 2.1: An auditor MUST reconstruct the preference record currently in effect for a principal reference at a past instant from set instant, status and deletion instant (Invariant 3.1).
+Check 2.2: An auditor MUST read a currency interval as half-open from set instant to deletion instant (State 11, State 12).
+Check 3.1: An auditor MUST find no two preference records currently in effect sharing a principal reference (Invariant 3.1).
+Check 4.1: An auditor MUST read a supersession gap within the supersession gap bound as a supersession (Temporal property 4).
+Check 4.2: An auditor MUST mark a supersession gap exceeding the supersession gap bound ambiguous (Temporal property 4).
 Deleted: Check 4.3. Capability requirement 5 owns it; a deployment obligation is not an auditor's check.
 Check 5.1: An auditor MUST find EVERY channel preferences key in the preference record's own declared channels (Invariant 5.1, Invariant 10.1).
 Check 5.2: An auditor MUST mark an absent declared channels a conformance failure (Invariant 10.1, Invariant 10.2).
@@ -437,9 +399,6 @@ Check 6.2: The deployment MUST disclose the fanout-on-no-record policy (Composit
 ```
 
 NOTE: EVERY check names the rule the check tests.
-
-WHY:
-Check 2.2 fixes the interval convention so two auditors reading one store agree: at `t = set_at` the record is in effect, at `t = deleted_at` it is not, and a successor created in the same supersession is the one in effect at that instant. Check 4.2 is the honest answer to a gap the records cannot resolve on their own — the same record structure is produced by an atomic supersession and by an explicit delete followed by a later re-creation, so a material gap is flagged ambiguous-pending-external-evidence rather than scored as a pass or a failure. Deterministic discrimination needs a composed [Audit Trail](../compositions/audit-trail.md) or [Actor Identity](./actor-identity.md), which records each action as its own attributed event. Check 6.2 exists because without the disclosure the same operational situation — no record for a principal — produces different delivery across deployments, and cross-deployment audit cannot read the stores uniformly.
 
 ## Non-goals
 
@@ -478,14 +437,7 @@ Non-goal 31: The atom MUST NOT push an update into queued work.
 Non-goal 32: The atom MUST NOT change a caller's captured copy of a preference record.
 ```
 
-WHY:
-Everything downstream of *how should this look* belongs to the composing pattern — routing, fanout, transport, delivery guarantees (Non-goal 1 through 5). The two gating questions are sequenced peers, not alternatives: [Consent](./consent.md) decides whether the system may contact the principal at all, [Subscription](./subscription.md) decides whether the principal follows the topic, and this atom's commitment is conditional on both having resolved in favour of delivery (Non-goal 6 through 9, Composition note 6, Composition note 7). A composing pattern that reads preferences without first re-checking permission has made a sequencing error, not an atom-conformance error; the atom neither detects nor reacts to a revocation, and the records stay as they were.
-
-Frequency limits and quiet hours are preference fields and not atoms of their own. Rate-limiting recurs in the abstract, but what is stored here is an opaque payload with no state machine, no lifecycle independent of the record carrying it, and no meaning until the fanout interprets it at delivery time. A separate rate-limit atom would have identity, state and actions; this is a parameter (Non-goal 11, Composition note 8).
-
-Authorization is capability-based across writes and reads alike: a caller holding a principal reference may set for that principal or ask what is in effect, a caller holding a preference id may suspend, delete or read. No role check, no per-action authorization. The bare atom enforces something specific and useful, and richer models — the principal must consent to a third party setting their preferences, a deletion must be co-signed, only the principal or a privacy admin may read the history — wrap it rather than replace it (Non-goal 22 through 24).
-
-No resume action, because returning a [Suspended] record to [Active] would break monotonicity, and a principal cycling suspend and resume repeatedly would pile the whole history onto one record instead of producing one record per lifecycle event. Reading the suspended values and offering them as defaults is cheap, so lifecycle clarity wins over surface convenience (Non-goal 16, Invariant 2.3, Resumption 1 through 4).
+NOTE: the owners — the composing pattern (Non-goal 1 through 5; Non-goal 11, Composition note 8); [Consent](./consent.md) (Non-goal 6, Non-goal 7, Composition note 6; State 20); [Subscription](./subscription.md) (Non-goal 8, Non-goal 9, Composition note 7; State 19); [Audit Trail](../compositions/audit-trail.md) and [Actor Identity](./actor-identity.md) (Non-goal 13, Non-goal 14; Non-goal 17, Non-goal 18); [Actor Identity](./actor-identity.md) (Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 25, Non-goal 26, Non-goal 27); [Tamper Evidence](./tamper-evidence.md) (Non-goal 28, Non-goal 29); [Notification](./notification.md) (State 18).
 
 ## Edge cases
 
@@ -496,20 +448,14 @@ Clock dependence 1: A guard MUST NOT read now.
 Clock dependence 2: A rejection MUST NOT rest on now.
 ```
 
-WHY:
-Whether a guard's decision may depend on the clock reading, and under what condition. Both rules stood under `Operation` until council read 75 swept the corpus by rule text rather than by family name; neither word changed.
-
 ### Concurrency
 
 ```
-Concurrency 1: The host MUST serialize concurrent calls on one principal reference.
+Deleted: Concurrency 1. Execution Contract Store 2 owns it.
 Concurrency 2: The recorded timestamps MUST witness the serialization order.
-Concurrency 3: [Current For] MUST NOT answer a torn preference record.
+Deleted: Concurrency 3. Execution Contract Store 1 owns it.
 Concurrency 4: A composing pattern MUST own how competing callers reach the atom.
 ```
-
-WHY:
-The cases fall out of the rules rather than needing their own. Two sets for one principal: the first records and supersedes any prior, the second records and supersedes the first. Two suspends on one id: the first succeeds, the second meets [Not Active]. Two deletes: the first succeeds, the second meets [Already Deleted]. A suspend and a delete on one [Active] id: whichever serializes first wins, and a late delete after a suspend still succeeds, because [Suspended] → [Deleted] is admitted. A [Current For] concurrent with a [Set] answers the prior record or the new one and never a torn state — and under queue-time capture, an answer naming a just-superseded record is acceptable, because the fanout captured the values at queue time (Concurrency 3, Composition note 3).
 
 ### Channel set evolution
 
@@ -520,9 +466,6 @@ Channel set evolution 3: An auditor MUST read a historical channel preferences k
 Channel set evolution 4: A composing pattern MUST own how a preference record naming a withdrawn channel shapes delivery.
 ```
 
-WHY:
-Adding or withdrawing a channel is a configuration-surface operation; the atom sees only the set injected for each [Set] call. Existing records are untouched and stay verifiable forever, because Invariant 5.1 is per-record against the record's own stamp — a withdrawn channel appearing in a historical record's keys is consistent with that record's set, not a violation. The change is visible only forward. A host that injects a wrong or stale set produces records honestly stamped with the set actually used: a governance failure the stamps surface rather than hide.
-
 ### Opaque input bounds
 
 ```
@@ -531,9 +474,6 @@ Opaque input bound 2: The atom MUST NOT bound an opaque input's size.
 Opaque input bound 3: The deployment MUST own an opaque input's size bound.
 Opaque input bound 4: The deployment MUST disclose the opaque input size bound.
 ```
-
-WHY:
-principal reference, each per-channel preference value, frequency limit, quiet hours, format and metadata are all stored as-supplied with no length cap here. Bounding them to what the store, the transport and the equality check can carry efficiently is the deployment's, and so is the choice to leave them unbounded and accept the consequences — which is why the bound is disclosed alongside the fanout-on-no-record and clock-tolerance disclosures.
 
 ### Re-creation after deletion
 
@@ -555,20 +495,15 @@ Resumption 4: IF a replayed channel name IS NOT IN the injected declared channel
 ### Supersession atomicity
 
 ```
-Supersession atomicity 1: The implementation MUST make the currency check and the supersession write one transition.
-Supersession atomicity 2: The implementation MUST serialize EVERY operation touching one principal reference.
-Supersession atomicity 3: The deployment MUST choose a host isolation level that forecloses two concurrent [Set] calls standing two preference records currently in effect.
-Supersession atomicity 4: A crash inside [Set] MUST NOT leave two preference records currently in effect for one principal reference.
-Supersession atomicity 5: A crash inside [Set] MUST NOT leave the new preference record without the prior preference record's transition.
-Supersession atomicity 6: A crash inside [Suspend] MUST NOT leave a suspended status without suspension instant.
-Supersession atomicity 7: A crash inside [Delete] MUST NOT leave a deleted status without deletion instant.
-Supersession atomicity 8: A recovered store MUST NOT stand in a violation of Invariant 3.1.
+Deleted: Supersession atomicity 1. Execution Contract Store 1 and Execution Contract Store 2 own it.
+Deleted: Supersession atomicity 2. Execution Contract Store 2 owns it.
+Deleted: Supersession atomicity 3. Execution Contract Store 2 owns it.
+Deleted: Supersession atomicity 4. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Supersession atomicity 5. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Supersession atomicity 6. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Supersession atomicity 7. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Supersession atomicity 8. Execution Contract Store 3 owns it.
 ```
-
-WHY:
-The serialization domain is the principal, not the record id. [Suspend] and [Delete] take a preference id, but every record belongs to exactly one principal, so a concurrent [Set] and [Suspend] on the same principal must serialize against one another or interleave inconsistently (Supersession atomicity 2). Under snapshot or read-committed isolation two concurrent [Set] calls can both observe nothing in effect and both commit, violating the one rule the atom exists to hold (Supersession atomicity 3, Invariant 3.1).
-
-The spec does not define post-crash reconciliation — how an implementation detects and repairs a partial write is the implementor's — but the recovered store must not carry a standing violation, which is what makes atomicity a conformance requirement rather than a best effort (Supersession atomicity 8).
 
 ## Composition notes
 
@@ -588,10 +523,7 @@ Composition note 12: A composing pattern MUST apply a deployment default for an 
 Composition note 13: A composing pattern MUST own the declared channel set's governance.
 ```
 
-WHY:
-[Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md) is the wiring this atom was extracted for: [Subscription](./subscription.md), [Notification](./notification.md), this atom and [Event Log](./event-log.md) into an end-to-end pipeline that honours per-principal shaping. That composition reads [Suspended] as delivery-suppress, frequency limits and quiet hours as classified suppressions marked held-for-retry or dropped per declared policy, and channel preferences as route-or-suppress — every suppression journalled with its reason and this atom's record id. It extends rather than replaces [Notification Fanout](../compositions/notification-fanout.md); a deployment that has not adopted preference shaping keeps the base composition.
-
-The rest compose the way the non-goals imply. [Event Log](./event-log.md) records each preference action as an auditable event where the in-record timestamps are not enough — a principal's full sequence of suspend cycles, beyond the single suspension instant the record keeps. [Actor Identity](./actor-identity.md) attributes each action, with preference id as the hook: no field is added to the preference record, the attribution lives in the identity store. [Retention Window](./retention-window.md) bounds how long the store is kept and when it may be disposed of. [Tamper Evidence](./tamper-evidence.md) seals the store where a record alleging an opt-out could otherwise be rewritten to allege an opt-in. [Duplicate Prevention](./duplicate-prevention.md) gives at-most-once on [Set] under retry, so a network-timeout retry does not produce a second supersession.
+NOTE: composing patterns — [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md).
 
 ## Terms
 
@@ -599,11 +531,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a principal; an auditor; a reader; the store; a preference record; a status; a supersession; a supersession gap; a write; a rejection; a crash; a recovered store; the preference record count; the recorded timestamps; a store name.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; a principal; an auditor; the store; a preference record; a status; a supersession; a supersession gap; a write; a rejection; the preference record count; the recorded timestamps; a store name.
 
 Term records: preference record — one principal's stated delivery shaping, carrying preference id, principal reference, declared channels, set instant, status, the supplied preference fields and metadata, and, once stamped, suspension instant and deletion instant.
 
-Term record verbs: route, share, read, name, accept, carry, hold, offer, resolve, inject, stamp, validate, write, answer, surface, identify, allocate, reuse, change, interpret, normalize, match, canonicalize, record, stand, compare, commit, remove, leave, refuse, supply, rest, appear, move, call, observe, clear, fall, own, enumerate, find, reconstruct, mark, disclose, fire, create, deliver, compose, evaluate, declare, detect, gate, expire, redact, seal, guarantee, push, replay, drop, make, serialize, choose, witness, store, bound, return, capture, apply.
+Term record verbs: route, share, read, name, accept, carry, hold, offer, resolve, inject, stamp, validate, write, answer, surface, identify, allocate, reuse, change, interpret, normalize, match, canonicalize, record, stand, compare, remove, refuse, supply, rest, appear, move, call, clear, fall, own, enumerate, find, reconstruct, mark, disclose, fire, create, deliver, compose, evaluate, declare, detect, gate, expire, redact, seal, guarantee, push, replay, drop, witness, store, bound, return, capture, apply.
 
 Term value sets: status = active | suspended | deleted. preference field = channel preferences | frequency limit | quiet hours | format.
 
@@ -617,7 +549,7 @@ Term terms: preference record, store instance, store name, declared channel set,
 
 #### Set
 
-The behavior that records a new preference set for a principal. It assigns the host-allocated [Preference Id], stamps [Set Instant], records [Principal Reference], the supplied preference fields and [Metadata], and stamps the seam-injected declared channel set as [Declared Channels]. The new record enters [Active]; any prior record currently in effect moves to [Deleted] in the same operation (Invariant 4). At least one preference field is required (else [Invalid Request]).
+The behavior that records a new preference set for a principal. It assigns the host-allocated [Preference Id], stamps [Set Instant], records [Principal Reference], the supplied preference fields and [Metadata], and stamps the seam-injected declared channel set as [Declared Channels]. The new record enters [Active]; any prior record currently in effect moves to [Deleted] (Operation 14). At least one preference field is required (else [Invalid Request]).
 
 Kind: Operation
 
@@ -760,7 +692,7 @@ Projection: undeclared-channel
 
 #### Storage Failure
 
-The rejection any state-changing action returns when the write fails after all preconditions pass. Fail-closed at the write: nothing observable was written — for [Set] with supersession, neither half landed (Invariant 4); for [Suspend] and [Delete], no status moved. Which record keeps governing after a refused [Set] is Invariant 4.3's answer, not this term entry's: the prior record stays in effect, so a failed write is fail-closed on the store and not on whatever the new record was carrying.
+The rejection any state-changing action returns when the write fails after all preconditions pass.
 
 Kind:       Member
 Member of:  the action rejection
@@ -876,6 +808,7 @@ Projection: already-deleted
 
 - **CAN-SPAM Act (15 U.S.C. section 7701 et seq.)** — requires commercial email senders to honour unsubscribe requests within 10 business days and to provide a working opt-out mechanism in every commercial message. [Channel Preferences] with a channel-level opt-out value, combined with the composing fanout's enforcement, is the structural mechanism; immutability and durability produce the audit record enforcement requires.
 - **Telephone Consumer Protection Act (TCPA, 47 U.S.C. section 227)** — restricts automated and unsolicited calls and SMS, including frequency caps and time-of-day restrictions. [Frequency Limit] and [Quiet Hours], combined with the composing fanout's enforcement, are the mechanism for honouring these per principal.
+- **GDPR (EU General Data Protection Regulation) Article 17** — the right to erasure: a deployment may have to erase a principal's preference records. Erasure is a composed retention pattern's declared and recorded act, outside the atom's own surface, which removes nothing (Invariant 9.1, Non-goal 26, Non-goal 27).
 - **GDPR Article 7(3)** — withdrawal of consent must be as easy as giving it. Article 7(3) is a *consent* obligation and belongs to [Consent](./consent.md), which owns the legal-permission axis. This atom satisfies an analogous *preference-update ease* principle: a principal changing channels, tightening a cap or pausing delivery calls [Set] or [Suspend] — the same surface that established the preferences. The ease claim here is scoped to shaping, not to consent withdrawal.
 - **GDPR Article 21(2)** — right to object to processing for direct marketing; the objection must terminate marketing processing without delay. Full compliance is a two-atom obligation: this atom records the delivery-preference signal of the objection, encoded as the deployment's per-channel opt-out value inside [Channel Preferences], while [Consent](./consent.md) revokes the corresponding legal permission. A deployment that records the opt-out here without updating consent has not discharged Article 21.
 - **ePrivacy Directive (2002/58/EC, as amended)** — consent and preference requirements for electronic communications in the EU. Marketing communication preferences fall under this directive's surface; this atom's record is the artifact a preferences page produces.
@@ -887,12 +820,12 @@ Projection: already-deleted
 
 ## Status
 
-`grounded on Final Critique 8 — 2026-08-26` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 8 — 2026-08-26
+status: partially resolved
 formal: verified — message-preference.tla + 1 twin, 2026-06-03
 last gate: 2026-08-26 — Final Critique 8, fresh reader — clean
 
@@ -901,8 +834,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/message-preference.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/message-preference.md`; the migration that got it here is in [its history](./message-preference.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the five actions as a signature block, the ten invariant numbers unchanged and Timestamp ordering kept outside them as its own label family, the six acceptance checks renumbered only into `Check N.k`, the case space kept beside the rules as a table, Non-goals and Edge cases split into two sections. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this atom by label, so the rewrite is free of frozen-number risk.
+- **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the preference store supplied under Execution Contract Store 1 through 4 (Capability requirement 6), and the sixteen rules that restated them tombstoned to their owner — Operation 15 and Invariant 4.1, the new record and the supersession committed in one operation, and Invariant 4.2 and Concurrency 3, no reader observing two records in effect for one principal or a torn record, to Store 1; Invariant 4.3 and 4.4, a refused supersession leaving the prior record in effect and recording no new one, Operation 30, a refused write leaving the store as the call found it, and Supersession atomicity 4 through 7, no crash inside [Set], [Suspend] or [Delete] leaving part of its writes, to Store 1 and Store 3; Supersession atomicity 8, a recovered store standing in no violation of Invariant 3.1, to Store 3; Supersession atomicity 1, the currency check and the supersession write one transition, to Store 1 and Store 2; Concurrency 1 and Supersession atomicity 2, the calls on one principal serialized, and Supersession atomicity 3, an isolation level foreclosing two concurrent [Set] calls, to Store 2; rules 211 to 196. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. At most one record in effect per principal stays the atom's own (Invariant 3.1, Operation 14), as do the instants a supersession and each lifecycle move stamp (State 9 through 12), the recorded timestamps witnessing the serialization order (Concurrency 2), and the records the atom never removes and the count that never falls (State 17, Invariant 9.1 through 9.3). A superseded record stays a record of its own with its own instants, and an auditor reconstructs which record governed from those instants (Check 2.1), so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Message Preference.

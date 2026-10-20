@@ -6,12 +6,12 @@
 \*
 \* WHAT THIS MODEL CHECKS
 \* The load-bearing claim is Invariant 3 (at most one currently-in-effect —
-\* Active or Suspended — preference record per principal) together with
-\* supersession atomicity (Decision points / Invariant 4): a `set` for a
-\* principal who already has a currently-in-effect record creates the new record
-\* AND transitions the prior to Deleted in one operation, so "an external
-\* observer never sees a moment in which the principal has two Active-or-Suspended
-\* records." Modeled for a single principal.
+\* Active or Suspended — preference record per principal), with a `set` for a
+\* principal who already has a currently-in-effect record creating the new
+\* record AND transitioning the prior to Deleted in one transaction, as Execution
+\* Contract Store 1 commits every action's writes: no reader ever sees the
+\* principal with two Active-or-Suspended records (Store 1 owns the deleted
+\* Invariant 4.1 and 4.2). Modeled for a single principal.
 \*
 \* MODELING CHOICES
 \* - One principal with up to `MaxP` record slots, each
@@ -69,8 +69,9 @@ Spec == Init /\ [][Next]_vars
 Inv3_AtMostOneInEffect == InEffectCount <= 1
 Safety == TypeOK /\ Inv3_AtMostOneInEffect
 
-\* NOTE supersession atomicity is what holds Inv3 THROUGH a `set` over an
-\* existing record: SetSupersede is one step, so no reachable state shows two
-\* in-effect records. The buggy twin splits it and Inv3 catches the window.
+\* NOTE Execution Contract Store 1 (one transaction per action) is what holds
+\* Inv3 THROUGH a `set` over an existing record: SetSupersede is one step, so no
+\* reachable state shows two in-effect records. The buggy twin splits it and
+\* Inv3 catches the window.
 
 ====
