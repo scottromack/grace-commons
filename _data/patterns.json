@@ -527,7 +527,7 @@
    "reserve-from-pool"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 3,
   "kind": "atom",
   "models": {
@@ -547,7 +547,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-18",
+  "status": "partially resolved",
   "title": "Duplicate Prevention"
  },
  "event-log": {

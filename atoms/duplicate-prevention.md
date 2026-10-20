@@ -43,9 +43,6 @@ Term identity: the opaque value a containing pattern asks the atom to remember a
 
 Term matching rule: the containing pattern's rule for judging two identities the same — string equality, case-insensitive, trimmed, normalized, hashed.
 
-WHY:
-The atom stores a value and compares a value; what counts as *the same thing seen again* is the containing pattern's question. That is why one mechanic serves a to-do title, a payment key and a normalized comment body without a line of difference (Identity 3 through 5).
-
 ### State
 
 ```
@@ -64,17 +61,12 @@ Term elapsed term: `now − recorded_at`.
 
 Term under guard: an identity in the recorded set whose elapsed term is less than window duration — the state [Check] answers seen for.
 
-WHY:
-One set and one stamp per entry are the whole of the atom's storage, and *under guard* is derived at the moment of the question rather than stored. That is what lets a host implement the atom over a store offering nothing but a key with an expiry (State 2).
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -120,9 +112,6 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-WHY:
-Both calls are total. The containing pattern has already acted when it records — the item is already removed, the charge already made — so a refusal would have nothing to roll back, and a failed write is a liveness miss rather than a safety violation (Operation 4, Record failure 1 through 3). [Check] reads and nothing else, which is what makes asking twice safe (Invariant 3.1). The clock is read once, at the seam, and handed in: a transition reading a clock of the transition's own would answer two ways for one input (the section titled Logic Confinement Principle in `execution-contract.md`). What a seen answer means — reject, absorb, replay a cached result — is the containing pattern's to decide, and the atom is useful across four domains because the atom never decides it (Operation 12).
-
 ### Invariants
 
 - **Invariant 2 — Single-recording.**
@@ -132,8 +121,6 @@ Both calls are total. The containing pattern has already acted when it records �
   Invariant 2.3: [Record] MUST open a fresh guard for an identity that is not under guard.
   Deleted: Invariant 1. Operation 6 and Operation 7 own it.
   ```
-  WHY: the deleted invariant claimed EVERY identity in the recorded set stands under guard, unconditionally, and a WHY beside it narrowed the claim to an eager host — a rule whose scope lived on a surface Surface 15 tells the parser to ignore and Surface 9 lets a writer delete. The atom sells behaviour rather than storage, which the rules already say in both directions: Operation 6 answers seen for an identity under guard and Operation 7 answers not-seen for one that is not, so nothing remained for the invariant to own. Restating it as the answer claim — *EVERY identity the check answers seen for MUST stand under guard* — was considered and refused: that is Operation 7's contrapositive, one proposition under a second label, which is the defect rather than the cure (Authority 3, council read 52).
-  WHY: the clock starts at the first sighting and runs out at a fixed instant, so a flurry of repeats cannot hold an identity blocked past the term the containing pattern asked for. An expired entry a host has not yet dropped is not under guard, and a record against it opens a new guard rather than reviving the old one (Invariant 2.3).
 - **Invariant 3 — Idempotency of check.**
   ```
   Invariant 3.1: [Check] MUST NOT alter the recorded set.
@@ -144,7 +131,6 @@ Both calls are total. The containing pattern has already acted when it records �
   Invariant 4.1: The host MUST drop an identity that is not under guard from the recorded set.
   Deleted: Invariant 4.2. Operation 7 owns it.
   ```
-  WHY: both rules stated the comparison in raw operators — `EXCEEDS window duration` — where the spec already declares under guard as *elapsed term less than window duration* and Operation 6 and Operation 7 route through it. The two spellings disagree at exactly one instant: at `elapsed term = window duration` an identity is not under guard, so the then-standing window-monotonicity invariant required it out of the recorded set while the old Invariant 4.1 obliged no host to drop it. Routing through the declared term closes the boundary with no new operator, which is the cure the `≥` docket row asks whether the grammar needs — and one site fewer that it does (council read 51).
 
 ## Examples
 
@@ -198,24 +184,17 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: An auditor needing the window duration confirmed MUST read the containing pattern's own declaration (Operation 11).
 External check 2: An auditor needing the matching rule confirmed MUST read the containing pattern's own declaration (Identity 5).
 External check 3: An auditor needing a guard miss confirmed MUST read the deployment's own store (Record failure 2).
-External check 4: An auditor needing the recorded set's durability confirmed MUST read the deployment's own store (Non-goal 3).
+Deleted: External check 4. Execution Contract Store 3 owns it.
 External check 5: An auditor needing the unavailability policy confirmed MUST read the deployment's own declaration (Check unavailability 1).
 External check 6: An auditor needing the clock's honesty confirmed MUST read the deployment's own clock discipline (Non-goal 12).
 ```
-
-WHY:
-The three checks worth the section are `Check 1.2`, `Check 1.3` and `Check 2.1`, because they are what a composing pattern's own guarantee rests on and none of them was testable before. Idempotent Reservation's exactly-once claim holds only if a repeat record does not move the stamp — that is the whole of the window's monotonicity, it clears from two readings of one entry, and it was asserted by an invariant nothing audited.
-
-`Check 3.4` is the one a reader does not expect and the one that proves the atom sells behaviour rather than storage. A lazy host still holding an expired entry must answer not-seen for it, so an auditor who finds the entry present and the answer not-seen has confirmed conformance rather than found a leak — and an auditor told only to compare the set against the window would report the opposite.
-
-The external set is short and each member is a value the records cannot carry. The window duration and the matching rule belong to the containing pattern by construction (`Non-goal 8`); a guard missed by a failed write leaves no trace at all, which is `Record failure 2` stated from the auditor's side; and the unavailability policy is a deployment's declared posture rather than an observation.
 
 ## Non-goals
 
 ```
 Non-goal 1: The atom MUST NOT decide the containing pattern's response to an answer.
-Non-goal 2: The atom MUST NOT require a recorded set that survives a restart.
-Non-goal 3: The deployment MUST own whether the recorded set survives a restart.
+Deleted: Non-goal 2. Execution Contract Store 3 owns it.
+Deleted: Non-goal 3. Execution Contract Store 3 owns it.
 Non-goal 4: The atom MUST NOT reconcile two recorded sets.
 Non-goal 5: A pattern needing one guard across every node MUST compose a coordination pattern.
 Non-goal 6: The atom MUST NOT retain an identity that is not under guard.
@@ -228,8 +207,7 @@ Non-goal 12: The atom MUST NOT correct clock skew.
 Non-goal 13: A pattern needing a strictly monotonic guard MUST compose a logical-clock pattern.
 ```
 
-WHY:
-The atom reports and the containing pattern decides, which is how one mechanic covers rejection, silent absorption and cached replay (Non-goal 1). Durability and clustering are deployment questions: a volatile in-memory set is a valid implementation, and keeping two of them consistent is a Coordination pattern *(forthcoming)*, not this atom (Non-goal 2 through 5). The set is short-term memory, not history; an Audit pattern owns the long view (Non-goal 6, Non-goal 7). A guard that resets on every sighting is the opposite of Invariant 2 and therefore a different concept, Sliding Window *(forthcoming)* (Non-goal 9). *Same day* is not *within twenty-four hours* — it is timezone-sensitive and daylight-saving-sensitive, and a Calendar Day pattern *(forthcoming)* owns it (Non-goal 10, Non-goal 11).
+NOTE: the owners — the containing pattern (Non-goal 1, Operation 12; Non-goal 8, Identity 5); the deployment (Non-goal 4, Non-goal 5); a Coordination pattern *(forthcoming)* (Non-goal 4, Non-goal 5); an Audit pattern (Non-goal 6, Non-goal 7); Sliding Window *(forthcoming)* (Non-goal 9); a Calendar Day pattern *(forthcoming)* (Non-goal 10, Non-goal 11).
 
 Where the pattern breaks down: when *recent* is measured by something other than wall-time elapsed. Number of intervening events, calendar-day boundaries and business-day boundaries each take a separate concept.
 
@@ -243,11 +221,6 @@ Deleted: Clock semantics 2. Non-goal 12 owns it.
 Deleted: Clock semantics 3. Non-goal 13 owns it.
 ```
 
-WHY:
-The guard is wall-time. A backward jump can make an identity read as expired before the term truly elapsed; a forward jump can delay expiry. The atom commits to reading the clock at the seam and to nothing else about the clock (Operation 8).
-
-Clock semantics 1 stays under this heading rather than under Clock dependence: it is this atom's one use of the reading, an instance of that family's question rather than a statement of it (council read 75).
-
 ### Check store unavailability
 
 ```
@@ -256,9 +229,6 @@ Check unavailability 2: A fail-open implementation MUST proceed as not-seen.
 Check unavailability 3: A fail-closed implementation MUST proceed as seen.
 Check unavailability 4: The atom MUST NOT mandate the policy.
 ```
-
-WHY:
-Fail-open risks accepting a duplicate; fail-closed risks refusing a first attempt. Which cost is the lower one is a property of the deployment, not of the concept — a comment box and a payment processor answer differently (Check unavailability 4).
 
 ### Lazy expiry
 
@@ -269,7 +239,7 @@ Lazy expiry 3: A lazy host MUST answer not-seen for an identity the lazy host st
 ```
 
 WHY:
-The atom claims behaviour and not storage, which is why the two host modes are indistinguishable to a caller: Operation 7 answers not-seen for an identity that is not under guard whether or not the host has physically dropped it, and Lazy expiry 3 says so for the entry a lazy host still holds. The physical removal is an implementation's business, and when it happens is Invariant 4.1's eventual claim rather than a moment any rule names (Lazy expiry 1, Lazy expiry 2).
+The atom claims behaviour and not storage, which is why the two host modes are indistinguishable to a caller: Operation 7 answers not-seen for an identity that is not under guard whether or not the host has physically dropped it, and Lazy expiry 3 says so for the entry a lazy host still holds.
 
 ### Record storage failure
 
@@ -277,11 +247,8 @@ The atom claims behaviour and not storage, which is why the two host modes are i
 Record failure 1: [Record] MUST NOT refuse on a failed write.
 Record failure 2: The atom MUST treat a failed write as a guard miss.
 Record failure 3: The atom MUST NOT treat a failed write as a safety violation.
-Record failure 4: A deployment whose duplicate prevention is safety-critical MUST supply a durable recorded set.
+Deleted: Record failure 4. Execution Contract Store 3 owns it.
 ```
-
-WHY:
-A failed write leaves the identity unguarded, and checks during the term that should have been covered answer not-seen — duplicates get through, which is the liveness side of the contract. Nothing false is asserted, and there is nothing to roll back, because the containing pattern acted before the call (Operation 4).
 
 ## Composition notes
 
@@ -297,7 +264,7 @@ Term actors: the atom; the host (also: a host, a lazy host); the transition; a c
 
 Term records: recorded set — the identities under guard, one recording instant per entry.
 
-Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, require, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct, find.
+Term record verbs: identify, treat, interpret, normalize, supply, hold, derive, stamp, place, answer, refuse, read, own, stand, extend, preserve, open, drop, alter, decide, survive, reconcile, compose, retain, proceed, mandate, declare, anchor, correct, find.
 
 Term value sets: store policy = fail-open | fail-closed.
 
@@ -418,12 +385,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-06-18
+status: partially resolved
 formal: verified — duplicate-prevention.tla + 1 twin, 2026-06-03
 last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
@@ -432,10 +399,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/duplicate-prevention.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/duplicate-prevention.md`; the rounds and the migration that got it here are in [its history](./duplicate-prevention.hist.md).
 
-- **2026-09-11 — Rewritten in GRACE lang v0.34; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the two calls as a signature block, rationale under `WHY:`, terms declared where they are used, the invariant numbers and the Ledger unchanged, Non-goals and Edge cases as two sections. *Over:* the prose spec. *Because:* the migration plan — atoms first, since they declare the vocabulary the compositions cite.
-
-- **2026-09-14 — The atom gained an acceptance surface, written from the atom's own rules.** *Chose:* eleven `Check` rules and six `External check` rules, each naming the rule the check tests. *Over:* declining by delegation, which the amended rule admits and this atom cannot honestly take. *Because:* presence became mandatory for every migrated spec on 2026-09-14 (the section titled Generation acceptance in `pressure-testing.md`), and this atom is the one where the absence cost most: a composing pattern's exactly-once guarantee rests on a repeat record not moving the stamp, which is `Invariant 2.2`, and nothing audited it. Every check clears from the recorded set and the atom's own query surface; none invents an obligation, which is what *the bar reduces to the invariants hold* was always asserting and never made testable (council read 65).
+- **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 2), and the four rules that set the recorded set's durability tombstoned to Store 3 — Non-goal 2 and Non-goal 3, the recorded set's survival across a restart not required of the atom and left to the deployment, Record failure 4, a durable recorded set where duplicate prevention is safety-critical, and External check 4, the auditor's check of that durability; rules 66 to 63. *Over:* a recorded set whose survival across a restart each deployment chose, a volatile set admitted wherever the guard was not safety-critical. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and that the four Store rules hold for every specification; `execution-contract.md` writes them once as the Store contract, and Store 3 keeps every committed write across a restart. A failed write still answers ok and misses the guard (Record failure 1 through 3), the posture under an unavailable store stays the deployment's to declare (Check unavailability 1 through 4), and the host's drop of an identity that is not under guard stays the atom's own (Invariant 4.1, Lazy expiry 1, Lazy expiry 2). Under guard is derived from the recording instant each entry carries, so the atom cites neither History 1 nor Order 1; what the atom does for its domain is unchanged.
 
 NOTE: End of Duplicate Prevention.
