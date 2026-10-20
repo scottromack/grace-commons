@@ -74,13 +74,6 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the pool store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-WHY:
-A pool's *name* is a deployment concept — a flight, a ward, a primary connection pool — and names get re-tagged, re-categorized and reused across regions. Identity by name would silently merge two pools that share a label and split one that was renamed, and either mistake merges or splits arithmetic (Identity 9).
-
-Units are fungible at this grain, and that is the whole reason the atom stays small. An allocate of five increments the total by five and writes one event; it does not mint five sub-records. A caller that needs *this seat* rather than *a seat* wants the per-allocation lifecycle [Provisional Commitment](./provisional-commitment.md) owns, and that pattern cross-references this atom's [Allocation Event Id] rather than duplicating the arithmetic (Identity 18, Non-goal 1, Non-goal 2).
-
-Identity 13 and Identity 14 are the create-only discipline: an injected id that collides with a live pool surfaces as [Storage Failure] with nothing written, because the overwrite reading would destroy a pool's whole arithmetic history. Event-id uniqueness has no such guard and rests wholly on the generator the deployment declares (Identity 15 through 17, Invariant 13.2).
-
 ### State
 
 ```
@@ -117,23 +110,15 @@ Term closing balance: the running total an audit event left — an [Closing Bala
 
 Term recording instant: the instant an audit event was written — a [Recording Instant]; stamped from the injected now, and advisory rather than authoritative for order.
 
-Term audit-identifier surface: an audit event's event id, pool id, event class, arithmetic fields, state fields and recording instant — everything the atom never rewrites and the arithmetic chain rests on.
+Term audit-identifier surface: an audit event's event id, pool id, event class, arithmetic fields ([Opening Balance], [Count], [Closing Balance], [Prior Capacity], [New Capacity]), state fields ([Prior State], [New State]) and recording instant — everything the atom never rewrites and the arithmetic chain rests on.
 
-Term attribution surface: an audit event's actor reference and reason — what makes a record personally identifying, and what a composed erasure mechanism may scrub.
-
-WHY:
-Drained is not a state, and that is the sharpest boundary in the atom. allocated reaching capacity is a number reaching another number: observable through [Query], enforced by the allocate guard, and derivable at any moment. A state, by contrast, is something an actor decided — suspend, resume, close. Promoting an arithmetic condition to a state would put a policy name on a computation and invite a transition nobody performs (State 6).
-
-Order is insertion order, not timestamp order. recording instant comes from the seam's clock and under skew it is not monotonic, so every *after*, *between* and *most recent* in this spec means by insertion (State 11 through 13). A deployment that needs order bound to verifiable wall time composes a trusted-timestamping pattern; without it, timestamps are metadata and insertion is the truth.
-
-An adjustment event names [Prior Capacity] against [New Capacity]; a state-change event names [Prior State] against [New State]; an allocation or release event names [Opening Balance] against [Closing Balance] with the [Count] between them. Each is a before and an after on one row, which is what lets an auditor clear the bound at a single event.
-
-An audit event has two surfaces with different lifetimes, and the split is structural. The audit-identifier surface is what makes the arithmetic chain verifiable from records alone, and no action of this atom rewrites it. The attribution surface — [Allocating Actor Reference] and [Releasing Actor Reference] on the arithmetic events, [Adjusting Actor Reference] and [Acting Actor Reference] with a [Reason] on the others — is what makes the record identify a person, and a deployment that encodes personal data there may have to erase it under GDPR (EU General Data Protection Regulation) Article 17 — through its own declared shredding-class mechanism, gated by a composed [Retention Window](./retention-window.md), which declares *when* a lifetime ends and carries no field-level scrub surface of its own. After such an erasure the records still verify the arithmetic and no longer name the actor, which is exactly the property the split exists to give (State 20, Invariant 8.1 through 8.4).
+Term attribution surface: an audit event's actor reference ([Allocating Actor Reference], [Releasing Actor Reference], [Adjusting Actor Reference] or [Acting Actor Reference]) and [Reason] — what makes a record personally identifying, and what a composed erasure mechanism may scrub.
 
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 5: The deployment MUST supply the pool store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -144,12 +129,6 @@ Deleted: Clock semantics 4. Clock dependence 1 owns it.
 Deleted: Clock semantics 5. Clock dependence 2 owns it.
 Deleted: Clock semantics 6. Non-goal 29 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
-WHY:
-The clock has exactly one job here — stamping declaration instant and each event's recording instant — and no guard consults it. Every precondition is a state check, a field-format check or an arithmetic check on stored integers, so a skewed clock can make a timestamp advisory and can never admit or refuse a call (Clock dependence 1, Clock semantics 5).
 
 ### Operations
 
@@ -311,24 +290,14 @@ The case space, and the rule that owns each case:
 | any writing action | store refuses | [Storage Failure] | none (Operation 57 through 59) |
 | [Query] | id names a pool, any state | the pool snapshot | none (Operation 51, Operation 54) |
 
-WHY:
-The rejection order is fixed and each step is defended. [Not Known] comes first because every later check presupposes a record to inspect — an unknown pool has no state, no total and no bound to compare against (Operation 8, Operation 9). State-validity comes before field-format because state is a property of the *target* and format is local to the *call*: a [Closed] pool does not accept the action at all, and saying so before validating per-call fields is the quieter path for the common case of an operator draining a decommissioned pool. The cost is real and accepted — a malformed count against a closed pool reads [Closed], and the caller learns about the count on retry. Field-format comes before the arithmetic because the arithmetic is meaningless on a malformed integer: `allocate(count = -5)` must answer [Invalid Request] and not slip past a bound check that a negative count satisfies by accident (Operation 12). The store write is last, so every in-memory check precedes any durable effect (Operation 60).
-
-The three arithmetic guards are the atom, and all three are comparisons the grammar carries directly: the requested total against capacity, count against allocated, allocated against new capacity (Operation 13, Operation 22, Operation 32). Only the sum needs a name, and it has one.
-
-Nothing clamps. A downward adjustment below the running total is refused rather than fitted, and a release beyond the total is refused rather than floored — because clamping would keep the invariant true while destroying the caller's ability to learn it was about to be broken. Freeing units to fit a smaller bound is a policy decision the caller makes explicitly, with [Release] calls, before adjusting again (Operation 37, Operation 38).
-
-[Query] is fail-stop and declares no storage-failure arm: its one rejection is semantic, and a store that cannot be read yields no conforming outcome rather than a stale snapshot, so any answer a caller holds is a complete one (Operation 55, Operation 56).
-
 ### Invariants
 
 - **Invariant 1 — Pool record permanence under this atom's actions.**
   ```
   Invariant 1.1: The atom MUST NOT offer an action that removes a pool.
   Invariant 1.2: The pool count MUST NOT fall under the atom's actions.
-  Invariant 1.3: A storage-failure rejection MUST leave no partial pool in the store.
+  Deleted: Invariant 1.3. Execution Contract Store 1 owns it.
   ```
-  WHY: scoped to the atom's own surface. A deployment purging a long-closed pool under a composed [Retention Window](./retention-window.md) is that pattern's declared act, and the consequence is named rather than hidden — a regulator querying a stale id reads [Not Known] whether the pool was never declared or was purged, and distinguishes the two from the deployment's retention manifest (Non-goal 24, Non-goal 25).
 - **Invariant 2 — State membership exclusivity.**
   ```
   Invariant 2.1: EVERY pool MUST stand in EXACTLY ONE OF open, suspended, closed.
@@ -340,15 +309,13 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
   Invariant 3.3: [Adjust Capacity] MUST answer closed against a closed pool.
   Invariant 3.4: [Release] MUST stand as the one mutating action a closed pool admits.
   ```
-  WHY: a composing pattern's per-allocation records may still be unwinding when the pool closes. Refusing [Release] there would not block those records reaching their own terminal states — those transitions are internal to the composing pattern — it would strand the pool's total at its close-time value and leave a final figure matching no observable reality (Composition note 3).
 - **Invariant 4 — Capacity constraint.**
   ```
   Invariant 4.1: EVERY pool's allocated MUST NOT EXCEED the capacity.
   Invariant 4.2: [Allocate] MUST refuse a call whose requested total EXCEEDS capacity.
   Invariant 4.3: [Adjust Capacity] MUST refuse a call whose allocated EXCEEDS the new capacity.
-  Invariant 4.4: Invariant 4.1 MUST rest on the host obligations Concurrency 1, Crash atomicity 1 and Arithmetic 1 name.
+  Invariant 4.4: Invariant 4.1 MUST rest on the host obligations Capability requirement 5 and Arithmetic 1 name.
   ```
-  WHY: the load-bearing arithmetic invariant, and the one a composing pattern may rely on without re-implementing the bound — contingent on three host obligations the atom names and cannot itself supply: serialized execution per pool, crash-atomic multi-record writes, and integer arithmetic that does not lose the sum. A deployment missing any of the three can observe the invariant fail despite every precondition holding; that is a deployment-side gap, and its audit posture must say so.
 - **Invariant 5 — Non-negativity.**
   ```
   Invariant 5.1: EVERY pool's allocated MUST NOT fall below zero.
@@ -380,7 +347,6 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
   Invariant 9.3: An audit log's length MUST NOT fall under the atom's actions.
   Invariant 9.4: A composed retention pattern MAY purge an audit event.
   ```
-  WHY: the *under this atom's actions* qualifier is load-bearing. A regulator reads the composed-system view, which this atom does not govern alone: append-only here is necessary for the audit chain and not sufficient, and the deployment's retention schedule is the other half of what a regulator sees. The arithmetic chain reconstructs within the active window; before it, reconstruction needs the archive or is bounded out (Check 2.2).
 - **Invariant 10 — State changes are auditable.**
   ```
   Invariant 10.1: EVERY state change MUST append a state-change event.
@@ -402,14 +368,12 @@ Nothing clamps. A downward adjustment below the running total is refused rather 
   Invariant 13.2: Two audit events MUST NOT share an event id.
   Invariant 13.3: Invariant 13.2 MUST rest on the generator the deployment declares.
   ```
-  WHY: honest rather than decorative. Ids are seam-injected, so the atom cannot foreclose a colliding generator. Its one contribution is the create-only [Declare Pool] write, which surfaces an observable pool-id collision as [Storage Failure] (Identity 13, Identity 14); event-id uniqueness rests wholly on the deployment.
 - **Invariant 14 — Action atomicity.**
   ```
-  Invariant 14.1: A writing action MUST commit EVERY record the action writes in one operation.
-  Invariant 14.2: A storage-failure rejection MUST leave no partial record in the store.
-  Invariant 14.3: Invariant 14.1 MUST rest on the host obligation Crash atomicity 1 names.
+  Deleted: Invariant 14.1. Execution Contract Store 1 owns it.
+  Deleted: Invariant 14.2. Execution Contract Store 1 owns it.
+  Deleted: Invariant 14.3. Execution Contract Store 1 owns it: an action's writes commit together or not at all, and the atom names no host obligation left for the commit to rest on.
   ```
-  WHY: the rejection path and the crash path need separating. A [Storage Failure] answer is the host surfacing a failure as a return value, and nothing committed. A crash between the log append and the total update returns nothing at all, and only the crash-atomicity obligation extends all-or-none to that path.
 
 Invariants 4 and 5 together give the *bounded-arithmetic* property — at every reachable state the running total sits between zero and the bound, under the host obligations Invariant 4.4 names. That is what a composing pattern may treat as a precondition; without it every caller defends the bound at its own call site. Invariant 8 through 11 give the *successful-change-audit* property — every successful change to a pool's capacity, total or state is an attributed event in insertion order whose identifier surface nothing rewrites. *Rejected* calls produce no event here, deliberately (Non-goal 26, Non-goal 27). Invariant 3 gives *terminal closure* — a closed pool cannot be quietly reopened, and post-close unwinding through [Release] is the only mutation that survives it.
 
@@ -483,11 +447,6 @@ External check 2: An auditor needing a per-unit history MUST read the history fr
 External check 3: An auditor needing an attested actor MUST read the attestation from a composing Actor Identity (Non-goal 12).
 ```
 
-WHY:
-Check 3.1 and Check 3.2 are per-event and that is the point of carrying before-and-after on every entry: an auditor clears the bound at a single event without replaying the log to that index. Replay stays authoritative under Check 2.1 — the snapshots witness the arithmetic rather than replace it — and Check 2.2 states the honest scope, because a composed purge bounds what any replay can reach.
-
-The three External checks name what this store cannot answer. Refused calls leave no trace here at all; per-unit history is a different grain; an actor reference is the caller's claim until something attests it.
-
 ## Non-goals
 
 ```
@@ -522,10 +481,7 @@ Non-goal 28: The atom MUST NOT hold a multi-dimensional capacity.
 Non-goal 29: A deployment needing verifiable wall-time order MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-The audit log here is the pool's own arithmetic history and not an absorbed [Event Log](./event-log.md). The likely objection is fair — an append-only, attributed, insertion-ordered log is exactly what that atom provides. What resolves it is that these entries are not a content-agnostic stream: every one is a snapshot of *this* pool's capacity and total, and the invariants that make the bound verifiable range over those fields. A deployment that wants a deployment-grain journal composes Event Log around the call surface, and gets the refusals this log does not carry (Non-goal 26, Non-goal 27, External check 1).
-
-Overcommit is refused as a shape, not as a preference. Airlines overbook and connection pools burst, and both are real; both are also a *tolerance margin*, which is a second bound with its own policy. This atom enforces one hard bound, and a soft-limit pattern that carries a margin composes in front of it (Non-goal 8, Non-goal 9).
+NOTE: the owners — [Provisional Commitment](./provisional-commitment.md) (Non-goal 1, Non-goal 2, External check 2; Identity 18); a soft-limit pattern (Non-goal 8, Non-goal 9); [Actor Identity](./actor-identity.md) (Non-goal 12, Non-goal 13, External check 3); [Tamper Evidence](./tamper-evidence.md) (Non-goal 21, Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 23, Non-goal 24); the deployment (Non-goal 25); [Event Log](./event-log.md) (Non-goal 26, Non-goal 27, External check 1); [Audit Trail](../compositions/audit-trail.md) (Non-goal 26, Composition note 6).
 
 Where the atom breaks down is worth naming. When the resource is not fungible at any grain — every seat distinct by legroom or fare class — per-unit identity belongs at this layer too, which is a sign the deployment wants Provisional Commitment rather than this. When capacity is a vector rather than an integer — memory bytes *and* core count *and* disk — one running total cannot carry it, and a multi-dimensional pattern is a different atom (Non-goal 28).
 
@@ -538,21 +494,15 @@ Clock dependence 1: A guard MUST NOT read now.
 Clock dependence 2: A rejection MUST NOT rest on now.
 ```
 
-WHY:
-Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
-
 ### Concurrency
 
 ```
-Concurrency 1: The host MUST serialize concurrent calls on one pool id.
-Concurrency 2: The implementation MUST make the arithmetic guard and the write one transition.
-Concurrency 3: A store enforcing a compare-and-set on allocated MAY discharge Concurrency 2.
+Deleted: Concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Concurrency 2. Execution Contract Store 1 and Execution Contract Store 2 own it.
+Deleted: Concurrency 3. Execution Contract Store 2 owns it: the arithmetic guard and the write are one transaction, and the atom names no rule left for a compare-and-set to discharge.
 Concurrency 4: The atom MUST NOT order two contending calls fairly.
 Concurrency 5: The atom MUST NOT offer a multi-action transaction.
 ```
-
-WHY:
-The guard reads allocated and the write changes it; two concurrent allocates against one unit of headroom both read *room* and both write, and Invariant 4.1 — the reason this atom exists — breaks by the very sequence it forbids. Check-then-act, and the fix is the implementation's: one transition, or a compare-and-set that does the same work (Concurrency 2, Concurrency 3).
 
 ### String policy
 
@@ -581,11 +531,6 @@ Term zero-width character: a codepoint in `U+200B` to `U+200D`, or `U+FEFF`.
 
 Term bidi-override character: a codepoint in `U+202A` to `U+202E`, or `U+2066` to `U+2069`.
 
-WHY:
-String 6 through 8 are audit-surface rules wearing validation clothes. A reason made of control bytes, of zero-width characters, or spoofed with bidi overrides passes every syntactic check and is invisibly empty or deceptively rendered to the human auditor the field exists to serve — so admitting it would satisfy the format and defeat the purpose.
-
-The cap's *value* is the deployment's; its *existence* is the contract. An uncapped opaque field on an append-only log is an unbounded payload sink (String 3, String 4).
-
 ### Arithmetic
 
 ```
@@ -594,17 +539,14 @@ Arithmetic 2: The deployment MUST own the integer width.
 Arithmetic 3: IF the requested total EXCEEDS the integer width THEN the deployment MUST NOT admit the call.
 ```
 
-WHY:
-Invariant 4.1 rests on the sum being computable. A deployment on fixed-width signed integers that admits a requested total past the width produces a wrapped value that satisfies the guard and breaks the bound — the one way this atom's central invariant fails while every precondition reads as holding.
-
 ### Crash atomicity
 
 ```
-Crash atomicity 1: The host MUST commit an action's pool change and the action's audit event in one operation.
-Crash atomicity 2: A crash inside a writing action MUST NOT leave an audit event without the matching pool change.
-Crash atomicity 3: A crash inside a writing action MUST NOT leave a pool change without the matching audit event.
-Crash atomicity 5: A crash inside [Declare Pool] MUST NOT leave a pool the declaration did not finish.
-Crash atomicity 4: A recovered store MUST NOT stand in a violation of Invariant 4.1.
+Deleted: Crash atomicity 1. Execution Contract Store 1 owns it.
+Deleted: Crash atomicity 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Crash atomicity 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Crash atomicity 5. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Crash atomicity 4. Execution Contract Store 3 owns it.
 ```
 
 ## Composition notes
@@ -620,22 +562,17 @@ Composition note 7: A composing pattern MUST own the retention of the pool store
 Composition note 8: A composing pattern reading the pool store MUST NOT write to the pool store.
 ```
 
-WHY:
-[Provisional Commitment](./provisional-commitment.md) is the pattern this atom was extracted from under: it owns Held, Confirmed, Released and Expired per commitment, cross-references the [Allocation Event Id] this atom answers, and calls [Release] when a commitment reaches its own terminal state — which is why Invariant 3.4 admits release into a closed pool (Composition note 3, Composition note 4).
-
-[Actor Identity](./actor-identity.md) attests the reference each action carries, turning *the caller supplied this reference* into *this actor acted*. [Audit Trail](../compositions/audit-trail.md) records the lifecycle events tamper-evidently and is where a refusal would live if the deployment journals one. [Event Log](./event-log.md) wraps the call surface where refusal visibility is required. [Retention Window](./retention-window.md) bounds how long pool records and audit events stay queryable, and [Tamper Evidence](./tamper-evidence.md) seals them where the records must survive a challenge. [Duplicate Prevention](./duplicate-prevention.md) gives at-most-once on [Allocate] under retry, so a network timeout does not consume the pool twice.
-
 ## Terms
 
 Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is* and its **Kind**.
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; an operator; an auditor; a reader; the store; a pool; a pool state; an audit event; an audit log; a crash; a write; an action; a rejection; a string field; the pool count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a guard; an operator; an auditor; a reader; the store; a pool; a pool state; an audit event; an audit log; a write; an action; a rejection; a string field; the pool count.
 
 Term records: pool — one bounded resource, carrying pool id, capacity, allocated, a pool state, the declaration fields and an audit log; audit event — one entry on that log, carrying an event id, the pool id, an event class, a recording instant and the fields the event's class names.
 
-Term record verbs: identify, offer, share, re-order, retain, allocate, change, match, normalize, order, write, refuse, draw, reuse, hold, record, stand, set, stamp, answer, append, raise, lower, admit, release, fit, interpret, leave, insert, remove, carry, read, supply, rest, fall, commit, scrub, reconstruct, replay, bound, find, equal, purge, evict, expire, attest, move, merge, split, notify, seal, compose, gate, distinguish, serialize, make, discharge, compute, own, declare, call, name, store, case-fold, exceed.
+Term record verbs: identify, offer, share, re-order, retain, allocate, change, match, normalize, order, write, refuse, draw, reuse, hold, record, stand, set, stamp, answer, append, raise, lower, admit, release, fit, interpret, leave, insert, remove, carry, read, supply, rest, fall, scrub, reconstruct, replay, bound, find, equal, purge, evict, expire, attest, move, merge, split, notify, seal, compose, gate, distinguish, compute, own, declare, call, name, store, case-fold, exceed.
 
 Term value sets: pool state and event class are declared above and cited here (Closed vocabulary 15).
 
@@ -1003,7 +940,7 @@ Projection: invalid-request
 
 #### Storage Failure
 
-The refusal any action returns when the durable write fails after all preconditions pass. All-or-none: no partial record, no audit-log entry, no running-total change (Invariant 14).
+The refusal any action returns when the durable write fails after all preconditions pass. No partial record, no audit-log entry, no running-total change (Operation 58, Operation 59).
 
 Kind:       Member
 Member of:  the action rejection
@@ -1073,6 +1010,7 @@ Capacity Constraint Enforcement is a utility primitive; no single regulator owns
 - **Sarbanes-Oxley section 404 (Internal Control over Financial Reporting)** — where confirmed allocations against a pool are material to the books (credit-limit consumption flowing to the balance sheet, inventory allocation flowing to cost-of-goods-sold), the controls around pool adjustments and the audit trail of who-allocated-what-when become SOX-scope. Composes with Audit Trail to produce the records-alone-defensible evidence section 404 attestations require.
 - **PCI DSS Requirement 10 (Logging and monitoring)** — when the pool governs payment-related capacity (a payment-gateway connection pool, a card-authorization headroom pool), every successful allocation and state change must be logged with attribution; this atom's audit-log invariants supply the structural form for the successful-change surface. Req. 10.2.4 specifically requires logging of *invalid logical access attempts* (rejected calls), which this atom does not produce events for; the composing Event Log around the atom's call surface (see Composition notes → Event Log) records the rejection journal. The full PCI DSS Req. 10 obligation is satisfied by the atom + Event Log composition, not by the atom alone.
 - **The Joint Commission, *Provision of Care, Treatment, and Services*** — healthcare bed-management and ward-capacity standards require capacity changes (closures for renovation, surge expansions) to be auditable with attribution and reason. The atom's adjust_capacity event-recording discipline is the operational form.
+- **GDPR (EU General Data Protection Regulation) Article 17** — the right to erasure: where an actor reference or a reason carries personal data, a deployment may have to erase it. The attribution surface is what a composed erasure mechanism scrubs, and the audit-identifier surface still verifies the arithmetic once the actor no longer resolves (Invariant 8.4, Invariant 8.5).
 - **GDPR Article 30 (Records of processing)** — where the pool's allocation events touch personal data (per-customer credit-line pools, per-patient bed allocations referencing the patient by id), the audit log is itself a processing activity subject to controller-records obligations. Composes with Audit Trail and Retention Window for the full obligation surface.
 - **Authorization-related standards (SOX section 404 segregation-of-duties, HIPAA Privacy Rule section 164.508 minimum-necessary, PCI DSS Requirement 7 restrict access by business need-to-know)** — these regimes require enforcement of *who may act*, not merely attribution of *who did act*. This atom records the attribution surface (`*_actor_ref`) for every successful action but does not constrain who may invoke which action; the authorization decision composes with Permissions (see *Edge cases → Authorization* and the Permissions Composition note). Composing with Permissions and Actor Identity together produces the *was-permitted-and-was-attested* surface these standards require — Permissions for the decision that admitted the call, Actor Identity for the non-repudiable record of who the decision admitted.
 
@@ -1087,12 +1025,12 @@ The atom inherits from:
 
 ## Status
 
-`grounded on Final Critique 8 — 2026-08-26` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 8 — 2026-08-26
+status: partially resolved
 formal: verified — capacity-constraint-enforcement.tla + 2 twins, 2026-06-04
 last gate: 2026-08-26 — Final Critique 8, fresh reader — clean
 
@@ -1101,8 +1039,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/capacity-constraint-enforcement.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/capacity-constraint-enforcement.md`; the migration that got it here is in [its history](./capacity-constraint-enforcement.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.36; nothing but language changed.** *Chose:* the eight actions as a signature block, the fourteen invariant numbers unchanged, the six acceptance areas opened into `Check 1.1 through 6.1` with three External checks for what the store cannot answer, the arithmetic routed through declared requested total and released total so no rule carries a sum, the three host obligations Invariant 4 rests on given their own families (`Concurrency`, `Crash atomicity`, `Arithmetic`). *Over:* the prose spec. *Because:* the migration plan; nothing cites this atom by label. The open question this atom was picked to answer — whether a domain whose logic *is* arithmetic survives Hard invariant 24 — answers yes: `MUST NOT EXCEED` and `EXCEEDS` carry every comparison directly, and only the two sums needed names.
+- **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the pool store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the twelve rules that restated them tombstoned to their owner — Invariant 14.1 and Crash atomicity 1, an action's records committed in one operation, Invariant 1.3 and Invariant 14.2, no partial pool or record on storage-failure, and Invariant 14.3, that commit resting on a host obligation, to Store 1; Crash atomicity 2, 3 and 5, no crash inside a writing action leaving an audit event without its pool change, a pool change without its audit event, or a pool [Declare Pool] did not finish, to Store 1 and Store 3; Crash atomicity 4, a recovered store standing in no violation of Invariant 4.1, to Store 3; Concurrency 2, the arithmetic guard and the write one transition, to Store 1 and Store 2; Concurrency 1, concurrent calls on one pool serialized, and Concurrency 3, a compare-and-set on allocated discharging Concurrency 2, to Store 2; rules 222 to 211. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Invariant 4.1 and Invariant 5.1 now rest on the host obligations Capability requirement 5 and Arithmetic 1 name (Invariant 4.4, Invariant 5.3). The bound and its guards stay the atom's own (Invariant 4.1 through 4.3, Operation 13, Operation 22, Operation 32), as do a refused action leaving the pool as the call found it and appending no audit event (Operation 58, Operation 59), the store refusing a colliding pool id (Identity 14), and the records the atom never removes, re-orders or changes (State 7 through 10, State 19, State 20, Invariant 1.1, 1.2, 7.1, 8.1 through 8.3, 9.1 through 9.3, 12.1, 12.2). The audit log is carried on the pool record, ordered by insertion by the atom itself (State 3, State 11), and an auditor replays it forward rather than reading a record as it stood at a past commit (Check 2.1), so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Capacity Constraint Enforcement.
