@@ -1,0 +1,14 @@
+---
+title: Multi-Party Approval — history
+nav_exclude: true
+---
+
+# Multi-Party Approval — history
+
+The dated record of how [Multi-Party Approval](./multi-party-approval.md) got here, moved out of the spec on 2026-10-20 because a reader does not need it to use the spec today. The spec keeps every section `spec-format.md` requires and its `Deleted:` tombstones; everything smaller is in `git log -- compositions/multi-party-approval.md`.
+
+## Decisions
+
+Entries that record a migration rather than a turn the pattern took.
+
+- **2026-09-24 — Rewritten in GRACE lang v0.61; forty of forty-one open Ledger lines closed by the rules that now own them.** *Chose:* `Composes`, `Composition state`, `Capability requirement` — which takes the prose's Configuration whole — `Primitive policy`, `Audit arm`, `Action wiring`, `Wiring decision` (the quorum rule), `Reconciliation` (the recovery discipline, as four legs), `Cascade` and `Scope vocabulary` as the surfaces; invariant numbers 1 through 5 and 7 through 10 unchanged, Invariant 6 tombstoned to Composes 5; the seven acceptance checks renumbered by the invariant each tests, with the permission and constituent checks the prose lacked; the edge cases split into Non-goals and three Edge cases families. Choices the page left open, each decided by a standing rule: the invocation id the seam injects rides on every event and on the chain record, so the initiation intent joins its chain exactly (2026-08-29-e — *Intents pair with outcomes*); the routed vector defined for all four counts with P derived, a decision routed only by its decision intent, and a purged intent still recognized by its surviving action reference and actor through the event index (2026-08-29-a, -b, -c, -d, 2026-08-26-l); the position exported on every action that straddles a commit, because a re-run initiation is not refused (*A composition's own rejection arm carries the retry bit*); the retention-step arm and the retention-source invalid-request read back by invocation id and proceeding as landed (*A transcribed rejection arm keeps its payload*); the compensation window set against the liveness sum rather than the cadence alone (*Liveness is arithmetic*); the step-assignment pairing rebuilt through Assignment's history_for at any age (2026-08-29-m, 2026-08-26-i); the resolution reason declared on every arm (2026-08-26-g, 2026-08-29-g); a retried recall answered not-known closed with an anomaly mark (2026-08-26-n); and the extraction gate run on the recovery discipline, its verdict left to the higher-order composition test (2026-08-26-m). *Over:* the prose's step lists, a case list ordered a, b, d, c under *order of severity*, a terminal instant defined as *the first moment the rule fired* that two stamping sites contradicted, and an open finding the per-chain serialization had already closed. *Because:* the rules state each landing once; the formal line stays open because the model, not the page, is what it owes.
