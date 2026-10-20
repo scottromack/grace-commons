@@ -54,9 +54,6 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-WHY:
-Identity by record set would collapse a legitimate re-seal — a stronger mechanism after a deprecation, a second anchor over the same records — into an overwrite, and identity by time would lose two concurrent seals (Identity 6 through 8). Each evidence is its own audit record, so an auditor reconstructs a record set's integrity history as a sequence of them.
-
 ### State
 
 ```
@@ -81,17 +78,12 @@ Term mechanism credential: the material the mechanism consumes to produce the pr
 
 Term evidence field: evidence id | record set reference | proof | sealing instant | anchoring instant.
 
-WHY:
-One state, no transitions out, no deletion and no revocation: an evidence that could be withdrawn would prove nothing, since the party who wanted the records rewritten is the party who would withdraw it (State 2, State 6, State 7, Invariant 9.1). The credential is consumed and never stored — key storage, rotation and recovery are a separate concept, and an atom that kept the key would be the weakest place in the deployment to keep it (State 5).
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST supply the seal store PER Execution Contract Store 1, Execution Contract Store 3 and Execution Contract Store 4.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -169,9 +161,6 @@ The case space, and the rule that owns each case:
 | [Verify] | right records, proof holds | [Verified] | none (Operation 19) |
 | [Read] | any | every evidence, with its stored fields | none (Operation 27 through 30) |
 
-WHY:
-The four verify outcomes are kept apart by their conditions rather than by the order the rules are written in (`GRACE-lang.md` Hard invariant 15): not-known is an id miss and nothing else; record-set-mismatch is a caller holding the wrong records; mechanism-verification-unavailable is transient and worth retrying; proof-invalid is the structural signal of tampering, and a deployment that collapses it into any of the other three has lost the only alarm this atom raises (Operation 15 through 19). [Verify] needs the records because the proof commits to content — the asymmetry from [Actor Identity](./actor-identity.md), whose verification needs only the attestation and the registry (Operation 13, Invariant 4.1).
-
 ### Invariants
 
 - **Invariant 1 — Evidence immutability.**
@@ -184,7 +173,6 @@ The four verify outcomes are kept apart by their conditions rather than by the o
   Invariant 2.2: A deployment MUST NOT rest detectability on a deprecated mechanism.
   Invariant 2.3: A deployment MUST re-seal a record set under a sound mechanism.
   ```
-  WHY: the contract is detectability from the records alone, given the proof and the originating records — and it holds exactly as far as the mechanism does. A mechanism with a practical collision admits crafted tampering that verifies, so mechanism health is a Mechanism Registry pattern's *(forthcoming)* and re-sealing is the deployment's (Invariant 2.2, Invariant 2.3).
 - **Invariant 3 — Record-set binding.**
   ```
   Invariant 3.1: A recorded proof MUST verify against the record set the evidence's record set reference names.
@@ -196,7 +184,6 @@ The four verify outcomes are kept apart by their conditions rather than by the o
   Invariant 4.2: [Verify] MUST NOT consult the host's state.
   Invariant 4.3: [Verify] MUST NOT consult a source outside the verification set.
   ```
-  WHY: an RFC 3161 verification reads the timestamp authority's published certificate, which is the mechanism's dependency rather than the atom's — and it is the only admitted one (Invariant 4.1).
 - **Invariant 5 — Id stability.**
   ```
   Invariant 5.1: [Seal] MUST set the evidence id.
@@ -210,7 +197,6 @@ The four verify outcomes are kept apart by their conditions rather than by the o
   ```
   Invariant 7.1: Two verifications of one evidence against one record set MUST answer alike.
   ```
-  WHY: an answer that differs across record-set states is detectability working, not inconsistency.
 - **Invariant 8 — Mechanism opacity.**
   ```
   Invariant 8.1: The atom's contract MUST hold for EVERY sound mechanism.
@@ -220,9 +206,8 @@ The four verify outcomes are kept apart by their conditions rather than by the o
   ```
   Invariant 9.1: The atom MUST NOT delete an evidence.
   Invariant 9.2: The evidence set MUST NOT shrink.
-  Invariant 9.3: A storage-failure MUST NOT leave a partial evidence.
+  Deleted: Invariant 9.3. Execution Contract Store 1 owns it.
   ```
-  WHY: an evidence that outlives the records it commits to still proves those records existed and were intact at seal time; deleting it destroys that. Cascading purge alongside the records is the composing pattern's (Composition note 4).
 
 ## Examples
 
@@ -337,9 +322,6 @@ Non-goal 13: The atom MUST NOT deduplicate two seals over one record set.
 Non-goal 14: A pattern needing one seal per record set per cadence MUST own that coordination.
 ```
 
-WHY:
-The ceiling is stated rather than implied: an adversary with write access to the records and to the seal store rewrites both and the atom cannot tell, which is why anchoring outside that adversary's reach is named here and owned elsewhere (Non-goal 1, Non-goal 2). Attribution is the same shape — where the credential is an actor's private key the proof itself carries the binding, and where it is a system key the evidence says only that the system asserted the proof (Non-goal 6, Non-goal 7). Clock access is confined to the seam; clock honesty is a deployment property, and the verifiable form of *when* is an anchor from a qualified authority (Non-goal 8, Non-goal 9).
-
 Where the atom breaks down: when the host cannot supply a record set reference whose contents are reproducibly addressable at verify time; when the chosen mechanism commits to the records' identity and not their content; when the proof store and the record store share an adversary with write access to both and no external anchor exists.
 
 ## Edge cases
@@ -347,13 +329,10 @@ Where the atom breaks down: when the host cannot supply a record set reference w
 ### Atomicity of a seal
 
 ```
-Seal atomicity 1: The implementation MUST make [Seal] atomic.
-Seal atomicity 2: A crash inside [Seal] MUST NOT leave a recorded evidence with a proof the mechanism did not produce.
-Seal atomicity 3: The deployment MUST own the durability of the seal store.
+Deleted: Seal atomicity 1. Execution Contract Store 1 owns it.
+Deleted: Seal atomicity 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Seal atomicity 3. Execution Contract Store 3 owns it.
 ```
-
-WHY:
-The atom's contract assumes the evidence record is durable and the write is all-or-nothing; where the store can be silently rewritten, the evidence is only as strong as the store, which is the ceiling Non-goal 1 states.
 
 ### Concurrent seals
 
@@ -370,18 +349,12 @@ Retention coupling 2: A composing pattern MUST own the cascading purge of an evi
 Retention coupling 3: A deployment MUST NOT read a seal over destroyed records as proof of the records' content.
 ```
 
-WHY:
-Tamper-evidence outlives the records only as far as the records are retained. Once [Retention Window](./retention-window.md) purges them, verification has nothing to re-present and answers record-set-mismatch, or the host's lookup answers nothing at all — a seal in that state is structurally meaningless and should leave in step with what it sealed.
-
 ### Verification caching
 
 ```
 Verification caching 1: An implementation MAY cache a verification result.
 Verification caching 2: An implementation MUST NOT cache a verification result across two record-set states.
 ```
-
-WHY:
-[Verify] is read-only and deterministic under a fixed record set (Invariant 7.1), so a cache is sound exactly while the records do not move — and a cache that outlives a change reports *verified* over tampered records, which is the one answer this atom must never give wrongly.
 
 ## Composition notes
 
@@ -393,8 +366,7 @@ Composition note 4: A composing pattern MUST own the decision to purge an eviden
 Composition note 5: This atom's invariant numbers MUST stand as a frozen contract surface.
 ```
 
-WHY:
-Sealing an Event Log periodically — or per append, for the strongest cadence — is what gives the bare log the integrity property it declines to carry ([Event Log](./event-log.md) declines tamper-evidence and names this atom; Composition note 2). This atom completes the regulated-audit stack: [Event Log](./event-log.md), [Actor Identity](./actor-identity.md), [Retention Window](./retention-window.md) and this one, wired by [Audit Trail](../compositions/audit-trail.md), which cites this atom's Invariants 1, 3, 4, 8 and 9 by number — so the numbers are a frozen contract surface, additive growth is forward-compatible, and a renumber re-passes every composition that cites one (Composition note 5). That a writer must not renumber is the grammar's rule and stays there (`GRACE-lang.md` Hard invariant 26); what is local — and what this note owns — is that these particular numbers are cited from outside. Forthcoming: External Anchoring, Trusted Timestamping, Mechanism Registry.
+NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md). Forthcoming: External Anchoring, Trusted Timestamping, Mechanism Registry.
 
 ## Terms
 
@@ -406,7 +378,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: evidence — one commitment, carrying evidence id, record set reference, proof, sealing instant and, where the mechanism anchors, anchoring instant.
 
-Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, make, cache, declare, renumber, add, refuse.
+Term record verbs: judge, identify, allocate, supply, reuse, carry, stand, order, offer, store, compute, record, stamp, consume, accept, answer, discard, alter, take, read, mint, own, write, change, verify, consult, set, share, hold, delete, shrink, leave, reconstruct, need, confirm, bound, prevent, compose, anchor, choose, bind, vouch, purge, define, present, deduplicate, rest, re-seal, cache, declare, renumber, add, refuse.
 
 Term value sets: record set match = yes | no. seal check = held | failed | unavailable. evidence field = evidence id | record set reference | proof | sealing instant | anchoring instant. evidence state = sealed.
 
@@ -588,7 +560,7 @@ Projection: mechanism-failure
 
 #### Storage Failure
 
-The refusal [Seal] returns when the seal store write fails after the [Proof] is computed. No partial [Evidence] is recorded and the computed [Proof] is discarded — the caller must treat it as definitive.
+The refusal [Seal] returns when the seal store write fails after the [Proof] is computed. The computed [Proof] is discarded — the caller must treat it as definitive.
 
 Kind:       Member
 Member of:  the Seal rejection
@@ -653,12 +625,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-06-18
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
@@ -667,10 +639,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/tamper-evidence.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/tamper-evidence.md`; the rounds and the migration that got it here are in [its history](./tamper-evidence.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the two actions as a signature block, the verify precedence carried by each rule's own condition rather than by the order the rules sit in, the nine invariant numbers frozen exactly as Audit Trail cites them, Generation acceptance moved ahead of Non-goals as `spec-format.md` requires, Non-goals and Edge cases as two sections, the case table kept beside the rules. *Over:* the prose spec. *Because:* the migration plan takes the atoms the migrated compositions already cite first — Audit Trail cites this atom's Invariants 1, 3, 4, 8 and 9 (`tools/grace/cites.py --into tamper-evidence`).
-
-- **2026-09-26 — The read surface restored.** *Chose:* `read()` in the signature block, answering every evidence with its stored fields (Operation 27 through 30). *Over:* an atom with no declared read. *Because:* the prose spec declared its read surface in its Outputs section — "the current set of [Evidence] records", each with its fields — and the migration dropped it with the section. Restored as the prose had it, not widened. Found beside the same loss in Permissions and Actor Identity, which the cold regeneration of the Attributed Permissions Admin demo surfaced (council read 230).
+- **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the seal store supplied under Execution Contract Store 1, Store 3 and Store 4 (Capability requirement 2), and the four rules that restated them tombstoned to their owner — Invariant 9.3, no partial evidence on a storage-failure, and Seal atomicity 1, a seal atomic, to Store 1; Seal atomicity 2, no evidence left by a crash with a proof the mechanism did not produce, to Store 1 and Store 3; Seal atomicity 3, the deployment owning the seal store's durability, to Store 3; rules 106 to 103. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Discarding the proof on a storage-failure stays (Operation 11): it binds the proof outside the store as well. What the atom does for its domain is unchanged.
 
 NOTE: End of Tamper Evidence.

@@ -1560,7 +1560,7 @@
    "audit-trail"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1588,7 +1588,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-18",
+  "status": "partially resolved",
   "title": "Tamper Evidence"
  },
  "undo-history": {
