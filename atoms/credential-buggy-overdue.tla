@@ -1,9 +1,9 @@
 ---- MODULE credential-buggy-overdue ----
-\* Grace Commons — Credential atom: BUGGY TWIN — Capability requirement 23.
-\* Mirrors credential.tla (re-derived 2026-09-29) with one change: a call whose
-\* section was released as overdue still commits. A second register takes the
-\* section, passes its check and commits, and the overdue holder's stale commit
-\* lands beside it.
+\* Grace Commons — Credential atom: BUGGY TWIN — Execution Contract Store 2.
+\* Mirrors credential.tla (re-derived 2026-09-29) with one change: a call that
+\* lost the section still commits. A second register takes the section, passes
+\* its check and commits, and the first call's stale commit lands beside it,
+\* against a state its check did not see.
 \* Expected result: Safety VIOLATED (Inv_EffectiveActiveUniqueness).
 
 EXTENDS Naturals, FiniteSets
@@ -127,8 +127,9 @@ Commit(i) ==
     /\ holder' = 0
     /\ UNCHANGED <<now, reading, target, phase>>
 
-\* A holder released as overdue (Capability requirement 21, 22), and its write
-\* then refused as storage-failure (Capability requirement 23).
+\* A holder that loses the section at any moment, and its write then refused:
+\* no write commits against a state its checks did not see (Execution Contract
+\* Store 2).
 Overdue(i) ==
     /\ holder = i
     /\ holder' = 0

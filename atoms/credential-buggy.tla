@@ -125,8 +125,9 @@ Commit(i) ==
     /\ holder' = 0
     /\ UNCHANGED <<now, reading, target, phase>>
 
-\* A holder released as overdue (Capability requirement 21, 22), and its write
-\* then refused as storage-failure (Capability requirement 23).
+\* A holder that loses the section at any moment, and its write then refused:
+\* no write commits against a state its checks did not see (Execution Contract
+\* Store 2).
 Overdue(i) ==
     /\ holder = i
     /\ holder' = 0

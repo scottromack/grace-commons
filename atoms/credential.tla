@@ -1,6 +1,9 @@
 ---- MODULE credential ----
 \* Grace Commons — Credential atom. Spec-level formal sibling of atoms/credential.md,
-\* re-derived 2026-09-29 against the page grounded in English on Final Critique 12.
+\* re-derived 2026-09-29 against the page grounded in English on Final Critique 12;
+\* comments re-pointed 2026-10-19 at the Store contract (execution-contract.md),
+\* which owns the page's former Capability requirement 8, 21 through 23 and
+\* Concurrency 1.
 \* Derived validator; the English spec is the single source of truth. On any
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
@@ -15,13 +18,15 @@
 \*   deadline after their reading, or none (Operation 12, 13, 61, 62, 71, 72).
 \* - Two readings: a call takes its reading when it begins and holds it to its
 \*   commit; the clock may advance in between (Capability requirement 1).
-\* - The pair's critical section for register and rotate (Capability
-\*   requirement 8): the standing and uniqueness checks run inside it at the
-\*   call's reading (Operation 6, 28, 65), and the commit lands only if the call
-\*   still holds the section (Capability requirement 22, 23). A holder may be
-\*   released as overdue at any moment, which is how its lease lapsing is modelled.
+\* - The pair's serialization for register and rotate (Execution Contract
+\*   Store 2, which the page cites in Capability requirement 37), modelled as a
+\*   section: the standing and uniqueness checks run inside it at the call's
+\*   reading (Operation 6, 28, 65), and the commit lands only if the call still
+\*   holds the section, so no write commits against a state its checks did not
+\*   see. A holder may lose the section at any moment, so no verdict rests on a
+\*   holder finishing.
 \* - Revoke takes no section: its standing check and write are one step
-\*   (Concurrency 1).
+\*   (Execution Contract Store 1 and Store 2).
 \*
 \* NOT MODELED (named): id material and its uniqueness (Capability requirement 34,
 \* 35), derivation and check functions, verify (a read that writes nothing), and
@@ -148,8 +153,9 @@ Commit(i) ==
     /\ holder' = 0
     /\ UNCHANGED <<now, reading, target, phase>>
 
-\* A holder released as overdue (Capability requirement 21, 22), and its write
-\* then refused as storage-failure (Capability requirement 23).
+\* A holder that loses the section at any moment, and its write then refused:
+\* no write commits against a state its checks did not see (Execution Contract
+\* Store 2).
 Overdue(i) ==
     /\ holder = i
     /\ holder' = 0

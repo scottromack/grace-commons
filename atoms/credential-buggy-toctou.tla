@@ -1,8 +1,9 @@
 ---- MODULE credential-buggy-toctou ----
-\* Grace Commons — Credential atom: BUGGY TWIN — Capability requirement 8.
-\* Mirrors credential.tla (re-derived 2026-09-29) with the pair's critical section
+\* Grace Commons — Credential atom: BUGGY TWIN — Execution Contract Store 2.
+\* Mirrors credential.tla (re-derived 2026-09-29) with the pair's serialization
 \* removed: a register or rotate checks and commits with no section held, so two
-\* calls both pass the uniqueness check at their readings and both commit.
+\* calls both pass the uniqueness check at their readings and both commit, each
+\* against a state its check did not see.
 \* Expected result: Safety VIOLATED (Inv_EffectiveActiveUniqueness).
 
 EXTENDS Naturals, FiniteSets
@@ -126,8 +127,9 @@ Commit(i) ==
     /\ UNCHANGED holder
     /\ UNCHANGED <<now, reading, target, phase>>
 
-\* A holder released as overdue (Capability requirement 21, 22), and its write
-\* then refused as storage-failure (Capability requirement 23).
+\* A holder that loses the section at any moment, and its write then refused:
+\* no write commits against a state its checks did not see (Execution Contract
+\* Store 2).
 Overdue(i) ==
     /\ holder = i
     /\ holder' = 0

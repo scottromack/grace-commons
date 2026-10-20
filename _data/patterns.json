@@ -425,7 +425,7 @@
    "privileged-access-provisioning"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 12,
   "kind": "atom",
   "models": {
@@ -459,7 +459,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 12 \u2014 2026-09-29",
+  "status": "partially resolved",
   "title": "Credential"
  },
  "customer-onboarding": {
