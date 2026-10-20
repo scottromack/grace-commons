@@ -55,9 +55,6 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, and never supplied by the business caller — placement instant and release instant are the caller's claims about when an obligation began and ended, judged against now and stored as claims (Operation 38 through 41).
 
-WHY:
-Two authorities can demand preservation of one document — a plaintiff's litigation hold and a regulator's investigative demand — and they end on different days. Merging them into one obligation would release the record the moment the first ends, which is the spoliation the atom exists to foreclose (Identity 7, Identity 8, Invariant 4.1). The id sorts because [Read]'s order is part of the contract, not a convenience (Identity 6, Operation 18).
-
 ### State
 
 ```
@@ -88,22 +85,17 @@ Term release reason: the ground the obligation ended on — a [Release Reason].
 
 Term release instant: the instant the obligation was documented as ended — a [Release Instant].
 
-WHY:
-There is no aggregate *is this record held* field, because an aggregate is a second copy of the truth that drifts the moment a hold is placed or released; the question is answered by reading the active holds over the record (State 9, Operation 20). A released hold stays in the store because it is the proof the obligation was honoured and lawfully lifted — the evidence a court asks for, deleted by nobody (State 7, Invariant 8.1).
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 4: The deployment MUST supply the hold store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Non-goal 17 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -144,7 +136,7 @@ Operation 18a: IF the caller supplies no release instant THEN [Release] MUST sta
 Operation 19: [Release] MUST stand the hold in released.
 Operation 20: [Release] MUST NOT reach another hold over the record.
 Operation 21: IF the store refuses the write THEN [Release] MUST answer storage-failure.
-Operation 22: [Release] MUST leave the hold standing in active on storage-failure.
+Deleted: Operation 22. Execution Contract Store 3 owns it.
 Operation 23: [Read] MUST answer the holds the query matches.
 Operation 24: [Read] MUST order the answer by placement instant, rising.
 Operation 25: [Read] MUST order two holds sharing a placement instant by hold id, rising.
@@ -188,13 +180,10 @@ The case space, and the rule that owns each case:
 | [Release] | id names nothing | [Not Known] | none (Operation 13) |
 | [Release] | hold already released | [Already Released] | none (Operation 14) |
 | [Release] | resolved release instant before placement instant, or supplied one in the future | [Invalid Request] | none (Operation 17, Operation 18) |
-| either write | store refuses | [Storage Failure] | none — a release leaves the hold [Active] (Operation 11, Operation 21, Operation 22) |
+| either write | store refuses | [Storage Failure] | none — a release leaves the hold [Active] (Operation 11, Operation 21, Place persistence 4) |
 | [Read] | well-formed query | the matching holds, ordered | none — the call reads (Operation 23, Operation 34) |
 | [Read] | unknown axis, blank value, bad state, inverted range | [Invalid Query] | none — rejected rather than silently ignored (Operation 27 through 30) |
 | [Read] | well-formed query matching nothing | empty sequence | none (Operation 31) |
-
-WHY:
-A blank hold id is refused before the store is consulted, because *you passed garbage* and *no such hold* are different facts and a caller acts on them differently (Operation 12, Operation 13). An unrecognized filter axis is refused rather than ignored: a silently dropped filter returns a result set wider than the caller asked for, and in this atom a wider set means *this record is not held* answered from an incomplete read (Operation 27). Back-dating a placement is accepted on purpose — an obligation recognized late is still an obligation, and the record should say when it was recognized rather than pretend (Operation 10, Backdating 1 through 3).
 
 ### Invariants
 
@@ -223,7 +212,6 @@ A blank hold id is refused before the store is consulted, because *you passed ga
   Invariant 5.2: A released hold MUST carry a release reason that is not blank.
   Invariant 5.3: A released hold MUST carry release instant.
   ```
-  WHY: an anonymous or unexplained release defeats the audit trail a court reads — *who decided the duty had ended, and on what ground* is the question a spoliation dispute turns on.
 - **Invariant 6 — Temporal ordering.**
   ```
   Invariant 6.1: A released hold's placement instant MUST NOT EXCEED the hold's release instant.
@@ -238,7 +226,7 @@ A blank hold id is refused before the store is consulted, because *you passed ga
   ```
   Invariant 8.1: The atom MUST NOT delete a hold record.
   Invariant 8.2: The hold set MUST NOT shrink.
-  Invariant 8.3: A storage-failure from [Place] MUST NOT leave a partial hold.
+  Deleted: Invariant 8.3. Execution Contract Store 1 owns it.
   ```
 
 Immutability and durability give the *preservation record* property — the full arc of an obligation, from recognition to lifting, recoverable from the store alone. Independence gives the property a multi-authority matter needs: one record, many obligations, each ending on its own day.
@@ -349,12 +337,11 @@ Non-goal 12: A deployment needing court-admissible hold records MUST compose Tam
 Non-goal 13: The atom MUST NOT place one hold over two records.
 Non-goal 14: The atom MUST NOT import a retention policy.
 Non-goal 15: The atom MUST NOT purge a hold record.
-Non-goal 16: A deployment sweeping the hold store MUST leave EVERY stored field as written.
+Deleted: Non-goal 16. Execution Contract Store 4 owns it.
 Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-The atom documents an obligation and enforces nothing, which is the seam that matters most here: enforcement needs the purge surface, and the purge surface belongs to [Retention Window](./retention-window.md) and the composition that gates it — [Defensible Retention](../compositions/defensible-retention.md) checks both *not before `retention_until`* and *not while a hold is active* (Non-goal 1, Non-goal 2, Non-goal 14). A hold over a record that was already destroyed still records that somebody recognized the duty, which is evidence in a spoliation dispute rather than an error to refuse (Non-goal 4). There is no bulk release and no batch placement: N obligations take N calls, each individually attributable, because a bulk lift with one reason is exactly the record a court will not accept (Non-goal 10, Non-goal 13).
+NOTE: the owners — [Retention Window](./retention-window.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 1, Non-goal 2, Non-goal 14); [Tamper Evidence](./tamper-evidence.md) (Non-goal 11, Non-goal 12).
 
 Where the atom breaks down: when the preservation duty is defined by a query rather than a record — *everything touching Project Alpha* — which needs a composing pattern to enumerate and place; when the hold must survive the store that holds it, which needs an external anchor; when who may lift a hold is part of the obligation, which is Permissions' and not a field here.
 
@@ -363,8 +350,8 @@ Where the atom breaks down: when the preservation duty is defined by a query rat
 ### Concurrency
 
 ```
-Concurrency 1: The implementation MUST serialize two releases of one hold id.
-Concurrency 2: The second concurrent release MUST answer already-released.
+Deleted: Concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Concurrency 2. Execution Contract Store 2 owns it.
 Concurrency 3: Two placements over one record MUST record two holds.
 ```
 
@@ -376,12 +363,6 @@ Backdating 2: [Place] MUST NOT accept a placement instant above now.
 Backdating 3: The deployment MUST own the evidentiary weight of a back-dated placement instant.
 ```
 
-WHY:
-An obligation recognized on Tuesday and recorded on Friday is honestly recorded as Tuesday's; a hold placed in the future is not a fact about anything. Courts scrutinize back-dated placements in spoliation disputes, which is the deployment's problem to defend and the atom's to record faithfully rather than to prevent (Backdating 3).
-
-WHY:
-An empty answer and a misrouted answer read alike, and this atom's empty answer licenses a purge — so the deepest failure available here is a routing mistake wearing the shape of *no holds* (Instance 5 through 7, Aggregate 3; Council read 17). The atom cannot detect the misrouting, so it names the store it answered from and obliges the reader to check.
-
 ### Place persistence failure
 
 ```
@@ -390,9 +371,6 @@ Place persistence 2: A caller MUST retry a place that answered storage-failure.
 Place persistence 3: A high-assurance deployment MUST raise an alert on storage-failure from [Place].
 Place persistence 4: A caller MUST NOT read storage-failure from [Release] as the obligation standing ended.
 ```
-
-WHY:
-The two storage failures have opposite polarity, and this atom's dangerous side is the placement. A failed release leaves an obligation standing, which over-preserves — costly and safe. A failed place leaves a record unprotected while litigation pends, which is the spoliation the atom exists to document, and it surfaces as nothing at all unless the caller retries ([Permissions](./permissions.md) states the mirrored polarity for its own revoke; Council read 17).
 
 ### The aggregate question
 
@@ -413,8 +391,7 @@ Composition note 5: A composing pattern MUST own a bulk placement.
 Composition note 6: A composing pattern MUST own a bulk release.
 ```
 
-WHY:
-[Defensible Retention](../compositions/defensible-retention.md) is the composition this atom was extracted for: [Retention Window](./retention-window.md) says when a record may be destroyed, this atom says when it may not, and the composition is the gate that reads both at the purge surface — neither atom enforcing anything alone is the design, not an omission (Composition note 2). Attribution of the placement itself composes [Actor Identity](./actor-identity.md); integrity of the hold records composes [Tamper Evidence](./tamper-evidence.md); the audit surface both write through is [Audit Trail](../compositions/audit-trail.md).
+NOTE: composing patterns — [Defensible Retention](../compositions/defensible-retention.md), [Audit Trail](../compositions/audit-trail.md).
 
 ## Terms
 
@@ -422,11 +399,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an auditor; the store; a hold; a release; a placement; a query.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an auditor; the store; a hold; a release; a placement; a query.
 
 Term records: hold — one preservation obligation, carrying hold id, record reference, placing actor, hold reason, placement instant, a hold state and, where they exist, case reference, releasing actor, release reason and release instant.
 
-Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, leave, read, order, write, change, rest, shrink, find, serialize, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, exceed, fall.
+Term record verbs: supply, judge, purge, retry, raise, match, share, hold, reach, route, identify, allocate, reuse, reassign, sort, carry, stand, offer, delete, record, answer, stamp, accept, read, order, write, change, rest, shrink, find, block, refuse, deduplicate, gate, release, detect, place, import, own, check, compose, declare, exceed, fall.
 
 Term value sets: hold state = active | released.
 
@@ -605,7 +582,7 @@ Projection: already-released
 
 #### Storage Failure
 
-The refusal any writing action returns when a durable write fails after preconditions pass. All-or-none: no partial record is observable, and the prior state is unchanged (Invariant 8).
+The refusal any writing action returns when a durable write fails after preconditions pass. For [Release], the hold remains [Active] (Place persistence 4).
 
 Kind:       Member
 Member of:  the action rejection
@@ -670,12 +647,12 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-05-20` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-05-20
+status: partially resolved
 formal: verified — legal-hold.tla + 2 twins, 2026-06-04
 last gate: 2026-05-20 — Final Critique 4, fresh reader — clean
 
@@ -686,8 +663,8 @@ open:
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/legal-hold.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/legal-hold.md`; the migration that got it here is in [its history](./legal-hold.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the three actions as a signature block, the read's filter axes and malformed-query grounds as rules rather than a paragraph, the eight invariant numbers unchanged, Generation acceptance as conformance checks plus external checks ahead of Non-goals, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan, and this atom completes [Defensible Retention](../compositions/defensible-retention.md)'s constituent set with [Retention Window](./retention-window.md) and [Audit Trail](../compositions/audit-trail.md).
+- **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the hold store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the five rules that restated them tombstoned to their owner — Invariant 8.3, no partial hold left by a storage-failure from [Place], to Store 1; Concurrency 1 and 2, two releases of one hold id serialized and the later one answering already-released, to Store 2; Operation 22, a release the store refused leaving the hold active, to Store 3; Non-goal 16, a deployment's sweep of the hold store leaving every stored field as written, to Store 4; rules 135 to 131. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The caller's reading of a refused place or release stays the atom's own (Place persistence 1 through 4), as do two placements over one record recording two holds (Concurrency 3), the placement fields that never change (Invariant 1.1) and the atom's no-removal rules (State 7, Invariant 8.1, Invariant 8.2, Non-goal 15). Held at an instant is read from the placement and release instants each hold carries, and [Read] orders by placement instant and hold id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Legal Hold.
