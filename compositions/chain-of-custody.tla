@@ -4,30 +4,33 @@
 \* Derived validator; the English spec is the single source of truth. On any
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
-\* WHAT THIS MODEL CHECKS (revised 2026-06-11 — closes the Invariant-4 coverage-gap finding)
+\* WHAT THIS MODEL CHECKS (revised 2026-06-11 — closes the Invariant-4 coverage-gap finding;
+\* comments re-pointed 2026-10-20 at Execution Contract Store 1, no logic change)
 \* The composition's load-bearing wiring decision is Invariant 4 (binding
-\* bijection / no dangling partial), restated as safety + liveness. The design
-\* the spec actually mandates is SEQUENTIAL-WITH-COMPENSATION: the Provenance
-\* custody entry writes first (immutable once committed — synchronous rollback
-\* is not available), then the Audit Trail `record_action`; a failure between
-\* the two leaves an ORPHAN (a custody entry with no audit event) that the
-\* implementation must surface immediately as a high-priority compliance
-\* finding and compensate by retrying the audit write, marking the compensating
-\* event `cascade_recovery = true`.
+\* bijection / no dangling partial), restated as safety + liveness. A custody
+\* action's intent, Provenance custody entry and Audit Trail outcome event are
+\* store writes of one action, which Execution Contract Store 1 commits
+\* together. The one partial the spec keeps is the ORPHAN Audit Trail's
+\* refusal of the outcome event leaves (a custody entry with no audit event,
+\* Audit arm 19 and Audit arm 26): the entry commits, the action answers
+\* recording-failure carrying outcome and surfaces the orphan as a
+\* high-priority compliance finding, and the reconciliation compensates it,
+\* marking the compensating event `cascade_recovery = true`.
 \*
-\* This model covers BOTH arms of Invariant 4 — the atomic-commit arm and the
+\* This model covers BOTH arms of Invariant 4 — the one transaction and the
 \* compensated arm the earlier model idealized away (the coverage-matrix GAP
 \* closed by the Invariant-4 coverage-gap finding; immutable-transaction-ledger.tla, revised for
 \* the compensated-arm finding, is the worked template):
-\*   CommitClean(e)  — both truth-bearing writes land together (the
-\*                     transactional-boundary form).
-\*   FailPartial(e)  — the Provenance write lands, the audit write fails; the
-\*                     orphan is reachable AND surfaced in the same outcome
-\*                     (the action's declared failure path: rejected(recording-
-\*                     failure) plus the dashboard finding). The orphan is a
-\*                     real inter-action state other actions can observe.
-\*   RetryAudit(e)   — the compensation: the audit write retried until it
-\*                     lands, marked cascade_recovery; the bijection is
+\*   CommitClean(e)  — the custody action's writes commit together (Execution
+\*                     Contract Store 1).
+\*   FailPartial(e)  — the Provenance entry commits and Audit Trail refuses
+\*                     the outcome event; the orphan is reachable AND surfaced
+\*                     in the same outcome (the action's declared failure
+\*                     path: rejected(recording-failure(outcome)) plus the
+\*                     dashboard finding). The orphan is a real inter-action
+\*                     state other actions can observe.
+\*   RetryAudit(e)   — the compensation: the reconciliation's compensating
+\*                     event, marked cascade_recovery; the bijection is
 \*                     restored and the recovered binding stays distinguishable
 \*                     from a clean one.
 \*
@@ -62,20 +65,14 @@
 \*
 \* NOT MODELED (out of scope for the load-bearing property)
 \* - per-action orchestration, rejection guards, the acting-custodian rule.
-\* - the within-invocation transient between the Provenance write and the audit
-\*   attempt (within-action atomicity, not an action-vs-action interleaving;
-\*   the model's states are action OUTCOMES — clean commit, surfaced partial
-\*   failure).
-\* - the crash-orphan (process death between the two truth-bearing writes: an
-\*   orphan with no returning outcome). Within-action process death is not an
-\*   action-vs-action interleaving; the English discharges it with the mandated
-\*   reconciliation scan (restart + fixed cadence), which bounds its silence —
-\*   see Invariant 4's safety arm and the partial-failure edge case.
-\* - the deterministic-rejection compensation arm (recovery-identity
-\*   re-attestation for invalid-credential / invalid-request, per the
-\*   partial-failure edge case): an attribution-semantics rule, not an
-\*   interleaving; RetryAudit abstracts both compensation attestations into the
-\*   one `recovered` outcome.
+\* - the order of the writes inside one custody action (Execution Contract
+\*   Store 1 commits them together, and a crash inside the action leaves
+\*   nothing; the model's states are action OUTCOMES — clean commit, surfaced
+\*   partial failure).
+\* - the reconciliation's pairing, its recovery intent and the recovery
+\*   identity it attests under (Reconciliation 10 through 27): attribution and
+\*   pairing rules, not interleavings; RetryAudit abstracts the compensating
+\*   event into the one `recovered` outcome.
 \* - the entry_to_event derived index (outside the atomicity surface per
 \*   execution-contract.md section Composition state; a lost entry is a rebuild
 \*   trigger, not data loss).
@@ -101,9 +98,9 @@ Init ==
     /\ auditState = [e \in Entries |-> "absent"]
     /\ surfaced   = [e \in Entries |-> FALSE]
 
-\* Happy path: the Provenance custody entry and the Audit Trail record_action
-\* land together (the transactional-boundary form of the atomic-commit arm).
-\* The audit event is a CLEAN binding.
+\* Happy path: the Provenance custody entry and the Audit Trail outcome event
+\* commit together (Execution Contract Store 1). The audit event is a CLEAN
+\* binding.
 \* The intent record: written before any Provenance call that commits. This is
 \* where the acting custodian's credential is validated (the substrate's
 \* ActorIdentity.attest guard inside record_action), so it is the enabling
@@ -121,10 +118,11 @@ CommitClean(e) ==
     /\ auditState' = [auditState EXCEPT ![e] = "clean"]
     /\ UNCHANGED <<intentState, surfaced>>
 
-\* Partial failure: the irreversible Provenance write lands, the audit write
-\* fails. The action's declared failure path returns rejected(recording-failure)
-\* AND surfaces the orphan to the compliance dashboard in the same outcome —
-\* the orphan is reachable, durable until compensated, and never silent.
+\* Partial failure: the Provenance entry commits and Audit Trail refuses the
+\* outcome event (Audit arm 19, Audit arm 26). The action's declared failure
+\* path returns rejected(recording-failure(outcome)) AND surfaces the orphan to
+\* the compliance dashboard in the same outcome — the orphan is reachable,
+\* durable until compensated, and never silent.
 FailPartial(e) ==
     /\ intentState[e] = "present"
     /\ provState[e] = "absent"
@@ -132,17 +130,19 @@ FailPartial(e) ==
     /\ surfaced'   = [surfaced  EXCEPT ![e] = TRUE]
     /\ UNCHANGED <<intentState, auditState>>
 
-\* Compensation: the failed AuditTrail.record_action is retried until it lands;
-\* the compensating event carries cascade_recovery = true, so the recovered
-\* binding stays distinguishable from a clean one. Enabled in exactly the orphan
-\* configuration — no orphan state is a dead end (the liveness arm's
+\* Compensation: the reconciliation records the compensating event
+\* (Reconciliation 21 through 27); it carries cascade_recovery = true, so the
+\* recovered binding stays distinguishable from a clean one. Enabled in exactly
+\* the orphan configuration — no orphan state is a dead end (the liveness arm's
 \* enabledness half; eventuality is weak fairness on this action).
-\* The enabling condition auditState[e] = "absent" IS the spec's check-then-retry
-\* rule made structural: the retrier observes the records (the rebuild read) and
-\* appends only when no event names the entry, so a retry after a lost
-\* acknowledgment cannot double-append (the state where the audit event already
-\* landed disables this action). Per-entry compensation is serialized in the
-\* spec; the model's one-action-per-step semantics carries that for free.
+\* The enabling condition auditState[e] = "absent" IS the reconciliation's
+\* re-read made structural (Reconciliation 25 and Reconciliation 26): it
+\* appends only when no
+\* event names the entry, so an outcome whose lost append landed after all is
+\* bound, never doubled (the state where the audit event already landed
+\* disables this action). Two compensations of one entry are serialized by
+\* Execution Contract Store 2; the model's one-action-per-step semantics
+\* carries that for free.
 RetryAudit(e) ==
     /\ provState[e] = "present"
     /\ auditState[e] = "absent"

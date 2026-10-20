@@ -1,13 +1,12 @@
 ---- MODULE chain-of-custody-buggy ----
 \* BUGGY TWIN (vacuity guard) for chain-of-custody.tla.
 \*
-\* SEQUENTIAL-WITHOUT-COMPENSATION: the naive implementation the spec's
-\* *Cross-store consistency under partial failure* edge case and Invariant 4's
-\* safety arm warn against. The custody commit is split into separate,
-\* interleavable sub-steps with NO surfacing and NO compensation — Provenance
-\* writes first (immutable once committed), then the Audit Trail event may or
-\* may not follow:
-\*   WriteProv   -> Provenance custody entry lands (irreversible)
+\* THE SPLIT EXECUTION CONTRACT STORE 1 FORBIDS, WITHOUT COMPENSATION: the
+\* naive implementation Invariant 4's safety arm warns against. The custody
+\* commit is split into separate, interleavable sub-steps with NO surfacing
+\* and NO compensation — the Provenance entry commits as its own step, then
+\* the Audit Trail event may or may not follow:
+\*   WriteProv   -> Provenance custody entry commits alone
 \*   WriteAudit  -> Audit Trail record_action event lands (maybe never)
 \* There is no FailPartial-with-surfacing outcome and no RetryAudit
 \* compensation action. TLC stops after WriteProv(e) alone:
