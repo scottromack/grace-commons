@@ -1474,7 +1474,7 @@
    "forensic-recovery"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1497,7 +1497,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-05-20",
+  "status": "partially resolved",
   "title": "Soft Delete"
  },
  "state-machine": {

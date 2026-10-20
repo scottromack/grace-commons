@@ -73,11 +73,6 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the lifecycle store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-WHY:
-Identity 2 and Identity 3 are the atom's one departure from the corpus's usual identity shape, and the departure is the point: this atom does not own records, it overlays a lifecycle onto records the host already owns. There is nothing for it to allocate an id *for*. Identity 11 states the other half — the content stays in the host system, and what a purge destroys is the host's content, not anything held here (Non-goal 3).
-
-Identity 10 follows from both. A record id that names nothing in the host system still produces a valid lifecycle record: the atom is tracking a lifecycle it was told about, and confirming the subject exists would require reaching into a store it has no knowledge of.
-
 ### State
 
 ```
@@ -96,15 +91,11 @@ State 12: The store instance's lifecycle record count MUST NOT fall.
 State 13: The atom MUST NOT record a receipt instant.
 ```
 
-WHY:
-State 7 says something easy to misread: *every* lifecycle record carries deletion attribution, including one standing in active. An active lifecycle record is a record that was deleted and then restored — the atom has no record of anything that was never deleted (State 1) — so the deletion fields are always populated, and they describe the most recent deletion rather than a current one.
-
-State 11 is what makes a purge auditable. The lifecycle record outlives the content it describes: the host destroys the content on receiving the purged answer, and what remains here is the evidence that the destruction happened, who authorized it, and which deletion preceded it. Removing the lifecycle record would destroy the proof of destruction, which is the one thing a regulator comes to this store for.
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 5: The deployment MUST supply the lifecycle store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -114,12 +105,6 @@ Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. State 13 owns it.
 Deleted: Clock semantics 5. Non-goal 20 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
-WHY:
-The lower bounds (Operation 17, Operation 18) hold against the *resolved* value, so a skewed node cannot default its way past them: a wall-clock default that lands before the record's deletion instant is refused exactly as a caller-supplied one would be. A backdated instant is otherwise accepted — documenting a deletion or purge recognized later is valid, and the future bound refuses the one direction that is always fabrication.
 
 ### Operations
 
@@ -170,7 +155,7 @@ Operation 25: An admitted restore MUST record a supplied reason as restoration r
 Operation 26: An admitted purge MUST record purging actor, reason as purge reason and the resolved purge instant.
 Operation 27: An admitted restore MUST replace the lifecycle record's restore fields.
 Operation 28: An admitted purge MUST NOT change a restore field.
-Operation 29: A transitioning action MUST commit the state change and the recorded fields in one operation.
+Deleted: Operation 29. Execution Contract Store 1 owns it.
 Operation 30: IF the store refuses the write THEN a transitioning action MUST answer storage-failure.
 Operation 31: An action MUST answer storage-failure ONLY IF EVERY precondition passes.
 Operation 32: A refused action MUST leave the lifecycle record as the call found the lifecycle record.
@@ -240,13 +225,6 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 
 NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one precedence chain, so the answer alone does not say which guard refused. [Approval Step](./approval-step.md), [State Machine](./state-machine.md) and [Audit Trail](../compositions/audit-trail.md) carry the same shape.
 
-WHY:
-Row 2 is where this atom differs from every sibling and the difference is deliberate. [Soft Delete] never answers not-known (Operation 6), because an unknown record id is not an error there — it is the entry point. The first [Soft Delete] on a record id creates the lifecycle record and stands it in deleted in one step, which is why there is no registration action to call first (Operation 7, Operation 8). [Restore] and [Purge] do answer not-known, because both are operations on a lifecycle the atom must already be tracking.
-
-Operation 17 and Operation 18 state the within-record temporal bounds as precedences rather than as comparisons, so no rule here spells `≥` as a two-arm disjunction. A restore or a purge recorded *at* the deletion instant is legal, and `precedes` admits it in one arm.
-
-Operation 38 is the scope rule an auditor must read before trusting an empty answer. This store holds lifecycle records, not host records, so a host record that has never been soft-deleted is not *absent from the results* — it is outside the atom entirely, in no state, with nothing here to return. An empty answer to a record id query means *never deleted*, not *not found*.
-
 ### Invariants
 
 - **Invariant 1 — Deletion attribution is immutable within a deletion epoch.**
@@ -255,7 +233,6 @@ Operation 38 is the scope rule an auditor must read before trusting an empty ans
   Invariant 1.2: An admitted purge MUST NOT change a deletion field.
   Invariant 1.3: An admitted soft delete MUST replace EVERY deletion field.
   ```
-  WHY: the epoch is the unit of immutability, not the record. A restore and a purge leave the deletion attribution exactly as they found it; a second soft delete replaces all three fields together, and the prior epoch's attribution is gone from this store. The full cycle history is [Event Log](./event-log.md)'s (Non-goal 5), and the reason the atom keeps only the latest is that a summary the reader can trust beats a history the reader has to reconstruct — the summary answers *who deleted this, and when* without ambiguity about which deletion is meant.
 - **Invariant 2 — Membership exclusivity.**
   ```
   Invariant 2.1: EVERY tracked record MUST stand in EXACTLY ONE OF active, deleted, purged.
@@ -269,25 +246,22 @@ Operation 38 is the scope rule an auditor must read before trusting an empty ans
   Invariant 4.1: EVERY purged lifecycle record MUST carry a deleting actor and a deletion instant.
   Invariant 4.2: A purged lifecycle record's deleting actor MUST stand non-blank.
   ```
-  WHY: there is no direct path from active to purged (State 4), so every purged record passed through deleted and carries that step's attribution as evidence. The two-step shape is the atom's deliberate friction: the first step hides the record and is reversible, the second destroys it and is not, and separating them creates a moment where the decision can be reconsidered.
 - **Invariant 5 — Purge attribution is complete.**
   ```
   Invariant 5.1: EVERY purged lifecycle record's purging actor MUST stand non-blank.
   Invariant 5.2: EVERY purged lifecycle record's purge reason MUST stand non-blank.
   Invariant 5.3: EVERY purged lifecycle record MUST carry a purge instant.
   ```
-  WHY: the load-bearing one. An anonymous purge, a whitespace-only reason or a missing instant each defeat the record that legal proceedings, regulatory inspections and GDPR compliance demonstrations require. A reason is mandatory on purge and optional on deletion because destruction is the act that must justify itself.
 - **Invariant 6 — Temporal ordering within a transition.**
   ```
   Invariant 6.1: A purged lifecycle record's purge instant MUST NOT PRECEDE the record's deletion instant.
   Invariant 6.2: A recorded restoration instant MUST NOT PRECEDE the deletion instant the restore found.
   Invariant 6.3: The atom MUST NOT order two deletion epochs from the stored fields.
   ```
-  WHY: Invariant 6.3 is an honest limit rather than a gap. After a soft delete following a restore, deletion instant is replaced and the stored restoration instant from the prior cycle then precedes it — which looks inverted and is correct, because the two fields describe different epochs. The stored fields bound each transition against the deletion current *at that moment*, and cross-epoch ordering is recoverable only from a composed [Event Log](./event-log.md).
 - **Invariant 7 — Lifecycle record durability.**
   ```
   Invariant 7.1: The atom MUST NOT remove a lifecycle record from the store.
-  Invariant 7.2: A storage-failure rejection MUST leave no partial record in the store.
+  Deleted: Invariant 7.2. Execution Contract Store 1 owns it.
   ```
 - **Invariant 8 — Deletion attribution is complete.**
   ```
@@ -371,11 +345,6 @@ External check 3: A deployment needing a purge's eligibility confirmed MUST read
 External check 4: A deployment needing an acting reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 12).
 ```
 
-WHY:
-External check 1 is the atom's sharpest boundary and the one a deployment can quietly fail. A purged lifecycle record attests that a purge was *recorded*; the content lives in the host system, and a deployment that stands the record in purged without destroying the content conforms to every invariant here and defeats the whole point. The atom cannot see the content and so cannot check it, which is exactly why this is stated rather than assumed.
-
-External check 2 follows from Invariant 6.3. The stored fields carry one deletion epoch and one restore epoch, so an auditor reconstructing *what happened in what order across cycles* needs the transition history, not this summary.
-
 ## Non-goals
 
 ```
@@ -401,12 +370,7 @@ Non-goal 19: The atom MUST NOT bound a transition instant from below by anything
 Non-goal 20: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-Non-goal 7 through 10 are the boundary that most looks like a safety hole and is the atom's central factoring decision. This atom will execute a purge whenever it is called and well-formed. It does not read a hold, does not read a retention deadline, and does not ask whether GDPR Article 17(3)(e) — which suspends the right to erasure where processing is necessary for legal claims — applies to this record right now. Building any of that in would make the destruction primitive depend on the two patterns most often composed with it, and would put the gate inside the thing being gated. [Defensible Retention](../compositions/defensible-retention.md) wires the hold-blocks-purge check; [Forensic Recovery](../compositions/forensic-recovery.md) supplies the attributed, sealed, fully-recoverable destruction audit surface and deliberately does *not* gate eligibility. A deployment calling [Purge] without checking is operationally non-conforming and syntactically valid, and the spec says so rather than pretending the atom could tell.
-
-Non-goal 18 is the deliberate silence the Intent names. *Hidden from normal query* is a deployment's decision about its own read surfaces, and two correct deployments disagree about it — a moderator queue that shows deleted posts and a clinical summary that does not are both implementing the deleted state faithfully.
-
-Non-goal 1 is worth stating because the alternative is tempting. A second [Soft Delete] on a deleted record answers already-deleted rather than succeeding silently, because a repeat call is more often a bug or a retry than a fresh intent, and a caller who wants idempotence can read the answer as one (Non-goal 2) while a caller who has a bug finds it.
+NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 1, Non-goal 2); the host system (Non-goal 3, Non-goal 4, External check 1); [Event Log](./event-log.md) (Non-goal 5, Non-goal 6; Invariant 6.3, External check 2); [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 7 through 10, Composition note 2); [Legal Hold](./legal-hold.md) (Non-goal 9); [Retention Window](./retention-window.md) (Non-goal 10); [Actor Identity](./actor-identity.md) (Non-goal 12, Non-goal 13, External check 4); [Permissions](./permissions.md) (Non-goal 14, Non-goal 15); [Forensic Recovery](../compositions/forensic-recovery.md) (Invariant 6.3, Composition note 5).
 
 ---
 
@@ -415,31 +379,21 @@ Non-goal 1 is worth stating because the alternative is tempting. A second [Soft 
 ### Atomic writes
 
 ```
-Atomic writes 1: A reader MUST NOT observe a state change without the transition's recorded fields.
-Atomic writes 2: An uncommitted crash MUST leave the lifecycle record as the call found the lifecycle record.
-Atomic writes 3: The implementation MUST resolve a dangling transition.
-Atomic writes 4: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
+Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
 ```
-
-Term uncommitted crash: a crash BEFORE a transitioning action's commit lands.
-
-Term dangling transition: a transitioning action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
-
-WHY:
-Every transitioning action writes the state and its fields together (Operation 29), and a crash between them produces a purged record with no purge reason — Invariant 5 violated in exactly the way an auditor cannot tell from an implementation that never wrote one. The obligation is all-or-none observability.
 
 ### Concurrency
 
 ```
-Concurrency 1: The implementation MUST serialize two transitioning actions against one lifecycle record.
-Concurrency 2: A serialized transitioning action MUST read the state the prior transitioning action left.
-Concurrency 3: The second serialized [Soft Delete] against one lifecycle record MUST answer already-deleted.
-Concurrency 4: The second serialized [Restore] against one lifecycle record MUST answer not-deleted.
-Concurrency 5: The second serialized [Purge] against one lifecycle record MUST answer not-deleted.
+Deleted: Concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Concurrency 2. Execution Contract Store 2 owns it.
+Deleted: Concurrency 3. Execution Contract Store 2 owns it.
+Deleted: Concurrency 4. Execution Contract Store 2 owns it.
+Deleted: Concurrency 5. Execution Contract Store 2 owns it.
 ```
-
-WHY:
-Concurrency 5 reads oddly and is right: a second purge answers not-deleted rather than already-purged, because the guard tests *standing in deleted* (Operation 13) and a purged record does not. The answer names what the guard checked rather than what the caller probably wanted to hear, and a caller who needs to distinguish *already destroyed* from *never deleted* reads the record's state.
 
 ### String policy
 
@@ -454,10 +408,6 @@ String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
-
-
-WHY:
-Byte-exactness costs more here than in most atoms, because record id is the *caller's* identifier rather than one this atom issued (Identity 2). A host that supplies `Post-8821` on delete and `post-8821` on purge has two lifecycle records, and the purge answers not-known on a record that visibly exists. Canonicalization is the deployment's (String 7, Identity 9).
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
@@ -477,10 +427,7 @@ Composition note 8: A composing pattern MUST own the host record's content destr
 Composition note 9: A composing pattern reading the lifecycle store MUST NOT write to the lifecycle store.
 ```
 
-WHY:
-[Forensic Recovery](../compositions/forensic-recovery.md) (`grounded` 2026-06-04) wires this atom onto an [Audit Trail](../compositions/audit-trail.md) substrate to produce the attributed, tamper-evident, fully recoverable destruction audit surface — every delete, restore and purge attributed and sealed, with the ordered lifecycle reconstructable rather than summarized (Composition note 5, Invariant 6.3). It deliberately does not gate purge eligibility. [Defensible Retention](../compositions/defensible-retention.md) is the composition that does, wiring [Legal Hold](./legal-hold.md) and [Retention Window](./retention-window.md) into the hold-blocks-purge check this atom refuses to make (Composition note 2, Non-goal 7 through 10).
-
-[Event Log](./event-log.md) is the history behind the summary: this atom keeps the latest deletion and the latest restore, and the event log keeps every transition in order, which is the only place cross-epoch questions can be answered. [Actor Identity](./actor-identity.md) makes a purge non-repudiable, which regulated destruction needs and an opaque reference cannot supply. [Legal Hold](./legal-hold.md) and [Retention Window](./retention-window.md) are composing peers rather than constituents — one records the preservation obligation and the other the eligibility deadline, and neither is read here. [Permissions](./permissions.md) governs who may call what, and purge in particular is the action a deployment should restrict, because unrestricted destruction defeats the audit guarantee this atom exists to provide. [Duplicate Prevention](./duplicate-prevention.md) supplies idempotent delete semantics under retry (Non-goal 1, Non-goal 2).
+NOTE: composing patterns — [Forensic Recovery](../compositions/forensic-recovery.md).
 
 ---
 
@@ -490,11 +437,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the host system; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; an investigator; the store; a lifecycle record; a tracked record; a host record; a purged lifecycle record; a deleted lifecycle record; a transitioning action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a state rejection; a rejection; a crash; a reader; a deletion epoch; a string input; an opaque reference; the store instance's lifecycle record count.
+Term actors: the atom; the host; the host system; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; an investigator; the store; a lifecycle record; a tracked record; a host record; a purged lifecycle record; a deleted lifecycle record; a transitioning action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a state rejection; a deletion epoch; a string input; an opaque reference; the store instance's lifecycle record count.
 
 Term records: lifecycle record — the state and attribution this atom holds for one host record, carrying record id, a state, deleting actor, deletion instant and, where supplied or set, deletion reason, restoring actor, restoration instant, restoration reason, purging actor, purge instant and purge reason.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, set, replace, leave, own, match, normalize, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, order, name, bind, destroy, hold, gate, retain, define, canonicalize, register, untrack.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, set, replace, leave, own, match, normalize, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, complete, fall, bound, decide, declare, compose, wire, supply, remove, sort, order, name, bind, destroy, hold, gate, retain, define, canonicalize, register, untrack.
 
 Term value sets: state = active | deleted | purged.
 
@@ -504,7 +451,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-13).
 
-Term terms: lifecycle record, record id, tracked record, reference, store instance, seam, transition, now, business caller, states, transitioning action, acting reference, transition instant, resolved transition instant, state rejection, deletion field, restore field, purge field, deletion epoch, latest transition instant, filter axes, admitted soft delete, admitted restore, admitted purge, admitted read, string input, blank, uncommitted crash, dangling transition.
+Term terms: lifecycle record, record id, tracked record, reference, store instance, seam, transition, now, business caller, states, transitioning action, acting reference, transition instant, resolved transition instant, state rejection, deletion field, restore field, purge field, deletion epoch, latest transition instant, filter axes, admitted soft delete, admitted restore, admitted purge, admitted read, string input, blank.
 
 #### Soft Delete
 
@@ -679,7 +626,7 @@ Projection: already-purged
 
 #### Storage Failure
 
-The rejection any write action returns when the store write fails after all preconditions pass; the record is left in its prior state (Invariant 7).
+The rejection any write action returns when the store write fails after all preconditions pass; the record is left in its prior state (Operation 32, Operation 33).
 
 Kind:       Member
 Member of:  the action rejection
@@ -762,12 +709,12 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-05-20` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-05-20
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-05-20 — Final Critique 4, fresh reader — clean
 
@@ -776,12 +723,10 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/soft-delete.md`.
-
-- **2026-09-13 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the four actions as a signature block, Invariant 1 through 8 keeping their numbers, every success effect conditioned on a declared admitted soft delete, admitted restore, admitted purge or admitted read (Hard invariant 16), the three transitioning actions unified under declared transitioning action, acting reference and transition instant terms so their shared guards are stated once rather than three times, the four per-action *rejection priority* lines collapsed to one six-row case space, `Generation acceptance` moved ahead of `Non-goals` to match the migrated corpus, the six acceptance areas opened into `Check 1.1 through 5.4` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 19` family and four edge-case families. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into soft-delete` found nothing citing this atom by label. 58.5 KB → 53.8 KB, the smallest reduction of the migration — this atom's prose was already dense, and most of what came out was the four repeated precedence lines.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/soft-delete.md`; the migration and the repair that got it here are in [its history](./soft-delete.hist.md).
 
 - **2026-09-13 — The caller owns the identity, and the atom owns no content.** *Chose:* `Identity 2` and `Identity 3` — the caller supplies record id, the atom never allocates one — with `Identity 11` stating that the host record's content is not held here. *Over:* the host-allocates-at-the-seam shape every other migrated atom carries. *Because:* this atom is a lifecycle overlay rather than a record store, so there is nothing for it to allocate an id *for*, and what a purge destroys is the host's content rather than anything in this store. The consequence is stated where it bites: `External check 1` — a deployment can stand a record in purged without destroying the content, conform to every invariant here, and defeat the atom's whole purpose, because the atom cannot see the content it is recording the destruction of.
 
-- **2026-09-13 — Three propositions had two owners each.** *Chose:* `Invariant 1` owns the deletion-epoch semantics and three `Operation` rules that restated it are gone; `Invariant 2` owns membership exclusivity and the `State` family no longer restates it. *Over:* keeping each pair. *Because:* Authority 3, found by `W-duplicate-proposition`. The citation-aim audit then caught the consequence a checker cannot: an Examples citation pointed at deleted `Operation 29`, and after the renumber it resolved cleanly to a different rule about commit atomicity. Third atom running where the audit catches a silently repointed citation, and the second where a *deleted* rule's citation found a new home rather than dangling.
+- **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the lifecycle store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the eleven rules that restated them, or existed only for a store that could split a transition, tombstoned to their owner — Operation 29, a transition's state change and recorded fields committed in one operation, Invariant 7.2, no partial record left by a storage-failure rejection, and Atomic writes 1, 3 and 4, no reader observing a state change without the transition's recorded fields, a dangling transition resolved and no read served before it is, to Store 1, under which no transition stands partly applied; Atomic writes 2, an uncommitted crash leaving the lifecycle record as the call found it, to Store 1 and Store 3; Concurrency 1 through 5, two transitioning actions on one lifecycle record serialized, the later reading the state the earlier left, and the second soft delete, restore or purge answering already-deleted or not-deleted, to Store 2; rules 150 to 140. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and keeping a crash-recovery obligation for a split transition that no conforming store leaves. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. What stays is the atom's own: a refused action leaving the lifecycle record as the call found it, and a refused [Soft Delete] recording none (Operation 32, Operation 33), and the rules that keep a lifecycle record once it exists (State 5, State 6, State 12, Invariant 7.1), since Store 4 alone neither keeps the atom from removing a lifecycle record nor bars a purge another specification declares. The atom keeps one deletion epoch's attribution and gives the full cycle history to a composed Event Log (Non-goal 5, Non-goal 6), its checks compare an auditor's own reads, and [Read] orders by latest transition instant and record id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Soft Delete.
