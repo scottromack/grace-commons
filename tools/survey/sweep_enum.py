@@ -7,7 +7,7 @@ declared composition-state map names, then find reads that iterate the map rathe
 import io, os, re, glob
 
 ROOT = '/home/claude/repo'
-FILES = sorted(glob.glob(ROOT + '/compositions/*.md'))
+FILES = [f for f in sorted(glob.glob(ROOT + '/compositions/*.md')) if not f.endswith('.hist.md')]
 
 MAPDECL = re.compile(r'^- \*\*`([a-z_]+)`\*\*', re.M)
 ROM = re.compile(r'rebuild-on-miss|rebuild trigger, not data loss', re.I)

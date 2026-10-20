@@ -306,7 +306,7 @@ def main(argv: list[str]) -> int:
     paths = []
     for d in ("atoms", "compositions"):
         for p in sorted((ROOT / d).glob("*.md")):
-            if only and p.stem != only:
+            if p.match(C.HISTORY) or (only and p.stem != only):
                 continue
             if C.MIGRATED.search(p.read_text(encoding="utf-8")):
                 paths.append(p)

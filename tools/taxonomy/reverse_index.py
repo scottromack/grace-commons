@@ -124,9 +124,10 @@ def build_index(root):
     atom = {}  # name -> {folder, domain}
     # Layout-agnostic: rglob matches both atoms/<cat>/<name>.md (pre-flatten) and
     # atoms/<name>.md (post-flatten). Catalog / landing / generated-view pages are
-    # not atoms — excluded by name and by their has_children/nav_exclude frontmatter.
+    # not atoms — excluded by name and by their has_children/nav_exclude frontmatter;
+    # nor is a spec's history file, `<spec name>.hist.md`, excluded by pattern.
     for p in sorted(atoms_dir.rglob("*.md")):
-        if p.name.lower() in ("readme.md", "index.md", "taxonomy.md"):
+        if p.name.lower() in ("readme.md", "index.md", "taxonomy.md") or p.match("*.hist.md"):
             continue
         text = p.read_text(encoding="utf-8")
         if is_nav_page(text):
@@ -135,7 +136,7 @@ def build_index(root):
                         "domain": frontmatter_domain(text)}
 
     comps = [parse_composition(p) for p in sorted(comps_dir.glob("*.md"))
-             if p.name.lower() != "readme.md"]
+             if p.name.lower() != "readme.md" and not p.match("*.hist.md")]
 
     composed_by = defaultdict(list)         # atom -> [composer]
     regulated_by = defaultdict(list)        # atom -> [composer] (regulated composers only)

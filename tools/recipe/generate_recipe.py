@@ -134,10 +134,13 @@ def main():
     os.makedirs(out, exist_ok=True)
     today = datetime.date.today().isoformat()
 
+    # a spec's history file, `<spec name>.hist.md`, is no spec
     atom_files = [os.path.relpath(p, repo) for p in glob.glob(os.path.join(repo, "atoms", "**", "*.md"), recursive=True)
-                  if os.path.basename(p).lower() not in ("readme.md", "index.md", "taxonomy.md")]
+                  if os.path.basename(p).lower() not in ("readme.md", "index.md", "taxonomy.md")
+                  and not p.endswith(".hist.md")]
     comp_files = [os.path.relpath(p, repo) for p in glob.glob(os.path.join(repo, "compositions", "*.md"))
-                  if os.path.basename(p).lower() not in ("readme.md", "index.md")]
+                  if os.path.basename(p).lower() not in ("readme.md", "index.md")
+                  and not p.endswith(".hist.md")]
     title_index = {}
     for p in atom_files:
         t = lib_title(repo, p)

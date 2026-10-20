@@ -19,7 +19,7 @@ Suspension); nine carry all six.
 import io, os, re, glob
 
 ROOT = os.environ.get('GRACE_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-FILES = sorted(glob.glob(ROOT + '/compositions/*.md'))
+FILES = [f for f in sorted(glob.glob(ROOT + '/compositions/*.md')) if not f.endswith('.hist.md')]
 
 COMPONENTS = {
     'intent/outcome pair':      r'intent[_ -]record|_intended\b|intent_event_id|invocation_id',

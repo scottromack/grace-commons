@@ -125,7 +125,8 @@ if (all) {
   outDir = resolve(pos[0] || "build-terms");
   inputs = [];
   for (const d of ["atoms", "compositions"]) {
-    if (existsSync(d)) for (const f of readdirSync(d)) if (f.endsWith(".md")) inputs.push(join(d, f));
+    // a spec's history file, `<spec name>.hist.md`, is no spec
+    if (existsSync(d)) for (const f of readdirSync(d)) if (f.endsWith(".md") && !f.endsWith(".hist.md")) inputs.push(join(d, f));
   }
 } else {
   if (!pos[0]) {

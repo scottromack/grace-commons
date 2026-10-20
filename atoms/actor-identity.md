@@ -57,9 +57,6 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-WHY:
-Identity by action and actor together would collapse the re-attestation the regime produces — a retry after a partial failure, a second proof after a key rotation, a step in a multi-action sequence — and identity by time would lose two concurrent attestations (Identity 6 through 9). One attestation, one id, is what makes per-event audit reconstruction tractable.
-
 ### State
 
 ```
@@ -82,21 +79,14 @@ Term credential: the private material the actor uses to produce the proof — a 
 
 Term public material: what the actor registry holds for an actor reference and a verifier reads.
 
-Term durability mechanism: a write-ahead log, or another mechanism making a committed write survive a crash.
-
 Term attestation field: attestation id | action reference | actor reference | proof | attestation instant.
-
-WHY:
-One state and no way out: an attestation that could be revoked would prove nothing, because the party who wanted the attribution undone is the party who would revoke it. Reinterpretation under a compromised credential is real and is a Compromise Disclosure pattern's *(forthcoming)* — it writes new records rather than editing old ones (State 2, State 5, Non-goal 9). The credential is consumed and never stored: an atom holding actors' private material would be the highest-value target in the deployment (State 4).
 
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST supply the attestation store PER Execution Contract Store 1, Execution Contract Store 3 and Execution Contract Store 4.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -125,7 +115,7 @@ Operation 7: IF actor reference EQUALS blank THEN [Attest] MUST answer invalid-r
 Operation 8: IF the credential EQUALS blank THEN [Attest] MUST answer invalid-request.
 Operation 9: IF the credential fails against the actor's public material THEN [Attest] MUST answer invalid-credential.
 Operation 10: IF the attestation store refuses the write THEN [Attest] MUST answer storage-failure.
-Operation 11: [Attest] MUST NOT record a partial attestation.
+Deleted: Operation 11. Execution Contract Store 1 owns it.
 Operation 12: [Attest] MUST NOT alter a recorded attestation.
 Operation 13: [Attest] MUST NOT read the action's content.
 Operation 14: [Verify] MUST answer EXACTLY ONE OF verified, failed-verification, not-known.
@@ -160,16 +150,13 @@ The case space, and the rule that owns each case:
 | [Attest] | refs and credential present, credential validates, store accepts | attestation id | one attestation lands in [Attested] (Operation 1, Operation 2) |
 | [Attest] | blank action reference, actor reference or credential | [Invalid Request] | none (Operation 6 through 8) |
 | [Attest] | credential fails against the actor's public material | [Invalid Credential] | none (Operation 9) |
-| [Attest] | store refuses the write | [Storage Failure] | none — no partial record (Operation 10, Operation 11) |
+| [Attest] | store refuses the write | [Storage Failure] | none (Operation 10) |
 | [Verify] | no attestation under that id | [Not Known] | none — the call reads (Operation 15, Operation 20) |
 | [Verify] | attestation found, registry holds no material for the actor | [Actor Unknown In Registry] | none (Operation 16) |
 | [Verify] | attestation found, registry unreachable | [Registry Unavailable] | none (Operation 17) |
 | [Verify] | material in hand, proof does not hold | [Proof Invalid] | none (Operation 18) |
 | [Verify] | material in hand, proof holds | [Verified] | none (Operation 19) |
 | [Read] | any | every attestation, with its stored fields | none (Operation 27 through 30) |
-
-WHY:
-The four verify outcomes are kept apart by their conditions, not by the order the rules sit in (`GRACE-lang.md` Hard invariant 15): not-known is an id miss; actor-unknown-in-registry is missing actor material and may be permanent; registry-unavailable is transient and worth retrying; proof-invalid is a proof that exists and fails — after a key rotation, or under forgery. A deployment that collapses these into a boolean has thrown away the difference between *we cannot check right now* and *this does not check out* (Operation 15 through 19). Verification reads the registry's view, which is why a rotation can turn a verified attestation into a failing one unless the registry keeps historical material — the registry's property, not the atom's (Non-goal 3, Registry view 1 through 3).
 
 ### Invariants
 
@@ -202,7 +189,6 @@ The four verify outcomes are kept apart by their conditions, not by the order th
   Invariant 6.2: [Verify] MUST NOT consult the host's state.
   Invariant 6.3: [Verify] MUST NOT consult a source outside the verification set.
   ```
-  WHY: a mechanism that embeds revocation status in the proof keeps verification self-contained; one that sends the verifier to a live revocation service weakens the invariant, which is a mechanism choice the deployment makes (Revocation status 1 through 4).
 - **Invariant 7 — Verification consistency under fixed registry state.**
   ```
   Invariant 7.1: Two verifications of one attestation under one registry view MUST answer alike.
@@ -212,12 +198,11 @@ The four verify outcomes are kept apart by their conditions, not by the order th
   Invariant 8.1: A verified attestation MUST bind the actor reference to the action reference at attestation instant ONLY IF the credential was uncompromised at attestation instant.
   Invariant 8.2: The atom MUST NOT reinterpret an attestation under a later compromise.
   ```
-  WHY: the contract is conditional on credential integrity, and the condition is a fact the records cannot carry. A compromise is disclosed by new records that reinterpret old ones — never by mutating an attestation, which would make the store itself unreliable (Invariant 8.2, Non-goal 9).
 - **Invariant 9 — Attestation durability.**
   ```
   Invariant 9.1: The atom MUST NOT delete an attestation.
   Invariant 9.2: The attestation set MUST NOT shrink.
-  Invariant 9.3: A storage-failure MUST NOT leave a partial attestation.
+  Deleted: Invariant 9.3. Execution Contract Store 1 owns it.
   ```
 
 Action binding and actor binding give the *attribution* property — *who authorized this?* answered structurally. Immutability and self-containment give *survivability* — an attestation stays verifiable independent of the system that recorded it. The non-repudiation contract names the bar the atom is built to clear, and its condition.
@@ -306,7 +291,9 @@ Non-goal 15: The atom MUST NOT carry an actor reference across trust domains.
 ```
 
 WHY:
-Authentication produces the credential this atom consumes, and authorization asks a different question entirely — *could* they, rather than *did* they; the atom answers the second and composes for the first (Non-goal 4 through 6). One attestation is one actor's binding: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)*, which is a pattern over attestations rather than a bigger attestation (Non-goal 8). The store is assumed unrewritten, which is exactly what [Tamper Evidence](./tamper-evidence.md) supplies; many credential mechanisms give it as a side effect and the atom requires none of them (Non-goal 10, Non-goal 11). Binding a mutable action is the quiet failure: the proof stays valid while the content it was supposed to attest to changes underneath, which is why the host binds a content hash or composes a Content Lock pattern *(forthcoming)* (Non-goal 13, Non-goal 14).
+Binding a mutable action is the quiet failure: the proof stays valid while the content it was supposed to attest to changes underneath, which is why the host binds a content hash or composes a Content Lock pattern *(forthcoming)* (Non-goal 13, Non-goal 14).
+
+NOTE: witness signatures, m-of-n approvals and dual control compose a Witness pattern *(forthcoming)* (Non-goal 8); a tamper-evident store is what [Tamper Evidence](./tamper-evidence.md) supplies (Non-goal 10, Non-goal 11).
 
 Where the atom breaks down: when authorization cannot be reduced to one actor — truly anonymous attestation in a regulated context is a contradiction; when the credential mechanism cannot produce a verifiable proof — a shared secret anyone holding it could forge with; when the deployment has no actor registry a verifier can consult.
 
@@ -316,9 +303,9 @@ Where the atom breaks down: when authorization cannot be reduced to one actor �
 
 ```
 Attestation durability 1: [Attest] MUST write EXACTLY ONE record per successful call.
-Attestation durability 2: The implementation MUST own durability across a crash.
-Attestation durability 3: A high-assurance deployment MUST compose a durability mechanism.
-Attestation durability 4: A storage-failure MUST agree with the absence of a persisted record.
+Deleted: Attestation durability 2. Execution Contract Store 3 owns it.
+Deleted: Attestation durability 3. Execution Contract Store 3 owns it.
+Deleted: Attestation durability 4. Execution Contract Store 3 owns it.
 ```
 
 ### Revocation status at verify time
@@ -330,9 +317,6 @@ Revocation status 3: A deployment MUST NOT read a mechanism resting on a live re
 Revocation status 4: The deployment MUST own the mechanism choice.
 ```
 
-WHY:
-Stapled status and short-lived credentials both satisfy Invariant 6.1; a live status query at verify time introduces the out-of-band dependency the invariant exists to exclude, and the honest thing is to say so in the deployment's own record rather than to claim the invariant anyway (Revocation status 3).
-
 ### The registry's view moves
 
 ```
@@ -341,18 +325,12 @@ Registry view 2: The actor registry MUST own whether historical public material 
 Registry view 3: A deployment whose old attestations must keep verifying MUST retain the historical public material.
 ```
 
-WHY:
-Audit Trail's long-lived attestations are the case: an attestation made years ago verifies under the key of its day, and a registry that keeps only current material silently converts every one of them into proof-invalid — indistinguishable, to a reader, from tampering (Registry view 3).
-
 ### Verification caching
 
 ```
 Verification caching 1: An implementation MAY cache a verification result.
 Verification caching 2: An implementation MUST NOT cache a verification result across two registry views.
 ```
-
-WHY:
-[Verify] is deterministic under a fixed registry view (Invariant 7.1), so a cache is sound exactly while the registry does not move — and a cache that outlives a rotation or a revocation reports *verified* for an attestation the registry would now fail.
 
 ## Composition notes
 
@@ -364,8 +342,7 @@ Composition note 4: A composing pattern MUST own the retention of an attestation
 Composition note 5: This atom's invariant numbers MUST stand as a frozen contract surface.
 ```
 
-WHY:
-This atom is the attribution surface the rest of the corpus rests on rather than re-inventing: [Provisional Commitment](./provisional-commitment.md) attests each transition, [Event Log](./event-log.md) carries an attestation id in the payload, [Permissions](./permissions.md) pairs every grant and revoke with one — formalized as [Attributed Permissions Admin](../compositions/attributed-permissions-admin.md) — and [Authenticated Actor](../compositions/authenticated-actor.md) wires this atom to [Credential](./credential.md) under one principal, owning the revocation cascade and the namespace binding neither atom specifies alone. The regulated-audit stack is [Event Log](./event-log.md), this atom, [Retention Window](./retention-window.md) and [Tamper Evidence](./tamper-evidence.md), wired by [Audit Trail](../compositions/audit-trail.md), which cites this atom's Invariants 1, 6 and 9 by number — so these numbers are a frozen contract surface (Composition note 5), additive growth is forward-compatible, and the rule against renumbering is the grammar's (`GRACE-lang.md` Hard invariant 26). Forthcoming: Actor Registry, Compromise Disclosure, Witness, Trusted Timestamping.
+NOTE: composing patterns — [Attributed Permissions Admin](../compositions/attributed-permissions-admin.md), [Authenticated Actor](../compositions/authenticated-actor.md), [Audit Trail](../compositions/audit-trail.md). Forthcoming: Actor Registry, Compromise Disclosure, Witness, Trusted Timestamping.
 
 ## Terms
 
@@ -373,11 +350,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment (also: a high-assurance deployment); a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an actor; the actor registry; the attestation store; a credential mechanism (also: a mechanism); an attestation; a rotation; a proof.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern, a writer); a business caller; a verifier; an auditor; an actor; the actor registry; the attestation store; a credential mechanism (also: a mechanism); an attestation; a rotation; a proof.
 
 Term records: attestation — one binding, carrying attestation id, action reference, actor reference, proof and attestation instant.
 
-Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, leave, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, agree, fail, refuse.
+Term record verbs: identify, allocate, supply, reuse, carry, stand, offer, store, hold, compute, record, stamp, answer, consume, alter, read, mint, write, verify, consult, set, change, share, bind, reinterpret, delete, shrink, register, retire, compose, authenticate, decide, manage, invalidate, detect, vouch, turn, own, retain, keep, rest, cache, reconstruct, need, confirm, declare, trust, renumber, add, fail, refuse.
 
 Term value sets: registry answer = material | unknown-actor | unreachable. proof check = held | failed. attestation field = attestation id | action reference | actor reference | proof | attestation instant.
 
@@ -387,7 +364,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12); uncompromised — a credential no disclosure names as compromised at or before the instant in question.
 
-Term terms: now, verification set, durability mechanism, attestation, attestation id, action reference, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, attestation field, registry answer, proof check, verification failure.
+Term terms: now, verification set, attestation, attestation id, action reference, actor reference, seam, transition, business caller, attested, proof, attestation instant, credential, public material, attestation field, registry answer, proof check, verification failure.
 
 #### Attestation
 
@@ -543,7 +520,7 @@ Projection: invalid-credential
 
 #### Storage Failure
 
-The refusal [Attest] returns when the store write fails after the [Credential] validates. No partial [Attestation] is recorded — the caller must treat it as definitive and re-attest with a fresh [Credential].
+The refusal [Attest] returns when the store write fails after the [Credential] validates; the caller re-attests with a fresh [Credential].
 
 Kind:       Member
 Member of:  the Attest rejection
@@ -604,12 +581,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-06-18
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
@@ -618,10 +595,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/actor-identity.md`; the rounds and the migration that got it here are in [its history](./actor-identity.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the two actions as a signature block, the verify precedence carried by each rule's own condition rather than by the order the rules sit in, the nine invariant numbers frozen exactly as Audit Trail cites them, Generation acceptance moved ahead of Non-goals as `spec-format.md` requires, Non-goals and Edge cases as two sections, the case table kept beside the rules. *Over:* the prose spec. *Because:* the migration plan takes the atoms the migrated compositions already cite first — Audit Trail cites this atom's Invariants 1, 6 and 9 (`tools/grace/cites.py --into actor-identity`).
-
-- **2026-09-26 — The read surface restored.** *Chose:* `read()` in the signature block, answering every attestation with its stored fields (Operation 27 through 30). *Over:* an atom with no declared read. *Because:* the prose spec declared its read surface in its Outputs section — "the current set of attestations", each with its fields — and the migration dropped it with the section, while Check 1.1, Audit Trail and Attributed Permissions Admin all read the store through it. Restored as the prose had it, not widened: no filter and no key by action reference, so a composing pattern filters in its own code. Found by the cold regeneration of the Attributed Permissions Admin demo (council read 228).
+- **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the attestation store supplied under Execution Contract Store 1, Store 3 and Store 4 (Capability requirement 2), and the five rules that restated them tombstoned to their owner — Operation 11 and Invariant 9.3, no partial attestation, to Store 1; Attestation durability 2 through 4, durability across a crash, a high-assurance deployment's durability mechanism and a storage-failure agreeing with an absent record, to Store 3; rules 103 to 99. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract; what the atom does for its domain is unchanged.
 
 NOTE: End of Actor Identity.

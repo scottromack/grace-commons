@@ -277,6 +277,8 @@ LABEL_PARTS = re.compile(r"^(?P<name>.+?)(?: step (?P<step>[\d½]+)\.(?P<sn>\d+)
 PREFIX = re.compile(r"^(WHY|NOTE|UX|PROVISIONAL):")
 FENCE = re.compile(r"^(\s*)```(\w*)\s*$")
 MIGRATED = re.compile(r"^Term qualifiers:[^\n]*\bmigrated\b", re.M)
+# a spec's history sits beside it as `<spec name>.hist.md` and is no spec
+HISTORY = "*.hist.md"
 TERM_DECL = re.compile(r"^\s*Term ([^:`]+?): (.*)$")
 # The one declaration form (GRACE-lang Closed vocabulary 10, v0.45), read strictly:
 # the name runs to the first colon, bare; one space; the definition ends with a period.
@@ -1251,6 +1253,8 @@ def main(argv: list[str]) -> int:
         paths = [root / "GRACE-lang.md"]
         for d in ("atoms", "compositions"):
             for p in sorted((root / d).glob("*.md")):
+                if p.match(HISTORY):
+                    continue
                 # a spec declares itself migrated; a stray fence is not a claim
                 if MIGRATED.search(p.read_text(encoding="utf-8")):
                     paths.append(p)

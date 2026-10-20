@@ -176,6 +176,9 @@ from pathlib import Path
 # --------------------------------------------------------------------------- #
 
 PATTERN_DIRS = ("atoms", "compositions")
+# a spec's history sits beside it as `<spec name>.hist.md` and is no pattern:
+# every walk that reads atoms/ and compositions/ as specs skips it
+HISTORY_FILE = "*.hist.md"
 INVARIANT_HEADER = re.compile(r"^\s*-?\s*\*\*Invariant\s+(\d+)\s+[—-]", re.M)
 # a migrated spec states an invariant as rules labelled `Invariant N.M`, and
 # some carry no bold bullet heading above them (council read 93)
@@ -290,8 +293,9 @@ def load_patterns(root: Path) -> dict[Path, Pattern]:
         for md in sorted((root / d).rglob("*.md")):
             name = md.name.lower()
             # readme/index are catalogs; TAXONOMY.md is a proposal doc
-            # (nav_exclude, "Status: proposal") — none are patterns.
-            if name in ("readme.md", "index.md", "taxonomy.md"):
+            # (nav_exclude, "Status: proposal"); a history file is a spec's
+            # past — none are patterns.
+            if name in ("readme.md", "index.md", "taxonomy.md") or md.match(HISTORY_FILE):
                 continue
             text = md.read_text(encoding="utf-8")
             out[md] = Pattern(
@@ -2030,7 +2034,7 @@ def check_banned_application(root: Path) -> list[Finding]:
     for d in PATTERN_DIRS:
         base = root / d
         if base.is_dir():
-            scoped += sorted(base.glob("*.md"))
+            scoped += sorted(p for p in base.glob("*.md") if not p.match(HISTORY_FILE))
     scoped += [root / n for n in OUTPUT_NOUN_CORE_DOCS if (root / n).exists()]
     guide = root / "tools" / "guide"
     if guide.is_dir():
@@ -2726,7 +2730,7 @@ def label_families(root: Path) -> set[str]:
     fams: set[str] = set()
     sources = [root / "GRACE-lang.md"]
     for d in ("atoms", "compositions"):
-        sources += sorted((root / d).glob("*.md"))
+        sources += sorted(p for p in (root / d).glob("*.md") if not p.match(HISTORY_FILE))
     for src in sources:
         if not src.exists():
             continue
@@ -2887,6 +2891,8 @@ def check_section_titles(root: Path) -> list[Finding]:
     out: list[Finding] = []
     for sub in ("atoms", "compositions"):
         for md in sorted((root / sub).glob("*.md")):
+            if md.match(HISTORY_FILE):
+                continue
             for i, raw in enumerate(md.read_text(encoding="utf-8").splitlines(), start=1):
                 for m in SECTION_CITE.finditer(raw):
                     seg = raw[m.end():].lower().replace("*", "").replace("`", "")
@@ -2922,6 +2928,8 @@ def check_contract_labels(root: Path) -> list[Finding]:
     out: list[Finding] = []
     for sub in ("atoms", "compositions"):
         for md in sorted((root / sub).glob("*.md")):
+            if md.match(HISTORY_FILE):
+                continue
             for i, raw in enumerate(md.read_text(encoding="utf-8").splitlines(), start=1):
                 for m in CONTRACT_CITE.finditer(CODE_SPAN.sub("", raw)):
                     if f"{m.group(1)} {m.group(2)}" not in labels:

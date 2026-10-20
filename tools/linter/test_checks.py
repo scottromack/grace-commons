@@ -700,6 +700,23 @@ def check_r_synthetic(problems: list[str]) -> None:
             problems.append(f"R-ledger: {name} should fire {want}; got {sorted(codes) or 'nothing'}")
 
 
+# ── A spec's history file is no pattern ───────────────────────────────────── #
+# The Store-contract rewrite moves a spec's dated history beside it, as
+# `<spec name>.hist.md`; a walk that read it as a pattern would hold it to the
+# spec checks it was moved out of the spec to escape.
+def check_history_file_synthetic(problems: list[str]) -> None:
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        for sub in ("atoms", "compositions"):
+            (root / sub).mkdir()
+            (root / sub / "x.md").write_text("# X\n", encoding="utf-8")
+            (root / sub / "x.hist.md").write_text("# X — history\n", encoding="utf-8")
+        loaded = sorted(p.relative_to(root).as_posix() for p in load_patterns(root))
+        if loaded != ["atoms/x.md", "compositions/x.md"]:
+            problems.append(f"history file: load_patterns read {loaded}, want the two specs alone")
+
+
 # ── W-stale-census, both readings, pinned synthetically ───────────────────── #
 # The count reading was built at council read 33 against hand-written family
 # counts and compares only the counts somebody already wrote down. The list
@@ -2395,6 +2412,13 @@ def main(argv: list[str]) -> int:
     if not r_problems:
         print(f"R-ledger: {len(R_FIXTURES)} synthetic fixtures hold "
               f"(two clean pages silent, eleven malformed pages fire their code) \u2713")
+
+    hist_problems: list[str] = []
+    check_history_file_synthetic(hist_problems)
+    failures.extend(hist_problems)
+    if not hist_problems:
+        print("History file: 2 synthetic fixtures hold (a `.hist.md` beside an atom and beside "
+              "a composition is no pattern) \u2713")
 
     for f in failures:
         print(f"FAIL  {f}", file=sys.stderr)

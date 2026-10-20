@@ -45,6 +45,8 @@ TERM_DECL = re.compile(r"^\s*Term ([^:`]+?): (.*)$")
 FENCE = re.compile(r"^\s*```(\w*)")
 REGISTER = re.compile(r"\*\*Council read (?P<n>\d+) — \w+ on (?P<spec>[^,]+),")
 MIGRATED = re.compile(r"^Term qualifiers:[^\n]*\bmigrated\b", re.M)
+# a spec's history sits beside it as `<spec name>.hist.md` and is no spec
+HISTORY = "*.hist.md"
 NAME_NUM = re.compile(r"( step [\d½]+(?:\.\d+[a-z]?)?| \d+(?:\.\d+)?[a-z]?)$")
 # the last number of a range citation, `Operation 3 through 7` (Hard invariant 29)
 RANGE_END = re.compile(r" through ([\d½]+(?:\.\d+)?[a-z]?)(?![\w.]\d)")
@@ -414,7 +416,7 @@ def specs_with_rules(root: Path, paths: list[Path] | None) -> list[Spec]:
                      sorted(root.glob("compositions/*.md"))
     out = []
     for p in candidates:
-        if not p.exists():
+        if not p.exists() or p.match(HISTORY):
             continue
         text = p.read_text(encoding="utf-8")
         # a spec says it is migrated; the tools never guess it from a fence
@@ -626,7 +628,8 @@ def main(argv: list[str]) -> int:
         rows = []
         for path in [root / "GRACE-lang.md"] + sorted(root.glob("atoms/*.md")) + \
                     sorted(root.glob("compositions/*.md")):
-            if not path.exists() or not MIGRATED.search(path.read_text(encoding="utf-8")):
+            if not path.exists() or path.match(HISTORY) or \
+                    not MIGRATED.search(path.read_text(encoding="utf-8")):
                 continue
             name = spec_name(path)
             # A register subject is prose, so it spells a multi-word name the way
