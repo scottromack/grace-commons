@@ -1,8 +1,9 @@
 ---- MODULE authenticated-actor-buggy ----
 \* BUGGY TWIN (vacuity guard) for authenticated-actor.tla.
 \*
-\* The attest gate is split into two separate, interleavable steps — the non-atomic
-\* check-then-attest the *Concurrency* edge case and Invariant 1 warn against:
+\* The attest gate is split into two separate, interleavable steps — a gate read
+\* outside the transaction that writes the attestation, which Execution Contract
+\* Store 2 rules out and Invariant 1 catches:
 \*   CheckGate(p)    -> latches gateOpen[p] = TRUE while credStatus[p] = "Active"
 \*   CommitAttest(p) -> writes the attestation if gateOpen[p] is set
 \* Because Revoke(p) can interleave between the two, the history

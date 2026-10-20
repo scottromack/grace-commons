@@ -22,8 +22,10 @@
 \*                                        begged-question pitfall)
 \*
 \* This CORRECT model performs the status-check and the attest commit as a SINGLE
-\* ATOMIC action (the serialized check-and-attest critical section of Action wiring
-\* step 3): AttestAtomic is guarded on credStatus[p] = "Active" and computes
+\* ATOMIC action (the gate read inside the transaction that writes the attestation,
+\* as Execution Contract Store 2 reads an action's guards; Store 2 and
+\* Action wiring 19 own the deleted Invariant 1.2): AttestAtomic is guarded on
+\* credStatus[p] = "Active" and computes
 \* signedAfterRevoke from the observed status in the same step, so the guard forces
 \* the observed status Active and signedAfterRevoke can never become TRUE. The buggy
 \* twin splits the gate into CheckGate then CommitAttest with a Revoke able to
