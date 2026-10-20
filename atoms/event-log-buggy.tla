@@ -1,12 +1,13 @@
 ---- MODULE event-log-buggy ----
 \* Grace Commons — Event Log atom: BUGGY TWIN (vacuity guard).
 \*
-\* Identical to event-log.tla EXCEPT it adds the VolatileRestart action the
-\* English spec explicitly warns against (State section next_sequence_number:
-\* "Volatile implementations that reset to 1 on restart violate this invariant
-\* across the lifetime of the log instance"). Resetting next_seq to 1 lets a
-\* later-appended event receive a sequence_number no larger than an earlier
-\* event's — breaking Invariant 4 (sequence-number monotonicity).
+\* Identical to event-log.tla EXCEPT it adds the VolatileRestart action: a
+\* restart that loses the committed next_seq and starts it again at 1, which
+\* the store the spec's Capability requirement 2 supplies never does — a
+\* committed write survives a restart (Execution Contract Store 3, which owns
+\* the deleted State 7). Resetting next_seq to 1 lets a later-appended event
+\* receive a sequence_number no larger than an earlier event's — breaking
+\* Invariant 4 (sequence-number monotonicity).
 \*
 \* Expected result: Inv4_Monotonic VIOLATED by  AppendOk -> VolatileRestart ->
 \* AppendOk : position 1 has seq 1, position 2 (appended strictly later) also
@@ -47,7 +48,7 @@ AppendStorageFail ==
     /\ next_seq' = next_seq + 1
     /\ UNCHANGED <<log, len, next_eid>>
 
-\* BUG: volatile restart resets the allocator to 1 — the spec's named violation.
+\* BUG: volatile restart resets the allocator to 1 — the restart Store 3 forbids.
 VolatileRestart ==
     /\ next_seq' = 1
     /\ UNCHANGED <<log, len, next_eid>>

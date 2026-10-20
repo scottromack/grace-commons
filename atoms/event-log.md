@@ -51,9 +51,6 @@ Term transition: the atom's evaluation of one call against the log, as the secti
 
 Term business caller: the party whose action the call carries, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never the source of an injected value.
 
-WHY:
-Identity is allocated at the seam and handed in, which forecloses a caller that supplies an id of the caller's choosing and a transition that answers two ways for one input (Identity 2 through 4). Ordering is sequence number's alone: an id that sorts invites a reader to sort by it, and the day the id source changes shape, the order changes with it (Identity 8).
-
 ### State
 
 ```
@@ -63,7 +60,7 @@ State 3: The log MUST carry log name.
 State 4: The log MUST carry next sequence number.
 State 5: A fresh log instance MUST begin next sequence number at one.
 State 6: [Append] MUST raise next sequence number by one.
-State 7: A durable implementation MUST preserve next sequence number across a restart.
+Deleted: State 7. Execution Contract Store 3 owns it.
 State 8: The atom MUST NOT offer a delete surface.
 State 9: The atom MUST NOT offer an edit surface.
 ```
@@ -80,23 +77,16 @@ Term log name: the name telling one log instance from another — a [Log Name].
 
 Term next sequence number: the sequence number the next landed event carries — a [Next Sequence Number]; part of the instance's persistent state.
 
-Term durability mechanism: a write-ahead log, or another mechanism making a committed write survive a crash.
-
 Term landed: an event a successful [Append] wrote; a consumed sequence number under which nothing was written is not landed.
 
 Term event field: event id | sequence number | recording instant | data.
-
-WHY:
-A volatile instance that restarts next sequence number at one has broken Invariant 4 for the life of the instance while every individual append looks correct — which is why durability of that one datum is stated here and not left to a deployment note (State 7). There is no delete and no edit, and their absence is a rule rather than an omission, because *the log only grows* is the property every composing pattern rests on (State 8, State 9).
 
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 2: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -117,12 +107,12 @@ Operation 3: [Append] MUST carry next sequence number into the event.
 Operation 4: [Append] MUST answer event id.
 Operation 5: IF data EXCEEDS the payload cap THEN [Append] MUST answer invalid-payload.
 Operation 6: [Append] MUST accept empty data.
-Operation 7: [Append] MUST NOT refuse for contention.
-Operation 8: [Append] MUST NOT refuse for ordering.
+Deleted: Operation 7. Execution Contract Store 2 owns it.
+Deleted: Operation 8. Execution Contract Store 2 owns it.
 Operation 9: IF the store refuses the write THEN [Append] MUST answer storage-failure.
 Operation 10: [Append] MUST NOT answer event id with storage-failure.
 Operation 11: A caller MUST read storage-failure as the event not landing.
-Operation 12: The host MUST serialize EVERY append to one log instance.
+Deleted: Operation 12. Execution Contract Store 2 owns it.
 Operation 13: [Read] MUST answer EVERY landed event the query matches.
 Operation 14: [Read] MUST order the answer by sequence number, rising.
 Operation 15: IF the query is malformed THEN [Read] MUST answer invalid-query.
@@ -149,9 +139,6 @@ The case space, and the rule that owns each case:
 | [Read] | query well-formed, nothing matches | empty sequence | none (Operation 16) |
 | [Read] | query malformed | [Invalid Query] | none (Operation 15) |
 
-WHY:
-An append refuses for one reason before the write and one reason at it, and for nothing else: no contention arm, no ordering arm, no retry semantics (Operation 7, Operation 8). Serialization is the load-bearing precondition under Invariant 3 and Invariant 4 — neither holds without it, and it is the host's to supply, not the atom's to enforce (Operation 12). storage-failure is definitive on purpose: a caller that treats it as *maybe* writes the event twice (Operation 10, Operation 11).
-
 ### Invariants
 
 - **Invariant 1 — Append-only.**
@@ -172,7 +159,6 @@ An append refuses for one reason before the write and one reason at it, and for 
   ```
   Invariant 4.1: A landed event MUST carry a sequence number above EVERY sequence number landed earlier.
   ```
-  WHY: the invariant is over landed events, which is what leaves room for the gap a storage failure consumes (Sequence gap 1 through 4).
 - **Invariant 5 — Read consistency.**
   ```
   Invariant 5.1: A read MUST answer EVERY landed event the read's query matches.
@@ -188,7 +174,6 @@ An append refuses for one reason before the write and one reason at it, and for 
   Invariant 7.1: IF the clock is non-decreasing THEN recording instant MUST NOT fall in append order.
   Invariant 7.2: sequence number IS AUTHORITATIVE FOR the log's order.
   ```
-  WHY: under an unreliable or adversarial clock recording instant is an annotation that may lie, and nothing in the atom rests on it — which is the whole reason the two data are separate (Invariant 7.2).
 
 Append-only and event immutability together give the *immutable journal* property, the one that tells an Event Log from a mutable record set. Total order and monotonicity give *replay*. Read consistency gives *durable visibility*. No id reuse forecloses identity collisions across time.
 
@@ -258,18 +243,13 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: An auditor needing the log instance's durability confirmed MUST read the deployment's own store (Durability 2).
-External check 2: An auditor needing the appends serialized confirmed MUST read the host's own concurrency control (Operation 12).
+Deleted: External check 1. Execution Contract Store 3 owns it.
+Deleted: External check 2. Execution Contract Store 2 owns it.
 External check 3: An auditor needing the clock non-decreasing confirmed MUST read the deployment's own clock discipline (Invariant 7.1).
 External check 4: An auditor needing the log untampered confirmed MUST compose Tamper Evidence (Non-goal 4).
 External check 5: An auditor needing an event's writer confirmed MUST compose Actor Identity (Non-goal 6).
 External check 6: An auditor needing the payload cap confirmed MUST read the deployment's own declaration (Operation 5).
 ```
-
-WHY:
-`Check 2.4`, `Check 5.1` and `Check 5.2` are the three that stop an auditor filing against a correct log, and each of them is a place where the obvious reading is wrong. A gap in the sequence numbers is not a lost event — `Sequence gap 1` permits an implementation to consume a number on a failed write, so an auditor counting rows against numbers reports a defect the atom has none of. A recording instant that falls is a clock fault and never an ordering fault, because sequence number **is authoritative** for the order and recording instant is an annotation this atom rests nothing on.
-
-The external set is where the real limit sits, and it is larger than a reader expects from a log. **Append-only is not tamper-evidence.** Every check above passes over a log an adversary with store access rewrote, because the atom compares the log against itself; detecting that the store was rewritten is [Tamper Evidence](./tamper-evidence.md)'s and is named here rather than implied. The same holds for who wrote an event and for whether the instance survived a restart at all — `External check 1` is the one a deployment loses silently, since a volatile instance satisfies every conformance check above and loses the journal the composing patterns replay.
 
 ## Non-goals
 
@@ -289,11 +269,10 @@ Non-goal 12: A pattern needing schema validation MUST compose a schema-evolution
 Non-goal 13: The atom MUST NOT collapse events into a snapshot.
 Non-goal 14: The atom MUST NOT push an event to a subscriber.
 Non-goal 15: The atom MUST NOT append two events atomically.
-Non-goal 16: A pattern needing one write across two events MUST compose a transaction pattern.
+Deleted: Non-goal 16. Execution Contract Store 1 owns it.
 ```
 
-WHY:
-The bare log keeps everything, knows nothing about the payload, and serves one instance — and each of those is a seam a composing pattern fills: Retention Window prunes under an obligation, a Storage Tier pattern *(forthcoming)* moves cold events, Tamper Evidence proves nothing was rewritten, Actor Identity binds the writer, a Reverse Index pattern *(forthcoming)* finds an event by what is inside the payload, a Snapshot pattern *(forthcoming)* collapses a prefix, a Change Feed pattern *(forthcoming)* pushes. Events are immutable by this spec, which is not the same as tamper-evident: an adversary with write access to the store rewrites the log and the atom cannot tell (Non-goal 3, Non-goal 4). Each append is atomic and two appends are two writes; *both or neither* is a Transaction pattern's promise, over a store that offers one (Non-goal 15, Non-goal 16).
+NOTE: the owners — [Retention Window](./retention-window.md) (Non-goal 1, Non-goal 2) and a Storage Tier pattern *(forthcoming)* for cold events; [Tamper Evidence](./tamper-evidence.md) (Non-goal 3, Non-goal 4); [Actor Identity](./actor-identity.md) (Non-goal 5, Non-goal 6); a Reverse Index pattern *(forthcoming)* (Non-goal 7, Non-goal 8); a Snapshot pattern *(forthcoming)* (Non-goal 13); a Change Feed pattern *(forthcoming)* (Non-goal 14).
 
 Where the pattern breaks down: when the host cannot supply atomic, serialized appends — most adversarially-distributed settings; when an event must be edited or deleted in place; when order must come from something other than append order.
 
@@ -302,14 +281,11 @@ Where the pattern breaks down: when the host cannot supply atomic, serialized ap
 ### Durability across crashes
 
 ```
-Durability 1: The atom MUST specify in-memory semantics.
-Durability 2: The deployment MUST own persistence across a process restart.
-Durability 3: A durable implementation MUST supply a durability mechanism.
-Durability 4: A composing pattern MUST declare the log instance's durability as an instance capability requirement.
+Deleted: Durability 1. Execution Contract Store 3 owns it.
+Deleted: Durability 2. Execution Contract Store 3 owns it.
+Deleted: Durability 3. Execution Contract Store 3 owns it.
+Deleted: Durability 4. Execution Contract Store 3 owns it.
 ```
-
-WHY:
-Append-only and event immutability are best-effort across a crash unless the implementation supplies durability, and a composition whose rebuilds and scans assume the log survived a restart is resting on something no constituent promised — the obligation is declared, in the composition, or it is assumed (Durability 4; Audit Trail's open line of 2026-08-30).
 
 ### Erasure where law requires it
 
@@ -319,9 +295,6 @@ Erasure 2: A deployment under an erasure obligation MUST compose an erasure patt
 Erasure 3: A deployment under an erasure obligation MUST NOT read this atom as satisfying the obligation.
 ```
 
-WHY:
-*Append corrections, never edit history* is the architecture, and it is the one place law overrides architecture: GDPR (EU General Data Protection Regulation) Article 17 and some healthcare regimes require true deletion of recorded content. The answer is a composing pattern designed with counsel — Erasure Tombstone or cryptographic shredding *(forthcoming)* — never a quiet edit to the log.
-
 ### Sequence-number gaps on storage failure
 
 ```
@@ -330,9 +303,6 @@ Sequence gap 2: The next landed event MUST carry a sequence number above a consu
 Sequence gap 3: A consumer MUST NOT read a gap as a lost event.
 Sequence gap 4: An implementation avoiding a gap MUST take EXACTLY ONE OF allocating a sequence number ONLY AFTER the write lands, returning a consumed sequence number to the pool.
 ```
-
-WHY:
-Invariant 4 holds over landed events, so a gap violates nothing — but a consumer counting rows against sequence numbers reads the gap as a missing event and files a finding against a log that is correct (Sequence gap 3).
 
 ## Composition notes
 
@@ -345,8 +315,7 @@ Composition note 4: This atom's invariant numbers MUST stand as a frozen contrac
 Composition note 5: A composing pattern MUST cite this atom's invariants by number.
 ```
 
-WHY:
-The two contracts are append-on-change (the log is the durable record the pattern's history is reconstructed from) and replay (the log is the source of truth and current state is a projection); most patterns take both. The invariant numbers are a frozen contract surface: Undo History, Audit Trail, Compensable Workflow and Reserve from Pool cite them wholesale, so adding one is forward-compatible and renumbering one re-passes every composition that cites it (Composition note 4). That a writer must not renumber is the grammar's rule and stays there (`GRACE-lang.md` Hard invariant 26); what this note owns is the local fact that these numbers are cited from outside. Landed compositions over this atom: [Audit Trail](../compositions/audit-trail.md), [Undo History](../compositions/undo-history.md). Forthcoming: Activity Feed, Event-Sourced Reservation.
+NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md), [Undo History](../compositions/undo-history.md). Forthcoming: Activity Feed, Event-Sourced Reservation.
 
 ## Terms
 
@@ -354,11 +323,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation (also: a durable implementation); the deployment; the store; an event; a read; an append; an auditor.
+Term actors: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation; the deployment; the store; an event; a read; an append; an auditor.
 
 Term records: event — one recorded fact, carrying event id, sequence number, recording instant and data; the log carries log name and next sequence number.
 
-Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, preserve, offer, write, stamp, answer, accept, refuse, read, serialize, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, specify, compose, declare, consume, take, cite, renumber, add, erase, match, find.
+Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, offer, write, stamp, answer, accept, refuse, read, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, compose, consume, take, cite, renumber, add, erase, match, find.
 
 Term value sets: event field = event id | sequence number | recording instant | data.
 
@@ -368,7 +337,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-11); landed — written by a successful append.
 
-Term terms: durability mechanism, event id, seam, transition, business caller, event, sequence number, recording instant, data, log name, next sequence number, landed, event field, query, payload cap.
+Term terms: event id, seam, transition, business caller, event, sequence number, recording instant, data, log name, next sequence number, landed, event field, query, payload cap.
 
 #### Event Log
 
@@ -436,7 +405,7 @@ Projection: name
 
 #### Next Sequence Number
 
-The [Sequence Number] the next appended [Event] will receive. It begins at 1 for a fresh instance and increments on each [Append]; durable implementations preserve it across restarts, or sequence-number monotonicity breaks over the instance's lifetime.
+The [Sequence Number] the next appended [Event] will receive. It begins at 1 for a fresh instance and increments on each [Append].
 
 Kind:       Field
 Field of:   Event Log
@@ -505,6 +474,7 @@ Event Log is a foundational primitive with deep standards backing:
 
 - **ISO/IEC 27001** (International Organization for Standardization / International Electrotechnical Commission — joint information-security management standard) — mandates event logging for security-relevant actions.
 - **NIST SP 800-92** (National Institute of Standards and Technology — US federal standards body) — *Guide to Computer Security Log Management*; describes log lifecycle, integrity, retention requirements.
+- **GDPR (EU General Data Protection Regulation) Article 17** — the right to erasure, which requires true deletion of recorded content; a composing erasure pattern's obligation, never met by an edit to this log (Erasure 2, Erasure 3).
 - **W3C (World Wide Web Consortium — the web standards body) Activity Streams 2.0** — JSON (JavaScript Object Notation — a lightweight text format for structured data) format for activity feeds; treats activities as events with actor / verb / object structure.
 - **Event Sourcing literature** — Greg Young's early write-ups; Martin Fowler's *Event Sourcing*; foundational pattern in domain-driven design.
 - **Database write-ahead logging (WAL)** — the same primitive at the storage layer; ARIES (Algorithms for Recovery and Isolation Exploiting Semantics — a classic database crash-recovery method) recovery, PostgreSQL WAL, MySQL binlog.
@@ -521,12 +491,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-06-18
+status: partially resolved
 formal: verified — event-log.tla + 1 twin, 2026-06-03
 last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
@@ -535,10 +505,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/event-log.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/event-log.md`; the rounds and the migration that got it here are in [its history](./event-log.hist.md).
 
-- **2026-09-11 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the two actions as a signature block, rationale under `WHY:`, terms declared where they are used, the invariant numbers frozen exactly as the compositions cite them, Non-goals and Edge cases as two sections, the case table kept beside the rules. *Over:* the prose spec. *Because:* the migration plan takes the atoms the migrated compositions already cite first — Audit Trail and Recoverable Invocation cite this atom's Invariants 1, 2, 3, 5 and 7, and a rewrite that moved a number would break those citations silently (`tools/grace/cites.py --into event-log`).
-
-- **2026-09-14 — The atom gained an acceptance surface, and the external half is the load-bearing half.** *Chose:* fifteen `Check` rules cleared from one log instance and its read surface, and six `External check` rules naming what the log cannot show about itself. *Over:* declining by delegation, which would have been false — this atom is composed directly, not only through a substrate. *Because:* presence became mandatory on 2026-09-14, and this atom is the corpus's Start Here: it claims append-only, total order and read consistency while the evidence sat in a formal model, a twin suite and five independent renders, none of which a first reader has met. The section is the bridge. `External check 4` is the line that had to be written down — **append-only is not tamper-evidence**, every conformance check above passes over a log an adversary rewrote, and the atom compares the log only against itself (council read 65).
+- **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 2), and the eleven rules that restated them tombstoned to their owner — Non-goal 16, one write across two events, to Store 1; Operation 7, 8 and 12 and External check 2, appends to one log serialized and never refused for contention or ordering, to Store 2; State 7, Durability 1 through 4 and External check 1, the log and its next sequence number kept across a restart, to Store 3; rules 105 to 95. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The log's order stays the atom's own, carried by the sequence number (State 1, Invariant 3, Invariant 7.2) — two appends one action makes share one commit — so the atom cites no Order 1; what the atom does for its domain is unchanged.
 
 NOTE: End of Event Log.
