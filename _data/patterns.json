@@ -1067,7 +1067,7 @@
    "undo-history"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 8,
   "kind": "atom",
   "models": {
@@ -1081,7 +1081,7 @@
   ],
   "security": false,
   "standards": [],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-18",
+  "status": "partially resolved",
   "title": "Personal Todo"
  },
  "preference-aware-notification-fanout": {

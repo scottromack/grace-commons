@@ -76,22 +76,17 @@ Term completion instant: the instant the unit was finished — a [Completion Ins
 
 Term active set: the units whose unit state EQUALS pending together with the units whose unit state EQUALS done — what uniqueness ranges over.
 
-WHY:
-Deletion is the only way out and it is terminal: the atom keeps no memory of what left, which is why re-adding a deleted description succeeds and why a system that wants *not twice this morning* composes [Duplicate Prevention](./duplicate-prevention.md) rather than asking this atom to remember (State 10, Composition note 2). There is no reopening, because a person who reopens a finished thing is describing a different pattern — one with history — and adding the transition here would quietly take that pattern's job (State 9).
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 4: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Non-goal 16 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -122,7 +117,7 @@ Operation 2: [Add] MUST stand the unit in pending.
 Operation 3: [Add] MUST answer id.
 Operation 4: IF the normalized description matches a unit in the active set THEN [Add] MUST answer duplicate-active.
 Operation 5: IF the store refuses the write THEN [Add] MUST answer storage-failure.
-Operation 6: [Add] MUST NOT record a unit on storage-failure.
+Deleted: Operation 6. Execution Contract Store 3 owns it.
 Operation 7: IF no unit EXISTS for the id THEN [Edit] MUST answer not-known.
 Operation 8: IF the unit state EQUALS done THEN [Edit] MUST answer not-editable.
 Operation 9: IF the unit state EQUALS pending AND the normalized new description matches another unit in the active set THEN [Edit] MUST answer duplicate-active.
@@ -170,9 +165,6 @@ The case space, and the rule that owns each case:
 | any writing call | store refuses | [Storage Failure] | none (Operation 5, Operation 21 through 24) |
 | [Read] | any | every unit, with its stored fields | none (Operation 28 through 31) |
 
-WHY:
-The no-op edit is a real accepted case that writes nothing, which is why it cannot answer storage-failure — a person retyping the same words has changed nothing and should not see a failure from a store that was never asked (Operation 10 through 12). Uniqueness ranges over pending and done together: a finished *buy milk* still blocks a second one, because a list showing the same text twice is confusing whichever column it sits in (Operation 4, Invariant 6.1).
-
 ### Invariants
 
 - **Invariant 1 — Membership exclusivity.**
@@ -207,7 +199,6 @@ The no-op edit is a real accepted case that writes nothing, which is why it cann
   Invariant 7.2: IF completion instant DOES NOT EQUAL blank THEN addition instant MUST NOT EXCEED completion instant.
   Invariant 7.3: IF last edit instant DOES NOT EQUAL blank AND completion instant DOES NOT EQUAL blank THEN last edit instant MUST NOT EXCEED completion instant.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock quality (Execution Contract Logic confinement 7).
 - **Invariant 8 — Id stability.**
   ```
   Invariant 8.1: [Add] MUST set the id.
@@ -231,9 +222,6 @@ Description 8: The atom MUST show the normalized form.
 Term description: the text the person gives a unit — a [Description]; normalized before it enters the list and before any comparison.
 
 Term description cap: the bound on a normalized description's length; 1024 codepoints where a deployment declares none.
-
-WHY:
-Normalization before comparison is what makes *café* typed and *café* pasted the same text — different sources produce different Unicode forms, and without normal form C the uniqueness rule would let one list hold both (Description 2, Invariant 6.1). Case sensitivity and internal whitespace are kept verbatim because the person's own text is what the person recognizes; a case-insensitive or fuzzy variant is a wrapping pattern's policy, not this atom's (Description 3, Description 6).
 
 ## Examples
 
@@ -271,7 +259,7 @@ This sequence covers four of the rejection reasons ([Invalid Description], [Dupl
 
 ## Generation acceptance
 
-An implementation is acceptable when an external auditor, given the list and the atom's own surface, can clear the checks below without recourse to source code, runbooks or developer narration. This is the corpus's smallest atom and the reference implementation's first worked example, so the section is deliberately plain: every check is one reading of the list against one rule, and the external set is three lines long because almost nothing here needs evidence the list does not carry.
+An implementation is acceptable when an external auditor, given the list and the atom's own surface, can clear the checks below without recourse to source code, runbooks or developer narration. This is the corpus's smallest atom and the reference implementation's first worked example, so the section is deliberately plain: every check is one reading of the list against one rule, and the external set is one line long because almost nothing here needs evidence the list does not carry.
 
 ### Conformance checks
 
@@ -298,16 +286,9 @@ NOTE: EVERY check names the rule the check tests.
 
 ```
 External check 1: An auditor needing the clock's monotonicity confirmed MUST read the deployment's own clock discipline (Invariant 7.1 through 7.3).
-External check 2: An auditor needing a transition's atomicity confirmed MUST read the implementation's own transactional boundary (Concurrency 2).
-External check 3: An auditor needing a second client's calls accounted for MUST read the deployment's own concurrency-resolution pattern (Concurrency 3).
+Deleted: External check 2. Execution Contract Store 1 owns it.
+Deleted: External check 3. Execution Contract Store 2 owns it.
 ```
-
-WHY:
-`Check 4.1` through `Check 4.3` are the three that have to be read as the invariants state them rather than as a chain. Each is conditional on the field existing — a pending unit carries no completion instant and an unedited one carries no last edit instant — so an auditor comparing three timestamps as `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a list with nothing wrong with it. The invariants were written as three conditionals for exactly that reason and the checks keep the shape.
-
-`Check 3.4` is the one a reader would not think to run. An edit whose normalized description equals the unit's current description answers ok and writes **nothing** — no description change and no stamp — so the auditable evidence of a correct no-op is the *absence* of a last edit instant movement, which is the only check here whose passing condition is that nothing happened.
-
-The external set is three lines because this atom assumes almost nothing it cannot show. What it does assume is the two things no records can carry: that the clock moves forward, which every timestamp check above is best-effort under, and that each transition is atomic, without which `Invariant 1.1` is reachable-false — a crash mid-write leaving a unit in neither state. Both are named here rather than left to a reader to notice they were never proved.
 
 ## Non-goals
 
@@ -330,8 +311,7 @@ Non-goal 15: The atom MUST NOT match descriptions case-insensitively.
 Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-Each of these is a field somebody will want to add here and each is a pattern: priority and ordering, due dates, dependencies and recurrence compose *(all forthcoming)*, and the moment one of them lands inside this atom the atom stops being the thing every larger system contains (Non-goal 9 through 12). Deletion keeps no memory by design, which is what makes the recency behaviour a composition rather than a mode (Non-goal 4, Non-goal 5). Only last edit instant survives an edit — prior text is gone, and a system that needs the trail composes a history pattern (Non-goal 13).
+NOTE: the owners — [Shared Todo](../compositions/shared-todo.md) (Non-goal 1 through 3, Composition note 5); [Duplicate Prevention](./duplicate-prevention.md) and the composing pattern that answers [Duplicate Recent] (Non-goal 4, Non-goal 5, Composition note 2, Composition note 3; State 10); [Undo History](../compositions/undo-history.md) (Non-goal 6, Non-goal 7, Composition note 4); a history pattern (Non-goal 8, Non-goal 13; State 9); a recurrence pattern *(forthcoming)* (Non-goal 9); a priority and ordering pattern *(forthcoming)* (Non-goal 10); a due-date pattern *(forthcoming)* (Non-goal 11); a dependency pattern *(forthcoming)* (Non-goal 12); Execution Contract Store 2 (Non-goal 14); a wrapping pattern (Non-goal 15).
 
 Where the atom breaks down: any system with more than one actor; a system where *finished* is not binary; a system where the description is not a property worth constraining; a host that cannot make a transition atomic.
 
@@ -341,12 +321,9 @@ Where the atom breaks down: any system with more than one actor; a system where 
 
 ```
 Concurrency 1: The atom MUST assume a linear sequence of calls from one actor.
-Concurrency 2: The implementation MUST make EVERY transition atomic.
-Concurrency 3: A deployment running two clients MUST compose a concurrency-resolution pattern.
+Deleted: Concurrency 2. Execution Contract Store 1 owns it.
+Deleted: Concurrency 3. Execution Contract Store 2 owns it.
 ```
-
-WHY:
-Two tabs acting on one unit is outside the atom: a crash or a race that leaves a unit in neither state breaks Invariant 1.1, and the transactional boundary that prevents it is the implementor's (Concurrency 2).
 
 ### Re-adding a deleted description
 
@@ -354,9 +331,6 @@ Two tabs acting on one unit is outside the atom: a crash or a race that leaves a
 Re-adding 1: The atom MUST accept a description equal to a deleted unit's description.
 Re-adding 2: [Add] MUST answer a fresh id for such a unit.
 ```
-
-WHY:
-*Buy milk* deleted this morning and added again this afternoon is a new unit with a new id, and nothing in the atom objects. A deployment that wants the second one refused inside a window composes [Duplicate Prevention](./duplicate-prevention.md), whose guard opens on the delete and closes on its own clock (Composition note 2).
 
 ## Composition notes
 
@@ -368,8 +342,7 @@ Composition note 4: A composing pattern needing restoration MUST append a delete
 Composition note 5: A composing pattern needing a shared list MUST compose Permissions and Assignment.
 ```
 
-WHY:
-The three landed compositions are the worked examples: [Undo History](../compositions/undo-history.md) appends every deletion to an Event Log so the list becomes restorable from records; [Shared Todo](../compositions/shared-todo.md) adds Permissions and Assignment to make one person's list many people's; and a container wanting *not twice in one morning* wires [Duplicate Prevention](./duplicate-prevention.md) around delete and add, which is where the [Duplicate Recent] refusal comes from — that refusal is the composing pattern's, never this atom's (Composition note 2, Composition note 3). Forthcoming: Priority and Ordering, Task Dependencies, Recurring, Reopen and Revision, Concurrency Resolution.
+NOTE: composing patterns — [Undo History](../compositions/undo-history.md), [Shared Todo](../compositions/shared-todo.md). Forthcoming: Priority and Ordering, Task Dependencies, Recurring, Reopen and Revision.
 
 ## Terms
 
@@ -381,7 +354,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: unit — one thing to do, carrying id, description, addition instant, a unit state and, once they land, last edit instant and completion instant.
 
-Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, make, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find, refuse.
+Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find, refuse.
 
 Term value sets: unit state = pending | done.
 
@@ -603,12 +576,12 @@ A formal-methods version of a similar concept exists in [concept-catalog](https:
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-06-18
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
@@ -617,12 +590,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/personal-todo.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/personal-todo.md`; the rounds and the migration that got it here are in [its history](./personal-todo.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the four actions as a signature block, the description policy as its own rule family, the eight invariant numbers unchanged, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan, and this atom is the corpus's simplest shape — the one a reader meets first.
-
-- **2026-09-14 — The atom gained an acceptance surface, kept deliberately plain.** *Chose:* fourteen `Check` rules and three `External check` rules, each one reading of the list against one rule. *Over:* a richer section. *Because:* presence became mandatory on 2026-09-14, and this atom is the reference implementation's first worked example, so its section teaches the shape more than it audits a risk. Two things it does carry are not decoration: the three timestamp checks keep the invariants' conditional form rather than chaining them, since an auditor comparing `added_at ≤ last_edited_at ≤ completed_at` over every unit files against a correct list; and `Check 3.4`'s passing condition is that **nothing happened** — a no-op edit answers ok and writes nothing, so the evidence of conformance is a stamp that did not move (council read 65).
-
-- **2026-09-26 — The read surface restored.** *Chose:* `read()` in the signature block, answering every unit with its stored fields (Operation 28 through 31). *Over:* an atom with no declared read. *Because:* the prose spec declared its read surface in its Outputs section — "the current set of pending units" and done units, each with its fields — and the migration dropped it with the section. Restored as the prose had it, not widened. Found beside the same loss in Permissions and Actor Identity, which the cold regeneration of the Attributed Permissions Admin demo surfaced (council read 230).
+- **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the five rules that restated them tombstoned to their owner — Concurrency 2, every transition atomic, and External check 2, the auditor's evidence of that atomicity, to Store 1; Concurrency 3, a deployment running two clients composing a concurrency-resolution pattern, and External check 3, the auditor's evidence of that pattern, to Store 2; Operation 6, no unit recorded by an [Add] that answers storage-failure, to Store 3; rules 111 to 107. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Two clients' calls on one unit, all the page gave a concurrency-resolution pattern to resolve, are serialized by Store 2 for every deployment: the later call reads what the earlier committed, and the active-set duplicate check reads inside the transaction that writes. A refused call leaving the unit as the call found it stays the atom's own (Operation 24), as do the linear sequence of one actor's calls the atom assumes (Concurrency 1), the atom itself resolving no two concurrent calls (Non-goal 14) and the id that never changes (Invariant 8.2). The atom keeps no history of a unit (State 10, Non-goal 13), its checks compare the auditor's own reads, and it orders no units (Non-goal 10), so it cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Personal Todo.
