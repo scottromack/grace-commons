@@ -1230,7 +1230,7 @@
   "models": {
    "als": false,
    "tla": true,
-   "twins": 9
+   "twins": 6
   },
   "regulated": true,
   "standards": [
