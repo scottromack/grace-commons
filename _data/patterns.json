@@ -1310,7 +1310,7 @@
    "propagate-consent-revocation-downstream"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 11,
   "kind": "atom",
   "models": {
@@ -1347,7 +1347,7 @@
    "SOX",
    "eIDAS"
   ],
-  "status": "grounded on Final Critique 7 \u2014 2026-10-03",
+  "status": "partially resolved",
   "title": "Retention Window"
  },
  "selective-disclosure": {
