@@ -22,7 +22,7 @@
 \*   in the work bound (Per-act critical section 13e, 13g) and Non-goal 11 are not modelled.
 \* - The mark's holder compare (seal now 22, 23), a leg's margin before a [Record Action] (Per-act critical section 13f), the doubled skew term
 \*   (the model runs A = 0) and the measured enumeration (Instance start 28) are not modelled.
-\* - The call pause bound margin (Term lease, Term outlived, Per-act critical section 13a), the probe of Invariant 1.10 through 1.12, the outage restart
+\* - The call pause bound margin (Term lease, Per-act critical section 13a), the probe of Invariant 1.10 through 1.12, the outage restart
 \*   (Composition-level invariant 1c), the scan scheduler and the first half's upper edge (First half 12) are not modelled.
 \* - Scan legs run concurrently and a leg's lease is sized from the run's elapsed time (Reconciliation 1a, Per-act critical section 13a, 13d, 13e): runs are
 \*   instantaneous here. The lease call kinds (Per-act critical section 15, 16), erasure mechanism 7a (the mechanism answers destroyed over destroyed

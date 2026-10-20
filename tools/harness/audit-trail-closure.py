@@ -68,7 +68,8 @@ def ev(formula, env):
 TIMELINE = [
  ('reconciliation cadence 1a',        'a run starts no later than one cadence after the previous run\'s START; runs may overlap'),
  ('Reconciliation 5',                 'a run reads now once, before its enumeration; the age edge is read against that reading'),
- ('clock offset allowance 2',         'the edge is widened by the allowance, and the scan\'s reading may run one allowance behind the stamp: bound + 2A'),
+ ('clock offset allowance 2',         'the first half\'s edge is widened by the allowance, and the scan\'s reading may run one allowance behind the stamp: bound + 2A'),
+ ('Capability requirement 13',        'a [Record Action]\'s writes commit together (Execution Contract Store 1): the second and third halves examine a finding from its creation, and no record action holds its act'),
  ('First half 1',                     'first half, before the take: one enumeration, the retention store'),
  ('Second half 1',                    'second half, before the take: the binding set (audit log, then destruction records) ...'),
  ('Reconciliation 1',                 '... and the attestation store the half runs over'),
@@ -84,7 +85,7 @@ TIMELINE = [
  ('Reconciliation 1b',                'the take comes before the wait on the probe, so the wait is spent under the lease'),
  ('Invariant 1.10',                   'a run\'s first reconciliation-path record action goes alone ...'),
  ('Invariant 1.11',                   '... and the others wait for its RETURN: one record action, its per-event seal included'),
- ('Per-act critical section 9c',      'a record action seals at step 6 before it returns under per-event cadence'),
+ ('record action step 6.1',           'a record action seals at step 6 before it returns under per-event cadence'),
  ('Instance start 23',                'a seal call is priced at twice the seal bound; purge bound exceeds it'),
  ('Per-act critical section 13f',     'a leg starts a record action only while remaining > start margin'),
  ('start margin',                     'read from the page; checked here against how late a stalled record action can write'),
@@ -93,8 +94,7 @@ TIMELINE = [
  ('Third half 8',                     'intent before placement'),
  ('Third half 9',                     'placement before the compensation record'),
  ('lease',                            'live only while remaining > 2 call pauses (Lease Sizing 2)'),
- ('Per-act critical section 9a',      'an invocation\'s lease is its completion bound, so a dead holder strands the act that long'),
- ('record action step 2.10',          'the take lands no later than one record bound after the invocation\'s reading: the section frees by 2 record bounds'),
+ ('Per-act critical section 9a',      'a cascade\'s lease is its completion bound, so a dead cascade strands the act that long'),
  ('compensation closure latency 1',   'one whole closure lands within closure latency of the run\'s start'),
  ('Capability requirement 7c',        'a hold placement holds the event\'s section as a lease of the purge bound'),
  ('Per-act critical section 15a',     'a hold placement waits for a held section and takes it when it frees; a leg does not wait'),
@@ -146,8 +146,8 @@ def leg(p, d, lat, half, reading):
         return None                                           # every cascade write is gated live; L > purge bound finishes it
     seal = 2 * p['scb'] if p['per_event'] else 0
     ra = cpb + rab + seal                                     # one record action, call to return, when it does not stall
-    reach = cpb + 2 * rab                                     # ... and how late its last write can land when it does: its
-                                                              # reading, a take up to one bound later (step 2.10), a lease of one bound (9a)
+    reach = cpb + rab                                         # ... and how late its last write can land when it does: its writes
+                                                              # commit together, inside one record bound of the call (Capability requirement 13)
     if d['margin'] < cpb + reach:                             # the reading 13f acts on is one call old
         return '13h: a record action started on a passing 13f can write %d after the leg\'s lease has ended' % (cpb + reach - d['margin'])
     t = (p['E_log'] + p['E_dest']) if half == 'second' else (p['E_log'] + p['E_ret'])
@@ -172,9 +172,8 @@ def worst_landing(p, lat, half, reading):
     """C3: the latest a closure can land after the finding's creation: one dead run budgeted, and,
     where Legal Hold is composed, one hold placement over a first-half entry."""
     cpb, C, A = p['cpb'], p['C'], p['A']
-    bound = p['pcb'] if half == 'first' else p['rab']
-    t_age = bound + 2 * A
-    free0 = {'first': p['pcb'], 'second': 2 * p['rab'], 'third': p['rab']}[half]
+    t_age = p['pcb'] + 2 * A if half == 'first' else 0      # only the first half examines below an edge (First half 2)
+    free0 = p['pcb'] if half == 'first' else 0              # only a cascade holds its act's section from the start (9a)
     emax = pretake(p, half, reading)
     sys.setrecursionlimit(100000)
 
@@ -262,8 +261,6 @@ TWINS = [
   'the take\'s own call pause uncounted'),
  ('floor-no-probe', 'closure floor', '3 * record_action_completion_bound + 6 * call_pause_bound',
   'the probe\'s wait uncounted'),
- ('margin-one-bound', 'start margin', 'record_action_completion_bound + 2 * call_pause_bound',
-  'a started record action priced at one bound, though a stalled one writes for two (the page as it stood at 10a1796)'),
  ('sum-no-placement', 'closure sum legal-hold', '0 * purge_completion_bound',
   'no hold placement budgeted where Legal Hold is composed'),
  ('sum-one-run',   'closure sum',

@@ -1,5 +1,5 @@
----- MODULE audit-trail-record-buggy-nopre ----
-\* BUGGY TWIN (vacuity guard): the invocation neither checks that it has outlived its bound (record action step 2.10, 2.11) nor reads compensated attestations under the section (step 3.5, 3.6), so a stalled invocation appends under an attestation a scan half already compensated.
+---- MODULE audit-trail-record-buggy-split ----
+\* BUGGY TWIN (vacuity guard): [Record Action]'s writes split as if Execution Contract Store 1 did not hold, so a scan half compensates an attestation whose event then lands, or places a retention its record action then places again (Inv1_NoLateEvent, Inv_OneWriter violated).
 EXTENDS Naturals
 
 CONSTANTS RecBound, SweepLease, Cadence, MaxTime
@@ -7,15 +7,14 @@ CONSTANTS RecBound, SweepLease, Cadence, MaxTime
 VARIABLES now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2
 vars == <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-Edge == RecBound   \* record edge = record action completion bound + clock offset allowance (0 here)
 ClosureBound == 2 * RecBound + 2 * (Cadence + SweepLease)   \* the page's closure sum: max(2 * record bound, purge bound) + allowance + 2 * (cadence + closure latency)
 
 Live(who) == holder = who /\ now < exp
 
 TypeOK ==
     /\ now \in 0..MaxTime
-    /\ ipc \in {"idle", "t", "a3", "a4", "done", "dead"}
-    /\ holder \in {"none", "inv", "s1", "s2"}
+    /\ ipc \in {"idle", "a3", "a4", "done"}
+    /\ holder \in {"none", "s1", "s2"}
     /\ exp \in 0..(MaxTime + RecBound + SweepLease)
     /\ att \in BOOLEAN
     /\ attAt \in 0..MaxTime
@@ -75,74 +74,33 @@ HostRelease ==
     /\ holder' = "none"
     /\ UNCHANGED <<now, ipc, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Step 2: attest. The critical section does not exist yet: its key is the attestation id this step returns (Per-act critical section, record action step 2.6).
+\* BUG: [Record Action]'s writes split, as if Execution Contract Store 1 did not hold — the attestation commits alone,
+\* the append and the placement each later, under no section — so a scan run meets the act in flight.
 IAttest ==
     /\ ipc = "idle"
     /\ att' = TRUE
     /\ attAt' = now
-    /\ ipc' = "t"
+    /\ ipc' = "a3"
     /\ UNCHANGED <<now, holder, exp, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Step 2.6: take the section keyed by the attestation id; the lease begins here, after the attestation committed.
-ITake ==
-    /\ ipc = "t"
-    /\ holder = "none"
-    /\ ipc' = "a3"
-    /\ holder' = "inv"
-    /\ exp' = now + RecBound
-    /\ UNCHANGED <<now, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
-
-\* record action step 2.10-2.11: the invocation has outlived record action completion bound, takes no section and appends nothing.
-IOutlived ==
-    /\ FALSE
-    /\ ipc' = "dead"
-    /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
-
-\* record action step 2.9: the section is held (a scan half has it), so the invocation does not append; mid-record expiry arm.
-IHeld ==
-    /\ ipc = "t"
-    /\ holder # "none"
-    /\ ipc' = "dead"
-    /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
-
-\* BUG: appends without reading compensated attestations under the section (record action step 3.5, 3.6 violated).
 IAppend ==
     /\ ipc = "a3"
-    /\ Live("inv")
-    /\ att
     /\ ev' = TRUE
     /\ evAt' = now
     /\ ipc' = "a4"
     /\ UNCHANGED <<now, holder, exp, att, attAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Step 4: place under retention; re-reads event to retention first and adopts a placement that landed (record action step 4.1-4.2).
 IPlace ==
     /\ ipc = "a4"
-    /\ Live("inv")
-    /\ plc' = IF plc = 0 THEN 1 ELSE plc + 1
+    /\ plc' = plc + 1
     /\ ipc' = "done"
-    /\ holder' = IF holder = "inv" THEN "none" ELSE holder
-    /\ UNCHANGED <<now, exp, att, attAt, ev, evAt, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
+    /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Mid-record expiry (record action step 7.6): no further write; the partial state is the scan's.
-IAbort ==
-    /\ ipc \in {"a3", "a4"}
-    /\ ~Live("inv")
-    /\ ipc' = "dead"
-    /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
-
-\* The invocation may die at any point.
-ICrash ==
-    /\ ipc \in {"t", "a3", "a4"}
-    /\ ipc' = "dead"
-    /\ UNCHANGED <<now, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2, lr2>>
-
-\* Second half: an attestation absent from the binding set and older than record edge (Second half 1-3); takes the critical section keyed by its id.
+\* Second half: an attestation absent from the binding set (Second half 1, 2); takes the critical section keyed by its id.
 TakeOrphan1 ==
     /\ spc1 = "idle"
     /\ holder = "none"
     /\ att /\ ~ev
-    /\ now - attAt >= Edge
     /\ holder' = "s1"
     /\ exp' = now + SweepLease
     /\ spc1' = "held"
@@ -150,12 +108,11 @@ TakeOrphan1 ==
     /\ lr1' = now
     /\ UNCHANGED <<now, ipc, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc2, tgt2, lr2>>
 
-\* Third half: an event with no retention, older than record edge (Third half 4-5); takes the critical section keyed by its payload attestation id.
+\* Third half: an event with no retention (Third half 1-3); takes the critical section keyed by its payload attestation id (Third half 5).
 TakeUnretained1 ==
     /\ spc1 = "idle"
     /\ holder = "none"
     /\ ev /\ plc = 0
-    /\ now - evAt >= Edge
     /\ holder' = "s1"
     /\ exp' = now + SweepLease
     /\ spc1' = "held"
@@ -166,7 +123,7 @@ TakeUnretained1 ==
 \* A run that finds the section held or nothing to examine skips (Per-act critical section 5).
 Skip1 ==
     /\ spc1 = "idle"
-    /\ (holder # "none" \/ ~(att /\ ~ev /\ now - attAt >= Edge) /\ ~(ev /\ plc = 0 /\ now - evAt >= Edge))
+    /\ (holder # "none" \/ ~(att /\ ~ev) /\ ~(ev /\ plc = 0))
     /\ lr1' = now
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, spc2, tgt2, lr2>>
 
@@ -220,12 +177,11 @@ SCrash1 ==
     /\ crashes' = crashes + 1
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, tgt1, lr1, spc2, tgt2, lr2>>
 
-\* Second half: an attestation absent from the binding set and older than record edge (Second half 1-3); takes the critical section keyed by its id.
+\* Second half: an attestation absent from the binding set (Second half 1, 2); takes the critical section keyed by its id.
 TakeOrphan2 ==
     /\ spc2 = "idle"
     /\ holder = "none"
     /\ att /\ ~ev
-    /\ now - attAt >= Edge
     /\ holder' = "s2"
     /\ exp' = now + SweepLease
     /\ spc2' = "held"
@@ -233,12 +189,11 @@ TakeOrphan2 ==
     /\ lr2' = now
     /\ UNCHANGED <<now, ipc, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1>>
 
-\* Third half: an event with no retention, older than record edge (Third half 4-5); takes the critical section keyed by its payload attestation id.
+\* Third half: an event with no retention (Third half 1-3); takes the critical section keyed by its payload attestation id (Third half 5).
 TakeUnretained2 ==
     /\ spc2 = "idle"
     /\ holder = "none"
     /\ ev /\ plc = 0
-    /\ now - evAt >= Edge
     /\ holder' = "s2"
     /\ exp' = now + SweepLease
     /\ spc2' = "held"
@@ -249,7 +204,7 @@ TakeUnretained2 ==
 \* A run that finds the section held or nothing to examine skips (Per-act critical section 5).
 Skip2 ==
     /\ spc2 = "idle"
-    /\ (holder # "none" \/ ~(att /\ ~ev /\ now - attAt >= Edge) /\ ~(ev /\ plc = 0 /\ now - evAt >= Edge))
+    /\ (holder # "none" \/ ~(att /\ ~ev) /\ ~(ev /\ plc = 0))
     /\ lr2' = now
     /\ UNCHANGED <<now, ipc, holder, exp, att, attAt, ev, evAt, plc, nO, cO, nU, cU, crashes, spc1, tgt1, lr1, spc2, tgt2>>
 
@@ -307,13 +262,8 @@ Next ==
     \/ Tick
     \/ HostRelease
     \/ IAttest
-    \/ ITake
-    \/ IOutlived
-    \/ IHeld
     \/ IAppend
     \/ IPlace
-    \/ IAbort
-    \/ ICrash
     \/ TakeOrphan1
     \/ TakeUnretained1
     \/ Skip1
@@ -341,11 +291,11 @@ Spec == Init /\ [][Next]_vars
 Inv1_AttestFirst == ev => att
 Inv2_EventFirst == (plc > 0) => ev
 
-\* A compensated orphan never acquires an event afterwards (Second half 9-10 against a late step 3).
+\* A compensated orphan never acquires an event afterwards (Second half 9-10; Execution Contract Store 1).
 Inv1_NoLateEvent == (cO > 0) => ~ev
 
 \* One writer per act: one placement, one intent and one compensation per finding
-\* (Compensation 2, 11; Second half 13; Concurrency 6, 9).
+\* (Compensation 2, 11; Second half 13; Concurrency 9).
 Inv_OneWriter == plc <= 1 /\ nO <= 1 /\ cO <= 1 /\ nU <= 1 /\ cU <= 1
 
 \* Invariants 1.4 and 2 liveness arms, bounded: an orphan or an unretained event older
