@@ -6,9 +6,11 @@
 \* from one atomic commit to an ordering across durability boundaries (methodology
 \* debt #19, the atomicity class). A twin has to break the invariant as it is NOW
 \* stated, or it guards a claim the corpus no longer makes. The previous version of
-\* this twin split one transaction into three interleavable writes; that split is
-\* no longer a bug, because the repaired composition does exactly that on purpose.
-\* What IS a bug is doing it silently.
+\* this twin split one transaction into three interleavable writes; that split was
+\* no bug then, because the repaired composition did exactly that on purpose. Since
+\* 2026-10-20 Execution Contract Store 1 commits the redemption, the record and the
+\* append together, and the unsealed state is reached only when Audit Trail refuses
+\* the append (Audit arm 20). What IS a bug is leaving that state silent.
 \*
 \* BUG: the domain transaction commits and the seal does not, with NO surfacing
 \* and NO compensation. The unsealed disclosure is reachable here, but so it is in

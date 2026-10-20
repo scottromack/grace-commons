@@ -6,34 +6,35 @@
 \* disagreement, diagnose per the entry *The conflict protocol* in pressure-testing.md.
 \*
 \* WHAT THIS MODEL CHECKS
-\* Invariant 2 — disclosure-accountability binding — as it is stated after the
-\* 2026-08-27 durability-boundary protocol repair (methodology debt #19, the
-\* atomicity class). The previous model asserted that the Selective Disclosure
-\* record, the `sharing.disclosed` Audit Trail event and the binding all land in
-\* ONE atomic action. That was not a conservative idealization; it was FALSE, and
-\* it hid a reachable forbidden state. The Audit Trail append goes through a
-\* substrate that declares an appended event cannot be withdrawn and offers no
-\* synchronous rollback, so the host transaction never enlisted it — and a
-\* transaction that aborted AFTER the append had landed left a sealed
-\* `sharing.disclosed` event for a disclosure the canonical state says never
-\* happened. The old model could not represent that state, so it could not find it.
-\* capability-backed-sharing-buggy-old-wiring.tla is exactly that old wiring, and
-\* it is rejected here on Inv2_NoOrphanSeal. That rejection is the mechanical
-\* record that the repair was load-bearing rather than editorial.
+\* Invariant 2 — disclosure-accountability binding. Since 2026-10-20 Execution
+\* Contract Store 1 commits every write of one [Redeem And Disclose] — the
+\* redemption-decrement, the Selective Disclosure record, the `pending` marker and
+\* the `sharing.disclosed` Audit Trail append — together or not at all, which
+\* CommitClean's single step encodes; the unsealed state is the one Audit Trail's
+\* refusal of the append leaves (Audit arm 20), the act committed and the refusal
+\* surfaced. capability-backed-sharing-buggy-old-wiring.tla takes Store 1 away — an
+\* append that lands while the transaction holding it aborts — and is rejected here
+\* on Inv2_NoOrphanSeal. (From the 2026-08-27 repair until the Store contract the
+\* append stood outside a host transaction that could not enlist it, and that twin
+\* was the composition's own earlier wiring; methodology debt #19, the atomicity
+\* class.)
 \*
-\* THE SHAPE — three durability boundaries in order, per disclosure d:
-\*   WriteIntent     — the [Sharing Disclosure Intended] event. Durable, appended
-\*                     before anything commits, never withdrawn. An intent with no
-\*                     outcome is expected residue, not a fault.
-\*   CommitClean     — the transactional domain mutation (redemption-decrement +
-\*                     Selective Disclosure record + `pending` marker) commits, and
-\*                     the seal lands. The ordinary path.
-\*   CommitUnsealed  — the transaction commits and the seal does NOT land. The
-\*                     disclosure is real and its seal is missing; surfaced in the
-\*                     same outcome that returns rejected(recording-failure).
-\*   RetrySeal       — the compensation: the append retried until it lands, marking
-\*                     the event "recovered" (cascade_recovery = true) so an auditor
-\*                     tells a compensated disclosure from a clean one.
+\* THE SHAPE, per disclosure d:
+\*   WriteIntent     — the [Sharing Disclosure Intended] event, the redemption's
+\*                     first write. An intent with no committed disclosure is a
+\*                     redemption that consumed nothing (its refusal or abandonment
+\*                     event unmodelled), not a fault.
+\*   CommitClean     — the redemption-decrement, the Selective Disclosure record,
+\*                     the `pending` marker and the seal commit together (Store 1).
+\*                     The ordinary path.
+\*   CommitUnsealed  — the transaction commits and the seal does NOT land: Audit
+\*                     Trail refused the append (Audit arm 20). The disclosure is
+\*                     real and its seal is missing; surfaced in the same outcome
+\*                     that returns rejected(recording-failure).
+\*   RetrySeal       — the compensation: the reconciliation seals the pending
+\*                     marker (Reconciliation 9), marking the event "recovered"
+\*                     (cascade_recovery = true) so an auditor tells a compensated
+\*                     disclosure from a clean one.
 \*
 \* Per disclosure d, the sub-writes:
 \*   intentState[d] : "absent" | "present"                [Sharing Disclosure Intended]
@@ -58,8 +59,8 @@
 \* The disclosure_to_redemption index is deliberately NOT a variable. Its `pending`
 \* half is exactly txState = "committed" /\ auditState = "absent", which the model
 \* already carries, and its sealed half is a rebuildable mirror of the event —
-\* giving it its own variable would reintroduce a write whose atomicity with the
-\* event is precisely what is not granted.
+\* giving it its own variable would add a write Store 1 already commits with the
+\* record.
 \*
 \* NOT MODELED (out of scope for the load-bearing property)
 \* - the audit-subject asymmetry (Invariant 1) — a structural / by-construction
@@ -67,9 +68,9 @@
 \*   verified (capability.als enforces Capability Invariants 3 and 5 by
 \*   construction — no redeemer field, redeem takes no identity); not a
 \*   TLA+-class temporal claim.
-\* - allocation-authorization binding (Invariant 3). Its safety arm now has the
-\*   SAME SHAPE as Invariant 2's — durable intent, transactional allocate, durable
-\*   attestation — and it is repaired in the English by the same reasoning, but it
+\* - allocation-authorization binding (Invariant 3). Its safety arm has the
+\*   SAME SHAPE as Invariant 2's — intent, allocate and attestation in one
+\*   transaction (Store 1), the attestation refusable by Audit Trail — but it
 \*   is not verified here and this model must not be cited as evidence for it. It
 \*   is the cheaper arm because its reachable partial is inert: an unattested
 \*   capability has no capability_to_sharing entry, and [Redeem And Disclose]
@@ -105,7 +106,7 @@ WriteIntent(d) ==
     /\ intentState' = [intentState EXCEPT ![d] = "present"]
     /\ UNCHANGED <<txState, auditState, surfaced>>
 
-\* CLEAN outcome: the domain transaction commits and the seal lands after it.
+\* CLEAN outcome: the domain transaction and the seal commit together (Store 1).
 \* The intent precondition is the ordering claim made structural.
 CommitClean(d) ==
     /\ intentState[d] = "present"
@@ -114,10 +115,10 @@ CommitClean(d) ==
     /\ auditState' = [auditState EXCEPT ![d] = "clean"]
     /\ UNCHANGED <<intentState, surfaced>>
 
-\* UNSEALED outcome: the domain transaction commits, the append does not land.
-\* The disclosure is real; its seal is missing. Surfaced in the same outcome that
-\* returns rejected(recording-failure), and durable until compensated. This is the
-\* state the previous model could not represent, and the deployment reaches it.
+\* UNSEALED outcome: the domain transaction commits, the append does not land —
+\* Audit Trail refused it (Audit arm 20). The disclosure is real; its seal is
+\* missing. Surfaced in the same outcome that returns rejected(recording-failure),
+\* and durable until compensated.
 CommitUnsealed(d) ==
     /\ intentState[d] = "present"
     /\ txState[d] = "absent"
@@ -125,11 +126,12 @@ CommitUnsealed(d) ==
     /\ surfaced'  = [surfaced EXCEPT ![d] = TRUE]
     /\ UNCHANGED <<intentState, auditState>>
 
-\* COMPENSATION: the append retried until it lands. Enabled in exactly the
-\* unsealed configuration — no unsealed disclosure is a dead end, which is the
-\* enabledness half of the liveness arm. The auditState[d] = "absent" guard is
-\* also the check-then-retry rule made structural: once the seal has landed this
-\* action is disabled, so a retry after a lost acknowledgment cannot double-seal.
+\* COMPENSATION: the reconciliation seals the pending marker (Reconciliation 9).
+\* Enabled in exactly the unsealed configuration — no unsealed disclosure is a
+\* dead end, which is the enabledness half of the liveness arm. The
+\* auditState[d] = "absent" guard is also the one-seal rule made structural: once
+\* the seal has landed this action is disabled, so no marker is sealed twice
+\* (Invariant 2.2).
 RetrySeal(d) ==
     /\ txState[d] = "committed"
     /\ auditState[d] = "absent"
@@ -145,13 +147,12 @@ Spec == Init /\ [][Next]_vars
 
 \* --- composition-level safety invariants (Invariant 2) ---
 
-\* THE INVARIANT THE REPAIR BOUGHT. No `sharing.disclosed` event without its
-\* committed disclosure behind it. Unconditional, and it is the ORDERING that
-\* earns it: the append happens only after the domain transaction has committed,
-\* so a seal that exists had its disclosure committed before it. This is the
-\* direction a regulator reads, and it is the direction the previous wiring could
-\* violate — see capability-backed-sharing-buggy-old-wiring.tla, which is that
-\* wiring and is rejected here.
+\* No `sharing.disclosed` event without its committed disclosure behind it.
+\* Unconditional: Store 1 commits the append with the domain transaction or not at
+\* all, and the append follows Selective Disclosure's answer (Action wiring 36), so
+\* a seal that exists had its disclosure committed with it. This is the direction a
+\* regulator reads — see capability-backed-sharing-buggy-old-wiring.tla, which
+\* takes Store 1 away and is rejected here.
 Inv2_NoOrphanSeal ==
     \A d \in Disclosures :
         (auditState[d] \in {"clean", "recovered"}) => (txState[d] = "committed")

@@ -1,5 +1,5 @@
 ---- MODULE capability-backed-sharing-buggy-old-wiring ----
-\* BUGGY TWIN (ordering hazard; vacuity guard) for capability-backed-sharing.tla.
+\* BUGGY TWIN (split-write hazard; vacuity guard) for capability-backed-sharing.tla.
 \* Grace Commons — derived validator. The English spec is the source of truth.
 \*
 \* NEW 2026-08-27. This twin is not a hypothetical mis-implementation invented to
@@ -7,14 +7,15 @@
 \* here because a repair whose necessity cannot be demonstrated is indistinguishable
 \* from a preference. Until 2026-08-27 [Redeem And Disclose] step 3 committed the
 \* redemption-decrement, the Selective Disclosure record and the sharing.disclosed
-\* Audit Trail append "together or not at all" under the host transaction boundary.
+\* Audit Trail append "together or not at all" under the host transaction boundary,
+\* a claim no store Audit Trail then declared could honour. Since 2026-10-20
+\* Execution Contract Store 1 makes it the rule, and this twin is what Store 1 rules
+\* out.
 \*
-\* BUG: the append sits INSIDE the transaction's atomic set, where the substrate
-\* cannot put it. Audit Trail declares that an appended event cannot be withdrawn
-\* and that synchronous rollback is unavailable to it, so the host transaction
-\* never enlisted the append and could never have rolled it back. The transaction
-\* can therefore abort after the append has landed, and the trail is left asserting
-\* a disclosure that the canonical state says never happened.
+\* BUG: the append lands, and the transaction holding it then aborts without it —
+\* a split write Execution Contract Store 1 forbids, under which the append commits
+\* with the redemption, the record and the marker or not at all. The trail is left
+\* asserting a disclosure that the canonical state says never happened.
 \*
 \* Modeled directly: WriteAuditInTx makes the append durable while txState is
 \* still "absent", and AbortTx is the abort that leaves it that way permanently.
@@ -56,8 +57,8 @@ WriteIntent(d) ==
     /\ intentState' = [intentState EXCEPT ![d] = "present"]
     /\ UNCHANGED <<txState, auditState, surfaced>>
 
-\* BUG: the append is made durable while the transaction is still open. The old
-\* wiring believed this write would roll back with the transaction. It cannot.
+\* BUG: the append is made durable while the transaction is still open, and
+\* survives the transaction's abort — the split Store 1 forbids.
 WriteAuditInTx(d) ==
     /\ intentState[d] = "present"
     /\ txState[d] = "absent"
@@ -71,7 +72,7 @@ CommitTx(d) ==
     /\ txState' = [txState EXCEPT ![d] = "committed"]
     /\ UNCHANGED <<intentState, auditState, surfaced>>
 
-\* The abort the old wiring assumed would take the append with it.
+\* The abort that, under Store 1, would take the append with it.
 AbortTx(d) ==
     /\ auditState[d] = "clean"
     /\ txState[d] = "absent"
