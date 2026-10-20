@@ -350,15 +350,17 @@ Every specification keeps records, and every deployment keeps them in a store. W
 
 **Store 4: The store never edits.** No committed record changes or disappears except by an action a specification declares. The store runs no trigger, default, cascade, expiry or compaction that alters or removes a committed record; erasure and purge happen only as the specification that owns them says.
 
-### Particular families: History and Order
+**Store 5: Every committed version stays readable.** A record's earlier versions remain readable after it changes, each as it stood at the commit that wrote it, so a reader can ask what a record was as of any past commit. An erasure or purge a specification declares removes every version of what it erases, not only the current one.
 
-Two guarantees only some specifications need, and a specification that does not cite one may not assume it. A specification that rests on either names the label in its Capability requirement section.
+### A particular family: Order
 
-**History 1: Every committed version stays readable.** A record's earlier versions remain readable after it changes, each as it stood at the commit that wrote it, so a reader can ask what a record was as of any past commit.
+One guarantee only some specifications need, and a specification that does not cite it may not assume it. A specification that rests on it names the label in its Capability requirement section.
+
+**History 1: Deleted.** Store 5 owns it: since 2026-10-20 basic history is kept for every specification, not only for those that cite it.
 
 **Order 1: Commits have one order.** Every commit carries a position in a single order that only ever increases and that every reader reads the same way, so two records' commits can always be compared.
 
-On a store with no native version history, History 1 is rendered as generated append-only version tables; on a store with no native commit order, Order 1 is rendered as a sequence assigned inside the commit (Store 1). Neither is a second store.
+On a store with no native version history, Store 5 is rendered as generated append-only version tables; on a store with no native commit order, Order 1 is rendered as a sequence assigned inside the commit (Store 1). Neither is a second store.
 
 ---
 
