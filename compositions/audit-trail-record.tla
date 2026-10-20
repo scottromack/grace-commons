@@ -31,8 +31,8 @@
 \*   compensation's recursion (it is itself a [Record Action]), are not carried. Step 5 indexes.
 \* - The restart-triggered scan run; the single scan-crash budget is shared by both runs.
 \* - Where the model is more generous than the page: a write issued inside the lease lands inside it
-\*   (the page's premise, made an obligation by compensation closure latency 2: the pause between a
-\*   lease check and its write is inside the bound; no constituent write carries a fence); clock
+\*   (a stalled write the page lets land later, refused once the next holder takes the section, its
+\*   lease check and the write being one transaction, Capability requirement 13); clock
 \*   offset allowance 0; narrated is a flag, not a read of the log.
 \* - The leg abort (Per-act critical section 13b, 13c) is NOT exercised: SAbort1 and SAbort2 are
 \*   unreachable, because Tick holds time while a run is in flight (compensation closure latency 1),
@@ -41,7 +41,7 @@
 \*   audit-trail-binding.tla. The scan's retry of an invalid-request refusal on the next run
 \*   (Compensation 15), and Tamper Evidence's record set match (Capability requirement 5): not carried.
 \* - Not carried, each on the page and unverified here: the Legal Hold gate over a first cascade (purge event 5c; over a re-driven entry, with the placement's
-\*   serialization and the hold-release restart, it is audit-trail-hold.tla's); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1e, the sealing lock's lease and its abandoned-call rule); the start checks Instance start 21 and 22 (horizon); a leg's placement or a seal abandoned and the holder released early is carried by audit-trail-abandon.tla; the cascade's erasure delegation abandoned is carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
+\*   serialization and the hold-release restart, it is audit-trail-hold.tla's); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1d, the sealing lock's lease); the start checks Instance start 21 and 22 (horizon); a leg's placement or a seal abandoned is refused once the next holder takes the section, its lease check and its write being one transaction (Capability requirement 13), so no model carries it; the cascade's erasure delegation abandoned (Per-act critical section 2a) is carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
 \*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (purge event step 0.7); the third half's
 \*   policy resolution (Third half 15). Both models are single-act: the cross-act serialization of Concurrency 1 is
 \*   absent, and Invariant 3 is unmodelled.

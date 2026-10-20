@@ -12,7 +12,7 @@ wants an enumerator.
 
 What is read from the page, so the page and this script cannot drift apart silently:
   Term closure sum (both parts), Term closure floor (both parts), Term closure spend, Term
-  re-drive spend, Term start margin, Term record edge, Term purge edge  — evaluated as written.
+  re-drive spend, Term record edge, Term purge edge  — evaluated as written.
 What is encoded here, each line citing the rule it transcribes; every cited label must
 exist on the page or the run fails:
   the leg timeline (TIMELINE below), Term work bound's enumeration counts, Instance start
@@ -39,7 +39,7 @@ SAFE = re.compile(r'^[\sa-z_0-9+*(),]+$')
 def read_page(path=PAGE):
     text = open(path, encoding='utf-8').read()
     terms = {}
-    for name in ['closure spend', 're-drive spend', 'record edge', 'purge edge', 'start margin']:
+    for name in ['closure spend', 're-drive spend', 'record edge', 'purge edge']:
         m = re.search(r'^\s*Term %s: `([^`]+)`' % re.escape(name), text, re.M)
         if not m:
             sys.exit('page changed: Term %s has no formula in a code span' % name)
@@ -69,7 +69,7 @@ TIMELINE = [
  ('reconciliation cadence 1a',        'a run starts no later than one cadence after the previous run\'s START; runs may overlap'),
  ('Reconciliation 5',                 'a run reads now once, before its enumeration; the age edge is read against that reading'),
  ('clock offset allowance 2',         'the first half\'s edge is widened by the allowance, and the scan\'s reading may run one allowance behind the stamp: bound + 2A'),
- ('Capability requirement 13',        'a [Record Action]\'s writes commit together (Execution Contract Store 1): the second and third halves examine a finding from its creation, and no record action holds its act'),
+ ('Capability requirement 13',        'a [Record Action]\'s writes commit together (Execution Contract Store 1): the second and third halves examine a finding from its creation, and no record action holds its act; a holder\'s lease check and its write are one transaction (Execution Contract Store 2), so a write committing after the leg\'s lease meets the next holder\'s take'),
  ('First half 1',                     'first half, before the take: one enumeration, the retention store'),
  ('Second half 1',                    'second half, before the take: the binding set (audit log, then destruction records) ...'),
  ('Reconciliation 1',                 '... and the attestation store the half runs over'),
@@ -87,9 +87,8 @@ TIMELINE = [
  ('Invariant 1.11',                   '... and the others wait for its RETURN: one record action, its per-event seal included'),
  ('record action step 6.1',           'a record action seals at step 6 before it returns under per-event cadence'),
  ('Instance start 23',                'a seal call is priced at twice the seal bound; purge bound exceeds it'),
- ('Per-act critical section 13f',     'a leg starts a record action only while remaining > start margin'),
- ('start margin',                     'read from the page; checked here against how late a stalled record action can write'),
- ('Per-act critical section 13h',     'a record action a leg starts completes its truth-bearing writes inside the leg\'s lease'),
+ ('Per-act critical section 13b',     'a leg reads its lease before each write, the placement and each record action, and issues none once it reads expired'),
+ ('Per-act critical section 13c',     'a leg whose lease reads expired skips the act: a leg finishes when its last write commits inside its lease'),
  ('record action completion bound',   'the bound runs from the first committed write; the attest call ahead of it is one call'),
  ('Third half 8',                     'intent before placement'),
  ('Third half 9',                     'placement before the compensation record'),
@@ -118,8 +117,7 @@ def derive(p, terms):
     env['closure_floor'] = floor
     d = dict(me=me, floor=floor,
              spend=ev(terms['closure spend'], env), respend=ev(terms['re-drive spend'], env),
-             record_edge=ev(terms['record edge'], env), purge_edge=ev(terms['purge edge'], env),
-             margin=ev(terms['start margin'], env))
+             record_edge=ev(terms['record edge'], env), purge_edge=ev(terms['purge edge'], env))
     d['sum_of'] = lambda lat: (ev(terms['closure sum'], dict(env, compensation_closure_latency=lat))
                                + (ev(terms['closure sum legal-hold'], env) if p['legal_hold'] else 0))
     return d
@@ -145,27 +143,21 @@ def leg(p, d, lat, half, reading):
     if half == 'first':
         return None                                           # every cascade write is gated live; L > purge bound finishes it
     seal = 2 * p['scb'] if p['per_event'] else 0
-    ra = cpb + rab + seal                                     # one record action, call to return, when it does not stall
-    reach = cpb + rab                                         # ... and how late its last write can land when it does: its writes
-                                                              # commit together, inside one record bound of the call (Capability requirement 13)
-    if d['margin'] < cpb + reach:                             # the reading 13f acts on is one call old
-        return '13h: a record action started on a passing 13f can write %d after the leg\'s lease has ended' % (cpb + reach - d['margin'])
+    ra = cpb + rab + seal                                     # one record action, call to return, its per-event seal included
     t = (p['E_log'] + p['E_dest']) if half == 'second' else (p['E_log'] + p['E_ret'])
     t += ra                                                   # the probe's wait
     for which in ('intent', 'compensation'):
         if which == 'compensation' and half == 'third':
-            t += cpb                                          # remaining, read for the placement
+            t += cpb                                          # remaining, read for the placement (13b)
             if not L - t > 2 * cpb:
                 return 'lease reads expired at the placement: remaining %d' % (L - t)
-            t += cpb                                          # the placement
-        t += cpb                                              # remaining, read for 13f
-        if not L - t > d['margin']:
-            return '13f declines the %s: remaining %d' % (which, L - t)
-        if which == 'intent':
-            t += ra
-    t += cpb + rab
-    if t > L:
-        return '13h: the compensation lands outside the lease'
+            t += cpb                                          # the placement, judged against the lease in its own transaction
+        t += cpb                                              # remaining, read for the record action (13b)
+        if not L - t > 2 * cpb:
+            return 'lease reads expired at the %s: remaining %d' % (which, L - t)
+        t += ra if which == 'intent' else cpb + rab           # the compensation's writes commit before its per-event seal
+        if t > L:
+            return 'the %s commits after the leg\'s lease: the next holder\'s take refuses it (Capability requirement 13)' % which
     return None
 
 def worst_landing(p, lat, half, reading):

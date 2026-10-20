@@ -19,8 +19,8 @@
 \*
 \* NOT MODELED
 \* - No-answer arms (record action step 3.7, 4.9, purge event step 1.6, 2.8, seal now 24, Per-act critical section 17), the leg's in-lease reads
-\*   in the work bound (Per-act critical section 13e, 13g) and Non-goal 11 are not modelled.
-\* - The mark's holder compare (seal now 22, 23), a leg's margin before a [Record Action] (Per-act critical section 13f), the doubled skew term
+\*   in the work bound (Per-act critical section 13e) and Non-goal 11 are not modelled.
+\* - The mark's holder compare (seal now 22, 23), the doubled skew term
 \*   (the model runs A = 0) and the measured enumeration (Instance start 28) are not modelled.
 \* - The call pause bound margin (Term lease, Per-act critical section 13a), the probe of Invariant 1.10 through 1.12, the outage restart
 \*   (Composition-level invariant 1c), the scan scheduler and the first half's upper edge (First half 12) are not modelled.
@@ -39,7 +39,7 @@
 \*   a run is in flight (compensation closure latency 1), so no leg outlives its lease.
 \* - The binding-set predicate against an in-flight cascade: audit-trail-binding.tla.
 \* - Not carried, each on the page and unverified here: the Legal Hold gate over a first cascade (purge event 5c; over a re-driven entry, with the placement's
-\*   serialization and the hold-release restart, it is audit-trail-hold.tla's); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1e, the sealing lock's lease and its abandoned-call rule); the start checks Instance start 21 and 22 (horizon); a leg's placement or a seal abandoned and the holder released early is carried by audit-trail-abandon.tla; the cascade's erasure delegation abandoned is carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
+\*   serialization and the hold-release restart, it is audit-trail-hold.tla's); the [Seal Now] crash gap and its rebuild (seal now 13 through 20, Concurrency 1a through 1d, the sealing lock's lease); the start checks Instance start 21 and 22 (horizon); a leg's placement or a seal abandoned is refused once the next holder takes the section, its lease check and its write being one transaction (Capability requirement 13), so no model carries it; the cascade's erasure delegation abandoned (Per-act critical section 2a) is carried by no model; scan run duration (compensation closure latency 3) is not modelled, runs being instantaneous; the [Verify Record] re-read against a
 \*   racing cascade (verify record 5, 6); the in-flight arm of [Purge Event] (purge event step 0.7); the third half's
 \*   policy resolution (Third half 15). Both models are single-act: the cross-act serializations of Concurrency 1 and 3 are
 \*   absent, and Invariant 3 is unmodelled.
@@ -52,13 +52,15 @@
 \* - MechOk = TRUE only: the destruction-failed loop (First half 4, Boundary one 3 through 6, Ledger 2026-08-30-d) is not explored, and Inv_BoundedClosure is vacuous over it; MechOk = FALSE overflows the deleg counter and then the harness depth cap.
 \* - The restart-triggered scan run; the single scan-crash budget is shared by the scan's runs.
 \* - Where the model is more generous than the page: a write issued inside the lease lands inside it
-\*   (the page's premise, made an obligation by purge completion bound 2: the pause between a lease
-\*   check and its write is inside the bound; no constituent write carries a fence); clock offset
+\*   (a stalled store write the page lets land later, refused once the next holder takes the section,
+\*   its lease check and the write being one transaction, Capability requirement 13; the erasure
+\*   delegation the page's premise, made an obligation by purge completion bound 2: the pause between
+\*   a lease check and the delegation is inside the bound, the mechanism carrying no fence); clock offset
 \*   allowance 0; the first half re-drives the cascade itself, where the page re-drives through
 \*   [Purge Event] under the section the first half holds (Per-act critical section 14).
 \* - The erasure mechanism answers destroyed on re-delegation: with an outcome unrecorded, a
 \*   re-delegation over destroyed content is the page's own open edge (Ledger 2026-08-30-d).
-\* - The leg arithmetic at conforming constants (Per-act critical section 13a, 13d, 13f, 13h, Term closure spend, Term re-drive spend,
+\* - The leg arithmetic at conforming constants (Per-act critical section 13a, 13b, 13d, Term closure spend, Term re-drive spend,
 \*   Term closure floor, Term work bound) and closure sum's schedule are carried by tools/harness/audit-trail-closure.py, not here.
 \* - Cadence, lease lengths and the horizon are small constants; "all invariants hold"
 \*   is a statement within MaxTime ticks at these constants and nothing more.
