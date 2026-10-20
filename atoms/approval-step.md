@@ -66,7 +66,7 @@ Identity 13: The atom MUST NOT interpret a scope.
 Identity 14: The deployment MUST supply a reference in one canonical byte form.
 ```
 
-Term step: one authorization gate — one subject, one approver, one submitter, one scope and one outcome; the record this atom holds.
+Term step: one authorization gate — one subject, one approver, one submitter, one scope and one outcome; an [Approval Step], the record this atom holds.
 
 Term step id: the opaque value naming one step — a [Step Id]; host-allocated at the seam.
 
@@ -85,9 +85,6 @@ Term store instance: one named step store a call is routed to; step id uniquenes
 Term seam: the atom's I/O boundary as the section titled Logic Confinement Principle in `execution-contract.md` declares it; the host injects the clock reading and the step id here.
 
 Term transition: the atom's evaluation of one call against the step store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
-
-WHY:
-Identity 10 is the rule the exclusivity invariants rest on. deciding actor against approver reference (Invariant 4) and withdrawing actor against submitter reference (Invariant 5) are exact byte-sequence comparisons on the values as supplied — no Unicode normalization, no case folding, no trimming. Two references that render identically and differ in bytes are different actors to this atom, and a precomposed accented character will not match its decomposed twin. That is unforgiving, and it is the only comparison an exclusivity guard can safely make: a normalizing comparison would let the atom decide that two spellings name one actor, which is an identity judgment this atom has no standing to make. Canonicalization is the deployment's (Identity 14).
 
 ### State
 
@@ -109,15 +106,11 @@ State 14: The store instance's step count MUST NOT fall.
 State 15: The atom MUST NOT record a receipt instant.
 ```
 
-WHY:
-State 4 is the one deployments push against. A pending [Approval Step] cannot be revised into a new version; a changed approval need is a new [Submit] producing a new step id, and the original is withdrawn or decided on its own terms. Revision in place would make the record answer *what is being approved now* when the question an auditor asks is *what was presented to the approver, and what did they decide about it*.
-
-State 15 names what makes back-insertion undetectable here. The atom stores the declared instants and no separate creation instant, so a step written today with submission instant a year back reads as a year-old gate. The composing [Audit Trail](../compositions/audit-trail.md) entry carries the receipt instant, and that comparison is where back-insertion surfaces.
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 5: The deployment MUST supply the step store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -127,12 +120,6 @@ Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. State 15 owns it.
 Deleted: Clock semantics 5. Non-goal 21 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
-WHY:
-Clock skew between a caller and the seam can push a decision instant the caller believes is current past the injected reading, and Operation 18 rejects it. That is the correct rejection: the bound is enforced against the injected now, not against the caller's belief about the time.
 
 ### Operations
 
@@ -189,7 +176,7 @@ Operation 27: An admitted approve MUST record deciding actor and the resolved de
 Operation 28: An admitted reject MUST record deciding actor, reason as decision reason and the resolved decision instant as decision instant.
 Operation 29: An admitted withdraw MUST record withdrawing actor, reason as withdrawal reason and the resolved decision instant as withdrawal instant.
 Operation 30: An admitted approve MUST record a supplied reason as decision reason.
-Operation 31: An admitted resolve MUST commit the state change and the recorded fields in one operation.
+Deleted: Operation 31. Execution Contract Store 1 owns it.
 Operation 32: An admitted resolve MUST answer the action's success token.
 Operation 33: A resolving action MUST NOT change a submission field.
 Operation 34: IF the store refuses the write THEN a writing action MUST answer storage-failure.
@@ -257,22 +244,15 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 
 | # | Condition | a resolving action answers |
 |---|---|---|
-| 1 | step id is blank | invalid-request |
-| 2 | step id is well-formed, it names no step | not-known |
-| 3 | the step exists, it stands in a terminal state | not-pending |
-| 4 | the step stands in pending, an attribution check fails | invalid-request |
-| 5 | every attribution check passes, the deciding reference is not the anchor | unauthorized |
-| 6 | every precondition passes, the store refuses the write | storage-failure |
+| 1 | step id is blank | [Invalid Request] |
+| 2 | step id is well-formed, it names no step | [Not Known] |
+| 3 | the step exists, it stands in a terminal state | [Not Pending] |
+| 4 | the step stands in pending, an attribution check fails | [Invalid Request] |
+| 5 | every attribution check passes, the deciding reference is not the anchor | [Unauthorized] |
+| 6 | every precondition passes, the store refuses the write | [Storage Failure] |
 | 7 | every precondition passes, the store accepts the write | the success token |
 
 NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one precedence chain, so the answer alone does not say which guard refused. [State Machine](./state-machine.md) and [Audit Trail](../compositions/audit-trail.md) carry the same shape.
-
-WHY:
-Row 1 precedes the store lookup because a blank step id is garbage, not a reference to a missing step, and answering [Not Known] would tell the caller their id was valid and unmatched. Row 3 precedes row 4 because a terminal step refuses every resolving call, and a caller told [Invalid Request] about their timestamp on an already-decided step is fixing nothing. Row 5 sits last among the guards deliberately: telling an unauthorized caller *unauthorized* is itself a disclosure — it confirms the step exists, is pending, and that their attribution was otherwise well-formed — so every cheaper refusal is spent first.
-
-Operation 19 states the within-step temporal bound as a precedence rather than as a comparison, so no rule here spells `≥` as a two-arm disjunction. A decision recorded *at* the instant of submission is legal, and `precedes` admits it in one arm.
-
-Operation 43 is the filter rule an auditor has to understand before trusting a result set: an instant-range filter on decision instant answers only steps carrying a decision instant, so pending and withdrawn steps are excluded whether or not a state filter says so. The alternative — treating an absent field as unmatched-but-present — would make *every step decided in March* silently include steps that were never decided at all.
 
 ### Invariants
 
@@ -288,13 +268,11 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
   ```
   Invariant 3.1: A step whose state IS IN the terminal states MUST NOT leave the terminal state.
   ```
-  WHY: all three terminals absorb, and the atom carries no re-open, re-activate or reversal surface (State 2, State 3). A decision made in error is answered by a new [Submit] naming the relationship to the original, which produces a more complete record than a reversal: an auditor sees the first decision and the correction, in order, rather than a record that no longer says what happened.
 - **Invariant 4 — Approver exclusivity.**
   ```
   Invariant 4.1: An approved step's deciding actor MUST equal the step's approver reference.
   Invariant 4.2: A rejected step's deciding actor MUST equal the step's approver reference.
   ```
-  WHY: there is no fallback approver, no escalation and no *any authorized actor* surface. Delegation — binding a different actor to stand in for the named approver — is a composing pattern's, and it works either by producing a step whose approver reference names the delegate or by gating the call before it reaches this surface (Non-goal 5, Non-goal 6).
 - **Invariant 5 — Submitter exclusivity.**
   ```
   Invariant 5.1: A withdrawn step's withdrawing actor MUST equal the step's submitter reference.
@@ -306,12 +284,10 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
   Invariant 6.3: EVERY rejected step's decision reason MUST stand non-blank.
   Invariant 6.4: EVERY withdrawn step's withdrawal reason MUST stand non-blank.
   ```
-  WHY: the load-bearing one. An anonymous decision, a whitespace-only attribution, a missing instant or a rejection with no stated reason each defeat the audit trail SOX section 404 control evidence and FDA Part 11 electronic-signature requirements rest on. A rejection in particular is not operationally meaningful without its reason — the record would show that something was refused and leave the submitter, and a later auditor, with no account of why.
 - **Invariant 7 — Temporal ordering.**
   ```
   Invariant 7.1: A terminal step's terminal instant MUST NOT PRECEDE the step's submission instant.
   ```
-  WHY: a step cannot be documented as decided or withdrawn before it was submitted. The bound holds on the value persisted, whether caller-supplied or resolved to now, and is enforced before the transition commits (Operation 19).
 - **Invariant 8 — Submission attribution completeness.**
   ```
   Invariant 8.1: EVERY step's step id, subject reference, approver reference, submitter reference and scope MUST stand non-blank.
@@ -321,14 +297,12 @@ Operation 43 is the filter rule an auditor has to understand before trusting a r
   ```
   Invariant 9.1: A resolving action on one step MUST NOT change a second step's field.
   ```
-  WHY: independence is universal rather than scoped to a shared subject, though the shared-subject case is the operationally interesting one — a subject with two open gates needs two decisions, and whether a subject has any open gate is a subject reference and pending query rather than a field on the subject.
 - **Invariant 10 — Store durability.**
   ```
   Invariant 10.1: The atom MUST NOT remove a step from the store.
-  Invariant 10.2: A storage-failure rejection MUST leave no partial record in the store.
-  Invariant 10.3: An answered step id MUST name a durably persisted step.
+  Deleted: Invariant 10.2. Execution Contract Store 1 owns it.
+  Deleted: Invariant 10.3. Execution Contract Store 3 owns it.
   ```
-  WHY: a terminal step is retained as audit evidence. Deleting one would destroy the proof that the required gate was reached and resolved, which is the single thing an external evaluator comes to this store for.
 
 ---
 
@@ -403,18 +377,11 @@ NOTE: EVERY check names the rule the check tests.
 ### External checks
 
 ```
-External check 1: A deployment needing EVERY issued step id found in the store MUST capture the submit answers (Invariant 10.3).
+Deleted: External check 1. Execution Contract Store 3 owns it.
 External check 2: A deployment needing the subjects carrying no step identified MUST read the subject set beside the step store (Non-goal 19).
 External check 3: A deployment needing a deciding actor bound to an actor MUST read the composing Actor Identity attestation (Non-goal 14).
 External check 4: A deployment needing a refused call's attempt recorded MUST read the composing Audit Trail (Operation 37).
 ```
-
-WHY:
-External check 1 is the answer-capture split: enumerating every *issued* step id needs the submit answers captured at call time, because a production auditor reading the store cannot know about a step the store is missing. Check 6.1 is the store-alone substitute from the other direction — no step present at an earlier read has since vanished.
-
-External check 2 is the boundary that most resembles a gap and is not one. This store holds the gates that were submitted; it cannot show the subjects for which no gate was ever submitted, because absence is invisible to a query over what exists. An auditor asking *show me every entry above the materiality threshold with no controller approval* supplies the transaction set and the required-gate mapping, and this store supplies the gates to compare against (Non-goal 18, Non-goal 19). It is the same boundary [Selective Disclosure](./selective-disclosure.md) states as Selective Disclosure Invariant 5.1 — with the difference that this atom declares it a non-goal rather than an invariant it cannot enforce.
-
-External check 4 records a deliberate silence. A refused call writes nothing here, so an unauthorized attempt leaves no trace in this store at all. That is correct for a record whose subject is decisions rather than attempts, and it means an investigation into attempted unauthorized approvals must read the composing audit log, not this one.
 
 ## Non-goals
 
@@ -442,12 +409,7 @@ Non-goal 20: The atom MUST NOT bound submission instant from below.
 Non-goal 21: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-Non-goal 13 is the one that looks like a missing control. A [Submit] naming the same actor as submitter and approver is accepted, and that actor may then decide the step they raised. The atom does not refuse self-approval structurally, because segregation of duties is a *policy* about which actor pairings are allowed, and policies vary — the SOX section 404 control requiring distinct actors on a financial action, the Part 11 expectation that a signature attests to a decision the signer did not originate, and the many deployments where a single-actor gate is the intended design. [Permissions](./permissions.md) refuses the pairing where a declared policy says so, and [Multi-Party Approval](../compositions/multi-party-approval.md) requires a second step with a different approver. Building either into the atom would make a policy look like a structure.
-
-Non-goal 18 and Non-goal 19 are the completeness boundary. This atom records the gates that were submitted and cannot record the ones that were not; a query over what exists cannot see an absence. The required-gate mapping — *every journal entry above $10K needs a controller and a CFO approval* — is the calling system's business-rule layer, and the comparison is a composition's (External check 2).
-
-Non-goal 20 keeps submission instant unbounded below on purpose. A gate is routinely recorded by a workflow bridge after the request was actually made through another channel — an email, a meeting, a paper form — and refusing the earlier instant would force the record to misstate when the request happened. The future bound refuses the one direction that is always fabrication; the defence against a step back-inserted into the past is the composing [Audit Trail](../compositions/audit-trail.md) and [Tamper Evidence](./tamper-evidence.md) layer, which makes the record's creation order itself evident.
+NOTE: the owners — [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 1, Non-goal 2); [Multi-Party Approval](../compositions/multi-party-approval.md) (Non-goal 3, Non-goal 4; Non-goal 13, Composition note 3); a delegation pattern *(forthcoming)* (Non-goal 5, Non-goal 6); [Permissions](./permissions.md) (Non-goal 9, Non-goal 10; Non-goal 13, Composition note 3); [Actor Identity](./actor-identity.md) (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17; Non-goal 20); the composing pattern that owns the required gate mapping (Non-goal 18, Composition note 10); the deployment (Non-goal 19, External check 2); [Audit Trail](../compositions/audit-trail.md) (Non-goal 20).
 
 ---
 
@@ -456,29 +418,19 @@ Non-goal 20 keeps submission instant unbounded below on purpose. A gate is routi
 ### Atomic writes
 
 ```
-Atomic writes 1: A reader MUST NOT observe a terminal state without the state's attribution fields.
-Atomic writes 2: An uncommitted crash MUST leave the step as the call found the step.
-Atomic writes 3: The implementation MUST resolve a dangling transition.
-Atomic writes 4: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
+Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
 ```
-
-Term uncommitted crash: a crash BEFORE an admitted resolve's commit lands.
-
-Term dangling transition: an admitted resolve's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
-
-WHY:
-Every resolving action writes the state and its attribution fields together (Operation 31), and a crash between them produces a terminal step with a missing decider or a missing instant — which is Invariant 6 violated in exactly the way an auditor cannot distinguish from an implementation that never wrote them. The obligation is all-or-none observability: a partly applied resolve must never be servable.
 
 ### Concurrency
 
 ```
-Concurrency 1: The implementation MUST serialize two resolving actions against one step.
-Concurrency 2: A serialized resolving action MUST read the state the prior resolving action left.
-Concurrency 3: The second serialized resolving action against one pending step MUST answer not-pending.
+Deleted: Concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Concurrency 2. Execution Contract Store 2 owns it.
+Deleted: Concurrency 3. Execution Contract Store 2 owns it.
 ```
-
-WHY:
-Unlike a store whose concurrent writes contend over nothing, two resolving calls on one step contend over the state itself, and the outcome is not a race: the first lands and the second reads a terminal state and answers not-pending (Operation 13). That makes a retry self-detecting, which is what Indeterminate outcome 3 rests on.
 
 ### Indeterminate outcome
 
@@ -487,9 +439,6 @@ Indeterminate outcome 1: A caller receiving no answer MUST NOT retry BEFORE the 
 Indeterminate outcome 2: A caller MUST NOT read a transport fault as a storage-failure.
 Indeterminate outcome 3: A caller retrying a landed resolving action MUST read not-pending.
 ```
-
-WHY:
-The [Storage Failure] guarantees are the store's: it committed or it did not, and the answer means it did not. The caller's knowledge is weaker — a lost response after a commit leaves them unable to tell *refused, nothing written* from *succeeded, answer lost*. The two actions differ under that ambiguity and the difference is worth knowing before the retry. Retrying a resolving action is self-detecting (Indeterminate outcome 3, Concurrency 3). Retrying [Submit] is not: submission is not idempotent, so a retry after a lost answer creates a second step (Non-goal 1, Non-goal 2).
 
 ### String policy
 
@@ -504,10 +453,6 @@ String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
 Term string input: a reference, reason OR a filter's value — every caller-supplied string this atom accepts.
-
-
-WHY:
-The cost of byte-exactness lands hardest on the exclusivity guards. An approver whose reference is stored one way and supplied another gets unauthorized on their own step — correct by Identity 10, and indistinguishable to them from being the wrong actor. A deployment that does not canonicalize will discover this as an approver who cannot approve.
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
@@ -529,12 +474,7 @@ Composition note 10: A composing pattern MUST own the required gate mapping for 
 Composition note 11: A composing pattern reading the step store MUST NOT write to the step store.
 ```
 
-WHY:
-[Multi-Party Approval](../compositions/multi-party-approval.md) is the composition this atom is the unit of: N steps under a named quorum rule — all-of-N, M-of-N, one-of-N — layered on [Permissions](./permissions.md) for chain-level authorization, [Assignment](./assignment.md) for the in-tray binding per pending step, and an [Audit Trail](../compositions/audit-trail.md) substrate. The quorum evaluation is the load-bearing wiring decision and it is emphatically not here (Composition note 6, Non-goal 3): this atom knows one gate and its outcome, and knows nothing about how many gates make a decision.
-
-[Execute Gated Workflow](../compositions/execute-gated-workflow.md) is where this atom meets its sibling. A [State Machine](./state-machine.md) instance governs the process lifecycle, a guarded declared transition fires only where its bound step stands approved, and the two atoms are the fixed-state and declared-state poles of one category rather than competitors.
-
-[Permissions](./permissions.md) governs who may submit and who may read, and is also where segregation of duties lands (Composition note 3, Non-goal 13). [Actor Identity](./actor-identity.md) supplies the electronic signature that makes deciding actor non-repudiable under FDA 21 CFR Part 11 and SOX section 404 — the attestation is the signature event and this atom's record is the gate the signature attaches to. [Assignment](./assignment.md) is a composing peer rather than an overlap: it tracks who owns the work that becomes the subject. [Event Log](./event-log.md) journals every call as an event where this atom holds the current-state projection, [Tamper Evidence](./tamper-evidence.md) seals the records, and [Duplicate Prevention](./duplicate-prevention.md) supplies at-most-once submission under retry.
+NOTE: composing patterns — [Multi-Party Approval](../compositions/multi-party-approval.md), [Execute Gated Workflow](../compositions/execute-gated-workflow.md).
 
 ---
 
@@ -544,11 +484,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an examiner; an investigator; an actor; an approver; a submitter; the store; a step; a pending step; a terminal step; an approved step; a rejected step; a withdrawn step; a resolving action; a deciding action; a writing action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a rejection; a crash; a reader; a string input; an opaque reference; the store instance's step count; an attribution check.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an examiner; an investigator; an actor; an approver; a submitter; the store; a step; a pending step; a terminal step; an approved step; a rejected step; a withdrawn step; a resolving action; a deciding action; a writing action; a refused action; an action; a query; a filter; a reference filter; a state filter; a range filter; an instant-range filter; a string input; an opaque reference; the store instance's step count; an attribution check.
 
 Term records: step — one authorization gate, carrying step id, subject reference, approver reference, submitter reference, scope, submission instant, a state and, where supplied or set, reason, deciding actor, decision reason, decision instant, withdrawing actor, withdrawal reason and withdrawal instant.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, order, trim, case-fold, refuse, write, read, find, observe, resolve, complete, serve, serialize, commit, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, capture, choose, canonicalize, retry, permit.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, order, trim, case-fold, refuse, write, read, find, complete, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, choose, canonicalize, retry, permit.
 
 Term value sets: state = pending | approved | rejected | withdrawn.
 
@@ -558,7 +498,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, store instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submission instant, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, string input, blank, uncommitted crash, dangling transition.
+Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, store instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submission instant, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, string input, blank.
 
 #### Approval Step
 
@@ -857,12 +797,12 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 5 — 2026-07-12` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 5 — 2026-07-12
+status: partially resolved
 formal: verified — approval-step.tla + 1 twin, 2026-06-03
 last gate: 2026-07-12 — Final Critique 5, fresh reader — clean
 
@@ -871,12 +811,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/approval-step.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/approval-step.md`; the migration and the repairs that got it here are in [its history](./approval-step.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariant 1 through 10 keeping their numbers, every success effect conditioned on a declared admitted submit, admitted resolve or admitted read (Hard invariant 16), the six-step rejection precedence — repeated verbatim in four places in the prose, once per resolving action and once in the state table — collapsed to one seven-row case space with the ordering carried by `ONLY IF` guards, the three resolving actions unified under declared resolving action, deciding reference and decision instant terms so [Approve], [Reject] and [Withdraw] state their shared guards once instead of three times, the six acceptance areas opened into `Check 1.1 through 6.3` with four `External check`s, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 20` family and five edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`, `Indeterminate outcome`). *Over:* the prose spec. *Because:* the migration plan; `cites.py --into approval-step` found nothing citing this atom by label. 81.1 KB → 62.7 KB.
-
-- **2026-09-12 — Three propositions had two owners each.** *Chose:* `Invariant 2.1` owns membership exclusivity and the `State` family no longer restates it; `Operation 8` owns *an admitted submit stands the step in pending*; `Identity 12` owns *the atom does not confirm a subject reference*. *Over:* keeping each pair. *Because:* Authority 3, and all three were found by `W-duplicate-proposition` rather than by reading — the same pattern as State Machine, where the duplicates a 169-rule surface hides are exactly the ones no reader finds.
-
-- **2026-09-12 — A cross-spec citation was written in the local form.** *Chose:* `Selective Disclosure Invariant 5.1`, the qualified form Hard invariant 28 declares. *Over:* `[Selective Disclosure](./selective-disclosure.md) states as its \`Invariant 5\``, which reads as a citation of *this* spec's Invariant 5 — submitter exclusivity, an unrelated rule. *Because:* the citation-aim audit resolved it against the local registry and the aim was wrong. Nothing enforces the qualified form, and a census over the corpus returns 24 candidates of which nearly all are local citations that merely sit near a spec link — so the class is docketed rather than instrumented.
+- **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the step store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the eleven rules that restated them, or stood in for them, tombstoned to their owner — Operation 31, a resolve's state change and recorded fields committed in one operation, Invariant 10.2, no partial record left by a storage-failure, and Atomic writes 1, 3 and 4, no reader seeing a terminal state without its attribution fields, a dangling transition resolved and no read served before it is, to Store 1; Atomic writes 2, an uncommitted crash leaving the step as the call found it, to Store 1 and Store 3; Invariant 10.3, an answered step id naming a durably persisted step, and External check 1, the submit answers captured to find a step the store is missing, to Store 3; Concurrency 1 through 3, two resolving actions on one step serialized, the later reading what the earlier left and answering not-pending, to Store 2; rules 163 to 153. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and a deployment journalling its submit answers against a store that might lose a step. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The atom's own no-removal rules stay (State 5, State 14, Invariant 10.1), since Store 4 alone does not keep the atom from removing a step; Check 6.1 through 6.3 rest on the auditor's own two reads, and [Read] orders by submission instant and step id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Approval Step.
