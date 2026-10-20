@@ -70,11 +70,6 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the session store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-WHY:
-The token is both identity and bearer credential, and that is deliberate rather than a shortcut: it is how session systems actually work — the cookie *is* the session identifier — and it makes [Validate] a lookup rather than a join. A separate opaque id beside the token would add indirection and buy nothing at this atom's scope (Identity 7).
-
-Because the token is the credential, its security properties are structural and not deployment taste. Two sessions for one principal issued at different moments have unrelated tokens, and nothing about a token is derivable from the principal or the issue time (Identity 9, Identity 10, Capability requirement 3, Operation 49, Capability requirement 4).
-
 ### State
 
 ```
@@ -95,9 +90,6 @@ State 14: The atom MUST NOT hold a concurrency bound per principal reference.
 ```
 
 Term status: active | revoked — the stored status; in force, or cancelled and terminal. expired is not a value of it.
-
-WHY:
-The stored state space is two values because lapsing needs no third. [Expired] is a *read projection*, so the store holds what was decided and derives what the clock decides (State 1, State 8, Expiry 1 through 5). That is what removes the stored-flag-that-lags-the-clock failure mode the section titled Formal-model authoring pitfalls in `pressure-testing.md` names.
 
 #### Expiry
 
@@ -121,6 +113,7 @@ Capability requirement 3: The deployment MUST supply the session token's random 
 Capability requirement 4: The session token's random material MUST NOT fall below the token entropy.
 Capability requirement 5: The deployment MUST own the session token's format.
 Capability requirement 6: The deployment MUST own whether the store holds a session token raw.
+Capability requirement 10: The deployment MUST supply the session store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 7. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 8. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 9. Execution Contract Logic confinement 7 owns it.
@@ -140,22 +133,9 @@ Deleted: Clock semantics 6. Non-goal 25 owns it.
 Deleted: Clock semantics 7. Non-goal 26 owns it.
 ```
 
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
 Term default session duration: the window [Issue] applies where the call supplies no session duration; deployment configuration, and its absence is a misconfiguration rather than an operating state.
 
 Term token entropy: 128 bits of cryptographically secure random material — the floor a session token is drawn from, sufficient for negligible collision probability and for unguessability.
-
-WHY:
-A session store with no duration policy is a misconfigured deployment, not a store that issues unbounded sessions — so the absence is a refusal at [Issue] rather than a silent default of forever (Capability requirement 2, Operation 48, Invariant 10).
-
-Raw-versus-hashed token storage is left open because both are conformant: storing raw is simpler, storing a hash means a database breach yields no usable token, and the choice belongs in the composing pattern's configuration where it can be documented (Capability requirement 6).
-
-WHY:
-This atom accepts no caller-supplied instant — the window arrives as a duration, and every timestamp is the seam's reading — so no guard needs the clock to refuse anything, and no rejection in the taxonomy depends on it (Clock dependence 1, Clock semantics 5). The clock's only jobs are stamping two immutable fields and feeding one pure derivation.
-
-That derivation has a bounded consequence worth naming rather than hiding: two readers with slightly skewed clocks evaluating a session near its deadline may briefly disagree on whether it has lapsed. That is the standard read-time-derivation cost, it is bounded by the deployment's skew envelope, and it is harmless here because no write is at stake and revocation — the only stored terminal — is untouched by it (Non-goal 25).
 
 ### Operations
 
@@ -209,10 +189,10 @@ Operation 28: [Revoke] MUST stand the session in revoked.
 Operation 29: [Revoke] MUST stamp revocation instant from the injected now.
 Operation 30: [Revoke] MUST record revoked by reference on the session.
 Operation 31: [Revoke] MUST record the reason as the revocation reason.
-Operation 32: [Revoke] MUST commit the status move and the three revocation fields in one operation.
+Deleted: Operation 32. Execution Contract Store 1 owns it.
 Operation 33: [Revoke] MUST answer revoked.
 Operation 34: IF the store refuses the write THEN [Revoke] MUST answer storage-failure.
-Operation 35: A refused write MUST leave the store as the call found the store.
+Deleted: Operation 35. Execution Contract Store 3 owns it.
 Operation 36: [Revoke] MUST accept the session token as the whole authorization.
 Operation 37: [Read] MUST answer EVERY session the filter matches.
 Operation 38: [Read] MUST carry the effective status on EVERY answered session.
@@ -269,25 +249,14 @@ The case space, and the rule that owns each case:
 | [Validate] | stored status is [Revoked] | [Invalid Revoked] | none — returned even where the window is still open (Operation 15) |
 | [Validate] | stored [Active], now has reached expiry instant | [Invalid Expired] | none — derived, nothing written (Operation 16, Operation 17) |
 | [Validate] | stored [Active], now short of expiry instant | [Valid], carrying [Principal Reference] and [Expiry Instant] | none (Operation 18, Operation 19) |
-| [Revoke] | token names a session in [Active], attribution present | revoked | [Active] → [Revoked], three fields stamped (Operation 28 through 32) |
+| [Revoke] | token names a session in [Active], attribution present | revoked | [Active] → [Revoked], three fields stamped (Operation 28 through 31) |
 | [Revoke] | token names a session in [Active] past its deadline | revoked | as above — a lapse is not a stored terminal (Operation 27) |
 | [Revoke] | token names nothing | [Not Known] | none (Operation 22) |
 | [Revoke] | stored status is already [Revoked] | [Already Terminal] | none (Operation 23, Operation 24) |
 | [Revoke] | session in [Active], blank attribution | [Invalid Request] | none (Operation 25, Operation 26) |
-| either write | store refuses | [Storage Failure] | none (Operation 12, Operation 34, Operation 35) |
+| either write | store refuses | [Storage Failure] | none (Operation 12, Operation 34) |
 | *a window lapses* | now reaches expiry instant | nothing is called | **nothing written** — no action, no stamp, no scheduler (Expiry 1 through 5) |
 | [Read] | a filter | the matching sessions, each carrying its effective status | none (Operation 37, Operation 38) |
-
-WHY:
-The order of [Validate]'s four answers is load-bearing and not an optimization. The [Active] test is consulted only once the [Revoked] test has failed, so a session revoked *and* past its deadline answers [Invalid Revoked] and never [Invalid Expired] — an implementation must not short-circuit on the cheap numeric comparison before reading the status (Operation 15, Operation 17, Invariant 3). The distinction is operational: a revocation is a decision somebody made — a logout, a compromise response, an administrative act — and a lapse is normal end-of-life, and a composing pattern may well answer them differently.
-
-The boundary is exact. [Valid] holds while now is short of expiry instant; the instant now reaches it, [Invalid Expired] fires (Operation 16, Operation 18).
-
-[Validate] is a pure read on every path, including the lapsed one. It increments no counter, touches no field and produces no side effect, because there is no stored [Expired] to transition into (Operation 20, Expiry 1).
-
-A lapsed session is still revocable, and that is the one place this atom's shape surprises a reader. The only stored terminal is [Revoked]; a still-[Active] record past its deadline reads [Expired] by derivation but is not closed to [Revoke] — so a deployment that wants an attributed record of closing a session that had already lapsed can have one (Operation 27, Invariant 5). A breach response that revokes every exposed token, lapsed ones included, is the case this serves.
-
-Revocation takes the token as the whole authorization, and the atom exposes no way to enumerate tokens — which is honest only because the token is unguessable (Identity 9, Operation 36, Non-goal 18).
 
 ### Invariants
 
@@ -337,9 +306,8 @@ Revocation takes the token as the whole authorization, and the atom exposes no w
   ```
   Invariant 9.1: The atom MUST NOT offer a removal surface.
   Invariant 9.2: An action the atom offers MUST NOT reduce the session count.
-  Invariant 9.3: A storage-failure rejection MUST leave no partial session in the store.
+  Deleted: Invariant 9.3. Execution Contract Store 1 owns it.
   ```
-  WHY: disposal under a retention policy is the composing pattern's declared act, outside this atom's own surface — the same scoping [Retention Window](./retention-window.md) carries elsewhere (Non-goal 20, Non-goal 21).
 - **Invariant 10 — Every session has a finite lifetime.**
   ```
   Invariant 10.1: EVERY session MUST carry an expiry instant.
@@ -350,7 +318,6 @@ Revocation takes the token as the whole authorization, and the atom exposes no w
   Invariant 11.1: [Validate] MUST NOT answer valid for a lapsed session.
   Invariant 11.2: A lapsed session MUST stand lapsed at EVERY later now.
   ```
-  WHY: the expiry analogue of Invariant 4, and the asymmetry is the point — revocation is an absorbing *stored* state, a lapse is an absorbing *derived* condition. Invariant 11.2 rests on the deadline's immutability (Invariant 2.1) and on the deployment's clock discipline (Execution Contract Logic confinement 7); both paths that foreclose a valid answer are stated so the verification surface is symmetric.
 - **Invariant 12 — Expiry is derived, never written.**
   ```
   Invariant 12.1: A session MUST NOT carry a stored expired status.
@@ -418,11 +385,6 @@ Check 6.1: An auditor MUST find no revoked session whose status EQUALS active (I
 
 NOTE: EVERY check names the rule the check tests.
 
-WHY:
-Check 3.1 is the reconstruction [Validate] itself applies: a session was in force at an instant when its issuance instant does not follow that instant, its expiry instant does, and its revocation instant is either absent or later. The stored status need not be consulted beyond *not revoked at that instant*, because the lapse is computed from the deadline rather than remembered — which is the whole point of Invariant 12 and the reason this check needs the store and a clock and nothing else.
-
-Check 5.1 is the one check that reads a contract rather than records. Four distinguishable answers is a behavioural commitment, and no arrangement of stored fields can evidence it — a conforming store behind an implementation that collapses [Invalid Expired] and [Invalid Revoked] into one boolean fails Invariant 6.2 while every record looks correct.
-
 ## Non-goals
 
 ```
@@ -454,12 +416,7 @@ Non-goal 25: The atom MUST NOT reconcile two readers disagreeing across the dead
 Non-goal 26: A deployment needing an externally verifiable timestamp MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-[Issue] makes no authentication judgement at all. It records a session for whatever principal reference arrives, and it does not and cannot check that a credential was verified first — an implementation calling [Issue] without that check has a process error this atom cannot detect (Non-goal 1, Non-goal 2). The guard is [Login](../compositions/login.md)'s wiring, not a rule here.
-
-Renewal is two calls and not one: a new [Issue] for the new window, and a [Revoke] of the prior token so the old one does not outlive the handover on its own deadline. Both actions are in scope; the renewal *policy* — what triggers it, how often — is the composing pattern's (Non-goal 7 through 9, Invariant 2.2).
-
-The token is opaque and its format is deployment configuration — with one constraint that survives the choice, stated as rules rather than left here (Token format 1, Token format 2).
+NOTE: the owners — [Login](../compositions/login.md) (Non-goal 1, Non-goal 2, Composition note 2); the deployment (Non-goal 16, Capability requirement 5; Non-goal 17, Capability requirement 6); [Tamper Evidence](./tamper-evidence.md) (Non-goal 19, Non-goal 22); [Retention Window](./retention-window.md) (Non-goal 20, Non-goal 21); [Actor Identity](./actor-identity.md) (Non-goal 23, Non-goal 24); Execution Contract Logic confinement 7 (Non-goal 25).
 
 ## Edge cases
 
@@ -470,15 +427,12 @@ Clock dependence 1: A guard MUST NOT read now.
 Clock dependence 2: A rejection MUST NOT rest on now.
 ```
 
-WHY:
-Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
-
 ### Concurrency
 
 ```
-Concurrency 1: The implementation MUST serialize a status move on one session token.
-Concurrency 2: Two concurrent [Revoke] calls on one session token MUST answer revoked once.
-Concurrency 3: The [Revoke] call the serialization places second MUST answer already-terminal.
+Deleted: Concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Concurrency 2. Execution Contract Store 2 owns it.
+Deleted: Concurrency 3. Execution Contract Store 2 owns it.
 Concurrency 4: Two concurrent [Issue] calls carrying one principal reference MUST record two sessions.
 ```
 
@@ -501,10 +455,6 @@ Term invalid answer: an answer of [Validate] that EQUALS expired, revoked OR not
 
 Term authentication credential: the material a principal presents to prove identity, as [Credential](./credential.md) declares it; distinct from the session token, which is the bearer credential this atom's own [Validate] accepts (Identity 2).
 
-
-WHY:
-Byte-exactness means callers own canonicalization: two references differing only in case or normalization form are two distinct principals to this atom, and nothing here will reconcile them (String 1, String 8).
-
 ### Token format
 
 ```
@@ -513,9 +463,6 @@ Token format 2: A deployment extending a claim set token MUST call [Issue].
 ```
 
 Term claim set token: a session token whose format carries its own expiry claim — a JWT (JSON Web Token — a compact, signed token format carrying claims), for instance.
-
-WHY:
-The format is the deployment's (Capability requirement 5, Non-goal 16), but one constraint survives the choice: where the token carries its own expiry, this atom's immutability takes precedence over the format's native extension claims. A claim set that disagrees with the record is a second authority for when validity ends, and the record is the authority (Invariant 2.1).
 
 ## Composition notes
 
@@ -533,12 +480,7 @@ Composition note 10: A composing pattern reading the session store MUST NOT writ
 Composition note 11: The atom MUST NOT detect an authentication credential's revocation.
 ```
 
-WHY:
-[Login](../compositions/login.md) is the wiring this atom exists inside: a successful `Credential.verify` produces the [Issue] call, both attested under the verified principal. It carries a cascade invariant neither constituent holds alone — revoking the underlying [Credential](./credential.md) invalidates every session derived from it, which is a property of the composition's emergent state (Composition note 2).
-
-[Session-Gated Authorization](../compositions/session-gated-authorization.md) gates every [Permissions](./permissions.md) query on session validity: the pre-check fires first, and a stale or revoked session rejects before Permissions is consulted (Composition note 4). [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md) does the same at the head of `exercise_access` — a non-[Valid] answer blocks the exercise before a capability token is presented — and reads the store without writing to it, which is why Composition note 10 exists. [External Onboarding](../compositions/external-onboarding.md) admits the identity and registers the credential; the first session arrives through Login in the step immediately after, so this atom is not a constituent of that composition.
-
-[Actor Identity](./actor-identity.md) pairs an [Issue] with an attestation where non-repudiation is required, and [Audit Trail](../compositions/audit-trail.md) is where the issuance and revocation events are recorded. [Tamper Evidence](./tamper-evidence.md) hash-chains the store, revocation attribution included, for deployments that need cryptographic proof no record was altered after the fact.
+NOTE: composing patterns — [Login](../compositions/login.md), [Session-Gated Authorization](../compositions/session-gated-authorization.md), [Privileged Access Provisioning](../compositions/privileged-access-provisioning.md).
 
 ## Terms
 
@@ -550,7 +492,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: session — one bounded-lifetime attestation, carrying session token, principal reference, issued by reference, issuance instant, expiry instant, status and, once cancelled, revocation instant, revoked by reference and revocation reason.
 
-Term record verbs: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, commit, leave, rest, remove, merge, return, reach, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, exceed, differ, give, reduce, detect, canonicalize, reconcile, serialize, declare.
+Term record verbs: identify, serve, offer, compare, allocate, reuse, change, carry, share, draw, interpret, confirm, configure, supply, generate, fall, own, hold, record, stand, answer, apply, accept, stamp, recompute, derive, surface, write, fire, schedule, read, refuse, leave, rest, remove, merge, return, reach, find, reproduce, reconstruct, verify, sequence, decide, extend, call, revoke, bind, check, bound, enforce, propagate, define, enumerate, seal, compose, trim, normalize, case-fold, set, exceed, differ, give, reduce, detect, canonicalize, reconcile, declare.
 
 Term value sets: status = active | revoked.
 
@@ -784,7 +726,7 @@ Projection: already-terminal
 
 #### Storage Failure
 
-The rejection [Issue] or [Revoke] returns when the underlying store write fails. [Issue] leaves no partial record; [Revoke] commits no state change. The caller must treat it as definitive.
+The rejection [Issue] or [Revoke] returns when the underlying store write fails. The caller must treat it as definitive.
 
 Kind:       Member
 Member of:  the action rejection
@@ -844,12 +786,12 @@ Inherited from:
 
 ## Status
 
-`grounded on Final Critique 5 — 2026-06-23` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 5 — 2026-06-23
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
 
@@ -858,9 +800,9 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/session.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/session.md`; the migration that got it here is in [its history](./session.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the four actions as a signature block, the twelve invariant numbers and the six acceptance checks unchanged, the derived lapse routed through a declared lapsed and effective status so no rule carries the comparison, the arithmetic in `issued_at + session_duration` moved into a declared expiry deadline (Hard invariant 24), [Validate]'s four-row precedence table kept beside the rules as the case space, Generation acceptance moved ahead of Non-goals to match the migrated corpus, the string-input paragraph raised to a `String 1 through 8` family matching Permissions and Notification, Non-goals and Edge cases split into two sections. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this atom by label, so the rewrite is free of frozen-number risk. Expiry earned its own family — eight rules that say a lapse writes nothing, fires nothing, stamps nothing and is scheduled by nobody — because the whole commitment was carried by prose emphasis in four places and is now a surface a checker can read.
+- **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the session store supplied under Execution Contract Store 1 through 4 (Capability requirement 10), and the six rules that restated them tombstoned to their owner — Operation 32, [Revoke]'s status move and its three revocation fields committed in one operation, and Invariant 9.3, no partial session left by a storage-failure, to Store 1; Operation 35, a write the store refused leaving the store as the call found it, to Store 3; Concurrency 1 through 3, status moves on one session token serialized, two concurrent revokes answering revoked once and the later one already-terminal, to Store 2; rules 178 to 173. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. A session's window stays auditable from its one record, as the Intent has it: the expiry instant is stamped once and no action changes it (Invariant 2.1), and the atom's own no-removal rules stay (State 11, Invariant 9.1 and 9.2). Check 1.2 rests on the auditor's own reads of a session across its life, as Credential's re-read checks do, and Check 3.1 reconstructs a past instant from the instants each record carries, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 - **2026-06-21 — Expiry is derived at read time, never stored.** *Chose:* the stored state space is `{Active, Revoked}`; `Expired` is the projection `status = Active ∧ now ≥ expires_at` computed from the immutable expiry instant and the injected clock (Invariant 12). *Over:* a stored `Expired` terminal written by a lazy or scheduled transition. *Because:* a stored flag lags the clock it idealizes, and a session's lapse has no side effect that would need a write to carry it.
 
