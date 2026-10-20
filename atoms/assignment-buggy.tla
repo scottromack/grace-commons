@@ -3,13 +3,14 @@
 \*
 \* Identical to assignment.tla EXCEPT `reassign` is split into two steps with
 \* the new Active assignment created BEFORE the old one is retired — a non-atomic
-\* reassign that opens the two-Active window Invariant 7 forbids ("no observable
-\* state in which both are Active").
+\* reassign that opens the two-Active window Execution Contract Store 1 forbids
+\* (no reader ever sees some of an action's writes without the rest; Store 1 owns
+\* the deleted Invariant 7.3).
 \*
 \* Expected result: Inv1_AtMostOneActive VIOLATED. After ReassignAddNew the task
 \* has two Active assignments (the old, not yet Transferred, and the new). If the
 \* checker reports all invariants hold here, the harness is vacuous: a non-atomic
-\* reassign would be safe, which is exactly what Invariant 7 denies.
+\* reassign would be safe, which is exactly what Store 1 denies.
 
 EXTENDS Naturals, FiniteSets
 

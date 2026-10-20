@@ -58,9 +58,6 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-WHY:
-Identity by task would make a reassignment overwrite its predecessor, which destroys the answer to *who held this before*; identity by the task-and-assignee pair would collapse a re-assignment of the same actor after an intervening recall, which destroys *how many times* (Identity 6, Identity 7). One binding, one id, is what makes Invariant 9.1's chain recoverable.
-
 ### State
 
 ```
@@ -87,22 +84,17 @@ Term recall instant: the instant the assignment was withdrawn — a [Recall Inst
 
 Term transfer instant: the instant the assignment was handed on — a [Transfer Instant].
 
-WHY:
-Recalled and transferred are two terminal values of the [Status] rather than one because they answer different audit questions: recalled means the task is nobody's, transferred means it is somebody else's, and a single *closed* state would make an auditor infer the difference from the presence of a successor (State 8, State 9). Nothing is deleted, so the chain of responsibility is the store rather than a reconstruction (State 10).
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 4: The deployment MUST supply the assignment store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. State 13 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -146,10 +138,10 @@ Operation 16: IF the assignment's status EQUALS transferred THEN [Reassign] MUST
 Operation 17: IF new assignee reference EQUALS blank THEN [Reassign] MUST answer invalid-request.
 Operation 18: [Reassign] MUST stand the old assignment in transferred.
 Operation 19: [Reassign] MUST record EXACTLY ONE active assignment for the task reference.
-Operation 20: [Reassign] MUST commit the two writes together.
+Deleted: Operation 20. Execution Contract Store 1 owns it.
 Operation 21: [Reassign] MUST answer the new assignment id.
 Operation 22: IF the store refuses either write THEN [Reassign] MUST answer storage-failure.
-Operation 23: [Reassign] MUST withdraw both writes on storage-failure.
+Deleted: Operation 23. Execution Contract Store 1 and Execution Contract Store 3 own it.
 Operation 24: A refused call MUST leave the store as the call found the store.
 Operation 25: [Active For] MUST answer the active assignment for the task reference.
 Operation 26: [Active For] MUST answer none for a task reference with no active assignment.
@@ -175,17 +167,14 @@ The case space, and the rule that owns each case:
 | [Assign] | task already has a live assignment | [Already Assigned] | none (Operation 6) |
 | [Recall] | assignment is live | ok | [Active] → [Recalled]; the task is nobody's (Operation 11, Operation 12) |
 | [Recall] | assignment is recalled or transferred | [Not Active] | none (Operation 9, Operation 10) |
-| [Reassign] | assignment live, successor present, store accepts | the new assignment id | old → [Transferred] and a new [Active] one, in one commit (Operation 18 through 21) |
+| [Reassign] | assignment live, successor present, store accepts | the new assignment id | old → [Transferred] and a new [Active] one (Operation 18, Operation 19, Operation 21) |
 | [Reassign] | blank new assignee reference | [Invalid Request] | none (Operation 17) |
 | [Reassign] | assignment is recalled or transferred | [Not Active] | none (Operation 15, Operation 16) |
-| [Reassign] | either write refused | [Storage Failure] | none — both withdrawn, the old stays [Active] (Operation 22, Operation 23) |
+| [Reassign] | either write refused | [Storage Failure] | none — the old stays [Active] (Operation 22, Operation 24) |
 | any | id names nothing | [Not Known] | none (Operation 8, Operation 14) |
 | [Active For] | task has a live assignment | that assignment | none — the call reads (Operation 25, Operation 29) |
 | [Active For] | task is unassigned | none | none (Operation 26) |
 | [History For] | any task | every assignment for it, by assignment instant | none (Operation 27, Operation 28, Operation 30) |
-
-WHY:
-Reassign is one commit and not a recall followed by an assign, which is the whole reason the operation exists: the two-call version leaves a window where the task is nobody's, and a system that reports coverage during that window reports a gap that never should have opened (Operation 20, Invariant 7.1). Its failure arm is the expensive one — two writes, and a partial landing leaves the task unassigned after a call the caller believes succeeded — so the withdrawal is stated rather than assumed (Operation 23, Reassign atomicity 1 through 4). Both stamps come from one clock reading, the discipline [Retention Window](./retention-window.md) states for its purge: two readings would drift the successor's assignment instant from the predecessor's transfer instant, and Check 2.3 reads a handoff by that equality (Operation 30a, Operation 30b).
 
 ### Invariants
 
@@ -220,8 +209,8 @@ Reassign is one commit and not a recall followed by an assign, which is the whol
   ```
   Invariant 7.1: A task reference MUST carry EXACTLY ONE active assignment once [Reassign] lands.
   Invariant 7.2: The reassigned assignment MUST stand in transferred once [Reassign] lands.
-  Invariant 7.3: A reader MUST NOT observe two active assignments for one task reference.
-  Invariant 7.4: A reader MUST NOT observe the task reference unassigned once the first write lands AND no second write EXISTS.
+  Deleted: Invariant 7.3. Execution Contract Store 1 owns it.
+  Deleted: Invariant 7.4. Execution Contract Store 1 owns it.
   ```
 - **Invariant 8 — Timestamp ordering.**
   ```
@@ -229,7 +218,6 @@ Reassign is one commit and not a recall followed by an assign, which is the whol
   Invariant 8.2: IF transfer instant DOES NOT EQUAL blank THEN assignment instant MUST NOT EXCEED transfer instant.
   Invariant 8.3: The atom MUST stamp EVERY timestamp once.
   ```
-  WHY: best-effort under a clock that moves backward; a stamp is never re-derived from a later reading (Execution Contract Logic confinement 7).
 - **Invariant 9 — Complete responsibility history.**
   ```
   Invariant 9.1: The assignments carrying one task reference MUST record EVERY actor who held the task.
@@ -300,10 +288,8 @@ Check 5.1: An auditor MUST identify which composing patterns a deployment wired 
 External check 1: An auditor MUST read the assigner's authority from the composing Permissions records (Non-goal 5).
 External check 2: An auditor MUST read who issued an assignment from the composing Actor Identity attestations (Non-goal 7).
 External check 3: An auditor MUST read a task's completion from the host's task system (Non-goal 11).
-External check 4: An auditor MUST read the serialization evidence from the deployment's own concurrency probe (Invariant 7.3, Invariant 7.4, Assign race 1).
+Deleted: External check 4. Execution Contract Store 1 and Execution Contract Store 2 own it.
 ```
-
-NOTE: Invariant 7.3 and Invariant 7.4 forbid a reader *observing* a state. Records written after the fact cannot show what was observable between two writes, so no conformance check clears them and External check 4 names the probe that can — the records-alone gap the section titled *Generation trust* in `open-questions.md` docks, with its first load-bearing resident (council read 14).
 
 NOTE: EVERY check names the rule the check tests. The assignment store answers *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.
 
@@ -324,8 +310,7 @@ Non-goal 11: The atom MUST NOT read a task's state.
 Non-goal 12: The atom MUST NOT recall an assignment on the task's completion.
 ```
 
-WHY:
-The atom binds and records; every judgment around the binding is somebody else's. Acceptance, deadlines, authority and attribution each compose (Non-goal 1 through 8). A workload cap is a Capacity Constraint pattern reading the assignee's live count before the assign, which this atom deliberately does not count (Non-goal 9). Team assignment — where any member may act — is a different concept and not a wider assignee reference (Non-goal 10). Completion is the task system's event: the composing pattern decides whether a finished task leaves its assignment standing as an attribution record or is recalled to close the lifecycle, and both are ordinary (Non-goal 12, Composition note 4).
+NOTE: the owners — a Capacity Constraint pattern *(forthcoming)* (Non-goal 9); a Team Assignment pattern *(forthcoming)* (Non-goal 10); the host's task system (Non-goal 11, External check 3); the composing pattern (Non-goal 12, Composition note 4).
 
 Where the atom breaks down: when responsibility is genuinely shared at the same time; when an assignment must end on its own without anyone withdrawing it; when the assigner must be authorized before assigning; when the assignee must consent before holding.
 
@@ -334,21 +319,18 @@ Where the atom breaks down: when responsibility is genuinely shared at the same 
 ### Reassign atomicity
 
 ```
-Reassign atomicity 1: The implementation MUST commit the transferred write and the active write together.
-Reassign atomicity 2: A crash inside [Reassign] MUST NOT leave the task reference unassigned.
-Reassign atomicity 3: A crash inside [Reassign] MUST NOT leave two active assignments for one task reference.
-Reassign atomicity 4: An implementation that cannot withdraw a landed write MUST NOT accept a further call BEFORE the implementation repairs the partial state.
+Deleted: Reassign atomicity 1. Execution Contract Store 1 owns it.
+Deleted: Reassign atomicity 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Reassign atomicity 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Reassign atomicity 4. Execution Contract Store 1 owns it.
 ```
-
-WHY:
-The dangerous half is the quiet one: old marked transferred, successor never written, task unassigned, and the caller told the handoff succeeded. Invariant 1.1 is satisfied vacuously by that state; Reassign atomicity 2 forbids the crash residue and Invariant 7.4 forbids any reader seeing the gap, whether transient or stable — and an implementation without rollback owes a repair pass rather than a note in a runbook (the section titled Multi-write atomicity in `execution-contract.md`).
 
 ### The assign race
 
 ```
-Assign race 1: The implementation MUST make the active-assignment check and the write one transition.
-Assign race 2: The implementation MUST NOT record two active assignments for one task reference under concurrent calls.
-Assign race 3: The second concurrent [Assign] for one task reference MUST answer already-assigned.
+Deleted: Assign race 1. Execution Contract Store 1 and Execution Contract Store 2 own it.
+Deleted: Assign race 2. Execution Contract Store 2 owns it.
+Deleted: Assign race 3. Execution Contract Store 2 owns it.
 ```
 
 ## Composition notes
@@ -361,8 +343,7 @@ Composition note 4: A composing pattern MUST own whether a completed task's assi
 Composition note 5: A composing pattern needing assigner attribution MUST attest [Assign] under the assigner's credential.
 ```
 
-WHY:
-[Shared Todo](../compositions/shared-todo.md) is the landed wiring: [Personal Todo](./personal-todo.md) supplies the task, [Permissions](./permissions.md) gates who may act, and this atom binds responsibility — three atoms, one multi-actor list, none of them knowing the others' rules. Attribution composes the same way [Attributed Permissions Admin](../compositions/attributed-permissions-admin.md) does it for grants: an [Actor Identity](./actor-identity.md) attestation beside the record, never a field added here (Composition note 5). Forthcoming: Acceptance, Temporal Grant, Capacity Constraint, Team Assignment.
+NOTE: composing patterns — [Shared Todo](../compositions/shared-todo.md). Forthcoming: Acceptance, Temporal Grant, Capacity Constraint, Team Assignment.
 
 ## Terms
 
@@ -370,11 +351,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; an assigner; an assignee; an auditor; a reader; the store; an assignment; a task; a call; a crash.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; an assigner; an assignee; an auditor; the store; an assignment; a task; a call.
 
 Term records: assignment — one binding, carrying assignment id, task reference, assignee reference, assignment instant, status and, once it ends, recall instant or transfer instant.
 
-Term record verbs: identify, allocate, supply, reuse, carry, stand, stamp, offer, delete, hold, record, answer, leave, write, read, commit, withdraw, order, set, change, move, take, share, observe, shrink, make, repair, accept, require, expire, check, cap, bind, recall, compose, own, attest, declare, find, reconstruct, re-derive, exceed.
+Term record verbs: identify, allocate, supply, reuse, carry, stand, stamp, offer, delete, hold, record, answer, leave, write, read, order, set, change, move, take, share, shrink, require, expire, check, cap, bind, recall, compose, own, attest, declare, find, reconstruct, re-derive, exceed.
 
 Term value sets: status = active | recalled | transferred.
 
@@ -388,7 +369,7 @@ Term terms: assignment, assignment id, task reference, assignee reference, seam,
 
 #### Assignment
 
-The record this atom defines: a binding of a unit of work to the actor responsible for completing it. It carries its [Assignment Id], [Task Reference], [Assignee Reference], [Assignment Instant], the status field below, and — where applicable — [Recall Instant] or [Transfer Instant]. The [Assignment Id], [Task Reference], [Assignee Reference], and [Assignment Instant] are immutable from creation. Its status field holds one of [Active], [Recalled], or [Transferred]; at most one [Assignment] per task is [Active] at any time.
+The record this atom defines: a binding of a unit of work to the actor responsible for completing it. It carries its [Assignment Id], [Task Reference], [Assignee Reference], [Assignment Instant], [Status], and — where applicable — [Recall Instant] or [Transfer Instant]. The [Assignment Id], [Task Reference], [Assignee Reference], and [Assignment Instant] are immutable from creation. Its status field holds one of [Active], [Recalled], or [Transferred]; at most one [Assignment] per task is [Active] at any time.
 
 Kind: Type
 
@@ -414,7 +395,7 @@ Kind: Operation
 
 #### Reassign
 
-The behavior that hands an [Active] [Assignment] off to a new actor atomically. In one committed step it moves the old [Assignment] [Active] → [Transferred] (stamping [Transfer Instant]) and creates a new [Active] [Assignment] for the same [Task Reference] with the [New Assignee Reference]; it returns the new [Assignment Id]. There is no observable state in which both are [Active] or neither is (Invariant 7).
+The behavior that hands an [Active] [Assignment] off to a new actor. It moves the old [Assignment] [Active] → [Transferred] (stamping [Transfer Instant]) and creates a new [Active] [Assignment] for the same [Task Reference] with the [New Assignee Reference]; it returns the new [Assignment Id].
 
 Kind: Operation
 
@@ -529,7 +510,7 @@ Projection: invalid-request
 
 #### Already Assigned
 
-The refusal [Assign] returns when an [Active] [Assignment] already exists for the [Task Reference]. The loser of a concurrent assign race for the same [Task Reference] also receives this. No [Assignment] is created. This is the at-most-one-Active guard (Invariant 1) enforced at the [Assign] boundary.
+The refusal [Assign] returns when an [Active] [Assignment] already exists for the [Task Reference]. No [Assignment] is created. This is the at-most-one-Active guard (Invariant 1) enforced at the [Assign] boundary.
 
 Kind:       Member
 Member of:  the Assign rejection
@@ -556,7 +537,7 @@ Projection: not-active
 
 #### Storage Failure
 
-The refusal any action returns when the store write fails after the preconditions pass. No [Assignment] is created (for [Assign]), the [Assignment] remains [Active] (for [Recall]), or both [Reassign] writes are rolled back. The caller must treat it as definitive.
+The refusal any action returns when the store write fails after the preconditions pass. No [Assignment] is created (for [Assign]), or the [Assignment] remains [Active] (for [Recall] and [Reassign]). The caller must treat it as definitive.
 
 Kind:       Member
 Member of:  the action rejection
@@ -613,12 +594,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-06-18
+status: partially resolved
 formal: verified — assignment.tla + 1 twin, 2026-06-03
 last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
@@ -627,8 +608,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/assignment.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/assignment.md`; the migration that got it here is in [its history](./assignment.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the five actions as a signature block, the refusal order carried by each rule's own condition, the ten invariant numbers unchanged, Generation acceptance as conformance checks plus external checks ahead of Non-goals, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into assignment` prints nothing, so no number is frozen from outside.
+- **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the assignment store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the twelve rules that restated them tombstoned to their owner — Operation 20, Invariant 7.3 and 7.4 and Reassign atomicity 1, the reassign's two writes committed together with no reader seeing one without the other, and Reassign atomicity 4, the repair owed for a landed half, to Store 1; Operation 23, both writes withdrawn on storage-failure, and Reassign atomicity 2 and 3, a crash inside [Reassign] leaving the task neither unassigned nor held twice, to Store 1 and Store 3; Assign race 1, the active-assignment check and the write as one transition, and External check 4, the deployment's evidence of that atomicity and serialization, to Store 1 and Store 2; Assign race 2 and 3, two concurrent assigns never both recording and the later answering already-assigned, to Store 2; rules 110 to 99. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. A handoff is still one action, not a recall followed by an assign (Operation 18 and 19, Invariant 7.1 and 7.2); the atom's own no-delete rules stay (State 10, Invariant 10.1 and 10.2), and so does a refused call leaving the store as found (Operation 24), which covers the guard refusals no Store rule reaches. A task's responsibility chain is separate records ordered by assignment instant, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Assignment.
