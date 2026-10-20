@@ -986,7 +986,7 @@
    "external-onboarding"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1010,7 +1010,7 @@
    "SCIM",
    "SOC 2"
   ],
-  "status": "grounded on Final Critique 5 \u2014 2026-07-12",
+  "status": "partially resolved",
   "title": "Party Identity"
  },
  "permissions": {
