@@ -1167,7 +1167,7 @@
    "chain-of-custody"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 9,
   "kind": "atom",
   "models": {
@@ -1188,7 +1188,7 @@
    "SEC 17a-4",
    "SOX"
   ],
-  "status": "grounded on Final Critique 7 \u2014 2026-08-26",
+  "status": "partially resolved",
   "title": "Provenance"
  },
  "provisional-commitment": {

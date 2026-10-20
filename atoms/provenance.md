@@ -79,11 +79,6 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the chain store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-WHY:
-Identity by artifact would be the natural-looking choice and it destroys the thing the atom is for. A returned-and-reprocessed batch, a re-introduced exhibit, a reissued instrument — each is a *second episode* of the same artifact, and merging the two histories under one identity makes the gap between them invisible. So the chain owns identity and the artifact reference is a field (Identity 9, Identity 10).
-
-Custodian equality is byte-exact: `Lab-7` and `lab-7` are two custodians here. Continuity rests on that comparison being mechanical, so canonicalization belongs to the deployment before the call (Identity 11, Identity 12, Invariant 4.2).
-
 ### State
 
 ```
@@ -105,25 +100,18 @@ State 15: The atom MUST NOT offer a removal surface.
 State 16: The atom MUST NOT offer a reorder surface.
 State 17: The atom MUST NOT offer an edit surface.
 State 18: The entry chain MUST govern where the cached current custodian disagrees with a replay.
-State 19: next sequence number MUST survive a restart.
+Deleted: State 19. Execution Contract Store 3 owns it.
 ```
-
-WHY:
-The current custodian is a projection, not a fact of its own: replay the entries in sequence order and the value falls out. It is cached as chain state so a guard need not walk the chain, and the cache is never the authority — a disagreement between cache and replay is resolved by the replay and is itself a conformance failure (State 17, Check 3.2). No invariant here rests on the cache being right; every one is stated over the entries.
-
-next sequence number is persistent state and the one piece of this atom that a volatile implementation silently breaks. A counter that resets on restart reuses numbers, and the dense sequence — the thing that distinguishes this chain from a gap-permitting stream — is gone without any single action having misbehaved (State 18, Invariant 5.2).
 
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 5: The deployment MUST supply the chain store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -191,7 +179,7 @@ Operation 34: An admitted disclose MUST NOT change the current custodian.
 Operation 35: An admitted disclose MUST NOT change the artifact's custody.
 Operation 36: An appending action MUST take the entry's sequence number from next sequence number.
 Operation 37: An appending action MUST raise next sequence number by one.
-Operation 38: An appending action MUST commit the entry and the raise in one operation.
+Deleted: Operation 38. Execution Contract Store 1 owns it.
 Operation 39: An appending action MUST answer the entry id.
 Operation 40: An appending action MUST stamp recording instant from the injected now.
 Operation 41: IF the store refuses the write THEN an appending action MUST answer storage-failure.
@@ -232,7 +220,7 @@ Term current custodian: the to custodian reference of the chain's latest transfe
 
 Term sequence number: the strictly increasing integer an entry takes at append — a [Sequence Number]; the chain's order source, and never taken from a clock.
 
-Term next sequence number: the counter an appending action takes a sequence number from — a [Next Sequence Number]; begins at one, rises by one per append, and survives a restart.
+Term next sequence number: the counter an appending action takes a sequence number from — a [Next Sequence Number]; begins at one and rises by one per append.
 
 Term recording instant: the instant an entry was appended — a [Recording Instant]; a best-effort annotation, and never an order source.
 
@@ -273,13 +261,6 @@ The case space, and the rule that owns each case:
 | [Read] | a well-formed query, any chain state | the matching entries, oldest first | none (Operation 46, Operation 53) |
 | [Read] | an inverted range, or an unknown event type | [Invalid Query] | none (Operation 48, Operation 49) |
 
-WHY:
-Rejection precedence lives in the guards rather than in a note. Existence comes first because every later check needs a chain to inspect (Operation 10, Operation 11). Chain state comes next, conditioned on the chain existing (Operation 16). Field format comes before the custodian comparison, and that order is load-bearing rather than conventional: the current custodian is never blank (Invariant 7.1), so a blank caller-supplied reference can never equal it — a comparison-first order would make [Invalid Reference] unreachable and report every malformed input as an attribution failure (Operation 27).
-
-archived and already-archived are two answers to one state because they tell a retrying caller opposite things. A writer meeting archived learns the chain is closed to that intent; [Archive] meeting already-archived learns the state it wanted already holds. The first is final, the second is a done-signal — and the action still writes no second entry (Operation 12 through 15).
-
-[Transfer] carries no custodian guard, and the asymmetry is designed. The other three guards are *attribution* constraints — they stop an entry claiming a custodian who is not current. On a transfer the same constraint holds more strongly and by construction, because the from-side is never claimed at all: it is read from the chain (Operation 18, Operation 19, Operation 22). Adding a caller-supplied check would buy nothing structural — an opaque reference is a label, not a credential, exactly as forgeable as on the other three — and would block the receive-side and system-mediated recording of a hand-off that real deployments need.
-
 ### Invariants
 
 - **Invariant 1 — Entry immutability.**
@@ -304,7 +285,6 @@ archived and already-archived are two answers to one state because they tell a r
   Invariant 4.3: EVERY transferred entry's from custodian reference MUST equal the current custodian the entry found.
   Invariant 4.4: EVERY transferred entry's to custodian reference MUST stand as the current custodian the entry left.
   ```
-  WHY: the load-bearing one, and the reason this is not a configured [Event Log](./event-log.md). That atom is content-agnostic, carries no subject and no custodian, and permits sequence gaps by design; continuity needs all three. A stream that admits a gap cannot prove there wasn't one.
 - **Invariant 5 — Dense total order within a chain.**
   ```
   Invariant 5.1: Two entries in one chain MUST NOT share a sequence number.
@@ -332,9 +312,8 @@ archived and already-archived are two answers to one state because they tell a r
   ```
   Deleted: Invariant 9. Identity 15 and Identity 16 own id uniqueness.
   Invariant 10.1: The chain count MUST NOT fall under the atom's actions.
-  Invariant 10.2: A storage-failure rejection MUST leave no partial record in the store.
+  Deleted: Invariant 10.2. Execution Contract Store 1 owns it.
   ```
-  WHY: scoped to the atom's own surface. Lawful disposal under a composed [Retention Window](./retention-window.md) or [Defensible Retention](../compositions/defensible-retention.md) is that pattern's declared and recorded act (Non-goal 19, Non-goal 20).
 
 ---
 
@@ -408,11 +387,6 @@ Check 7.4: An auditor MUST find no chain id repeated within a store instance (Id
 
 NOTE: EVERY check names the rule the check tests.
 
-WHY:
-Check 3.1 is the replay the atom's own guards apply, run offline. It needs the entries and nothing else — no cached current custodian, no implementation account of what the cursor held — which is why State 18 gives the entry chain the governing word where the cache disagrees.
-
-Check 5.1 rests on sequence number rather than recording instant deliberately: a best-effort wall-time annotation later than the archive stamp is a clock artifact, not a broken chain (Operation 58).
-
 ## Non-goals
 
 ```
@@ -441,14 +415,7 @@ Non-goal 22: The atom MUST NOT offer a compare-and-swap arm on [Transfer].
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-Non-goal 3 is the one most often mistaken for a gap. The atom guards *attribution* — the custodian-guarded actions reject a caller who is not the current custodian — and that guard is exact equality on an opaque label, not authentication. A caller who knows the current custodian's reference can record entries under it, and the records will show every action faithfully attributed without recording whether the attribution was permitted or authentic. A regulator asking *was this transfer authorized, and was it really the pharmacist?* reads [Permissions](./permissions.md)' decision and [Actor Identity](./actor-identity.md)'s attestation for those two answers, and this atom's records for the custody fact they admitted.
-
-Non-goal 8 bounds what a received genesis claims. The artifact had a custody history outside the system before intake; the chain documents custody from genesis forward and asserts nothing about what came before. Pre-intake provenance, where a deployment needs it, is a separate chain or an external record the host links through the genesis metadata.
-
-Non-goal 16 is what keeps custody continuity well-defined. W3C PROV's `wasDerivedFrom` relationship — one artifact produced by transforming or combining others — has no single current custodian to guard, and this atom is a linear single-artifact chain by construction. A sample aliquoted into five sub-samples is five new chains, each opening with received; the parent-to-child relationship is a composing concept.
-
-Non-goal 21 follows from the identity model: artifact reference is opaque and non-unique (Identity 9, Identity 10), so an artifact-keyed read would have to answer with a set of chains and would invite treating the reference as an identity. The chain id [Originate] answers is the designed handle; a reverse index over genesis entries is host-side, rebuildable from the chains, and carries no consistency claim of its own.
+NOTE: the owners — [Actor Identity](./actor-identity.md) (Non-goal 1, Non-goal 2, Composition note 3); [Permissions](./permissions.md) (Non-goal 3, Non-goal 4); [Selective Disclosure](./selective-disclosure.md) (Non-goal 5 through 7, Composition note 6); a separate chain, or an external record the host links through the genesis metadata (Non-goal 8, State 9); [Tamper Evidence](./tamper-evidence.md) (Non-goal 12, Non-goal 13, Composition note 4); [Retention Window](./retention-window.md) (Non-goal 14, Non-goal 15, Composition note 5); a composing pattern (Non-goal 16, Composition note 7); [Retention Window](./retention-window.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 19, Non-goal 20); the host (Non-goal 21; Non-goal 22, Concurrency 4).
 
 ---
 
@@ -457,21 +424,14 @@ Non-goal 21 follows from the identity model: artifact reference is opaque and no
 ### Atomic writes
 
 ```
-Atomic writes 1: A reader MUST NOT observe an entry without the entry's next sequence number raise.
-Atomic writes 2: A reader MUST NOT observe a transferred entry without the entry's current custodian change.
-Atomic writes 3: A reader MUST NOT observe an archived entry without the chain's move to archived.
-Atomic writes 4: An uncommitted crash MUST leave the chain as the call found the chain.
-Atomic writes 5: The implementation MUST resolve a dangling transition.
-Atomic writes 6: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
-Atomic writes 7: The store MUST NOT accept an action BEFORE the implementation resolves the dangling transition.
+Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 3. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 4. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Atomic writes 5. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 6. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 7. Execution Contract Store 1 owns it.
 ```
-
-Term uncommitted crash: a crash BEFORE an appending action's commit lands.
-
-Term dangling transition: an appending action's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
-
-WHY:
-Every append couples at least two durable mutations — the entry and the counter raise — and [Transfer] and [Archive] carry a third (Operation 36 through 38). The obligation is an observability guarantee, all-or-none: a partly applied append is not a transient condition an implementation may expose and repair later; it must never be servable. A [Storage Failure] answer carries the same guarantee from the caller's side (Operation 41, Invariant 10.2).
 
 ### Clock dependence
 
@@ -479,9 +439,6 @@ Every append couples at least two durable mutations — the entry and the counte
 Clock dependence 1: A rejection MUST NOT rest on now.
 Clock dependence 2: A guard MUST NOT read now.
 ```
-
-WHY:
-Whether a guard's decision may depend on the clock reading, and under what condition — one question, stated here rather than among the rules about what the clock is and what a transition stamps from it. Every rule below keeps the words it carried under `Clock semantics`; only the heading changed.
 
 ### Clock semantics
 
@@ -494,20 +451,14 @@ Deleted: Clock semantics 5. Clock dependence 1 owns it.
 Deleted: Clock semantics 6. Non-goal 23 owns it.
 ```
 
-WHY:
-No invariant here is at risk from a bad clock, because ordering rests on sequence number and never on recording instant (Invariant 5.3, Operation 58). Where a custodial timestamp carries legal force — a chain-of-custody stamp in court proceedings, a pharmaceutical distribution record — the deployment sources time from a trustworthy clock, and RFC (Request for Comments) 3161 trusted timestamping supplies the verifiable anchor (Non-goal 23).
-
 ### Concurrency
 
 ```
-Concurrency 1: The implementation MUST serialize two calls against one chain.
+Deleted: Concurrency 1. Execution Contract Store 2 owns it.
 Concurrency 2: EVERY serialized transfer against one open chain MUST append.
-Concurrency 3: The second serialized transfer MUST read from custodian reference from the current custodian the first transfer set.
+Deleted: Concurrency 3. Execution Contract Store 2 owns it.
 Concurrency 4: A host needing a transfer conditional on the current custodian MUST serialize the host's own calls.
 ```
-
-WHY:
-[Transfer] carries no custodian guard by design (Operation 22), so a second concurrent transfer is not rejected — it records a hand-off from the first transfer's recipient onward, and the chain stays hand-to-hand consistent either way (Invariant 4.3). What the atom cannot know is whether the resulting double hop reflects what physically happened; that check belongs to the host. A host that needs *record this hand-off only if the holder is still X* reads first and serializes, or composes an optimistic-concurrency surface (Non-goal 22).
 
 ### String policy
 
@@ -530,11 +481,6 @@ Term reference: artifact reference, custodian reference, to custodian reference 
 
 Term maximum length: the deployment's cap per string input.
 
-WHY:
-The cap's value is a deployment choice; the cap's existence is part of the contract. An uncapped opaque field turns an append-only chain that is never deleted (Invariant 10.1) into an unbounded-payload sink, and a regulated store must be able to state its maximum record size.
-
-A whitespace-only descriptor answers invalid-descriptor rather than invalid-ref because a descriptor is content, not a reference (Operation 24). An opaque transformation that cannot be described at all is a gap in the chain's story, not a transformation entry.
-
 ### Correction by append
 
 ```
@@ -543,9 +489,6 @@ Correction 2: The atom MUST NOT remove an entry.
 Correction 3: The current custodian MUST record a correction as a subsequent entry.
 Correction 4: A correcting entry MUST name the corrected entry's sequence number.
 ```
-
-WHY:
-The chain is append-only and entries are immutable (Invariant 1.1, Invariant 2.1), so a mis-keyed descriptor or a disclosure recorded against the wrong recipient is never edited away. Correction-by-append is what regulated record-keeping asks for: the record shows both the error and its correction, in order, and the correcting entry is appended under the then-current custodian like any other. Formal amendment semantics stay out (Non-goal 9 through 11).
 
 ---
 
@@ -562,12 +505,7 @@ Composition note 7: A composing pattern MUST own the relationship between two ch
 Composition note 8: A composing pattern reading the chain store MUST NOT write to the chain store.
 ```
 
-WHY:
-[Chain of Custody](../compositions/chain-of-custody.md) is the composition this atom exists inside: it wires Provenance with [Actor Identity](./actor-identity.md), [Tamper Evidence](./tamper-evidence.md) and [Retention Window](./retention-window.md) to produce the full chain-of-custody surface — structural continuity from this atom, per-entry attestation, the chain seal, and the retention clock (Composition note 3 through 5). It is the canonical implementation for pharmaceutical custody under 21 CFR Part 211 and DEA 21 CFR Part 1304, regulated evidence custody under Federal Rules of Evidence 901(b)(9), and financial instrument custody records under SEC Rule 17a-4.
-
-[Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md) enriches ledger entries that reference a tracked artifact, naming this enrichment in its single-artifact financial-instrument custody edge case. [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) reads the custody record as evidence of lawful handling under GDPR (EU General Data Protection Regulation) Articles 5 and 30, and [Customer Onboarding](../compositions/customer-onboarding.md) optionally chains the custody of identity-verification documents.
-
-[Selective Disclosure](./selective-disclosure.md) is the partner that makes [Disclose] complete: this atom marks where on the custody timeline a disclosure occurred and to whom, and Selective Disclosure records what scope was shared under what authority. Neither duplicates the other (Composition note 6, Non-goal 5 through 7).
+NOTE: composing patterns — [Chain of Custody](../compositions/chain-of-custody.md).
 
 ---
 
@@ -577,11 +515,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; the store; a reader; a chain; an entry; a genesis entry; a transferred entry; a non-transferred entry; a transformed entry; a disclosed entry; an archived entry; a custodian-guarded entry; an addressed action; an appending action; a custodian-guarded action; a writer action; a refused action; an ordering rule; a query; a replay; a rejection; a correction; a crash; a string input; a reference; an opaque reference; the chain count; the entry count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; the store; a chain; an entry; a genesis entry; a transferred entry; a non-transferred entry; a transformed entry; a disclosed entry; an archived entry; a custodian-guarded entry; an addressed action; an appending action; a custodian-guarded action; a writer action; a refused action; an ordering rule; a query; a replay; a rejection; a correction; a string input; a reference; an opaque reference; the chain count; the entry count.
 
 Term records: chain — one artifact's custody history for one episode, carrying chain id, artifact reference, a chain state, a current custodian and next sequence number. entry — one appended event on a chain, carrying entry id, sequence number, event type, custodian reference and recording instant, and the per-type fields from custodian reference, to custodian reference, transformation descriptor, recipient reference and metadata.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, read, take, raise, commit, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, govern, survive, route, share, equal, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, replay, reconstruct, repeat, observe, complete, roll back, serve, accept, serialize, name, claim, detect, bound, dispose, decide, compose, declare, wire, guard, rest, apply, supply, inject, fall, remove, edit, reorder, empty, move, cache, resolve, run.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, read, take, raise, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, govern, route, share, equal, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, replay, reconstruct, repeat, complete, roll back, accept, serialize, name, claim, detect, bound, dispose, decide, compose, declare, wire, guard, rest, apply, supply, inject, fall, remove, edit, reorder, empty, move, cache, run.
 
 Term value sets: event type = originated | received | transferred | transformed | disclosed | archived. genesis types = originated | received. chain state = open | archived.
 
@@ -591,7 +529,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.39 (2026-09-12).
 
-Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, store instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, string input, reference, blank, maximum length, uncommitted crash, dangling transition.
+Term terms: chain, entry, chain id, artifact reference, entry id, custodian reference, store instance, seam, transition, now, business caller, genesis type, genesis types, event type, event types, chain state, current custodian, sequence number, next sequence number, recording instant, from custodian reference, to custodian reference, transformation descriptor, recipient reference, metadata, addressed action, custodian-guarded action, appending action, chain-state rejection, admitted originate, admitted transfer, admitted transform, admitted disclose, admitted archive, string input, reference, blank, maximum length.
 
 #### Originate
 
@@ -663,7 +601,7 @@ Projection: current_custodian
 
 #### Next Sequence Number
 
-The chain's per-instance counter, beginning at 1 and incrementing by one per successful entry write. Part of persistent chain state; must survive restarts (State 19).
+The chain's per-instance counter, beginning at 1 and incrementing by one per successful entry write.
 
 Kind:       Field
 Field of:   the chain
@@ -794,7 +732,7 @@ Projection: invalid-genesis-type
 
 #### Storage Failure
 
-The rejection any action returns when its store write fails after all preconditions pass; guarantees no partial record is observable (Invariant 10).
+The rejection any action returns when its store write fails after all preconditions pass; guarantees no partial record is observable (Operation 42 through 44).
 
 Kind:       Member
 Member of:  the action rejection
@@ -902,6 +840,8 @@ Provenance is an infrastructure primitive with regulatory anchoring across pharm
 
 - **Federal Rules of Evidence 901(b)(9) (Authenticating or Identifying Evidence — Process or System)** — the US evidentiary rule for authenticating physical or electronic evidence via chain-of-custody records. The atom's custody-continuity invariant is the structural basis for authenticating evidence under 901(b)(9): a chain whose [From Custodian Reference] values match the prior [Current Custodian] at every transfer step produces the unbroken sequence courts require for authentication.
 
+- **RFC (Request for Comments) 3161 (Time-Stamp Protocol)** — the standard for trusted timestamping. Where a custodial timestamp carries legal force — a chain-of-custody stamp in court proceedings, a pharmaceutical distribution record — RFC 3161 trusted timestamping supplies the verifiable anchor, through a composed trusted timestamping pattern (Non-goal 23).
+
 The cross-domain structural identity is the atom's core thesis: the pharmaceutical chain of custody, the legal evidence chain, the financial instrument custody record, and the DEA controlled-substance custody log are all instances of the same primitive — one artifact, one current custodian, append-only entries, custody never gaps. This atom is the core of the Chain of Custody composition, `grounded` 2026-06-04.
 
 It inherits from:
@@ -914,12 +854,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 7 — 2026-08-26` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 7 — 2026-08-26
+status: partially resolved
 formal: verified — provenance.als + 1 twin, 2026-06-04
 last gate: 2026-08-26 — Final Critique 7, fresh reader — clean
 
@@ -928,12 +868,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/provenance.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/provenance.md`; the rounds and the migration that got it here are in [its history](./provenance.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.39; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the six actions as a signature block, Invariant 1 through 8 keeping their numbers and their sub-rule numbering, every success effect conditioned on a declared admitted originate / admitted transfer / admitted transform / admitted disclose / admitted archive so no effect binds a refused call (Hard invariant 16), rejection precedence carried by `Operation 11`, `Operation 16` and `Operation 27` rather than by a WHY note, the seven acceptance areas raised to `Check 1.1 through 7.4`, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and five edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`, `Correction`), the Composition notes prose raised to `Composition note 1 through 8` with the named compositions moved into the WHY. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into provenance` found nothing in the corpus citing this atom by label, so the rewrite carried no frozen-number risk.
-
-- **2026-09-12 — Id uniqueness and the archived read are stated once.** *Chose:* the former Invariant 9 (no id reuse) is carried by `Identity 15` and `Identity 16` in the Identity model, and the former archived-chain-admits-a-read invariant by `Operation 53` on the action surface; the durability invariant took the freed number 9 — a renumbering Hard invariant 26 and Hard invariant 27 forbid, which left Chain of Custody's citation of Provenance's ten invariants pointing past the end; council read 95 returned durability to Invariant 10 and tombstoned Invariant 9. *Over:* keeping both copies for emphasis. *Because:* Authority 3 — two rules must not claim authority for one proposition, and the identity model is where identity rules sit. Both duplicates were found by the checker, not by a reader.
-
-- **2026-09-12 — The transferred entry carries the custodian pair in place of a single custodian reference, not beside it.** *Chose:* `State 4` bounded to a non-transferred entry, `State 5` stating the exclusion, `Invariant 7.1` and `Check 1.1` bounded to match. *Over:* the rewrite's `EVERY entry MUST carry a custodian_ref`, which was mine and wrong. *Because:* the prose State section said the single field "is replaced by" the pair, and the preserved [Custodian Reference] term entry says so too — a rewritten rule contradicted a term entry the migration carried across byte-identical. Found by GLM on a first council read of this atom; the witness was the untouched half of the document, which is the argument for preserving term entries verbatim through a migration.
+- **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the chain store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the twelve rules that restated them, or existed only for a store that could split an append, tombstoned to their owner — Operation 38, an append's entry and counter raise committed in one operation, Invariant 10.2, no partial record left by a storage-failure rejection, and Atomic writes 1 through 3, no reader observing an entry without its counter raise, a transferred entry without its custodian change or an archived entry without the chain's move to archived, to Store 1; Atomic writes 4, an uncommitted crash leaving the chain as the call found it, to Store 1 and Store 3; Atomic writes 5 through 7, the implementation resolving a dangling transition before the store serves a read or accepts an action, to Store 1, under which no append stands partly applied; State 19, next sequence number surviving a restart, to Store 3; Concurrency 1, two calls against one chain serialized, and Concurrency 3, the second serialized transfer reading the custodian the first set, to Store 2; rules 187 to 176. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and keeping a crash-recovery protocol for a split append that no conforming store leaves. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. What stays is the atom's own: a refused action leaving the chain as the call found it, appending no entry and taking no sequence number (Operation 42 through 44), the entry chain governing a cached current custodian that disagrees with a replay (State 18), every serialized transfer appending, since [Transfer] carries no custodian guard (Concurrency 2), the host serializing its own calls for a transfer conditional on the custodian (Concurrency 4), and the append-only chain the atom never edits (State 15 through 17, Invariant 1.1, Invariant 2.1, Invariant 2.2, Invariant 10.1, Correction 1, Correction 2). The sequence number is the chain's own dense order, taken inside the append, and no rule reads an earlier version of a record, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Provenance.
