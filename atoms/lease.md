@@ -40,9 +40,6 @@ Term key: the opaque value a lease protects — a [Key]; two keys that differ by
 
 Term holder: the opaque value naming one take's holder — a [Holder]; minted fresh for every take, so a (key, holder) pair names one grant.
 
-WHY:
-A holder value names one take. A release that was delayed or duplicated in transit, or sent by a paused process when it wakes, then answers against a pair no later [Lease] carries and finds not-held; under a reused value it would end a grant its sender never held, and the next party would read while that grant's work was still landing (Identity 6, Operation 12). A process that restarts has lost what it knew of the grant — which calls were in flight, whether a release was sent — so it does not resume: the old value is not presented again and the grant runs to its instant (Identity 7); a pattern that must prove which grant it held records the grant (Non-goal 9). The pair matters because [Remaining] and [Release] answer against it (Invariant 5.1): a party that has lost standing finds out from the host, and neither answer is an error.
-
 ### State
 
 ```
@@ -52,7 +49,7 @@ State 3: The host MUST NOT store a transition for a passed instant.
 State 4: The host MUST hold the line of waiters on a key, EVERY waiter with the waiter's bound.
 ```
 
-Term grant: one holding of a key by one holder, from a successful take to the grant's terminus.
+Term grant: one holding of a key by one holder, from a successful take to the grant's terminus — a [Lease].
 
 Term lease state: free | held — held by one holder until one instant.
 
@@ -61,9 +58,6 @@ Term passed instant: an expires_at the host's reading does not precede; the key 
 Term host's reading: the reading of the granting host's one clock at the moment a question is asked; never a caller's own reading.
 
 Term question: a [Take], a [Try Take], a [Remaining] or a [Release] call, and a waiter's standing waiting term — the occasions State 2 derives at.
-
-WHY:
-There is no third state — beside it the host holds only the line of waiters, each with its bound (State 4, Operation 5a, Invariant 4.1) — and the passing of the instant is compared against a reading at the moment a question is asked. That is the atom's one storage claim, and it is what makes the concept implementable over a host that offers little more than compare-and-set with an expiry and an ordered line of waiters.
 
 ### Capability requirement
 
@@ -80,9 +74,6 @@ Capability requirement 9: A party that refuses a holder's write MUST NOT apply t
 Capability requirement 10: A party MUST NOT apply one write of a holder a second time.
 Capability requirement 11: The deployment MUST NOT deliver one take to the host a second time.
 ```
-
-WHY:
-A critical section held on one node and not another is no critical section (Capability requirement 2). The allowance is how far the granting host's clock and a judging party's clock may stand apart, which is the deployment's to know and to declare; the atom spends the number and does not choose it (Capability requirement 3). The host's reading is one clock's: a host that answered one holder's remaining term from one node's clock and another party's take from a second node's would hold a key for two parties at once, by the gap between the two (Capability requirement 4). A grant a restart ended would be a grant ended on an event, so the host keeps it (Capability requirement 5, Invariant 2.2). The call pause bound is a number the pattern declares and only the deployment can make true: a call, or the process that issues it, stalled past the bound breaks the one premise the sizing rests on (Capability requirement 7). An answer means the write has landed and a refusal means it never will: a store that answered first and applied later would let a holder release, with no call in flight, ahead of its own write, and a copy of an answered write delivered late and applied again would do the same from the other side (Capability requirement 8, Capability requirement 9, Capability requirement 10, Composition note 5c). A take delivered twice is worse than a release delivered twice: the second copy, landing on a key since freed, grants the old pair again, and the host then answers a holder that lost standing as though it had it (Capability requirement 11, Invariant 5.1).
 
 ### Operations
 
@@ -145,7 +136,7 @@ Term asking party: the party naming itself as holder in a [Remaining] or [Releas
 Term the holder: the party the host holds the key for.
 
 WHY:
-A key frees by release or by the current holder's instant passing. A host restart ends the line: a waiter the restarted host can no longer answer is not admitted afterwards, and its caller reads no answer (Operation 5c, Sizing 7). The bound is fixed at arrival and never extended: a second waiter admitted while a first still holds fails on its own bound rather than waiting out the first's whole term, so a pattern that reasons about how long a take can block is entitled to that number and no other (Operation 3 through 5). [Try Take] exists for a caller with other work to do. [Remaining] is a host query and never a clock read by the caller: a caller that subtracts its own reading from a remembered expires_at has introduced a second clock and lost the property the atom exists to provide, since the two are minted at different seams (Operation 10). not-held covers a party whose term has passed and whose key another holder now holds; callers normally discard the answer, and it is declared because an implementer who treats it as a failure will retry it (Operation 14).
+A host restart ends the line: a waiter the restarted host can no longer answer is not admitted afterwards, and its caller reads no answer (Operation 5c, Sizing 7).
 
 ### Invariants
 
@@ -159,13 +150,11 @@ A key frees by release or by the current holder's instant passing. A host restar
   Invariant 2.1: A grant MUST end at EXACTLY ONE OF release, instant.
   Invariant 2.2: The host MUST NOT end a grant on any other event.
   ```
-  WHY: a holder's death, a network partition, a host restart, a supervisor's judgement — none ends a grant.
 - **Invariant 3 — Death is not observable.**
   ```
   Invariant 3.1: The atom MUST NOT report a holder's death.
   Invariant 3.2: An implementation MUST NOT end a grant early on a belief that the holder has died.
   ```
-  WHY: a host that frees a key the moment it believes a holder is gone hands the key to the next party while the previous holder's work may still be in flight, and Invariant 1 is then true of the grant and false of the world.
 - **Invariant 4 — A waiter's bound is fixed at arrival.**
   ```
   Invariant 4.1: A waiter's bound MUST stand as set at the waiter's arrival.
@@ -175,7 +164,6 @@ A key frees by release or by the current holder's instant passing. A host restar
   ```
   Invariant 5.1: [Remaining] and [Release] MUST answer against the (key, holder) pair as the host holds the pair.
   ```
-  WHY: a party that has lost standing learns it from the host rather than from its own clock.
 - **Invariant 6 — A fence instant carries its allowance.**
   ```
   Invariant 6.1: EVERY instant handed to a party judging on another clock MUST carry the allowance subtracted.
@@ -233,7 +221,7 @@ Term unanswered: yes | no — yes for a grant under which a [Take], a [Try Take]
 Term no answer: a call that returns neither its answers nor a refusal within the call pause bound, or, for a blocking [Take], within the longest duration declared for the key and the call pause bound (Composition note 5d).
 
 WHY:
-A fence is the only thing that stops a holder's late write, and work carrying none has the lease alone to rely on. The holder checks the lease and then writes, and those are two calls with a pause that can fall between them; a write issued on a lease with less than two pauses left can land after the next holder has read, and so can one issued late on a reading that was good when it was asked for, which is why the write follows its reading inside one pause (Sizing 2, Sizing 2a, Sizing 3, Sizing 3a). The term must cover the work and the two-call margin its last write is issued on, or a conforming holder reads its own lease expired inside its own work (Sizing 4, Sizing 4a); no unit may start that the remaining term cannot finish with its two-call margin, one reading admits one unit, the unit's time is counted from the moment that reading was asked for, so a pause before the work begins is spent from the unit's own bound, and the reading covers the unit's writes for as long as the bound, after which the unit writes nothing more (Sizing 3, Sizing 5, Sizing 5a, Sizing 5b); a holder given a share of a longer budget spends the time it has already used and the pause before the grant lands, and takes that share without waiting, since a wait of unknown length cannot be deducted in advance (Sizing 6, Sizing 6a). A host that does not answer is a lease the holder cannot read, and a call re-issued within the lease may land twice (Sizing 7, Sizing 8). A pattern whose declared bounds do not clear the margin has a lease that reads expired from the first call, so it refuses to start rather than run (Sizing 9). The host's grant is untouched throughout: expired is a holder's reading and the grant still ends at the instant (Invariant 2.1, Invariant 2.2). The atom gives the form, never the numbers: the call pause bound and every unit's bound are the pattern's (Non-goal 10, Non-goal 12, Non-goal 12a). A unit's elapsed time and the time spent before a take are spans on the holder's own clock, never instants compared across two clocks; how far two clocks' rates may differ over a span is the deployment's (Execution Contract Logic confinement 7).
+A unit's elapsed time and the time spent before a take are spans on the holder's own clock, never instants compared across two clocks; how far two clocks' rates may differ over a span is the deployment's (Execution Contract Logic confinement 7).
 
 ### The terminus, and carrying it as a fence
 
@@ -260,9 +248,6 @@ Term effect instant: the instant a work item takes effect, read on the fenced pa
 Term allowance: the declared cross-seam allowance between the granting host's clock and the judging party's clock; one allowance per fenced party.
 
 Term fenced party: the third party a fence is handed to.
-
-WHY:
-expires_at is the point of the atom ([Expiry Instant]). The judging party's clock is not the granting host's, so the comparison spans two seams and the allowance must be spent somewhere; minted into the instant, never applied at the reading, because applying it at the reading widens the window in the direction that admits a late write — the failure the fence exists to prevent. The ceiling is a ceiling and not an equation: a holder may hand over an earlier instant and keep more margin, never a later one (Fence 5, Check 6.1). Two fenced parties are two seams with two allowances, which is what makes minting each fence separately more than bookkeeping (Fence 8). Minting one instant with the allowance and deriving the others from it bare defeats the margin on every derived instant, the same defect a second time (Fence 8, Fence 9). The effect instant is judged, never claimed: an instant carried by the work item would be the holder's own word, and the holder is the party a fence exists to stop trusting (Fence 3, Fence 4).
 
 ## Examples
 
@@ -322,8 +307,7 @@ Non-goal 12: The atom MUST NOT choose the call pause bound.
 Non-goal 12a: The atom MUST NOT choose a unit's bound.
 ```
 
-WHY:
-The atom does not detect death and no implementation may pretend to (Invariant 3.1, Invariant 3.2). Reentrancy is a caller error, not a supported nesting (Non-goal 1, Non-goal 2). A lease serializes access to a key and nothing more (Non-goal 5 through 7). expires_at is on the granting host's clock (Fence 1); comparing it against any other clock is the cross-seam case Invariant 6 governs.
+NOTE: the owners — the composing pattern (Non-goal 8, Non-goal 9; Non-goal 10, Non-goal 11, Composition note 5; Non-goal 12, Sizing 1; Non-goal 12a, Composition note 8a).
 
 ## Composition notes
 
@@ -347,8 +331,7 @@ Composition note 8: A pattern that issues an unfenced write under a lease MUST s
 Composition note 8a: A pattern that issues an unfenced write under a lease MUST name which declared bound is each unit's bound.
 ```
 
-WHY:
-A waiter is never told its arrival term, so the longest it can be kept is the longest grant the pattern ever asks for on that key, and a pattern that declares that number can tell a slow take from a lost one (Composition note 5d, Term no answer). A holder that gave up on a call does not know the call is dead: released early, the key goes to a party whose read the late call can still follow. The grant is left to end at the instant, as [Audit Trail](../compositions/audit-trail.md) leaves it; a fence does not make an early release safe, since it refuses only what lands after the instant (Composition note 5b, Composition note 5c). A release is the holder's last call under the grant: a write issued behind it would land under a key already handed on (Composition note 5f). A pattern whose work can exceed the term it asks for has a defect this atom will not catch — it will hand the key on at the instant, exactly as specified (Composition note 5, Non-goal 11). A store deadline and a journal deadline are two uses of one atom (Composition note 6, Composition note 7). Work no fence reaches is sized by the one rule set the atom carries, with the pattern's own bounds as its numbers (Composition note 8, Composition note 8a).
+NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md).
 
 ## Terms
 
@@ -475,17 +458,13 @@ open:
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/lease.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/lease.md`; the formal-layer vote and the migration that got it here are in [its history](./lease.hist.md).
 
 - **2026-10-04 — Grounded: a holder value names one take, release is the holder's last call, and what the atom cannot hold the deployment declares.** *Chose:* a fresh holder value for every take and none carried across a restart, so a stale or duplicated release finds not-held (Identity 6, 7; Identity 5 tombstoned); no release with a call in flight and no write after one (Composition note 5c, 5f); and eleven capability requirements for what only a deployment can make true — one clock per key, grants kept across a restart, calls held inside the call pause bound, an answer that means landed, a refusal that means never, a write applied once, a take delivered once (Capability requirement 1 through 11). *Over:* a holder value reusable across takes and restarts at the pattern's choice; a release rule with an exception for a pattern that shows a late landing to the next holder, which no reader could pin to a time; and host-side memory of every value ever carried. *Because:* each of three adversarial passes reached two writers on one key by a route the host rules alone could not close — a stale release, a release ahead of an answered-then-applied write, a take delivered twice.
 
 - **2026-10-04 — The sizing is anchored to readings, and a waiter's bound is an instant.** *Chose:* one host reading per unit of work, the unit's time counted from the asking; a lone write issued within one call pause of its reading; a work's bound that includes two call pauses and a term that exceeds it; a share of a budget taken without waiting; an unanswered grant read expired to its end (Sizing 2 through 9, Term unit's start, Term unanswered); the key free at the reading that equals expires_at, the first waiter granted at the first free reading, a try-take that does not pass a waiter, and a restart that ends the line (Term passed instant, Term waiter's bound, Operation 1a through 6c). *Over:* a start gate and a write gate with no reading named, a waiter's bound held as a length, and a boundary instant two rules claimed. *Because:* the rules of 2026-10-02 carried Audit Trail's arithmetic and had never been read cold; the first round found the boundary obliging a take to succeed and to fail at one reading. Compositions affected: Audit Trail's completion bounds include two call pauses (its record action, purge and seal completion bound 2) and it declares the longest duration per key (its Per-act critical section 15c); Recoverable Invocation releases with a call in flight and binds no sizing (its Ledger lines 2026-10-04-a through c).
 
-- **2026-10-04 — The formal-layer vote is yes.** *Chose:* lease.tla with four twins and a probe — a death-freed key, a one-pause margin, a bare fence, a release with a call in flight — each rejected, and the invariant that no write of a former holder lands after the next holder has read. *Over:* the draft's "not applicable", which left the atom's claims to its composers' models. *Because:* one holder, a terminus that is an instant and a fence that carries its allowance are temporal claims, and a composition model that assumes them cannot be what verifies them.
-
 - **2026-10-02 — The atom gives the form of a lease's sizing for unfenced work, and none of its numbers.** *Chose:* Sizing 1 through 9 — a declared call pause bound, a lease that reads expired below twice that bound, no write on an expired reading, a term no shorter than the work's bound, a start margin, a share-of-budget rule, a no-answer arm — with Non-goal 10 kept and Non-goal 12 added, and the Ledger's open question answered: the checkable form lives here, the numbers in each composing pattern. *Over:* leaving the form in each composing pattern, and over moving the closure sum, closure floor and measured enumeration into the atom. *Because:* the form is the same for every pattern whose writes carry no fence, and it was being restated, and re-attacked, inside one 281 KB composition; the numbers price a pattern's own work (how many record actions, how many enumerations) and an atom that chose them would own a duration, which Non-goal 10 forbids.
-
-- **2026-09-11 — Rewritten in GRACE lang v0.33; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the operations as a signature block, rationale under `WHY:`, terms declared where they are used, the invariant numbers and the Ledger unchanged. *Over:* the prose draft. *Because:* the migration plan — atoms first, since they declare the vocabulary compositions cite.
 
 - **2026-09-10 — Extracted because the obligation kept propagating, not because the shape repeated.** *Chose:* one atom covering the grant and the terminus-as-fence together. *Over:* leaving the prose in the patterns that use it, and over splitting the critical section from the fence into two concepts. *Because:* four consecutive review rounds on one composition showed a flat defect density — one foundational finding per nineteen kilobytes of body — with most new defects being an obligation added in one place and not carried to the others. Lease semantics were the largest single source of such obligations, reaching into fences, timing, expiry, remaining, and worked examples. Splitting the grant from the fence would have preserved exactly the propagation the extraction exists to remove: a fence *is* a terminus handed to another party, and stating it twice is how the two got out of step.
 
