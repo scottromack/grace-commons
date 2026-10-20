@@ -56,9 +56,6 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-WHY:
-Many grants over one pair is the deliberate opposite of [Subscription](./subscription.md)'s at-most-one, and the reason is the audit question each atom answers: a second subscription means a duplicate notification, while a second grant means a second authorization with its own issuer, date and reason (Identity 7). Collapsing them by identifying on the pair would make revoking one revoke all, and would erase which grant authorized which access (Identity 6, Identity 8).
-
 ### State
 
 ```
@@ -80,22 +77,17 @@ Term grant instant: the instant the grant was recorded — a [Grant Instant].
 
 Term revocation instant: the instant the grant was withdrawn — a [Revocation Instant].
 
-WHY:
-There is no stored denial, because absence is denial (Invariant 7.1) — an explicit deny would need a precedence rule against every allow, and precedence is where authorization systems go wrong. A revoked grant stays in the store because *who could do what, when* is the question the store exists to answer, and deleting the grant deletes the answer (State 7, Invariant 10.1).
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 4: The deployment MUST supply the grant store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Non-goal 17 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -123,13 +115,13 @@ Operation 4: IF subject reference is empty THEN [Grant] MUST answer invalid-requ
 Operation 5: IF action scope is empty THEN [Grant] MUST answer invalid-request.
 Operation 6: [Grant] MUST NOT refuse a pair an active grant already covers.
 Operation 7: IF the store refuses the write THEN [Grant] MUST answer storage-failure.
-Operation 8: [Grant] MUST NOT record a partial grant.
+Deleted: Operation 8. Execution Contract Store 1 owns it.
 Operation 9: IF no grant EXISTS for the grant id THEN [Revoke] MUST answer not-known.
 Operation 10: IF the grant's status EQUALS revoked THEN [Revoke] MUST answer not-active.
 Operation 11: [Revoke] MUST stand the grant in revoked.
-Operation 12: [Revoke] MUST commit the active-to-revoked move as one write.
+Deleted: Operation 12. Execution Contract Store 1 and Execution Contract Store 2 own it.
 Operation 13: IF the store refuses the write THEN [Revoke] MUST answer storage-failure.
-Operation 14: [Revoke] MUST leave the grant standing in active on storage-failure.
+Deleted: Operation 14. Execution Contract Store 3 owns it.
 Operation 15: A caller MUST read storage-failure from [Revoke] as a grant whose status EQUALS active.
 Operation 16: [Check] MUST answer EXACTLY ONE OF permitted, denied.
 Operation 17: [Check] MUST answer permitted ONLY IF an active grant matches the pair.
@@ -158,17 +150,14 @@ The case space, and the rule that owns each case:
 | [Grant] | refs present, store accepts | grant id | one grant lands in [Active] (Operation 1, Operation 2) |
 | [Grant] | empty or whitespace-only ref, or over the cap | [Invalid Request] | none (Operation 4, Operation 5, String 6) |
 | [Grant] | the pair already has a live grant | grant id | a second, independent grant lands (Operation 6, Identity 7) |
-| [Grant] | store refuses the write | [Storage Failure] | none — no partial record (Operation 7, Operation 8) |
+| [Grant] | store refuses the write | [Storage Failure] | none (Operation 7) |
 | [Revoke] | id names a live grant | ok | [Active] → [Revoked], revocation instant stamped (Operation 11, State 5) |
 | [Revoke] | id names a revoked grant | [Not Active] | none — and the answer a retry of a landed revoke gets (Operation 10) |
 | [Revoke] | id names nothing | [Not Known] | none (Operation 9) |
-| [Revoke] | store refuses the write | [Storage Failure] | none — **the subject keeps the access** (Operation 13 through 15) |
+| [Revoke] | store refuses the write | [Storage Failure] | none — **the subject keeps the access** (Operation 13, Operation 15) |
 | [Check] | a live grant matches the pair | [Permitted] | none — the call reads (Operation 17, Operation 20) |
 | [Check] | nothing matches, over-length argument included | [Denied] | none (Operation 18, String 7) |
 | [Read] | any | every grant, with its stored fields | none (Operation 26 through 29) |
-
-WHY:
-The two storage failures are not the same failure. A failed [Grant] leaves a record missing, which the caller discovers the next time the subject is denied; a failed [Revoke] leaves a subject holding access the organization has decided to remove, and a caller that reads it as *probably fine* has left the door open (Operation 15, Revoke persistence 1 through 4). [Check] refuses nothing: a malformed argument matches no grant, and the correct answer to *may this actor do this thing* is then denied rather than an error the call site has to interpret (Operation 19, String 7).
 
 ### Invariants
 
@@ -214,12 +203,11 @@ The two storage failures are not the same failure. A failed [Grant] leaves a rec
   Invariant 9.1: IF revocation instant DOES NOT EQUAL blank THEN grant instant MUST NOT EXCEED revocation instant.
   Invariant 9.2: A grant MUST stand in force at an instant ONLY IF the grant is live at the instant.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Execution Contract Logic confinement 7).
 - **Invariant 10 — Grant store durability.**
   ```
   Invariant 10.1: The atom MUST NOT delete a grant record.
   Invariant 10.2: The grant set MUST NOT shrink.
-  Invariant 10.3: A storage-failure from [Grant] MUST NOT leave a partial grant.
+  Deleted: Invariant 10.3. Execution Contract Store 1 owns it.
   ```
 
 Self-containment and denial-by-absence give the *determinism* property — one query against one active set answers one way, always. Immutability and monotonicity give *auditability* — the authorization history is the store, with no recourse to logs or narration.
@@ -283,7 +271,7 @@ Check 6.1: An auditor MUST identify which composing patterns a deployment wired 
 External check 1: An auditor MUST read who issued a grant from the composing Actor Identity attestations (Non-goal 9).
 External check 2: An auditor MUST read whether an access was attempted from the composing Event Log records (Non-goal 11).
 External check 3: An auditor MUST read a departing subject's full revocation from the composing pattern's deprovisioning records (Deprovisioning 2, Deprovisioning 3, Deprovisioning 4).
-External check 4: An auditor MUST read the serialization evidence for concurrent revokes from the deployment's own concurrency probe (Operation 12).
+Deleted: External check 4. Execution Contract Store 2 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests. The grant store answers *who could do what, and since when*; who authorized it, who tried, and whether a leaver's access was fully removed are the composing patterns' records.
@@ -310,9 +298,6 @@ Non-goal 16: The atom MUST NOT carry a grant across trust domains.
 Non-goal 17: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-Roles and attributes are the two shapes people reach for first, and both compose: a role is a name the composing system resolves into grants before it calls, and an attribute policy is a pattern that decides and then grants (Non-goal 1 through 3). Explicit deny is refused on purpose — a deny that overrides an allow needs a precedence rule, and precedence is the part of an authorization system that is wrong in production (Non-goal 6, Invariant 7.1). The binding between the authenticated caller and the subject reference passed to [Check] is the composing system's, and getting it wrong is how a correct authorization atom authorizes the wrong person (Non-goal 13, Non-goal 14).
-
 Where the atom breaks down: when the scope vocabulary needs hierarchy or wildcards; when evaluation must reason about the resource's attributes at call time; when a grant must end on its own without anyone revoking it; when the grantor's identity is part of the evaluation rather than beside it.
 
 ## Edge cases
@@ -331,9 +316,6 @@ String 7: [Check] MUST read an over-length string input as matching nothing.
 
 Term string cap: the deployment's bound on a string input's length; a cap of zero refuses every [Grant], which is the degenerate configuration a deployment owns rather than a state the atom admits.
 
-WHY:
-Byte-exact and nothing else. A scope vocabulary that needs case-insensitivity or normalization has a vocabulary the composing system owns, and an atom that quietly folded case would make `Documents:Read` and `documents:read` the same authorization in a system that meant them differently (String 1 through 4).
-
 ### Deprovisioning a subject
 
 ```
@@ -343,20 +325,14 @@ Deprovisioning 4: A composing pattern MUST NOT read one revoke as a subject's de
 Deleted: Deprovisioning 1. Identity 8 owns one revoke reaching one grant.
 ```
 
-WHY:
-This is the many-grants decision's bill. A composing pattern that revokes one grant and calls the subject gone leaves every other live grant intact — the subject still has access, the records say so plainly, and nobody looked (Deprovisioning 3, Identity 7, Identity 8).
-
 ### Grant concurrency and revoke concurrency
 
 ```
 Grant concurrency 1: Two concurrent [Grant] calls on one pair MUST record two grants.
 Grant concurrency 2: A composing pattern intending one authoritative grant MUST guard against a concurrent issue.
-Revoke concurrency 1: Two concurrent [Revoke] calls on one grant id MUST NOT succeed together.
-Revoke concurrency 2: The losing concurrent [Revoke] MUST answer not-active.
+Deleted: Revoke concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Revoke concurrency 2. Execution Contract Store 2 owns it.
 ```
-
-WHY:
-The polarity is deliberate on both sides: grants do not race because two grants are a legitimate state, and revokes do race because two revocations of one grant are one revocation (Grant concurrency 1, Revoke concurrency 1, Operation 12).
 
 ### Revoke persistence failure
 
@@ -366,9 +342,6 @@ Revoke persistence 2: A caller MUST retry a revoke that answered storage-failure
 Revoke persistence 3: A caller MUST read not-active from a retried revoke as the revocation standing.
 Revoke persistence 4: A high-assurance deployment MUST raise a security alert on storage-failure from [Revoke].
 ```
-
-WHY:
-The two storage failures have opposite polarity. A failed grant withholds access somebody should have and surfaces as a complaint; a failed revoke leaves access somebody should not have and surfaces as nothing at all. That asymmetry is why the retry is an obligation rather than advice, and why not-active on the retry is the good answer rather than an error (Revoke persistence 2, Revoke persistence 3).
 
 ## Composition notes
 
@@ -380,8 +353,7 @@ Composition note 4: A composing pattern needing grantor attribution MUST attest 
 Composition note 5: A composing pattern MUST own a departing subject's deprovisioning sweep.
 ```
 
-WHY:
-[Attributed Permissions Admin](../compositions/attributed-permissions-admin.md) is the landed wiring for attribution: every grant and revoke paired with an [Actor Identity](./actor-identity.md) attestation, so *who authorized this access* is a record rather than an inference — and the pairing lives in that composition, never as a field here (Composition note 4). [Shared Todo](../compositions/shared-todo.md) wires this atom with [Personal Todo](./personal-todo.md) and [Assignment](./assignment.md): the scope vocabulary is that composition's, the task is Personal Todo's, responsibility is Assignment's, and permission is this atom's (Composition note 2). Forthcoming: Role-Based Access Control, Attribute-Based Access Control, Temporal Grant, Delegation, Policy Layer, Identity Federation.
+NOTE: composing patterns — [Attributed Permissions Admin](../compositions/attributed-permissions-admin.md), [Shared Todo](../compositions/shared-todo.md). Forthcoming: Role-Based Access Control, Attribute-Based Access Control, Temporal Grant, Delegation, Policy Layer, Identity Federation.
 
 ## Terms
 
@@ -393,7 +365,7 @@ Term actors: the atom; the host; the transition; the deployment (also: a high-as
 
 Term records: grant record — one binding, carrying grant id, subject reference, action scope, grant instant, status and, once withdrawn, revocation instant.
 
-Term record verbs: identify, allocate, supply, reuse, hold, reach, compare, trim, normalize, case-fold, read, stand, carry, stamp, offer, delete, record, answer, refuse, leave, take, write, match, rest, consult, change, move, set, share, shrink, evaluate, expand, model, expire, authenticate, bind, revoke, retry, raise, enumerate, call, guard, succeed, compose, resolve, attest, own, declare, find, reconstruct, commit, exceed.
+Term record verbs: identify, allocate, supply, reuse, hold, reach, compare, trim, normalize, case-fold, read, stand, carry, stamp, offer, delete, record, answer, refuse, take, write, match, rest, consult, change, move, set, share, shrink, evaluate, expand, model, expire, authenticate, bind, revoke, retry, raise, enumerate, call, guard, compose, resolve, attest, own, declare, find, reconstruct, exceed.
 
 Term value sets: status = active | revoked.
 
@@ -541,7 +513,7 @@ Projection: not-known
 
 #### Not Active
 
-The refusal [Revoke] returns when the referenced grant is not in [Active] — it is already [Revoked]. This is what makes revocation terminal and what a serialized second concurrent revoke receives.
+The refusal [Revoke] returns when the referenced grant is not in [Active] — it is already [Revoked]. This is what makes revocation terminal.
 
 Kind:       Member
 Member of:  the Revoke rejection
@@ -550,7 +522,7 @@ Projection: not-active
 
 #### Storage Failure
 
-The refusal [Grant] or [Revoke] returns when the store write fails after all preconditions pass. For [Grant], no grant is recorded. For [Revoke], the grant remains [Active] — a security-critical state the caller must retry, never treat as a confirmed revocation.
+The refusal [Grant] or [Revoke] returns when the store write fails after all preconditions pass. For [Revoke], the grant remains [Active] — a security-critical state the caller must retry, never treat as a confirmed revocation.
 
 Kind:       Member
 Member of:  the action rejection
@@ -608,12 +580,12 @@ It inherits from:
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-06-18
+status: partially resolved
 formal: verified — permissions.als + 1 twin, 2026-06-03
 last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
@@ -622,10 +594,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/permissions.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/permissions.md`; the rounds and the migration that got it here are in [its history](./permissions.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the three actions as a signature block, the string policy as its own rule family, the ten invariant numbers unchanged, Generation acceptance as conformance checks plus external checks ahead of Non-goals, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan, and this atom completes [Shared Todo](../compositions/shared-todo.md)'s constituent set — Personal Todo, Assignment and Permissions all migrated, which makes that composition the one with no inherited term collision to resolve.
-
-- **2026-09-26 — The read surface restored.** *Chose:* `read()` in the signature block, answering every grant with its stored fields (Operation 26 through 29). *Over:* an atom with no declared read. *Because:* the prose spec declared its read surface in its Outputs section — "the current set of grants", each with its fields — and the migration dropped it with the section, while Deprovisioning 2, Check 1.1, Attributed Permissions Admin and Actor Suspension all read the store through it. Restored as the prose had it, not widened: no filter, so a composing pattern filters in its own code. Found by the cold regeneration of the Attributed Permissions Admin demo (council read 228).
+- **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the grant store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the seven rules that restated them tombstoned to their owner — Operation 8 and Invariant 10.3, no partial grant, to Store 1; Operation 12, the active-to-revoked move committed as one write, to Store 1 and Store 2; Revoke concurrency 1 and 2, two revokes of one grant never both succeeding and the later answering not-active, and External check 4, the deployment's evidence of that serialization, to Store 2; Operation 14, a refused revoke leaving the grant active, to Store 3; rules 111 to 105. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The grant set that never shrinks stays (Invariant 10.2), the atom's own surface that Check 5.1 reads, and so does the caller's reading of a refused revoke (Operation 15, Revoke persistence 1 through 4): it binds the caller, which no Store rule does. What the atom does for its domain is unchanged.
 
 NOTE: End of Permissions.

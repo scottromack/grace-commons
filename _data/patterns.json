@@ -1025,7 +1025,7 @@
    "shared-todo"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -1058,7 +1058,7 @@
    "SOC 2",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-18",
+  "status": "partially resolved",
   "title": "Permissions"
  },
  "personal-todo": {
