@@ -63,9 +63,6 @@ Term transition: the atom's evaluation of one call against the subscription stor
 
 Term id entropy: the random material a subscription id is drawn from; 128 bits where a deployment declares none.
 
-WHY:
-The id is the capability: knowing it is what lets a caller cancel, so it is drawn from a secure source and is unguessable from the subscribe time or the subscriber (Identity 6, Identity 7, Cancel capability 1 through 3). Identity by the pair would make a cancel-and-resubscribe look like an edit of one record, when it is two records with two histories — which is exactly what an auditor reconstructing a scope's audience needs (Identity 5, Invariant 4.1).
-
 ### State
 
 ```
@@ -86,13 +83,11 @@ Term subscription instant: the instant the subscription was recorded — a [Subs
 
 Term cancellation instant: the instant the subscription was withdrawn — a [Cancellation Instant].
 
-WHY:
-A cancelled subscription stays in the store because the record of who was listening when is the audit surface — the atom answers *who now* from the active set and leaves *who then* reconstructable from both timestamps (State 7, Check 1.1). Nothing about events lives here: what fired, how often, and whether it arrived belong to [Event Log](./event-log.md) and [Notification](./notification.md) (State 8, State 9).
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 5: The deployment MUST supply the subscription store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -100,9 +95,6 @@ Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Capability requirement 1 and Execution Contract Logic confinement 7 own it: the seam supplies now, and the reading's honesty is the deployment's.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -137,7 +129,7 @@ Operation 11: [Cancel] MUST stand the subscription in cancelled.
 Operation 12: [Cancel] MUST accept the subscription id as the whole authorization.
 Operation 13: IF the store refuses the write THEN [Subscribe] MUST answer storage-failure.
 Operation 14: IF the store refuses the write THEN [Cancel] MUST answer storage-failure.
-Operation 15: A refused write MUST leave the store as the call found the store.
+Deleted: Operation 15. Execution Contract Store 3 owns it.
 Operation 16: [Subscribed] MUST answer EXACTLY ONE OF subscribed, not-subscribed.
 Operation 17: [Subscribed] MUST answer subscribed ONLY IF an active subscription EXISTS for the pair.
 Operation 18: [Subscribed] MUST NOT refuse a blank input.
@@ -169,14 +161,11 @@ The case space, and the rule that owns each case:
 | [Cancel] | id names a live subscription | ok | [Active] → [Cancelled], cancellation instant stamped (Operation 11, State 5) |
 | [Cancel] | id names a cancelled subscription | [Not Active] | none (Operation 10) |
 | [Cancel] | id names nothing | [Not Known] | none (Operation 9) |
-| either write | store refuses | [Storage Failure] | none (Operation 13 through 15) |
+| either write | store refuses | [Storage Failure] | none (Operation 13, Operation 14) |
 | [Subscribed] | a live subscription matches the pair | subscribed | none — the call reads (Operation 17, Operation 24) |
 | [Subscribed] | nothing matches, blank arguments included | not-subscribed | none (Operation 18, Invariant 8.1) |
 | [Subscribers For] | live subscriptions match the scope | their subscriber reference values, unordered | none (Operation 19, Operation 23) |
 | [Subscribers For] | scope never subscribed, or all cancelled | empty list | none — the two cases read alike (Operation 22) |
-
-WHY:
-The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberate: a write with a blank argument would record a bad row, while a read with a blank argument has a correct answer — nothing matches (Operation 18, Operation 22). An empty answer does not say whether a scope was never subscribed to or was fully cancelled, because the atom answers *who now* and a reader wanting *who then* has both timestamps to filter on (Check 1.1). [Subscribers For] returns subscriber refs and not ids: a composing pattern that needs the id captured it at subscribe time, and at-most-one is what makes that binding well-defined (Invariant 6.1, Composition note 3).
 
 ### Invariants
 
@@ -207,7 +196,6 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
   ```
   Invariant 6.1: Two active subscriptions MUST NOT share a pair.
   ```
-  WHY: two live subscriptions for one actor and one scope produce two notifications for one event — the duplicate this atom exists to foreclose, and the structural difference from [Permissions](./permissions.md), which admits many grants over one pair.
 - **Invariant 7 — Evaluation self-containment.**
   ```
   Invariant 7.1: [Subscribed] MUST rest on the active set alone.
@@ -222,7 +210,6 @@ The two queries refuse nothing, and that asymmetry with [Subscribe] is deliberat
   ```
   Invariant 9.1: IF cancellation instant DOES NOT EQUAL blank THEN subscription instant MUST NOT EXCEED cancellation instant.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Execution Contract Logic confinement 7).
 
 ## Examples
 
@@ -293,8 +280,7 @@ Non-goal 16: The atom MUST NOT offer a bulk cancel.
 Non-goal 17: The atom MUST NOT record an event's firing history.
 ```
 
-WHY:
-The atom records interest and answers audiences; everything downstream of *who* is the composing pattern's — routing, fanout, transport, delivery guarantees (Non-goal 1 through 5, 8). Scope is matched exactly, so `task:assigned` does not cover `task:assigned:dev_d`: hierarchy and wildcards are a scope vocabulary the composing system owns, and building them in here would make every deployment inherit one system's naming (Non-goal 6, Non-goal 7). There is no expiry and no bulk cancel: both are loops over ids that a composing pattern runs, and each cancellation stays its own audited record rather than a sweep with no trail (Non-goal 9, Non-goal 12, Non-goal 16).
+NOTE: the owners — the composing pattern (Non-goal 1 through 5, Non-goal 8, Non-goal 9, Non-goal 16; Non-goal 12, Composition note 4); the composing system (Non-goal 6, Non-goal 7, Composition note 5); [Event Log](./event-log.md) and [Notification](./notification.md) (State 8, State 9).
 
 Where the atom breaks down: when the audience cannot be named in advance — a rule evaluated per event rather than a standing interest; when one actor genuinely needs two live subscriptions to one scope through two channels, which is a channel concept the composing pattern carries; and when the composing pattern loses the ids it captured — the subscriptions stay active, every audit sees them, and nothing in this atom can cancel them, because the id is the whole authorization and the atom enumerates none (Lost ledger 1 through 4).
 
@@ -303,13 +289,10 @@ Where the atom breaks down: when the audience cannot be named in advance — a r
 ### Atomicity of a cancel
 
 ```
-Cancel atomicity 1: The implementation MUST change status and cancellation instant together.
-Cancel atomicity 2: A crash inside [Cancel] MUST NOT leave a cancelled status without cancellation instant.
-Cancel atomicity 3: A crash inside [Cancel] MUST NOT leave cancellation instant on an active subscription.
+Deleted: Cancel atomicity 1. Execution Contract Store 1 owns it.
+Deleted: Cancel atomicity 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Cancel atomicity 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
 ```
-
-WHY:
-Half a cancel breaks Invariant 2.1 or Invariant 9.1 while every field looks individually plausible — the transactional boundary is the implementor's and is named here because the failure is invisible to a reader of either field alone.
 
 ### Cancel as a capability
 
@@ -318,9 +301,6 @@ Cancel capability 1: A caller holding the subscription id MUST reach [Cancel].
 Cancel capability 2: The atom MUST NOT enumerate subscription ids.
 Cancel capability 3: A deployment needing richer authorization MUST compose Permissions.
 ```
-
-WHY:
-Knowing the id is the whole authorization, which is honest only because the id is unguessable and the atom exposes no way to list ids (Identity 6, Identity 7, Cancel capability 2). Role gating, multi-party consent and audit-on-cancel wrap the bare capability rather than replacing it.
 
 ### The lost ledger
 
@@ -331,19 +311,13 @@ Lost ledger 3: A deployment losing a subscription id MUST read the subscription 
 Lost ledger 4: A deployment needing recovery from a lost subscription id MUST compose an administrative-recovery pattern.
 ```
 
-WHY:
-The capability trade buys unguessability and pays for it here. The id is the whole authorization (Operation 12), the atom enumerates no ids (Cancel capability 2), and nothing gates [Cancel] beyond the id (Non-goal 15) — so a composing pattern that loses its ledger holds subscriptions that every audit can see and nobody can cancel. Non-goal 12's deprovisioning cascade presupposes that ledger too. Retention Window's principle — observe the failure, never forbid the remediation — inverts here unless the ledger is owned: the remediation is not refused, it is absent. An Administrative Recovery pattern *(forthcoming)*, composing [Actor Identity](./actor-identity.md) so a named administrator can cancel without the id, is the remedy this atom deliberately does not carry (council read 12).
-
 ### The pair race
 
 ```
-Pair race 1: The implementation MUST make the pair check and the write one transition.
-Pair race 2: The implementation MUST NOT record two active subscriptions for one pair under concurrent calls.
-Pair race 3: A store enforcing the pair's uniqueness MAY discharge Pair race 1.
+Deleted: Pair race 1. Execution Contract Store 1 and Execution Contract Store 2 own it.
+Deleted: Pair race 2. Execution Contract Store 2 owns it.
+Deleted: Pair race 3. Execution Contract Store 2 owns it: the pair check and the write are one transaction, and the atom names no rule left for a uniqueness constraint to discharge.
 ```
-
-WHY:
-Operation 6 reads the active set and [Subscribe] then writes; two concurrent calls on one pair both read *absent* and both write, and Invariant 6.1 — the reason this atom exists — is violated by the very sequence it forbids. The guard is check-then-act and the fix is the implementation's: one transition, or a uniqueness constraint in the store that does the same work (Pair race 3).
 
 ## Composition notes
 
@@ -357,8 +331,7 @@ Composition note 4: A composing pattern MUST own the subscriber's deprovisioning
 Composition note 5: A composing pattern MUST own scope semantics beyond exact match.
 ```
 
-WHY:
-[Notification Fanout](../compositions/notification-fanout.md) is the wiring this atom was extracted for: an event source fires, the composition reads the audience here and creates one [Notification](./notification.md) per subscriber. Traceability runs the other way from what a reader expects — the composing pattern captures the id when it subscribes, because at-most-one makes that binding unambiguous and the atom exposes no id-recovery query (Composition note 3, Invariant 6.1). Forthcoming: Temporal Subscription, Actor Registry.
+NOTE: composing patterns — [Notification Fanout](../compositions/notification-fanout.md). Forthcoming: Temporal Subscription, Actor Registry.
 
 ## Terms
 
@@ -366,11 +339,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an actor; a subscriber; an auditor; the store; a subscription; a status; a crash.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; an actor; a subscriber; an auditor; the store; a subscription; a status.
 
 Term records: subscription — one standing interest, carrying subscription id, subscriber reference, event scope, subscription instant, status and, once withdrawn, cancellation instant.
 
-Term record verbs: make, discharge, recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, leave, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, exceed.
+Term record verbs: recover, identify, allocate, reuse, draw, carry, stand, stamp, offer, delete, hold, record, answer, interpret, accept, refuse, match, order, write, read, supply, change, move, rest, share, fire, create, deliver, expand, guarantee, expire, cancel, compose, gate, enumerate, reach, own, call, find, reconstruct, declare, exceed.
 
 Term value sets: status = active | cancelled.
 
@@ -490,7 +463,7 @@ Projection: already-subscribed
 
 #### Storage Failure
 
-The rejection [Subscribe] or [Cancel] returns when the store write fails; no partial record is written and state is unchanged.
+The rejection [Subscribe] or [Cancel] returns when the store write fails.
 
 Kind:       Member
 Member of:  the action rejection
@@ -553,12 +526,12 @@ Projection: not-active
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-06-18
+status: partially resolved
 formal: verified — subscription.als + 1 twin, 2026-06-03
 last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
@@ -567,8 +540,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/subscription.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/subscription.md`; the migration that got it here is in [its history](./subscription.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the four actions as a signature block, the nine invariant numbers unchanged, Generation acceptance as conformance checks ahead of Non-goals, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan; this atom carries no cross-spec citations, so the rewrite is free of frozen-number risk.
+- **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the subscription store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the seven rules that restated them tombstoned to their owner — Cancel atomicity 1, a cancel changing status and cancellation instant together, to Store 1; Cancel atomicity 2 and 3, no crash inside [Cancel] leaving a cancelled status without its cancellation instant or a cancellation instant on an active subscription, to Store 1 and Store 3; Pair race 1, the pair check and the write one transition, to Store 1 and Store 2; Pair race 2, no two active subscriptions for one pair under concurrent calls, and Pair race 3, a store's uniqueness constraint discharging Pair race 1, to Store 2; Operation 15, a refused write leaving the store as the call found the store, to Store 3; rules 99 to 93. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. At most one active subscription per pair stays the atom's own (Invariant 6.1, Operation 6), as do the atom deleting no subscription (State 7) and the recorded fields that never change (Invariant 1.1). The subscription ids a composing pattern recorded are that pattern's records, not this atom's, so their durability stays the composing pattern's to own (Lost ledger 2, Composition note 3a) and no Store rule the atom cites reaches them. A scope's audience at a past instant is read from the subscription and cancellation instants each subscription carries, and [Subscribers For] answers unordered, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Subscription.
