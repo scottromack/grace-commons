@@ -77,11 +77,6 @@ Term seam: the atom's I/O boundary as the section titled Logic Confinement Princ
 
 Term transition: the atom's evaluation of one call against the disclosure store, as the section titled Logic Confinement Principle in `execution-contract.md` declares it.
 
-WHY:
-The id is the injected `id_t`, fresh by construction at the seam, which is what makes Identity 5 hold at the action level without the transition owning a generator or a collision path. Lexicographic sortability (Identity 15) is not cosmetic: it is the stable tiebreaker [Read]'s total order rests on, so a deployment choosing an unsortable id format breaks the read contract rather than merely the aesthetics — ULID, UUID v7 and a zero-padded integer string all satisfy it.
-
-subject reference is deliberately not an identity (Identity 7, Identity 8). One subject has many disclosures; each is its own accountability record, and collapsing them under a subject key would make the store answer *what is true of this subject* rather than *what happened to this subject's data*, which is the question the regulation asks.
-
 ### State
 
 ```
@@ -97,17 +92,11 @@ State 9: A later unfiltered [Read] MUST answer EVERY disclosure record an earlie
 State 10: The atom MUST NOT record a receipt instant.
 ```
 
-WHY:
-A disclosure record has no lifecycle (State 2). It is categorically unlike the state-machine atoms — [Legal Hold](./legal-hold.md)'s active and released, [Approval Step](./approval-step.md)'s pending, approved, rejected and withdrawn — because a disclosure simply *is*, from the moment it is recorded. There is no transition to model and therefore no transition to get wrong, and the store's only state is the growing set.
-
-State 3 is what makes the accounting answerable in one pass. Every field is on every record, so an auditor never has to ask whether an absent value means *not applicable* or *not captured* — a distinction no store can make after the fact.
-
-State 10 states the gap that makes backdating undetectable here rather than leaving it implicit. The atom stores the declared instant and nothing else, so a call made today with `disclosed_at: "2024-01-01"` produces a record that reads as a 2024 disclosure. The receipt instant lives in the composing [Event Log](./event-log.md) entry, and External check 3 is where the comparison is made.
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 5: The deployment MUST supply the disclosure store PER Execution Contract Store 1, Execution Contract Store 3 and Execution Contract Store 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
@@ -117,12 +106,6 @@ Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 4. State 10 owns it.
 Deleted: Clock semantics 5. Non-goal 23 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
-
-WHY:
-Clock skew between a caller and the seam can push a disclosure instant the caller believes is current past the injected reading, and Operation 7 rejects it. That is the correct rejection: the temporal invariant is enforced against the injected now, not against the caller's belief about the time.
 
 ### Operations
 
@@ -204,13 +187,6 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 | 3 | every precondition passes, the store refuses the write | storage-failure |
 | 4 | every precondition passes, the store accepts the write | `recorded(disclosure_id)` |
 
-WHY:
-Operation 8 is the precedence rule, and it is load-bearing rather than tidy. Without it a call carrying both a blank subject reference and a misspelled authority type could answer either way, and a caller repairing the authority type would then discover the blank field on the next attempt — two round trips to learn what one answer already knew. The same shape governs Operation 15: storage-failure means *the call was good and the store was not*, so landing it while a precondition is unchecked would tell the caller to retry something that will never succeed.
-
-Operation 7 is the atom's one genuine execution-time validation — the residual the logic-confinement discipline marks rather than derives away. A disclosure cannot be recorded as having happened later than the moment of recording, and that determination can only be made against the injected reading. The guard is a pure function of the resolved disclosure instant and now, and it writes nothing when it fails.
-
-Operation 22 refuses an unrecognized filter key rather than ignoring it, which is the difference between an answer and a coincidence: a silently ignored key returns a result set that does not match what the caller asked, and a compliance answer no one can trust the shape of is worse than a rejection. Operation 20 draws the opposite line on the same surface — a well-formed query matching nothing is a meaningful answer (*no disclosures of this kind were recorded*), not a failure.
-
 ### Invariants
 
 - **Invariant 1 — Record immutability.**
@@ -223,7 +199,6 @@ Operation 22 refuses an unrecognized filter key rather than ignoring it, which i
   Invariant 2.1: EVERY disclosure record's authority type MUST stand in the authority types.
   Invariant 2.2: EVERY disclosure record's authority reference MUST stand non-blank.
   ```
-  WHY: a record failing either arm cannot answer *under what authority was this disclosure made*, which is the one question the atom exists to answer. An unrecognized type or an empty reference is a conformance failure rather than a degraded record, because a disclosure accounting that cannot name its basis is not an accounting.
 - **Invariant 3 — Field completeness.**
   ```
   Invariant 3.1: EVERY disclosure record MUST carry a disclosure instant.
@@ -233,20 +208,17 @@ Operation 22 refuses an unrecognized filter key rather than ignoring it, which i
   ```
   Invariant 4.1: EVERY disclosure record's disclosure instant MUST NOT follow the now the record's creation read.
   ```
-  WHY: a record whose disclosure instant is later than the instant it was written claims the system recorded a disclosure that had not happened yet. The constraint is enforced against the resolved value — caller-supplied or defaulted — by Operation 7's guard, before the write.
 - **Invariant 5 — No disclosure unrecorded.**
   ```
   Invariant 5.1: EVERY transmission of a subject's data to a party beside the subject MUST produce a disclosure record.
   Invariant 5.2: The atom MUST NOT detect a transmission the atom's caller does not record.
   ```
-  WHY: the atom's whole accountability purpose rests on this invariant and the atom cannot enforce it, which is why Invariant 5.2 states the limit plainly rather than leaving it to be discovered. The atom records when called and cannot intercept a disclosure that happens without a call. It is a calling-system obligation, cleared by External check 2 and structurally closed only by a composing pattern that makes its own disclosure surface the only one — which [Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md) does.
 - **Invariant 6 — Store durability and append-only nature.**
   ```
   Invariant 6.1: The atom MUST NOT remove a disclosure record from the store.
-  Invariant 6.2: A storage-failure rejection MUST leave no partial record in the store.
-  Invariant 6.3: An answered disclosure id MUST name a durably persisted disclosure record.
+  Deleted: Invariant 6.2. Execution Contract Store 1 owns it.
+  Deleted: Invariant 6.3. Execution Contract Store 3 owns it.
   ```
-  WHY: append-only is the structural guarantee that a subject's disclosure history is complete from the records alone. A deletion or an edit would break that guarantee in a way no auditor could detect from the store — which is exactly the gap [Tamper Evidence](./tamper-evidence.md) closes cryptographically and this atom closes only by specification.
 
 ---
 
@@ -321,13 +293,8 @@ NOTE: EVERY check names the rule the check tests.
 External check 1: A deployment needing a disclosure's authority legitimacy cleared MUST read the composing authority store (Non-goal 7, Non-goal 8).
 External check 2: A deployment needing Invariant 5.1 cleared MUST read the egress record beside the disclosure store.
 External check 3: A deployment needing a backdated disclosure instant detected MUST read the composing Event Log's receipt instant (State 10).
-External check 4: A deployment needing EVERY issued disclosure id found in the store MUST capture the recorded answers (Invariant 6.3).
+Deleted: External check 4. Execution Contract Store 3 owns it.
 ```
-
-WHY:
-External check 4 is a check that left the conformance list. Finding every issued disclosure id needs the ids, and only a test or audit environment capturing the recorded answers can enumerate them — a production auditor reading the store cannot, because the store is exactly what would be missing one. The store-alone assurance comes from the other direction through Check 3.2: no record present at an earlier read has since vanished. This is the split council read 22 forced on Capability, applied before a reader had to force it.
-
-The three external checks are the audit boundary stated rather than left to be discovered, and each names where the question goes. Authority *legitimacy* is unclearable here by construction: a record carrying `{type: consent, reference: "consent-3301"}` proves the calling system claimed that consent, and whether the consent was granted, in scope and unrevoked at disclosure instant lives in [Consent](./consent.md)'s store — as does semantic agreement between the type and the reference, which this atom cannot judge on an opaque string. Invariant 5.1 is unclearable from inside because a gap is invisible to a query that sees only what was recorded; the store is the positive evidence and the negative evidence lives at the egress boundary. Backdating is unclearable because the atom stores the declared instant and no separate creation instant; the composing [Event Log](./event-log.md) entry carries the receipt instant, and a disclosure instant materially earlier than it is the audit signal. [Audit Trail](../compositions/audit-trail.md) is where that comparison is surfaced.
 
 ## Non-goals
 
@@ -357,14 +324,7 @@ Non-goal 22: The atom MUST NOT offer a filter axis over an authority reference.
 Non-goal 23: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-Non-goal 4 is the one a reader most often mistakes for a defect. The scope is the calling system's declaration of what it shared, and the atom records it without checking it — a system recording `scope: "contact-fields-only"` while transmitting a full medical record has produced an inaccurate disclosure record, and that is a calling-system failure the atom cannot see. What the atom guarantees is that the declaration is durable, attributed to a subject and a recipient, and impossible to revise later.
-
-Non-goal 5 and Non-goal 6 are where a structurally valid record can still fail the regulation. GDPR Article 15(1)(c) requires the recipients and the categories of data to be named in terms the data subject can act on; `scope: "tbl_disc_oncology_42"` and `recipient: "partner-AV7"` satisfy every rule here and satisfy no data subject. Choosing a vocabulary the regulatory audience can read is the calling system's obligation, and an auditor cannot clear it from the records without knowing that vocabulary.
-
-Non-goal 20 leaves a live policy question open rather than settling it. An Article 15 response is itself a transmission of the subject's data — to the subject — and whether it belongs in the accounting is a regulatory interpretation the compliance team makes. [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) settles it for the access-request case by recording the response as an accountable disclosure to the requester; outside that composition it stays open.
-
-Non-goal 21 is deliberate asymmetry. disclosure instant is bounded above because a future disclosure has not happened, and unbounded below because a disclosure recognized long after the fact — a breach discovered in an audit, a transmission found in a log review — is exactly the case the accounting must be able to capture.
+NOTE: the owners — the calling system (Non-goal 4, Non-goal 5, Non-goal 6); [Consent](./consent.md) and [Legal Hold](./legal-hold.md) (Non-goal 7, Non-goal 8, Non-goal 9); [Permissions](./permissions.md) (Non-goal 10, Non-goal 11); [Actor Identity](./actor-identity.md) (Non-goal 12, Non-goal 13); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 14, Non-goal 15); [Tamper Evidence](./tamper-evidence.md) (Non-goal 16, Non-goal 17); [Retention Window](./retention-window.md) (Non-goal 18, Non-goal 19); the compliance team, and [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) for an access request (Non-goal 20).
 
 ---
 
@@ -377,9 +337,6 @@ Concurrency 1: The atom MUST NOT serialize two [Record] calls against one subjec
 Concurrency 2: A [Record] call's answer MUST NOT rest on a concurrent [Record] call's answer.
 Concurrency 3: The implementation MUST issue EXACTLY ONE disclosure id per admitted record.
 ```
-
-WHY:
-There is no shared mutable state for two [Record] calls to contend over — each appends its own record under its own injected id — so serialization across calls would buy nothing and cost throughput on exactly the batch disclosures regulated systems make most (a report covering many patients is one call per patient, per Non-goal 14's neighbourhood). The only serialization the atom asks for is within a single call's write.
 
 ### String policy
 
@@ -395,10 +352,6 @@ String 7: The deployment MUST canonicalize an opaque reference.
 
 Term string input: subject reference, recipient, scope, authority reference OR a filter's value — every caller-supplied string this atom accepts.
 
-
-WHY:
-Byte-exactness means callers own canonicalization (String 1, String 7): two subject references differing only in case are two subjects to this atom, and a [Read] filtered on one will not answer the other's records. In a store whose purpose is completeness, that is the failure mode worth naming — an Article 15 answer that is short by the records filed under a differently-cased reference is wrong in the one direction the regulation punishes.
-
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
 ### Correction by append
@@ -411,9 +364,6 @@ Correction 4: A correcting disclosure record's correction narrative MUST name th
 ```
 
 Term correction narrative: the scope OR the authority reference a correcting disclosure record carries — the two fields that hold prose.
-
-WHY:
-A record capturing the wrong scope or the wrong recipient stands permanently, and the correction is a new record that narrates the relationship to it. An auditor reading both sees the full history including the correction, which is what regulated record-keeping asks for — the same posture [Legal Hold](./legal-hold.md) takes on a case-reference update. Immutability of the original is the structural guarantee that records cannot be silently altered after the fact, so exempting a correction would exempt the very edit the guarantee exists to prevent.
 
 ---
 
@@ -432,11 +382,9 @@ Composition note 9: A composing pattern reading the disclosure store MUST NOT wr
 ```
 
 WHY:
-[Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md) (`grounded` 2026-06-08) is the composition that does what this atom cannot: it structurally closes Invariant 5.1 by making its own `disclose_subset` the only disclosure surface and having that surface always record (Composition note 8). The ledger is immutable, attributed and tamper-evident, and a subset can be disclosed to a counterparty both accountably — each disclosure is itself an immutable attributed event — and verifiably, without compromising the undisclosed remainder.
-
 [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md) uses this atom in both directions: *read* to answer Article 15(1)(c)'s recipients limb, and *written* to record each fulfillment response as an accountable disclosure to the requester — which settles, for that case, the policy question Non-goal 20 leaves open.
 
-[Audit Trail](../compositions/audit-trail.md) is the regulated-audit stack every [Record] call passes through in a regulated deployment, and it is where External check 3's backdating comparison is surfaced. [Consent](./consent.md) and [Legal Hold](./legal-hold.md) are the authority stores behind two of the three authority types, and they are composing peers rather than constituents — neither imports the other's semantics, and both may be live on one subject's records at once. [Actor Identity](./actor-identity.md) supplies the recording actor's attestation, [Tamper Evidence](./tamper-evidence.md) the cryptographic seal, [Retention Window](./retention-window.md) the lifecycle, [Permissions](./permissions.md) the scoped read access a store holding subject identities and disclosure patterns needs, and [Duplicate Prevention](./duplicate-prevention.md) at-most-once recording under retry.
+NOTE: composing patterns — [Immutable Transaction Ledger](../compositions/immutable-transaction-ledger.md), [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md).
 
 ---
 
@@ -446,11 +394,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; the store; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a rejection; a string input; an opaque reference; the store instance's record count; a field-level precondition.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; the store; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a string input; an opaque reference; the store instance's record count; a field-level precondition.
 
 Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, sort, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, fall, call, produce, choose, capture.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, sort, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, fall, call, produce, choose.
 
 Term value sets: authority type = consent | legal-hold | regulatory.
 
@@ -558,7 +506,7 @@ Projection: unknown-authority-type
 
 #### Storage Failure
 
-The rejection [Record] returns when the store write fails after all preconditions pass; guarantees no partial record was persisted (Invariant 6).
+The rejection [Record] returns when the store write fails after all preconditions pass; guarantees no partial record was persisted (Operation 16).
 
 Kind:       Member
 Member of:  the record rejection
@@ -607,12 +555,12 @@ Projection: invalid-query
 
 ## Status
 
-`grounded on Final Critique 5 — 2026-06-23` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 5 — 2026-06-23
+status: partially resolved
 formal: not applicable — vote no 2026-06-03
 last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
 
@@ -623,14 +571,8 @@ open:
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/selective-disclosure.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/selective-disclosure.md`; the migration and the repairs that got it here are in [its history](./selective-disclosure.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the two actions as a signature block, Invariant 1 through 6 keeping their numbers, every success effect conditioned on a declared admitted record or admitted read so no effect binds a refused call (Hard invariant 16), the disclosure instant resolution routed through a declared resolved disclosure instant so no rule restates the default, the rejection precedence carried by `Operation 8` and `Operation 15` rather than by a prose *rejection priority* line repeated in three sections, the six acceptance areas opened into `Check 2.1 through 6.2` with the three named audit gaps raised to `External check 1 through 3`, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 22` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Correction`), the Composition notes prose raised to `Composition note 1 through 9` with the named compositions moved into the WHY. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into selective-disclosure` found nothing in the corpus citing this atom by label, so the rewrite carried no frozen-number risk. 73.9 KB → 49.9 KB.
-
-- **2026-09-12 — A filter's match semantics is a rule, not an assumption.** *Chose:* `Operation 27` (an admitted read answers every matching record) and `Operation 28` (an admitted read answers no record failing a filter). *Over:* the prose, which spelled out matching for the authority type axis alone and left the other four to be inferred from the word *matching* in the action description. *Because:* the migration's Check 5.1 tests that a subject reference query answers every record carrying the reference, and no rule in the spec owned that proposition — a check resting on an unowned invariant, the class the docket has been collecting since council read 12. The gap was invisible to both tools and surfaced only when each check was made to name the rule it tests, which is the discipline earning its keep rather than a finding against the atom.
-
-- **2026-09-12 — Reference-level filtering is a non-goal, not an operation.** *Chose:* `Non-goal 22`. *Over:* an `Operation` rule saying [Read] must not offer the axis. *Because:* `Term filter axes` enumerates five axes and `Operation 22` rejects anything outside them, so the operation-level rule was entailed twice over (Authority 3); what is not entailed is the design claim — reference search is a composing-layer concept — and that belongs with the other surface refusals.
-
-- **2026-09-12 — Six defects the tools passed, found by a self-read before a council read.** *Chose:* `Invariant 1.1` rewritten from a garbled sentence that barely parsed; `Concurrency 2` restored to the prose's claim — two concurrent calls are *independent*, which is what the spec said, not *non-blocking*, which is what I had written; `Correction 4` given a declared correction narrative, because naming the corrected record is unsatisfiable unless a field holds the naming and the prose named two; `Identity 15` changed from the deployment *allocating* an id (contradicting `Identity 2`, where the host allocates) to the deployment choosing the id *format*; `Operation 20`'s lower-case `where` replaced by an admitted `IF … THEN`; the former first conformance check moved to `External check 4`. *Over:* shipping a file both checkers called clean. *Because:* zero tool findings has never once predicted zero council findings, and three of the six were changes in meaning rather than infelicities. The last is the repeatable one: a check asking an auditor to find *every issued* disclosure id cannot be cleared from the store, because the store is exactly what would be missing one — the same split council read 22 forced on Capability, applied here before a reader had to force it.
+- **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the disclosure store supplied under Execution Contract Store 1, Store 3 and Store 4 (Capability requirement 5), and the three rules that restated them, or stood in for them, tombstoned to their owner — Invariant 6.2, no partial record left by a storage-failure, to Store 1; Invariant 6.3, an answered disclosure id naming a durably persisted record, and External check 4, the recorded answers captured to find an issued disclosure id the store is missing, to Store 3; rules 130 to 128. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and a deployment capturing its record answers against a store that might lose a disclosure. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The atom's own no-removal rules stay (State 5, State 8, State 9, Invariant 6.1), since Store 4 alone does not keep the atom from removing a record or the count from falling; a refused [Record] still records nothing and leaves the store as the call found the store, guard refusals included (Operation 16, Operation 17). [Record]'s guards read no store state and each record is written once under a fresh host-allocated id, so the atom cites no Store 2; Check 3.1 and Check 3.2 rest on the auditor's own two reads, and [Read] orders by disclosure instant and disclosure id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Selective Disclosure.
