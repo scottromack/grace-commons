@@ -55,9 +55,6 @@ Term business caller: the party whose action the call carries, as the section ti
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition — a [Now], as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
 
-WHY:
-One attempt, one record. A retry is a new notification with a new id rather than a second outcome on the old one, which is what keeps *how many times did we try* answerable and stops a terminal record being rewritten (Identity 7, Non-goal 3).
-
 ### State
 
 ```
@@ -81,22 +78,17 @@ Term terminal stamp: delivery instant | failure instant | lapse instant — the 
 
 Term creation instant: the instant the notification was recorded — a [Creation Instant].
 
-WHY:
-Four states and exactly one terminal stamp each, because the audit question is *what happened to this one*, and a record carrying two terminal stamps answers it twice (State 6, Invariant 3.1). Nothing about transport lives here: a webhook, a push and an email produce the same three outcomes, and an atom that knew the difference would have to be re-specified every time a deployment changed channel (State 11).
-
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 4: The deployment MUST supply the notification store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 3. Non-goal 16 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -178,9 +170,6 @@ The case space, and the rule that owns each case:
 | [Pending For] | recipient has none, or only terminal ones | empty list | none (Operation 20) |
 | [Pending For] | over-length or whitespace-only recipient | empty list | none — a read with a bad argument has a correct answer (String 8, String 9) |
 
-WHY:
-The three terminal transitions share one precondition pair — known, and pending — which is why they are one rule each and two rules between them rather than nine (Operation 8, Operation 9). Which operational event counts as a failure and which as an expiry is the deployment's policy and deliberately not the atom's: a bounced address is a failure in one shop and an expiry in another, and an atom that decided would make two deployments' records mean different things while looking identical (Operation 14, External check 1).
-
 ### Invariants
 
 - **Invariant 1 — Notification immutability.**
@@ -228,7 +217,6 @@ The three terminal transitions share one precondition pair — known, and pendin
   Invariant 8.2: IF failure instant DOES NOT EQUAL blank THEN creation instant MUST NOT EXCEED failure instant.
   Invariant 8.3: IF lapse instant DOES NOT EQUAL blank THEN creation instant MUST NOT EXCEED lapse instant.
   ```
-  WHY: best-effort under a clock that moves backward; the deployment owns clock discipline (Execution Contract Logic confinement 7).
 - **Invariant 9 — Notification durability.**
   ```
   Invariant 9.1: The atom MUST NOT delete a notification record.
@@ -324,8 +312,7 @@ Non-goal 15: The atom MUST NOT expire notifications in bulk.
 Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-Who should hear about an event is [Subscription](./subscription.md)'s and the fanout that reads it; this atom starts once the recipient is known (Non-goal 1, Non-goal 2). A retry is a new record rather than a second chance at an old one, which is what keeps the count of attempts honest (Non-goal 3, Non-goal 4). Read acknowledgement is two records because *the transport accepted it* and *the person saw it* are two facts, and one record forced to carry both loses whichever is recorded second (Non-goal 8, Non-goal 9). Payload retention is the sharp one: this store keeps every payload for the life of the system, so a deployment whose payloads carry personal or medical content composes [Retention Window](./retention-window.md) rather than trusting an atom that never forgets (Non-goal 13, Payload retention 1 through 3).
+NOTE: the owners — [Subscription](./subscription.md) and [Notification Fanout](../compositions/notification-fanout.md) (Non-goal 1, Non-goal 2); [Retention Window](./retention-window.md) (Non-goal 13, Payload retention 3).
 
 Where the atom breaks down: when *delivered* is not a single observable event — a multi-hop transport with partial acknowledgement; when the same notification must be retried in place, which this atom refuses on purpose; when the payload cannot be stored at all, which needs a reference rather than content.
 
@@ -350,14 +337,11 @@ Term string cap: the deployment's bound on a string input's length.
 ### Atomicity of a terminal transition
 
 ```
-Terminal atomicity 1: The implementation MUST change status and the terminal stamp together.
-Terminal atomicity 2: A crash inside a terminal transition MUST NOT leave a terminal status without the terminal stamp.
-Terminal atomicity 3: A crash inside a terminal transition MUST NOT leave a terminal stamp on a pending notification.
-Terminal atomicity 4: The implementation MUST serialize two terminal transitions on one notification id.
+Deleted: Terminal atomicity 1. Execution Contract Store 1 owns it.
+Deleted: Terminal atomicity 2. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Terminal atomicity 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Terminal atomicity 4. Execution Contract Store 2 owns it.
 ```
-
-WHY:
-Half a transition breaks Invariant 4 while every field reads plausibly on its own — and Invariant 4's two directions are exactly what an auditor uses to detect it, which is why the repair is the implementation's transactional boundary rather than a reader's inference (Terminal atomicity 1, Invariant 4.2).
 
 ### Bulk expiry
 
@@ -376,9 +360,6 @@ Deliver persistence 3: A caller MUST NOT deliver the payload a second time on th
 Deliver persistence 4: A high-assurance deployment MUST raise an alert on storage-failure from [Deliver].
 ```
 
-WHY:
-The transport accepted the notification and the store did not record it, so the record understates what happened — the recipient has been told and *did we tell them* answers no. The retry is a retry of the *write*, never of the send, which is the distinction a caller that treats the two alike gets wrong twice (Deliver persistence 2, Deliver persistence 3; the polarity [Permissions](./permissions.md) states for its own revoke).
-
 ### Payload retention
 
 ```
@@ -390,7 +371,7 @@ Payload retention 5: A composing pattern MUST NOT delete a notification record.
 ```
 
 WHY:
-Invariant 1.1 forbids a payload changing and Invariant 9.2 forbids the set shrinking, so a composed purge cannot edit the payload or drop the record. What it can do is the shredding-class destruction [Audit Trail](../compositions/audit-trail.md) already wires over its own cascade: the content becomes unrecoverable while every stored field stands as written, which is why the invariants and the retention obligation do not collide (Payload retention 4, Payload retention 5).
+What a composed purge can do is the shredding-class destruction [Audit Trail](../compositions/audit-trail.md) already wires over its own cascade: the content becomes unrecoverable while every stored field stands as written, which is why the invariants and the retention obligation do not collide (Payload retention 4, Payload retention 5).
 
 ## Composition notes
 
@@ -404,8 +385,7 @@ Composition note 6: A composing pattern MUST own a payload's retention.
 Composition note 7: A composing pattern MUST own the delivery window.
 ```
 
-WHY:
-[Notification Fanout](../compositions/notification-fanout.md) is the wiring this atom was extracted for: an event fires, [Subscription](./subscription.md) answers who is listening, and one notification is created per subscriber — the composition owns the audience, this atom owns the record (Composition note 3). [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md) adds [Message Preference](./message-preference.md) between the two. The fail-versus-expire policy is declared by the deployment rather than the atom, and it is what makes two deployments' records comparable (Composition note 2, External check 1).
+NOTE: composing patterns — [Notification Fanout](../compositions/notification-fanout.md), [Preference-Aware Notification Fanout](../compositions/preference-aware-notification-fanout.md).
 
 ## Terms
 
@@ -413,11 +393,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a recipient; an auditor; the store; a notification; a status.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern (also: a pattern); a business caller; a caller; a recipient; an auditor; the store; a notification; a status.
 
 Term records: notification — one delivery record, carrying notification id, recipient reference, payload, creation instant, status and, once it ends, one terminal stamp.
 
-Term record verbs: identify, allocate, supply, reuse, carry, compare, trim, normalize, case-fold, read, stand, stamp, offer, delete, hold, record, answer, accept, leave, refuse, order, write, change, move, set, share, shrink, keep, own, evaluate, choose, retry, create, deliver, validate, deduplicate, purge, gate, expire, enumerate, call, serialize, compose, guard, declare, find, reconstruct, raise, require, exceed.
+Term record verbs: identify, allocate, supply, reuse, carry, compare, trim, normalize, case-fold, read, stand, stamp, offer, delete, hold, record, answer, accept, leave, refuse, order, write, change, move, set, share, shrink, keep, own, evaluate, choose, retry, create, deliver, validate, deduplicate, purge, gate, expire, enumerate, call, compose, guard, declare, find, reconstruct, raise, require, exceed.
 
 Term value sets: status = pending | delivered | failed | expired. terminal stamp = delivery instant | failure instant | lapse instant.
 
@@ -640,12 +620,12 @@ Projection: not-pending
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-06-18` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-06-18
+status: partially resolved
 formal: verified — notification.als + 1 twin, 2026-06-03
 last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
 
@@ -654,8 +634,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/notification.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/notification.md`; the migration that got it here is in [its history](./notification.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.35; nothing but language changed.** *Chose:* labelled rules in fenced blocks, the six actions as a signature block, the three terminal transitions sharing one declared term and one precondition pair, the nine invariant numbers unchanged, Generation acceptance as conformance checks plus external checks ahead of Non-goals, Non-goals and Edge cases as two sections, the transition table kept beside the rules as the case space. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into notification` prints nothing, so no number is frozen from outside, and this atom completes [Notification Fanout](../compositions/notification-fanout.md)'s constituent set with [Subscription](./subscription.md).
+- **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the notification store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the four rules that restated them tombstoned to their owner — Terminal atomicity 1, a terminal transition changing status and the terminal stamp together, to Store 1; Terminal atomicity 2 and 3, no crash inside a terminal transition leaving a terminal status without its stamp or a stamp on a pending notification, to Store 1 and Store 3; Terminal atomicity 4, two terminal transitions on one notification id serialized, to Store 2; rules 130 to 127. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. A refused call leaving the notification as the call found it stays the atom's own (Operation 16), as do the caller's reading of a refused deliver (Deliver persistence 1 through 4), the payload kept for the store's life and a composed purge leaving every stored field as written (Payload retention 1 through 5), the recorded fields and a landed stamp that never change (Invariant 1.1, Invariant 1.2) and the atom's durability (State 10, Invariant 9.1 through 9.3). Pending at an instant is read from the creation instant and terminal stamp each notification carries, and [Pending For] answers unordered, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of Notification.
