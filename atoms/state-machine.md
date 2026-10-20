@@ -86,11 +86,6 @@ Term transition: the atom's evaluation of one call against the workflow store, a
 
 Term declared transition: one from state, action, to state and optional guard in the declaration — a move the workflow may make. Distinct from the transition above, which is the atom's evaluation of a call.
 
-WHY:
-The corpus's word *transition* carries two senses here and the atom cannot avoid either: the execution contract's transition (one evaluation of one call) and the state machine's declared transition (one edge in the declaration). Both are declared, and every rule names which.
-
-Lexicographic sortability (Identity 11) is the same deployment obligation [Selective Disclosure](./selective-disclosure.md) carries and for the same reason — it is the tiebreaker a deterministic read rests on.
-
 ### State
 
 ```
@@ -107,23 +102,18 @@ State 10: The atom MUST NOT offer a transition out of a terminal state.
 State 11: The atom MUST NOT offer an action that stands a workflow in two states.
 State 12: The store instance's workflow count MUST NOT fall.
 State 13: A workflow's transition history MUST NOT shrink.
-State 14: next sequence number MUST survive a restart.
+Deleted: State 14. Execution Contract Store 3 owns it.
 ```
-
-WHY:
-State 14 is stated as a rule rather than left to the implementation because the failure it prevents is silent and total. A counter that resets to one on restart produces two history entries carrying `sequence_number: 1`, which breaks Invariant 6's total order and Invariant 7's replay in the same stroke — and it breaks them *retroactively*, for a history that looked correct before the restart and is unrecoverable after.
 
 ### Capability requirement
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
+Capability requirement 5: The deployment MUST supply the workflow store PER Execution Contract Store 1 through 4.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 4. Execution Contract Logic confinement 7 owns it.
 ```
-
-WHY:
-What the deployment supplies, which is what the family means. The rule stood under `Operation` — one action's rules — while naming no action, because this spec was migrated before the standard family had a home in an atom; the five atoms migrated a day later put the same obligation here. The words are the words the rule carried (council read 76).
 
 ### Operations
 
@@ -176,7 +166,7 @@ Operation 23: An admitted fire MUST raise next sequence number by one.
 Operation 24: An admitted fire MUST set the history entry's from state to the current state the call found.
 Operation 25: An admitted fire MUST set the history entry's to state to the matched transition's to state.
 Operation 26: An admitted fire MUST stand the workflow in the matched transition's to state.
-Operation 27: An admitted fire MUST commit the entry, the raise and the state change in one operation.
+Deleted: Operation 27. Execution Contract Store 1 owns it.
 Operation 28: An admitted fire MUST answer the matched transition's to state.
 Operation 29: An admitted fire over a guarded transition MUST record guard satisfied on the history entry.
 Operation 30: An admitted fire over an unguarded transition MUST NOT record guard satisfied on the history entry.
@@ -219,7 +209,7 @@ Term reading action: [Current] | [History] | [Read Declaration] — the three th
 
 Term current state: the state the workflow stands in — a [Current State]; the initial state until a fire lands, and the latest history entry's to state after.
 
-Term next sequence number: the counter [Fire] takes a sequence number from — a [Next Sequence Number]; begins at one, rises by one per append, and survives a restart.
+Term next sequence number: the counter [Fire] takes a sequence number from — a [Next Sequence Number]; begins at one and rises by one per append.
 
 Term sequence number: the strictly increasing integer a history entry takes at append — a [Sequence Number]; the history's order source, and never taken from a clock.
 
@@ -260,15 +250,6 @@ Term admitted history: a [History] call whose instance id names a workflow and w
 
 NOTE: watch condition negation — invalid-request occupies two rows of one precedence chain (row 1 and row 6), so the answer alone does not say which guard refused. Audit Trail's 2026-08-30-a open line is the same shape with a worse consequence, its row 6 landing after a commitment.
 
-WHY:
-The precedence chain is the atom's most load-bearing ordering and every step earns its place. Argument well-formedness precedes the store lookup (row 1) so a malformed call never costs a read. not-known precedes terminal (row 2) because a state answer about a workflow that does not exist would be an invention. terminal precedes invalid-transition (row 3) because an absorbed workflow rejects *every* action, and telling a caller their action was undeclared when the workflow would refuse any action sends them to fix the wrong thing. invalid-transition precedes guard-not-satisfied (row 4) because a guard belongs to a declared transition, and an undeclared move has no guard to be unsatisfied about.
-
-Row 6 is the one that surprises, and it is deliberate: attribution and temporal checks run *after* the gate. The alternative — checking firing instant before the guard — would tell a caller their timestamp is wrong on a transition they were never allowed to make, which leaks the declaration's shape to a caller the declaration refuses.
-
-Operation 20 states the within-workflow temporal bound as a precedence rather than as a comparison, which is why no rule here spells `≥` as a two-arm disjunction. A transition cannot be recorded as firing before the workflow existed; a transition firing *at* the instant of instantiation is legal, and `precedes` says exactly that in one arm.
-
-Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inherits: firing instant is best-effort and sequence number is the order. Under a skewing clock a later history entry may legitimately carry an earlier firing instant, and no invariant here is at risk from it.
-
 ### Invariants
 
 - **Invariant 1 — Declaration immutability.**
@@ -285,13 +266,11 @@ Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inh
   Invariant 3.1: EVERY history entry MUST match EXACTLY ONE declared transition in the workflow's declaration.
   Invariant 3.2: Two declared transitions in one declaration MUST NOT share one from state and one action.
   ```
-  WHY: Invariant 3.2 is what makes Invariant 3.1's *exactly one* reachable. The uniqueness is enforced once, at [Instantiate] (Declaration 13), and every later match inherits it — so the atom never carries a tiebreak rule, because a conforming declaration never presents a tie.
 - **Invariant 4 — Terminal absorption.**
   ```
   Invariant 4.1: A workflow whose current state IS IN the terminal states MUST NOT leave the terminal state.
   Invariant 4.2: A declared transition's from state MUST NOT stand in the terminal states.
   ```
-  WHY: absorption holds twice over — by enforcement at [Fire] (Operation 13) and by construction in the declaration (Invariant 4.2), which is what makes it structural. A deployment needing post-terminal behaviour models it as a non-terminal state or instantiates a new workflow; there is no reopen surface and there is no declaration that could describe one.
 - **Invariant 5 — History append-only and complete.**
   ```
   Invariant 5.1: A history entry MUST NOT change.
@@ -309,24 +288,21 @@ Operation 55 is the discipline [Event Log](./event-log.md) set and this atom inh
   Invariant 7.2: A workflow carrying no history entry MUST stand in the initial state.
   Invariant 7.3: A replay of a workflow's history from the initial state in sequence number ascending order MUST reach the workflow's current state.
   ```
-  WHY: the current state is a projection of the history, cached so a guard need not replay. Invariant 7.3 is what makes the cache safe to hold: an auditor can rebuild the state from the entries alone, and a disagreement between the cache and the replay is a conformance failure rather than a repair job.
 - **Invariant 8 — Guard gating without evaluation.**
   ```
   Invariant 8.1: A guarded declared transition MUST fire ONLY IF the caller asserts guard satisfied.
   Invariant 8.2: The atom MUST NOT evaluate a guard's condition.
   Invariant 8.3: A guarded declared transition's history entry MUST record the caller's assertion.
   ```
-  WHY: the entry attests that the caller asserted the guard at the moment of the call, and attests nothing about the world. The distinction is the atom's whole restraint, and it is what an auditor must understand before reading `guard_satisfied: true` as evidence — it is evidence of an assertion, and [Execute Gated Workflow](../compositions/execute-gated-workflow.md) is where the assertion is earned by reading a bound [Approval Step](./approval-step.md).
 - **Invariant 9 — Transition attribution completeness.**
   ```
   Invariant 9.1: A recorded actor reference MUST stand non-blank.
   ```
-  WHY: the entry is complete for forensic replay whether or not actor reference was supplied. Attribution is deployment policy here, not an atom-level mandate — which is exactly the gap [Actor Identity](./actor-identity.md) closes where a regulator needs the actor bound rather than named.
 - **Invariant 10 — Store durability.**
   ```
   Invariant 10.1: The atom MUST NOT remove a workflow from the store.
   Invariant 10.2: The atom MUST NOT remove a history entry from a workflow.
-  Invariant 10.3: A storage-failure rejection MUST leave no partial record in the store.
+  Deleted: Invariant 10.3. Execution Contract Store 1 owns it.
   ```
 
 ### The declaration
@@ -361,11 +337,6 @@ Term terminal states: the absorbing members of states — a [Terminal States]; p
 
 Term well-formed declaration: a declaration Declaration 5 through 15 all admit.
 
-WHY:
-Declaration 13 is the determinism constraint and the load-bearing one: at most one declared transition per from state and action pair means a [Fire] either matches exactly one edge or none, and the atom never chooses between two. Without it *fire the approve action* would be ambiguous in a declaration that named two approve edges, and an implementation would have to invent a tiebreak the spec does not have.
-
-Declaration 9 and Declaration 12 are the same claim from two directions, and neither is redundant. Declaration 9 refuses a workflow born absorbed — a workflow whose initial state is terminal accepts nothing and exists only to be stuck. Declaration 12 refuses an edge *out of* a terminal state, which is what makes Invariant 4's absorption structural rather than merely enforced at [Fire]: a conforming declaration cannot even describe the move.
-
 ---
 
 ## Examples
@@ -374,7 +345,7 @@ Declaration 9 and Declaration 12 are the same claim from two directions, and nei
 
 A quality system instantiates a batch-release workflow. The declaration names `states: [sampled, tested, qualified, released, rejected]`, `initial state: sampled`, `terminal states: [released, rejected]`, and five declared transitions — `sampled --test--> tested`, `tested --qualify[qa_signoff]--> qualified`, `tested --reject--> rejected`, `qualified --release[qa_signoff]--> released`, `qualified --reject--> rejected`. `instantiate(declaration, actor_ref: "qa-system", subject_ref: "batch-x91")` → `wf_01HQ…`, standing in `sampled` with `next_sequence_number: 1` (Operation 4 through 8).
 
-`fire("wf_01HQ…", "test", actor_ref: "lab-tech-r.chen")` → `tested`. One history entry lands at `sequence_number: 1` carrying `from_state: sampled`, `to_state: tested` (Operation 21 through 28).
+`fire("wf_01HQ…", "test", actor_ref: "lab-tech-r.chen")` → `tested`. One history entry lands at `sequence_number: 1` carrying `from_state: sampled`, `to_state: tested` (Operation 21 through 26, Operation 28).
 
 `fire("wf_01HQ…", "qualify", actor_ref: "qa-lead-m.ross")` → guard-not-satisfied. The declared transition carries the `qa_signoff` guard and the call asserted nothing (Operation 17). The same call with `guard_satisfied: true` → `qualified`, and the entry records the assertion (Operation 29).
 
@@ -446,11 +417,6 @@ External check 2: A deployment needing a workflow's history entry count matched 
 External check 3: A deployment needing an actor reference bound to an actor MUST read the composing Actor Identity attestation (Non-goal 11).
 ```
 
-WHY:
-External check 2 is the check that could not stay in the conformance list. Counting a workflow's history entries is trivial from the store; matching that count against the number of *admitted* fires needs the fire answers captured at call time, and a production auditor reading the store cannot enumerate them — the store is exactly what would be missing an entry. Check 5.1 is the store-alone substitute: a gap-free run from one to the entry count catches a lost entry from the other direction.
-
-External check 1 is the atom's central restraint stated as an audit boundary. `guard_satisfied: true` is evidence that a caller asserted a guard, and evidence of nothing else. An auditor reading it as proof the condition held has misread the record, and the atom says so here rather than letting the misreading happen.
-
 ## Non-goals
 
 ```
@@ -478,12 +444,7 @@ Non-goal 21: A deployment needing at-most-once firing MUST supply the deployment
 Non-goal 22: A deployment needing a verifiable time anchor MUST compose a trusted timestamping pattern.
 ```
 
-WHY:
-Non-goal 3 through 5 bound the atom to a single active state, and the bound is what makes every other guarantee statable. Parallel workflows — a workflow live in several states, a join firing when all branches complete — have no single current state to be exactly one of, so Invariant 2, Invariant 7 and the whole replay story would need rewriting rather than extending. This atom is the single-active-state primitive and a fork-join pattern is a sibling, not a setting.
-
-Non-goal 8 and Non-goal 9 together answer the question every deployer asks second: *can I change the flowchart?* Not for a live workflow, ever. The declaration is a value the workflow holds, so two workflows created from one template are two independent copies and editing the template moves neither. Where a deployer needs a canonical template that new workflows pick up, that is a definition registry holding the template and a calling system supplying it at [Instantiate] — this atom receives a declaration and never asks where it came from.
-
-Non-goal 19 is the limit an auditor most often pushes against. *Show me every batch that never reached released* is not a question this atom answers: it knows what each workflow declared and what each workflow did, and it does not know which workflows ought to exist or what a batch of a given type is expected to terminate in. The composing system drives that analysis with this atom's records as input.
+NOTE: the owners — [Execute Gated Workflow](../compositions/execute-gated-workflow.md) (Non-goal 1, External check 1, Composition note 2, Composition note 3); a fork-join pattern (Non-goal 3 through 5); a definition registry pattern and the calling system (Non-goal 8 through 10); [Actor Identity](./actor-identity.md) (Non-goal 11, Non-goal 12, External check 3); [Tamper Evidence](./tamper-evidence.md) (Non-goal 13, Non-goal 14); [Retention Window](./retention-window.md) (Non-goal 15, Non-goal 16); the composing system (Non-goal 19).
 
 ---
 
@@ -492,19 +453,12 @@ Non-goal 19 is the limit an auditor most often pushes against. *Show me every ba
 ### Atomic writes
 
 ```
-Atomic writes 1: A reader MUST NOT observe a history entry without the entry's next sequence number raise.
-Atomic writes 2: A reader MUST NOT observe a history entry without the entry's current state change.
-Atomic writes 3: An uncommitted crash MUST leave the workflow as the call found the workflow.
-Atomic writes 4: The implementation MUST resolve a dangling transition.
-Atomic writes 5: The store MUST NOT serve a read BEFORE the implementation resolves the dangling transition.
+Deleted: Atomic writes 1. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 2. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 3. Execution Contract Store 1 and Execution Contract Store 3 own it.
+Deleted: Atomic writes 4. Execution Contract Store 1 owns it.
+Deleted: Atomic writes 5. Execution Contract Store 1 owns it.
 ```
-
-Term uncommitted crash: a crash BEFORE an admitted fire's commit lands.
-
-Term dangling transition: an admitted fire's mutations standing partly applied once a crash has landed; the implementation resolves one by completing the mutations OR rolling the mutations back.
-
-WHY:
-Every admitted fire couples three durable mutations — the entry, the counter raise and the state change (Operation 27) — and a crash between any two breaks Invariant 6 or Invariant 7 in a way a later read cannot distinguish from a correct history. The obligation is all-or-none observability: a partly applied fire is not a transient condition to be repaired later, it must never be servable.
 
 ### Clock semantics
 
@@ -516,18 +470,12 @@ Deleted: Clock semantics 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 5. Non-goal 22 owns it.
 ```
 
-WHY:
-Clock semantics 4 is the rule that looks like a gap and is a commitment. Wall-time monotonicity across history entries is deliberately *not* enforced: under a skewing or resynchronized clock a later transition can legitimately carry an earlier firing instant, and an atom that refused it would reject correct history to protect an annotation. sequence number is the order (Invariant 6.3, Operation 55), so nothing is lost. A backdated firing instant is accepted within the workflow's own lifetime — documenting a transition recognized late is valid — and the only temporal bounds are the two that are structural: not after now, and not before the workflow existed (Operation 19, Operation 20).
-
 ### Concurrency
 
 ```
-Concurrency 1: The implementation MUST serialize two [Fire] calls against one workflow.
-Concurrency 2: A serialized [Fire] MUST read the current state the prior [Fire] left.
+Deleted: Concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Concurrency 2. Execution Contract Store 2 owns it.
 ```
-
-WHY:
-Unlike [Selective Disclosure](./selective-disclosure.md), whose concurrent records contend over nothing, two fires against one workflow contend over the current state itself — the second call's matched transition depends on where the first left the workflow. So the second may succeed, may answer invalid-transition, or may answer terminal, and which of the three is a fact about the declaration rather than a race. Serialization is what makes the outcome a fact at all.
 
 ### String policy
 
@@ -542,10 +490,6 @@ String 7: The deployment MUST canonicalize an opaque reference.
 ```
 
 Term string input: instance id, action, actor reference, subject reference, a state name, a guard OR a filter's value — every caller-supplied string this atom accepts.
-
-
-WHY:
-Byte-exactness reaches further here than in most atoms, because state names and action names are caller-supplied strings that the declaration and every later [Fire] must agree on. A declaration naming `Tested` and a fire naming `tested` are two different tokens, the match fails, and the answer is invalid-transition — correct, and mystifying to a caller who believes they are the same state. Canonicalization is the deployment's (String 7).
 
 NOTE: watch host obligations — this atom sets no maximum length on a string input, where [Duplicate Prevention](./duplicate-prevention.md) declares a cap and [Provenance](./provenance.md) obliges the deployment to set one. Three postures, and the *host obligations* docket row carries the count — a watch flag states the pressure, never a census nothing reads.
 
@@ -566,12 +510,7 @@ Composition note 9: A composing pattern MUST own a declaration template.
 Composition note 10: A composing pattern reading the workflow store MUST NOT write to the workflow store.
 ```
 
-WHY:
-[Execute Gated Workflow](../compositions/execute-gated-workflow.md) (`grounded` 2026-06-04) is the composition this atom exists inside, and it is where the guard evaluation this atom refuses re-converges: it reads a bound [Approval Step](./approval-step.md)'s state and asserts guard satisfied only where that step stands approved (Composition note 2, Composition note 3). The wiring is State Machine plus Approval Step plus [Permissions](./permissions.md) plus Assignment plus an [Audit Trail](../compositions/audit-trail.md) substrate, and the emergent guarantee is one neither constituent holds alone — a transition that fired carries both the declared-machine proof and the approval evidence behind its gate.
-
-[Approval Step](./approval-step.md) is the fixed-state sibling and the clearest way to see what this atom trades away: its states are known to an evaluator who has read only the spec, and this atom's are known only to one who has read the workflow. [Actor Identity](./actor-identity.md) makes actor reference survive an authorship challenge under 21 CFR Part 11 and SOX (Sarbanes-Oxley Act) section 404; [Tamper Evidence](./tamper-evidence.md) seals the history for court admissibility; [Retention Window](./retention-window.md) bounds how long workflows are kept under GDPR (General Data Protection Regulation) Article 17, HIPAA (Health Insurance Portability and Accountability Act) section 164.530(j) and FRCP (Federal Rules of Civil Procedure) Rule 37(e); [Audit Trail](../compositions/audit-trail.md) is the regulated-evidence layer each admitted fire lands in.
-
-[Event Log](./event-log.md) is the structural cousin this atom deliberately does not name as a constituent: the transition history is append-only and totally ordered by a sequence number with best-effort wall time, which is an event log's shape, and the load-bearing concept here is the validity gate an event log has no notion of. Where a deployment wants both, that layering belongs to Execute Gated Workflow.
+NOTE: composing patterns — [Execute Gated Workflow](../compositions/execute-gated-workflow.md).
 
 ---
 
@@ -581,11 +520,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the store; a workflow; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a rejection; a crash; a reader; a state name; a string input; an opaque reference; the store instance's workflow count; the workflow's history entry count; the workflow's admitted fire count.
+Term actors: the atom; the host; the transition; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; an inspector; an investigator; the store; a workflow; a history entry; a declaration; a declared transition; a matched transition; a guarded declared transition; an unguarded declared transition; an addressed action; a writing action; a reading action; a refused action; an ordering rule; an action; a query; a filter; a range filter; a string filter; a replay; a state name; a string input; an opaque reference; the store instance's workflow count; the workflow's history entry count; the workflow's admitted fire count.
 
 Term records: workflow — one running workflow, carrying instance id, a declaration, a current state, a transition history, next sequence number and, where supplied, subject reference and instance metadata. history entry — one recorded transition, carrying transition id, sequence number, from state, to state, action, firing instant and, where supplied, actor reference and guard satisfied.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, commit, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, observe, resolve, complete, serve, serialize, shrink, fall, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, survive, canonicalize.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, append, set, take, raise, leave, own, match, normalize, reorder, interpret, confirm, admit, offer, evaluate, assert, fire, replay, reach, rest, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, read, find, reconstruct, complete, shrink, fall, equal, bound, nest, version, decide, compose, declare, wire, supply, remove, sort, route, name, detect, bind, capture, choose, count, canonicalize.
 
 
 Term bounds: empty.
@@ -594,7 +533,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, store instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, business caller, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, filter axes, admitted instantiate, admitted fire, admitted history, string input, blank, uncommitted crash, dangling transition.
+Term terms: workflow, instance id, history entry, transition id, subject reference, instance metadata, store instance, seam, transition, declared transition, declaration, states, initial state, terminal states, well-formed declaration, now, business caller, addressed action, writing action, reading action, current state, next sequence number, sequence number, firing instant, instantiation instant, resolved firing instant, resolved instantiation instant, actor reference, guard, guard satisfied, matched transition, filter axes, admitted instantiate, admitted fire, admitted history, string input, blank.
 
 #### Instantiate
 
@@ -668,7 +607,7 @@ Projection: transition_history
 
 #### Next Sequence Number
 
-The [Sequence Number] the next [Fire] will assign. Begins at 1; increments by one per successful [Fire]. Persistent workflow state that must survive restarts, or Invariant 6 breaks.
+The [Sequence Number] the next [Fire] will assign. Begins at 1; increments by one per successful [Fire].
 
 Kind:       Field
 Field of:   the workflow
@@ -814,7 +753,7 @@ Projection: invalid-request
 
 #### Storage Failure
 
-The rejection any write action returns when the store write fails after all preconditions pass; guarantees no partial record and an unchanged [Current State] / [Next Sequence Number] (Invariant 10).
+The rejection any write action returns when the store write fails after all preconditions pass; guarantees no partial record and an unchanged [Current State] / [Next Sequence Number] (Operation 35 through 37).
 
 Kind:       Member
 Member of:  the action rejection
@@ -916,7 +855,9 @@ Projection: invalid-query
 - **HL7 FHIR Task resource** — the HL7 FHIR Task resource uses a declared workflow state machine (`Task.status`) with a defined lifecycle (`requested → accepted → in-progress → completed | failed | cancelled | rejected`). This atom is the general primitive the FHIR Task lifecycle is an instance of. A conforming FHIR Task implementation may derive its state enforcement from this atom's declared-transition model.
 - **UML (Unified Modeling Language — the standard object-oriented modeling language published by the Object Management Group) statecharts and Harel statecharts** — the conceptual core of this atom. A UML statechart's states, transitions, events, and guards map directly to this atom's [States], [Transitions], [Action]s, and [Guard] labels. This atom is a flat (non-hierarchical, single-active-state) Mealy / Moore finite-state-machine (a finite state machine is a computational model with a finite set of states, a start state, a set of transitions, and one active state at a time) workflow; Harel nesting and parallel regions are out of scope (see Edge cases).
 - **SOX (Sarbanes-Oxley Act — US law on corporate financial reporting and records integrity) section 404** — internal control over financial reporting. For financial process workflows (approval chains, journal entry processing, purchase order lifecycle), State Machine workflows are the process-control records SOX auditors query to verify that required control steps occurred in the declared order.
-- **HIPAA section 164.530(j)** — documentation requirements for covered entities: policies and procedures must be documented. Workflow workflows governing patient-care or administrative processes under HIPAA may use this atom's transition history as the documentation of process execution.
+- **HIPAA (Health Insurance Portability and Accountability Act) section 164.530(j)** — documentation requirements for covered entities: policies and procedures must be documented. Workflow workflows governing patient-care or administrative processes under HIPAA may use this atom's transition history as the documentation of process execution.
+- **GDPR (EU General Data Protection Regulation) Article 17** — the right to erasure. How long workflows are kept under it is a composed [Retention Window](./retention-window.md)'s obligation, not this atom's (Non-goal 15, Non-goal 16).
+- **FRCP (Federal Rules of Civil Procedure) Rule 37(e)** — failure to preserve electronically stored information. How long workflows are kept under it is a composed [Retention Window](./retention-window.md)'s obligation, not this atom's (Non-goal 15, Non-goal 16).
 
 Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are explicitly composing-pattern obligations, not this atom's own standards obligations.
 
@@ -924,12 +865,12 @@ Guard evaluation, non-repudiable attribution, tamper-evidence, and retention are
 
 ## Status
 
-`grounded on Final Critique 4 — 2026-06-04` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 4 — 2026-06-04
+status: partially resolved
 formal: verified — state-machine.als + 1 twin, 2026-06-04
 last gate: 2026-06-04 — Final Critique 4, fresh reader — clean
 
@@ -938,12 +879,8 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/state-machine.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/state-machine.md`; the migration and the repair that got it here are in [its history](./state-machine.hist.md).
 
-- **2026-09-12 — Rewritten in GRACE lang v0.40; nothing but language changed.** *Chose:* the five actions as a signature block, Invariant 1 through 10 keeping their numbers, the declaration's ten well-formedness checks raised to a `Declaration 1 through 17` family of their own, every success effect conditioned on a declared admitted instantiate, admitted fire or admitted history (Hard invariant 16), [Fire]'s seven-step rejection precedence kept beside the rules as an eight-row case space with the ordering carried by `ONLY IF` guards rather than by a prose *rejection priority* line repeated in two sections, the six acceptance areas opened into `Check 1.1 through 8.2` with three `External check`s for what the store cannot answer, the Non-goals-and-edge-cases prose split into a `Non-goal 1 through 21` family and four edge-case families (`String`, `Clock semantics`, `Concurrency`, `Atomic writes`), the Composition notes prose raised to `Composition note 1 through 10`. *Over:* the prose spec. *Because:* the migration plan; `cites.py --into state-machine` found nothing in the corpus citing this atom by label. 78.8 KB → 67.0 KB.
-
-- **2026-09-12 — The within-workflow temporal bound is a precedence, not a `≥`.** *Chose:* `Operation 20` — *IF the resolved firing instant precedes the workflow's instantiation instant THEN [Fire] MUST answer invalid-request*. *Over:* `IF fired_at EXCEEDS instantiated_at OR fired_at = instantiated_at`, the two-arm spelling the condition operator set forces on a `≥`. *Because:* that spelling is a watched class at five sites across two specs (council read 29), and this atom would have been the third. A bound that admits its own boundary is a *precedes* prohibition in one arm — the boundary case (a transition firing at the instant of instantiation) is legal, and one arm says so. The class may still earn an operator; it does not need this atom's vote.
-
-- **2026-09-12 — Four propositions had two owners each.** *Chose:* `Invariant 2` owns exactly-one-current-state and the `State` family no longer restates it; `Operation 21` owns *one entry per admitted fire* and `Invariant 5` no longer does; `State 4` owns the history entry's field set and `Invariant 9` no longer does; `Invariant 8.2` owns *the atom does not evaluate a guard* and the `Non-goal` family no longer does. *Over:* keeping each pair for emphasis. *Because:* Authority 3. All four were found by `W-duplicate-proposition`, which is the check earning its keep on the largest atom migrated so far — 192 rules, where a reader cannot hold the whole surface at once and a duplicate is invisible by construction.
+- **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the workflow store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the ten rules that restated them, or existed only for a store that could split a fire, tombstoned to their owner — Operation 27, a fire's entry, counter raise and state change committed in one operation, Invariant 10.3, no partial record left by a storage-failure rejection, and Atomic writes 1, 2, 4 and 5, no reader observing a history entry without its next sequence number raise or its current state change, a dangling transition resolved and no read served before it is, to Store 1, under which no fire stands partly applied; Atomic writes 3, an uncommitted crash leaving the workflow as the call found it, to Store 1 and Store 3; State 14, next sequence number surviving a restart, to Store 3; Concurrency 1 and 2, two fires on one workflow serialized and the later reading the current state the earlier left, to Store 2; rules 186 to 177. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and keeping a crash-recovery obligation for a split fire that no conforming store leaves. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. What stays is the atom's own: a refused action leaving the workflow as the call found it, appending no history entry and raising no next sequence number (Operation 35 through 37), and the rules that keep a workflow and its history once they exist (State 6, State 7, State 12, State 13, Invariant 10.1, Invariant 10.2), since Store 4 alone neither keeps the atom from removing a workflow or a history entry nor bars a purge another specification declares. The history's order is the atom's own sequence number, taken inside the fire that appends the entry (Operation 22, Invariant 6.3), and the atom's checks compare an auditor's own reads or replay the entries, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
 NOTE: End of State Machine.

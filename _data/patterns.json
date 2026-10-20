@@ -1506,7 +1506,7 @@
    "execute-gated-workflow"
   ],
   "domain": null,
-  "grounded": true,
+  "grounded": false,
   "invariants": 10,
   "kind": "atom",
   "models": {
@@ -1527,7 +1527,7 @@
    "PCI DSS",
    "SOX"
   ],
-  "status": "grounded on Final Critique 4 \u2014 2026-06-04",
+  "status": "partially resolved",
   "title": "State Machine"
  },
  "subscription": {
