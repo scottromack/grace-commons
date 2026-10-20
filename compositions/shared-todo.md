@@ -344,7 +344,7 @@ Non-goal 2: The composition MUST NOT grant tasks:view with an assignment.
 Non-goal 3: The composition MUST NOT refuse a self-assignment.
 Non-goal 4: The composition MUST NOT own whether a completed task's assignment is recalled.
 Non-goal 5: The composition MUST NOT offer an undo.
-Non-goal 6: A deployment needing an undo MUST compose Undo History.
+Deleted: Non-goal 6. Execution Contract Store 5 owns it.
 Non-goal 7: The composition MUST NOT record an action.
 Non-goal 8: A deployment needing a tamper-evident record MUST compose Audit Trail.
 Non-goal 9: The composition MUST NOT carry a task's priority.
@@ -583,12 +583,12 @@ Shared Todo is a wiring of three primitives and not a regulated pattern, so it c
 
 ## Status
 
-`grounded on Final Critique 9 — 2026-09-30` — see the Ledger.
+`partially resolved` — see the Ledger.
 
 ## Ledger
 
 ```
-status: grounded on Final Critique 9 — 2026-09-30
+status: partially resolved
 formal: verified — shared-todo.tla + 1 twin, 2026-06-03
 last gate: 2026-09-30 — Final Critique 9, cold reader — 0 foundational, 14 refining (8 already open, 6 routed open), 3 rhetorical (routed open)
 
@@ -604,10 +604,12 @@ open:
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/shared-todo.md`.
 
-- **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except three invariants the Execution Contract already owns.** *Chose:* `Composes` for the three constituents and the two assignments taken up, then `Composition state`, `Scope vocabulary`, `Action wiring`, `Wiring decision` and `Concurrency` as the wiring surfaces, the five surviving invariant numbers unchanged, and an acceptance section distributed from the closing claim the prose already made — *what the actor was allowed to do and who held the task is readable from the records alone*. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. `Wiring decision` reaches two specs with this one, which is the family [Undo History](./undo-history.md) minted and the first sign it recurs.
+- **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except three invariants the Execution Contract already owns.** *Chose:* `Composes` for the three constituents and the two assignments taken up, then `Composition state`, `Scope vocabulary`, `Action wiring`, `Wiring decision` and `Concurrency` as the wiring surfaces, the five surviving invariant numbers unchanged, and an acceptance section distributed from the closing claim the prose already made — *what the actor was allowed to do and who held the task is readable from the records alone*. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. `Wiring decision` reaches two specs with this one, which is the family Undo History minted and the first sign it recurs.
 - **2026-09-14 — Three invariants asserting a constituent's invariants hold are one citation.** *Chose:* `Composes 6` — *the composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8* — with `Invariant 6`, `Invariant 7` and `Invariant 8` tombstoned to it. *Over:* keeping the three, which is what the prose carried. *Because:* the contract already settles it — *conformance extends recursively, and no composing layer is obligated to re-verify what the substrate's own conformance already establishes; inheriting a guarantee by reference is the point of naming a substrate* — so three invariants re-asserting it were a citing spec restating a rule it cites (Authority 6), which is council read 53's ruling applied to a second seam. What the three carried *beyond* the blanket survives and is not inherited: the relay of an unchanged constituent rejection is `Composes 9`, and the single-instance decisions that make the constituents' guarantees reachable at all are `Composes 1` through `Composes 3` — which is why `Invariant 2.1` stands where `Invariant 7` fell (council read 55).
 - **2026-09-14 — Two constituent assignments are declined, and the declining is written down.** *Chose:* `Non-goal 4` and `Non-goal 12` to state the refusals, with `Composition note 2` and `Composition note 3` restating them as obligations on the deployment. *Over:* silence, which is what a composition usually offers for a note it does not take. *Because:* [Assignment](../atoms/assignment.md)'s `Composition note 4` and [Permissions](../atoms/permissions.md)'s `Composition note 3` both say *a composing pattern MUST own* — so a composition that neither owns nor names a receiver leaves an obligation falling between two layers with no rule anywhere naming who holds it. Passing an assignment down with the receiver named is the most a composition can do with one it does not want, and the corpus has no form for it (council read 55).
 
 - **2026-09-28 — What the cold regeneration met, restored.** *Chose:* the nine signatures back on the page, with Responsible Actor's unassigned and not-known as Action wiring 20 and 21, where the rewrite kept the rules that gate and relay and dropped every action's parameters, answers and refusals, leaving Check 5.1 and 5.2 citing Composition state 2, which states neither answer; visible tasks defined for a caller holding tasks:view, where the term's *none otherwise* read as the empty set Action wiring 19 forbids; and Invariant 5.2 as *a task's delete changes no grant*, with its check moved to External check 5, where Check 4.2 asked an auditor for a grant record keyed on a task id, which no grant carries. *Over:* the 2026-09-14 rewrite's readings. *Because:* each contradicted the page's own rules or the constituents' stores, and the signatures are the prose's projected contracts carried across unchanged. The re-pass is owed.
+
+- **2026-10-20 — Undo History retired, and an undo is the store's history.** *Chose:* Non-goal 6, a deployment needing an undo composing Undo History, tombstoned to Execution Contract Store 5; rules 99 to 98. *Over:* an undo through a composition that replayed an event log of the list's actions. *Because:* the maintainer ruled 2026-10-20 that Undo History retires: Store 5 keeps every committed version of a record readable, so an undone deletion comes back with its id, timestamps and description. The composition itself still offers no undo (Non-goal 5). What the composition does for its domain is unchanged.
 
 NOTE: End of Shared Todo.

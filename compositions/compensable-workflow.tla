@@ -23,12 +23,11 @@
 \*       outcomes (a consistency form is checked; terminal absorption is by
 \*       construction — no action is enabled out of a terminal in Next).
 \*
-\* ENCODING (mirrors the proven idiom in atoms/party-identity.tla and
-\* compositions/undo-history.tla)
+\* ENCODING (mirrors the proven idiom in atoms/party-identity.tla)
 \* - No Sequences / RECURSIVE / CHOOSE; flat \E/\A; column-aligned junctions; the
 \*   derived-property operators (IsCompTarget, AllCompensated) are PURE predicates
 \*   over their arguments, never reading state variables free (the encoding that
-\*   keeps the WASM checker off the stack-overflow path — see undo-history.tla).
+\*   keeps the WASM checker off the stack-overflow path).
 \* - The effect ledger is per-step booleans plus 0..2 witness counters, not a log.
 \*   Forward steps run in index order via `pos` (current step = pos + 1); the split
 \*   between StepEffect (lands the effect, retryable) and StepRecord (advances) is

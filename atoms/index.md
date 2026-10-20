@@ -23,7 +23,7 @@ toc: true
 
 The freestanding semantic units of Grace Commons — each fully specifiable without naming another atom. Atoms are stored flat (`atoms/<name>.md`); their classification is not a folder but a set of **lenses** over the Intent Graph. Overlays (regulated · security · standards) are read off the composition graph and **report usage, not essence** — a standard shows as *HIPAA via audit-trail*, an uncomposed atom as *composed by: (none yet)*, never a bare boolean. **Domain** is the one intrinsic axis: an optional, EOS-gated tag, default absent. The design and its rationale are in [the taxonomy note](./TAXONOMY.md).
 
-_27 compositions (27 regulated) · 28 atoms · 64 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
+_26 compositions (26 regulated) · 28 atoms · 62 composition→atom edges. Generated from `tools/taxonomy/reverse_index.py`; regenerate with `python3 tools/taxonomy/generate_views.py .`_
 
 ## All atoms
 
@@ -37,7 +37,7 @@ _27 compositions (27 regulated) · 28 atoms · 64 composition→atom edges. Gene
 | [Consent](./consent.md) | — | yes (2) | — | propagate-consent-revocation-downstream, resolve-a-persons-data-rights |
 | [Credential](./credential.md) | — | yes (5) | yes | actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning |
 | [Duplicate Prevention](./duplicate-prevention.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
-| [Event Log](./event-log.md) | — | yes (5) | — | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, undo-history |
+| [Event Log](./event-log.md) | — | yes (4) | — | audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool |
 | [Invitation](./invitation.md) | — | yes (1) | yes | external-onboarding |
 | [Lease](./lease.md) | — | yes (1) | — | recoverable-invocation |
 | [Legal Hold](./legal-hold.md) | — | yes (1) | — | defensible-retention |
@@ -47,7 +47,7 @@ _27 compositions (27 regulated) · 28 atoms · 64 composition→atom edges. Gene
 | [Observation](./observation.md) | — | — | — | *(none yet)* |
 | [Party Identity](./party-identity.md) | — | yes (2) | yes | customer-onboarding, external-onboarding |
 | [Permissions](./permissions.md) | — | yes (8) | yes | actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-todo |
-| [Personal Todo](./personal-todo.md) | — | yes (2) | — | shared-todo, undo-history |
+| [Personal Todo](./personal-todo.md) | — | yes (1) | — | shared-todo |
 | [Provenance](./provenance.md) | — | yes (1) | — | chain-of-custody |
 | [Provisional Commitment](./provisional-commitment.md) | — | yes (2) | — | idempotent-reservation, reserve-from-pool |
 | [Retention Window](./retention-window.md) | — | yes (4) | — | audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream |
@@ -70,7 +70,7 @@ Atoms that a regulated composition (one carrying a `## Generation acceptance` se
 - [Consent](./consent.md) — via propagate-consent-revocation-downstream, resolve-a-persons-data-rights
 - [Credential](./credential.md) — via actor-suspension, authenticated-actor, external-onboarding, login, privileged-access-provisioning
 - [Duplicate Prevention](./duplicate-prevention.md) — via idempotent-reservation, reserve-from-pool
-- [Event Log](./event-log.md) — via audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool, undo-history
+- [Event Log](./event-log.md) — via audit-trail, compensable-workflow, preference-aware-notification-fanout, reserve-from-pool
 - [Invitation](./invitation.md) — via external-onboarding
 - [Lease](./lease.md) — via recoverable-invocation
 - [Legal Hold](./legal-hold.md) — via defensible-retention
@@ -78,7 +78,7 @@ Atoms that a regulated composition (one carrying a `## Generation acceptance` se
 - [Notification](./notification.md) — via notification-fanout, preference-aware-notification-fanout
 - [Party Identity](./party-identity.md) — via customer-onboarding, external-onboarding
 - [Permissions](./permissions.md) — via actor-suspension, attributed-permissions-admin, execute-gated-workflow, multi-party-approval, privileged-access-provisioning, propagate-consent-revocation-downstream, session-gated-authorization, shared-todo
-- [Personal Todo](./personal-todo.md) — via shared-todo, undo-history
+- [Personal Todo](./personal-todo.md) — via shared-todo
 - [Provenance](./provenance.md) — via chain-of-custody
 - [Provisional Commitment](./provisional-commitment.md) — via idempotent-reservation, reserve-from-pool
 - [Retention Window](./retention-window.md) — via audit-trail, customer-onboarding, defensible-retention, propagate-consent-revocation-downstream

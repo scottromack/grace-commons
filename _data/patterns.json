@@ -555,8 +555,7 @@
    "audit-trail",
    "compensable-workflow",
    "preference-aware-notification-fanout",
-   "reserve-from-pool",
-   "undo-history"
+   "reserve-from-pool"
   ],
   "domain": null,
   "grounded": false,
@@ -571,8 +570,7 @@
    "audit-trail",
    "compensable-workflow",
    "preference-aware-notification-fanout",
-   "reserve-from-pool",
-   "undo-history"
+   "reserve-from-pool"
   ],
   "security": false,
   "standards": [
@@ -1063,8 +1061,7 @@
  },
  "personal-todo": {
   "composed_by": [
-   "shared-todo",
-   "undo-history"
+   "shared-todo"
   ],
   "domain": null,
   "grounded": false,
@@ -1076,8 +1073,7 @@
    "twins": 0
   },
   "regulated_by": [
-   "shared-todo",
-   "undo-history"
+   "shared-todo"
   ],
   "security": false,
   "standards": [],
@@ -1455,7 +1451,7 @@
    "permissions",
    "assignment"
   ],
-  "grounded": true,
+  "grounded": false,
   "invariants": 5,
   "kind": "composition",
   "models": {
@@ -1465,7 +1461,7 @@
   },
   "regulated": true,
   "standards": [],
-  "status": "grounded on Final Critique 9 \u2014 2026-09-30",
+  "status": "partially resolved",
   "substrates": [],
   "title": "Shared Todo"
  },
@@ -1590,25 +1586,6 @@
   ],
   "status": "partially resolved",
   "title": "Tamper Evidence"
- },
- "undo-history": {
-  "composes": [
-   "personal-todo",
-   "event-log"
-  ],
-  "grounded": false,
-  "invariants": 7,
-  "kind": "composition",
-  "models": {
-   "als": false,
-   "tla": true,
-   "twins": 1
-  },
-  "regulated": true,
-  "standards": [],
-  "status": "partially resolved",
-  "substrates": [],
-  "title": "Undo History"
  },
  "verified-repair": {
   "composes": [],

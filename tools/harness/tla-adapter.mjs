@@ -1,7 +1,7 @@
 // Grace Commons — TLA+ module-name adapter.
 //
-// WHY: canonical model files use kebab-case names (undo-history.tla, with
-// `---- MODULE undo-history ----`) to stay consistent with their .md / .als
+// WHY: canonical model files use kebab-case names (audit-trail.tla, with
+// `---- MODULE audit-trail ----`) to stay consistent with their .md / .als
 // siblings. The repo's WASM checker (tla-checker) tolerates hyphenated module
 // names; STANDARD TLC does not — a TLA+ module name must be a valid identifier
 // (no hyphens) and match its filename. Rather than hand-maintain camelCase

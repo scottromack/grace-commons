@@ -299,7 +299,7 @@ Non-goal 3: The atom MUST NOT assign a unit to an actor.
 Non-goal 4: The atom MUST NOT remember a deleted description.
 Non-goal 5: A deployment needing a recency guard MUST compose Duplicate Prevention.
 Non-goal 6: The atom MUST NOT restore a deleted unit.
-Non-goal 7: A deployment needing restoration MUST compose Undo History.
+Deleted: Non-goal 7. Execution Contract Store 5 owns it.
 Non-goal 8: The atom MUST NOT reopen a done unit.
 Non-goal 9: The atom MUST NOT regenerate a unit on a schedule.
 Non-goal 10: The atom MUST NOT order units.
@@ -311,7 +311,7 @@ Non-goal 15: The atom MUST NOT match descriptions case-insensitively.
 Non-goal 16: A deployment needing a defensible timeline MUST compose a trusted timestamping pattern.
 ```
 
-NOTE: the owners — [Shared Todo](../compositions/shared-todo.md) (Non-goal 1 through 3, Composition note 5); [Duplicate Prevention](./duplicate-prevention.md) and the composing pattern that answers [Duplicate Recent] (Non-goal 4, Non-goal 5, Composition note 2, Composition note 3; State 10); [Undo History](../compositions/undo-history.md) (Non-goal 6, Non-goal 7, Composition note 4); a history pattern (Non-goal 8, Non-goal 13; State 9); a recurrence pattern *(forthcoming)* (Non-goal 9); a priority and ordering pattern *(forthcoming)* (Non-goal 10); a due-date pattern *(forthcoming)* (Non-goal 11); a dependency pattern *(forthcoming)* (Non-goal 12); Execution Contract Store 2 (Non-goal 14); a wrapping pattern (Non-goal 15).
+NOTE: the owners — [Shared Todo](../compositions/shared-todo.md) (Non-goal 1 through 3, Composition note 5); [Duplicate Prevention](./duplicate-prevention.md) and the composing pattern that answers [Duplicate Recent] (Non-goal 4, Non-goal 5, Composition note 2, Composition note 3; State 10); Execution Contract Store 5 (Non-goal 6); a history pattern (Non-goal 8, Non-goal 13; State 9); a recurrence pattern *(forthcoming)* (Non-goal 9); a priority and ordering pattern *(forthcoming)* (Non-goal 10); a due-date pattern *(forthcoming)* (Non-goal 11); a dependency pattern *(forthcoming)* (Non-goal 12); Execution Contract Store 2 (Non-goal 14); a wrapping pattern (Non-goal 15).
 
 Where the atom breaks down: any system with more than one actor; a system where *finished* is not binary; a system where the description is not a property worth constraining; a host that cannot make a transition atomic.
 
@@ -338,11 +338,11 @@ Re-adding 2: [Add] MUST answer a fresh id for such a unit.
 Composition note 1: A composing pattern MUST own what this atom declines.
 Composition note 2: A composing pattern needing a recency guard MUST record a deleted description with Duplicate Prevention.
 Composition note 3: A composing pattern needing a recency guard MUST NOT call [Add] BEFORE a Duplicate Prevention check.
-Composition note 4: A composing pattern needing restoration MUST append a deleted unit to an Event Log.
+Deleted: Composition note 4. Execution Contract Store 5 owns it.
 Composition note 5: A composing pattern needing a shared list MUST compose Permissions and Assignment.
 ```
 
-NOTE: composing patterns — [Undo History](../compositions/undo-history.md), [Shared Todo](../compositions/shared-todo.md). Forthcoming: Priority and Ordering, Task Dependencies, Recurring, Reopen and Revision.
+NOTE: composing patterns — [Shared Todo](../compositions/shared-todo.md). Forthcoming: Priority and Ordering, Task Dependencies, Recurring, Reopen and Revision.
 
 ## Terms
 
@@ -354,7 +354,7 @@ Term actors: the atom; the host; the transition; the implementation; the deploym
 
 Term records: unit — one thing to do, carrying id, description, addition instant, a unit state and, once they land, last edit instant and completion instant.
 
-Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, append, exceed, find, refuse.
+Term record verbs: call, identify, allocate, supply, reuse, own, trim, normalize, preserve, answer, compare, show, stand, carry, stamp, take, offer, hold, record, replace, leave, write, read, match, change, set, share, assume, compose, remember, restore, reopen, regenerate, order, keep, resolve, assign, accept, check, exceed, find, refuse.
 
 Term value sets: unit state = pending | done.
 
@@ -593,5 +593,6 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/personal-todo.md`; the rounds and the migration that got it here are in [its history](./personal-todo.hist.md).
 
 - **2026-10-20 — The store's guarantees cited, not restated.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the five rules that restated them tombstoned to their owner — Concurrency 2, every transition atomic, and External check 2, the auditor's evidence of that atomicity, to Store 1; Concurrency 3, a deployment running two clients composing a concurrency-resolution pattern, and External check 3, the auditor's evidence of that pattern, to Store 2; Operation 6, no unit recorded by an [Add] that answers storage-failure, to Store 3; rules 111 to 107. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. Two clients' calls on one unit, all the page gave a concurrency-resolution pattern to resolve, are serialized by Store 2 for every deployment: the later call reads what the earlier committed, and the active-set duplicate check reads inside the transaction that writes. A refused call leaving the unit as the call found it stays the atom's own (Operation 24), as do the linear sequence of one actor's calls the atom assumes (Concurrency 1), the atom itself resolving no two concurrent calls (Non-goal 14) and the id that never changes (Invariant 8.2). The atom keeps no history of a unit (State 10, Non-goal 13), its checks compare the auditor's own reads, and it orders no units (Non-goal 10), so it cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
+- **2026-10-20 — Undo History retired, and restoration is the store's history.** *Chose:* Non-goal 7, a deployment needing restoration composing Undo History, and Composition note 4, a composing pattern needing restoration appending a deleted unit to an Event Log, tombstoned to Execution Contract Store 5; rules 107 to 105. *Over:* restoration through a composition that kept its own copy of every deleted unit in an event log and replayed it. *Because:* the maintainer ruled 2026-10-20 that Undo History retires: Store 5 keeps every committed version of a record readable, so an undone deletion comes back with its id, timestamps and description, and no composing pattern needs a copy of its own. The atom itself still restores nothing (Non-goal 6). What the atom does for its domain is unchanged.
 
 NOTE: End of Personal Todo.

@@ -183,7 +183,7 @@ The same pattern, four domains, identical mechanic.
 
 ### Personal Todo activity log
 
-A composing system wraps each Personal Todo action as an event: `{type: "add", id: "t1", description: "buy milk"}`, `{type: "complete", id: "t1"}`, `{type: "delete", id: "t1"}`. The log records them in order, never alters them. The user can later query the log to see what they did this week, restore deleted tasks (compose with Reverse Index + Restore — see Undo History), or reason about completion patterns. The Personal Todo pattern itself is unchanged; the log is a side stream the composing pattern maintains.
+A composing system wraps each Personal Todo action as an event: `{type: "add", id: "t1", description: "buy milk"}`, `{type: "complete", id: "t1"}`, `{type: "delete", id: "t1"}`. The log records them in order, never alters them. The user can later query the log to see what they did this week, restore deleted tasks (compose with Reverse Index + Restore), or reason about completion patterns. The Personal Todo pattern itself is unchanged; the log is a side stream the composing pattern maintains.
 
 ### Compliance audit log
 
@@ -315,7 +315,7 @@ Composition note 4: This atom's invariant numbers MUST stand as a frozen contrac
 Composition note 5: A composing pattern MUST cite this atom's invariants by number.
 ```
 
-NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md), [Undo History](../compositions/undo-history.md). Forthcoming: Activity Feed, Event-Sourced Reservation.
+NOTE: composing patterns — [Audit Trail](../compositions/audit-trail.md). Forthcoming: Activity Feed, Event-Sourced Reservation.
 
 ## Terms
 
