@@ -13,7 +13,7 @@ A **lease** is a grant of exclusive standing over a key, to a named holder, unti
 
 The whole of the atom is one sentence and its consequences: **the grant ends at the instant, never at an event.** Nothing in a distributed system observes a holder's death, so a grant that ended on death would end on a fact no party holds. A lease therefore ends in exactly two ways — the holder returns and releases it, or the instant passes — and every other property here follows from that.
 
-The instant is a value, not a private timer. A holder may carry it to a third party as a **fence**: a deadline after which that party must refuse work submitted under the grant. That is what makes a lease more than a lock, and it is why the two fences a regulated protocol needs — one on its store, one on its journal — are this concept and not two others.
+The instant is a value, not a private timer. A holder may carry it to a third party as a **fence**: a deadline after which that party must refuse work submitted under the grant. That is what makes a lease more than a lock, and it is why a regulated protocol's fence on its store is this concept and not another.
 
 ## Intent
 
