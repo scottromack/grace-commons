@@ -10,17 +10,20 @@
 \* ONE [Disclose Subset] invocation X and at most one record written to the accounting
 \* store outside the composition, O (a deployment's conformance failure, Composes 11),
 \* carrying either another instant or X's own act key and instant. X takes its seam
-\* reading, its disclosure instant, at any tick, and writes its intent at any later tick,
-\* so the reading may stand far behind the intent (Term young record: "a record whose
-\* intent landed later than the edge allows"). Its accounting write may apply at any tick
-\* after the intent or never, before or after any closing. Its intent is closed, as
-\* Recoverable Invocation's contract has it, within CW ticks of the intent (Invariant
-\* 4.2): by an outcome over a record that has landed, or by an escalation where none has;
-\* an operator settles an escalation within the settling period S, by an outcome over a
-\* landed record or an abandonment over none (Term settling closing); an abandonment may
-\* be corrected by an outcome, or may stand — no rule obliges its correction. An outcome
-\* names X's record (the binding model's Inv1_Bijection), and a record an outcome named is
-\* named by a binding once that outcome is purged (the rebuild model's Inv1_6).
+\* reading, its disclosure instant, at any tick, and its transaction commits at any later
+\* tick, so the reading may stand far behind the intent (Term young record: "a record whose
+\* intent landed later than the edge allows"). The intent and the accounting record
+\* commit together (Execution Contract Store 1, Capability requirement 36; re-derived
+\* 2026-10-21): the record lands with the intent, or, where Selective Disclosure refused
+\* it and the substrate refused the refusal record, the intent commits alone and no record
+\* of X's ever lands. Its intent is closed, as Recoverable Invocation's contract has it,
+\* within CW ticks of the intent (Invariant 4.2): by an outcome over the record, the
+\* invocation's own or the sweep's where the substrate refused the invocation's; or by an
+\* escalation, where the record is missing or the substrate refuses the sweep's outcome
+\* too. An operator settles an escalation within the settling period S, by an outcome
+\* over the record or an abandonment where there is none (Term settling closing). An
+\* outcome names X's record (the binding model's Inv1_Bijection), and a record an outcome
+\* named is named by a binding once that outcome is purged (the rebuild model's Inv1_6).
 \*
 \* THE RECONCILIATION  A run reads now once at its start, which decides each record's
 \* young and aged edges (Reconciliation 4, Term aged record), then reads the accounting
@@ -47,60 +50,53 @@
 \*             record). An outside record may be found or not; it is never the
 \*             composition's.
 \*   Inv_R32   no run alerts an outcome event whose disclosure id the accounting store
-\*             carries (Reconciliation 7, 32, Capability requirement 35); every outcome's
-\*             record is in the store here, so no such alert is sound.
+\*             carries (Reconciliation 7, 32; Execution Contract Store 2 and Store 3
+\*             through Capability requirement 36); every outcome's record is in the store
+\*             here, so no such alert is sound.
 \*   Inv_CR29  no escalation stands unsettled once its intent's horizon edge has come
 \*             (Capability requirement 29), for an operator who settles within the
 \*             settling period, at a horizon Capability requirement 31 admits.
 \*
-\* WHAT THE MODEL FOUND  The aged edge, as the page stood at dbe17f5, was a run bound
-\* short, as the open line 2026-10-09-m said. A run reads now once at its start and the
-\* enumeration that would find the intent comes up to RB later, so a record its start
-\* leaves unaged can be read against the ledger after its intent's purge: a record falsely
-\* closed — the sweep escalated, an operator abandoned, and the write applied after both,
-\* which Reconciliation 33 alerts every run and no rule obliges anyone to correct — then
-\* reads as no intent's, and the run opens a write-ownership finding against a record the
-\* composition wrote (that page's edge, one allowance, no run bound and PRECEDES, is
-\* rejected at 190,676 states). Measured by controlled variation, the allowance and the run
-\* bound set apart, over six (A, RB, PurgeSkew) tuples: where retention placement and
-\* purge read one clock, the edge holds exactly when it subtracts the reconciliation run
-\* bound and the comparison is strict — a record aged once now does not precede its edge,
-\* as Recoverable Invocation's horizon edge has a run examine an intent only while now
-\* PRECEDES that edge (under PRECEDES a run that starts on the edge's own instant reads the
-\* ledger at the instant the purge may land); a second allowance under PRECEDES holds too
-\* wherever the allowance is at least one tick, the allowance absorbing that instant,
-\* which is the open line's own cure. Where the purge's clock may stand an allowance from
-\* the deadline's (PurgeSkew = A), only the edge less two allowances and the run bound,
-\* strict, holds. The page now has that edge (Term aged record), and the main
-\* configuration carries it with the purge's clock the allowance from the deadline's: each
-\* of its three terms dropped alone is a twin the checker rejects (-buggy-agededge,
-\* -buggy-agedstrict, -buggy-agedallowance).
+\* WHAT THE MODEL FOUND  On the page as it stood at dbe17f5, with the accounting write
+\* free to apply at any tick after its intent, the aged edge was a run bound short, as the
+\* open line 2026-10-09-m said: a record falsely closed — the sweep escalated, an operator
+\* abandoned, and the write applied after both — read as no intent's once its intent was
+\* purged, and a run opened a write-ownership finding against a record the composition
+\* wrote. Measured then by controlled variation, only the edge less two allowances and the
+\* run bound, strict, held where the purge's clock may stand an allowance from the
+\* deadline's (PurgeSkew = A), and the page took that edge (Term aged record). Under
+\* Execution Contract Store 1 no write applies after its intent's transaction, so no
+\* record of the composition's is falsely closed, every one has an outcome before its
+\* intent can be purged (an escalation is settled within S, Capability requirement 29 and
+\* 31), and the aged edge carries none of Inv_R14: dropped term by term it holds — no run
+\* bound 123,784 states, one allowance 123,784, the comparison not strict 106,457 — and the
+\* three twins that dropped them are retired.
 \*
 \* WHAT CARRIES THEM  Inv_R14: the store read before the enumeration, so every record the
-\* run reads has its intent already visible, an intent landing before its commit
+\* run reads has its intent already visible, the intent committing with its record
 \* (Reconciliation 34, -buggy-ledgerfirst: a reading two ticks stale, the run's ledger
-\* read first, the intent and the record landing between); no finding from a run a read
-\* gave no answer (Reconciliation 29, -buggy-emptyread); and the aged edge, which keeps a
-\* record whose intent may be purged out of the pass (-buggy-agededge, -buggy-agedstrict,
-\* -buggy-agedallowance). The young edge carries none of it: with YoungEdge = FALSE the
-\* model still holds (177,210 states), as the page says ("the edge decides no finding").
-\* Inv_R32: the second store read after the enumeration (Reconciliation 7,
-\* -buggy-storeearly: the record lands after the store read, the outcome before the
+\* read first, the intent and the record landing between); and no finding from a run a
+\* read gave no answer (Reconciliation 29, -buggy-emptyread). Neither edge carries any of
+\* it: with YoungEdge = FALSE the model still holds (113,945 states), as the page says
+\* ("the edge decides no finding"), and so it does with each term of the aged edge
+\* dropped. Inv_R32: the second store read after the enumeration (Reconciliation 7,
+\* -buggy-storeearly: the record and its outcome land after the store read and before the
 \* enumeration). Inv_CR29: Capability requirement 31, which leaves the settling period
-\* between the latest escalation and the intent's horizon edge (-buggy-settle, S = 4).
-\* It has a completion bound of slack: window end counts from the examine edge, the
+\* between the latest escalation and the intent's horizon edge (-buggy-settle, S = 4). It
+\* has a completion bound of slack: window end counts from the examine edge, the
 \* escalation lands within the compensation window of the intent itself, so S = 3 holds
-\* here (222,602 states) where Capability requirement 31 admits S = 2 (192,352 states,
+\* here (142,043 states) where Capability requirement 31 admits S = 2 (123,208 states,
 \* holding; Recoverable Invocation's own open line 2026-10-18-a is about that term).
 \*
 \* WHAT THE MODEL SHOWS BESIDE  Probe_NeverSilentCollision is rejected: an outside record
 \* carrying X's act key and instant, while X stands closed by its own outcome, is read by
 \* no rule of the reconciliation — X's intent carries it, so Reconciliation 14 opens no
 \* finding, and X is closed by an outcome, so Reconciliation 33 does not alert — and
-\* Check 1.2 has no class for it (Ledger 2026-10-19-d). Probe_NeverFalseClosing is
-\* rejected, and no rule obliges the false closing's correction; what becomes of the
-\* record once its intent is purged lies past what this model reads, with the closing
-\* records' own purge (Ledger 2026-10-19-e).
+\* Check 1.2 has no class for it (Ledger 2026-10-19-d). Probe_NeverFalseClosing now holds
+\* (97,512 states): X is never abandoned over a record of its own, which leaves
+\* Reconciliation 33 an outside record beside a refused or abandoned intent, a case this
+\* model does not place; it is no longer a probe file (Ledger 2026-10-19-e, closed as
+\* dissolved).
 \*
 \* NOT MODELED
 \*   - The sweep's probe pairing X onto O: an outcome names X's record here (the binding
@@ -108,23 +104,22 @@
 \*   - The binding rebuild and the index: a record an outcome named is named, per the
 \*     rebuild model. X's outcome event's own purge reads into no finding here.
 \*   - A refusal over a record that exists: only a store that wrote while refusing leaves
-\*     one (a constituent's nonconformance).
+\*     one (a constituent's nonconformance); an intent closed by a refusal has no record.
 \*   - The closing records' own purge: an escalation or an abandonment is read through
 \*     the intent here, and outlives it in the substrate.
 \*   - An outside record's instant aging: O at another instant is always examined.
 \*   - A cadence, two nodes, and a failed write to the finding surface (2026-10-09-j).
 \*
 \* THE BUDGET  One invocation and one outside write, at H = 7, the least horizon that
-\* leaves the cured aged edge past the young one at these constants (at H = 6 no record of
-\* X's is examined, and the model would hold vacuously). 150,156 states; at H = 8,
-\* 196,362, every invariant holding. Time is capped ages, so there is no tick bound to
-\* raise.
+\* leaves the page's aged edge past the young one at these constants (at H = 6 no record of
+\* X's is examined, and the model would hold vacuously). 97,512 states; at H = 8, 123,036,
+\* every invariant holding. Time is capped ages, so there is no tick bound to raise.
 \*
 \* TWINS AND PROBES  Each is this module byte for byte below its header, with one
 \* constant or one invariant changed in its .cfg: -buggy-ledgerfirst, -buggy-storeearly,
-\* -buggy-emptyread, -buggy-agededge, -buggy-agedstrict, -buggy-agedallowance,
-\* -buggy-settle; -probe-finding, -probe-falseclosing, -probe-inflight,
-\* -probe-lastlookup, -probe-collision.
+\* -buggy-emptyread, -buggy-settle; -probe-finding, -probe-inflight, -probe-lastlookup,
+\* -probe-collision. Retired 2026-10-21 under Store 1, which they no longer break:
+\* -buggy-agededge, -buggy-agedstrict, -buggy-agedallowance and -probe-falseclosing.
 EXTENDS Naturals, FiniteSets
 
 \* WE           the act kind's window end, in ticks: a record younger than it, read
@@ -223,22 +218,20 @@ Seam ==
     /\ xDA' = 0
     /\ UNCHANGED <<xEA, xIA, xIP, xRec, xCl, delta, oW, RunVars, wo, r32>>
 
-\* The invocation open writes the intent, at any tick after the seam's reading.
+\* X's transaction commits, at any tick after the seam's reading: the intent with the
+\* accounting record, or, where Selective Disclosure refused the record and the substrate
+\* the refusal record, the intent alone, after which no record of X's ever lands
+\* (Execution Contract Store 1).
 Intent ==
     /\ xPh = "seam"
     /\ xPh' = "intent"
     /\ xIA' = 0
-    /\ UNCHANGED <<xEA, xDA, xIP, xRec, xCl, delta, oW, RunVars, wo, r32>>
+    /\ \E withRecord \in BOOLEAN : xRec' = withRecord
+    /\ UNCHANGED <<xEA, xDA, xIP, xCl, delta, oW, RunVars, wo, r32>>
 
-\* The accounting write applies, at any tick after the intent: before or after a closing.
-Land ==
-    /\ xPh = "intent"
-    /\ ~xRec
-    /\ xRec' = TRUE
-    /\ UNCHANGED <<xEA, xPh, xDA, xIA, xIP, xCl, delta, oW, RunVars, wo, r32>>
-
-\* An outcome closes the intent, or settles an escalation, or corrects an abandonment,
-\* over a record that has landed: the invocation's, the sweep's or an operator's.
+\* An outcome closes the intent, or settles an escalation, over the record: the
+\* invocation's own, the sweep's where the substrate refused the invocation's, or an
+\* operator's.
 Outcome ==
     /\ xPh = "intent"
     /\ xCl \in {"none", "esc", "aband"}
@@ -247,17 +240,18 @@ Outcome ==
     /\ xCl' = "out"
     /\ UNCHANGED <<xEA, xPh, xDA, xIA, xIP, xRec, delta, oW, RunVars, wo, r32>>
 
-\* The sweep escalates where its probe finds no record (no commit fence).
+\* The sweep escalates where its probe finds no record (no commit fence), or where the
+\* substrate refuses the outcome it would write over the record (Term settling closing:
+\* outcome-unrecordable).
 Escalate ==
     /\ xPh = "intent"
     /\ xCl = "none"
-    /\ ~xRec
     /\ xCl' = "esc"
     /\ xEA' = 0
     /\ UNCHANGED <<xPh, xDA, xIA, xIP, xRec, delta, oW, RunVars, wo, r32>>
 
 \* An operator settles an escalation with an abandonment where the operator's probe shows
-\* no record; a write in flight may apply after it.
+\* no record; under Store 1 none lands after it.
 Abandon ==
     /\ xPh = "intent"
     /\ xCl = "esc"
@@ -405,7 +399,7 @@ Tick ==
                    rS2, rS2ok, rFail, wo, r32>>
 
 Next ==
-    \/ Seam \/ Intent \/ Land \/ Outcome \/ Escalate \/ Abandon
+    \/ Seam \/ Intent \/ Outcome \/ Escalate \/ Abandon
     \/ PurgeIntent \/ OutsideOther \/ OutsideColl
     \/ RunStart \/ StoreRead1 \/ StoreRead1Fails \/ Enumerate \/ EnumerateFails
     \/ StoreRead2 \/ StoreRead2Fails \/ RunEnd
@@ -437,13 +431,14 @@ Inv_CR29 ==
 Probe_NeverFinding ==
     wo = {}
 
-\* No run ends reading a falsely closed record (Reconciliation 33's alert). Rejected.
+\* No run ends reading a falsely closed record (Reconciliation 33's alert). HOLDS under
+\* Store 1, X never abandoned over a record of its own (see the header). Not a probe file.
 Probe_NeverFalseClosing ==
     ~(rPh = "run" /\ rStep = 3 /\ ~rFail /\ Orphan("X") /\ rEnI /\ xCl = "aband")
 
-\* No run reads X's record against the ledger while X's intent has no closing. Rejected:
-\* the young edge does not keep in-flight records out; the read order keeps the finding
-\* away.
+\* No run reads X's record against the ledger while X's intent has no closing, its
+\* outcome owed where the substrate refused it. Rejected: the young edge does not keep such
+\* records out; the read order keeps the finding away.
 Probe_NeverInFlight ==
     ~(EnumDone /\ "X" \in rS1 /\ rEnI /\ xCl = "none")
 

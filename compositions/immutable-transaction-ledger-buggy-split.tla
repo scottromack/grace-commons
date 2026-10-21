@@ -1,5 +1,5 @@
----- MODULE immutable-transaction-ledger-probe-falseclosing ----
-\* EXPECT: violation — reachability probe: no invocation is closed by an abandonment over a record the store carries.
+---- MODULE immutable-transaction-ledger-buggy-split ----
+\* BUGGY TWIN: an invocation's accounting write may be in flight past its step and apply at any later one, after an operator's abandonment included (Execution Contract Store 1 dropped: open line 2026-10-19-e's false closing).
 \* Grace Commons — Immutable Transaction Ledger with Selective Disclosure, the binding.
 \* Spec-level formal sibling of compositions/immutable-transaction-ledger.md. Derived
 \* validator; the English spec is the single source of truth. On any disagreement,
@@ -16,22 +16,39 @@
 \* (Capability requirement 23 through 25, Action wiring 3 and 6). A record's disclosure
 \* id is written here as the invocation whose commit wrote it.
 \*
+\* ONE TRANSACTION PER INVOCATION (Execution Contract Store 1, Capability requirement 36;
+\* re-derived 2026-10-21). The intent, the accounting record and the outcome are store
+\* writes of one composition action, so an invocation is one step here, and a reader sees
+\* all of its writes or none. What the step commits is what the page answers:
+\*   landed       the intent, the record and the outcome (Action wiring 20, 53);
+\*   refused      the intent and the refusal record, where Selective Disclosure refuses
+\*                the record (Action wiring 48, 49), the refused attempt kept as evidence;
+\*   close fails  the intent and the record, where the substrate refuses the outcome
+\*                (Action wiring 54; Recoverable Invocation close step 3.3): the outcome
+\*                is owed, and the caller holds recording-failure carrying outcome;
+\*   refusal fails  the intent alone, where Selective Disclosure refuses the record and
+\*                the substrate refuses the refusal record (Action wiring 50);
+\*   yields       the intent, with the record or without it, where Selective Disclosure
+\*                answers a code it does not declare (Action wiring 51, 52).
+\* A step that commits nothing (a refused open, a storage failure, a crash) changes
+\* nothing and is not a step. With StoreOneTxn = FALSE an invocation may also end with
+\* its accounting write in flight, applying at any later step: the split Store 1 forbids,
+\* and the model of 2026-10-19 (-buggy-split).
+\*
 \* THE CONSTITUENTS, as contracts. Nothing of their protocols is re-modelled.
-\*   Selective Disclosure — record answers a disclosure id for a record it persisted
-\*     (its Invariant 6.3); a refusal leaves the store as the call found it (Operation 16,
-\*     17); a reply that never came may or may not have applied, and a write may apply
-\*     late, after any other step (Term commit partition: unknown).
+\*   Selective Disclosure — record answers a disclosure id for a record it persisted; a
+\*     refusal leaves the store as the call found it (Operation 16, 17).
 \*   Recoverable Invocation — proved in recoverable-invocation.tla and assumed here: the
 \*     intent is written before the commit (its Invariant 1); exactly one closing stands
 \*     for an invocation, written by the invocation while it lives and by the sweep or an
-\*     operator only after it has died or yielded (Invariant 2, its late-append duplicate
-\*     being that page's own, resolved at quiescence); the sweep's closing follows the
-\*     adopter's probe — committed, a recovered outcome carrying only what the probe
-\*     re-derived (Invariant 5.3); not-committed, an escalation, the kind having no commit
-\*     fence (commit 14); undecidable, an escalation (Invariant 3.5); unavailable, nothing
-\*     written, which is a stutter step here; an operator's [Resolve] supersedes an
-\*     escalation with an outcome or an abandonment, and an abandonment with an outcome
-\*     (resolve 15, 16), on the operator's own run of the probe.
+\*     operator only after it has yielded or its own closing was refused (Invariant 2);
+\*     the sweep's closing follows the adopter's probe — committed, a recovered outcome
+\*     carrying only what the probe re-derived (Invariant 5.3), or an escalation where the
+\*     substrate refuses that outcome too; not-committed, an escalation, the kind having
+\*     no commit fence (commit 14); undecidable, an escalation (Invariant 3.5);
+\*     unavailable, nothing written, which is a stutter step here; an operator's [Resolve]
+\*     supersedes an escalation with an outcome or an abandonment, and an abandonment with
+\*     an outcome (resolve 15, 16), on the operator's own run of the probe.
 \*
 \* WHAT THIS MODEL CHECKS
 \*   Inv1_3          no two outcome events carry one disclosure id (Invariant 1.3, Check
@@ -51,6 +68,12 @@
 \*                   disclosure id has landed over a record that has landed (Capability
 \*                   requirement 34; Invariant 4's closure of Selective Disclosure
 \*                   Invariant 5), read off the stores at the disclosure.
+\*   Inv_NoFalseClosing  no invocation stands closed by an abandonment over a record the
+\*                   store carries: an operator abandons only where the probe shows no
+\*                   record (Term settling closing), and under Store 1 no record lands
+\*                   after its invocation's step. The case of open line 2026-10-19-e, a
+\*                   write still in flight applying after the abandonment, is the
+\*                   -buggy-split twin, rejected.
 \*
 \* WHAT CARRIES THEM  Inv1_3 and Inv1_Bijection rest on three things this page binds and
 \* nothing of the protocol's: the host never gives two invocations of one act key one now
@@ -58,30 +81,27 @@
 \* scope and authority (Term disclosure probe; Recoverable Invocation probe 8), and the
 \* probe reads the intent's disclosure instant as a range of that one instant (Term
 \* disclosure probe; Recoverable Invocation pairing datum 2, Invariant 3.4). Each dropped
-\* alone is a twin the checker rejects: a second invocation that dies ahead of its commit
-\* is recovered onto another invocation's record. Inv1_4 rests on the accounting store
-\* never losing a record (Retention asymmetry 1, Selective Disclosure Invariant 6.1).
-\* Inv4_1 rests on Action wiring 20 answering a landed disclosure, and CR34 on the caller
-\* who holds recording-failure carrying outcome waiting for the outcome by invocation id.
+\* alone is a twin the checker rejects: an invocation whose intent committed with no record
+\* of its own is recovered onto another invocation's record. Inv1_4 rests on the
+\* accounting store never losing a record (Retention asymmetry 1, Selective Disclosure
+\* Invariant 6.1). Inv4_1 rests on Action wiring 20 answering a landed disclosure, and
+\* CR34 on the caller who holds recording-failure carrying outcome waiting for the outcome
+\* by invocation id. Inv_NoFalseClosing rests on Store 1 (-buggy-split).
 \*
 \* THE PROBE'S FOUR ANSWERS  committed and not-committed are each reached here
-\* (Probe_NeverRecovered and Probe_NeverSettled are rejected; an operator settles only an
-\* escalation, which only not-committed writes). Undecidable is never reached at the main
-\* constants: under Capability requirement 28 and Composes 11 no two records carry one act
-\* key and one instant, so Probe_NeverUndecidable holds (3,956 states); with
-\* EqualNowBarred = FALSE it is reached (rejected at 700 states), and the escalation it
-\* writes keeps the case where both invocations committed safe, while the case where the
-\* second died ahead of its commit is the twin's violation. Unavailable writes nothing and
-\* is a stutter step.
+\* (Probe_NeverRecovered and Probe_NeverSettled are rejected; an operator settles an
+\* escalation the substrate's refusal of a recovered outcome wrote). Undecidable is never
+\* reached at the main constants: under Capability requirement 28 and Composes 11 no two
+\* records carry one act key and one instant, so Probe_NeverUndecidable holds; with
+\* EqualNowBarred = FALSE it is reached, and the escalation it writes keeps the case where
+\* both invocations committed safe, while the case where the second committed no record
+\* of its own is the twin's violation. Unavailable writes nothing and is a stutter step.
 \*
 \* NOT MODELED
 \*   - Time, and with it the critical section, its lease, the sweep's edges and the call
 \*     pause bound: Recoverable Invocation's, proved in its model. Two invocations of one
 \*     act key may be open at once here, which the section forbids; the section only
 \*     removes behaviours.
-\*   - Recoverable Invocation's binding duplicate under journal fence none, a paused
-\*     invocation's late append beside the sweep's closing: that page's Invariant 2.4,
-\*     resolved by an operator at quiescence. One closing stands per invocation here.
 \*   - Purges, the binding index and the reconciliation: the -rebuild and -reconcile
 \*     models. Every outcome here is live.
 \*   - Writes outside the composition (Composes 10, 11 hold here); the -reconcile model
@@ -94,14 +114,14 @@
 \* before it with any key and instant the host may give it, which breaks the symmetry
 \* between them and loses no behaviour up to renaming. MaxResolves operator resolutions,
 \* two by default, so a resolution of each invocation, or an abandonment and the outcome
-\* that supersedes it, fit. 3,956 states; at N = 3, 890,568, and at N = 3 with three
-\* resolutions 972,873, every invariant holding (past the harness's cap of 200,000, run
-\* with the checker's own caps raised).
+\* that supersedes it, fit. 1,475 states (the split model of 2026-10-19 took 3,956); at
+\* N = 3 the run passes the harness's cap of 200,000 states, not raised for the
+\* re-derivation.
 \*
 \* TWINS AND PROBES  Each is this module byte for byte below its header, with one
 \* constant or one invariant changed in its .cfg: -buggy-equalnow, -buggy-probekey,
-\* -buggy-probewindow, -buggy-bounded, -buggy-earlyanswer, -buggy-sendfirst;
-\* -probe-recovered, -probe-settled, -probe-falseclosing, -probe-sharedinstant,
+\* -buggy-probewindow, -buggy-bounded, -buggy-earlyanswer, -buggy-sendfirst,
+\* -buggy-split; -probe-recovered, -probe-settled, -probe-sharedinstant,
 \* -probe-recoveredsent.
 EXTENDS Naturals, FiniteSets
 
@@ -119,31 +139,31 @@ EXTENDS Naturals, FiniteSets
 \* SendAfterOutcome   TRUE: a caller holding recording-failure carrying outcome discloses
 \*                    only once an outcome event carrying the disclosure id has landed
 \*                    (Capability requirement 34). FALSE: on the code.
+\* StoreOneTxn        TRUE: an invocation's writes commit in its one step (Execution
+\*                    Contract Store 1). FALSE: its accounting write may also be in flight
+\*                    at the step and apply at any later one.
 \* N                  invocations. MaxResolves: operator resolutions in all.
 CONSTANTS EqualNowBarred, ProbeKeyFields, ProbeOneInstant, StoreNeverRemoves,
-          AnswerAfterClose, SendAfterOutcome, N, MaxResolves
+          AnswerAfterClose, SendAfterOutcome, StoreOneTxn, N, MaxResolves
 
 Inv == 1..N          \* the invocations; a record's disclosure id is its invocation
 Keys == {1, 2}       \* act keys: one subject and one recipient, two scopes
 Instants == 1..N     \* nows the host may inject
-\* Phases of an invocation:
-\*   idle  not yet opened          open   intent written, commit not yet issued
-\*   acc   the commit answered the disclosure id (an accounted disclosure)
-\*   refc  the commit answered a pre-commit refusal
-\*   yield the commit's answer fell in the unknown partition; [Yield] called
-\*   land  the close answered (a landed disclosure)
-\*   cfail the close refused                refd   the refusal record landed
-\*   rfail the refusal record did not land  dead   the invocation died
-Phases == {"idle", "open", "acc", "refc", "yield", "land", "cfail", "refd", "rfail", "dead"}
+\* What an invocation's step committed:
+\*   idle  not yet run                   land   the intent, the record and the outcome
+\*   refd  the intent and the refusal record   cfail  the intent and the record
+\*   rfail the intent alone, its refusal record refused
+\*   yield the intent, the commit having answered a code the atom does not declare
+Phases == {"idle", "land", "refd", "cfail", "rfail", "yield"}
 \* A closing: none, an outcome event, a refusal, an escalation or an abandonment.
 Closings == {"none", "out", "refused", "esc", "aband"}
 
 VARIABLES
-    key,     \* key[i]: the act key invocation i's intent carries; 0 before its open
+    key,     \* key[i]: the act key invocation i's intent carries; 0 before its step
     nw,      \* nw[i]: its now, the disclosure instant its intent carries; 0 before
-    ph,      \* ph[i]: its phase
-    pend,    \* pend[i]: its commit was issued with no answer that settles it, and the
-             \* write may still apply
+    ph,      \* ph[i]: what its step committed
+    pend,    \* pend[i]: its accounting write is in flight past its step (only where
+             \* StoreOneTxn fails)
     rec,     \* rec[i]: its record has landed in the accounting store
     gone,    \* gone[i]: its record has been removed (only where StoreNeverRemoves fails)
     cl,      \* cl[i]: the closing standing for its intent
@@ -200,101 +220,94 @@ Matches(i) ==
     {r \in Inv : /\ InStore(r)
                  /\ (ProbeOneInstant => (nw[r] = nw[i]))
                  /\ (ProbeKeyFields => (key[r] = key[i]))}
-\* The sweep may close an intent whose invocation has died or yielded, or whose own close
-\* or refusal did not land; never one whose invocation still lives.
-Sweepable(i) == ph[i] \in {"yield", "cfail", "rfail", "dead"}
+\* The sweep may close an intent whose invocation yielded, or whose own close or refusal
+\* the substrate refused; an invocation's step leaves no intent in flight.
+Sweepable(i) == ph[i] \in {"yield", "cfail", "rfail"}
 
-\* --- [Disclose Subset], in the page's order: validate, open, commit, close ---
+\* --- [Disclose Subset]: validate, open, commit, close, as one transaction ---
 
-\* The invocation open writes the intent carrying the act key and the seam's now
-\* (Action wiring 3; Capability requirement 23). The host gives no two invocations of one
-\* act key one now where EqualNowBarred holds (Capability requirement 28).
-Open(i, k, n) ==
+\* The step opens with the act key and the seam's now (Action wiring 3; Capability
+\* requirement 23). The host gives no two invocations of one act key one now where
+\* EqualNowBarred holds (Capability requirement 28).
+CanRun(i, k, n) ==
     /\ ph[i] = "idle"
     /\ (i > 1) => (ph[i - 1] # "idle")
     /\ (i = 1) => (k = 1 /\ n = 1)
     /\ EqualNowBarred => (\A j \in Inv \ {i} : ~(key[j] = k /\ nw[j] = n))
+
+\* Landed: the intent, the accounting record and the outcome event carrying its
+\* disclosure id commit together (Action wiring 6, 53; Term outcome data).
+DiscloseLanded(i, k, n) ==
+    /\ CanRun(i, k, n)
     /\ key' = [key EXCEPT ![i] = k]
     /\ nw' = [nw EXCEPT ![i] = n]
-    /\ ph' = [ph EXCEPT ![i] = "open"]
+    /\ ph' = [ph EXCEPT ![i] = "land"]
+    /\ rec' = [rec EXCEPT ![i] = TRUE]
+    /\ cl' = [cl EXCEPT ![i] = "out"]
+    /\ oid' = [oid EXCEPT ![i] = i]
+    /\ ow' = [ow EXCEPT ![i] = "inv"]
+    /\ UNCHANGED <<pend, gone, ansSt, sentSt, res, undec>>
+
+\* Refused: Selective Disclosure refuses the record, which leaves the store as the call
+\* found it (Operation 16, 17), and the refusal record commits with the intent (Action
+\* wiring 48, 49).
+DiscloseRefused(i, k, n) ==
+    /\ CanRun(i, k, n)
+    /\ key' = [key EXCEPT ![i] = k]
+    /\ nw' = [nw EXCEPT ![i] = n]
+    /\ ph' = [ph EXCEPT ![i] = "refd"]
+    /\ cl' = [cl EXCEPT ![i] = "refused"]
+    /\ UNCHANGED <<pend, rec, gone, oid, ow, ansSt, sentSt, res, undec>>
+
+\* Close fails: the record commits with the intent and the substrate refuses the outcome;
+\* the intent is the sweep's (Action wiring 54).
+DiscloseCloseFails(i, k, n) ==
+    /\ CanRun(i, k, n)
+    /\ key' = [key EXCEPT ![i] = k]
+    /\ nw' = [nw EXCEPT ![i] = n]
+    /\ ph' = [ph EXCEPT ![i] = "cfail"]
+    /\ rec' = [rec EXCEPT ![i] = TRUE]
+    /\ UNCHANGED <<pend, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
+
+\* Refusal fails: Selective Disclosure refuses the record and the substrate refuses the
+\* refusal record; the intent commits alone and is the sweep's (Action wiring 50).
+DiscloseRefusalFails(i, k, n) ==
+    /\ CanRun(i, k, n)
+    /\ key' = [key EXCEPT ![i] = k]
+    /\ nw' = [nw EXCEPT ![i] = n]
+    /\ ph' = [ph EXCEPT ![i] = "rfail"]
     /\ UNCHANGED <<pend, rec, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
 
-\* The accounting write (Action wiring 6), on each arm of the commit partition.
-\* Committed: the record lands and its disclosure id is answered.
-CommitOk(i) ==
-    /\ ph[i] = "open"
-    /\ rec' = [rec EXCEPT ![i] = TRUE]
-    /\ ph' = [ph EXCEPT ![i] = "acc"]
-    /\ UNCHANGED <<key, nw, pend, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
-
-\* Pre-commit: invalid-request, unknown-authority-type or storage-failure, which leave the
-\* store as the call found it (Selective Disclosure Operation 16, 17).
-CommitRefused(i) ==
-    /\ ph[i] = "open"
-    /\ ph' = [ph EXCEPT ![i] = "refc"]
-    /\ UNCHANGED <<key, nw, pend, rec, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
-
-\* Unknown: no answer, or a code the atom does not declare; the write may have applied or
-\* may yet apply. The invocation yields (Action wiring 51) and the caller holds
-\* recording-failure carrying outcome and the invocation id (Action wiring 52, 68).
-CommitUnknown(i) ==
-    /\ ph[i] = "open"
-    /\ pend' = [pend EXCEPT ![i] = TRUE]
+\* Yields: Selective Disclosure answers a code it does not declare, the invocation yields
+\* (Action wiring 51), and the step commits the intent with whatever the write applied;
+\* the caller holds recording-failure carrying outcome and the invocation id (Action
+\* wiring 52, 68).
+DiscloseYields(i, k, n, applied) ==
+    /\ CanRun(i, k, n)
+    /\ key' = [key EXCEPT ![i] = k]
+    /\ nw' = [nw EXCEPT ![i] = n]
     /\ ph' = [ph EXCEPT ![i] = "yield"]
-    /\ UNCHANGED <<key, nw, rec, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
+    /\ rec' = [rec EXCEPT ![i] = applied]
+    /\ UNCHANGED <<pend, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
 
-\* The invocation dies with its accounting write in flight.
-CommitDies(i) ==
-    /\ ph[i] = "open"
+\* Only where StoreOneTxn fails: the invocation yields with its accounting write in
+\* flight, and the write may apply at any later step, before or after any closing.
+DiscloseInFlight(i, k, n) ==
+    /\ ~StoreOneTxn
+    /\ CanRun(i, k, n)
+    /\ key' = [key EXCEPT ![i] = k]
+    /\ nw' = [nw EXCEPT ![i] = n]
+    /\ ph' = [ph EXCEPT ![i] = "yield"]
     /\ pend' = [pend EXCEPT ![i] = TRUE]
-    /\ ph' = [ph EXCEPT ![i] = "dead"]
-    /\ UNCHANGED <<key, nw, rec, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
+    /\ UNCHANGED <<rec, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
 
-\* A write in flight applies, at any later step: before or after the sweep's probe, and
-\* before or after an operator's.
+\* A write in flight applies (reachable only where StoreOneTxn fails).
 Land(i) ==
     /\ pend[i]
     /\ ~rec[i]
     /\ rec' = [rec EXCEPT ![i] = TRUE]
     /\ pend' = [pend EXCEPT ![i] = FALSE]
     /\ UNCHANGED <<key, nw, ph, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
-
-\* The invocation dies ahead of its commit, after it, or after a refusal and ahead of the
-\* refusal record.
-Die(i) ==
-    /\ ph[i] \in {"open", "acc", "refc"}
-    /\ ph' = [ph EXCEPT ![i] = "dead"]
-    /\ UNCHANGED <<key, nw, pend, rec, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
-
-\* The invocation close writes the outcome event carrying the disclosure id the commit
-\* answered (Action wiring 53, Term outcome data).
-CloseOk(i) ==
-    /\ ph[i] = "acc"
-    /\ cl' = [cl EXCEPT ![i] = "out"]
-    /\ oid' = [oid EXCEPT ![i] = i]
-    /\ ow' = [ow EXCEPT ![i] = "inv"]
-    /\ ph' = [ph EXCEPT ![i] = "land"]
-    /\ UNCHANGED <<key, nw, pend, rec, gone, ansSt, sentSt, res, undec>>
-
-\* The close refuses: recording-failure carrying outcome (Action wiring 54); the intent is
-\* the sweep's.
-CloseFail(i) ==
-    /\ ph[i] = "acc"
-    /\ ph' = [ph EXCEPT ![i] = "cfail"]
-    /\ UNCHANGED <<key, nw, pend, rec, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
-
-\* The invocation refusal records the pre-commit refusal (Action wiring 48, 49).
-RefuseOk(i) ==
-    /\ ph[i] = "refc"
-    /\ cl' = [cl EXCEPT ![i] = "refused"]
-    /\ ph' = [ph EXCEPT ![i] = "refd"]
-    /\ UNCHANGED <<key, nw, pend, rec, gone, oid, ow, ansSt, sentSt, res, undec>>
-
-\* The refusal record does not land (Action wiring 50); the intent is the sweep's.
-RefuseFail(i) ==
-    /\ ph[i] = "refc"
-    /\ ph' = [ph EXCEPT ![i] = "rfail"]
-    /\ UNCHANGED <<key, nw, pend, rec, gone, cl, oid, ow, ansSt, sentSt, res, undec>>
 
 \* --- the sweep and the operator, by the probe's answer ---
 
@@ -308,6 +321,15 @@ SweepRecover(i, r) ==
     /\ oid' = [oid EXCEPT ![i] = r]
     /\ ow' = [ow EXCEPT ![i] = "sweep"]
     /\ UNCHANGED <<key, nw, ph, pend, rec, gone, ansSt, sentSt, res, undec>>
+
+\* committed, but the substrate refuses the recovered outcome too: the sweep escalates
+\* (Term escalated closing; Term settling closing, outcome-unrecordable).
+SweepRecoverRefused(i) ==
+    /\ cl[i] = "none"
+    /\ Sweepable(i)
+    /\ Cardinality(Matches(i)) = 1
+    /\ cl' = [cl EXCEPT ![i] = "esc"]
+    /\ UNCHANGED <<key, nw, ph, pend, rec, gone, oid, ow, ansSt, sentSt, res, undec>>
 
 \* not-committed: no record matches; with no commit fence the sweep escalates (Recoverable
 \* Invocation commit 14b, reconcile step 3.5).
@@ -342,7 +364,7 @@ ResolveOutcome(i, r) ==
     /\ UNCHANGED <<key, nw, ph, pend, rec, gone, ansSt, sentSt, undec>>
 
 \* An operator settles an escalation with an abandonment where the operator's probe shows
-\* no record. A write still in flight may apply after it: a false closing.
+\* no record.
 ResolveAbandon(i) ==
     /\ res < MaxResolves
     /\ cl[i] = "esc"
@@ -354,10 +376,11 @@ ResolveAbandon(i) ==
 \* --- the caller ---
 
 \* The call answers the disclosure result (Action wiring 20): a landed disclosure, or with
-\* AnswerAfterClose FALSE an accounted one. What the stores hold at the answer is kept.
+\* AnswerAfterClose FALSE an accounted one, its close refused included. What the stores
+\* hold at the answer is kept.
 Answer(i) ==
     /\ ansSt[i] = "no"
-    /\ IF AnswerAfterClose THEN ph[i] = "land" ELSE ph[i] \in {"acc", "land"}
+    /\ IF AnswerAfterClose THEN ph[i] = "land" ELSE ph[i] \in {"cfail", "land"}
     /\ ansSt' = [ansSt EXCEPT ![i] = IF rec[i] /\ OutNames(i) THEN "ok" ELSE "bad"]
     /\ UNCHANGED <<key, nw, ph, pend, rec, gone, cl, oid, ow, sentSt, res, undec>>
 
@@ -382,18 +405,16 @@ Remove(i) ==
     /\ UNCHANGED <<key, nw, ph, pend, rec, cl, oid, ow, ansSt, sentSt, res, undec>>
 
 Next ==
-    \/ \E i \in Inv, k \in Keys, n \in Instants : Open(i, k, n)
-    \/ \E i \in Inv : CommitOk(i)
-    \/ \E i \in Inv : CommitRefused(i)
-    \/ \E i \in Inv : CommitUnknown(i)
-    \/ \E i \in Inv : CommitDies(i)
+    \/ \E i \in Inv, k \in Keys, n \in Instants :
+          \/ DiscloseLanded(i, k, n)
+          \/ DiscloseRefused(i, k, n)
+          \/ DiscloseCloseFails(i, k, n)
+          \/ DiscloseRefusalFails(i, k, n)
+          \/ \E a \in BOOLEAN : DiscloseYields(i, k, n, a)
+          \/ DiscloseInFlight(i, k, n)
     \/ \E i \in Inv : Land(i)
-    \/ \E i \in Inv : Die(i)
-    \/ \E i \in Inv : CloseOk(i)
-    \/ \E i \in Inv : CloseFail(i)
-    \/ \E i \in Inv : RefuseOk(i)
-    \/ \E i \in Inv : RefuseFail(i)
     \/ \E i, r \in Inv : SweepRecover(i, r)
+    \/ \E i \in Inv : SweepRecoverRefused(i)
     \/ \E i \in Inv : SweepNotCommitted(i)
     \/ \E i \in Inv : SweepUndecidable(i)
     \/ \E i, r \in Inv : ResolveOutcome(i, r)
@@ -411,9 +432,9 @@ Spec == Init /\ [][Next]_vars
 \* own invocation did not commit, so no twin breaks Inv1_3 and holds Inv1_Bijection.
 \* @isolate-facets Inv4_1 CR34
 \* The answer is one of the two routes by which the entries reach the recipient ("the
-\* call's answer says so", Wiring decision's WHY), so an answer ahead of the outcome is a
-\* disclosure ahead of it: no twin breaks Inv4_1 and holds CR34. CR34's other route, the
-\* outcome found by invocation id, has its own twin, -buggy-sendfirst.
+\* call's answer says so"), so an answer ahead of the outcome is a disclosure ahead of it:
+\* no twin breaks Inv4_1 and holds CR34. CR34's other route, the outcome found by
+\* invocation id, has its own twin, -buggy-sendfirst.
 
 \* Invariant 1.3: no disclosure id under two live outcome events. Every outcome is live.
 Inv1_3 ==
@@ -436,21 +457,21 @@ Inv4_1 ==
 CR34 ==
     \A i \in Inv : sentSt[i] # "bad"
 
+\* No invocation stands closed by an abandonment over a record the store carries (the
+\* false closing of open line 2026-10-19-e, dissolved by Store 1).
+Inv_NoFalseClosing ==
+    ~(\E i \in Inv : cl[i] = "aband" /\ InStore(i))
+
 \* --- reachability probes: deliberate falsehoods the checker must reject ---
 
 \* The sweep never recovers an outcome. Rejected: the committed answer is reached.
 Probe_NeverRecovered ==
     \A i \in Inv : ow[i] # "sweep"
 
-\* No operator ever writes an outcome. Rejected: an escalation is settled, or an
-\* abandonment corrected, by an outcome — the not-committed answer is reached first.
+\* No operator ever writes an outcome. Rejected: an escalation the substrate's refusal of
+\* a recovered outcome wrote is settled by an outcome.
 Probe_NeverSettled ==
     \A i \in Inv : ow[i] # "op"
-
-\* No invocation is ever closed by an abandonment over a record the store carries.
-\* Rejected: a write in flight applies after the operator's probe (a false closing).
-Probe_NeverFalseClosing ==
-    ~(\E i \in Inv : cl[i] = "aband" /\ InStore(i))
 
 \* No two records in the store ever share a disclosure instant. Rejected: two act keys
 \* share an instant, so the probe's scope and authority filter is what parts them.
