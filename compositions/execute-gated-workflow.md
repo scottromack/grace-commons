@@ -72,7 +72,7 @@ Composes 16: The composition MUST NOT write the Permissions instance.
 Composes 17: EXACTLY ONE State Machine workflow MUST serve a workflow run.
 ```
 
-Term composition: this pattern's wiring of [State Machine](../atoms/state-machine.md), [Approval Step](../atoms/approval-step.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md) and [Audit Trail](./audit-trail.md) — the gated workflow, the gate, the moot cascade, the read and the restart sweep.
+Term composition: this pattern's wiring of [State Machine](../atoms/state-machine.md), [Approval Step](../atoms/approval-step.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md) and [Audit Trail](./audit-trail.md) — the gated workflow, the gate, the moot cascade, the read and the sweep.
 
 Term constituents: [State Machine](../atoms/state-machine.md), [Approval Step](../atoms/approval-step.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md), [Audit Trail](./audit-trail.md).
 
@@ -95,13 +95,6 @@ Term step write: Approval Step's submit, approve, reject or withdraw.
 Term assignment write: Assignment's assign or recall.
 
 Term workflow namespace: the action references workflow_start_intended, workflow_started, gate_open_intended, gate_opened, gate_decision_intended, gate_decided, transition_intended, transition_fired, moot_gate_recalled and workflow_recovery_intended on the composition's Audit Trail instance.
-
-WHY:
-**What no constituent answers alone** is the regulated question — *did this guarded transition fire only after its named approval was genuinely recorded?* State Machine's guard model records a caller-asserted guard and deliberately evaluates nothing: its own edge cases name approval-gate evaluation as a concept this composition re-converges. So this composition binds each guarded transition to an Approval Step, reads that step before any fire, and asserts the guard only on an Approved step; the caller never supplies it (Wiring decision 1). **Approval Step** is one gate; **Permissions** says who may start, open, fire and read; **Assignment** keeps an open gate in its approver's in-tray — the work list a person sees — and knows nothing of gates; **Audit Trail** attributes, seals and retains every act, with Event Log, Actor Identity, Tamper Evidence and Retention Window reached through it and never instanced here (Composes 8 and 9; the section titled Compositions of compositions in `spec-format.md`).
-
-**Every write surface is reserved** (Composes 12 through 16; 2026-08-26-h, 2026-08-30-b). The prose declared single-write-path exclusivity for State Machine alone, while its restart sweep read the Approval Step and Assignment instances as this composition's: an out-of-band approve would clear a gate with no decision event, and an out-of-band submit would look like an unrecorded opening. Reserving the machine, step and assignment writes and the namespace makes each a deployment's conformance failure, which the sweep reports rather than re-audits (Reconciliation 17 and 22). **Permissions is read-only here** (Composes 16): grants are administered by a Permissions-administration layer — [Attributed Permissions Admin](./attributed-permissions-admin.md) — and this composition only asks.
-
-**The declared reads** (Composes 10 and 11). The rebuilds, the plan derivation, the read's set-valued queries, the sweep and the checks select by action reference and payload field, and the substrate serves no such read: Audit Trail passes a sequence-range read through to Event Log and routes every query by payload field to a Reverse Index pattern *(forthcoming)*. So the route is the pass-through range read with the selection in composition code, and the wired instance must expose it (Capability requirement 21). From the constituents the composition consumes Approval Step's read — the singleton step query, the Pending-state query and the unfiltered read the atom declares returns every step — and Assignment's active_for and history_for.
 
 Adjacent, **not** constituents: [Multi-Party Approval](./multi-party-approval.md), the composing enrichment for a gate that needs several approvers (Non-goal 1); [Compensable Workflow](./compensable-workflow.md), for a process whose steps have effects to undo; [Legal Hold](../atoms/legal-hold.md), which suspends purge over the workflow's events through the substrate.
 
@@ -129,7 +122,7 @@ Composition state 14: The composition MUST rebuild the transition-event index PE
 Composition state 15: A rebuild MUST retain EVERY index entry the rebuild does not reproduce.
 Composition state 16: The composition MUST classify a purged mark as truth-bearing.
 Composition state 17: The composition MUST classify the marks as extraction-pending against Binding Registry.
-Composition state 18: The deployment MUST persist the marks PER the mark durability.
+Deleted: Composition state 18. Execution Contract Store 3 and Execution Contract Store 4 own it.
 Composition state 19: The composition MUST NOT store a clock-derived flag.
 Composition state 20: The composition MUST NOT duplicate a constituent's store.
 ```
@@ -174,16 +167,7 @@ Term unfiltered read: Approval Step's read on an empty query — every step in t
 
 Term assignment history: Assignment's history_for on a step id as the task.
 
-Term active assignment read: Assignment's active_for on a step id as the task.
-
 Term clock-derived flag: a stored eligible, expired or overdue value.
-
-WHY:
-**Four derived indexes over two kinds of source** (Composition state 1 through 14; the section titled Composition state in `execution-contract.md`). Three rebuild from this composition's own outcome events, which carry what the indexes need: the start event the whole workflow record, the [Gate Spec] included — a composition-introduced surface no constituent holds, which is exactly why it rides the event; the opening event the gate key, so the binding rebuild is key-exact; the firing event the transition id. The fourth rebuilds from the constituent stores alone — every step through the unfiltered read, and each step's one assignment through its history, since each gate's task is its own fresh step id — so it is total at every age and the opening events only cross-check it. **No index rebuilds from an intent** (Composition state 9): an intent carries only what existed before its act, and sourcing a map from one would resolve ids for invocations that committed nothing. Each index sits outside its action's atomicity surface, a lost entry is a rebuild trigger, and none claims cross-constituent consistency. **The binding history is append-only** (Composition state 6): a re-bind appends an opening event and repoints the map, and a mooted or spent binding stays, so the traversal the checks walk is never severed.
-
-**The horizon splits the classification, and the marks are the truth-bearing half** (Composition state 15 through 18; the section titled *A derived index splits at the horizon* in `pressure-testing.md`). A lawful purge destroys a payload whole. The workflow record, the binding and the transition-event entry are then not rebuildable, and the rebuild retains what it can no longer reproduce rather than dropping it. Their loss is kept benign by the ordering obligation — the horizon outlasts every workflow the deployment admits (Capability requirement 3) — so while a run is live its payloads are readable. **The marks are different**: once a firing event or moot record purges, the mark is the only record that a bound step's approval was spent, and nothing rebuilds it. The prose named no owner for that half (2026-08-30-d). Each mark pairs a step id to the transition id that spent it, once, durably — the write-once pairing a Binding Registry *(forthcoming)* is named for — so the marks are extraction-pending against it, and until it lands the durability is the deployment's. A mark lost past the horizon is read fail-closed (Wiring decision 6).
-
-**No stored validity** (Composition state 19): the gate is state-valued — whether the bound step is Approved and unspent — so nothing at this layer consults or caches the clock. State Machine owns the current state and the history; Approval Step, Assignment and Permissions own their records (Composition state 20).
 
 ### Capability requirement
 
@@ -197,20 +181,21 @@ Capability requirement 6: A deployment MUST set the reconciliation cadence.
 Capability requirement 7: A deployment MUST disclose the record write latency.
 Capability requirement 8: The composition MUST start ONLY IF the compensation window EXCEEDS the liveness sum.
 Capability requirement 9: A deployment MUST provision the service identity.
-Capability requirement 10: The host MUST supply the instance exclusion keyed by instance id.
-Capability requirement 11: The host MUST release the instance exclusion on the holder's return.
-Capability requirement 12: The host MUST release the instance exclusion on the holder's death.
-Capability requirement 13: IF the host holds the instance exclusion as a lease THEN the host MUST set the lease length to the completion bound.
-Capability requirement 14: The composition MUST read a lease's expiry as the holder's terminus.
-Capability requirement 15: IF the host supplies no instance exclusion THEN the composition MUST NOT run a state-changing action.
+Deleted: Capability requirement 10. Execution Contract Store 2 owns it.
+Deleted: Capability requirement 11. Execution Contract Store 2 owns it: an action's reads of a workflow and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 12. Execution Contract Store 2 owns it: an action's reads of a workflow and the writes they decide are one transaction, and the composition names no exclusion to release.
+Deleted: Capability requirement 13. Execution Contract Store 2 owns it: an action's reads of a workflow and the writes they decide are one transaction, and the composition names no exclusion to lease.
+Deleted: Capability requirement 14. Execution Contract Store 2 owns it: an action's reads of a workflow and the writes they decide are one transaction, and the composition names no lease to expire.
+Deleted: Capability requirement 15. Execution Contract Store 2 owns it: an action's reads of a workflow and the writes they decide are one transaction, and the composition names no exclusion for a host to lack.
 Capability requirement 16: A deployment MUST set the clock offset allowance.
-Capability requirement 17: A deployment MUST declare the mark durability.
+Deleted: Capability requirement 17. Execution Contract Store 3 and Execution Contract Store 4 own it.
 Capability requirement 18: A deployment MUST set the intent candidates cap.
 Capability requirement 19: A deployment MUST declare the id widths.
 Capability requirement 20: The host MUST inject now at the seam once per invocation.
 Capability requirement 21: The wired Audit Trail instance MUST expose the log read.
 Capability requirement 22: The composition MUST pass the invocation's now to EVERY constituent call accepting an instant.
 Capability requirement 23: A deployment parsing a gate subject MUST encode the subject reference injectively.
+Capability requirement 24: The deployment MUST supply the store PER Execution Contract Store 1 through 4.
 ```
 
 Term audit retention policy: the retention policy configured on the composition's single Audit Trail instance — `audit_trail_retention_policy`: a seven-year SOX policy, a Part 11 predicate-rule policy, a HIPAA six-year policy, an ICH E6 trial-master-file policy.
@@ -219,11 +204,11 @@ Term audit horizon: the audit retention policy's horizon.
 
 Term longest workflow lifetime: the longest a workflow run the deployment admits stays live — a business fact, for a trial master file or a change-control record its own expected duration.
 
-Term completion bound: the longest a state-changing invocation may hold the instance exclusion, from its intent to its outcome and, for a firing, its moot cascade — `workflow_completion_bound`: the sweep's lower edge, the lease length and the invocation's terminus.
+Term completion bound: the longest a state-changing invocation may run, from its intent to its outcome and, for a firing, its moot cascade — `workflow_completion_bound`.
 
 Term compensation window: the duration within which an owed record or cascade must land or be escalated — `compensation_window`.
 
-Term reconciliation cadence: the interval between the sweep's runs, beside the run at every restart — `reconciliation_cadence`.
+Term reconciliation cadence: the interval between the sweep's runs — `reconciliation_cadence`.
 
 Term record write latency: the deployment's disclosed bound on one audit write landing — `record_write_latency`.
 
@@ -231,13 +216,7 @@ Term liveness sum: `completion bound + reconciliation cadence + record write lat
 
 Term service identity: the composition's registered actor reference and credential — `application_actor_ref` and `application_credential` — under which the composition attests every write no present human's invocation owns.
 
-Term instance exclusion: the host-supplied mutual exclusion on an instance id, taken before an invocation's intent and held through its outcome and cascade, and taken by the sweep for every instance it touches — `instance_serialization`.
-
-Term holder: an invocation or a sweep run holding the instance exclusion.
-
 Term clock offset allowance: the declared bound on the divergence between the composition's seam clock and the substrate's — `clock_offset_allowance`.
-
-Term mark durability: the deployment's declaration that the store carrying the marks retains them for as long as any binding on the key could still be fired or re-bound — `binding_flag_durability`.
 
 Term intent candidates cap: the most intent candidates a recovery re-emission may name — `intent_candidates_cap`.
 
@@ -248,17 +227,6 @@ Term seam: the composition's input and output boundary — the one place the hos
 Term now: the wall-time reading the host injects at the seam, once per invocation.
 
 Term gate subject: the workflow's subject reference, a colon and the action — the step's subject, never parsed back by the composition.
-
-WHY:
-**The horizon outlasts every workflow, as an obligation** (Capability requirement 1 through 3; 2026-08-30-c). The audit write takes no per-call retention input, so every event inherits the instance's policy. The workflow store, the binding index and the moot plan's derivation read payloads, and past the horizon the [Gate Spec] — held by no constituent — leaves the rebuild, and the plan's derivation degrades to whatever the binding index still holds, which is the silent under-reporting the event-anchored derivation exists to prevent. Check 8.1 tests it where both durations are readable; where the lifetime is a business fact the records cannot see it is External check 2.
-
-**Liveness is arithmetic, and the bound is the invocation's terminus** (Capability requirement 4 through 8 and 10 through 15; the sections titled *Liveness is arithmetic* and *A compensator is exclusive* in `pressure-testing.md`). An owed record created at *t* is invisible to the sweep until `t + bound`, the next run is at most a cadence later, and the record lands a latency after that; *a cadence no longer than the window* is satisfied by a deployment that breaches on every orphan. The bound is also where the one writer changes: an invocation holds the exclusion from before its intent to after its cascade, re-attempts an owed write only inside the bound, and past it has yielded — whether or not its process is alive; the sweep takes the same exclusion and re-reads its pre-check under it. An invocation that lost its lease re-takes it before any pre-check and writes nothing it cannot hold it for, so it never resumes between the sweep's look and the sweep's write. No constituent declares a section spanning calls to four of them, so it is named here as the host's (the section titled *Capability provenance* in `pressure-testing.md`).
-
-**The service identity** (Capability requirement 9) attests exactly two kinds of write: the moot record, which the cascade emits with no human deciding it; and every recovery re-emission — an owed record landed outside its invocation, or one whose human's credential was refused mid-flight — which names the human in its payload (2026-08-27-e). Every other workflow event carries the human caller. A forged moot record claiming a gate was mooted by a firing the machine history shows never left its state is refuted by cross-reading the history.
-
-**One reading, passed through** (Capability requirement 16, 20 and 22; Execution Contract Logic confinement 7). Where a constituent accepts an instant — instantiate, fire, submit, approve, reject, withdraw — the composition passes the invocation's reading rather than letting the constituent take a second one, so the machine's history, the step and the event payload name one instant, and the sweep can pair by equality. Where the composition's reading is judged against the substrate's horizon, the two clocks differ, and the comparison is widened by the allowance toward examining rather than excusing (Wiring decision 5; the section titled *A stamp from another seam never decides a write alone* in `pressure-testing.md`).
-
-**The caps size the largest record** (Capability requirement 18 and 19; the section titled *An outcome is sized before the intent* in `pressure-testing.md`): the start event embedding the whole [Gate Spec], the fire intent carrying a full moot plan, and every recovery re-emission — an outcome's payload plus the human, the recovery flag and up to the candidates cap. **The gate subject is never parsed back** (Capability requirement 23): the step-to-transition truth is the binding and its opening event, not the string, so no delimiter escaping is owed here; a deployment that parses gate subjects in its own tooling picks an injective encoding.
 
 ### Primitive policy
 
@@ -307,9 +275,6 @@ Term guarded transition cap: the budget-derived bound on the guarded transition 
 
 Term action: the transition name a call addresses — a well-formed but undeclared action lands on invalid-transition, never invalid-request.
 
-WHY:
-**Validation runs before any constituent is called**, the permission check included (Primitive policy 12 and 13). **The [Gate Spec] covers the declaration exactly** (Primitive policy 6 through 8): a guarded transition with no named approver cannot be governed, and an entry for a label the declaration never uses names a gate that will never exist. **The caps foreclose the payload-size source of the audit write's invalid-request by construction** (Primitive policy 9 and 10): the largest record any act can write is bounded before the first id is minted — which is why this validation precedes the start intent, whose payload carries the whole [Gate Spec]. The guarded transition count, not the entry count, bounds the moot plan, because the plan carries one entry per bound gate and the binding index is keyed per transition. **Byte-exact throughout** (Primitive policy 14 through 16; 2026-08-26-j): every constituent declares byte-exact equality, and the guard label, the gate key and every reference compare as bytes here too.
-
 ### Audit arm
 
 ```
@@ -318,13 +283,13 @@ Audit arm 2: IF Audit Trail answers recording-failure at an intent THEN the acti
 Audit arm 3: IF Audit Trail answers invalid-request carrying a step below step-3 at an intent THEN the action MUST answer invalid-request.
 Audit arm 4: The composition MUST NOT retry an invalid-request answer.
 Audit arm 5: The deployment MUST alert on EVERY invalid-request from the audit write as a deployment fault.
-Audit arm 6: IF Audit Trail answers recording-failure carrying the retention step at an outcome THEN the invocation MUST read the outcome back.
+Deleted: Audit arm 6. Execution Contract Store 1 owns it.
 Audit arm 7: IF Audit Trail answers invalid-request(step-4) at an outcome THEN the invocation MUST read the outcome back.
 Audit arm 8: A read-back MUST match the outcome carrying the act's minted id.
 Audit arm 9: IF the read-back finds the outcome THEN the invocation MUST proceed as landed.
-Audit arm 10: IF Audit Trail answers invalid-credential at an outcome THEN the invocation MUST record the outcome under the service identity carrying the recovery flag AND the human actor.
+Deleted: Audit arm 10. Execution Contract Store 2 owns it.
 Audit arm 11: IF Audit Trail answers recording-failure carrying a pre-append step at an outcome THEN the action MUST answer recording-failure carrying post-commit.
-Audit arm 12: A yielded invocation MUST NOT retry an outcome.
+Deleted: Audit arm 12. Execution Contract Store 1 owns it: an action's writes commit together, so no invocation retries an outcome.
 Audit arm 13: A caller MUST read recording-failure carrying pre-commit as a committed nothing.
 Audit arm 14: A caller MUST NOT re-invoke an instance action on recording-failure carrying post-commit.
 Audit arm 15: IF [Start Workflow] answers recording-failure carrying post-commit THEN the caller MAY re-invoke [Start Workflow].
@@ -340,20 +305,13 @@ Term act's minted id: the instance id for a start event, the step id for an open
 
 Term pre-append step: a recording-failure step naming a step before the substrate's append — step-2 or step-3; the event is not in the log.
 
-Term retention step: the recording-failure step naming the substrate's retention placement — step-4; the event is appended and attested.
+Term retention step: the step naming the substrate's retention placement on an invalid-request — step-4; the event is appended and attested.
 
 Term invalid-request step: step-1 | step-2 | step-3 | step-4 — the step of Audit Trail's record action that landed the refusal; step-4 is the retention step, and at step-1 through step-3 the event is not in the log.
 
 Term stage: pre-commit | post-commit — where a recording-failure sat relative to the action's load-bearing write: the instantiate, the submit, the decision or the fire.
 
-Term yielded invocation: an invocation whose intent instant plus the completion bound PRECEDES now, or whose lease expired.
-
 Term human actor: the caller whose act an outcome records, carried in a recovery re-emission's payload.
-
-WHY:
-**Mapped by stage and by step** (the section titled *A transcribed rejection arm keeps its payload and its reachability* in `pressure-testing.md`). Every intent is a pre-commit write by construction — it precedes the load-bearing call — so a refused intent means the act does not happen and nothing is owed, including when the refusal is invalid-request(step-3) or invalid-request(step-4) and the intent stands with no outcome (Audit arm 16; Check 6.3); the re-emission rule never reaches one. At an outcome the act has committed: the retention step and invalid-request(step-4) arrive with the event appended — the prose treated both as transient, and a retry there appends a second outcome for one act — so the invocation reads back by the act's minted id and proceeds where the event is there (2026-08-26-d). An invalid-request at step-1 through step-3 of an outcome write leaves the event not in the log, so there is nothing to read back and the act's answer is the pre-append one, recording-failure carrying post-commit (Audit arm 17); a bare invalid-request there would tell the caller nothing committed, and a retry would repeat a committed act. The substrate's invalid-request has two sources and neither loops: its payload-size source, step-1, is foreclosed by the caps; its retention-configuration source, step-4, which also carries reference-cap and policy faults the substrate routes there, is a pageable deployment fault. **invalid-credential at an outcome is landed by attribution** (Audit arm 10): a caller whose registration changed mid-flight cannot orphan a committed act's record, and an invalid-credential on the service identity's own emission is the deployment's credential, paged, never looped.
-
-**The stage rides the exported code, and the caller's recourse splits by action class** (Audit arm 13 through 15; the section titled *A composition's own rejection arm carries the retry bit* in `pressure-testing.md`; 2026-08-26-o). A mutation — a decision or a firing — must never be re-invoked on post-commit: a firing is not idempotent and would fire again, and the caller confirms the committed state through [Read Workflow]. [Open Gate]'s committed step and assignment are completed by the implementation, the gate held out of reach until its opening is audited — no binding exists, so [Decide Gate] answers gate-not-open and [Fire Transition] gate-not-cleared — and a re-invoke before the binding lands would pass the no-binding check and submit a second gate. [Start Workflow]'s orphan instance is referenced by nothing, so a re-invoke on post-commit mints fresh ids safely; the orphan is quarantined for store maintenance and is External check 1.
 
 ### Action wiring
 
@@ -409,7 +367,7 @@ Action wiring 14: A failed index write MUST NOT change an action's answer.
 Action wiring 15: A validated opening MUST call the permission check with the actor reference AND [Workflows Open Gate].
 Action wiring 16: An instance action MUST NOT answer not-known BEFORE rebuilding the instance's workflow record.
 Action wiring 17: IF the workflow store carries no record for the instance id THEN the instance action MUST answer not-known.
-Action wiring 18: A found action MUST take the instance exclusion on the instance id.
+Deleted: Action wiring 18. Execution Contract Store 2 owns it.
 Action wiring 19: A found action MUST read the workflow machine's current state AND declaration.
 Action wiring 20: IF a read-side call refuses THEN the action MUST answer recording-failure carrying the call's stage.
 Action wiring 21: The deployment MUST alert on EVERY read-side refusal as an index anomaly.
@@ -421,9 +379,9 @@ Action wiring 26: IF the gate key's bound step IS IN the live approvals THEN [Op
 Action wiring 27: A guarded opening MUST record the open intent carrying the gate key, the guard label, the approver reference, the scope AND now as the intent instant.
 Action wiring 28: An admitted opening MUST call submit with the gate subject, the entry's approver reference, the workflow's initiator reference as the submitter, the entry's scope AND now as the submitted instant.
 Action wiring 29: A submitted opening MUST call assign with the step id as the task AND the entry's approver reference as the assignee.
-Action wiring 30: IF assign answers already-assigned THEN the opening MUST read the assignment id through the active assignment read.
-Action wiring 31: IF assign answers storage-failure THEN the invocation MUST retry assign under the instance exclusion.
-Action wiring 32: IF the completion bound elapses on an unassigned opening THEN [Open Gate] MUST answer recording-failure carrying post-commit.
+Deleted: Action wiring 30. Execution Contract Store 1 owns it.
+Deleted: Action wiring 31. Execution Contract Store 1 owns it.
+Deleted: Action wiring 32. Execution Contract Store 1 owns it.
 Action wiring 33: A staffed opening MUST record the opening event carrying the intent event id, the gate key, the step id, the assignment id, the approver reference, the scope AND the submitted instant.
 Action wiring 34: A landed opening MUST write the gate binding AND the gate-assignment entry.
 Action wiring 35: A landed opening MUST answer the gate handle.
@@ -434,7 +392,7 @@ Action wiring 39: IF the step write answers not-pending OR unauthorized THEN [De
 Action wiring 40: IF the step write answers not-known THEN [Decide Gate] MUST answer recording-failure carrying pre-commit.
 Action wiring 41: A decided decision MUST call recall on the step's assignment id.
 Action wiring 42: IF recall answers not-active THEN the decided decision MUST proceed.
-Action wiring 43: IF recall answers storage-failure THEN the invocation MUST retry recall under the instance exclusion.
+Deleted: Action wiring 43. Execution Contract Store 1 owns it.
 Action wiring 44: IF recall answers not-known THEN the decided decision MUST rebuild the gate-assignment index AND call recall once more.
 Action wiring 45: IF recall answers not-known after the rebuild THEN the deployment MUST alert on the answer as a conformance fault.
 Action wiring 46: A decided decision MUST record the decision event carrying the intent event id, the gate key, the step id, the decision, the reason AND the decided instant.
@@ -534,9 +492,7 @@ Term admitted opening: a guarded opening whose open intent landed.
 
 Term submitted opening: an admitted opening whose submit answered a step id.
 
-Term unassigned opening: a submitted opening whose assign has not answered an assignment id.
-
-Term staffed opening: a submitted opening whose assign answered, or whose assignment id was read back.
+Term staffed opening: a submitted opening whose assign answered.
 
 Term landed opening: a staffed opening whose opening event landed or was read back.
 
@@ -563,21 +519,6 @@ Term validated read: a [Read Workflow] call whose inputs cleared Primitive polic
 Term permitted read: a validated read whose permission check answered permitted and whose query conforms.
 
 Term horizon mark: horizon_bounded set to true on the workflow views — a short answer past the horizon is never read as *no such workflow*.
-
-WHY:
-**Permission, intent, load-bearing call, outcome** — every state-changing action's shape, and the intent is where the credential is verified (Invariant 8). [Decide Gate] has no permission check, its authorization being Approval Step's approver and submitter exclusivity; its order is intent, decision, outcome. Every outcome carries its intent's event id for an exact join.
-
-**[Start Workflow]** (Action wiring 1 through 12). The intent carries the [Gate Spec] and no instance id — none exists, and the start event is what the workflow rebuild traverses. The start event carries the whole workflow record, so the store rebuilds from the event alone; the record lands before the map, since a map entry ahead of its event would be a ghost the read serves and a rebuild drops. Gates open lazily, never at start.
-
-**[Open Gate]** (Action wiring 15 through 35). Terminal is checked before the transition match, in the constituent's own refusal order, since a terminal state has no outgoing transition and the reversed order would make the arm dead. **The gate's submitter is the workflow's initiator, not the opener**: withdrawal authority over the gate — Approval Step's submitter-only rule — is the initiator's, which is what authorizes both a withdrawal through [Decide Gate] and the moot cascade; the opener is attributed on the opening event. A gate is re-bound over a Rejected, Withdrawn or spent step — the binding history appends, the map repoints — and never over a Pending step or a live approval, which is never silently discarded (Wiring decision 7). After the submit commits the implementation owns completion: an already-assigned on retry means the first attempt landed, the fresh step id guaranteeing no other assignment owns the task; and the gate stays out of reach until its opening is audited.
-
-**[Decide Gate]** (Action wiring 36 through 47). The binding resolves through the current state: gates open only for transitions leaving it, and the cascade moots the rest. The decision intent is where the approver's reference is verified — before it, Approval Step's exclusivity compared two unverified strings, so the load-bearing claim *the named approver approved* rested on an assertion. Approval Step's not-known here is an index anomaly — the composition's own binding named a step the store does not know — never the caller's unknown instance. The recall is discharge bookkeeping and fails nothing: not-active means the cascade already discharged it, a failed recall is retried inside the bound and the sweep's after it.
-
-**[Fire Transition]** (Action wiring 48 through 64) — the load-bearing wiring. The gate resolution is read-only and settled **before** the intent, so a gate-not-cleared — the ordinary answer to polling a Pending gate — leaves no intent behind. **The fire intent carries the moot plan** where the other intents carry no derived set: the cascade withdraws human approvals under the service identity in a burst the caller never sees, so naming the plan before the fire makes *what this firing was about to moot* a fact on the record whether or not the cascade completed; the plan never names the firing's own key, whose approval is spent, not left behind (Action wiring 54). fire returns only the new state, so the transition id is read from the history's newest entry, which under the instance exclusion is this firing's. **The cascade runs on the commit, not on the answer** (Action wiring 62 and 63): a cascade conditioned on the firing event landing would leave the mooted gates Pending with live assignments on exactly the post-commit path — a human approval surviving to clear a transition the workflow already left.
-
-**[Read Workflow]** (Action wiring 65 through 72). An instance-id query is a keyed lookup with a rebuild on a miss. **A set-valued query is anchored in the start events, never an enumeration of the store**: an enumeration has no miss to observe, so a lost entry would drop a workflow from the answer silently, and Invariant 6 would rest on a read the index's contract does not cover. A permission denial is always the explicit refusal, never an empty answer, which would make *denied* and *nothing matches* indistinguishable; a deployment preferring deny-by-empty builds it above the composition. The view surfaces event ids and leaves the verification to the auditor.
-
-**Every read-side refusal is landed** (Action wiring 20 and 21; 2026-08-26-b): the machine's reads, Approval Step's read and Assignment's reads answer not-known or invalid-request only when an index names what the store does not know — an anomaly for store maintenance, surfaced at the stage the read sat, never a caller's fault.
 
 ### Wiring decision
 
@@ -611,8 +552,6 @@ Term approval guard: a guard whose evaluation is whether a named approver approv
 Term spent step: a bound step that is consumed or mooted.
 
 WHY:
-**An approval-gated transition: a guarded transition fires only when its bound step is a live approval, and the composition — never the caller — makes the assertion.**
-
 *Principle.* A regulated workflow must prove from the records alone that the process moved only through declared transitions and that every guarded one fired only after its named approval was genuinely recorded — attributed, sealed and retained.
 
 *Likely objection.* State Machine already accepts a caller-asserted guard. Why not let the caller assert it, or trust the caller's word?
@@ -621,18 +560,16 @@ WHY:
 
 *Result.* The process moved only through declared transitions; each guarded transition cleared its named approval by the named approver; every firing and decision is attributed, sealed and retained. No transition fires on a bare assertion.
 
-**One approval, one firing** (Wiring decision 3 through 7). An approval is a decision about the workflow in the state its gate was opened from, and it authorizes exactly one firing out of that key. **Consumption reads durable stores, never process memory**: the history arm catches a firing whose record is still owed, so a crash between the fire and its record can never leave the approval reading unspent and fire twice. **The history arm stops at the horizon** (Wiring decision 5): past it a firing event's payload — its transition id — is destroyed, and an unbounded arm would read every purged firing as unrecorded and every later binding on the key, a return path's fresh gate included, as consumed forever. The horizon runs on the substrate's clock and the fired instant on this one's, so the arm is widened by the allowance toward reading *consumed*. Past it the marks answer, and a mark lost there reads fail-closed (Wiring decision 6): the transition does not fire on an approval that may already have been spent, and a re-entry opens a fresh gate — an approval that was in fact unspent then stands unused, the horizon's conservative cost, named. **Mooting is on the record, not by deletion**: an approval left behind when the workflow departs its state would otherwise clear the transition on a return path arbitrarily later with no fresh decision. Approval Step's terminal absorption forbids withdrawing an Approved step, and its withdrawal is the submitter's alone, so there is no discard path — a live approval is consumed by its firing, mooted on the record, or it stands.
-
 ### Reconciliation
 
 ```
-Reconciliation 1: The sweep MUST run at EVERY process start.
+Deleted: Reconciliation 1. Execution Contract Store 1 and Execution Contract Store 3 own it.
 Reconciliation 2: The sweep MUST run every reconciliation cadence.
 Reconciliation 3: The sweep MUST enumerate the workflows from the start events.
-Reconciliation 4: The sweep MUST NOT examine a young intent.
+Deleted: Reconciliation 4. Execution Contract Store 1 owns it.
 Reconciliation 5: The sweep MUST NOT examine an aged record.
-Reconciliation 6: The sweep MUST NOT pre-check a workflow BEFORE taking the workflow's instance exclusion.
-Reconciliation 7: IF another holder holds the instance exclusion THEN the sweep MUST leave the workflow to the sweep's next run.
+Deleted: Reconciliation 6. Execution Contract Store 2 owns it.
+Deleted: Reconciliation 7. Execution Contract Store 2 owns it: the sweep's reads of a workflow and the writes they decide are one transaction, and the composition names no exclusion for another holder to hold.
 Reconciliation 8: The sweep MUST NOT commit constituent state BEFORE the sweep's recovery intent for the closure lands.
 Reconciliation 9: A recovery intent MUST carry the instance id, the leg, the intent reference AND the plan.
 Reconciliation 10: The sweep MUST attest EVERY write the sweep makes under the service identity carrying the recovery flag AND the human actor.
@@ -640,7 +577,7 @@ Reconciliation 11: IF a history entry's transition id no firing event names THEN
 Reconciliation 12: The firing leg MUST pair a re-emitted firing event to the unmatched fire intents on the entry's gate key whose intent instant EQUALS the entry's fired instant AND whose actor EQUALS the entry's actor.
 Reconciliation 13: The firing leg MUST set the consumed mark of a re-emitted guarded firing.
 Reconciliation 14: IF a committed firing's moot plan names a step no moot record names THEN the cascade leg MUST run the moot cascade's owed calls for the step.
-Reconciliation 15: IF a Pending step no opening event names pairs to an open intent THEN the opening leg MUST complete the step's assign AND record the step's opening event.
+Reconciliation 15: IF a Pending step no opening event names pairs to an open intent THEN the opening leg MUST record the step's opening event.
 Reconciliation 16: The opening leg MUST pair a Pending step to the unmatched open intents whose intent instant EQUALS the step's submitted instant AND whose approver reference AND scope EQUAL the step's.
 Reconciliation 17: IF a Pending step no opening event names pairs to no open intent THEN the sweep MUST open an out-of-band finding for the step.
 Reconciliation 18: IF a terminal step an opening event names carries no decision event AND no moot record THEN the decision leg MUST pair the step to the matching decision intents.
@@ -648,7 +585,7 @@ Reconciliation 19: IF one decision intent matches THEN the decision leg MUST rec
 Reconciliation 20: IF no decision intent matches THEN the decision leg MUST NOT record a decision event.
 Reconciliation 21: IF no decision intent matches AND the step IS IN the planned steps THEN the sweep MUST leave the step to the cascade leg.
 Reconciliation 22: IF no decision intent matches AND the step IS NOT IN the planned steps THEN the sweep MUST open an out-of-band finding for the step.
-Reconciliation 23: IF a decided step's decision event landed AND the active assignment read answers an assignment for the step THEN the decision leg MUST call recall on the assignment.
+Deleted: Reconciliation 23. Execution Contract Store 1 owns it.
 Reconciliation 24: IF the candidate count EXCEEDS one THEN the re-emitted record MUST carry the intent candidates.
 Reconciliation 25: IF the firing leg's candidate count EXCEEDS one THEN the cascade leg MUST run over the union of the candidates' moot plans.
 Reconciliation 26: IF the candidate count EXCEEDS the intent candidates cap THEN the sweep MUST open an unresolved finding for the record.
@@ -658,7 +595,7 @@ Reconciliation 29: IF an owed record's escalation instant PRECEDES the sweep's n
 Reconciliation 30: IF Audit Trail answers invalid-credential to the service identity THEN the deployment MUST page on the answer as a service credential fault.
 ```
 
-Term sweep: the reconciliation the composition runs outside every invocation, at restart and on the cadence — four legs diffing the constituent stores against the trail.
+Term sweep: the reconciliation the composition runs outside every invocation, on the cadence — four legs diffing the constituent stores against the trail.
 
 Term firing leg: the sweep's leg landing a committed firing's owed firing event.
 
@@ -673,8 +610,6 @@ Term leg: firing | cascade | opening | decision.
 Term aged record: a record whose instant plus the audit horizon plus the clock offset allowance PRECEDES the sweep's now.
 
 Term planned steps: the steps a committed firing's moot plan names.
-
-Term young intent: an intent whose intent instant plus the completion bound DOES NOT PRECEDE the sweep's now.
 
 Term recovery intent: the workflow_recovery_intended event (2026-08-30-a).
 
@@ -692,22 +627,12 @@ Term transient arm: a recording-failure at a pre-append step; a storage-failure 
 
 Term escalation instant: an owed record's commit instant plus the compensation window.
 
-WHY:
-**Every retry-until-lands obligation is a diff, not a memory** (2026-08-27; the sections titled *A reconciliation is bounded at both ends*, *A compensator is exclusive* and *Recovery commits under a declared service identity* in `pressure-testing.md`). A crash between a commit and its record — or between a fire and the cascade it owes — loses every in-flight retry, and an obligation that lived only there would leave the act unrecorded, the mooted gates Pending, and a guarded firing's approval reading unspent. So each obligation is stated as a diff between a constituent store and the trail, computed by the sweep; an implementation's in-flight retry set is a cache of the same diff, extraction-pending against a durable Outbox atom *(forthcoming)* owning records owed for committed acts. **Bounded at both ends, exclusive, as the composition**: no intent younger than the bound, whose invocation may still be about to write; no record past the widened horizon, where the payloads a leg would join on are destroyed; every pre-check re-read under the instance exclusion; every commit preceded by its recovery intent and attested under the service identity with the human in the payload. It is **Reconciliation, not Housekeeping**: an auditor awaits its output.
-
-**The legs join on the shared reading and never choose** (Reconciliation 11 through 26). Each invocation passes one reading to its constituent and stamps the same on its intent, so a history entry, a step or a decision pairs to its intent by equality on that reading plus the actor — and where the clock's resolution admits two, the re-emission names both and the cascade runs over the union of their plans. **The decision leg re-emits only what an intent authorizes** (Reconciliation 18 through 22): refused intents accumulate on a step by design, and joining on the step id alone would land a decision event for a decision that never happened; a step withdrawn with the cascade's reason by the initiator is the cascade leg's; any other unmatched terminal step, and a Pending step no open intent pairs, was written outside the composition and is a finding, never given a record it did not earn. **The start orphan is not a leg** (Reconciliation 27): the caller re-invoked, and an orphan instance is unreachable through State Machine's keyed reads — External check 1.
-
-**Retry transience, partitioned** (Reconciliation 28 through 30). A retry loops only on a transient arm; every deterministic arm lands once. Past the window an owed record is escalated as an unresolved finding rather than left as a loop nobody can tell from an abandoned one. invalid-credential on the service identity's own write is the deployment's credential, paged until rotated.
-
 ### Scope vocabulary
 
 ```
 Scope vocabulary 1: The composition MUST define workflows start, workflows open gate, workflows fire AND workflows read for the Permissions instance.
 Scope vocabulary 2: The composition MUST NOT gate [Decide Gate] on a Permissions scope.
 ```
-
-WHY:
-Permissions treats scopes as opaque; the four are the minimum useful set, and a deployment distinguishing initiator roles adds finer scopes and wires them. Gate decisions are gated by Approval Step's approver and submitter exclusivity (Scope vocabulary 2) — a second check would be redundant and could drift — as Multi-Party Approval does for its steps.
 
 ### Cascade
 
@@ -723,7 +648,7 @@ Cascade 8: A landed moot record MUST set the entry's mooted mark.
 Cascade 9: The moot cascade MUST NOT change a gate binding's bound step.
 Cascade 10: IF a cascade call fails THEN the moot cascade MUST proceed through the remaining calls.
 Cascade 11: A failed cascade call MUST NOT change the firing's answer.
-Cascade 12: IF a cascade call fails on a transient arm THEN the invocation MUST retry the call under the instance exclusion.
+Deleted: Cascade 12. Execution Contract Store 1 owns it: a cascade call's storage failure fails the whole firing, so no invocation retries a cascade call.
 ```
 
 Term moot cascade: the secondary calls a committed firing owes the gates it left behind.
@@ -738,11 +663,6 @@ Term moot reason: "Gate moot: workflow left the gate's from_state by firing a di
 
 Term fired action: the action of the firing that mooted the gate, beside the mooted gate's own.
 
-WHY:
-**The plan is derived from the events, not by enumerating the index** (Cascade 1). The binding index is a derived index whose contract is a keyed lookup with a rebuild on a miss, and a lookup that finds nothing is observable; an enumeration of the same index has no miss to observe, so a lost entry would drop a gate from the plan silently and permanently — the cascade would never moot it, the check keyed on the plan could never notice, and a human approval this firing made moot would stand ready to clear the transition if the workflow ever returned. So the plan enumerates the append-only opening events and resolves each key through the keyed lookup; only a miss that survives the rebuild is a miss. The derivation is payload-sourced and bounded by the horizon, which is why Capability requirement 3 keeps the horizon beyond every workflow's life (2026-08-30-g). **Under the instance exclusion the plan is exact**, since nothing can decide a bound step between the derivation and the cascade — so a planned gate with no moot record is an owed withdrawal, and a moot record the plan never named is a conformance failure (Check 7.1 and 7.2).
-
-**Two kinds, one record** (Cascade 2 through 9). A Pending step is withdrawn under the initiator — the gate's submitter — with the firing's own reading, since the cascade is part of the firing's invocation; an Approved step is not withdrawn, Approval Step's terminal absorption forbidding it, and its assignment was already recalled at its decision, so what spends it is the moot record and the mooted mark — a step standing in the store as a decision that authorized nothing. The binding is never deleted: a withdrawn step's terminal state or an Approved step's mooted mark is what marks it discharged, and a return-path re-entry re-binds a fresh gate through [Open Gate]. **A failed cascade call fails nothing** (Cascade 10 through 12): the firing stands, and the owed call is retried inside the bound and is the cascade leg's past it.
-
 ## Composition-level invariants
 
 These emerge from the composition; none belongs to one constituent, and each needs two or more working together. The relations they rest on, per the section titled Structural-relation invariant templates in `spec-format.md`: a workflow has **zero or more** gate bindings, one current binding per gate key, the key's full history in its opening events; each bound step has **exactly one** assignment, mandatory at a landed opening; each firing has **exactly one** firing event at quiescence; each workflow has exactly one workflow record. A lost index entry is a rebuild trigger, never a relation violation — the relations hold in the events.
@@ -753,14 +673,12 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 1.2: Two guarded firing events MUST NOT carry one step id.
   Invariant 1.3: A guarded firing event MUST NOT name a step a moot record names earlier in the Event Log sequence.
   ```
-  WHY: the load-bearing claim — a history entry with its guard asserted means the composition verified a live approval, not that it trusted a caller. The binding is resolved from the firing event's own step id, never from the opening events' order, which a recovery window can reorder (2026-08-26-f). One decision cannot authorize repeated regulated firings: a return path re-binds a fresh gate. Inside a firing's recovery window the committed-but-unrecorded firing is itself the consumption, so the window admits no second firing; an approval the workflow departed from is mooted on the record, so a return path never fires on it. Since the decision intent verifies the approver before the step records the decision (Invariant 8), the claim reaches a principal and not merely a matching reference. *Rests on* State Machine Invariant 3 and 8, Approval Step Invariant 4, Wiring decision 1 through 7, and the mark durability past the horizon.
 - **Invariant 2 — Permission-gated advancement.**
   ```
   Invariant 2.1: [Start Workflow] MUST NOT commit for an actor reference the permission check denied.
   Invariant 2.2: [Open Gate] MUST NOT commit for an actor reference the permission check denied.
   Invariant 2.3: [Fire Transition] MUST NOT commit for an actor reference the permission check denied.
   ```
-  WHY: the claim is the grant held at the check; grants may change afterwards. The permission check takes a reference and no credential, so the reference whose grant was checked is anchored by Invariant 8's intent. Gate decisions are Approval Step's exclusivity, not a scope (Scope vocabulary 2).
 - **Invariant 3 — Attributed and sealed history.**
   ```
   Invariant 3.1: IF a workflow IS IN the quiescent workflows THEN EVERY committed act on the workflow MUST carry EXACTLY ONE outcome.
@@ -771,7 +689,6 @@ These emerge from the composition; none belongs to one constituent, and each nee
 
   Term committed act: a machine history entry, or a step's submission or decision through the composition.
 
-  WHY: every workflow start, opening, decision and firing produces exactly one outcome, and every mooted gate one moot record; intents are outside the count, since an invocation refused and retried leaves several for one eventual act, and the recovery intents are the sweep's own. The lifecycle reads forward through the trail in the substrate's sequence and backward through the transition-event and binding indexes. The substrate's atomicity is inherited: its edge case admits an attestation with no Event Log entry when attest succeeds and append fails, and the deployment alerts on such an orphan on this composition's action references. *Rests on* each action's outcome, the sweep, and Audit Trail's own invariants.
 - **Invariant 4 — Gate assignment coverage.**
   ```
   Invariant 4.1: IF a gate's bound step EQUALS Pending AND the workflow IS IN the quiescent workflows THEN the step MUST carry EXACTLY ONE Active assignment.
@@ -779,20 +696,17 @@ These emerge from the composition; none belongs to one constituent, and each nee
   ```
   Term settled steps: the steps in a terminal state, and the steps a moot record names.
 
-  WHY: an assignment is recalled at the gate's decision or by the moot cascade, and two windows are admitted, each alerting and each re-derived by the sweep: a decision's recall still retrying, and a firing's cascade still landing — the cascade runs on the commit, so the post-commit path opens the window rather than escaping the cascade. The coverage rests on the plan's derivation from the opening events (Cascade 1): computed by enumerating the binding index, a lost entry would be indistinguishable from a gate never opened and this invariant would be false in a way no check could see.
 - **Invariant 5 — Only declared transitions, replay-deterministic.**
   ```
   Invariant 5.1: The composition MUST NOT write the workflow machine's history outside fire.
   Invariant 5.2: EVERY history entry MUST name a declared transition.
   ```
-  WHY: State Machine's own Invariant 3 and 7, surfaced because the audit proof rests on them: guarded and unguarded transitions fire through the same surface, and only the guard's assertion differs — the composition's, never the caller's.
 - **Invariant 6 — Records-alone process proof, within the audit horizon.**
   ```
   Invariant 6.1: EVERY workflow's process proof MUST resolve from the records alone.
   ```
   Term process proof: that the process moved only through declared transitions; that each guarded entry's firing event names a step Approved under the [Gate Spec] entry — the binding current at the firing, which a later re-bind may have repointed; that the approving actor matched the entry's approver; that the firing actor held [Workflows Fire]; and that the history is attributed and sealed.
 
-  WHY: State Machine supplies the path, Approval Step the approval and its approver, Permissions the grant, Audit Trail attribution and sealing; the composition joins them in one surface. The read's set-valued queries are anchored in the start and opening events, so a lost index entry cannot drop a workflow or a gate from the proof (2026-08-27-f). *Rests on* Action wiring 67 through 71, the declared log read and the horizon's ordering obligation.
 - **Invariant 8 — Authentication precedes commitment.**
   ```
   Invariant 8.1: The composition MUST NOT call instantiate BEFORE Audit Trail validates the caller's credential at the start intent.
@@ -801,7 +715,6 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Invariant 8.4: The composition MUST NOT call fire BEFORE Audit Trail validates the caller's credential at the fire intent.
   Deleted: Invariant 7. Composes 6 owns it.
   ```
-  WHY: at the four state-changing actions nothing commits before the acting reference's credential validates against the actor registry; invalid-credential is a pre-commit refusal and the whole action is retryable. [Read Workflow] commits nothing and is outside. **The binding half** is where the load-bearing claim rested: [Decide Gate] carries no permission check, and Approval Step's exclusivity compares a supplied reference against a stored one — both unverified strings until the intent — so a caller who knew an approver's reference could commit that approver's decision. The intent does not change the comparison; it establishes the caller *is* the actor compared, before the decision commits, which is what makes Invariant 1's *the named approver approved* a statement about a principal; Invariant 2's grant check gains the same anchor. **What a validation does not establish**: that the presenter is the actor — a stolen credential validates — nor a channel binding or replay resistance, nor that the named approver was the *correct* authority (External check 3 and 5). The deleted invariant asserted each constituent's invariants hold over its instance, which Execution Contract Conformance 8 settles by reference (council read 53). *Rests on* the audit write and the Actor Identity attestation reached through it; Check 6.1 tests the order from the records.
 
 ---
 
@@ -878,7 +791,7 @@ A journal-entry workflow's `post` transition is guarded; its gate is open and bo
 
 ### Failure path — transition fired, audit write fails
 
-A fire_transition commits its `WorkflowStateMachine.fire` (the load-bearing write) and the step-6 `record_action` fails: the caller receives `rejected(recording-failure(post-commit))` — the stage discriminator says the transition **did** fire, so the caller must not re-invoke (a retry would fire again; the transition is non-idempotent) and instead confirms the new state via [Read Workflow]. The implementation retries the audit write until it lands or `workflow_completion_bound` elapses — after which the write is the restart sweep's alone — the landed entry — emitted under the composition actor when the retry completes outside the original invocation, the firing actor in its `data` and `recovery = true` (an ordinary payload field — the substrate offers no marker surface, and none is needed) — letting the auditor distinguish the recovered attestation from a clean one; until it lands, the missing entry is a gap in Invariant 3 surfaced as a hard alerting condition (Reconciliation 11). The moot cascade still ran before the action returned — it is conditioned on the fire's commit, not on the record — and, had the process died before either the record or the cascade completed, the restart sweep would have found the history entry no `transition_fired` event names, re-emitted the record, and completed the cascade from the intent event's plan; the bound step reads consumed throughout, because the consumption test reads the history.
+A fire_transition commits its `WorkflowStateMachine.fire` (the load-bearing write), and the `record_action` for its `transition_fired` event answers `recording-failure(step-3)`: the Event Log append answered nothing, its reply lost. The caller receives `rejected(recording-failure(post-commit))` — the stage discriminator says the transition **did** fire, so the caller must not re-invoke (a retry would fire again; the transition is non-idempotent) and instead confirms the new state via [Read Workflow]. The firing's record is owed, a gap in Invariant 3 surfaced as a hard alerting condition, and the sweep's firing leg lands it (Reconciliation 11): it finds the history entry no `transition_fired` event names — had the lost append landed after all, it would find that event and write nothing — and, behind its recovery intent, re-emits the record under the composition actor, the firing actor in its `data` and `recovery = true` (an ordinary payload field — the substrate offers no marker surface, and none is needed), letting the auditor distinguish the recovered attestation from a clean one. The moot cascade still ran before the action returned — it is conditioned on the fire's commit, not on the record — and the bound step reads consumed throughout, because the consumption test reads the history.
 
 ### Moot-gate cascade — alternate transition leaves a gate unreachable
 
@@ -956,21 +869,6 @@ Term accounted entry: a moot plan entry a moot record names, or whose owed call 
 
 Term start count: whether every instantiated workflow carries its start event, and which orphan instance stands behind an unmatched start intent.
 
-WHY:
-**The binding at the firing is the firing event's own** (Check 1.1 through 1.4; 2026-08-26-f). The prose resolved it from the opening events' order, which a recovery window can reorder; the firing event names the step it consumed, which is the join. A step recurring across two guarded firings, or mooted before it fired, is a failure.
-
-**Only declared transitions** (Check 2.1 through 2.3): the history replays in sequence order to the current state; the declaration's immutability is State Machine's, and its runnable form is two reads compared — the start event carries the declaration reference, not the declaration.
-
-**Audit completeness is counted from the constituent stores, not from an index rebuilt from the same events** (Check 3.1 through 3.5; 2026-08-26-e, 2026-08-30-c). Firings are enumerated from the machine history and gates from the Approval Step store — counting starts from a workflow store rebuilt from the start events would be circular, so the start half is External check 1. Intents and recovery intents are outside both directions: a refused-and-retried invocation leaves several intents for one act, and one refused at its load-bearing call leaves an intent that corresponds to nothing, by design. The liveness inequality is read whole from the configuration.
-
-**Gates are enumerated from the opening events** (Check 4.1): an auditor enumerating the binding index would quantify over a derived index whose losses are invisible to that read, and pass over exactly the gate whose assignment the check exists to verify. The two windows Invariant 4 admits are alerting conditions, not failures.
-
-**Permission, at the pinned instant, from two sources** (Check 5.1 and 5.2; 2026-08-26-g). *Who acted* is the attestation — for a recovery-flagged outcome the service identity's, with the human in the payload corroborated by the constituent's own attribution; *whether they held the scope* is the Permissions store's point-in-time reconstruction, evaluated at the outcome's payload instant — the composition's own reading of the act, never the substrate's recording instant. Permissions mutations are not in this trail, so no shared order spans the two sources and the reconstruction is best-effort in wall time; a deployment needing an exact interleaving records its Permissions mutations to the same trail.
-
-**The join is the intent event id and the order is the sequence** (Check 6.1 through 6.3). A return path re-fires one action on one instance, so a join by actor, instance and action would let a stale intent satisfy the check for a later firing it never authorized. A re-emission names candidates and the check runs over each. **An intent with no outcome is not a failure**, and the population is large — every pre-commit refusal leaves one. A decision or guarded firing intent carries a step id and triages against the step and the history; an unguarded firing intent joins on its gate key and, where a return path re-fires the same key, is counted rather than matched; an open intent's residue is a Pending step no opening event names; a start intent's residue is unreachable here — External check 1. Never write a compensating outcome for an intent whose effect cannot be found.
-
-**The cascade against its plan** (Check 7.1 through 7.3): under the instance exclusion the plan is exact, so both directions are findings, and a plan naming the firing's own key would moot the approval the firing spent.
-
 ### External checks
 
 ```
@@ -980,9 +878,6 @@ External check 3: An auditor needing a [Gate Spec] entry's approver confirmed as
 External check 4: An auditor needing the declaration confirmed against the regulation's process MUST read the deployment's process documentation beside the regulation (Invariant 5.2).
 External check 5: An auditor needing a named approver's standing authorization for the scope confirmed MUST read the deployment's standing-authorization registry at the started instant (Invariant 1.1).
 ```
-
-WHY:
-**The start half and the orphan** (External check 1): State Machine's reads are keyed by an instance id this composition may never have issued, and the atom declares no enumeration, so an orphan instance behind a start intent — and, for the same reason, the forward count of starts — needs the deployment's store surface or an enumerate-all-instances capability on the wired instance. **The lifetime** (External check 2) is a business fact — how long a trial stays open — the composition holds no expectation of. **Policy** (External check 3 through 5): the composition records the [Gate Spec] and the declaration the calling system supplied and validates their shape; whether *qp_director_santos* was the required qualified person under 21 CFR Part 211, or whether the declaration is the process the regulation requires, is the deployment's.
 
 ---
 
@@ -1001,10 +896,7 @@ Non-goal 8: The composition MUST NOT serve an assignee-keyed in-tray view.
 
 Term repeatable act: a firing or a start.
 
-WHY:
-**Several approvers are an enrichment** (Non-goal 1). A gate needing all, M or one of N approvers binds a [Multi-Party Approval](./multi-party-approval.md) chain in place of a single step, and the fire reads the chain's Approved state as it reads a step's; the [Gate Spec] entry then names a chain rather than an approver, a different entry shape, so the enrichment adjusts the validation along with the wiring. **One current state** (Non-goal 2): State Machine's own invariant; parallel active states with fork and join are a Parallel Workflow composition *(not yet in the library)*. **A declaration is a value** (Non-goal 3), fixed per run by State Machine; a shared, versioned template is a Definition Registry's, from which the caller fetches the value it supplies.
-
-**An approval is valid while the workflow stays in its state** (Non-goal 4; 2026-08-26-k). A departure moots it on the record, but nothing here expires an approval that simply waits: the gate is state-valued and consults no clock, which is what keeps the proof clock-free. A deployment needing an approval to lapse wires a scheduler above the composition that withdraws the Pending gate or, for an Approved one, fires nothing on it and opens a fresh gate — an ordinary, attributed act. **At-most-once is the caller's key** (Non-goal 5; 2026-08-26-i): fire is not idempotent, and a start re-invoked after a lost answer mints a second workflow for one subject — which a subject may lawfully carry; a caller needing at-most-once supplies its own idempotency key through [Idempotent Reservation](./idempotent-reservation.md), and the stage on every refusal says whether a re-invoke is safe (Audit arm 13 through 15), and a lost answer is read before it is re-invoked (Indeterminate outcome 1). **Denied attempts are unrecorded** (Non-goal 6): the audit surface is committed acts and authenticated attempts; a high-assurance deployment composes a Failed-Attempt Log *(forthcoming)*. **Policy is the deployment's** (Non-goal 7; External check 3 through 5). **The in-tray view** (Non-goal 8; 2026-08-27-d): Assignment's queries are keyed by task, so *which gates sit in my in-tray* is not answerable from its surface, and this composition does not absorb it — an assignee-keyed view is a Reverse Index *(forthcoming)* lookup a deployment builds over the assignment store.
+NOTE: the owners — a Parallel Workflow composition *(not yet in the library)* (Non-goal 2); a Definition Registry *(forthcoming)* (Non-goal 3); a scheduler the deployment wires above the composition (Non-goal 4); the caller's own idempotency key, through [Idempotent Reservation](./idempotent-reservation.md) (Non-goal 5); a Failed-Attempt Log *(forthcoming)* (Non-goal 6); the deployment (Non-goal 7, External check 3 through 5); a Reverse Index *(forthcoming)* lookup a deployment builds over the assignment store (Non-goal 8); a Permissions-administration layer, [Attributed Permissions Admin](./attributed-permissions-admin.md) (Composes 16).
 
 ---
 
@@ -1018,18 +910,12 @@ Clock semantics 2: The composition MUST read the Event Log sequence as the order
 Clock semantics 3: A comparison of the composition's instant with the substrate's MUST NOT decide a write alone.
 ```
 
-WHY:
-The invocation's one reading stamps the intent and is passed to every constituent that accepts an instant, so an intent and its outcome carry one instant by construction and are never ordered by stamps; the history's sequence number and the substrate's sequence are the order sources. Skew across the constituents' seams can make a fresh reading fall below a stored bound — a decided instant below the step's submitted instant, a fired instant below the instantiated instant — and the constituent refuses invalid-request; the composition validated the caller first, so that refusal is the skew case, landed as pre-commit and cured by a later reading (Action wiring 8). Clock quality is the deployment's, and a dishonest injected reading is the residual risk; where transition instants must be adversarially defensible, a Trusted Timestamping pattern *(forthcoming)* is the resolution.
-
 ### Concurrency
 
 ```
-Concurrency 1: The instance exclusion MUST span EVERY state-changing invocation on one workflow.
-Concurrency 2: The instance exclusion MUST span a firing from the firing's intent through the firing's moot cascade.
+Deleted: Concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Concurrency 2. Execution Contract Store 2 owns it.
 ```
-
-WHY:
-The serialization domain is the instance id across all three state-changing actions — the rule the prose titled for [Fire Transition] alone (2026-08-30-h). Two firings on one workflow serialize; a firing and a decision serialize, or the composition could read a step's state that changes between the read and the fire; an opening and a firing serialize, or a firing leaving the gate's state while the opening is mid-flight would land a fresh gate the cascade never saw — under the exclusion the late opening re-reads the current state and answers invalid-transition. Under the exclusion the newest history entry after a fire is that fire's, and the moot plan is exact.
 
 ### Indeterminate outcome
 
@@ -1040,9 +926,6 @@ Indeterminate outcome 2: A caller holding a lost instance action answer MUST NOT
 
 Term lost answer: an answer that never reached the caller.
 
-WHY:
-A lost answer is not a refusal: the act may have landed (2026-08-26-i). A start whose event landed and whose answer was lost is a live workflow, and a blind re-invoke mints a second one; a firing whose answer was lost may have moved the workflow, and a blind re-fire moves it again. The caller reads first — [Read Workflow]'s set-valued query for a start, its instance query for the rest.
-
 ### Retention asymmetry
 
 ```
@@ -1052,22 +935,19 @@ Retention asymmetry 2: The composition MUST read a purged gate binding's spendin
 
 Term purged gate binding: a gate binding whose opening event the record read answers Purged.
 
-WHY:
-State Machine keeps its history and Approval Step its steps for life; the events that attest them purge at the horizon. So past it a history entry no firing event names is destruction, never an unrecorded firing — the sweep does not re-emit for it and the consumption rule does not read it — and whether a bound step's approval was spent is read from the marks alone (Composition state 16).
-
 ---
 
 ## Terms
 
-Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are its five actions — [Start Workflow], [Open Gate], [Decide Gate], [Fire Transition] and [Read Workflow]; the [Gate Spec] a workflow freezes at start; the four scopes it defines for its Permissions instance, [Workflows Start], [Workflows Open Gate], [Workflows Fire] and [Workflows Read]; and the refusals it names — [Permission Denied], [Recording Failure], [Not Guarded], [Gate Not Available], [Already Open], [Gate Not Open] and [Gate Not Cleared]. The workflow store and the three indexes are declared in Composition state and carded nowhere: they are the composition's records, not concepts a caller names. The deployment settings keep their wire spellings in configuration — `audit_trail_retention_policy`, `workflow_completion_bound`, `compensation_window`, `reconciliation_cadence`, `record_write_latency`, `application_actor_ref`, `application_credential`, `instance_serialization`, `clock_offset_allowance`, `binding_flag_durability`, `intent_candidates_cap` — and the stores their own in an implementation, `workflow_store`, `gate_binding`, `gate_to_assignment`, `transition_to_event`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
+Each `[Term]` marker above links to its term entry here; a term entry states what the concept *is*, in plain English, and its **Kind**, and — for a Field, a Parameter or a wire Member — carries the one **Projection** line where the concrete name stays visible on the page. The composition's own concepts are its five actions — [Start Workflow], [Open Gate], [Decide Gate], [Fire Transition] and [Read Workflow]; the [Gate Spec] a workflow freezes at start; the four scopes it defines for its Permissions instance, [Workflows Start], [Workflows Open Gate], [Workflows Fire] and [Workflows Read]; and the refusals it names — [Permission Denied], [Recording Failure], [Not Guarded], [Gate Not Available], [Already Open], [Gate Not Open] and [Gate Not Cleared]. The workflow store and the three indexes are declared in Composition state and carded nowhere: they are the composition's records, not concepts a caller names. The deployment settings keep their wire spellings in configuration — `audit_trail_retention_policy`, `workflow_completion_bound`, `compensation_window`, `reconciliation_cadence`, `record_write_latency`, `application_actor_ref`, `application_credential`, `clock_offset_allowance`, `intent_candidates_cap` — and the stores their own in an implementation, `workflow_store`, `gate_binding`, `gate_to_assignment`, `transition_to_event`; the page names each in English where it declares it. *(annotation.md Terms registry; representational only — it changes no guarantee, invariant, or behavior of the composition above.)*
 
 ### Vocabulary
 
-Term actors: the composition; the constituents; the host; the sweep; the firing leg; the cascade leg; the opening leg; the decision leg; the moot cascade; the consumption rule; a rebuild; a deployment; a deployment parsing a gate subject; an auditor; a caller; an invocation; a holder; an instance action; a found action; a validated start; a permitted start; an admitted start; an instantiated start; a landed start; an unlanded start; a validated opening; a guarded opening; an admitted opening; a submitted opening; a staffed opening; a landed opening; a bound decision; an admitted decision; a decided decision; a landed decision; a validated firing; a cleared firing; an admitted firing; a fired firing; a landed firing; a validated read; a permitted read.
+Term actors: the composition; the constituents; the host; the sweep; the firing leg; the cascade leg; the opening leg; the decision leg; the moot cascade; the consumption rule; a rebuild; a deployment; a deployment parsing a gate subject; an auditor; a caller; an invocation; an instance action; a found action; a validated start; a permitted start; an admitted start; an instantiated start; a landed start; an unlanded start; a validated opening; a guarded opening; an admitted opening; a submitted opening; a staffed opening; a landed opening; a bound decision; an admitted decision; a decided decision; a landed decision; a validated firing; a cleared firing; an admitted firing; a fired firing; a landed firing; a validated read; a permitted read.
 
 Term records: the workflow records and the three indexes' entries; the intents, outcomes, moot records and recovery intents the composition records through the audit write — each an Event Log event carrying one action reference of the workflow namespace; and the instances, history entries, steps and assignments it writes through the constituents.
 
-Term record verbs: accept, act, alert, answer, attest, bound, call, carry, change, classify, clear, commit, compare, complete, compose, count, decide, declare, define, derive, disclose, duplicate, encode, enumerate, evaluate, examine, expose, find, gate, hold, inherit, inject, inspect, join, judge, key, leave, make, match, name, normalize, open, page, pair, pass, persist, pre-check, proceed, provision, re-bind, re-emit, re-invoke, reach, read, rebuild, record, release, remove, resolve, retain, retry, run, select, serve, set, share, span, start, store, supply, take, write.
+Term record verbs: accept, act, alert, answer, attest, bound, call, carry, change, classify, clear, commit, compare, compose, count, decide, declare, define, derive, disclose, duplicate, encode, enumerate, evaluate, examine, expose, find, gate, hold, inherit, inject, inspect, join, judge, key, leave, make, match, name, normalize, open, page, pair, pass, proceed, provision, re-bind, re-emit, re-invoke, reach, read, rebuild, record, remove, resolve, retain, retry, run, select, serve, set, share, start, store, supply, write.
 
 Term value sets: decisions, reason-bearing decisions, stage, open state, decision outcome, moot kind and leg are declared where the section that owns each declares it.
 
@@ -1077,7 +957,7 @@ Term cadences: reconciliation cadence (reconciliation_cadence).
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.62 (2026-09-24).
 
-Term terms: composition, constituents, transitive atoms, workflow machine, log read, record read, audit write, verification, machine write, step write, assignment write, workflow namespace, workflow store, workflow record, instance id, declaration reference, gate key, gate binding index, gate binding, bound step, consumed mark, mooted mark, marks, gate-assignment index, transition-event index, live index entry, purged mark, workflow rebuild, binding rebuild, firing rebuild, unfiltered read, assignment history, active assignment read, clock-derived flag, audit retention policy, audit horizon, longest workflow lifetime, completion bound, compensation window, reconciliation cadence, record write latency, liveness sum, service identity, instance exclusion, holder, clock offset allowance, mark durability, intent candidates cap, id widths, seam, now, gate subject, caller reference, actor reference, subject reference, approver reference, parseable credentials, credential, reason, decisions, reason-bearing decisions, capped field, guarded transition count, guarded transition cap, action, intent, outcome, act's minted id, pre-append step, retention step, stage, yielded invocation, human actor, gate handle, open state, decision outcome, new state, workflow views, query, start intent, start event, open intent, opening event, decision intent, decision event, fire intent, firing event, intent event id, intent instant, started instant, submitted instant, decided instant, fired instant, guarded flag, matched transition, to-state, decision's step write, load-bearing call, instant-bearing call, read-side call, call's stage, instance action, validated start, permitted start, admitted start, instantiated start, landed start, unlanded start, validated opening, found action, guarded opening, admitted opening, submitted opening, unassigned opening, staffed opening, landed opening, bound decision, admitted decision, decided decision, landed decision, validated firing, cleared firing, admitted firing, fired firing, landed firing, validated read, permitted read, horizon mark, live approvals, consumption rule, mooting rule, widened horizon, aged entries, aged entry, re-bindable steps, approval guard, spent step, sweep, firing leg, cascade leg, opening leg, decision leg, leg, aged record, planned steps, young intent, recovery intent, intent reference, plan, matching decision intents, candidate count, intent candidates, transient arm, escalation instant, moot cascade, moot plan, moot kind, moot record, moot reason, fired action, quiescent workflows, committed act, settled steps, process proof, settlement record, stored subject, uncounted event, accounted entry, start count, repeatable act, lost answer, purged gate binding.
+Term terms: composition, constituents, transitive atoms, workflow machine, log read, record read, audit write, verification, machine write, step write, assignment write, workflow namespace, workflow store, workflow record, instance id, declaration reference, gate key, gate binding index, gate binding, bound step, consumed mark, mooted mark, marks, gate-assignment index, transition-event index, live index entry, purged mark, workflow rebuild, binding rebuild, firing rebuild, unfiltered read, assignment history, clock-derived flag, audit retention policy, audit horizon, longest workflow lifetime, completion bound, compensation window, reconciliation cadence, record write latency, liveness sum, service identity, clock offset allowance, intent candidates cap, id widths, seam, now, gate subject, caller reference, actor reference, subject reference, approver reference, parseable credentials, credential, reason, decisions, reason-bearing decisions, capped field, guarded transition count, guarded transition cap, action, intent, outcome, act's minted id, pre-append step, retention step, stage, human actor, gate handle, open state, decision outcome, new state, workflow views, query, start intent, start event, open intent, opening event, decision intent, decision event, fire intent, firing event, intent event id, intent instant, started instant, submitted instant, decided instant, fired instant, guarded flag, matched transition, to-state, decision's step write, load-bearing call, instant-bearing call, read-side call, call's stage, instance action, validated start, permitted start, admitted start, instantiated start, landed start, unlanded start, validated opening, found action, guarded opening, admitted opening, submitted opening, staffed opening, landed opening, bound decision, admitted decision, decided decision, landed decision, validated firing, cleared firing, admitted firing, fired firing, landed firing, validated read, permitted read, horizon mark, live approvals, consumption rule, mooting rule, widened horizon, aged entries, aged entry, re-bindable steps, approval guard, spent step, sweep, firing leg, cascade leg, opening leg, decision leg, leg, aged record, planned steps, recovery intent, intent reference, plan, matching decision intents, candidate count, intent candidates, transient arm, escalation instant, moot cascade, moot plan, moot kind, moot record, moot reason, fired action, quiescent workflows, committed act, settled steps, process proof, settlement record, stored subject, uncounted event, accounted entry, start count, repeatable act, lost answer, purged gate binding.
 
 Term cited: Execution Contract Conformance 8 — the recursive inheritance of a constituent's guarantees. Execution Contract Logic confinement 7 — the clock's guarantees are the deployment's. The section titled Composition state in `execution-contract.md` — the derived-index classification. The section titled Logic Confinement Principle in `execution-contract.md` — the seam. The section titled Compositions of compositions in `spec-format.md` — the transitive atoms. The section titled Structural-relation invariant templates in `spec-format.md` — the relations. record_action, read_record, verify_record, payload cap, reference length cap, attestation id width, step-2, step-3, step-4, invalid-credential, invalid-request, recording-failure, verified, failed-verification, Retained, Purged, Reverse Index, Failed-Attempt Log, Trusted Timestamping: Audit Trail. instantiate, fire, current, history, read_declaration, instantiated_at, fired_at, guard_satisfied, invalid-declaration, not-known, terminal, invalid-transition, storage-failure, invalid-request: State Machine. submit, approve, reject, withdraw, read, submitted_at, decided_by, withdrawn_by, decided_at, withdrawn_at, approved, rejected_outcome, withdrawn, Pending, Approved, Rejected, Withdrawn, not-pending, unauthorized: Approval Step. assign, recall, active_for, history_for, ok, not-active, already-assigned, Active, Recalled: Assignment. permitted, denied: Permissions. read: Event Log. Binding Registry, Outbox, Definition Registry: forthcoming.
 
@@ -1169,7 +1049,7 @@ Projection: permission-denied
 
 #### Recording Failure
 
-The composition's uniform rejection for a constituent `storage-failure` or an Audit Trail `record_action` failure surfaced at the composition boundary. Carries its stage — `recording-failure(pre-commit | post-commit)`: pre-commit means nothing committed and the caller retries the whole action; post-commit means the load-bearing write committed and the caller must not re-invoke — the implementation lands the owed record (a bounded gap in Invariant 3), inside `workflow_completion_bound` by the invocation and past it by the restart sweep.
+The composition's uniform rejection for a constituent `storage-failure` or an Audit Trail `record_action` failure surfaced at the composition boundary. Carries its stage — `recording-failure(pre-commit | post-commit)`: pre-commit means nothing committed and the caller retries the whole action; post-commit means the load-bearing write committed and the caller must not re-invoke — the sweep lands the owed record (a bounded gap in Invariant 3).
 
 Kind:       Member
 Member of:  the workflow rejection
@@ -1280,19 +1160,19 @@ It inherits from:
 ```
 status: partially resolved
 formal: pending — re-derivation, 2026-08-30: execute-gated-workflow.tla + 2 twins verified 2026-06-04 over an unbounded consumption arm, Pending-only mooting and a single-writer invocation with no terminus; re-derive over the mooted flag, the horizon-bounded consumption arm, the invocation and the sweep as two processes with the bound as the yield point, and leg (4)'s decision-matched join (2026-08-29-a, 2026-08-30-e)
-last gate: 2026-08-30 — third gate, fresh reader, under the frozen rules — 5 foundational corrected in-round, 6 refining and 3 rhetorical routed (9 refining and 2 rhetorical also corrected in-round; 2 of the routed refining already open; the closure check's 1 foundational, 2 refining and 7 consistency items corrected in-round); 2026-08-27 — authentication-precedence gate, fresh reader — 3 foundational pre-existing routed (all since closed), 8 refining/rhetorical routed; Final Critique 9's 1 other foundational (since closed), 13 refining (1 since closed) and 4 rhetorical also routed
+last gate: 2026-08-30 — third gate, fresh reader, under the frozen rules — 5 foundational corrected in-round, 6 refining and 3 rhetorical routed (9 refining and 2 rhetorical also corrected in-round; 2 of the routed refining already open; the closure check's 1 foundational, 2 refining and 7 consistency items corrected in-round)
 
 open:
 - 2026-08-29-a · refining · formal · the model's sweep carries no age bound and no recovery record → extend the model with the bounded sweep behind `workflow_recovery_intended`
-- 2026-08-30-e · refining · formal · the model carries no mooted flag, no horizon bound on the consumption arm, no invocation terminus and no decision-matched join for leg (4) → extend it
+- 2026-08-30-e · refining · formal · the model carries no mooted flag, no horizon bound on the consumption arm and no decision-matched join for leg (4) → extend it
 ```
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/execute-gated-workflow.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/execute-gated-workflow.md`; the migration and the earlier gate records that got it here are in [its history](./execute-gated-workflow.hist.md).
 
+- **2026-10-20 — The store's guarantees cited, not restated, the instance exclusion among them.** *Chose:* Capability requirement 24 citing Execution Contract Store 1 through 4 for the store the five constituents and the four indexes keep their records in; the rules restating what that store guarantees tombstoned to it — the host's instance exclusion over every state-changing invocation and the sweep, with its supply, its release, its lease, its terminus and the bar on running without it (Capability requirement 10 through 15, Action wiring 18, Concurrency 1, 2, Reconciliation 6, 7), the invalid-credential at an outcome, which the one transaction's read of the actor registry forecloses (Audit arm 10), and the marks' declared durability (Composition state 18, Capability requirement 17); and the machinery that existed only because a crash, a split write or an invocation seen between its writes could leave a partial: the sweep's run at every process start and its lower edge (Reconciliation 1, 4), the invocation's own retry of an outcome, an assign, a recall and a cascade call, with the read-back of an assign that answered already-assigned and the opening left unassigned past the bound (Audit arm 12, Action wiring 30 through 32, 43, Cascade 12), the read-back of a recording-failure at the substrate's retention step, which Audit Trail's own rewrite made commit nothing (Audit arm 6), and the decision leg's recall of an assignment a decision left active (Reconciliation 23); the opening leg records the opening event alone, a submit's assign now committing with it (Reconciliation 15). Rules 284 to 261. *Over:* intent, load-bearing call, constituent writes, outcome and moot cascade committed one by one under a host's instance exclusion held from before the intent through the cascade, ordered so that a crash between them left a state the composition could name — a committed firing with no record, a submitted step with no assignment, a decided step whose assignment stayed active, a cascade call unanswered — with an invocation that retried its own writes up to the completion bound and then yielded them, and a sweep that ran at every restart, waited out that bound and took the same exclusion. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and 2026-10-20 that Store 1 binds every store write of one composition action, its constituents' included, while a refused attempt a page keeps as evidence stays a domain choice, written in the same transaction as the refusal. State Machine, Approval Step, Permissions, Assignment and Audit Trail each supply their store under Store 1 through 4, and no action here makes an act outside the store, so an action's intent, constituent writes and outcome commit together, and the instance exclusion only held store writes apart, which Store 2 now serializes. The census's question is decided by the reading Multi-Party Approval took for its own cascade: a cascade is part of the action that fires it (the section titled Multi-write atomicity in `execution-contract.md` names a cascade's writes as writes of one Step 3), so a cascade call's storage failure fails the whole firing, while a refusal — Approval Step's temporal invalid-request on a withdraw, Audit Trail's refusal of a moot record — leaves the firing standing and the call owed (Cascade 10, 11) for the cascade leg to close on a later reading (Reconciliation 14, 28); the invocation's own retry of that call goes, since its one reading cannot cure the refusal (Capability requirement 20). An Audit Trail refusal at an outcome — its invalid-request, or an append whose answer was lost — still leaves the act committed and its record owed (Audit arm 11, 17), as Audit Trail's own refusals leave their evidence (Audit Trail record action step 7.11), so what closes it stays: the read-back of an invalid-request at the retention step (Audit arm 7 through 9), the caller's bar on re-invoking a committed act and the start's re-invoke (Audit arm 14, 15), the unlanded start's quarantine and the bar on re-emitting a start event (Action wiring 10, Reconciliation 27, External check 1), the consumption rule's history arm (Wiring decision 3, 5), and the sweep on its cadence, with its horizon edge, enumeration, recovery intent, service identity, four legs, pairing, candidates, retry on a transient arm, window and escalation (Reconciliation 2, 3, 5, 8 through 22, 24 through 30), and the bounds and the liveness rule its window must clear (Capability requirement 4 through 8, 18, Check 3.5); the completion bound stays because the liveness sum reads it. The intents stay, since an intent is where the caller's credential is validated before any constituent write (Invariant 8). The four indexes stay derived indexes outside every action's transaction, as obligation 2 of the section titled Composition state in `execution-contract.md` keeps them, so their population after the landed event, their rebuild on a miss and the landing of an index anomaly stay (Composition state 9 through 15, Action wiring 13, 14, 16, 20, 21, 40, 44, 45, 67). The rebuilds read the machine's sequence numbers and the Event Log's order (Clock semantics 1, 2), and Check 5.1 reads Permissions' own stored instants, so the composition cites neither Store 5 nor Order 1. What the composition does for its domain is unchanged.
 - **2026-09-30 — Audit Trail's invalid-request is read by its step at an outcome.** *Chose:* `invalid-request(step-4)` at an outcome read back and proceeded as landed, and `invalid-request(step-1 | step-2 | step-3)` answered recording-failure carrying post-commit, as a pre-append step is (Audit arm 7 and 17); at an intent the answer stays a bare invalid-request, the intent standing with no outcome at step-3 and step-4 (Audit arm 3 and 16). *Over:* one read-back for every step, which left the not-found case unanswered, and a bare invalid-request over a committed act. *Because:* Audit Trail now refuses `invalid-request(step)` so a caller can tell a committed act from a clean refusal (its Decisions entry of 2026-09-30); the frozen rule that a composition's own rejection arm carries the retry bit, and the post-commit stage this page already exports, decide it.
-- **2026-09-24 — Rewritten in GRACE lang v0.62; twenty-eight of thirty open Ledger lines closed by the rules that now own them.** *Chose:* `Composes`, `Composition state`, `Capability requirement` — which takes the prose's Configuration whole — `Primitive policy`, `Audit arm`, `Action wiring`, `Wiring decision` (the approval-gated transition, with the consumption and mooting rules), `Reconciliation` (the restart sweep, as four legs), `Scope vocabulary` and `Cascade` (the moot cascade, the family Multi-Party Approval opened) as the surfaces; invariant numbers 1 through 6 and 8 unchanged, Invariant 7 tombstoned to Composes 6; the record checks renumbered by the invariant each tests; the edge cases split into Non-goals and four Edge cases families. Choices the page left open, each decided by a standing rule: one State Machine workflow per run, stated as its own serve rule beside the one State Machine instance (Composes 1 and 17 — Compensable Workflow's shape for the same atom); every constituent write surface reserved to the composition, Permissions read-only (2026-08-26-h, 2026-08-30-b); the marks extraction-pending against Binding Registry, a write-once pairing of a step to the transition that spent it (2026-08-30-d — *A derived index splits at the horizon*); the retention step and invalid-request(step-4) at an outcome read back by the act's minted id and proceeding as landed (2026-08-26-d — *A transcribed rejection arm keeps its payload*); every read-side refusal landed (2026-08-26-b); the audit-completeness count taken from the constituent stores and the start half routed external (2026-08-26-e, 2026-08-30-c); the firing's binding read from its own event (2026-08-26-f); the grant reconstruction pinned to the outcome's payload instant (2026-08-26-g); a lost answer met by reading before re-invoking, and at-most-once left to the caller's key as it is for fire (2026-08-26-i — *make all things mean one thing*); approval staleness a non-goal (2026-08-26-k); the recovery intent renamed with underscores like every other kind here (2026-08-30-a). *Over:* the prose's step lists, a serialization rule titled for one action, and a Standards line claiming the substrate *satisfies* Part 11 where it is the structural form. *Because:* the rules state each landing once; the two formal lines stay open because the model, not the page, is what they owe.
 - **2026-08-30 — An approval is mooted on the record when the workflow leaves its state, the consumption arm stops at the horizon, the sweep's decision leg joins on the outcome, and the maps are read only at the shape their contract covers.** *Chose:* the moot-gate plan and cascade extended to Approved-and-unconsumed gates — one `moot_gate_recalled` with `moot_kind = approved-unconsumed` and a durable mooted flag, the step left standing as a decision that authorized nothing, [Open Gate] re-binding over it and [Fire Transition] refusing it; the consumption rule's history arm bounded to firings inside the audit horizon widened by `clock_offset_allowance`, with the consumed and mooted flags carried by every deployment under `binding_flag_durability` rather than offered as a fallback; sweep leg (4) joining a terminal step only to the `gate_decision_intended` whose decision, actor and stamp match the step's own, candidates on a tie and a surfaced finding on zero, never a re-emission; [Read Workflow]'s set-valued queries and the sweep's instance enumeration anchored in the `workflow_started` and `gate_opened` events with keyed rebuild-on-miss per instance; `gate_to_assignment` rebuilt from `ApprovalStep.read({})` and `Assignment.history_for(task_ref)` at every retention state; `recording-failure(pre-commit | post-commit)` and `already-open(pending | cleared-unconsumed)` on the signatures; the invocation yielding every owed write at `workflow_completion_bound` under a whole-invocation hold, the sweep re-reading its pre-check under the same serialization; the liveness inequality written out with `record_write_latency`; `intent_candidates_cap` sizing the recovery envelope; and, from the closure check, the firing's own consumed step excluded from its moot-gate plan, `instance_serialization` declared as the deployment's capability with lease-at-the-bound semantics and the re-take-before-pre-check rule, sweep leg (2) covering a withdraw that committed before its record, and leg (4) owning the recall [Decide Gate] could not land inside its bound. *Over:* an approval that survived a departure and cleared a return-path firing with no fresh decision; an unbounded history arm that read every purged firing as unrecorded and bricked the key; a leg that landed `gate_decided` for whichever intent named the step; queries that enumerated a derived index with no miss to observe; a payload-sourced rebuild declared *not rebuildable* on a capability gap the constituent does not have; a bare token on both sides of the commit; *retry until it lands* beside a sweep that starts at the bound; *cadence no longer than the window*; a plan that mooted the approval its own firing spent; a critical section attributed to nobody. *Because:* the cascade exists to keep a stale human decision from clearing a transition in a context the approver never saw, and Pending was the wrong place to stop; a horizon that destroys the event must not also destroy the key; a decision's outcome is on the step and the join must read it; an index read at a shape its contract does not cover puts the records-alone proof on a cache; a constituent's declared surface outranks the composition's memory of it; a caller who cannot tell pre-commit from post-commit re-fires a committed transition; and a section no Configuration names is a section whose lease nobody bounds (the frozen rules of 2026-08-30 — *A compensator is exclusive*, *Lawful destruction is answered before absence*, *An outcome is sized before the intent*, *Liveness is arithmetic*, *A stamp from another seam never decides a write alone*, *A composition's own rejection arm carries the retry bit*, and *Capability provenance* frozen — with §*Intents pair with outcomes*, §*A derived index is trustworthy only where a miss is observable* and §*A derived index splits at the horizon*).
 - **2026-08-26 — Every audit record emitted outside the original human invocation is composition-attributed.** *Chose:* retries, recovery emissions and cascade recalls attest under `application_actor_ref` / `application_credential`, with the human actor in the event `data` and `recovery = true`; the retry loop runs only on the substrate's transient failure, invalid-request foreclosed by budget-derived caps and minted-id width bounds. *Over:* re-presenting the human's credential on retry, or looping on every rejection. *Because:* a human credential is not available to a recovery path and a deterministic rejection retried forever is a stall, not a recovery; the discipline is shared with Multi-Party Approval so the two recovery vocabularies stay one.
 - **2026-08-29 — The restart sweep is bounded at both edges, writes a recovery record before it commits, and pairs a firing to its intent on the shared reading.** *Chose:* `workflow_completion_bound` below and the audit horizon above for every leg, with the sweep holding the per-instance serialization; a `workflow.recovery_intended` record before any leg that commits constituent state; leg (1) joined on `fired_at = intended_at` plus actor rather than "the latest unmatched intent", with `intent_event_candidates` and the union of plans where more than one matches; `compensation_window` and `reconciliation_cadence` declared. *Over:* a sweep on "a fixed cadence" whose pre-check was its only guard, and a definite-article join. *Because:* the pre-check cannot see an invocation that has not written yet, so a leg fired inside the completion bound lands a second outcome for one commit; a sweep that withdraws steps and recalls assignments without a record of its own is indistinguishable from a direct call; and "the latest" chooses where the records may not (the frozen rules of 2026-08-29 — *A reconciliation is bounded at both ends*, *Recovery commits under a declared service identity*, *Intents pair with outcomes*).
