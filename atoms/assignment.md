@@ -88,7 +88,7 @@ Term transfer instant: the instant the assignment was handed on — a [Transfer 
 
 ```
 Capability requirement 1: The deployment MUST supply now at the seam.
-Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 4.
+Capability requirement 4: The deployment MUST supply the assignment records PER Execution Contract Database 1 through 4 and Execution Contract Order 1.
 Deleted: Capability requirement 2. Execution Contract Logic confinement 7 owns it.
 Deleted: Capability requirement 3. Execution Contract Logic confinement 7 owns it.
 Deleted: Clock semantics 1. Execution Contract Logic confinement 7 owns it.
@@ -101,21 +101,23 @@ Deleted: Clock semantics 3. State 13 owns it.
 ```
 assign(task_ref, assignee_ref)
   answers assignment_id
-  refuses invalid-request | already-assigned | storage-failure
+  refuses invalid-request | already-assigned | state-unavailable | storage-failure
 
 recall(assignment_id)
   answers ok
-  refuses not-known | not-active | storage-failure
+  refuses not-known | not-active | state-unavailable | storage-failure
 
 reassign(assignment_id, new_assignee_ref)
   answers new_assignment_id
-  refuses not-known | not-active | invalid-request | storage-failure
+  refuses not-known | not-active | invalid-request | state-unavailable | storage-failure
 
 active_for(task_ref)
   answers assignment | none
+  refuses state-unavailable
 
 history_for(task_ref)
   answers assignments
+  refuses state-unavailable
 ```
 
 ```
@@ -143,10 +145,11 @@ Operation 21: [Reassign] MUST answer the new assignment id.
 Operation 22: IF the database refuses either write THEN [Reassign] MUST answer storage-failure.
 Deleted: Operation 23. Execution Contract Database 1 and Execution Contract Database 3 own it.
 Operation 24: A refused call MUST leave the database as the call found the database.
-Operation 25: [Active For] MUST answer the active assignment for the task reference.
-Operation 26: [Active For] MUST answer none for a task reference with no active assignment.
-Operation 27: [History For] MUST answer EVERY assignment carrying the task reference.
+Operation 25: IF database read EQUALS answered THEN [Active For] MUST answer the active assignment for the task reference.
+Operation 26: IF database read EQUALS answered THEN [Active For] MUST answer none for a task reference with no active assignment.
+Operation 27: IF database read EQUALS answered THEN [History For] MUST answer EVERY assignment carrying the task reference.
 Operation 28: [History For] MUST order the answer by assignment instant.
+Operation 28a: [History For] MUST order two assignments sharing an assignment instant by recording commit, earliest first.
 Operation 29: [Active For] MUST NOT write.
 Operation 30: [History For] MUST NOT write.
 Operation 30a: [Reassign] MUST read one now per call.
@@ -154,27 +157,48 @@ Operation 30b: [Reassign] MUST stamp transfer instant and assignment instant aga
 Deleted: Operation 31. Capability requirement 1 owns it.
 Deleted: Operation 32. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
+Operation 34: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
+Operation 35: [Assign] MUST NOT evaluate a rule of the assign refusal order BEFORE EVERY earlier rule of the assign refusal order has answered no refusal.
+Operation 36: [Recall] MUST NOT evaluate a rule of the recall refusal order BEFORE EVERY earlier rule of the recall refusal order has answered no refusal.
+Operation 37: [Reassign] MUST NOT evaluate a rule of the reassign refusal order BEFORE EVERY earlier rule of the reassign refusal order has answered no refusal.
 ```
 
 Term new assignee reference: the opaque reference naming the successor a reassignment hands the task to — a [New Assignee Reference].
+
+Term database read: answered | failed — the outcome of the read a call makes of the assignment records, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
+
+Term recording commit: the commit of the [Assign] or [Reassign] call that recorded an assignment, one position in the single order Execution Contract Order 1 gives every commit.
+
+Term assign refusal order: Operation 34, Operation 4 through 6 — [Assign]'s refusal rules, earliest first; Operation 7 answers only at the write, which no refused call reaches.
+
+Term recall refusal order: Operation 34, Operation 8 through 10 — [Recall]'s refusal rules, earliest first; Operation 13 answers only at the write, which no refused call reaches.
+
+Term reassign refusal order: Operation 34, Operation 14 through 17 — [Reassign]'s refusal rules, earliest first; Operation 22 answers only at the write, which no refused call reaches.
 
 The case space, and the rule that owns each case:
 
 | Call | Case | Answer | Effect on the assignment records |
 |---|---|---|---|
 | [Assign] | refs present, task unassigned, database accepts | assignment id | one assignment lands in [Active] (Operation 1, Operation 2) |
+| [Assign] | the database read fails | [State Unavailable] | none (Operation 34) |
 | [Assign] | blank task reference or assignee reference | [Invalid Request] | none (Operation 4, Operation 5) |
-| [Assign] | task already has a live assignment | [Already Assigned] | none (Operation 6) |
-| [Recall] | assignment is live | ok | [Active] → [Recalled]; the task is nobody's (Operation 11, Operation 12) |
+| [Assign] | task already has an active assignment | [Already Assigned] | none (Operation 6) |
+| [Recall] | assignment is active | ok | [Active] → [Recalled]; the task is nobody's (Operation 11, Operation 12) |
+| [Recall] | the database read fails | [State Unavailable] | none (Operation 34) |
 | [Recall] | assignment is recalled or transferred | [Not Active] | none (Operation 9, Operation 10) |
-| [Reassign] | assignment live, successor present, database accepts | the new assignment id | old → [Transferred] and a new [Active] one (Operation 18, Operation 19, Operation 21) |
+| [Reassign] | assignment active, successor present, database accepts | the new assignment id | old → [Transferred] and a new [Active] one (Operation 18, Operation 19, Operation 21) |
+| [Reassign] | the database read fails | [State Unavailable] | none (Operation 34) |
 | [Reassign] | blank new assignee reference | [Invalid Request] | none (Operation 17) |
 | [Reassign] | assignment is recalled or transferred | [Not Active] | none (Operation 15, Operation 16) |
 | [Reassign] | either write refused | [Storage Failure] | none — the old stays [Active] (Operation 22, Operation 24) |
 | any | id names nothing | [Not Known] | none (Operation 8, Operation 14) |
-| [Active For] | task has a live assignment | that assignment | none — the call reads (Operation 25, Operation 29) |
+| [Active For] | the database read fails | [State Unavailable] | none (Operation 34) |
+| [Active For] | task has an active assignment | that assignment | none — the call reads (Operation 25, Operation 29) |
 | [Active For] | task is unassigned | none | none (Operation 26) |
-| [History For] | any task | every assignment for it, by assignment instant | none (Operation 27, Operation 28, Operation 30) |
+| [History For] | the database read fails | [State Unavailable] | none (Operation 34) |
+| [History For] | the database read answers | every assignment for the task, by assignment instant, two sharing one by recording commit | none (Operation 27, Operation 28, Operation 28a, Operation 30) |
+
+Where two [Assign] cases hold at once, the earlier rule of the assign refusal order answers (Operation 35); where two [Recall] cases hold at once, the earlier rule of the recall refusal order answers (Operation 36); where two [Reassign] cases hold at once, the earlier rule of the reassign refusal order answers (Operation 37).
 
 ### Invariants
 
@@ -214,15 +238,15 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 8 — Timestamp ordering.**
   ```
-  Invariant 8.1: IF recall instant DOES NOT EQUAL blank THEN assignment instant MUST NOT EXCEED recall instant.
-  Invariant 8.2: IF transfer instant DOES NOT EQUAL blank THEN assignment instant MUST NOT EXCEED transfer instant.
+  Invariant 8.1: IF recall instant DOES NOT EQUAL blank THEN recall instant MUST NOT PRECEDE assignment instant.
+  Invariant 8.2: IF transfer instant DOES NOT EQUAL blank THEN transfer instant MUST NOT PRECEDE assignment instant.
   Invariant 8.3: The atom MUST stamp EVERY timestamp once.
   ```
 - **Invariant 9 — Complete responsibility history.**
   ```
   Invariant 9.1: The assignments carrying one task reference MUST record EVERY actor who held the task.
   Invariant 9.2: The assignments carrying one task reference MUST record when each holding began.
-  Invariant 9.3: The assignments carrying one task reference MUST record how each holding ended.
+  Deleted: Invariant 9.3. State 3 and State 4 own it: an ended holding carries its recall instant or its transfer instant, and an active one has not ended.
   ```
 - **Invariant 10 — Assignment record durability.**
   ```
@@ -261,25 +285,26 @@ A single sequence exercising all rejection reasons:
 - `assign(task_t1, dev_b) → a2` — accepted; `task_t1` is now unassigned so a fresh [Assignment] is allowed.
 - `reassign(a2, "")` → rejected invalid-request (empty assignee).
 - `assign(task_t2, dev_c)` → rejected storage-failure (database write fails; no [Assignment] created; `task_t2` remains unassigned).
+- `active_for(task_t2)` → rejected state-unavailable (the database read fails; nothing is decided or written).
 
-All five rejection reasons (invalid-request, already-assigned, not-known, not-active, storage-failure) exercised in one thread.
+All six rejection reasons (invalid-request, already-assigned, not-known, not-active, storage-failure, state-unavailable) exercised in one sequence.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is provable: an external auditor clears it from the assignment records' stored fields.
+This atom's acceptance is provable: an external auditor clears it from the assignment records' stored fields and the order of the commits that recorded them.
 
 ### Conformance checks
 
 ```
 Check 1.1: An auditor MUST find no task reference carrying two active assignments (Invariant 1.1).
-Check 2.1: An auditor MUST reconstruct a task's chain of responsibility from the assignments carrying the task reference (Invariant 9.1, Invariant 9.2, Invariant 9.3).
+Check 2.1: An auditor MUST reconstruct a task's chain of responsibility from the assignments carrying the task reference, ordered by assignment instant and then by recording commit (Invariant 9.1, Invariant 9.2, State 3, State 4).
 Check 2.2: An auditor MUST read a recalled assignment as the task standing unassigned at recall instant (Operation 12).
 Check 2.3: An auditor MUST read a transferred assignment as a successor whose status EQUALS active at transfer instant (Invariant 7.1, Invariant 7.2).
 Check 3.1: An auditor MUST find no assignment whose status moved out of a terminal status (Invariant 3.2, Invariant 4.1, Invariant 4.2).
 Check 4.1: An auditor MUST find no assignment whose terminal stamp PRECEDES the assignment's assignment instant (Invariant 8.1, Invariant 8.2).
-Check 5.1: An auditor MUST identify which composing patterns a deployment wired in (Composition note 1).
+Deleted: Check 5.1. External check 5 owns it.
 ```
 
 ### External checks
@@ -289,6 +314,7 @@ External check 1: An auditor MUST read the assigner's authority from the composi
 External check 2: An auditor MUST read who issued an assignment from the composing Actor Identity attestations (Non-goal 7).
 External check 3: An auditor MUST read a task's completion from the host's task system (Non-goal 11).
 Deleted: External check 4. Execution Contract Database 1 and Execution Contract Database 2 own it.
+External check 5: An auditor MUST identify from the deployment's own declaration which composing patterns the deployment wired in (Composition note 1).
 ```
 
 NOTE: EVERY check names the rule the check tests. The assignment records answer *who holds this and who held it*; who was allowed to hand it over, and whether the work is done, are the composing patterns' records.
@@ -355,9 +381,9 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: assignment — one binding, carrying assignment id, task reference, assignee reference, assignment instant, status and, once it ends, recall instant or transfer instant.
 
-Term record verbs: identify, allocate, supply, reuse, carry, stand, stamp, offer, delete, hold, record, answer, leave, write, read, order, set, change, move, take, share, shrink, require, expire, check, cap, bind, recall, compose, own, attest, declare, find, reconstruct, re-derive, exceed.
+Term record verbs: identify, allocate, supply, reuse, carry, stand, stamp, offer, delete, hold, record, answer, leave, write, read, order, set, change, move, take, share, shrink, require, expire, check, cap, bind, recall, compose, own, attest, declare, find, reconstruct, re-derive, precede, evaluate.
 
-Term value sets: status = active | recalled | transferred.
+Term value sets: status = active | recalled | transferred. database read = answered | failed.
 
 Term bounds: empty.
 
@@ -365,7 +391,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.35 (2026-09-12).
 
-Term terms: assignment, assignment id, task reference, assignee reference, seam, transition, business caller, now, status, assignment instant, recall instant, transfer instant, new assignee reference.
+Term terms: assignment, assignment id, task reference, assignee reference, seam, transition, business caller, now, status, assignment instant, recall instant, transfer instant, new assignee reference, database read, recording commit, assign refusal order, recall refusal order, reassign refusal order.
 
 #### Assignment
 
@@ -401,19 +427,19 @@ Kind: Operation
 
 #### Active For
 
-The read query that returns the at-most-one [Active] [Assignment] for a given [Task Reference], or none if the task is currently unassigned. Read-only; consistent with Invariant 1.
+The read query that returns the at-most-one [Active] [Assignment] for a given [Task Reference], or none if the task is currently unassigned. Read-only; consistent with Invariant 1. It refuses only with [State Unavailable], when the assignment records cannot be read, and never answers none for a task it could not read.
 
 Kind: Operation
 
 #### History For
 
-The read query that returns all assignments ([Active], [Recalled], [Transferred]) for a given [Task Reference], ordered by [Assignment Instant] — the complete responsibility chain required by Invariant 9. Read-only.
+The read query that returns all assignments ([Active], [Recalled], [Transferred]) for a given [Task Reference], ordered by [Assignment Instant], two sharing one by the commit that recorded each — the complete responsibility chain required by Invariant 9. Read-only. It refuses only with [State Unavailable], when the assignment records cannot be read.
 
 Kind: Operation
 
 #### Assignment Id
 
-The opaque, immutable identity of an [Assignment], host-allocated from injected id material at the I/O seam and never reused after a terminal state. The [Task Reference] and [Assignee Reference] are properties of the [Assignment], not its identity.
+The opaque, immutable identity of an [Assignment], host-allocated from injected id material at the I/O seam and never reused. The [Task Reference] and [Assignee Reference] are properties of the [Assignment], not its identity.
 
 Kind:       Field
 Field of:   Assignment
@@ -544,6 +570,15 @@ Member of:  the action rejection
 Role:       Outcome
 Projection: storage-failure
 
+#### State Unavailable
+
+The refusal [Assign], [Recall], [Reassign], [Active For] or [History For] returns when the read the call makes of the assignment records fails — the Execution Contract's Step 1 failure. Nothing is decided or written, the call may be retried, and the answer says nothing about whether the task is assigned; an [Assignment] a refused [Recall] or [Reassign] named stays as it was.
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: state-unavailable
+
 <!-- Term registry — shortcut-reference definitions. These produce no visible
      output; each resolves a [Term] marker to its term entry heading above (kramdown
      auto-generates the heading anchors on GitHub Pages). Standard CommonMark /
@@ -571,6 +606,7 @@ Projection: storage-failure
 [Not Known]: #not-known
 [Not Active]: #not-active
 [Storage Failure]: #storage-failure
+[State Unavailable]: #state-unavailable
 [Status]: #status
 
 ---
@@ -601,9 +637,15 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — assignment.tla + 1 twin, 2026-06-03
-last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-21 — Final Critique 5, the council's first round on the page and the first on its Store-contract rewrite (e9f08e4), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 7d422ec); the round rests on three counted passes — foundational count 5 after triage (13 reports: 8 standing, merged into 5; 3 sent down; 2 rejected), all Kind A: Check 5.1 read the deployment's declaration, which the assignment records do not carry; Invariant 9.3 asked every holding how it ended, an active one included; [Reassign]'s refusals co-fired with no stated order; [History For] left two assignments sharing an assignment instant unordered, and a chain of handoffs at one instant unrecoverable from the records; and a failed read of the assignment records had no answer the page allowed, no signature naming state-unavailable; 13 refining reports, 3 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
 
-open: none
+open:
+- 2026-10-21-a · refining · Term seam; Term transition; Term business caller; Term now · each says the section titled Logic Confinement Principle in `execution-contract.md` declares it, and that section declares none of the four and calls the composition layer the seam (Logic confinement 2); seam, transition and business caller have no term entry → declare the four there, the corpus's one seam wording, or point each at its declaration, and give each a term entry
+- 2026-10-21-b · refining · Operation 7, 13, 22, 24; [Storage Failure] · a write whose acknowledgement never reaches the atom has no stated arm: it is not the database refusing the write (Operation 7, 13, 22), and Operation 24 forbids a refusal that leaves the database changed, so a build reads the records again before it answers (Execution Contract Database 3), and nothing says how, for how long, or what it answers while it cannot; the Execution Contract's Error model names no such class → state the arm in the Error model (the maintainer's) and cite it here
+- 2026-10-21-c · refining · Term task reference; Composition note 2 · the Term says the host owns what a task is and Composition note 2 obliges a composing pattern to: one proposition, two holders (GRACE-lang Authority 3) → name one owner and delete the other line's clause to it
+- 2026-10-21-d · refining · Operation 30a, 30b · Operation 30a has [Reassign] read now, which Execution Contract Logic confinement 3 gives the pipeline (one reading per invocation), and Operation 30b stamps transfer instant and assignment instant without saying whose → tombstone Operation 30a to Logic confinement 3, and stamp the old assignment's transfer instant and the new assignment's assignment instant from the injected now
+- 2026-10-21-e · refining · Check 2.3 · it reads a transferred assignment as a successor whose status EQUALS active at transfer instant, which no stored field carries once the successor ends, and in a chain of handoffs at one instant only the recording commit names the successor → name the successor by recording commit, and read its status at the transfer from its stored instants
+- 2026-10-21-f · refining · Examples (Customer support) · the audit log's tier-2 for 45 minutes and the SLA sentence read an end no assignment record carries while a6 stands active (Non-goal 12, Composition note 4) → say the end comes from the host's task system or a composing pattern's recall
 ```
 
 ## Decisions
@@ -611,5 +653,7 @@ open: none
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/assignment.md`; the migration that got it here is in [its history](./assignment.hist.md).
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the assignment store supplied under Execution Contract Store 1 through 4 (Capability requirement 4), and the twelve rules that restated them tombstoned to their owner — Operation 20, Invariant 7.3 and 7.4 and Reassign atomicity 1, the reassign's two writes committed together with no reader seeing one without the other, and Reassign atomicity 4, the repair owed for a landed half, to Store 1; Operation 23, both writes withdrawn on storage-failure, and Reassign atomicity 2 and 3, a crash inside [Reassign] leaving the task neither unassigned nor held twice, to Store 1 and Store 3; Assign race 1, the active-assignment check and the write as one transition, and External check 4, the deployment's evidence of that atomicity and serialization, to Store 1 and Store 2; Assign race 2 and 3, two concurrent assigns never both recording and the later answering already-assigned, to Store 2; rules 110 to 99. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. A handoff is still one action, not a recall followed by an assign (Operation 18 and 19, Invariant 7.1 and 7.2); the atom's own no-delete rules stay (State 10, Invariant 10.1 and 10.2), and so does a refused call leaving the store as found (Operation 24), which covers the guard refusals no Store rule reaches. A task's responsibility chain is separate records ordered by assignment instant, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
+
+- **2026-10-21 — A failed read answers on every action, each write's refusals in one stated order; a tie of assignment instants falls to commit order; the wiring declaration is an external check; a holding's end is its terminal stamp.** *Chose:* state-unavailable on all five actions where the read of the assignment records fails, the Execution Contract's Step 1 failure (Operation 34, Term database read), [Active For] and [History For] answering only on an answered read (Operation 25 through 27); the refusals of [Assign], [Recall] and [Reassign] in one stated order each, the read first and then the sequence Final Critique 4's prose gave — the inputs before already-assigned, and a known assignment, then an active one, then the successor (Operation 35 through 37, Term assign refusal order, Term recall refusal order, Term reassign refusal order); two assignments sharing an assignment instant ordered by the commit that recorded each (Operation 28a, Term recording commit), the records supplied under Execution Contract Order 1 beside Database 1 through 4 (Capability requirement 4), and Check 2.1 and the acceptance bar reading that order; the composing patterns a deployment wired in read from the deployment's own declaration (External check 5); and Invariant 9.3, which asked an active holding how it ended, deleted to State 3 and State 4. *Over:* [Active For] answering none, and a write answering no code the page names, when the records cannot be read; one reassign answered two ways by two builds; a [History For] two builds order two ways, and a chain of handoffs at one instant no auditor can rebuild; a conformance check reading what the records do not carry; an invariant every assign breaks. *Because:* Final Critique 5 found each a divergence between conforming builds, or a stated check a conforming build fails, and the corpus already held four of the cures: Actor Identity's fifth round answers a failed read on every action and reads the composing patterns from the deployment's declaration; Retention Window's eighth answers each writing action's refusals in one stated order, the form the maintainer ruled for Verified Repair on 2026-10-19; and Party Identity cites Order 1 beside the Database contract. The entry of 2026-10-19 said a task's chain needs no Order 1, the assignment instants ordering it; a clock that repeats a reading, which Logic confinement 7 allows, ties them, and only the commit order keeps the chain. Compositions affected: the pages that compose this atom route state-unavailable from all five actions, when their rounds read them.
 
 NOTE: End of Assignment.
