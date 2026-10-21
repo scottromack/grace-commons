@@ -63,11 +63,6 @@ Term composition: this pattern's wiring of [Personal Todo](../atoms/personal-tod
 
 Term constituents: [Personal Todo](../atoms/personal-todo.md), [Permissions](../atoms/permissions.md), [Assignment](../atoms/assignment.md).
 
-WHY:
-Composes 6 is one rule where the prose carried three. Execution Contract Conformance 8 already settles it — *no composing layer is obligated to re-verify what the substrate's own conformance already establishes; inheriting a guarantee by reference is the point of naming a substrate* — so a composition that re-asserts each constituent's invariants as its own is restating a rule it cites (Authority 6, council read 53). What the prose's three rules carried beyond the blanket is Composes 9, which is not inherited at all: a constituent's guarantee says nothing about whether the composing layer relays the constituent's refusal intact, and this composition does.
-
-Composes 7 and Composes 8 name the two constituent assignments this composition takes up. [Permissions](../atoms/permissions.md)'s `Composition note 2` assigns the scope vocabulary to a composing pattern; the section titled Scope vocabulary is this composition owning it. [Assignment](../atoms/assignment.md)'s `Composition note 2` assigns *what a task is*; Action wiring 14's existence check is this composition owning it. Two further constituent notes are **not** discharged here and the section titled Non-goals says so rather than leaving them silent — Assignment's `Composition note 4` (whether a completed task's assignment is recalled) and Permissions' `Composition note 3` (the caller-to-subject binding) are both passed to the deployment, which is a choice this composition makes and not an omission (council read 55).
-
 ---
 
 ## Composition logic
@@ -89,10 +84,11 @@ Term responsible actor: the assignee reference of the active assignment Assignme
 
 Term visible tasks: EVERY task of the Personal Todo instance, for an actor reference holding tasks:view.
 
-WHY:
-The contract classification is *conforming, no stored composition state* (the section titled Composition state in `execution-contract.md`), and there is no element to classify, which is that rule's best case. Both derived queries are joins over surfaces the constituents already declare, computed per call, so nothing here can go stale and nothing needs a rebuild.
+### Capability requirement
 
-[Responsible Actor] joins two constituents because one cannot answer it: Assignment alone cannot tell an unassigned task from a task that never existed, and the Personal Todo side of the join is exactly what separates unassigned from not-known.
+```
+Capability requirement 1: The deployment MUST supply the constituents' store PER Execution Contract Store 1 and Execution Contract Store 2.
+```
 
 ### Action wiring
 
@@ -144,9 +140,9 @@ Action wiring 6: An admitted edit MUST call Personal Todo's edit with the task i
 Action wiring 7: An admitted complete MUST call Personal Todo's complete with the task id.
 Action wiring 8: An admitted complete MUST NOT recall the task's active assignment.
 Action wiring 9: An admitted delete MUST call Assignment's recall for the task's active assignment.
-Action wiring 10: An admitted delete MUST call Personal Todo's delete ONLY AFTER the recall commits.
+Action wiring 10: An admitted delete MUST call Personal Todo's delete ONLY AFTER the recall answers ok.
 Action wiring 11: IF the recall answers storage-failure THEN an admitted delete MUST answer storage-failure.
-Action wiring 12: IF the recall answers storage-failure THEN an admitted delete MUST NOT call Personal Todo's delete.
+Deleted: Action wiring 12. Execution Contract Store 1 owns it.
 Action wiring 13: An admitted assign MUST answer not-known for a task id the Personal Todo instance does not carry.
 Action wiring 14: An admitted assign MUST call Assignment's assign ONLY AFTER the task id's existence check clears.
 Action wiring 15: An admitted assign MUST accept a task id whose unit state EQUALS done.
@@ -156,7 +152,7 @@ Action wiring 18: The composition MUST answer the constituent's answer.
 Action wiring 19: The composition MUST NOT answer an empty task set for a denied tasks:view.
 Action wiring 20: [Responsible Actor] MUST answer not-known for a task id the Personal Todo instance does not carry.
 Action wiring 21: [Responsible Actor] MUST answer unassigned for a task carrying no active assignment.
-Action wiring 22: IF the recall answers not-active THEN an admitted delete MUST run Action wiring 9 again.
+Deleted: Action wiring 22. Execution Contract Store 2 owns it.
 ```
 
 Term admitted add: an [Add Task] call whose tasks:add check answered permitted.
@@ -173,25 +169,16 @@ Term admitted reassign: a [Reassign Task] call whose tasks:assign check answered
 
 Term admitted recall: a [Recall Assignment] call whose tasks:recall check answered permitted.
 
-WHY:
-Action wiring 1 through 3 are the whole gate, stated once for seven actions rather than seven times. Every action's shape is identical — check, then call — and the rules below name only what each action does *after* the gate clears.
-
-Action wiring 13 and Action wiring 14 pick up the referential-integrity delegation [Assignment](../atoms/assignment.md)'s `Composition note 2` hands to a composing pattern. Personal Todo retires an id permanently, so a deleted task id can never return to legitimize a dangling assignment, which is what makes Invariant 3's *no active assignment on a deleted task* standing rather than delete-time only.
-
-Action wiring 22 closes the gap Concurrency 1 leaves. The host serializes calls naming one task id, and [Reassign Task] and [Recall Assignment] name an assignment id, which Assignment gives no way to trace back to its task — so one of them can land between a delete's read of the active assignment and its recall. The recall then answers not-active, and the delete reads the task's active assignment again and recalls whatever stands now, or finds none; Action wiring 10 still holds the delete until a recall commits. Without the rule, one implementation refused with an answer the signature does not carry and another recalled the new assignment and deleted.
-
-Action wiring 19 is a refusal to be helpful. An empty answer is a fact about the task set; a denied read is a fact about the caller, and a composition that returned the first for the second would make the two indistinguishable and would vary by deployment.
-
 ### Wiring decision
 
 ```
 Wiring decision 1: The composition MUST delete a task ONLY AFTER the task's active assignment is recalled.
-Wiring decision 2: The composition MUST NOT wrap the recall and the delete in one transaction.
-Wiring decision 3: The composition MUST leave a recalled assignment standing for a delete that fails.
+Deleted: Wiring decision 2. Execution Contract Store 1 owns it.
+Deleted: Wiring decision 3. Execution Contract Store 1 owns it.
 ```
 
 WHY:
-The cascade is the composition's load-bearing decision and neither constituent holds it — [Personal Todo](../atoms/personal-todo.md) knows nothing of assignments and [Assignment](../atoms/assignment.md) knows nothing of task deletion. The ordering is what makes the failure safe rather than the transaction: recall first means a failed delete leaves an assignment Recalled against a task that still exists — an over-recall, which Assignment admits and [Responsible Actor] reports as unassigned — where delete-first would leave an Active assignment against a task that is gone, which Invariant 3 forbids. Invariant 3 is one-way on purpose, and Wiring decision 3 is the cost named rather than hidden.
+The cascade is the composition's load-bearing decision and neither constituent holds it — [Personal Todo](../atoms/personal-todo.md) knows nothing of assignments and [Assignment](../atoms/assignment.md) knows nothing of task deletion.
 
 ### Scope vocabulary
 
@@ -211,9 +198,6 @@ Scope vocabulary 11: A deployment defining a finer action scope MUST wire the ga
 
 Term action scopes: `tasks:view` | `tasks:add` | `tasks:edit` | `tasks:complete` | `tasks:delete` | `tasks:assign` | `tasks:recall` — the canonical vocabulary, and the minimum useful set.
 
-WHY:
-[Permissions](../atoms/permissions.md) treats an action scope as an opaque string and `Composition note 2` assigns the vocabulary to a composing pattern; this section is that assignment discharged. Scope vocabulary 7 and Scope vocabulary 8 share one scope deliberately — reassign is an assign with a recall folded in, and a deployment that wants them separable takes Scope vocabulary 10.
-
 ---
 
 ## Composition-level invariants
@@ -229,7 +213,6 @@ Each of these needs two or all three constituents working together. None is avai
   ```
   Invariant 2.1: EVERY task MUST NOT carry two active assignments.
   ```
-  WHY: this is Assignment's own guarantee holding over the composition's single instance (Composes 6). It is stated here because the *single instance* is this composition's decision — two Assignment instances over one task list would satisfy the atom and break the claim.
 - **Invariant 3 — Cascade-on-delete.**
   ```
   Invariant 3.1: EVERY deleted task MUST carry no active assignment.
@@ -248,7 +231,6 @@ Each of these needs two or all three constituents working together. None is avai
   Deleted: Invariant 7. Composes 6 owns it.
   Deleted: Invariant 8. Composes 6 owns it.
   ```
-  WHY: the three deleted invariants each asserted that a constituent's invariants hold over this composition's instance. Execution Contract Conformance 8 already establishes it — conformance extends recursively, and no composing layer is obligated to re-verify what a constituent's own conformance establishes — so restating it three times was a citing spec restating a rule it cites (Authority 6, council read 53). What the prose carried beyond the blanket survives: the relay of an unchanged constituent rejection is Composes 9, and the single-instance decisions that make Assignment's and Permissions' guarantees *reachable* here are Composes 1 through 3.
 
 Permission enforcement and the cascade together give the coherent multi-actor surface: no actor acts beyond the actor's grants, and no assignment is left dangling against a deleted task. Responsibility queryability and authorization-history completeness together give recoverable accountability — for any task and any actor, what the actor was allowed to do and who held the task is readable from the records alone.
 
@@ -324,15 +306,8 @@ External check 2: An auditor needing a denied call confirmed unreached MUST read
 External check 3: An auditor needing an enumeration of authorization attempts MUST read a composed Audit Trail (Non-goal 7).
 External check 4: An auditor needing the actor reference bound to a caller MUST read the deployment's authentication layer (Non-goal 12).
 External check 5: An auditor needing a task's delete confirmed clear of the grants MUST read the deployment's own implementation (Invariant 5.2).
-External check 6: An auditor needing the serialization confirmed MUST read the deployment's own concurrency probe (Concurrency 1, Concurrency 6).
+Deleted: External check 6. Execution Contract Store 2 owns it.
 ```
-
-WHY:
-The split is the honest one and it is the same shape [Session-Gated Authorization](./session-gated-authorization.md) found. The three stores record *what stands*: an assignment's terminal state, a grant's history, a task's existence — so Check 1.1 through 5.2 clear from records. They do not record *what was attempted*: a denied call writes nothing anywhere, so the count of refusals and the order of the two steps inside an admitted call leave no trace in any constituent store. That is External check 1 through 3, and it is why a regulated deployment composes [Audit Trail](./audit-trail.md) rather than reading harder.
-
-External check 4 is the one a deployment can fail silently, and the section titled Non-goals names it as a seam rather than a gap: every guarantee here is stated over the actor reference values presented to the composition, and nothing here authenticates them.
-
-External check 6 is [Assignment](../atoms/assignment.md)'s `External check 4` shape: two calls that overlapped leave no trace in any store, so only the deployment's probe can show they were serialized.
 
 ---
 
@@ -356,41 +331,22 @@ Non-goal 14: An authenticating pattern MUST supply the actor reference the compo
 Non-goal 15: The composition MUST NOT partition the Personal Todo instance's description uniqueness per actor.
 ```
 
-WHY:
-Non-goal 4 and Non-goal 12 are the two constituent obligations this composition declines, and declining them is a decision rather than an oversight. [Assignment](../atoms/assignment.md)'s `Composition note 4` assigns *whether a completed task's assignment is recalled* to a composing pattern, and both answers are defensible — an Active assignment on a Done task is a completion-attribution record, and recalling it is a clean close — so the composition supports either and the deployment picks. [Permissions](../atoms/permissions.md)'s `Composition note 3` assigns the caller-to-subject binding, and this composition passes actor reference through unauthenticated: an unauthenticated deployment lets any caller act under any actor's grants, which Non-goal 13 names the cure for. Both are pushed down one layer with the receiver named, which is the most a composition can do with an assignment it does not want.
-
-Non-goal 11 is narrower than it reads. The composition gates every action on the Permissions instance and wires no action for `grant` or `revoke` — who may administer grants is a governance surface of its own, and a regulated deployment composes [Attributed Permissions Admin](./attributed-permissions-admin.md) over the same instance.
-
-Non-goal 15 is the single shared instance's bill. One Personal Todo instance means its active-set description uniqueness holds globally, so two actors cannot hold tasks, pending or done, with normalized-equal descriptions and duplicate-active tells a caller that *someone's* matching task exists — a mild existence oracle for an actor holding `tasks:add` and not `tasks:view`. A deployment for which that is unacceptable partitions instances.
+NOTE: the owners — [Audit Trail](./audit-trail.md) (Non-goal 7, Non-goal 8, External check 3); [Attributed Permissions Admin](./attributed-permissions-admin.md) for a regulated deployment (Non-goal 11, Composition note 4); the deployment (Non-goal 15).
 
 ---
 
 ## Edge cases
 
-WHY:
-**Partial delete — the recall committed and the delete failed.** Wiring decision 1 commits the recall first, so a storage-failure or a concurrent-delete not-known at the delete leaves the assignment Recalled while the task stands. That is an over-recall and never a dangling assignment: Invariant 3 is one-way, Assignment admits a Recalled assignment on a live task, and [Responsible Actor] reports unassigned. The remedy is operational — retry the delete, or re-assign if the deletion is abandoned. No transaction wraps the two writes (Wiring decision 2); the ordering is what buys the safe side.
-
-**Assignment on a Done task.** Action wiring 15 admits it deliberately. An Active assignment on a Done task is the completion-attribution pattern Non-goal 4 leaves to the deployment, and refusing it would decide that question by construction.
-
-**A revoked grant mid-call.** Concurrency 4 checks at the call's start and Concurrency 5 does not re-check. A grant revoked during an in-flight action does not reach that action.
-
 ### Concurrency
 
 ```
-Concurrency 1: The composition MUST rest on the host's serialization for two calls naming one task id.
-Concurrency 2: The composition MUST answer Assignment's already-assigned to the loser of two assigns.
-Concurrency 3: The composition MUST answer Personal Todo's not-known to the loser of two deletes.
+Deleted: Concurrency 1. Execution Contract Store 2 owns it.
+Deleted: Concurrency 2. Execution Contract Store 2 owns it.
+Deleted: Concurrency 3. Execution Contract Store 2 owns it.
 Concurrency 4: The composition MUST check permitted at a call's start.
-Concurrency 5: The composition MUST NOT recheck permitted inside a call.
-Concurrency 6: The composition MUST rest on the host's serialization for two description writes.
+Deleted: Concurrency 5. Execution Contract Store 2 owns it: an action's guard reads and the writes they decide are one transaction, so a revoke of the grant a gate read commits before the read or after the action's writes.
+Deleted: Concurrency 6. Execution Contract Store 2 owns it.
 ```
-
-Term description write: an [Add Task] call or an [Edit Task] call — the calls that write a description into the Personal Todo instance.
-
-WHY:
-Concurrency 4 and Concurrency 5 are the revoked-grant window stated rather than closed. A grant revoked while an action is in flight does not reach that action; the composition's guarantee is point-in-time at the check, and a deployment needing tighter coupling re-checks at its own layer.
-
-Concurrency 6 is [Personal Todo](../atoms/personal-todo.md)'s `Concurrency 3` discharged where a task id cannot: an add names no id and an edit names one, so a lock keyed by task id leaves add against add, add against edit and edit against edit unserialized. Two of them then both pass the duplicate check on the active set before either writes, and one instance holds two tasks with one normalized description, which Non-goal 15 says it cannot. Personal Todo assumes a linear sequence of calls (`Concurrency 1`), and this composition's calls are not linear; Concurrency 1 covers only the calls that share a unit.
 
 ---
 
@@ -402,11 +358,8 @@ Composition note 2: A deployment MUST bind an actor reference to an authenticate
 Composition note 3: A deployment MUST own whether a completed task's assignment is recalled.
 Composition note 4: A deployment MUST administer the Permissions instance's grants.
 Composition note 5: A deployment MUST NOT wire a second Assignment instance over the task list.
-Composition note 6: A deployment MUST supply the host serialization Concurrency 1 AND Concurrency 6 name.
+Deleted: Composition note 6. Execution Contract Store 2 owns it.
 ```
-
-WHY:
-Composition note 2 and Composition note 3 are the two constituent assignments this composition passes down, restated as obligations on the receiver so they do not fall between the layers. Composition note 5 is Invariant 2.1's precondition: Assignment's at-most-one-active guarantee is per instance, so two instances over one task list satisfy the atom and break the composition's claim. Composition note 6 names the serialization the two Concurrency rules rest on, which the notes left to the Concurrency section alone.
 
 ---
 
@@ -418,9 +371,9 @@ The canonical concepts this spec refers to. Each `[Term]` marker in the prose ab
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-14).
 
-Term terms: composition, constituents, responsible actor, visible tasks, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall, task id, actor reference, description write.
+Term terms: composition, constituents, responsible actor, visible tasks, action scopes, admitted add, admitted edit, admitted complete, admitted delete, admitted assign, admitted reassign, admitted recall, task id, actor reference.
 
-Term record verbs: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, recheck, rest, leave, wrap, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply, run.
+Term record verbs: call, answer, gate, define, derive, store, materialize, recall, delete, assign, reassign, add, edit, complete, read, write, check, leave, accept, refuse, carry, stand, follow, reach, find, name, own, discharge, inherit, change, replace, serve, compose, declare, bind, administer, wire, scope, grant, offer, record, authenticate, partition, outlive, supply.
 
 Term actors: the composition; the constituents; a deployment; an auditor; an actor; an assignee; a task; an assignment; a grant; a caller.
 
@@ -593,23 +546,21 @@ formal: verified — shared-todo.tla + 1 twin, 2026-06-03
 last gate: 2026-09-30 — Final Critique 9, cold reader — 0 foundational, 14 refining (8 already open, 6 routed open), 3 rhetorical (routed open)
 
 open:
-- 2026-09-30-a · refining · Final Critique 7 · routed open, non-blocking: Action wiring 8 bars recall-on-complete that Non-goal 4 leaves to the deployment; the Summary's and Intent's overclaims (the list beyond granted permissions, owners-only editing, a query no single pattern answers); the unconditional Composition note 2 beside the conditional Non-goal 13; whether a finer scope replaces or adds to the canonical one; the edge case's concurrent-delete not-known beside a standing task; Assignment Composition note 3 and Permissions note 5 neither discharged nor declined, clock and ids absent from the deployment's notes; the delete with no active assignment unstated, Action wiring 14's arguments, Action wiring 1's wording; happy-path examples and the cascade recall's scope shown only in an example; the model's DeleteTask fusing the recall and the delete Wiring decision 2 keeps apart, with no reassign → one refining pass
-- 2026-09-30-b · refining · Final Critique 8 · routed open, non-blocking: Action wiring 13, 14 and 20's existence check is a filter the composition runs over Personal Todo's Read (Operation 28), which offers no lookup by id, and no rule names it; Composes 5's caller surface read against Composition note 4's grant administration, which needs a Permissions surface the literal replacement removes; the clinical Example 3 invokes a regulated domain and Regulated adversarial scenarios stand nowhere in the examples, beside Standards references calling the pattern not regulated; Example 1's Recalled-on-delete is no fact of any record, since Assignment stores recalled and no cause; the model's Assign fusing the existence check with the write Action wiring 14 separates → one refining pass
+- 2026-09-30-a · refining · Final Critique 7 · routed open, non-blocking: Action wiring 8 bars recall-on-complete that Non-goal 4 leaves to the deployment; the Summary's and Intent's overclaims (the list beyond granted permissions, owners-only editing, a query no single pattern answers); the unconditional Composition note 2 beside the conditional Non-goal 13; whether a finer scope replaces or adds to the canonical one; Assignment Composition note 3 and Permissions note 5 neither discharged nor declined, clock and ids absent from the deployment's notes; the delete with no active assignment unstated, Action wiring 14's arguments, Action wiring 1's wording; happy-path examples and the cascade recall's scope shown only in an example → one refining pass
+- 2026-09-30-b · refining · Final Critique 8 · routed open, non-blocking: Action wiring 13, 14 and 20's existence check is a filter the composition runs over Personal Todo's Read (Operation 28), which offers no lookup by id, and no rule names it; Composes 5's caller surface read against Composition note 4's grant administration, which needs a Permissions surface the literal replacement removes; the clinical Example 3 invokes a regulated domain and Regulated adversarial scenarios stand nowhere in the examples, beside Standards references calling the pattern not regulated; Example 1's Recalled-on-delete is no fact of any record, since Assignment stores recalled and no cause → one refining pass
 - 2026-09-30-c · rhetorical · Final Critique 8 · Term responsible actor says none where Action wiring 21 answers unassigned, and Tasks View promises the tasks and their assignees where Visible Tasks answers tasks only → one word for the absent answer; the term's promise cut to what the query returns
-- 2026-09-30-d · refining · Final Critique 9 · routed open, non-blocking: Action wiring 22's re-read has no terminus beside a stream of reassigns, the retry-loop check of Pass 1; Action wiring 18 answers the constituent's answer where a delete makes two constituent calls and responsible_actor answers an assignee where active_for answers an assignment; Concurrency 4's a call's start names neither side of the serialization wait; Concurrency 6 discharges Personal Todo's Concurrency 3, which asks for a concurrency-resolution pattern, by host serialization; the sentence before the invariants says none is available from one atom, false for Invariants 2, 4 and 5, and Invariant 5.1 pins a by-subject history on Permissions, whose only read is every grant; Check 1.1 names a deleted task no store holds and collapses into Check 1.2 → one refining pass
-- 2026-09-30-e · rhetorical · Final Critique 9 · the WHY under Composes attributes to Conformance 8 a sentence from the neighbouring paragraph of execution-contract.md; Wiring decision 1 restates Action wiring 10; Example 3's which role level held which grants names roles Permissions does not hold → quote the contract's own sentence; drop the restatement; say which actor reference held which grants
+- 2026-09-30-d · refining · Final Critique 9 · routed open, non-blocking: Action wiring 18 answers the constituent's answer where a delete makes two constituent calls and responsible_actor answers an assignee where active_for answers an assignment; the sentence before the invariants says none is available from one atom, false for Invariants 2, 4 and 5, and Invariant 5.1 pins a by-subject history on Permissions, whose only read is every grant; Check 1.1 names a deleted task no store holds and collapses into Check 1.2 → one refining pass
+- 2026-09-30-e · rhetorical · Final Critique 9 · Wiring decision 1 restates Action wiring 10; Example 3's which role level held which grants names roles Permissions does not hold → drop the restatement; say which actor reference held which grants
 ```
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/shared-todo.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/shared-todo.md`; the migration, the council read's collapse and the regeneration that got it here are in [its history](./shared-todo.hist.md).
 
-- **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except three invariants the Execution Contract already owns.** *Chose:* `Composes` for the three constituents and the two assignments taken up, then `Composition state`, `Scope vocabulary`, `Action wiring`, `Wiring decision` and `Concurrency` as the wiring surfaces, the five surviving invariant numbers unchanged, and an acceptance section distributed from the closing claim the prose already made — *what the actor was allowed to do and who held the task is readable from the records alone*. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. `Wiring decision` reaches two specs with this one, which is the family Undo History minted and the first sign it recurs.
-- **2026-09-14 — Three invariants asserting a constituent's invariants hold are one citation.** *Chose:* `Composes 6` — *the composition MUST inherit a constituent's invariants PER Execution Contract Conformance 8* — with `Invariant 6`, `Invariant 7` and `Invariant 8` tombstoned to it. *Over:* keeping the three, which is what the prose carried. *Because:* the contract already settles it — *conformance extends recursively, and no composing layer is obligated to re-verify what the substrate's own conformance already establishes; inheriting a guarantee by reference is the point of naming a substrate* — so three invariants re-asserting it were a citing spec restating a rule it cites (Authority 6), which is council read 53's ruling applied to a second seam. What the three carried *beyond* the blanket survives and is not inherited: the relay of an unchanged constituent rejection is `Composes 9`, and the single-instance decisions that make the constituents' guarantees reachable at all are `Composes 1` through `Composes 3` — which is why `Invariant 2.1` stands where `Invariant 7` fell (council read 55).
 - **2026-09-14 — Two constituent assignments are declined, and the declining is written down.** *Chose:* `Non-goal 4` and `Non-goal 12` to state the refusals, with `Composition note 2` and `Composition note 3` restating them as obligations on the deployment. *Over:* silence, which is what a composition usually offers for a note it does not take. *Because:* [Assignment](../atoms/assignment.md)'s `Composition note 4` and [Permissions](../atoms/permissions.md)'s `Composition note 3` both say *a composing pattern MUST own* — so a composition that neither owns nor names a receiver leaves an obligation falling between two layers with no rule anywhere naming who holds it. Passing an assignment down with the receiver named is the most a composition can do with one it does not want, and the corpus has no form for it (council read 55).
 
-- **2026-09-28 — What the cold regeneration met, restored.** *Chose:* the nine signatures back on the page, with Responsible Actor's unassigned and not-known as Action wiring 20 and 21, where the rewrite kept the rules that gate and relay and dropped every action's parameters, answers and refusals, leaving Check 5.1 and 5.2 citing Composition state 2, which states neither answer; visible tasks defined for a caller holding tasks:view, where the term's *none otherwise* read as the empty set Action wiring 19 forbids; and Invariant 5.2 as *a task's delete changes no grant*, with its check moved to External check 5, where Check 4.2 asked an auditor for a grant record keyed on a task id, which no grant carries. *Over:* the 2026-09-14 rewrite's readings. *Because:* each contradicted the page's own rules or the constituents' stores, and the signatures are the prose's projected contracts carried across unchanged. The re-pass is owed.
-
 - **2026-10-20 — Undo History retired, and an undo is the store's history.** *Chose:* Non-goal 6, a deployment needing an undo composing Undo History, tombstoned to Execution Contract Store 5; rules 99 to 98. *Over:* an undo through a composition that replayed an event log of the list's actions. *Because:* the maintainer ruled 2026-10-20 that Undo History retires: Store 5 keeps every committed version of a record readable, so an undone deletion comes back with its id, timestamps and description. The composition itself still offers no undo (Non-goal 5). What the composition does for its domain is unchanged.
+
+- **2026-10-21 — The store's guarantees cited, not restated, and a delete's recall and deletion one transaction.** *Chose:* the store supplied under Execution Contract Store 1 and Execution Contract Store 2 (Capability requirement 1), and the eleven rules that restated it, or existed only for a store that could split a write, tombstoned to their owner — to Store 1, under which a delete's recall and the task's deletion commit together: the bar on wrapping the two in one transaction, the recalled assignment left standing beside a task whose delete failed (Wiring decision 2, 3) and the bar on calling Personal Todo's delete after the recall answered storage-failure (Action wiring 12); and to Store 2, under which an action's guard reads and the writes they decide are one transaction: the host's serialization of two calls naming one task id and of two description writes, with the deployment's supply of it and its external check (Concurrency 1, 6, Composition note 6, External check 6), the answers it left the loser of two assigns and of two deletes (Concurrency 2, 3), a delete's second recall after the first answered not-active (Action wiring 22) and the bar on checking permitted again inside a call (Concurrency 5); with them the delete calls Personal Todo's delete once the recall answers ok rather than once the recall commits (Action wiring 10); rules 98 to 88. *Over:* a recall and a delete committed apart, recall first, so that a delete that failed left an over-recall rather than a dangling assignment, with the host serializing calls by task id and a grant revoked mid-call left to the deployment — the prose spec's design, which the GRACE rewrite carried as Wiring decision 2 and 3 and the Concurrency rules, and Final Critique 7 and 8 extended with Action wiring 22 and Concurrency 6. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and 2026-10-20 that Store 1 binds every store write of one composition action, its constituents' included: Personal Todo's, Permissions' and Assignment's records are one store, so a delete's recall and its deletion commit together or not at all, and a delete that stops leaves neither an over-recall nor a dangling assignment. Store 2 reads the state an action's guards decide on — the permitted answer, the task's existence, its active assignment, the active set's descriptions — inside the transaction that writes the action's effects, so two calls on one task, two description writes and a reassign beside a delete are serialized for every deployment, and a revoke of a grant the gate read commits before the read or after the action's writes. The other calls a rule decided: Wiring decision 1 stays as the cascade's positive rule and the order of its calls inside the one transaction, Action wiring 11 still answers a recall's storage-failure, and Concurrency 4 still checks permitted at a call's start; the responsibility and grant histories are Assignment's and Permissions' own records with their own instants, so the composition cites neither Store 5 nor Order 1. What the composition does for its domain is unchanged.
 
 NOTE: End of Shared Todo.
