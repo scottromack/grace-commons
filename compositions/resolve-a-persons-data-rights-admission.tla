@@ -15,10 +15,12 @@
 \*   f, g  a fulfillment: takes the section, reads the request's state under it, and where the request is
 \*         Received writes its intent, makes the planned call, writes the response disclosure and writes
 \*         the fulfilled event — each call started only while the grant has the call's bound left, each
-\*         landing or failing by that bound (Concurrency 3 through 22). A call may also answer and stay in
-\*         flight: a step-3 refusal, or no answer. The write behind it may still land, or never. A purge
-\*         may answer storage-failure over a record the storage layer already destroyed, and is then
-\*         called once more.
+\*         landing or failing by that bound (Concurrency 3 through 19, 21 and 22). A call may also answer
+\*         and stay in flight: a step-3 refusal, or no answer. The write behind it may still land, or
+\*         never: a store write until another party takes the section, which the store then refuses it
+\*         against (Execution Contract Store 2), and a purge's destruction, an act outside the store, by
+\*         the call's bound whoever holds the section. A purge may answer storage-failure over a record
+\*         the storage layer already destroyed, and is then called once more.
 \*   w, v  a leg: takes the section, reads the request's events, the disclosure store and the plan's
 \*         store under it, and closes the open intent — compensate where a disclosure exists, complete
 \*         where a destruction was planned, abandon where nothing was (Reconciliation 9 through 17, 23
@@ -43,7 +45,7 @@
 \*   -buggy                  LegTakes = FALSE          a leg closes an intent without the request section (Reconciliation 17).
 \*   -buggy-coverage         FromIntent = FALSE        a compensation built from the plan alone (Reconciliation 16).
 \*   -buggy-retry            Retry = TRUE              the fulfilled event issued a second time (Audit arm 21).
-\*   -buggy-release          HoldRefused = FALSE       the section released over a call that may still land (Concurrency 19, 20).
+\*   -buggy-release          Fence = FALSE             a store write still in flight lands after another party took the section (Execution Contract Store 2).
 \*   -buggy-abandon          AbandonUnanswered = TRUE  an abandonment over a disclosure write that did not answer (Action wiring 39).
 \*   -buggy-grant            Reads = FALSE             a call issued without a reading of the grant (Concurrency 9, 12, 13).
 \*   -buggy-unsettled        Unsettled = FALSE         a planned call that did not settle its record read as a refusal (Disposition 42).
@@ -55,6 +57,8 @@
 \*   -access-probe-abandon   a reachability probe: a leg abandons an intent with nothing planned.
 \*   -admission-buggy-order  StateInside = FALSE       the request's state read before the section is taken (Concurrency 7).
 \*   -admission-probe-again  a reachability probe: a second fulfillment seals a request the first abandoned.
+\* HoldRefused, no release over a planned call in flight (Concurrency 19), has no twin: a leg seals a planned
+\* record no store shows destroyed unsettled however late its destruction lands, so no invariant here turns on it.
 \*
 \* NOT MODELED: the intake; more than one planned record, the host delete, a re-invocation of a purge
 \* beyond the one after a storage-failure, and a purge's own refusals beyond one that applies nothing and
@@ -66,7 +70,7 @@
 EXTENDS Naturals
 
 CONSTANTS Dur, Pause, Lat, PLat, MaxTime, FOn, GOn, WOn, VOn,
-          LegTakes, StateInside, HoldRefused, Retry, AbandonUnanswered, Reads, Unsettled, FromIntent, HasPlan, AbandonPlanned, Taint
+          LegTakes, StateInside, HoldRefused, Retry, AbandonUnanswered, Reads, Unsettled, FromIntent, HasPlan, AbandonPlanned, Taint, Fence
 
 VARIABLES now, holder, exp, intF, intG, clF, clG, disc, seals, dest,
           sealedR, badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
@@ -114,6 +118,13 @@ Init ==
 
 Inc(n) == IF n < 2 THEN n + 1 ELSE 2
 
+\* Execution Contract Store 2: a store write's lease check and its commit are one transaction, so a take refuses
+\* every store write another party still has in flight. A purge's destruction is an act outside the store, and no
+\* take refuses it.
+StoreWrite(l) == l \in {"intent", "disc", "seal", "aband"}
+Fenced(l) == IF Fence /\ StoreWrite(l) THEN "none" ELSE l
+FencedBy(l, b) == IF Fence /\ StoreWrite(l) THEN 0 ELSE b
+
 \* Lease State 2: free is derived from a passed instant; the key is free at the reading that equals expires_at.
 Free == holder = "none" \/ now >= exp
 
@@ -148,18 +159,22 @@ FPre ==
                    wlby, wdest, vp, vo, vc, vin, vby, vl, vlby,
                    vdest>>
 
-\* Concurrency 3: the request section, by try_take for the section term.
+\* Concurrency 3: the request section, by try_take for the section term; the take refuses another party's store
+\* write still in flight (Execution Contract Store 2).
 FTake ==
     /\ FOn /\ ((StateInside /\ fp = "idle") \/ fp = "pre")
     /\ Free
     /\ holder' = "f"
     /\ exp' = (now + Dur)
     /\ fp' = (IF fp = "pre" THEN "adm" ELSE "held")
+    /\ gl' = Fenced(gl) /\ glby' = FencedBy(gl, glby)
+    /\ wl' = Fenced(wl) /\ wlby' = FencedBy(wl, wlby)
+    /\ vl' = Fenced(vl) /\ vlby' = FencedBy(vl, vlby)
     /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
                    badCover, rec, legdisc, late, gone, legab, fin, fby, fl,
-                   flby, fr, fd, gp, gin, gby, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
+                   flby, fr, fd, gp, gin, gby, gr, gd, wp,
+                   wo, wc, win, wby, wdest, vp, vo, vc, vin,
+                   vby, vdest>>
 
 \* Concurrency 7, Action wiring 5 and 6: the request's state read under the section.
 FRead ==
@@ -556,11 +571,12 @@ FLateDie ==
                    gr, gd, wp, wo, wc, win, wby, wl, wlby,
                    wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
 
-\* Concurrency 19 through 22: no release with a call in flight, and none over a call that answered and may still land.
+\* Concurrency 19, 21 and 22: no release with a call in flight, and none over a planned call that answered and may
+\* still land; a store write that may still land is the store's to refuse once another party takes the section.
 FRelease ==
-    /\ (fp \in {"rel", "adm"} \/ (fp = "hold" /\ ~HoldRefused))
+    /\ fp \in {"rel", "adm", "hold"}
     /\ fin = "none"
-    /\ (HoldRefused => fl = "none")
+    /\ (HoldRefused => fl # "purge")
     /\ holder' = (IF holder = "f" THEN "none" ELSE holder)
     /\ exp' = (IF holder = "f" THEN 0 ELSE exp)
     /\ fp' = "done"
@@ -581,18 +597,22 @@ GPre ==
                    wlby, wdest, vp, vo, vc, vin, vby, vl, vlby,
                    vdest>>
 
-\* Concurrency 3: the request section, by try_take for the section term.
+\* Concurrency 3: the request section, by try_take for the section term; the take refuses another party's store
+\* write still in flight (Execution Contract Store 2).
 GTake ==
     /\ GOn /\ ((StateInside /\ gp = "idle") \/ gp = "pre")
     /\ Free
     /\ holder' = "g"
     /\ exp' = (now + Dur)
     /\ gp' = (IF gp = "pre" THEN "adm" ELSE "held")
+    /\ fl' = Fenced(fl) /\ flby' = FencedBy(fl, flby)
+    /\ wl' = Fenced(wl) /\ wlby' = FencedBy(wl, wlby)
+    /\ vl' = Fenced(vl) /\ vlby' = FencedBy(vl, vlby)
     /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
                    badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gin, gby, gl, glby, gr,
-                   gd, wp, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
+                   fr, fd, gin, gby, gl, glby, gr, gd, wp,
+                   wo, wc, win, wby, wdest, vp, vo, vc, vin,
+                   vby, vdest>>
 
 \* Concurrency 7, Action wiring 5 and 6: the request's state read under the section.
 GRead ==
@@ -989,11 +1009,12 @@ GLateDie ==
                    gr, gd, wp, wo, wc, win, wby, wl, wlby,
                    wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
 
-\* Concurrency 19 through 22: no release with a call in flight, and none over a call that answered and may still land.
+\* Concurrency 19, 21 and 22: no release with a call in flight, and none over a planned call that answered and may
+\* still land; a store write that may still land is the store's to refuse once another party takes the section.
 GRelease ==
-    /\ (gp \in {"rel", "adm"} \/ (gp = "hold" /\ ~HoldRefused))
+    /\ gp \in {"rel", "adm", "hold"}
     /\ gin = "none"
-    /\ (HoldRefused => gl = "none")
+    /\ (HoldRefused => gl # "purge")
     /\ holder' = (IF holder = "g" THEN "none" ELSE holder)
     /\ exp' = (IF holder = "g" THEN 0 ELSE exp)
     /\ gp' = "done"
@@ -1003,18 +1024,22 @@ GRelease ==
                    gd, wp, wo, wc, win, wby, wl, wlby, wdest,
                    vp, vo, vc, vin, vby, vl, vlby, vdest>>
 
-\* Reconciliation 17: a leg closes nothing before it holds the request section.
+\* Reconciliation 17: a leg closes nothing before it holds the request section; the take refuses another party's
+\* store write still in flight (Execution Contract Store 2).
 WTake ==
     /\ WOn /\ LegTakes /\ wp = "idle" /\ AnyOpen
     /\ Free
     /\ holder' = "w"
     /\ exp' = (now + Dur)
     /\ wp' = "held"
+    /\ fl' = Fenced(fl) /\ flby' = FencedBy(fl, flby)
+    /\ gl' = Fenced(gl) /\ glby' = FencedBy(gl, glby)
+    /\ vl' = Fenced(vl) /\ vlby' = FencedBy(vl, vlby)
     /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
                    badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wo, wc, win, wby, wl, wlby, wdest,
-                   vp, vo, vc, vin, vby, vl, vlby, vdest>>
+                   fr, fd, gp, gin, gby, gr, gd, wo, wc,
+                   win, wby, wl, wlby, wdest, vp, vo, vc, vin,
+                   vby, vdest>>
 
 \* Reconciliation 9, 23 and 30: the request's events, the disclosure store and the plan's store, read under the section.
 WReadF ==
@@ -1220,10 +1245,10 @@ WLateDie ==
                    gl, glby, gr, gd, wp, wo, wc, win, wby,
                    wdest, vp, vo, vc, vin, vby, vl, vlby, vdest>>
 
+\* Concurrency 24: a leg makes no planned call, so once its calls have answered it holds the section over nothing.
 WRelease ==
-    /\ (wp \in {"fin", "read"} \/ (wp = "hold" /\ ~HoldRefused))
+    /\ wp \in {"fin", "read", "hold"}
     /\ win = "none"
-    /\ (HoldRefused => wl = "none")
     /\ holder' = (IF holder = "w" THEN "none" ELSE holder)
     /\ exp' = (IF holder = "w" THEN 0 ELSE exp)
     /\ wp' = "done"
@@ -1233,18 +1258,22 @@ WRelease ==
                    gr, gd, wo, wc, win, wby, wl, wlby, wdest,
                    vp, vo, vc, vin, vby, vl, vlby, vdest>>
 
-\* Reconciliation 17: a leg closes nothing before it holds the request section.
+\* Reconciliation 17: a leg closes nothing before it holds the request section; the take refuses another party's
+\* store write still in flight (Execution Contract Store 2).
 VTake ==
     /\ VOn /\ LegTakes /\ vp = "idle" /\ AnyOpen
     /\ Free
     /\ holder' = "v"
     /\ exp' = (now + Dur)
     /\ vp' = "held"
+    /\ fl' = Fenced(fl) /\ flby' = FencedBy(fl, flby)
+    /\ gl' = Fenced(gl) /\ glby' = FencedBy(gl, glby)
+    /\ wl' = Fenced(wl) /\ wlby' = FencedBy(wl, wlby)
     /\ UNCHANGED <<now, intF, intG, clF, clG, disc, seals, dest, sealedR,
                    badCover, rec, legdisc, late, gone, legab, fp, fin, fby,
-                   fl, flby, fr, fd, gp, gin, gby, gl, glby,
-                   gr, gd, wp, wo, wc, win, wby, wl, wlby,
-                   wdest, vo, vc, vin, vby, vl, vlby, vdest>>
+                   fr, fd, gp, gin, gby, gr, gd, wp, wo,
+                   wc, win, wby, wdest, vo, vc, vin, vby, vl,
+                   vlby, vdest>>
 
 \* Reconciliation 9, 23 and 30: the request's events, the disclosure store and the plan's store, read under the section.
 VReadF ==
@@ -1450,10 +1479,10 @@ VLateDie ==
                    gl, glby, gr, gd, wp, wo, wc, win, wby,
                    wl, wlby, wdest, vp, vo, vc, vin, vby, vdest>>
 
+\* Concurrency 24: a leg makes no planned call, so once its calls have answered it holds the section over nothing.
 VRelease ==
-    /\ (vp \in {"fin", "read"} \/ (vp = "hold" /\ ~HoldRefused))
+    /\ vp \in {"fin", "read", "hold"}
     /\ vin = "none"
-    /\ (HoldRefused => vl = "none")
     /\ holder' = (IF holder = "v" THEN "none" ELSE holder)
     /\ exp' = (IF holder = "v" THEN 0 ELSE exp)
     /\ vp' = "done"
