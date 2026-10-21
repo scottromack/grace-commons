@@ -59,7 +59,7 @@ State 2: EVERY event MUST carry event id, sequence number, recording instant and
 State 3: The log MUST carry log name.
 State 4: The log MUST carry next sequence number.
 State 5: A fresh log instance MUST begin next sequence number at one.
-State 6: [Append] MUST raise next sequence number by one.
+State 6: IF [Append] answers event id THEN [Append] MUST raise next sequence number by one.
 Deleted: State 7. Execution Contract Store 3 owns it.
 State 8: The atom MUST NOT offer a delete surface.
 State 9: The atom MUST NOT offer an edit surface.
@@ -77,7 +77,7 @@ Term log name: the name telling one log instance from another — a [Log Name].
 
 Term next sequence number: the sequence number the next landed event carries — a [Next Sequence Number]; part of the instance's persistent state.
 
-Term landed: an event a successful [Append] wrote; a consumed sequence number under which nothing was written is not landed.
+Term landed: an event a successful [Append] wrote.
 
 Term event field: event id | sequence number | recording instant | data.
 
@@ -113,8 +113,8 @@ Operation 9: IF the store refuses the write THEN [Append] MUST answer storage-fa
 Operation 10: [Append] MUST NOT answer event id with storage-failure.
 Operation 11: A caller MUST read storage-failure as the event not landing.
 Deleted: Operation 12. Execution Contract Store 2 owns it.
-Operation 13: [Read] MUST answer EVERY landed event the query matches.
-Operation 14: [Read] MUST order the answer by sequence number, rising.
+Deleted: Operation 13. Invariant 5.1 owns it.
+Deleted: Operation 14. Invariant 5.2 owns it.
 Operation 15: IF the query is malformed THEN [Read] MUST answer invalid-query.
 Operation 16: [Read] MUST answer an empty sequence for a well-formed query matching nothing.
 Operation 17: [Read] MUST NOT write.
@@ -124,9 +124,9 @@ Deleted: Operation 20. Execution Contract Logic confinement 3 owns it.
 Operation 21: The business caller MUST NOT supply recording instant.
 ```
 
-Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, a payload predicate, or a combination.
+Term query: what a read asks for — a [Query]: a sequence number range, a wall-time range, or a combination of the two.
 
-Term payload cap: the per-instance bound on data's size; 64 kilobytes where a deployment declares none.
+Term payload cap: the per-instance bound on data's size, in bytes; 65,536 bytes where a deployment declares none.
 
 The case space, and the rule that owns each case:
 
@@ -134,8 +134,8 @@ The case space, and the rule that owns each case:
 |---|---|---|---|
 | [Append] | data within the cap, store accepts | event id | one event lands at the tail, next sequence number rises (Operation 1, Operation 3, State 6) |
 | [Append] | data over the cap | [Invalid Payload] | none — the precondition failed before the write (Operation 5) |
-| [Append] | store refuses the write | [Storage Failure] | nothing lands; a sequence number may be consumed (Operation 9, Sequence gap 1) |
-| [Read] | query well-formed, events match | the events, ascending | none — the call reads (Operation 13, Operation 17) |
+| [Append] | store refuses the write | [Storage Failure] | nothing lands; next sequence number is unchanged (Operation 9, State 6) |
+| [Read] | query well-formed, events match | the events, ascending | none — the call reads (Invariant 5.1, Operation 17) |
 | [Read] | query well-formed, nothing matches | empty sequence | none (Operation 16) |
 | [Read] | query malformed | [Invalid Query] | none (Operation 15) |
 
@@ -163,7 +163,7 @@ The case space, and the rule that owns each case:
   ```
   Invariant 5.1: A read MUST answer EVERY landed event the read's query matches.
   Invariant 5.2: A read MUST answer the events by sequence number, rising.
-  Invariant 5.3: A read MUST NOT answer an event for a consumed sequence number no event landed under.
+  Deleted: Invariant 5.3. Execution Contract Store 1 owns it: a refused append writes nothing, so no sequence number is consumed.
   ```
 - **Invariant 6 — No id reuse.**
   ```
@@ -171,7 +171,7 @@ The case space, and the rule that owns each case:
   ```
 - **Invariant 7 — Wall-time best-effort monotonicity.**
   ```
-  Invariant 7.1: IF the clock is non-decreasing THEN recording instant MUST NOT fall in append order.
+  Deleted: Invariant 7.1. Invariant 7.2 owns it: two appends the store serializes can land in the order opposite to their clock readings, so recording instant can fall in append order under a non-decreasing clock.
   Invariant 7.2: sequence number IS AUTHORITATIVE FOR the log's order.
   ```
 
@@ -203,12 +203,12 @@ The mechanic is identical across all four. What differs: payload schema, query p
 
 A single sequence exercising all three rejection reasons:
 
-- `append(65_000_bytes_of_data)` → rejected invalid-payload (payload exceeds the default 64 KB cap; configurable per instance).
+- `append(65_537_bytes_of_data)` → rejected invalid-payload (payload exceeds the default 65,536-byte cap; configurable per instance).
 - `append({type: "deposit", amount: 500})` → accepted; returns `event_id e1` with `sequence_number 1`.
 - `read({sequence_range: [-1, 5]})` → rejected invalid-query (negative sequence number is not a well-formed range parameter).
 - `read({sequence_range: [1, 1]})` → returns `[e1]`; `sequence_number 1` matches, ordered ascending.
-- Underlying store becomes temporarily unavailable. `append({type: "withdrawal", amount: 100})` → rejected storage-failure; event does not land; caller must treat the rejection as definitive. A sequence number may have been consumed; subsequent successful appends receive a strictly higher number, producing a gap in the dense sequence (see Edge cases — *Sequence-number gaps on storage failure*).
-- Store recovers. `append({type: "withdrawal", amount: 100})` → accepted; returns `event_id e2` with a sequence number strictly greater than 1.
+- Underlying store becomes temporarily unavailable. `append({type: "withdrawal", amount: 100})` → rejected storage-failure; event does not land; caller must treat the rejection as definitive. Nothing is written, so next sequence number stays at 2 (Operation 9, State 6).
+- Store recovers. `append({type: "withdrawal", amount: 100})` → accepted; returns `event_id e2` with `sequence_number 2`.
 
 All three rejection reasons ([Invalid Payload], [Invalid Query], [Storage Failure]) exercised in one thread.
 
@@ -226,15 +226,15 @@ Check 1.2: An auditor MUST find a re-read event's EVERY event field unchanged (I
 Check 2.1: An auditor MUST find no two landed events sharing a sequence number (Invariant 3.1).
 Check 2.2: An auditor MUST find no two events sharing an event id (Invariant 6.1).
 Check 2.3: An auditor MUST find a landed event's sequence number above EVERY sequence number an earlier landed event carries (Invariant 4.1).
-Check 2.4: An auditor MUST read a gap in the sequence numbers as an event that did not land (Sequence gap 3).
+Deleted: Check 2.4. Execution Contract Store 1 owns it: a refused append writes nothing, so the sequence numbers carry no gap.
 Check 3.1: An auditor MUST find a read answering the events by sequence number, rising (Invariant 5.2).
-Check 3.2: An auditor MUST find two reads of one query answering alike (Invariant 5.1).
+Check 3.2: IF no event landing between two reads of one query EXISTS THEN an auditor MUST find the two reads answering alike (Invariant 5.1).
 Check 3.3: An auditor MUST find a read answering an empty sequence for a well-formed query matching nothing (Operation 16).
 Check 3.4: An auditor MUST find a read answering invalid-query for a malformed query (Operation 15).
-Check 3.5: An auditor MUST find no read answering an event for a consumed sequence number no event landed under (Invariant 5.3).
+Deleted: Check 3.5. Execution Contract Store 1 owns it: a refused append writes nothing, so no sequence number is consumed.
 Check 4.1: An auditor MUST find EVERY event carrying event id, sequence number, recording instant AND data (State 2).
 Check 4.2: An auditor MUST find a fresh log instance beginning next sequence number at one (State 5).
-Check 5.1: An auditor MUST read a falling recording instant as a clock finding (Invariant 7.2).
+Deleted: Check 5.1. Check 5.2 owns it: a falling recording instant is no clock finding either, since two appends the store serializes can land in the order opposite to their clock readings.
 Check 5.2: An auditor MUST NOT read a falling recording instant as an order finding (Invariant 7.2).
 ```
 
@@ -245,7 +245,7 @@ NOTE: EVERY check names the rule the check tests.
 ```
 Deleted: External check 1. Execution Contract Store 3 owns it.
 Deleted: External check 2. Execution Contract Store 2 owns it.
-External check 3: An auditor needing the clock non-decreasing confirmed MUST read the deployment's own clock discipline (Invariant 7.1).
+Deleted: External check 3. Execution Contract Logic confinement 7 owns it: the page relies on no guarantee of the clock.
 External check 4: An auditor needing the log untampered confirmed MUST compose Tamper Evidence (Non-goal 4).
 External check 5: An auditor needing an event's writer confirmed MUST compose Actor Identity (Non-goal 6).
 External check 6: An auditor needing the payload cap confirmed MUST read the deployment's own declaration (Operation 5).
@@ -298,10 +298,10 @@ Erasure 3: A deployment under an erasure obligation MUST NOT read this atom as s
 ### Sequence-number gaps on storage failure
 
 ```
-Sequence gap 1: An implementation MAY consume a sequence number on a failed write.
-Sequence gap 2: The next landed event MUST carry a sequence number above a consumed sequence number.
-Sequence gap 3: A consumer MUST NOT read a gap as a lost event.
-Sequence gap 4: An implementation avoiding a gap MUST take EXACTLY ONE OF allocating a sequence number ONLY AFTER the write lands, returning a consumed sequence number to the pool.
+Deleted: Sequence gap 1. Execution Contract Store 1 owns it: a refused append writes nothing, so no sequence number is consumed.
+Deleted: Sequence gap 2. Execution Contract Store 1 owns it: a refused append writes nothing, so no sequence number is consumed.
+Deleted: Sequence gap 3. Execution Contract Store 1 owns it: a refused append writes nothing, so the sequence numbers carry no gap.
+Deleted: Sequence gap 4. Execution Contract Store 1 owns it: a refused append writes nothing, so no sequence number is consumed.
 ```
 
 ## Composition notes
@@ -323,11 +323,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; a consumer; an implementation; the deployment; the store; an event; a read; an append; an auditor.
+Term actors: the atom; the log (also: a log instance, a fresh log instance); the host; the transition; a composing pattern (also: a pattern, a writer); a business caller; a caller; an implementation; the deployment; the store; an event; a read; an append; an auditor.
 
 Term records: event — one recorded fact, carrying event id, sequence number, recording instant and data; the log carries log name and next sequence number.
 
-Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, offer, write, stamp, answer, accept, refuse, read, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, compose, consume, take, cite, renumber, add, erase, match, find.
+Term record verbs: derive, identify, allocate, supply, reuse, reassign, compare, order, own, hold, carry, begin, raise, offer, write, stamp, answer, accept, refuse, read, remain, remove, change, share, stand, fall, land, prune, detect, record, index, collapse, push, append, compose, cite, renumber, add, erase, match, find.
 
 Term value sets: event field = event id | sequence number | recording instant | data.
 
@@ -381,7 +381,7 @@ Projection: sequence_number
 
 #### Recording Instant
 
-The wall-time at which an [Event] was appended — an annotation of when, not the basis of order. Stamped from the host-injected clock on [Append]; best-effort monotonic, with [Sequence Number] authoritative if the clock misbehaves.
+The wall-time at which an [Event] was appended — an annotation of when, not the basis of order. Stamped from the host-injected clock on [Append], it can fall in append order — under a clock that misbehaves, or where two appends land in the order opposite to their clock readings — and [Sequence Number] is authoritative.
 
 Kind:       Field
 Field of:   Event
@@ -405,7 +405,7 @@ Projection: name
 
 #### Next Sequence Number
 
-The [Sequence Number] the next appended [Event] will receive. It begins at 1 for a fresh instance and increments on each [Append].
+The [Sequence Number] the next appended [Event] will receive. It begins at 1 for a fresh instance and rises by one on each [Append] that lands an [Event].
 
 Kind:       Field
 Field of:   Event Log
@@ -413,7 +413,7 @@ Projection: next_sequence_number
 
 #### Query
 
-The selection a caller passes to [Read] — a sequence-number range, a wall-time range, a payload predicate, or a combination. Its exact shape is implementation policy; the only requirement is that a valid [Query] returns events in [Sequence Number] order.
+The selection a caller passes to [Read] — a sequence-number range, a wall-time range, or a combination of the two. Its exact shape is implementation policy; the only requirement is that a valid [Query] returns events in [Sequence Number] order.
 
 Kind:         Parameter
 Parameter of: Read
@@ -430,7 +430,7 @@ Projection: invalid-payload
 
 #### Invalid Query
 
-The refusal [Read] returns when the [Query] is malformed — an invalid range, an unparseable predicate. No events are returned.
+The refusal [Read] returns when the [Query] is malformed — an invalid range, or a selection on the payload. No events are returned.
 
 Kind:       Member
 Member of:  the Read rejection
@@ -439,7 +439,7 @@ Projection: invalid-query
 
 #### Storage Failure
 
-The refusal [Append] returns when the underlying store write fails after all preconditions pass. The caller must treat it as definitive — the [Event] did not land — though a [Sequence Number] may have been consumed (see Edge cases).
+The refusal [Append] returns when the underlying store write fails after all preconditions pass. The caller must treat it as definitive — the [Event] did not land, and the [Next Sequence Number] is unchanged.
 
 Kind:       Member
 Member of:  the Append rejection
@@ -498,14 +498,22 @@ It inherits from:
 ```
 status: partially resolved
 formal: verified — event-log.tla + 1 twin, 2026-06-03
-last gate: 2026-06-18 — Final Critique 4, fresh reader — clean
+last gate: 2026-10-20 — Final Critique 5, the council's first round on the page and the first on its GRACE-lang text (453bde3) and the Store-contract rewrite (4abad76), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus MiMo V2.6 Flash), each handed only the round's reading set, three passes on one text (frozen at 6ed25d6); the round rests on three counted passes — foundational count 5 after triage (12 reports, 2 sent down to refining, 1 rejected), all Kind A: the default payload cap read as 64,000 bytes or 65,536, and the Rejection-paths example held under the first reading alone; a query carried a payload predicate the atom may not read; Check 3.2 failed a conforming log when an event landed between two reads; State 6 raised next sequence number on a refused append and the gap rules let a failed write consume a sequence number, which the Store contract rules out; and Invariant 7.1's recording instant fell under a non-decreasing clock when the store serialized two appends in the order opposite to their clock readings; 17 refining reports, 5 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-18 — Final Critique 4, fresh reader — clean
 
-open: none
+open:
+- 2026-10-20-a · refining · Term payload cap; External check 6 · the deployment's declaration of the payload cap is named (Term payload cap, External check 6) and declared by no Capability requirement → a Capability requirement naming the declaration and the default it falls back to
+- 2026-10-20-b · refining · Operation 18; Term query; Examples · the query's shape is the implementation's (Operation 18), while the Examples, which compile into tests, write queries in one shape and pin that shape's verdict on a range bound below one, and whether a deployment may decline a query kind Term query names is unsaid → fix a portable query shape, or write the Examples' queries in one declared shape
+- 2026-10-20-c · refining · Term seam; Term now; Term transition; Term business caller · each says the Execution Contract's Logic Confinement Principle declares it, and that section declares none of the four → declare the four there, the corpus's one seam wording, or point each at its declaration
+- 2026-10-20-d · refining · State 3; State 5 · log name and a fresh log instance have no declared supplier → name who supplies each, a composing pattern (Identity 10) or the deployment
+- 2026-10-20-e · refining · Examples · the Examples invoke regulated domains (a patient chart, a bank journal), and the method's When the conventions apply requires Regulated adversarial scenarios of such a page → write the subsection
+- 2026-10-20-f · refining · Operation 1 · the tail is declared nowhere (GRACE-lang Closed vocabulary 4), where the grammar's own tail is a statement part → say in declared words where an append writes the event
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/event-log.md`; the rounds and the migration that got it here are in [its history](./event-log.hist.md).
+
+- **2026-10-20 — A refused append leaves the counter, a query never reads the payload, and wall time promises no order.** *Chose:* next sequence number raised only by an append that answers event id (State 6), so a refused append consumes no sequence number and the gap rules go to Execution Contract Store 1 (Sequence gap 1 through 4, Check 2.4, Invariant 5.3, Check 3.5); a query of sequence number and wall-time ranges alone (Term query), so a selection on the payload is malformed (Operation 15); recording instant an annotation that can fall in append order, its promise under a non-decreasing clock withdrawn to the sequence number's authority (Invariant 7.1 to Invariant 7.2, Check 5.1 to Check 5.2, External check 3 to Execution Contract Logic confinement 7). *Over:* a gap the store's one transaction per action rules out; a payload predicate the atom may not evaluate (Non-goal 11); a clock guarantee the store does not give, since two appends it serializes can land in the order opposite to their clock readings (Execution Contract Store 2, Logic confinement 3). *Because:* Final Critique 5 found each a divergence between conforming builds or a conforming run breaking a stated rule, and in each the page already held the answer — the store it cites, its own non-goals, and the sequence number it makes authoritative.
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the store supplied under Execution Contract Store 1 through 4 (Capability requirement 2), and the eleven rules that restated them tombstoned to their owner — Non-goal 16, one write across two events, to Store 1; Operation 7, 8 and 12 and External check 2, appends to one log serialized and never refused for contention or ordering, to Store 2; State 7, Durability 1 through 4 and External check 1, the log and its next sequence number kept across a restart, to Store 3; rules 105 to 95. *Over:* the atom restating, for its own store, what every deployment's store guarantees. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The log's order stays the atom's own, carried by the sequence number (State 1, Invariant 3, Invariant 7.2) — two appends one action makes share one commit — so the atom cites no Order 1; what the atom does for its domain is unchanged.
 

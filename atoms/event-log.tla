@@ -17,18 +17,22 @@
 \*   {eid, seq}, with `len` filled positions; `next_seq`/`next_eid` are the
 \*   monotonic allocators. The Sequences module is avoided to stay in the
 \*   checker's supported fragment (Naturals/FiniteSets/functions).
-\* - The STORAGE-FAILURE gap case from the spec's Edge cases is modeled
-\*   (AppendStorageFail consumes a sequence number without landing an event),
-\*   so the check confronts the subtle claim: monotonicity holds over
-\*   SUCCESSFULLY appended events even when the dense sequence has gaps.
+\* - AppendStorageFail consumes a sequence number without landing an event,
+\*   which the page rules out: a refused append writes nothing (Execution
+\*   Contract Store 1), and State 6 raises next_seq only for an append that
+\*   answers event id (Final Critique 5, 2026-10-20, tombstoned the Sequence
+\*   gap rules). The model is more generous than the page, so the check still
+\*   confronts monotonicity over a gapped sequence; holding there, it holds
+\*   over the page's dense one.
 \*
 \* NOT MODELED (out of scope for the load-bearing property)
 \* - Payload validation (invalid-payload) and query well-formedness
 \*   (invalid-query) — input guards, not ordering claims.
 \* - Read consistency (Invariant 5) — a query-shape property; the ordering it
 \*   relies on is exactly Invariant 4, which is checked here.
-\* - Wall-time best-effort monotonicity (Invariant 7) — explicitly best-effort
-\*   in the English; sequence_number is the authoritative order, checked here.
+\* - Recording instant (Invariant 7) — an annotation the English promises no
+\*   order for (Invariant 7.1 tombstoned to Invariant 7.2 at Final Critique 5);
+\*   sequence_number is the authoritative order, checked here.
 
 EXTENDS Naturals
 
@@ -66,9 +70,10 @@ AppendOk ==
     /\ next_seq' = next_seq + 1
     /\ next_eid' = next_eid + 1
 
-\* append(data) storage-failure: a sequence number may have been allocated and
-\* consumed; no event lands (Edge cases — Sequence-number gaps on storage
-\* failure). Monotonicity must still hold over landed events.
+\* append(data) storage-failure, more generous than the page: a sequence number
+\* is consumed and no event lands. The page leaves next_seq unchanged on a
+\* refused append (State 6, Execution Contract Store 1); the action is kept so
+\* monotonicity is checked over gapped runs too.
 AppendStorageFail ==
     /\ next_seq <= MaxSeq
     /\ next_seq' = next_seq + 1
