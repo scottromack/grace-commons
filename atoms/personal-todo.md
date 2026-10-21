@@ -259,7 +259,7 @@ This sequence covers four of the rejection reasons ([Invalid Description], [Dupl
 
 ## Generation acceptance
 
-An implementation is acceptable when an external auditor, given the list and the atom's own surface, can clear the checks below without recourse to source code, runbooks or developer narration. This is the corpus's smallest atom and the reference implementation's first worked example, so the section is deliberately plain: every check is one reading of the list against one rule, and the external set is one line long because almost nothing here needs evidence the list does not carry.
+An implementation is acceptable when the checks below are provable to an external auditor given the list and the atom's own surface. This is the corpus's smallest atom and the reference implementation's first worked example, so the section is deliberately plain: every check is one reading of the list against one rule, and the external set is one line long because almost nothing here needs evidence the list does not carry.
 
 ### Conformance checks
 

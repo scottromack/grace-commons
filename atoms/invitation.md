@@ -320,7 +320,7 @@ Term admitted read: a [Read] call that answers.
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the invitation records and the read-time clock alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the invitation records and the read-time clock.
 
 ### Conformance checks
 

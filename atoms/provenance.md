@@ -355,7 +355,7 @@ The same call against the chain while it stood open, after custody had moved to 
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit.** An FDA (US Food and Drug Administration) inspector asks for the complete chain of custody for `batch-x91` under 21 CFR (Code of Federal Regulations) Part 211. `read("chain-0041")` answers the ordered sequence; the inspector clears Check 1.1 through 7.2 from those records alone, without the facility's assertion that custody was maintained.
+- **Regulator audit.** An FDA (US Food and Drug Administration) inspector asks for the complete chain of custody for `batch-x91` under 21 CFR (Code of Federal Regulations) Part 211. `read("chain-0041")` answers the ordered sequence; the inspector clears Check 1.1 through 7.2 provably, from those records.
 - **Disputed transaction.** The defense rebuttal above rests on two invariants together: custody continuity, because from custodian reference is read from chain state and cannot be supplied (Invariant 4, Operation 18), and custodian presence, because no entry may name an empty custodian (Invariant 7).
 - **Breach investigation.** An investigator brackets an anomaly window generously: `read("chain-0041", {recorded_at_range: ["2026-02-27", "2026-03-17"]})`. A wall-time filter is a convenience over a best-effort annotation and never an ordering claim (Operation 58), so the window's completeness is confirmed from an unfiltered read — the filtered window's first and last entries are located in the full sequence and their sequence-adjacent neighbours checked to fall outside the bracket. The sequence is dense (Invariant 5), so no entry lies between an entry and its sequence-adjacent neighbour and a clock-skewed entry cannot have been silently excluded. The custodian in force at any point is then exactly determined by replaying the preceding entries.
 
@@ -363,7 +363,7 @@ The same call against the chain while it stood open, after custody had moved to 
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the chain records and its entries, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the chain records and the chain's entries.
 
 ### Conformance checks
 

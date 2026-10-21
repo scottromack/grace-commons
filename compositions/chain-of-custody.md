@@ -18,17 +18,17 @@ toc: true
 
 ## Summary
 
-Chain of Custody is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves the chain-of-custody problem no single atom solves alone: proving, from the records alone, that an artifact moved through an unbroken sequence of verified, non-repudiable (unable later to deny the act) custodians, that no entry was tampered with, and that the chain was kept for the required period. It wires two constituents: Provenance (the append-only custody chain with structural continuity — one current custodian at all times, hand-to-hand transfers) and the Audit Trail substrate (the tamper-evident — designed so unauthorized changes are detectable — regulated-audit substrate that attribution-stamps and seals every custody event via the Event Log, Actor Identity, Retention Window, and Tamper Evidence atoms it contains).
+Chain of Custody is a regulated composition (a spec that wires two or more atoms — freestanding, self-contained pattern specs — together) that solves the chain-of-custody problem no single atom solves alone: making it provable that an artifact moved through an unbroken sequence of verified, non-repudiable (unable later to deny the act) custodians, that no entry was tampered with, and that the chain was kept for the required period. It wires two constituents: Provenance (the append-only custody chain with structural continuity — one current custodian at all times, hand-to-hand transfers) and the Audit Trail substrate (the tamper-evident — designed so unauthorized changes are detectable — regulated-audit substrate that attribution-stamps and seals every custody event via the Event Log, Actor Identity, Retention Window, and Tamper Evidence atoms it contains).
 
-The composition's defining emergent guarantee is records-alone custody proof: a single query, `verify_custody(chain_id, original_event_payloads)`, returns the full ordered chain with, per entry, the verified attribution of the acting custodian (who authorized this step), the tamper-evident seal status (has the entry been altered), and the retention state (is the entry still held lawfully) — plus a continuity check confirming that every transfer's outgoing custodian equals the prior holder. This is the structural answer to the regulator's, judge's, or auditor's four questions — *who held it, was the transfer unbroken, was the record altered, was it kept long enough* — from the records alone, without developer narration. Neither Provenance alone nor Audit Trail alone produces this answer; the composition is what wires them into a single custody-proof surface.
+The composition's defining emergent guarantee is provable custody: a single query, `verify_custody(chain_id, original_event_payloads)`, returns the full ordered chain with, per entry, the verified attribution of the acting custodian (who authorized this step), the tamper-evident seal status (has the entry been altered), and the retention state (is the entry still held lawfully) — plus a continuity check confirming that every transfer's outgoing custodian equals the prior holder. This is the provable answer to the regulator's, judge's, or auditor's four questions — *who held it, was the transfer unbroken, was the record altered, was it kept long enough*. Neither Provenance alone nor Audit Trail alone produces this answer; the composition is what wires them into a single custody-proof surface.
 
-Its most common uses are pharmaceutical chain of custody under FDA (US Food and Drug Administration) 21 CFR (Code of Federal Regulations) Part 211 and DEA (US Drug Enforcement Administration) 21 CFR Part 1304 (controlled substance inventory), physical-evidence authentication under FRE (Federal Rules of Evidence) 901(b)(9), financial instrument custody records under SEC (US Securities and Exchange Commission) Rule 17a-4, and digital-file chain of custody under ISO (International Organization for Standardization) 23081 (records-management metadata). Any system that must prove, from records alone, that every step in an artifact's journey was attributed, sealed, and retention-governed is a candidate for this composition.
+Its most common uses are pharmaceutical chain of custody under FDA (US Food and Drug Administration) 21 CFR (Code of Federal Regulations) Part 211 and DEA (US Drug Enforcement Administration) 21 CFR Part 1304 (controlled substance inventory), physical-evidence authentication under FRE (Federal Rules of Evidence) 901(b)(9), financial instrument custody records under SEC (US Securities and Exchange Commission) Rule 17a-4, and digital-file chain of custody under ISO (International Organization for Standardization) 23081 (records-management metadata). Any system that must make it provable that every step in an artifact's journey was attributed, sealed, and retention-governed is a candidate for this composition.
 
 ---
 
 ## Intent
 
-Every domain that must account for an artifact's journey faces the same four-part requirement: the chain must be unbroken (no gap in custody, hand-to-hand transfers with no unattributed interval), the custodians must be verified (each hand-off attributed to a real actor, not just an opaque reference), the chain must be tamper-evident (any after-the-fact rewrite detectable from the records alone), and the chain must be retention-governed (retained for its regulatory lifetime and lawfully destroyable with a defensible record of destruction). No single atom satisfies all four. Provenance supplies the first. Audit Trail supplies the third and fourth, and transitively the second via Actor Identity. But neither provides the full custody-proof surface until they are wired together: Provenance does not verify its opaque custodian_ref values and does not seal its chain; Audit Trail does not know what a custody chain is or that its events need to be tied to custody entries. The wiring is this composition.
+Every domain that must account for an artifact's journey faces the same four-part requirement: the chain must be unbroken (no gap in custody, hand-to-hand transfers with no unattributed interval), the custodians must be verified (each hand-off attributed to a real actor, not just an opaque reference), the chain must be tamper-evident (any after-the-fact rewrite provable), and the chain must be retention-governed (retained for its regulatory lifetime and lawfully destroyable with a defensible record of destruction). No single atom satisfies all four. Provenance supplies the first. Audit Trail supplies the third and fourth, and transitively the second via Actor Identity. But neither provides the full custody-proof surface until they are wired together: Provenance does not verify its opaque custodian_ref values and does not seal its chain; Audit Trail does not know what a custody chain is or that its events need to be tied to custody entries. The wiring is this composition.
 
 The cross-domain structural identity is the composition's thesis. Under FDA 21 CFR Part 211 (Current Good Manufacturing Practice for Finished Pharmaceuticals), a pharmaceutical manufacturer must demonstrate an unbroken, attributed, tamper-protected, retention-compliant chain of custody from manufacture through distribution to dispensing. Under FRE 901(b)(9) (Authentication by Process or System), an officer presenting physical evidence at trial must authenticate the exhibit via an unbroken custody chain in which every handler is identified. Under DEA 21 CFR Part 1304 (Controlled Substance Inventory Records), a complete, accurate record of every change of custody for a controlled substance is a legal obligation. The structural form is identical across all three domains: one artifact, one current custodian at all times, hand-to-hand transfers, each hand-off attributed and verifiable, the record sealed against tampering, and the record retained for its regulatory lifetime. One grounded composition satisfies all three.
 
@@ -412,13 +412,13 @@ Wiring decision 6: The composition MUST NOT attest a transfer under the incoming
 ```
 
 WHY:
-*Principle.* A court-admissible or regulator-acceptable chain of custody needs four properties at once: continuity (no gap, hand to hand), verified attribution (each custodian non-repudiably identified), tamper evidence (any rewrite detectable from the records alone), and retention governance (kept for its regulatory lifetime, lawfully destroyable with a defensible record). Provenance supplies continuity; Audit Trail supplies the other three. Without a per-entry link the two record sets are parallel and unjoined — an auditor can verify continuity separately and attribution separately, but cannot prove all four *together for the same entry*.
+*Principle.* A court-admissible or regulator-acceptable chain of custody needs four properties at once: continuity (no gap, hand to hand), verified attribution (each custodian non-repudiably identified), tamper evidence (any rewrite provable), and retention governance (kept for its regulatory lifetime, lawfully destroyable with a defensible record). Provenance supplies continuity; Audit Trail supplies the other three. Without a per-entry link the two record sets are parallel and unjoined — an auditor can verify continuity separately and attribution separately, but cannot prove all four *together for the same entry*.
 
 *Likely objection.* Why not fold attribution, tamper evidence and retention into Provenance, so the chain itself carries all four?
 
 *Mechanism.* Those are exactly the concepts Provenance extracted in its EOS (Essence of Software — Daniel Jackson's framework for freestanding, composable concepts) pass to stay freestanding, naming each composing home in its own edge cases. The composition is where they re-converge, and efficiently: Audit Trail already wires all three into one substrate, so one binding — entry to event — carries the whole surface (Wiring decision 1). Absorbing the three into Provenance would end its freestanding status and make every unregulated chain carry the regulated overhead.
 
-*Result.* A records-alone custody proof neither constituent gives alone: an auditor holding the binding index, the chain and the substrate answers the four questions — who held it, was the transfer unbroken, was the record altered, was it kept long enough — without narration, source code or runbooks.
+*Result.* Provable custody, which neither constituent gives alone: an auditor holding the binding index, the chain and the substrate answers the four questions — who held it, was the transfer unbroken, was the record altered, was it kept long enough.
 
 ### Reconciliation
 
@@ -551,7 +551,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
 
   Term uncompensable orphan: an orphan entry that is not compensable.
 
-- **Invariant 5 — Records-alone custody proof.**
+- **Invariant 5 — Provable custody.**
   ```
   Invariant 5.1: [Verify Custody] MUST answer the continuity, the attestation, the seal AND the retention of EVERY entry of the chain.
   ```
@@ -562,7 +562,7 @@ These emerge from the composition; none belongs to one constituent, and each nee
   Deleted: Invariant 6. Composes 5 owns it.
   ```
 
-Continuity, attribution, seal and retention for the same entry give the *records-alone custody proof*; the bijection makes it total; authentication before commitment makes the attribution exact.
+Continuity, attribution, seal and retention for the same entry give *provable custody*; the bijection makes it total; authentication before commitment makes the attribution exact.
 
 ---
 
@@ -586,7 +586,7 @@ A pharmaceutical manufacturer uses this composition to track batch X-91 from man
    - `continuity_check = continuous` (every `from_custodian_ref` matches the prior holder).
    - For each of `e1`–`e5`: `attestation_verification = verified` (each attributed, each seal valid, each in `Retained` retention state).
    - `overall_verdict = custody-proof-complete`.
-   The inspector sees a single structural answer to all four questions. Invariant 1 through 5 are the structural guarantees behind each field. The inspector consults no source code, no runbooks, no developer narration.
+   The inspector sees a single provable answer to all four questions. Invariant 1 through 5 are the structural guarantees behind each field.
 
 ### Legal evidence — physical exhibit at trial under FRE 901(b)(9)
 
@@ -626,13 +626,13 @@ An FDA inspector runs `verify_custody("chain-0041", original_event_payloads)`. T
 - Per-entry `attestation_verification = verified`: by Invariant 1 (attributed custody), each entry has an outcome Audit Trail event whose Actor Identity attestation binds the custodian_ref to a credential — and, by Invariant 7, an intent event preceding the entry's commit under that same custodian, which is the stronger claim under Part 11's *Attributable* limb: the identity was checked before the custody step, not merely recorded after it. The Tamper Evidence seal (via Audit Trail Invariant 3) confirms no entry was rewritten.
 - Per-entry `retention_state = Retained`: by Invariant 3, every entry is under active retention per the configured predicate-rule policy; none has elapsed.
 - `overall_verdict = custody-proof-complete`.
-The inspector's four questions — unbroken custody, verified attribution, tamper-evidence, retention honored — are answered from the records alone. No developer narration is required. Invariant 1 through 5 are the structural basis for each answer.
+The inspector's four questions — unbroken custody, verified attribution, tamper-evidence, retention honored — have provable answers. Invariant 1 through 5 are the structural basis for each answer.
 
 **Disputed transaction — legal evidence: defense claims tampering or an unattributed handler under FRE 901(b)(9).**
 
 Defense counsel claims: (a) custody was broken (an unrecorded handler existed), or (b) a custodian was unverified (their identity was not attributable), or (c) the chain was tampered with (an entry was altered after the fact). The prosecution's [Verify Custody] result addresses each:
 - Claim (a): `continuity_check = continuous`, resting on Provenance Invariant 4. If there were a gap, a transfer would have been recorded with a `from_custodian_ref` that did not match the prior holder — structurally impossible because Provenance reads `from_custodian_ref` from chain state.
-- Claim (b): per-entry `attestation_verification = verified`, resting on Invariant 1 and Audit Trail Invariant 1. Each custodian's credential was verified by Actor Identity **before their custody step committed** — the intent record is the records-alone proof, and the outcome record's `intent_event_id` names it — so the claim is exact rather than approximate; the attestation is in the record.
+- Claim (b): per-entry `attestation_verification = verified`, resting on Invariant 1 and Audit Trail Invariant 1. Each custodian's credential was verified by Actor Identity **before their custody step committed** — the intent record makes it provable, and the outcome record's `intent_event_id` names it — so the claim is exact rather than approximate; the attestation is in the record.
 - Claim (c): per-entry `attestation_verification` seal check (Invariant 2, Audit Trail Invariant 3). Any rewrite of an audit event produces a `failed-verification(seal-proof-invalid)` result. A rewrite of the Provenance chain itself is caught by the per-entry field-match clause (`entry_payload_match`): the sealed audit payload's copies are the anchored values, so a rewritten transformation_descriptor or a consistently rewritten from/to pair reports entry-payload-mismatch, while a removed binding reports binding-gap. Direct cryptographic sealing of the chain records themselves remains the composing Tamper-Evidence-on-Provenance concept the constituent's own edge case names.
 
 **Breach or incident investigation: reconstruct custody during an anomaly window and bound the time of tampering via the Audit Trail seal cadence.**
@@ -641,13 +641,13 @@ An incident responder suspects a custody record was tampered with between two da
 - `attestation_verification = verified` for entries whose covering seal predates the anomaly: the seal is intact.
 - `attestation_verification = failed-verification(seal-proof-invalid)` for entries whose seal was tampered with: the first such entry, and its seal's `sealed_at` and `anchored_at` (from the Tamper Evidence atom via Audit Trail), bound the window. The most recent seal that returns verified end-to-end and the first that returns `failed-verification(seal-proof-invalid)` define the forensic window — a bound that holds when the deployment **chains its seals** (each seal covering its predecessor's proof, a property of the substrate's seal mechanism, not of its cadence); without seal chaining the tampering bound is per-seal, not global. The `seal_cadence` governs the window's resolution.
 - `attestation_verification = failed-verification(unsealed)` for entries in the unsealed tail: these are covered by Event Log per-event immutability but not yet seal-verified; a tighter `seal_cadence` would have narrowed this window.
-Where seals carry `anchored_at` from a TSA (Time-Stamp Authority — a trusted third party that signs proofs of when data existed) outside the adversary's reach, the upper bound on tampering time is independently established. The forensic picture comes from the records alone.
+Where seals carry `anchored_at` from a TSA (Time-Stamp Authority — a trusted third party that signs proofs of when data existed) outside the adversary's reach, the upper bound on tampering time is independently established. The forensic picture is provable.
 
 ---
 
 ## Generation acceptance
 
-An implementation is acceptable — in the regulator-acceptance sense — when an external auditor, given the binding index, the Provenance chain records and the Audit Trail substrate's records, can clear the checks below without recourse to source code, runbooks or developer narration.
+An implementation is acceptable — in the regulator-acceptance sense — when the checks below are provable to an external auditor given the binding index, the Provenance chain records and the Audit Trail substrate's records.
 
 ### Conformance checks
 
@@ -806,16 +806,16 @@ Kind: Operation
 
 #### Verify Custody
 
-The composition's emergent verification: construct the records-alone [Custody Proof] for a chain by replaying Provenance continuity ([Continuity Check]) and, for each entry, verifying its bound Audit Trail event's attestation, seal, and retention. Neither constituent can answer it alone; the caller presents the original event payloads (Audit Trail's verification asymmetry).
+The composition's emergent verification: construct the provable [Custody Proof] for a chain by replaying Provenance continuity ([Continuity Check]) and, for each entry, verifying its bound Audit Trail event's attestation, seal, and retention. Neither constituent can answer it alone; the caller presents the original event payloads (Audit Trail's verification asymmetry).
 
 Kind: Operation
 
 #### Custody Proof
 
-The structured artifact [Verify Custody] returns: the chain's state, its [Continuity Check] result, an ordered per-entry sequence of attestation / seal / retention verifications, and a summary [Overall Verdict]. The records-alone proof of unbroken + attributed + tamper-evident + retention-governed custody that neither Provenance nor Audit Trail provides alone.
+The structured artifact [Verify Custody] returns: the chain's state, its [Continuity Check] result, an ordered per-entry sequence of attestation / seal / retention verifications, and a summary [Overall Verdict]. What makes unbroken + attributed + tamper-evident + retention-governed custody provable, which neither Provenance nor Audit Trail provides alone.
 
 Kind: Type
-Role: the records-alone custody proof
+Role: provable custody
 
 #### Continuity Check
 
@@ -837,7 +837,7 @@ Projection: overall_verdict
 
 #### Custody Proof Complete
 
-The [Overall Verdict] value when the chain's continuity is unbroken, every entry has its audit-event binding, and every supplied attestation verifies (or is a lawful `failed-verification(purged)`) — the full custody is proven from the records alone.
+The [Overall Verdict] value when the chain's continuity is unbroken, every entry has its audit-event binding, and every supplied attestation verifies (or is a lawful `failed-verification(purged)`) — the full custody is provable.
 
 Kind:       Member
 Member of:  the overall verdict
@@ -877,7 +877,7 @@ This composition is the structural form of the chain-of-custody requirement acro
 
 - **FDA 21 CFR Part 211 (Current Good Manufacturing Practice — Finished Pharmaceuticals)** — requires an unbroken, attributed, tamper-protected, retention-compliant chain of custody from manufacture through distribution for drug substances and products. The composition's [Originate Custody] → [Transfer Custody] → [Archive Custody] sequence, with per-entry attribution and seal via the Audit Trail substrate, is the operational form of Part 211's custodial recording requirement. The ALCOA / ALCOA+ (Attributable, Contemporaneous, Original, Accurate, plus Complete, Consistent, Enduring, Available) principles are all satisfied simultaneously by the four-atom stack inside the Audit Trail substrate, applied to every custody entry.
 
-- **DEA 21 CFR Part 1304 (Controlled Substance Inventory Records)** — requires complete, accurate records of every change of custody of a controlled substance. Invariant 1 (attributed custody) and Invariant 5 (records-alone custody proof) are the structural implementation of this requirement at every transfer step.
+- **DEA 21 CFR Part 1304 (Controlled Substance Inventory Records)** — requires complete, accurate records of every change of custody of a controlled substance. Invariant 1 (attributed custody) and Invariant 5 (provable custody) are the structural implementation of this requirement at every transfer step.
 
 - **Federal Rules of Evidence 901(b)(9) (Authenticating or Identifying Evidence — Process or System)** — the US evidentiary rule for authenticating physical or electronic evidence via chain-of-custody records. The composition's [Verify Custody] result — `continuity_check = continuous` plus per-entry `attestation_verification = verified` — is the structural form of the unbroken, attributed chain courts require for authentication. Invariant 4 (custody continuity) and Invariant 1 (attributed custody) are the rebuttal to authentication challenges.
 

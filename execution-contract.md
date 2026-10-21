@@ -350,7 +350,7 @@ Every specification keeps records, and every deployment keeps them in a database
 
 **Database 4: The database never edits.** No committed record changes or disappears except by an action a specification declares. The database runs no trigger, default, cascade, expiry or compaction that alters or removes a committed record; erasure and purge happen only as the specification that owns them says.
 
-**Database 5: Every committed version stays readable.** A record's earlier versions remain readable after it changes, each as it stood at the commit that wrote it, so a reader can ask what a record was as of any past commit. An erasure or purge a specification declares removes every version of what it erases, not only the current one.
+**Database 5: Every committed version stays readable.** A record's earlier versions remain readable after it changes, each as it stood at the commit that wrote it, so a reader can ask what a record was as of any past commit. An erasure or purge a specification declares removes every version of what it erases, not only the current one. A [shred](./glossary.md), which destroys the keys that decrypt a record's content, is not an erasure: it removes no version.
 
 **Store 1: Deleted.** Database 1 owns it.
 

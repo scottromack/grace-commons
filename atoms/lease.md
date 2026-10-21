@@ -202,7 +202,7 @@ Term unit's bound: the bound the composing pattern declares on a unit of work, f
 
 Term work's bound: the bound the composing pattern declares on all the work under one lease, the take's answer, every reading and every unit's bound counted.
 
-Term budget: a bound the composing pattern declares over work that began before the take, of which the lease is granted a share.
+Term budget: a bound the composing pattern declares over work that began before the take, of which the lease is given a share.
 
 Term write margin: `2 * call_pause_bound` — a check's answer and the write the check guards are two calls.
 

@@ -158,7 +158,7 @@ The mechanic is identical across all four. What differs: the [Window Duration], 
 
 ## Generation acceptance
 
-An implementation is acceptable when an external auditor, given the recorded set and the atom's own query surface, can clear the checks below without recourse to source code, runbooks or developer narration. The atom is not regulated and carries no adversarial scenarios; what it carries is a guard other patterns rest correctness on, and this section is where that guard becomes testable rather than asserted.
+An implementation is acceptable when the checks below are provable to an external auditor given the recorded set and the atom's own query surface. The atom is not regulated and carries no adversarial scenarios; what it carries is a guard other patterns rest correctness on, and this section is where that guard becomes testable rather than asserted.
 
 ### Conformance checks
 

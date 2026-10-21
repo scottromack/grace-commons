@@ -31,7 +31,7 @@ A few questions need other patterns to answer — whether a referenced consent w
 ## Intent
 
 WHY:
-Regulated systems handling personal data, financial records or protected health information must keep a complete and durable account of every disclosure made — what was shared, with whom, under what legal authority, and when. A GDPR (EU General Data Protection Regulation) supervisory authority conducting an Article 15 review asks what was disclosed to which recipients. An HHS OCR (Office for Civil Rights) inspector validating HIPAA (US Health Insurance Portability and Accountability Act) compliance asks for the accounting of disclosures section 164.528 requires. An SEC (Securities and Exchange Commission) examiner reviewing broker-dealer records asks for the disclosure trail Rule 17a-4 mandates. The obligation is the same across all three: answer from the records alone, without developer testimony, log reconstruction or institutional memory.
+Regulated systems handling personal data, financial records or protected health information must keep a complete and durable account of every disclosure made — what was shared, with whom, under what legal authority, and when. A GDPR (EU General Data Protection Regulation) supervisory authority conducting an Article 15 review asks what was disclosed to which recipients. An HHS OCR (Office for Civil Rights) inspector validating HIPAA (US Health Insurance Portability and Accountability Act) compliance asks for the accounting of disclosures section 164.528 requires. An SEC (Securities and Exchange Commission) examiner reviewing broker-dealer records asks for the disclosure trail Rule 17a-4 mandates. The obligation is the same across all three: answer provably, without developer testimony, log reconstruction or institutional memory.
 
 This atom is the accountability layer that makes those answers possible, and the line it holds is between *recording* and *performing*. An atom that also performed disclosures — retrieving subject data, applying redaction, routing to recipients — would absorb concepts from storage layers, redaction engines and notification systems, each with its own state, its own invariants and its own composing pattern. Absorbing them destroys freestanding status and produces a spec that cannot be composed independently of the technologies it would have to name. The atom specifies the accountability obligation; the implementation specifies the mechanics of delivery.
 
@@ -238,7 +238,7 @@ A communicable-disease report goes to a state health department under a reportin
 
 ### The Article 15 answer
 
-A data subject exercises their access right. `read({subject_ref: "patient-88213"})` answers three records in disclosure instant ascending order — the regulatory report first at 09:15, then the consent disclosure at 14:02, then the compelled one — each carrying its recipient, scope, authority type and authority reference. `read({subject_ref: "patient-88213", authority_type: "consent"})` narrows to one. The regulatory question is answered from the database alone.
+A data subject exercises their access right. `read({subject_ref: "patient-88213"})` answers three records in disclosure instant ascending order — the regulatory report first at 09:15, then the consent disclosure at 14:02, then the compelled one — each carrying its recipient, scope, authority type and authority reference. `read({subject_ref: "patient-88213", authority_type: "consent"})` narrows to one. The regulatory question's answer is provable.
 
 ### Rejection paths
 
@@ -266,7 +266,7 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the disclosure records alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the disclosure records.
 
 ### Conformance checks
 
@@ -546,7 +546,7 @@ Projection: invalid-query
 
 ## Standards references
 
-- **GDPR Article 15(1)(c)** — the data subject's right of access includes the right to know the recipients or categories of recipients to whom their personal data has been or will be disclosed. Selective Disclosure is the accountability layer that makes Article 15(1)(c) responses structurally answerable from records alone. Every disclosure record's [Recipient] field and [Authority] field are the data the Article 15 response draws from.
+- **GDPR Article 15(1)(c)** — the data subject's right of access includes the right to know the recipients or categories of recipients to whom their personal data has been or will be disclosed. Selective Disclosure is the accountability layer that makes Article 15(1)(c) responses provable. Every disclosure record's [Recipient] field and [Authority] field are the data the Article 15 response draws from.
 - **GDPR Article 30 (Records of processing activities)** — controllers must maintain records of processing activities, including categories of recipients to whom personal data has been or will be disclosed, and transfers to third countries or international organizations. Disclosure records under this atom are the processing-activity records Article 30 requires for the disclosure category of processing.
 - **HIPAA section 164.528 (Accounting of disclosures of protected health information)** — individuals have the right to receive an accounting of disclosures of their PHI (Protected Health Information — individually identifiable health data covered by HIPAA) made by a covered entity or business associate. The accounting must include the date of each disclosure, the name and address of the recipient, a brief description of the PHI disclosed, and a brief statement of the purpose. Each field maps directly: [Disclosure Instant] (date), [Recipient] (recipient name), [Scope] (description of PHI), [Authority Reference] (purpose statement). The atom is the structural implementation of section 164.528's accounting obligation.
 - **SEC Rule 17a-4** — broker-dealers must preserve records in non-rewriteable, non-erasable format, accessible to regulators on demand. Disclosure records for broker-dealer records are themselves required records under 17a-4. Composing with Tamper Evidence satisfies the non-rewriteable, non-erasable standard; this atom provides the disclosure record structure.

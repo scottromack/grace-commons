@@ -414,13 +414,13 @@ Tokens for `svc_s03` turn up in a log file. `revoke(cred_c11, admin_a01, "log-ex
 
 - **Regulator audit.** *Was the service account's programming-interface credential rotated inside the ninety-day window?* Filter the database to the pair and order by registration instant; each rotated record carries rotation instant and a link forward. Invariant 7.1 and Invariant 7.2 are what make the chain complete rather than merely plausible — no rotation is omitted, and no link leaves the pair.
 - **Disputed transaction.** *I did not log in from that address.* The composing [Login](../compositions/login.md) records name the credential used; these records show that credential's standing and registration instant. Invariant 3.1 is the structural rebuttal: if verified was answered, the presented material matched the recorded verifier. Whether the caller was the principal or someone holding their secret is a separate investigation, and this atom's records bound its window.
-- **Breach investigation.** A batch of tokens may have been exposed. Filter to the pair, read each effective status against the investigation clock, and revoke what is still effective-active. Invariant 9.1 through 9.3 are what make the resulting record answer *when, why, and whom the caller named* from the database alone; that the named actor was the authenticated caller is the composing pattern's to prove (Composition note 15, External check 10).
+- **Breach investigation.** A batch of tokens may have been exposed. Filter to the pair, read each effective status against the investigation clock, and revoke what is still effective-active. Invariant 9.1 through 9.3 are what make the resulting record's answer to *when, why, and whom the caller named* provable; that the named actor was the authenticated caller is the composing pattern's to prove (Composition note 15, External check 10).
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the credential records and a read-time clock alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the credential records and a read-time clock.
 
 ### Conformance checks
 

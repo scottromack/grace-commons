@@ -16,7 +16,7 @@ toc: true
 
 ## Summary
 
-Legal Hold is a formal instruction to keep a specific record intact — overriding any normal deletion schedule — until the legal matter that triggered it is resolved. When a lawsuit is anticipated, a regulator opens an investigation, or a team needs to freeze evidence, the normal "delete after N years" rule stops applying. The hold records the shift: who issued it, against which record, why, and under what authority. A hold is either [Active] (preservation in effect) or [Released] (lifted, permanently — it cannot be reactivated). Both placing and releasing are attributed, timestamped, and never altered afterward, so the full arc of any preservation obligation can be reconstructed from the records alone. Multiple holds can cover the same record independently — a record under both an internal investigation and a government investigation has two separate obligations, and releasing one leaves the other in force, which is exactly what multi-party legal situations require. The pattern does not itself block deletion; it records that an obligation exists, and the system that actually deletes records is responsible for checking for [Active] holds first. This is the mechanism behind litigation-hold management, breach-response preservation, and any setting where destroying a record during an active legal obligation exposes the organization to penalties.
+Legal Hold is a formal instruction to keep a specific record intact — overriding any normal deletion schedule — until the legal matter that triggered it is resolved. When a lawsuit is anticipated, a regulator opens an investigation, or a team needs to freeze evidence, the normal "delete after N years" rule stops applying. The hold records the shift: who issued it, against which record, why, and under what authority. A hold is either [Active] (preservation in effect) or [Released] (lifted, permanently — it cannot be reactivated). Both placing and releasing are attributed, timestamped, and never altered afterward, so the full arc of any preservation obligation is provable. Multiple holds can cover the same record independently — a record under both an internal investigation and a government investigation has two separate obligations, and releasing one leaves the other in force, which is exactly what multi-party legal situations require. The pattern does not itself block deletion; it records that an obligation exists, and the system that actually deletes records is responsible for checking for [Active] holds first. This is the mechanism behind litigation-hold management, breach-response preservation, and any setting where destroying a record during an active legal obligation exposes the organization to penalties.
 
 ---
 
@@ -229,7 +229,7 @@ The case space, and the rule that owns each case:
   Deleted: Invariant 8.3. Execution Contract Database 1 owns it.
   ```
 
-Immutability and durability give the *preservation record* property — the full arc of an obligation, from recognition to lifting, recoverable from the database alone. Independence gives the property a multi-authority matter needs: one record, many obligations, each ending on its own day.
+Immutability and durability give the *preservation record* property — the full arc of an obligation, from recognition to lifting, provable. Independence gives the property a multi-authority matter needs: one record, many obligations, each ending on its own day.
 
 ### Database instance model
 
@@ -267,7 +267,7 @@ After hold-001 is [Released], counsel's paralegal system retries: `release("hold
 
 #### Regulator audit — HHS OCR HIPAA investigation
 
-HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) Office for Civil Rights (OCR) opens an investigation into a reported breach of PHI (Protected Health Information — individually identifiable health data covered by HIPAA, the Health Insurance Portability and Accountability Act, the US federal law governing healthcare data privacy). It issues a preservation demand to the covered entity for all records relating to the incident. The compliance team calls [Place] for each record in scope; each placement carries `case_ref: "ocr-hipaa-inv-2026-0334"`. Two months later, OCR requests the preservation record: query `read({case_ref: "ocr-hipaa-inv-2026-0334", state: Active})` returns every [Active] hold placed under this investigation. Every hold carries [Placing Actor] and [Hold Reason] strings, neither blank, and a [Placement Instant] timestamp that is set — immutable by Invariants 1 and 7. OCR confirms that preservation was initiated and that each hold is still [Active]. The covered entity has a documentable, auditable preservation response; no recourse to developer testimony is needed.
+HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) Office for Civil Rights (OCR) opens an investigation into a reported breach of PHI (Protected Health Information — individually identifiable health data covered by HIPAA, the Health Insurance Portability and Accountability Act, the US federal law governing healthcare data privacy). It issues a preservation demand to the covered entity for all records relating to the incident. The compliance team calls [Place] for each record in scope; each placement carries `case_ref: "ocr-hipaa-inv-2026-0334"`. Two months later, OCR requests the preservation record: query `read({case_ref: "ocr-hipaa-inv-2026-0334", state: Active})` returns every [Active] hold placed under this investigation. Every hold carries [Placing Actor] and [Hold Reason] strings, neither blank, and a [Placement Instant] timestamp that is set — immutable by Invariants 1 and 7. OCR confirms that preservation was initiated and that each hold is still [Active]. The covered entity has a documentable, provable preservation response.
 
 #### Spoliation challenge — federal litigation
 
@@ -286,7 +286,7 @@ The DOJ investigation closes first. The compliance team releases all `hold-doj-*
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the hold records' stored fields, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the hold records' stored fields.
 
 ### Conformance checks
 
@@ -638,7 +638,7 @@ Projection: invalid-query
 - **SEC Rule 17a-4(f)** — requires broker-dealers to preserve records in non-rewriteable, non-erasable format, accessible to regulators on demand. Legal Hold composes with Tamper Evidence to meet this standard; the hold record itself is a regulated record under 17a-4.
 - **HIPAA section 164.530(j)** — documentation retention requirements; HHS investigations trigger preservation obligations over the PHI and administrative records involved. Legal Hold is the preservation mechanism.
 - **HIPAA Breach Notification Rule (45 CFR section 164.400–414)** — breach investigations generate preservation obligations over the records relating to the incident. [Case Reference] references the OCR investigation case identifier.
-- **GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Article 17(3)(e)** — erasure right (right to be forgotten) does not apply when processing is necessary for the establishment, exercise, or defence of legal claims. An [Active] Legal Hold is the operational record that establishes the legal-claim exception to erasure. See [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md), whose `retained(legal-hold)` disposition is the records-alone form of this exception.
+- **GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Article 17(3)(e)** — erasure right (right to be forgotten) does not apply when processing is necessary for the establishment, exercise, or defence of legal claims. An [Active] Legal Hold is the operational record that establishes the legal-claim exception to erasure. See [Resolve a Person's Data Rights](../compositions/resolve-a-persons-data-rights.md), whose `retained(legal-hold)` disposition is the provable form of this exception.
 - **21 CFR Part 11** — electronic records and signatures in FDA-regulated contexts. Preservation holds on regulated records (clinical trial data, manufacturing batch records) must be attributable and non-alterable. Composes with Actor Identity and Tamper Evidence.
 - **E-SIGN Act (Electronic Signatures in Global and National Commerce Act) / UETA (Uniform Electronic Transactions Act)** — electronic hold records carry the same legal force as paper hold notices where these acts apply.
 - **ISO 15489-1 (Records management)** — the International Organization for Standardization's standard for records-management practice; hold is the operational mechanism for Section 9.7 (suspension of disposition). The two-state ([Active]/[Released]) model maps directly to ISO 15489's hold lifecycle.

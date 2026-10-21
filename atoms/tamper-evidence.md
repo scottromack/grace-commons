@@ -16,14 +16,14 @@ toc: true
 
 ## Summary
 
-Tamper Evidence answers the question "how do I know these records weren't altered after the fact?" It works through seals — permanent records that attach a cryptographic proof to the records they cover. A proof is a mathematical fingerprint of a set of records as they stood at a moment in time. Sealing computes that fingerprint and stores it. Verifying re-computes the fingerprint over the original records and compares. If anything was changed, the fingerprint no longer matches, and the check fails. The crucial limit is that this detects tampering rather than preventing it. It cannot stop someone with full write access from altering both the records and the seal. But it makes any alteration visible to anyone holding the original records and the seal. The pattern is deliberately neutral about the cryptographic method used, as long as the guarantee holds: any change since sealing is detectable from the records alone. This is the mechanism behind sealing financial transaction journals, medical-record change logs, and payment-card access logs so auditors can confirm nothing was rewritten — and behind Git's commit history, the most widely deployed example. It does not, on its own, prevent tampering, prove who created the seal, or guarantee the seal's timestamp. Each of those is a separate pattern layered on top.
+Tamper Evidence answers the question "how do I know these records weren't altered after the fact?" It works through seals — permanent records that attach a cryptographic proof to the records they cover. A proof is a mathematical fingerprint of a set of records as they stood at a moment in time. Sealing computes that fingerprint and stores it. Verifying re-computes the fingerprint over the original records and compares. If anything was changed, the fingerprint no longer matches, and the check fails. The crucial limit is that this detects tampering rather than preventing it. It cannot stop someone with full write access from altering both the records and the seal. But it makes any alteration visible to anyone holding the original records and the seal. The pattern is deliberately neutral about the cryptographic method used, as long as the guarantee holds: any change since sealing is provable. This is the mechanism behind sealing financial transaction journals, medical-record change logs, and payment-card access logs so auditors can confirm nothing was rewritten — and behind Git's commit history, the most widely deployed example. It does not, on its own, prevent tampering, prove who created the seal, or guarantee the seal's timestamp. Each of those is a separate pattern layered on top.
 
 ---
 
 ## Intent
 
 WHY:
-A regulated record set must answer one question from the records alone: *have these been altered since they were written?* Procedure cannot answer it — a runbook, an access-control list and a developer's word are all claims about the past made by the party under audit. A cryptographic commitment can: seal the record set, keep the proof, and any later modification is detectable by re-running the mechanism's own verification over the records the verifier holds. This atom is that commitment and nothing more. It is mechanism-neutral by design — a hash chain, a Merkle tree with a signed root, a timestamp token and a blockchain anchor satisfy one contract — and it is honest about its ceiling: it produces evidence of tampering, never prevention of it. An adversary with write access to both the records and the seals rewrites both. What defeats that is an anchor outside the adversary's reach, and that is a composing pattern's, named here and not overclaimed.
+A regulated record set must answer one question provably: *have these been altered since they were written?* Procedure cannot answer it — a runbook, an access-control list and a developer's word are all claims about the past made by the party under audit. A cryptographic commitment can: seal the record set, keep the proof, and any later modification is detectable by re-running the mechanism's own verification over the records the verifier holds. This atom is that commitment and nothing more. It is mechanism-neutral by design — a hash chain, a Merkle tree with a signed root, a timestamp token and a blockchain anchor satisfy one contract — and it is honest about its ceiling: it produces evidence of tampering, never prevention of it. An adversary with write access to both the records and the seals rewrites both. What defeats that is an anchor outside the adversary's reach, and that is a composing pattern's, named here and not overclaimed.
 
 ## Structure
 
@@ -289,7 +289,7 @@ Three scenarios the atom must survive in regulated contexts:
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the seal records and the originating record sets, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the seal records and the originating record sets.
 
 ### Conformance checks
 
@@ -318,7 +318,7 @@ External check 4: An auditor MUST read the deployment's mechanism from the deplo
 
 NOTE: mechanism health, anchor trust, the composing patterns wired in and the mechanism itself are what the seal records do not carry — the External check family v0.35 declares exists for exactly this (council read 13).
 
-NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove these records were not altered?* — answered from the records and the proof, never from a runtime claim.
+NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *can you prove these records were not altered?* — answered provably.
 
 ## Non-goals
 

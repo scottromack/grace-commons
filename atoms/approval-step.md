@@ -22,7 +22,7 @@ Each step has exactly one approver (the only person who may approve or reject it
 
 A step has four states: pending, plus three terminal ones — approved, rejected (with a required reason), and withdrawn. All three are absorbing; there is no re-open and no decision reversal.
 
-The core guarantee is that every decision is fully attributed. An anonymous decision, a rejection with no reason, or a missing timestamp is a failure. So the record alone proves a required control existed and operated, which is exactly what an auditor or investigator asks for.
+The core guarantee is that every decision is fully attributed. An anonymous decision, a rejection with no reason, or a missing timestamp is a failure. So it is provable that a required control existed and operated, which is exactly what an auditor or investigator asks for.
 
 This is distinct from a permission (standing, reusable authority to do a class of things) and from an assignment (who owns a task, not who approved it). A controller may be *permitted* to approve journal entries, and each entry still needs an Approval Step proving they *did* approve that one. Delegation is a composing concept, not a property of this atom.
 
@@ -314,7 +314,7 @@ A controller determines that posting JE-2026-0441 needs senior finance approval 
 
 The finance director approves: `approve("step-001", decided_by: "finance_director_chen", reason: "Reviewed and approved — posting authorized")` → approved. The step stands in approved, carrying deciding actor, decision reason and decision instant (Operation 24, Operation 27, Operation 30).
 
-An auditor later runs `read({subject_ref: "je-2026-0441", state: approved})` and sees who submitted, who approved, when, and why. The control evidence is in the record without developer testimony.
+An auditor later runs `read({subject_ref: "je-2026-0441", state: approved})` and sees who submitted, who approved, when, and why. The control evidence is provable from the record.
 
 Or the director finds a misclassification: `reject("step-001", decided_by: "finance_director_chen", reason: "GL account 4120 is incorrect — should be 4130 per revenue recognition policy")` → rejected_outcome. The composing workflow routes the entry back, and the corrected entry needs a new [Submit] — this step is closed (Invariant 3.1, State 4).
 
@@ -350,7 +350,7 @@ A cross-border entry needs both finance and tax sign-off. Two [Submit] calls pro
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the step records alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the step records.
 
 ### Conformance checks
 

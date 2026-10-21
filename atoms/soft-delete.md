@@ -313,7 +313,7 @@ A data subject submits an erasure request. The DSAR workflow calls `soft_delete(
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the lifecycle records alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the lifecycle records.
 
 ### Conformance checks
 

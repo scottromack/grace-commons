@@ -20,7 +20,7 @@ toc: true
 
 Forensic Recovery makes soft deletion forensically complete. Every delete, restore, and purge action against a record is attributed (the acting actor verified via credential), tamper-evident (the Audit Trail substrate seals each event), and retention-governed (the audit events are placed under retention).
 
-The composition's headline emergent guarantee is **full ordered lifecycle history recoverability**: a single forensic read action, [Recover History], reconstructs the complete delete/restore/purge history of any record from the Audit Trail event stream — including prior epochs that Soft Delete's current-state-only summary overwrites — proving, from the records alone, that no record was purged without an auditable record naming who purged it, when, and under what stated authority.
+The composition's headline emergent guarantee is **full ordered lifecycle history recoverability**: a single forensic read action, [Recover History], reconstructs the complete delete/restore/purge history of any record from the Audit Trail event stream — including prior epochs that Soft Delete's current-state-only summary overwrites — making it provable that no record was purged without an auditable record naming who purged it, when, and under what stated authority.
 
 Neither Soft Delete (no tamper-evidence, current-state attribution only) nor Audit Trail (no lifecycle-continuity model) provides this guarantee alone; the composition's lifecycle-transition ⇒ audit-event binding is what makes it emergent.
 
@@ -423,7 +423,7 @@ WHY:
 
 *Mechanism.* Soft Delete keeps only the *most recent* attribution per kind, immutable only by specification. The composition fills each gap at once through the substrate: Event Log keeps every transition in order, Tamper Evidence seals them cryptographically, Actor Identity verifies the actor rather than recording an opaque reference, and the lifecycle index makes all three available per transition and per record (Wiring decision 1, 2 and 4).
 
-*Result.* A records-alone-defensible, tamper-evident, fully recoverable deletion lifecycle neither constituent provides alone. An investigator holding the lifecycle index, the Soft Delete records and the Audit Trail substrate answers the regulator's questions — who deleted it, who restored it, who purged it, in what order, is the record intact, was it kept long enough — from the records alone, without developer narration, source code or runbooks.
+*Result.* A provable, tamper-evident, fully recoverable deletion lifecycle neither constituent provides alone. An investigator holding the lifecycle index, the Soft Delete records and the Audit Trail substrate answers the regulator's questions provably — who deleted it, who restored it, who purged it, in what order, is the record intact, was it kept long enough.
 
 ### Reconciliation
 
@@ -571,7 +571,7 @@ A healthcare SaaS (Software as a Service) platform uses this composition to gove
    - `attempts = []`.
    - `events`: `[{sequence_position=1, provenance=both, event_id="ev_5001", action_ref=record.soft_deleted, actor_ref="dsar_service", acting_actor_ref="dsar_service", recovery=false, recorded_at=T1, recording_instant=R1, reason="GDPR Art. 17 erasure request…", attestation_verification=verified, retention_state=Retained}, {sequence_position=2, provenance=both, event_id="ev_5003", action_ref=record.purged, actor_ref="dsar_service", acting_actor_ref="dsar_service", recovery=false, recorded_at=T2, recording_instant=R2, reason="GDPR Art. 17 erasure confirmed…", attestation_verification=verified, retention_state=Retained}]`.
    - `overall_verdict = history-complete`.
-   The DPA auditor sees: (a) who deleted the record and why; (b) who purged it, when, and under what stated reason; (c) both events are tamper-evidently sealed; (d) both are under active retention; and (e) T1 and T2 are the transition instants the two actions carried, R1 and R2 the instants Event Log recorded the appends (Clock semantics 2). Invariant 1 through 3 are the structural guarantees behind each field. No developer narration required.
+   The DPA auditor sees: (a) who deleted the record and why; (b) who purged it, when, and under what stated reason; (c) both events are tamper-evidently sealed; (d) both are under active retention; and (e) T1 and T2 are the transition instants the two actions carried, R1 and R2 the instants Event Log recorded the appends (Clock semantics 2). Invariant 1 through 3 are the structural guarantees behind each field, each provable.
 
 ### Multi-epoch lifecycle — delete, restore, re-delete, purge
 
@@ -603,7 +603,7 @@ A GDPR supervisory authority or HIPAA Office for Civil Rights (OCR) investigator
 - For each event in the reconciled sequence for `profile-4491`: `attestation_verification = verified` by Invariant 1 (lifecycle attribution coverage) — each transition has an Audit Trail event whose Actor Identity attestation binds actor_ref to a credential. The Tamper Evidence seal (via Audit Trail Invariant 3) confirms no event was rewritten after the fact.
 - Every event's `retention_state = Retained` — the audit events are under active retention per the configured policy (Audit Trail Invariant 2 — retention coverage).
 - `overall_verdict = history-complete`.
-The regulator's question — *who deleted the record, who purged it, was the record tampered with, and is the audit trail being kept?* — is answered from the records alone. Invariant 1 through 3 are the structural basis for each answer. No developer narration is required.
+The regulator's question — *who deleted the record, who purged it, was the record tampered with, and is the audit trail being kept?* — has a provable answer. Invariant 1 through 3 are the structural basis for each answer.
 
 **Disputed erasure — data subject claims their record was not erased, or was erased without their request.**
 
@@ -622,13 +622,13 @@ An incident responder suspects records were purged by an unauthorized actor duri
 - `AuditTrail.verify_record(event_id, <the covering range's payloads, as read_record names the range>) → verified` confirms the event has not been tampered with since it was sealed. A `failed-verification(seal-proof-invalid)` result is a finding that the record was altered after sealing.
 - `record_to_events[record_id]` can be read for each affected record_id to reconstruct the full lifecycle context around the anomaly purge: was the record deleted just before the purge (consistent with a rapid delete + purge sequence), or was it in a long-standing Deleted state (consistent with a scheduled purge)?
 
-An unexpected actor_ref on a `record.purged` event, or a `failed-verification` on any event in the window, is a forensic finding. The seal cadence governs the window's resolution: a tighter cadence narrows the range of events that could have been tampered with between seal checkpoints. Invariant 1 through 4 are the structural basis for the investigation; the composition's records answer the investigation's questions from the records alone.
+An unexpected actor_ref on a `record.purged` event, or a `failed-verification` on any event in the window, is a forensic finding. The seal cadence governs the window's resolution: a tighter cadence narrows the range of events that could have been tampered with between seal checkpoints. Invariant 1 through 4 are the structural basis for the investigation; the composition's records answer the investigation's questions provably.
 
 ---
 
 ## Generation acceptance
 
-An implementation is acceptable — in the regulator-acceptance sense — when an external auditor, given the lifecycle index, the Soft Delete records and the Audit Trail substrate's records, can clear the checks below without recourse to source code, runbooks or developer narration.
+An implementation is acceptable — in the regulator-acceptance sense — when the checks below are provable to an external auditor given the lifecycle index, the Soft Delete records and the Audit Trail substrate's records.
 
 ### Conformance checks
 
@@ -800,7 +800,7 @@ Kind: Operation
 
 #### Lifecycle History
 
-The structure [Recover History] returns: the record's current Soft Delete state and attribution summary, an ordered per-event verification list, and a summary [Overall Verdict]. The records-alone answer to *who deleted, restored, and purged this record, in what order, and is each step attributed, sealed, and within its retention horizon?* — which neither constituent provides alone.
+The structure [Recover History] returns: the record's current Soft Delete state and attribution summary, an ordered per-event verification list, and a summary [Overall Verdict]. The provable answer to *who deleted, restored, and purged this record, in what order, and is each step attributed, sealed, and within its retention horizon?* — which neither constituent provides alone.
 
 Kind: Type
 Role: the reconstructed lifecycle-history structure
@@ -825,7 +825,7 @@ Projection: attestation_verification
 
 #### History Complete
 
-The [Overall Verdict] value when every transition in the reconciled sequence has a binding, the sequence is a legal lifecycle path, and every [Attestation Verification] returns verified (or a lawful `failed-verification(purged)`) — the record's full lifecycle is proven from the records alone. A retention-pending, index-gap-repaired or payload-purged outcome is reported beside it and does not block it.
+The [Overall Verdict] value when every transition in the reconciled sequence has a binding, the sequence is a legal lifecycle path, and every [Attestation Verification] returns verified (or a lawful `failed-verification(purged)`) — the record's full lifecycle is provable. A retention-pending, index-gap-repaired or payload-purged outcome is reported beside it and does not block it.
 
 Kind:       Member
 Member of:  the overall verdict

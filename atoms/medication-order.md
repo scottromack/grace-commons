@@ -405,7 +405,7 @@ The dose is wrong. `amend(ord_a1, dr_osei, dose: 20, reason: "titration per 2026
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the order records alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the order records.
 
 ### Conformance checks
 

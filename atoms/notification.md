@@ -242,7 +242,7 @@ If neither delivery nor failure is recorded within the expiry window: `expire(no
 
 When queue 9 escalates, the fanout pattern creates one notification per subscribed supervisor: `create(supervisor_s, {type: "escalation", queue: 9, ticket: t22}) → notif_33`. Email delivery succeeds: `deliver(notif_33)` → [Delivered]. `status_of(notif_33)` returns `status = delivered`, [Delivery Instant]. Elapsed delivery time is `delivered_at − created_at`.
 
-Supervisor_s later asks *"was I notified about the queue-9 escalation?"* — `pending_for(supervisor_s)` returns an empty list (nothing pending), and `status_of(notif_33)` returns `status = delivered` with [Delivery Instant]. The delivery record answers the question from stored fields alone.
+Supervisor_s later asks *"was I notified about the queue-9 escalation?"* — `pending_for(supervisor_s)` returns an empty list (nothing pending), and `status_of(notif_33)` returns `status = delivered` with [Delivery Instant]. The delivery record answers the question provably, from stored fields.
 
 ### Compliance system — policy change
 
@@ -256,15 +256,15 @@ A composing system attempts to create a notification with an empty recipient ref
 
 Three scenarios the notification records must survive in regulated contexts:
 
-- **Regulator audit — demonstrate all notifications for a compliance event.** A compliance auditor asks *"show all notifications created for the policy:updated event on 2025-03-14, and whether each was delivered."* The auditor queries the notification records for notifications where creation instant falls on 2025-03-14 and the payload references the relevant policy. [Status Of] for each returned id shows the delivery outcome — [Delivery Instant], [Failure Instant], or [Lapse Instant]. The notification records answer from stored fields alone; Invariants 1 and 3-4 guarantee the delivery record is complete and unambiguous.
+- **Regulator audit — demonstrate all notifications for a compliance event.** A compliance auditor asks *"show all notifications created for the policy:updated event on 2025-03-14, and whether each was delivered."* The auditor queries the notification records for notifications where creation instant falls on 2025-03-14 and the payload references the relevant policy. [Status Of] for each returned id shows the delivery outcome — [Delivery Instant], [Failure Instant], or [Lapse Instant]. The notification records answer provably, from stored fields; Invariants 1 and 3-4 guarantee the delivery record is complete and unambiguous.
 - **Disputed delivery — actor claims they were not notified.** Officer_a claims they received no notification of policy update p7. The investigator queries the notification records for notifications where `recipient_ref = officer_a` and the payload references `policy_id: p7`. If a record exists with [Delivery Instant] set, Invariant 1 (notification immutability) is the structural answer: the notification was created with that recipient and delivery was confirmed at that time. If the record shows [Failure Instant] or [Lapse Instant], the database confirms delivery was not completed and documents why. The notification records are the single source of truth; no external corroboration is required.
-- **Breach investigation — identify Pending notifications that may have exposed payload data.** A security incident requires identifying all notifications that were [Pending] at the time of breach (2025-06-01T03:00Z) and may have carried sensitive payload data. The investigator queries for notifications where `created_at ≤ 2025-06-01T03:00Z` and either `status = pending` (still unresolved now) or the applicable terminal timestamp falls after 2025-06-01T03:00Z (meaning the notification was [Pending] during the breach window but has since resolved). The reconstruction logic mirrors the Subscription pattern: `created_at ≤ T` and (`status = pending` or `delivered_at > T` or `failed_at > T` or `expired_at > T`). [Status Of] for each candidate returns the current record; creation instant confirms the exposure window. The notification records answer the exposure scope question from stored fields alone without recourse to logs or developer narration.
+- **Breach investigation — identify Pending notifications that may have exposed payload data.** A security incident requires identifying all notifications that were [Pending] at the time of breach (2025-06-01T03:00Z) and may have carried sensitive payload data. The investigator queries for notifications where `created_at ≤ 2025-06-01T03:00Z` and either `status = pending` (still unresolved now) or the applicable terminal timestamp falls after 2025-06-01T03:00Z (meaning the notification was [Pending] during the breach window but has since resolved). The reconstruction logic mirrors the Subscription pattern: `created_at ≤ T` and (`status = pending` or `delivered_at > T` or `failed_at > T` or `expired_at > T`). [Status Of] for each candidate returns the current record; creation instant confirms the exposure window. The notification records answer the exposure scope question provably, from stored fields.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the notification records' stored fields, with no recourse to source code, runbooks or developer narration. The audit surface is the database, not the action surface.
+This atom's acceptance is provable: an external auditor clears it from the notification records' stored fields. The audit surface is the database, not the action surface.
 
 ### Conformance checks
 
@@ -371,7 +371,7 @@ Payload retention 5: A composing pattern MUST NOT delete a notification record.
 ```
 
 WHY:
-What a composed purge can do is the shredding-class destruction [Audit Trail](../compositions/audit-trail.md) already wires over its own cascade: the content becomes unrecoverable while every stored field stands as written, which is why the invariants and the retention obligation do not collide (Payload retention 4, Payload retention 5).
+What a composed purge can do is a shred, as [Audit Trail](../compositions/audit-trail.md) wires one over its own cascade (Payload retention 4, Payload retention 5).
 
 ## Composition notes
 

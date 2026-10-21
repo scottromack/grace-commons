@@ -371,15 +371,15 @@ Before queuing a 30-day campaign: `check(subject_ref: user-4491, purpose: market
 
 ### Regulated adversarial scenarios
 
-- **Regulator audit — GDPR Article 7 validity challenge.** A data protection authority investigates whether a controller held valid consent for `analytics:behavioral` processing on a given date. The controller runs `read({subject_ref: user-4491, purpose: analytics:behavioral})` and the authority reads three things from the records alone: whether a [Granted] record was in effect on the date, from [Grant Instant] against [Revocation Instant] and [Expiry Instant]; whether the agreement was specific and informed, from [Granting Actor] naming the collection point, [Purpose] naming the scope, and [Metadata] carrying the form version; and whether the grant is immutable, from Invariants 1.1 and 7.1. No witness testimony and no developer narration.
+- **Regulator audit — GDPR Article 7 validity challenge.** A data protection authority investigates whether a controller held valid consent for `analytics:behavioral` processing on a given date. The controller runs `read({subject_ref: user-4491, purpose: analytics:behavioral})` and three things are provable to the authority: whether a [Granted] record was in effect on the date, from [Grant Instant] against [Revocation Instant] and [Expiry Instant]; whether the agreement was specific and informed, from [Granting Actor] naming the collection point, [Purpose] naming the scope, and [Metadata] carrying the form version; and whether the [Granted] record is immutable, from Invariants 1.1 and 7.1.
 - **Disputed revocation — the data subject claims non-compliance.** A complaint says marketing continued after withdrawal. `read({subject_ref: user-4491, purpose: marketing:email})` shows `cns-0001` granted `2025-03-01` and revoked `2026-01-15` by `privacy_portal`, with the stated ground. The atom's records fix exactly when the withdrawal was recorded and by which system; whether the sending system called [Check] first is the composing layer's conformance question, not this atom's (State 13, Composition note 2).
-- **Cross-purpose audit — HIPAA Authorization review.** An HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) inquiry asks whether patient `patient-7712` authorized disclosure of PHI (Protected Health Information — individually identifiable health data covered by HIPAA) under `hipaa:research:partner-univ-cardiology`. `read(...)` returns a [Granted] record with `granted_at: 2025-09-01`, `expires_at: 2026-09-01`, `granted_by: clinical_consent_kiosk`. The disclosure occurred `2026-01-10`, and `check(..., at_time: 2026-01-10T00:00:00Z)` → granted settles it from the records.
+- **Cross-purpose audit — HIPAA Authorization review.** An HHS (US Department of Health and Human Services — the federal agency that enforces HIPAA) inquiry asks whether patient `patient-7712` authorized disclosure of PHI (Protected Health Information — individually identifiable health data covered by HIPAA) under `hipaa:research:partner-univ-cardiology`. `read(...)` returns a [Granted] record with `granted_at: 2025-09-01`, `expires_at: 2026-09-01`, `granted_by: clinical_consent_kiosk`. The disclosure occurred `2026-01-10`, and `check(..., at_time: 2026-01-10T00:00:00Z)` → granted settles it provably.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the consent records' stored fields and its query surface, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the consent records' stored fields and the atom's query surface.
 
 ### Conformance checks
 

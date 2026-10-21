@@ -148,7 +148,7 @@ Spec == Init /\ [][Next]_vars
 \* --- rides the same predicates for purge transitions) ---
 
 \* The orphan configuration: a committed lifecycle transition with no audit
-\* event — the partial-failure signature, detectable from the records alone
+\* event — the partial-failure signature, provable
 \* (enumerate Soft Delete state against the Audit Trail events through the
 \* substrate's read surface).
 Orphan(t) == softState[t] = "present" /\ auditState[t] = "absent"

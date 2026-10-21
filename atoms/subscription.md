@@ -235,7 +235,7 @@ A developer attempts to subscribe twice to the same scope: `subscribe(dev_d, tas
 
 Three scenarios the subscription records must survive in regulated contexts:
 
-- **Regulator audit — who was subscribed to a scope at a given time.** A compliance auditor asks *"which actors were subscribed to `policy:updated` at the time the policy was updated on 2025-03-14T10:00Z?"* The auditor queries the subscription records for subscriptions where `event_scope = policy:updated` and (`status = active` or `cancelled_at > 2025-03-14T10:00Z`) and `subscribed_at ≤ 2025-03-14T10:00Z`. The subscription records answer from stored fields alone — [Subscriber Reference], [Event Scope], [Subscription Instant], [Status], [Cancellation Instant] — with no recourse to developer narration. Invariants 1 and 9 make the timeline reconstruction exact.
+- **Regulator audit — who was subscribed to a scope at a given time.** A compliance auditor asks *"which actors were subscribed to `policy:updated` at the time the policy was updated on 2025-03-14T10:00Z?"* The auditor queries the subscription records for subscriptions where `event_scope = policy:updated` and (`status = active` or `cancelled_at > 2025-03-14T10:00Z`) and `subscribed_at ≤ 2025-03-14T10:00Z`. The subscription records answer provably, from stored fields — [Subscriber Reference], [Event Scope], [Subscription Instant], [Status], [Cancellation Instant]. Invariants 1 and 9 make the timeline reconstruction exact.
 - **Disputed subscription — actor claims they were never subscribed.** Officer_a denies having subscribed to `escalation:queue-9`. The investigator queries the subscription records for subscriptions where `subscriber_ref = officer_a` and `event_scope = escalation:queue-9`. If a record exists with [Subscription Instant] and the actor's reference, Invariant 1 (subscription immutability) is the structural answer: the record was created at that time with that [Subscriber Reference]; it does not change. If no record exists, the database confirms the actor was never subscribed. The subscription records are the single source of truth; no external corroboration is required.
 - **Breach investigation — exposure scope assessment.** A security incident requires identifying all actors who were subscribed to `data:export` at the time of the breach (2025-06-01T03:00Z). The investigator queries subscriptions where `event_scope = data:export` and `subscribed_at ≤ 2025-06-01T03:00Z` and (`status = active` or `cancelled_at > 2025-06-01T03:00Z`). The result set is the exposure scope — every actor who would have received notifications fired against that scope during the breach window. Invariant 6 (at-most-one-active) confirms no actor appears more than once in the Active set at any point in time.
 
@@ -243,7 +243,7 @@ Three scenarios the subscription records must survive in regulated contexts:
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the subscription records' stored fields, with no recourse to source code, runbooks or developer narration. The audit surface is the database, not the action surface.
+This atom's acceptance is provable: an external auditor clears it from the subscription records' stored fields. The audit surface is the database, not the action surface.
 
 ### Conformance checks
 

@@ -216,7 +216,7 @@ All three rejection reasons ([Invalid Payload], [Invalid Query], [Storage Failur
 
 ## Generation acceptance
 
-An implementation is acceptable when an external auditor, given one log instance and the atom's own read surface, can clear the checks below without recourse to source code, runbooks or developer narration. This atom is the corpus's Start Here — the first pattern most readers meet — and it claims append-only, total order and read consistency while the evidence for those claims has until now lived in a formal model, a twin suite and five independent renders, none of which a first reader has met. This section is the bridge: the same claims, cleared from the log alone.
+An implementation is acceptable when the checks below are provable to an external auditor given one log instance and the atom's own read surface. This atom is the corpus's Start Here — the first pattern most readers meet — and it claims append-only, total order and read consistency while the evidence for those claims has until now lived in a formal model, a twin suite and five independent renders, none of which a first reader has met. This section is the bridge: the same claims, provable from the log.
 
 ### Conformance checks
 

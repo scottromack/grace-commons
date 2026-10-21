@@ -23,7 +23,7 @@ It combines three simpler patterns: a task list (Personal Todo), a grant-based p
 
 The composition wires them together so that every action passes a permission check first, deleting a task automatically recalls whoever was responsible for it, and two new queries become possible that no single pattern could answer alone: who is responsible for a task right now, and which tasks a given person is allowed to see.
 
-Combining the patterns produces guarantees none has alone — no one can change the list beyond their granted permissions, no responsibility is left dangling against a deleted task, and the full history of who could do what and who owned what is recoverable from the records. This is the standard building block for any collaborative task system where ownership and access control must be auditable.
+Combining the patterns produces guarantees none has alone — no one can change the list beyond their granted permissions, no responsibility is left dangling against a deleted task, and the full history of who could do what and who owned what is provable. This is the standard building block for any collaborative task system where ownership and access control must be auditable.
 
 The most common uses are software development sprint boards with role-based edit and assignment rights, support queue systems where tickets are assigned to agents with different tier-level access, clinical care planning where nurses and physicians share a task list but hold different permissions over it, and legal or compliance workflows where checklist items require clear ownership and an auditable record of who held which permission.
 
@@ -35,7 +35,7 @@ Personal Todo is single-actor by design. It has no concept of who is acting, no 
 
 The pattern addresses the form of multi-actor work that recurs across virtually every collaborative domain: a development team's sprint board where tasks are visible to all but editable only by their owners; a support queue where tickets are assigned to agents with different role-based access; a clinical care plan where nurses and physicians see the same task list but hold different permissions over it; a legal matter where paralegals and partners share a checklist with clear ownership of each item.
 
-The shape is constant across all of them: actors see and act on tasks according to granted scopes (opaque permission tokens, such as `tasks:edit`, that the composition defines and Permissions enforces); one actor is responsible for each task at any given time; the full history of who held what permission and who was responsible for what task is recoverable from the records alone.
+The shape is constant across all of them: actors see and act on tasks according to granted scopes (opaque permission tokens, such as `tasks:edit`, that the composition defines and Permissions enforces); one actor is responsible for each task at any given time; the full history of who held what permission and who was responsible for what task is provable.
 
 This is a composition, not a new primitive. Personal Todo, Permissions, and Assignment are unchanged. The composition is the wiring that makes their three concepts coherent — a single multi-actor task surface rather than three separate record sets the caller has to coordinate by hand.
 
@@ -232,7 +232,7 @@ Each of these needs two or all three constituents working together. None is avai
   Deleted: Invariant 8. Composes 6 owns it.
   ```
 
-Permission enforcement and the cascade together give the coherent multi-actor surface: no actor acts beyond the actor's grants, and no assignment is left dangling against a deleted task. Responsibility queryability and authorization-history completeness together give recoverable accountability — for any task and any actor, what the actor was allowed to do and who held the task is readable from the records alone.
+Permission enforcement and the cascade together give the coherent multi-actor surface: no actor acts beyond the actor's grants, and no assignment is left dangling against a deleted task. Responsibility queryability and authorization-history completeness together give recoverable accountability — for any task and any actor, what the actor was allowed to do and who held the task is provable.
 
 ---
 
@@ -280,7 +280,7 @@ The accountability record is complete at the responsibility level: which nurse h
 
 ## Generation acceptance
 
-The closing claim above is the acceptance bar and this section distributes it: *for any task and any actor, what the actor was allowed to do and who held the task is readable from the records alone.* Every check below clears from the three constituent records; where a claim needs evidence the records do not carry, it is an external check and says so.
+The closing claim above is the acceptance bar and this section distributes it: *for any task and any actor, what the actor was allowed to do and who held the task is provable.* Every check below clears from the three constituent records; where a claim needs evidence the records do not carry, it is an external check and says so.
 
 ### Conformance checks
 

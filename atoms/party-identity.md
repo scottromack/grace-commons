@@ -332,7 +332,7 @@ A screening pattern flags `party_pk3`. `suspend(party_pk3, compliance_c4, "sanct
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the party records alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the party records.
 
 ### Conformance checks
 

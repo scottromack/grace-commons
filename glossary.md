@@ -66,6 +66,22 @@ a different sense, it must say so locally.
   atomic concepts and compositions thereof (lint rule K). Component / module /
   service are likewise projection-internal — generated, never authored.
 
+## Records
+
+Admitted 2026-10-21 by the maintainer's ruling, from the WHYs the rewrite onto
+the Database contract left. Each is a declared domain term, not grammar (the
+Watch list in [`GRACE-lang.md`](./GRACE-lang.md)).
+
+- **shred** — destroy the keys that decrypt a record's content, so the content
+  cannot be recovered while every stored version stays as written. A shred is
+  not an erasure: an erasure removes every version (Execution Contract
+  Database 5), a shred removes none.
+- **grant** — a live authorization that later acts rely on, such as a session,
+  a permission grant or a capability, which a revocation ends. A **record** is
+  a fact about a past act: nothing ends it, and revoking what made it only
+  stops new ones.
+- **provable** — shown by the records alone, never by a system's say-so.
+
 ---
 
 *Status: stub, 2026-06-04.* Seeded from the recurring ambiguity classes (emptiness,

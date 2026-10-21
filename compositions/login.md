@@ -19,9 +19,9 @@ toc: true
 
 Login wires together the full lifecycle of logging in: checking the presented credential, issuing a time-limited session on success, logging out, and — crucially — cancelling every session that came from a credential when that credential is revoked. It combines three patterns: one that verifies credentials (Credential), one that issues and tracks time-limited sessions (Session), and the tamper-evident audit record that spans all of it (Audit Trail).
 
-Its central guarantee is that a session can never be issued without a successful credential check first — the wiring makes it structurally impossible, and an auditor can confirm it from the records because every issued session is named by a login-family audit event: login_succeeded on the clean path, or login_map_write_failure when the session's index entry could not be written, each committed with the session it names or, where the audit trail refuses it, re-emitted by the reconciliation sweep from the login's log entry. Its second guarantee is cascade completeness: when a credential is revoked, every still-active session the index or the trail names for it at that moment is cancelled before the operation returns, and any the cancel could not reach is counted back to the caller.
+Its central guarantee is that a session can never be issued without a successful credential check first — the wiring makes it structurally impossible, and it is provable because every issued session is named by a login-family audit event: login_succeeded on the clean path, or login_map_write_failure when the session's index entry could not be written, each committed with the session it names or, where the audit trail refuses it, re-emitted by the reconciliation sweep from the login's log entry. Its second guarantee is cascade completeness: when a credential is revoked, every still-active session the index or the trail names for it at that moment is cancelled before the operation returns, and any the cancel could not reach is counted back to the caller.
 
-Every login attempt (success or failure), every logout, and every cascaded revocation is recorded, so an investigator can answer from the records alone which credentials established which sessions, whether a session rested on a valid credential, and when and by whom sessions were revoked. The cascade is the load-bearing guarantee that appears only when the three patterns are combined — it belongs to none of them alone — and it is what lets higher-level patterns reliably cut off access the moment a credential is pulled.
+Every login attempt (success or failure), every logout, and every cascaded revocation is recorded, so it is provable which credentials established which sessions, whether a session rested on a valid credential, and when and by whom sessions were revoked. The cascade is the load-bearing guarantee that appears only when the three patterns are combined — it belongs to none of them alone — and it is what lets higher-level patterns reliably cut off access the moment a credential is pulled.
 
 ---
 
@@ -31,7 +31,7 @@ Every system that authenticates principals eventually faces the same composabili
 
 Login is that composition. It provides three services: the login action wires `Credential.verify → Session.issue` in the correct order, with every login attempt (successful or failed) recorded in the Audit Trail before returning. The logout action wires `Session.revoke` with attribution and Audit Trail recording. And [Revoke Sessions For Credential] provides the cascade: when a Credential is revoked — whether by the credential owner, an administrator, or an automated compromise-response process — every Session derived from that Credential is revoked in the same operation, and the full cascade is recorded.
 
-The cascade is load-bearing for downstream compositions. Privileged Access Provisioning's `exercise_access` action depends on Session validity as its first guard: a session invalidated by credential revocation will block all subsequent `exercise_access` calls for any Capability issued to that principal's sessions. The cascade path is: `Credential.revoke` (outside this composition's surface) → caller invokes [Revoke Sessions For Credential] → Login reads the cascade set — the map's entry and the pairs the trail carries → `Session.revoke` for each Active session → Audit Trail records each revocation → Privileged Access Provisioning's session check thereafter returns `session-invalid`. The Login composition is the mechanism that makes this arc visible and traceable from records alone.
+The cascade is load-bearing for downstream compositions. Privileged Access Provisioning's `exercise_access` action depends on Session validity as its first guard: a session invalidated by credential revocation will block all subsequent `exercise_access` calls for any Capability issued to that principal's sessions. The cascade path is: `Credential.revoke` (outside this composition's surface) → caller invokes [Revoke Sessions For Credential] → Login reads the cascade set — the map's entry and the pairs the trail carries → `Session.revoke` for each Active session → Audit Trail records each revocation → Privileged Access Provisioning's session check thereafter returns `session-invalid`. The Login composition is the mechanism that makes this arc visible and provable.
 
 This composition does not implement multi-factor authentication (MFA — requiring two or more independent proofs of identity), account lockout, rate limiting, or session renewal. It implements the minimal correct wiring of three atoms for the common authenticated-session case — the pattern that every other authentication-adjacent composition either calls or depends on.
 
@@ -258,11 +258,6 @@ Wiring decision 3: The composition MUST NOT revoke a credential.
 Wiring decision 4: The composition MUST NOT read a cascade as complete for a session the cascade set did not carry.
 ```
 
-WHY:
-The cascade is the composition's reason to exist and its direction is the opposite of [Authenticated Actor](./authenticated-actor.md)'s over the same [Credential](../atoms/credential.md) constituent. There, revocation closes a surface *forward* by gating each new attestation, because an attestation is an immutable past act with nothing to revoke. Here revocation reaches *backward* into live grants, because a session is a live grant and killing it is both possible and required. Same atom, same event, two cascades — and which one a composition owes is decided by whether the thing downstream is a record or a grant.
-
-Wiring decision 3 keeps the two surfaces apart. This composition provides the downstream cascade and never the credential revocation itself, which belongs to the identity-management surface and arrives here as a call.
-
 ### Reconciliation
 
 ```
@@ -362,7 +357,7 @@ Any subsequent Privileged Access Provisioning `exercise_access` call under `tok_
 
 Three scenarios the composition must survive in regulated contexts:
 
-**Regulator audit.** A SOX (Sarbanes-Oxley Act) auditor asks *"was the session used to exercise access to the quarter-end journal approval control at 09:14 on 2026-10-15 established under a valid, non-revoked credential?"* The auditor reads the Privileged Access Provisioning `session_access_log` to find `session_token: tok_abc123` was used at that time. The auditor queries `session_to_credential[tok_abc123]` → `credential_id: cred_c01`. The auditor reads the Credential records: `cred_c01` was `Active` at `09:14` (it was revoked at `11:40` on the same day, after the access). The Audit Trail's login_succeeded event for `tok_abc123` shows `attempted_at: 2026-10-15T08:52:00Z`, `credential_id: cred_c01`, `principal_ref: user_u91` in its data. Invariant 1 (credential gates issuance) is the structural guarantee that the session could not exist without a prior verified credential. The auditor has their answer from the records alone.
+**Regulator audit.** A SOX (Sarbanes-Oxley Act) auditor asks *"was the session used to exercise access to the quarter-end journal approval control at 09:14 on 2026-10-15 established under a valid, non-revoked credential?"* The auditor reads the Privileged Access Provisioning `session_access_log` to find `session_token: tok_abc123` was used at that time. The auditor queries `session_to_credential[tok_abc123]` → `credential_id: cred_c01`. The auditor reads the Credential records: `cred_c01` was `Active` at `09:14` (it was revoked at `11:40` on the same day, after the access). The Audit Trail's login_succeeded event for `tok_abc123` shows `attempted_at: 2026-10-15T08:52:00Z`, `credential_id: cred_c01`, `principal_ref: user_u91` in its data. Invariant 1 (credential gates issuance) is the structural guarantee that the session could not exist without a prior verified credential. The auditor's answer is provable.
 
 **Disputed login event.** A user claims *"I did not log in from that location at 03:00 AM on 2026-11-20."* The investigator queries the `login_event_log` for `principal_ref: user_u91` on that date. The entry shows `attempted_at: 2026-11-20T03:00:12Z`, `outcome: success`, `credential_id: cred_c01`, `session_token: tok_xyz789`. The Audit Trail's login_succeeded event corroborates the timestamp and credential used. Credential's Invariant 3 (sole-holder verification) means the presented material matched the verifier registered for user_u91's password credential — the login succeeded because someone presented the correct password. Whether that was the legitimate user or an attacker with the compromised password is a separate investigation; Login's records bound the forensic window: the session was issued at `03:00:12Z` after a successful credential check.
 
@@ -372,7 +367,7 @@ Three scenarios the composition must survive in regulated contexts:
 
 ## Generation acceptance
 
-An implementation is acceptable when an external auditor, given the credential records, the session records, the substrate's trail, the two maps and the login event log, can clear the checks below without recourse to source code, runbooks or developer narration.
+An implementation is acceptable when the checks below are provable to an external auditor given the credential records, the session records, the substrate's trail, the two maps and the login event log.
 
 ### Conformance checks
 
@@ -476,7 +471,7 @@ Projection: invalid-credential
 
 #### Outcome
 
-The `login_event_log` entry's classification of a login call: one of `success`, [Success With Map Failure], `failed-verification(reason)`, or [Failed Storage Failure]. Every login call appends exactly one entry (Composition state 10), giving the composition a records-alone query surface alongside the tamper-evident Audit Trail.
+The `login_event_log` entry's classification of a login call: one of `success`, [Success With Map Failure], `failed-verification(reason)`, or [Failed Storage Failure]. Every login call appends exactly one entry (Composition state 10), giving the composition a provable query surface alongside the tamper-evident Audit Trail.
 
 Kind:       Field
 Field of:   the login-event-log entry
@@ -532,7 +527,7 @@ Projection: not_found
 - **GDPR (EU General Data Protection Regulation — the European Union's data-privacy law) Article 32 (Security of Processing)** — the `login_event_log` and Audit Trail recording of all authentication events, including failures, contribute to the "appropriate technical measures" Article 32 requires. The [Revoke Sessions For Credential] cascade is a breach-response mechanism that reduces the blast radius of a compromised credential.
 - **HIPAA (US Health Insurance Portability and Accountability Act) section 164.312(d) (Person or Entity Authentication)** — the composition's `Credential.verify → Session.issue` wiring is the structural implementation of this requirement: a session is issued only after the principal's identity is confirmed. The Audit Trail records the authentication event for post-incident investigation.
 - **PCI DSS (Payment Card Industry Data Security Standard — the card networks' mandatory security rules for cardholder data) Requirement 8.2 (User Identification and Authentication)** and **Requirement 8.6 (Session Management)** — authentication event logging (all login attempts, successful and failed), session termination on logout, and revocation on credential change correspond to PCI DSS structural requirements. The `login_event_log` is the composition-layer record; the Audit Trail is the tamper-evident external-auditor record.
-- **SOX section 302 / section 404 (Internal Controls)** — the `credential_to_sessions` map and its cascade action are the structural mechanism for ensuring that a compromised credential's access window can be closed completely and auditedly. An auditor can verify cascade completeness from the Audit Trail records alone without consulting the incident-response team.
+- **SOX section 302 / section 404 (Internal Controls)** — the `credential_to_sessions` map and its cascade action are the structural mechanism for ensuring that a compromised credential's access window can be closed completely and auditedly. Cascade completeness is provable from the Audit Trail records.
 - **OpenID Connect Core 1.0** — the composition is the Grace Commons expression of the OIDC (OpenID Connect — an identity layer built on OAuth 2.0) login flow: authorization code exchange (credential verification), session establishment (session issuance), and session revocation on logout or token revocation. The atoms' principal reference maps to the OIDC `sub` claim.
 
 Inherited from:

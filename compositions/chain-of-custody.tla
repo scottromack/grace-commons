@@ -157,7 +157,7 @@ Spec == Init /\ [][Next]_vars
 \* --- composition-level safety invariants (Invariant 4, safety arm) ---
 
 \* The orphan configuration: a Provenance custody entry with no audit event —
-\* the partial-failure signature, detectable from the records alone (enumerate
+\* the partial-failure signature, provable (enumerate
 \* the Provenance chain against the Audit Trail events through the substrate's
 \* read surface).
 Orphan(e) == provState[e] = "present" /\ auditState[e] = "absent"

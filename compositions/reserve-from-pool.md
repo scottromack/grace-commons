@@ -522,7 +522,7 @@ These emerge from the composition; none belongs to one constituent.
   Deleted: Invariant 7. Composes 5 owns it.
   ```
 
-Allocation coherence with slot-returned-at-most-once gives the *no leak, no double release* property — the pool count is a faithful image of the live set. Never-exceed-capacity with no-confirmation-of-a-lapsed-hold gives the *no oversell* property across the confirm and expire race. Idempotency makes both hold under retry; attribution and journaling make the whole arc reconstructable from the records.
+Allocation coherence with slot-returned-at-most-once gives the *no leak, no double release* property — the pool count is a faithful image of the live set. Never-exceed-capacity with no-confirmation-of-a-lapsed-hold gives the *no oversell* property across the confirm and expire race. Idempotency makes both hold under retry; attribution and journaling make the whole arc provable.
 
 ---
 
@@ -556,7 +556,7 @@ A buyer's checkout stalls; by the time `confirm_reservation(rsv_002, ...)` arriv
 
 **Regulator/operator audit — "prove you never oversold the pool."** An auditor reads the pool's `query(pool_id).allocated` and the Event Log and confirms that at no point did the count of Confirmed reservations exceed `capacity` (Invariant 3), and that `allocated` at every event equals the live-reservation set reconstructed from the Event Log (Invariant 1). The pool event balances on every reservation entry — the opening and closing balances copied from the pool's own events, whose ids the entries cite — make the arithmetic chain replayable against the pool's audit log (Check 7.1); a state in which Confirmed reservations outnumber `capacity`, or `allocated` diverges from the live set, is a conformance failure. The auditor consults no source code — the pool count and the journal are sufficient.
 
-**Disputed double-booking — two customers claim the same unit.** An investigator inspects the Event Log for the pool: every [Reserve] carries the allocation event id and the pool event balances; every terminal action carries the `release_event_id`. If two Confirmed reservations exist against a 1-capacity pool, either `capacity` was raised by an `adjust_capacity` (an overbooking choice the pool's audit log records) or coherence was violated — and the Event Log shows which. Idempotency (Invariant 5) forecloses the retry-induced double-reserve; the dispute resolves to a recorded `adjust_capacity`, a client token-discipline failure, or a genuine finding, each distinguishable from the records.
+**Disputed double-booking — two customers claim the same unit.** An investigator inspects the Event Log for the pool: every [Reserve] carries the allocation event id and the pool event balances; every terminal action carries the `release_event_id`. If two Confirmed reservations exist against a 1-capacity pool, either `capacity` was raised by an `adjust_capacity` (an overbooking choice the pool's audit log records) or coherence was violated — and the Event Log shows which. Idempotency (Invariant 5) forecloses the retry-induced double-reserve; the dispute resolves to a recorded `adjust_capacity`, a client token-discipline failure, or a genuine finding, each provably distinct.
 
 **Inventory-leak forensics — "free count is wrong; find the stranded slot."** An operator observes `allocated` higher than the visible live reservations. The investigator replays the Event Log: every [Reserve] (slot taken) must have either a matching terminal [Cancel Reservation]/[Expire Reservation] (slot returned) or a live Held/Confirmed reservation — and a pool allocation with no [Reserve] entry at all is the stranded slot, a leak whose precise pool and allocation event the records name. Invariant 2 (slot returned at most once) and Invariant 6 (every change journaled) are what make the leak locatable rather than a mystery in an aggregate counter.
 
@@ -564,7 +564,7 @@ A buyer's checkout stalls; by the time `confirm_reservation(rsv_002, ...)` arriv
 
 ## Generation acceptance
 
-An implementation is acceptable when an external auditor, given the reservation-to-pool binding and the token results map plus the Provisional Commitment, Capacity Constraint Enforcement, Duplicate Prevention, Event Log and Actor Identity instances, can clear the checks below without recourse to source code, runbooks or developer narration.
+An implementation is acceptable when the checks below are provable to an external auditor given the reservation-to-pool binding and the token results map plus the Provisional Commitment, Capacity Constraint Enforcement, Duplicate Prevention, Event Log and Actor Identity instances.
 
 ### Conformance checks
 

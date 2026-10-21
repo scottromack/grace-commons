@@ -378,14 +378,14 @@ Two batches run the same declaration as two workflows. Firing `test` on one move
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** An FDA inspector auditing under 21 CFR Part 11 and ISO 9001 clause 8.5.1 asks the system to prove the batch moved only through approved states. Check 2.1 and Check 6.1 are the structural answer: every history entry matches a declared transition, and the declaration is the one supplied at instantiation. What the atom cannot answer is whether the `qa_signoff` guard was truly satisfied — `guard_satisfied: true` attests an assertion (Invariant 8.3), and the evidence lives in the composing [Approval Step](./approval-step.md) record.
-- **Disputed transition.** An external party claims the workflow skipped a required state. The history is gap-free by sequence number (Invariant 6.2) and replays to the current state (Invariant 7.3), so a skipped state would have to appear as a declared transition that jumps it — which the declaration either names or does not. The claim resolves against the declaration, not against testimony.
+- **Disputed transition.** An external party claims the workflow skipped a required state. The history is gap-free by sequence number (Invariant 6.2) and replays to the current state (Invariant 7.3), so a skipped state would have to appear as a declared transition that jumps it — which the declaration either names or does not. The claim resolves provably, against the declaration.
 - **Breach investigation.** An investigator reconstructing an anomaly window filters the history by firing instant range and finds the entries generously bracketed. Because sequence number is dense and is the order source (Invariant 6.2, Operation 55), the investigator confirms the window's completeness against an unfiltered read rather than trusting the wall-time filter — a clock-skewed entry can fall outside the bracket and cannot fall out of the sequence.
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the workflow records and the declaration, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the workflow records and the declaration.
 
 ### Conformance checks
 

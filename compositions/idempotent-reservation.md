@@ -290,7 +290,7 @@ Three scenarios the composition must survive in regulated contexts, beyond happy
 
 ## Generation acceptance
 
-An implementation is acceptable when an external auditor, given the commitment records, the recorded set and the token results map, can clear the checks below without recourse to source code, runbooks or developer narration.
+An implementation is acceptable when the checks below are provable to an external auditor given the commitment records, the recorded set and the token results map.
 
 ### Conformance checks
 

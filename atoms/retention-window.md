@@ -280,7 +280,7 @@ Where two [Place Under Retention] cases hold at once, the earlier rule of the pl
   Invariant 11.3: The atom MUST NOT write when a retention crosses retention deadline.
   ```
 
-Membership exclusivity and terminal absorption give the *audit-friendly* property — once purged, the obligation is closed for good, with durable evidence that the destruction was lawful. No early purge gives the *retention-honored* property. Timestamp consistency lets an auditor compute overshoot from the records alone, as honest as the clock that stamped them. Derived eligibility is what lets readiness be read without a scheduler and without a flag that drifts.
+Membership exclusivity and terminal absorption give the *audit-friendly* property — once purged, the obligation is closed for good, with durable evidence that the destruction was lawful. No early purge gives the *retention-honored* property. Timestamp consistency makes overshoot provable, as honest as the clock that stamped the records. Derived eligibility is what lets readiness be read without a scheduler and without a flag that drifts.
 
 ## Examples
 
@@ -339,7 +339,7 @@ Four scenarios the atom must survive in regulated contexts:
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the retention record set, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the retention record set.
 
 ### Conformance checks
 
@@ -367,7 +367,7 @@ External check 6: An auditor MUST identify from the deployment's own declaration
 
 NOTE: the atom cannot answer these from the retention records — Simultaneous retention 3 forecloses reading a sibling, so the evidence that joint enforcement happened lives in the composing pattern's records, not here (council read 11).
 
-NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *was every record's obligation honored, and what is overdue now?* — answered from the records, never from a runtime claim.
+NOTE: EVERY check names the rule the check tests. The bar is the regulator's question — *was every record's obligation honored, and what is overdue now?* — answered provably.
 
 ## Non-goals
 
@@ -390,7 +390,7 @@ Non-goal 15: A deployment needing an at-most-once placement MUST compose Duplica
 Non-goal 16: The atom MUST NOT bound the age of a standing record.
 ```
 
-NOTE: the owners — a Storage Tier pattern *(forthcoming)* (Non-goal 1); [Legal Hold](./legal-hold.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 2, Non-goal 3); Cryptographic Shredding *(forthcoming)* (Non-goal 4); Erasure Coordination *(forthcoming)* (Non-goal 5, Non-goal 6); a Policy Registry *(forthcoming)* (Non-goal 7, Non-goal 8); [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11); the composing pattern that owns joint enforcement (Non-goal 12, Composition note 3); Trusted Timestamping *(forthcoming)* (Non-goal 13); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 14, Non-goal 15); the composing pattern that owns the destruction (Non-goal 16, Record divergence 6).
+NOTE: the owners — a Storage Tier pattern *(forthcoming)* (Non-goal 1); [Legal Hold](./legal-hold.md) and [Defensible Retention](../compositions/defensible-retention.md) (Non-goal 2, Non-goal 3); Shred *(forthcoming)* (Non-goal 4); Erasure Coordination *(forthcoming)* (Non-goal 5, Non-goal 6); a Policy Registry *(forthcoming)* (Non-goal 7, Non-goal 8); [Actor Identity](./actor-identity.md) (Non-goal 10, Non-goal 11); the composing pattern that owns joint enforcement (Non-goal 12, Composition note 3); Trusted Timestamping *(forthcoming)* (Non-goal 13); [Duplicate Prevention](./duplicate-prevention.md) (Non-goal 14, Non-goal 15); the composing pattern that owns the destruction (Non-goal 16, Record divergence 6).
 
 Where the atom breaks down: when the obligation is a function of the record's content — records about a minor retained until majority, which needs a policy lookup against the record itself; when the storage layer cannot make a record irrecoverable after a purge — append-only logs, distributed replicas, backups with their own schedules; when the regulatory clock and the deployment's clock are far apart, which breaks every wall-time deadline at once.
 
@@ -474,7 +474,7 @@ Composition note 4: A composing pattern MUST own the policy the pattern places a
 Composition note 5: This atom's invariant numbers MUST stand as a frozen contract surface.
 ```
 
-NOTE: composing patterns — [Defensible Retention](../compositions/defensible-retention.md), [Audit Trail](../compositions/audit-trail.md). Forthcoming: Storage Tier, Cryptographic Shredding, Erasure Coordination, Policy Registry, Trusted Timestamping.
+NOTE: composing patterns — [Defensible Retention](../compositions/defensible-retention.md), [Audit Trail](../compositions/audit-trail.md). Forthcoming: Storage Tier, Shred, Erasure Coordination, Policy Registry, Trusted Timestamping.
 
 ## Terms
 
@@ -572,7 +572,7 @@ Projection: purge_deadline
 
 #### Purge Instant
 
-The wall-time the retention was purged, stamped from the injected [Now] on [Purge]. Present only in [Purged]. Its relation to [Purge Deadline] is what makes [Overshoot] computable from the record alone.
+The wall-time the retention was purged, stamped from the injected [Now] on [Purge]. Present only in [Purged]. Its relation to [Purge Deadline] is what makes [Overshoot] provable.
 
 Kind:       Field
 Field of:   Retention Window
@@ -588,7 +588,7 @@ Projection: purge_eligible
 
 #### Overshoot
 
-The derived metric, for a [Purged] retention, of [Purge Instant] − [Purge Deadline] when positive — the amount by which purge ran late. Computable from the records alone; surfaced to compliance dashboards but never stored. It is the data-minimization finding the audit reads from the record itself.
+The derived metric, for a [Purged] retention, of [Purge Instant] − [Purge Deadline] when positive — the amount by which purge ran late. Provable; surfaced to compliance dashboards but never stored. It is the data-minimization finding the audit reads from the record itself.
 
 Kind:       Field
 Field of:   Retention Window
@@ -766,7 +766,7 @@ Retention Window is one of the most heavily standardized concepts in compliance;
 - **ISO 15489-1 (Information and documentation — Records management)** — the International Organization for Standardization's standard for records-management practice. Defines retention as a managed lifecycle with policy-governed start, retention period, and disposition. The atom's two-state model is the operational core of ISO 15489's lifecycle framing.
 - **GDPR Article 5(1)(e) — Storage limitation principle** — personal data must be kept *no longer than necessary*. The atom's [Overshoot] metric is the operational form of GDPR's data-minimization audit; persisting personal data past [Purge Deadline] is a violation surfaced by the record itself.
 - **HIPAA section 164.530(j) — Documentation retention** — 6-year federal baseline for required HIPAA documentation; state law commonly extends this for clinical records. The atom's [Policy Reference] carries the applicable rule; the host system reconciles federal-state-policy overlap.
-- **Sarbanes-Oxley section 802 — Retention of records relevant to audits and reviews** — 7-year retention for audit workpapers, with criminal penalties for early destruction. The atom's no-early-purge invariant is the structural fix for SOX section 802's anti-shredding mandate.
+- **Sarbanes-Oxley section 802 — Retention of records relevant to audits and reviews** — 7-year retention for audit workpapers, with criminal penalties for early destruction. The atom's no-early-purge invariant is the structural fix for SOX section 802's ban on early destruction.
 - **SEC Rule 17a-4 — Records to be preserved by certain exchange members, brokers, and dealers** — 3-to-7-year retention with specific access-tier requirements (first two years immediately accessible). Storage-tier sub-requirements compose with Storage Tier; the retention obligation itself is this atom.
 - **FINRA Rule 4511 — General requirements for books and records** — incorporates SEC retention rules for FINRA-registered entities.
 - **21 CFR Part 11 — FDA electronic records and electronic signatures** — records covered by Part 11 are retained for the longer of the predicate-rule period or 7 years; destruction must be authorized and audited. Composes with Actor Identity for the destruction-authorization attestation.
@@ -777,7 +777,7 @@ Retention Window is one of the most heavily standardized concepts in compliance;
 
 It inherits from:
 
-- **Daniel Jackson, *The Essence of Software*** — the freestanding-atom posture; the discipline of composing storage tier, legal hold, cryptographic shredding, and policy registry as separate concepts.
+- **Daniel Jackson, *The Essence of Software*** — the freestanding-atom posture; the discipline of composing storage tier, legal hold, shred, and policy registry as separate concepts.
 - **Eiffel's design-by-contract** — preconditions on [Purge]; named rejection reasons.
 - **Linear temporal logic** — retain-then-Retained persistence, terminal absorption, and the no-early-purge precondition expressed as temporal properties.
 - **Records management literature** — Ranganathan's principles applied to organizational records; Schellenberg's appraisal theory of which records merit which retention.

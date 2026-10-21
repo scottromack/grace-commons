@@ -18,7 +18,7 @@ toc: true
 
 Provisional Commitment is the business act of holding something for someone while they decide — a card authorization, a hospital bed, an item in a cart, a hotel room, an airline seat. A hold is placed, stays open for a fixed window, and resolves into exactly one of three recorded end states: confirmed, released, or expired. The window is a promise in both directions: the resource stays reserved until it closes, and the requester must decide before it does.
 
-Resolving exactly once is the guarantee. A resolving call against an already-settled hold is refused. A confirm or release past the window is refused. An expire before the window closes is refused. Each hold carries a permanent id; its resource, requester and window are fixed at placement and never change. A settled hold is therefore an unambiguous record of what happened, reconstructable from the records alone.
+Resolving exactly once is the guarantee. A resolving call against an already-settled hold is refused. A confirm or release past the window is refused. An expire before the window closes is refused. Each hold carries a permanent id; its resource, requester and window are fixed at placement and never change. A settled hold is therefore an unambiguous and provable record of what happened.
 
 Retry safety, the full transition history, and pool-wide capacity limits are deliberately outside the atom — each is a separate pattern that composes with it.
 
@@ -28,7 +28,7 @@ Retry safety, the full transition history, and pool-wide capacity limits are del
 
 ## Intent
 
-A requester needs a resource whose grant is not yet certain. The system holds it for a known period, during which the requester confirms (taking it into a binding allocation) or releases (returning it to availability). If neither happens before the period elapses, an [Expire] event moves the hold to its terminal [Expired] state and returns the resource.
+A requester needs a resource whose allocation is not yet certain. The system holds it for a known period, during which the requester confirms (taking it into a binding allocation) or releases (returning it to availability). If neither happens before the period elapses, an [Expire] event moves the hold to its terminal [Expired] state and returns the resource.
 
 Expiry is a written transition rather than a status inferred at read time because the lapse has a side effect — it returns the resource, and in a pool-backed composition a capacity slot. A side-effect-free lapse could be derived; this one releases something and so needs a write.
 
@@ -304,14 +304,14 @@ What differs across the five: resource semantics, window length, the regulatory 
 ### Regulated adversarial scenarios
 
 - **Regulator audit.** *Show me every hold confirmed or released after its declared window.* The query is Check 3.1 and returns the empty set by construction — Invariant 7.1 makes a late resolution unrecordable rather than merely unlikely.
-- **Data subject request.** Erasure against the personal data behind requester. The atom alone cannot satisfy it while keeping the trail; a composing Cryptographic Shredding or Erasure Tombstone pattern redacts the reference and leaves id, placement instant, expiry instant, the state and the terminal instant intact, so the lifecycle stays auditable and the personal data does not persist.
+- **Data subject request.** Erasure against the personal data behind requester. The atom alone cannot satisfy it while keeping the trail; a composing Shred or Erasure Tombstone pattern redacts the reference and leaves id, placement instant, expiry instant, the state and the terminal instant intact, so the lifecycle stays auditable and the personal data does not persist.
 - **Breach investigation.** The universe of resources committed between 02:00 and 04:00 UTC. Every commitment carries placement instant, so the answer is a filter over the database with no log replay behind it; the terminal state and its instant then say which holds resolved and which lapsed. This atom offers no read action of its own — the database is read by the deployment or by an auditor, not through a surface here — and ordering *within* the window needs the composing [Event Log](./event-log.md) (External check 2).
 
 ---
 
 ## Generation acceptance
 
-This atom's acceptance is what an external auditor can clear from the commitment records alone, with no recourse to source code, runbooks or developer narration.
+This atom's acceptance is provable: an external auditor clears it from the commitment records.
 
 ### Conformance checks
 
