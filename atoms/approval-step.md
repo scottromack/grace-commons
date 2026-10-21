@@ -20,7 +20,7 @@ Approval Step records a single authorization gate. A specific thing was submitte
 
 Each step has exactly one approver (the only person who may approve or reject it), one submitter (the only person who may withdraw it before a decision), one subject (the thing being approved), and one scope (the kind of approval being requested). Those, and the timestamps, are fixed at submission and never change.
 
-A step has four states: pending, plus three terminal ones — approved, rejected (with a required reason), and withdrawn. All three are absorbing; there is no re-open and no decision reversal.
+A step has four states: pending, plus three terminal ones — approved, rejected and withdrawn, the last two each with a required reason. All three are absorbing; there is no re-open and no decision reversal.
 
 The core guarantee is that every decision is fully attributed. An anonymous decision, a rejection with no reason, or a missing timestamp is a failure. So it is provable that a required control existed and operated, which is exactly what an auditor or investigator asks for.
 
@@ -126,23 +126,23 @@ Deleted: Clock semantics 5. Non-goal 21 owns it.
 ```
 submit(subject_ref, approver_ref, submitter_ref, scope, optional reason, optional submitted_at)
   answers step_id
-  refuses invalid-request | storage-failure
+  refuses invalid-request | state-unavailable | storage-failure
 
 approve(step_id, decided_by, optional reason, optional decided_at)
   answers approved
-  refuses invalid-request | not-known | not-pending | unauthorized | storage-failure
+  refuses invalid-request | not-known | not-pending | unauthorized | state-unavailable | storage-failure
 
 reject(step_id, decided_by, reason, optional decided_at)
   answers rejected_outcome
-  refuses invalid-request | not-known | not-pending | unauthorized | storage-failure
+  refuses invalid-request | not-known | not-pending | unauthorized | state-unavailable | storage-failure
 
 withdraw(step_id, withdrawn_by, reason, optional withdrawn_at)
   answers withdrawn
-  refuses invalid-request | not-known | not-pending | unauthorized | storage-failure
+  refuses invalid-request | not-known | not-pending | unauthorized | state-unavailable | storage-failure
 
 read(query)
   answers the matching steps
-  refuses invalid-query
+  refuses invalid-query | state-unavailable
 ```
 
 ```
@@ -187,7 +187,7 @@ Operation 38: An admitted read MUST answer the matching steps in submission inst
 Operation 39: An admitted read MUST order two steps sharing a submission instant by step id ascending.
 Operation 40: An admitted read MUST answer EVERY step matching the supplied filters.
 Operation 41: An admitted read MUST NOT answer a step failing a supplied filter.
-Operation 42: IF no step matches THEN an admitted read MUST answer an empty step sequence.
+Operation 42: IF no step matching the supplied filters EXISTS THEN an admitted read MUST answer an empty step sequence.
 Operation 43: An admitted read MUST match an instant-range filter against ONLY the steps carrying the filter's field.
 Operation 44: IF a filter's axis IS NOT IN the filter axes THEN [Read] MUST answer invalid-query.
 Operation 45: IF a reference filter's value EQUALS blank THEN [Read] MUST answer invalid-query.
@@ -198,6 +198,10 @@ Deleted: Operation 49. Capability requirement 1 owns it.
 Deleted: Operation 50. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 51. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 52. Execution Contract Logic confinement 3 owns it.
+Operation 53: IF database read EQUALS failed THEN the atom MUST answer state-unavailable.
+Operation 54: [Submit] MUST NOT evaluate a rule of the submit refusal order BEFORE EVERY earlier rule of the submit refusal order has answered no refusal.
+Operation 55: A resolving action MUST NOT evaluate a rule of the resolve refusal order BEFORE EVERY earlier rule of the resolve refusal order has answered no refusal.
+Operation 56: [Read] MUST NOT evaluate a rule of the read refusal order BEFORE EVERY earlier rule of the read refusal order has answered no refusal.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
@@ -230,9 +234,9 @@ Term attribution check: Operation 15 through 19 — every check a resolving acti
 
 Term filter axes: step id | subject reference | approver reference | submitter reference | scope | state | submission instant | decision instant | withdrawal instant — the nine axes [Read] accepts, and no others.
 
-Term admitted submit: a [Submit] call whose references, scope, supplied reason and resolved submission instant the guards all admit.
+Term admitted submit: a [Submit] call whose database read EQUALS answered and whose references, scope, supplied reason and resolved submission instant the guards all admit.
 
-Term admitted resolve: a resolving action whose step id names a pending step and whose reason, deciding reference and resolved decision instant the guards admit, and whose deciding reference matches the step's anchor.
+Term admitted resolve: a resolving action whose database read EQUALS answered, whose step id names a pending step and whose reason, deciding reference and resolved decision instant the guards admit, and whose deciding reference matches the step's anchor.
 
 Term admitted approve: an admitted resolve on [Approve].
 
@@ -240,19 +244,30 @@ Term admitted reject: an admitted resolve on [Reject].
 
 Term admitted withdraw: an admitted resolve on [Withdraw].
 
-Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
+Term admitted read: a [Read] call whose database read EQUALS answered and whose every filter axis and filter value the guards admit.
+
+Term database read: answered | failed — the outcome of the read a call makes of the step records, failed being the failure the section titled Step 1 failure in `execution-contract.md` names.
+
+Term submit refusal order: Operation 53, Operation 1 through 6 — [Submit]'s refusal rules, earliest first; Operation 34 answers only at the write, which no refused call reaches.
+
+Term resolve refusal order: Operation 53, Operation 10 through 11, Operation 13, Operation 15 through 19, Operation 21 through 22 — a resolving action's refusal rules, earliest first, in the order Operation 12, Operation 14, Operation 20 and Operation 23 give each pair; Operation 34 answers only at the write, which no refused call reaches.
+
+Term read refusal order: Operation 53, Operation 44 through 47 — [Read]'s refusal rules, earliest first.
 
 | # | Condition | a resolving action answers |
 |---|---|---|
-| 1 | step id is blank | [Invalid Request] |
-| 2 | step id is well-formed, it names no step | [Not Known] |
-| 3 | the step exists, it stands in a terminal state | [Not Pending] |
-| 4 | the step stands in pending, an attribution check fails | [Invalid Request] |
-| 5 | every attribution check passes, the deciding reference is not the anchor | [Unauthorized] |
-| 6 | every precondition passes, the database refuses the write | [Storage Failure] |
-| 7 | every precondition passes, the database accepts the write | the success token |
+| 1 | the database read fails | [State Unavailable] |
+| 2 | the database read answers, step id is blank | [Invalid Request] |
+| 3 | step id is not blank, it names no step | [Not Known] |
+| 4 | the step exists, it stands in a terminal state | [Not Pending] |
+| 5 | the step stands in pending, an attribution check fails | [Invalid Request] |
+| 6 | every attribution check passes, the deciding reference is not the anchor | [Unauthorized] |
+| 7 | every precondition passes, the database refuses the write | [Storage Failure] |
+| 8 | every precondition passes, the database accepts the write | the success token |
 
-NOTE: watch condition negation — invalid-request occupies rows 1 and 4 of one precedence chain, so the answer alone does not say which guard refused. [State Machine](./state-machine.md) and [Audit Trail](../compositions/audit-trail.md) carry the same shape.
+Where two rows hold at once, the earlier row answers: the rows follow the resolve refusal order (Operation 55).
+
+NOTE: watch condition negation — invalid-request occupies rows 2 and 5 of one precedence chain, so the answer alone does not say which guard refused. [State Machine](./state-machine.md) and [Audit Trail](../compositions/audit-trail.md) carry the same shape.
 
 ### Invariants
 
@@ -328,13 +343,15 @@ Or the controller catches a routing error first: `withdraw("step-001", withdrawn
 
 `reject("step-002", decided_by: "tax_director", reason: "   ")` → invalid-request. A rejection with no stated reason is not an audit record (Operation 16, Invariant 6.3).
 
-`approve("", decided_by: "finance_director_chen")` → invalid-request, refused before any database lookup — a blank id is garbage, not a reference to a missing step (Operation 10, Operation 12).
+`approve("", decided_by: "finance_director_chen")` → invalid-request — a blank id is garbage, not a reference to a missing step (Operation 10, Operation 12).
 
 `approve("step-003", decided_by: "finance_director_chen", decided_at: "2020-01-01")` against a step submitted in 2026 → invalid-request. A decision cannot predate its submission (Operation 19).
 
 `submit(subject_ref: "je-0442", approver_ref: "dir_chen", submitter_ref: "controller_morgan", scope: "   ")` → invalid-request (Operation 4).
 
 `read({subject_ref: "je-2026-0441", approver_email: "chen@…"})` → invalid-query. The key stands outside the nine axes and is refused rather than ignored (Operation 44).
+
+`approve("step-002", decided_by: "tax_director")` while the step records cannot be read → state-unavailable. No guard ran and nothing is written; the step stays as it was, and the call may be retried (Operation 53, Operation 36).
 
 ### Multiple gates on one subject
 
@@ -355,7 +372,7 @@ This atom's acceptance is provable: an external auditor clears it from the step 
 ### Conformance checks
 
 ```
-Check 1.1: An auditor MUST find EVERY step whose state EQUALS EXACTLY ONE OF pending, approved, rejected, withdrawn (Invariant 2.1).
+Check 1.1: An auditor MUST find EVERY step standing in EXACTLY ONE OF pending, approved, rejected, withdrawn (Invariant 2.1).
 Check 2.1: An auditor MUST find EVERY step's step id, subject reference, approver reference, submitter reference and scope non-blank (Invariant 8.1).
 Check 2.2: An auditor MUST find a submission instant on EVERY step (Invariant 8.2).
 Check 3.1: An auditor MUST find EVERY terminal step's attribution reference non-blank (Invariant 6.1).
@@ -488,9 +505,9 @@ Term actors: the atom; the host; the transition; the deployment; a composing pat
 
 Term records: step — one authorization gate, carrying step id, subject reference, approver reference, submitter reference, scope, submission instant, a state and, where supplied or set, reason, deciding actor, decision reason, decision instant, withdrawing actor, withdrawal reason and withdrawal instant.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, order, trim, case-fold, refuse, write, read, find, complete, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, choose, canonicalize, retry, permit.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, set, take, leave, own, match, equal, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, order, trim, case-fold, refuse, write, read, find, complete, fall, bound, decide, declare, compose, wire, supply, remove, sort, name, notify, bind, choose, canonicalize, retry, permit, evaluate.
 
-Term value sets: state = pending | approved | rejected | withdrawn.
+Term value sets: state = pending | approved | rejected | withdrawn. database read = answered | failed.
 
 Term bounds: empty.
 
@@ -498,7 +515,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submission instant, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, string input, blank.
+Term terms: step, step id, subject reference, approver reference, submitter reference, scope, reference, database instance, seam, transition, now, business caller, states, terminal state, resolving action, deciding action, writing action, deciding reference, decision instant, resolved decision instant, resolved submission instant, submission field, attribution field, attribution check, filter axes, admitted submit, admitted resolve, admitted approve, admitted reject, admitted withdraw, admitted read, database read, submit refusal order, resolve refusal order, read refusal order, string input, blank.
 
 #### Approval Step
 
@@ -532,7 +549,7 @@ Kind: Operation
 
 #### Read
 
-The read-only behavior that returns the steps matching a [Query], ordered by [Submission Instant] ascending with [Step Id] as a lexicographic-byte-order tiebreaker. A well-formed [Query] matching no steps returns an empty sequence; a malformed one is rejected [Invalid Query]. It changes nothing.
+The read-only behavior that returns the steps matching a [Query], ordered by [Submission Instant] ascending with [Step Id] as a lexicographic-byte-order tiebreaker. A well-formed [Query] matching no steps returns an empty sequence; a malformed one is rejected [Invalid Query], and a call whose read of the step records fails is rejected [State Unavailable]. It changes nothing.
 
 Kind: Operation
 
@@ -694,7 +711,7 @@ Projection: withdrawn
 
 #### Invalid Request
 
-The rejection a write action ([Submit], [Approve], [Reject], [Withdraw]) returns when an input is malformed — a blank required field, a malformed [Step Id], a missing-reason [Reject]/[Withdraw], a future or backdated-before-[Submission Instant] timestamp. A guard rejection that writes nothing.
+The rejection a write action ([Submit], [Approve], [Reject], [Withdraw]) returns when an input is malformed — a blank required field, the [Step Id] among them, a missing-reason [Reject]/[Withdraw], a future or backdated-before-[Submission Instant] timestamp. A guard rejection that writes nothing.
 
 Kind:       Member
 Member of:  the action rejection
@@ -703,7 +720,7 @@ Projection: invalid-request
 
 #### Not Known
 
-The rejection a resolving action ([Approve], [Reject], [Withdraw]) returns when the supplied [Step Id] is well-formed but references no step in the database. Checked after the malformed-[Step Id] guard and before the state check.
+The rejection a resolving action ([Approve], [Reject], [Withdraw]) returns when the supplied [Step Id] is not blank but references no step in the database. Checked after the blank-[Step Id] guard and before the state check.
 
 Kind:       Member
 Member of:  the action rejection
@@ -736,6 +753,15 @@ Kind:       Member
 Member of:  the action rejection
 Role:       Outcome
 Projection: storage-failure
+
+#### State Unavailable
+
+The rejection any action ([Submit], [Approve], [Reject], [Withdraw], [Read]) returns when the read the call makes of the step records fails — the Execution Contract's Step 1 failure (Operation 53). No guard ran and nothing is written, the call may be retried, and the answer says nothing about whether a step exists or what state it stands in.
+
+Kind:       Member
+Member of:  the action rejection
+Role:       Outcome
+Projection: state-unavailable
 
 #### Invalid Query
 
@@ -781,6 +807,7 @@ Projection: invalid-query
 [Not Pending]: #not-pending
 [Unauthorized]: #unauthorized
 [Storage Failure]: #storage-failure
+[State Unavailable]: #state-unavailable
 [Invalid Query]: #invalid-query
 
 ---
@@ -788,7 +815,7 @@ Projection: invalid-query
 ## Standards references
 
 - **Sarbanes-Oxley section 404 (17 U.S.C. section 7262)** — internal control over financial reporting. The approval step is the structural form of a financial reporting control: a gate that must be cleared before a material action proceeds, with an auditable record of who cleared it. SOX auditors reviewing control evidence query approval step records directly; Invariants 4, 6, and 8 are the structural guarantees the evidence must carry.
-- **FDA 21 CFR Part 11 (Electronic Records; Electronic Signatures)** — for FDA-regulated contexts (pharmaceutical manufacturing, clinical trials, medical device quality systems): each approval step by a named actor constitutes an electronic signature on the action. Part 11 section 11.50 requires that electronic signatures are attributable to one individual and section 11.70 requires that they are linked to their respective records to prevent removal, substitution, or falsification. Composition with [Actor Identity](./actor-identity.md) provides the cryptographic binding; composition with [Tamper Evidence](./tamper-evidence.md) provides the linking and non-falsifiability. The Approval Step record is the gate; the composition is the compliant electronic signature system.
+- **FDA 21 CFR Part 11 (Electronic Records; Electronic Signatures)** — for FDA-regulated contexts (pharmaceutical manufacturing, clinical trials, medical device quality systems): each approval step by a named actor is the record an electronic signature on the action is linked to. Part 11 section 11.50 requires that electronic signatures are attributable to one individual and section 11.70 requires that they are linked to their respective records to prevent removal, substitution, or falsification. Composition with [Actor Identity](./actor-identity.md) provides the cryptographic binding; composition with [Tamper Evidence](./tamper-evidence.md) provides the linking and non-falsifiability. The Approval Step record is the gate; the composition is the compliant electronic signature system.
 - **ICH (International Council for Harmonisation of Technical Requirements for Pharmaceuticals for Human Use) E6(R3) Good Clinical Practice — Guideline** — the international standard for clinical trial conduct. Section 4 (Investigator's Responsibilities) and Section 5 (Sponsor's Responsibilities) require documented approval steps at multiple points in the trial lifecycle: investigator approval of protocol deviations, IRB (Institutional Review Board) approval of informed consent amendments, sponsor approval of site qualification assessments. Each maps to an Approval Step record whose [Scope] identifies the specific GCP obligation.
 - **ISO 9001:2015 clause 8.5.1 (Control of production and service provision)** — the International Organization for Standardization's quality-management standard; requires that production and service provision activities be controlled by documented procedures including approval of documents, products, and services at defined points. Approval steps are the documented approval records section 8.5.1 anticipates; the atom's immutability invariants satisfy the document control requirements.
 - **ISO 13485:2016 clause 4.2 (Documentation requirements)** — for medical device manufacturers: records of approval activities must be maintained. Approval Step records are the compliant implementation surface.
@@ -804,14 +831,22 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: verified — approval-step.tla + 1 twin, 2026-06-03
-last gate: 2026-07-12 — Final Critique 5, fresh reader — clean
+last gate: 2026-10-21 — Final Critique 6, the council's first round on the page and the first on its Store-contract rewrite (c3e6a36), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at 6da5e8b); the round rests on three counted passes — foundational count 3 after triage (15 reports: 4 standing, merged into 3; 3 sent down; 8 rejected), all Kind A: the resolving actions' refusal rules obliged two answers on one call, each pairwise ONLY IF rule read alone forbidding what the rule it ordered obliged; a failed read of the step records had no answer any signature named, and [Read] answered an admitted read whose read had failed; and the Execution Contract obliged a typed guard failure on a deleted subject that Identity 12 forbids the atom to detect; 24 refining reports, 7 rhetorical reports; not clean; every foundational finding cured in place, the third on `execution-contract.md`; 2026-07-12 — Final Critique 5, fresh reader — clean
 
-open: none
+open:
+- 2026-10-21-a · refining · Operation 20; Operation 32; Operation 35; Term decision instant · attribution fault, success token and precondition name no declared term (the case table and the Submit and Storage Failure entries use precondition too), and Term decision instant is defined by its own name → declare each, or write the rules in declared terms (the refusal orders list each action's preconditions by label)
+- 2026-10-21-b · refining · Operation 43; Operation 47; Term actors; Regulator audit · the range filter's bounds are named start and end in Operation 47 and after and before in the Regulator audit example, no rule says whether a step at a bound matches, and range filter and instant-range filter name one thing → one declared range filter, its two bounds named, and their inclusion stated
+- 2026-10-21-c · refining · Operation 6; Operation 18; Operation 19; Term string input · nothing names the answer to a supplied submission, decision or withdrawal instant that cannot be read as an instant, and Term string input leaves the instant inputs out → a rule answering it invalid-request, or the binding named as its owner
+- 2026-10-21-d · refining · Indeterminate outcome 1 · a caller with no answer is sent to the step records, and no read says whether its submit landed, where two submits carrying one field set are two steps (Non-goal 1); its BEFORE takes a clause where the grammar's tail takes a term → name the read, or Duplicate Prevention (Non-goal 2) as its owner, and write the tail on a term
+- 2026-10-21-e · refining · Non-goals NOTE · the owners NOTE gives no owner for Non-goal 7, 8, 11, 12 or 21, names Notification and a trusted timestamping pattern with neither a link nor a forthcoming marker, and gives Non-goal 13 and Non-goal 20 two owners each → one owner each, linked or marked forthcoming
+- 2026-10-21-f · refining · State 1; Invariant 3.1 · both state that a step never leaves a terminal state (GRACE-lang Authority 3) → tombstone one to the other, Check 6.3 citing the one kept
 ```
 
 ## Decisions
 
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/approval-step.md`; the migration and the repairs that got it here are in [its history](./approval-step.hist.md).
+
+- **2026-10-21 — A failed read answers on every action; each action's refusals answer in one stated order; a deleted subject answers as a live one.** *Chose:* state-unavailable on all five actions where the read of the step records fails, the Execution Contract's Step 1 failure (Operation 53, Term database read), the admitted submit, resolve and read each held to an answered read; one refusal order for [Submit], one for the three resolving actions and one for [Read], the read first since Step 1 runs before any guard, and the resolving actions' in the order the case table and Final Critique 5's fixed priority gave — blank step id, not-known, not-pending, the attribution checks, the actor guard (Operation 54 through 56) — with Operation 12, 14, 20 and 23 kept as the order's own pairs; and the Execution Contract's dangling-reference sentence rewritten, so a deleted subject produces no refusal of this atom's, which never consults it (Identity 12). *Over:* a failed read answered by no code the page names, which one build surfaced as a fault, one as invalid-query and one as an empty answer an auditor reads as no steps; pairwise ONLY IF rules that, each read alone, forbid what the rule they order obliges; and a guard failure the contract obliged and the atom forbids. *Because:* Final Critique 6 found each a divergence between conforming builds, or two rules no build can both obey, and the corpus already held each cure: Actor Identity's fifth round answered the failed read on every action, Verified Repair's ruling of 2026-10-19 gave each action one stated order, and the contract's own paragraph says this atom owns a decision about a reference, never the referenced thing. A blank step id is now refused after the Step 1 read, not before any lookup, since the pipeline reads first. What the atom answers a well-formed call on a readable database is unchanged.
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the step store supplied under Execution Contract Store 1 through 4 (Capability requirement 5), and the eleven rules that restated them, or stood in for them, tombstoned to their owner — Operation 31, a resolve's state change and recorded fields committed in one operation, Invariant 10.2, no partial record left by a storage-failure, and Atomic writes 1, 3 and 4, no reader seeing a terminal state without its attribution fields, a dangling transition resolved and no read served before it is, to Store 1; Atomic writes 2, an uncommitted crash leaving the step as the call found it, to Store 1 and Store 3; Invariant 10.3, an answered step id naming a durably persisted step, and External check 1, the submit answers captured to find a step the store is missing, to Store 3; Concurrency 1 through 3, two resolving actions on one step serialized, the later reading what the earlier left and answering not-pending, to Store 2; rules 163 to 153. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and a deployment journalling its submit answers against a store that might lose a step. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The atom's own no-removal rules stay (State 5, State 14, Invariant 10.1), since Store 4 alone does not keep the atom from removing a step; Check 6.1 through 6.3 rest on the auditor's own two reads, and [Read] orders by submission instant and step id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
 
