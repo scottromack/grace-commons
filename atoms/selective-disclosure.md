@@ -20,7 +20,7 @@ Selective Disclosure keeps a permanent, add-only record of every time someone's 
 
 The pattern does not do the sharing — it does not fetch, redact, or transmit data. Instead, right after a disclosure happens, the system calls it to log the subject, the recipient, the scope of what was shared, and the authority for sharing, which must be one of exactly three kinds: consent (the person agreed), legal hold (a legal process compelled it), or regulatory (a regulation required it).
 
-Once written, a record can never be changed or deleted, and nothing is ever removed from the database — which is precisely what guarantees the sharing history is complete and cannot be quietly altered. The records can be queried by subject, recipient, authority type, or date, producing the disclosure accounting that privacy and securities regulations demand.
+Once written, a record can never be changed, and this pattern never deletes one — which is precisely what guarantees the sharing history is complete and cannot be quietly altered. How long the records are kept, and when one may lawfully be destroyed, is for a separate retention pattern to decide. The records can be queried by subject, recipient, authority type, or date, producing the disclosure accounting that privacy and securities regulations demand.
 
 A few questions need other patterns to answer — whether a referenced consent was actually valid at the time, whether every disclosure was in fact logged, and whether a backdated timestamp is honest — and those boundaries are spelled out in the Generation acceptance section.
 
@@ -87,8 +87,8 @@ State 4: The atom MUST NOT offer an edit surface.
 State 5: The atom MUST NOT offer a removal surface.
 State 6: The atom MUST NOT offer a retraction surface.
 State 7: The atom MUST NOT offer a batch record surface.
-State 8: The database instance's record count MUST NOT fall.
-State 9: A later unfiltered [Read] MUST answer EVERY disclosure record an earlier unfiltered [Read] answered.
+Deleted: State 8. Invariant 6.1 and Execution Contract Database 4 own it.
+Deleted: State 9. Operation 21, Invariant 6.1 and Execution Contract Database 4 own it.
 State 10: The atom MUST NOT record a receipt instant.
 ```
 
@@ -134,7 +134,7 @@ Operation 11: An admitted record MUST take the disclosure record's disclosure id
 Operation 12: An admitted record MUST stamp the disclosure record's disclosure instant from the resolved disclosure instant.
 Operation 13: An admitted record MUST answer the disclosure id.
 Operation 14: IF the database refuses the write THEN [Record] MUST answer storage-failure.
-Operation 15: [Record] MUST answer storage-failure ONLY IF EVERY precondition passes.
+Operation 15: [Record] MUST answer storage-failure ONLY IF EVERY field-level precondition passes AND the authority type IS IN the authority types.
 Operation 16: A refused [Record] MUST NOT record a disclosure record.
 Operation 17: A refused [Record] MUST leave the database as the call found the database.
 Operation 18: An admitted read MUST answer the matching disclosure records in disclosure instant ascending order.
@@ -154,6 +154,7 @@ Deleted: Operation 31. Capability requirement 1 owns it.
 Deleted: Operation 32. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 33. Execution Contract Logic confinement 3 owns it.
 Deleted: Operation 34. Execution Contract Logic confinement 3 owns it.
+Operation 35: [Record] MUST NOT evaluate a rule of the record refusal order BEFORE EVERY earlier rule of the record refusal order has answered no refusal.
 ```
 
 Term now: the wall-time reading the host takes at the seam and hands to the transition, as the section titled Logic Confinement Principle in `execution-contract.md` declares it; never read inside the transition, never supplied by the business caller.
@@ -179,6 +180,8 @@ Term filter axes: disclosure id | subject reference | recipient | authority type
 Term admitted record: a [Record] call whose fields, resolved disclosure instant and authority type the guards all admit.
 
 Term admitted read: a [Read] call whose every filter axis and filter value the guards admit.
+
+Term record refusal order: Operation 1 through 7, Operation 9 — [Record]'s refusal rules, earliest first, in the order Operation 8 gives; Operation 14 answers only at the write, which no refused call reaches.
 
 | # | Condition | [Record] answers |
 |---|---|---|
@@ -226,7 +229,7 @@ Term admitted read: a [Read] call whose every filter axis and filter value the g
 
 ### Consent-authorized disclosure to a research partner
 
-A hospital shares a de-identified summary with a research institution under a signed consent. Immediately after transmission the calling system records it: `record(subject_ref: "patient-88213", recipient: "Northgate Research Institute", scope: "medical-record:summary", authority: {type: consent, reference: "consent-3301"})` → `recorded("01HQ3M...")`, with the host injecting `now: 2026-03-04T14:02:11Z` and the fresh id at the seam. No disclosure instant was supplied, so the record carries the injected reading (`Term resolved disclosed_at`).
+A hospital shares a de-identified summary with a research institution under a signed consent. Immediately after transmission the calling system records it: `record(subject_ref: "patient-88213", recipient: "Northgate Research Institute", scope: "medical-record:summary", authority: {type: consent, reference: "consent-3301"})` → `recorded("01HQ3M...")`, with the host injecting `now: 2026-03-04T14:02:11Z` and the fresh id at the seam. No disclosure instant was supplied, so the record carries the injected reading (Term resolved disclosure instant).
 
 ### Regulatory-mandate disclosure to a public health authority
 
@@ -234,7 +237,7 @@ A communicable-disease report goes to a state health department under a reportin
 
 ### Legal-Hold-compelled disclosure to an investigator
 
-`record("patient-88213", "OIG Investigator R. Alvarez", "medical-record:billing-2025", {type: legal-hold, reference: "hold-2026-0142"})` → `recorded("01HQ4A...")`. The hold id is an opaque pointer; whether the hold was active is [Legal Hold](./legal-hold.md)'s record and not this atom's guard (Non-goal 9).
+`record("patient-88213", "OIG Investigator R. Alvarez", "medical-record:billing-2025", {type: legal-hold, reference: "hold-2026-0142"})` → `recorded("01HQ4A...")`, with the host injecting `now: 2026-03-04T16:40:00Z`. The hold id is an opaque pointer; whether the hold was active is [Legal Hold](./legal-hold.md)'s record and not this atom's guard (Non-goal 9).
 
 ### The Article 15 answer
 
@@ -260,7 +263,7 @@ A data subject exercises their access right. `read({subject_ref: "patient-88213"
 
 - **Regulator audit.** A GDPR supervisory authority reviewing an Article 15 complaint asks which recipients received the complainant's data in 2026. `read({subject_ref: X, disclosed_at: {after: "2026-01-01", before: "2026-12-31"}})` answers the complete set in order, each with its authority. Invariant 3 is what makes the answer usable — every field on every record, so no entry has to be explained (Check 2.1, Check 2.2).
 - **Disputed disclosure.** A data subject denies ever consenting to a research disclosure. The database yields the record and its `authority_reference: "consent-3301"`. That is where this atom's answer stops: it proves the calling system *claimed* that consent as the basis, and the [Consent](./consent.md) records are what prove the consent was granted, in scope and unrevoked at disclosure instant. The split is deliberate and it is named rather than hidden (External check 1, Non-goal 7).
-- **Breach forensics.** An investigator reconstructing what left the system during an exposure window reads the database unfiltered across the window and groups by recipient. The database is monotonic (State 8, State 9), so a second read during a long investigation can only add records — nothing an earlier read showed can have quietly left. What the investigator cannot learn here is whether a transmission happened that nobody recorded; that is Invariant 5's gap, cleared against egress logs rather than against these records (External check 2).
+- **Breach forensics.** An investigator reconstructing what left the system during an exposure window reads every disclosure record in the window and groups by recipient. The atom never removes a record (Invariant 6.1), and the database removes none except by an action a specification declares (Execution Contract Database 4), so a second read during a long investigation can only add records — nothing an earlier read showed can have quietly left, and a record a composed retention pattern purged in between left by a purge that pattern's own records show (External check 5). What the investigator cannot learn here is whether a transmission happened that nobody recorded; that is Invariant 5's gap, cleared against egress logs rather than against these records (External check 2).
 
 ---
 
@@ -275,14 +278,14 @@ Check 2.1: An auditor MUST find disclosure id, subject reference, recipient, sco
 Check 2.2: An auditor MUST find EVERY disclosure record's subject reference, recipient, scope and authority reference non-blank (Invariant 3.2).
 Check 2.3: An auditor MUST find EVERY disclosure record whose authority type IS IN the authority types (Invariant 2.1).
 Check 3.1: An auditor MUST find a re-read disclosure record's fields unchanged from the prior read (Invariant 1.1).
-Check 3.2: An auditor MUST find no disclosure record absent from a later unfiltered read (Invariant 6.1, State 9).
+Deleted: Check 3.2. External check 5 owns it.
 Check 4.1: An auditor MUST find [Record] answering unknown-authority-type for an authority type that IS NOT IN the authority types (Operation 9).
 Check 4.2: An auditor MUST find no disclosure record recorded by a refused [Record] (Operation 16).
 Check 5.1: An auditor MUST find a subject reference query answering EVERY disclosure record carrying the subject reference (Operation 27).
 Check 5.2: An auditor MUST find an authority type query answering ONLY the disclosure records carrying the authority type (Operation 28).
 Check 5.3: An auditor MUST find an unmatched well-formed query answering an empty record sequence (Operation 20).
 Check 6.1: An auditor MUST find [Record] answering invalid-request for a disclosure instant following now (Operation 7).
-Check 6.2: An auditor MUST find no disclosure record's disclosure instant following the record's creation instant (Invariant 4.1).
+Deleted: Check 6.2. Check 6.1 owns it.
 ```
 
 NOTE: EVERY check names the rule the check tests.
@@ -294,6 +297,7 @@ External check 1: A deployment needing a disclosure's authority legitimacy clear
 External check 2: A deployment needing Invariant 5.1 cleared MUST read the egress record beside the disclosure records.
 External check 3: A deployment needing a backdated disclosure instant detected MUST read the composing Event Log's receipt instant (State 10).
 Deleted: External check 4. Execution Contract Database 3 owns it.
+External check 5: A deployment needing Invariant 6.1 cleared MUST read the composing pattern's purge records beside two unfiltered reads of the disclosure records.
 ```
 
 ## Non-goals
@@ -394,11 +398,11 @@ Each `[Term]` marker above links to its term entry here; a term entry states wha
 
 ### Vocabulary
 
-Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; the database; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a string input; an opaque reference; the database instance's record count; a field-level precondition.
+Term actors: the atom; the host; the transition; the implementation; the deployment; a composing pattern; a business caller; a caller; a guard; an auditor; a regulator; a data subject; the database; a disclosure record; a stored disclosure record; a correcting disclosure record; a refused [Record]; a query; a filter; a transmission; a string input; an opaque reference; a field-level precondition.
 
 Term records: disclosure record — one recorded disclosure, carrying disclosure id, subject reference, recipient, scope, authority type, authority reference and disclosure instant.
 
-Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, sort, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, fall, call, produce, choose.
+Term record verbs: identify, allocate, change, carry, stand, answer, record, resolve, take, stamp, leave, own, match, normalize, interpret, confirm, admit, offer, detect, route, share, precede, follow, exceed, compare, trim, case-fold, refuse, write, find, read, remove, edit, retract, sort, order, bound, decide, compose, declare, wire, rest, apply, supply, serialize, issue, name, claim, transmit, redact, retrieve, canonicalize, persist, call, produce, choose, evaluate.
 
 Term value sets: authority type = consent | legal-hold | regulatory.
 
@@ -408,7 +412,7 @@ Term cadences: empty.
 
 Term qualifiers: migrated — rewritten in GRACE lang v0.40 (2026-09-12).
 
-Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, field-level precondition, filter axes, admitted record, string input, blank.
+Term terms: disclosure record, disclosure id, subject reference, recipient, scope, database instance, seam, transition, now, business caller, authority, authority type, authority types, authority reference, disclosure instant, resolved disclosure instant, field-level precondition, filter axes, admitted record, record refusal order, string input, blank.
 
 #### Record
 
@@ -488,7 +492,7 @@ Projection: disclosed_at
 
 #### Invalid Request
 
-The rejection [Record] returns when a required field ([Subject Reference], [Recipient], [Scope], or [Authority Reference]) is missing or whitespace-only, [Authority] is structurally malformed, or the resolved [Disclosure Instant] is in the future.
+The rejection [Record] returns when [Subject Reference], [Recipient], [Scope], [Authority], [Authority Type] or [Authority Reference] is missing or whitespace-only, or the resolved [Disclosure Instant] is in the future.
 
 Kind:       Member
 Member of:  the record rejection
@@ -562,11 +566,18 @@ Projection: invalid-query
 ```
 status: partially resolved
 formal: not applicable — vote no 2026-06-03
-last gate: 2026-06-23 — Final Critique 5, fresh reader — clean
+last gate: 2026-10-21 — Final Critique 6, the council's first round on the page and the first on its Store-contract rewrite (947cfb9), three fresh readers on free models (GRID Nemotron 3 Ultra, EOS MiniMax M3.1 Flash, Linus GLM-5.3 Flash), each handed only the round's reading set, three passes on one text (frozen at c975293); the round rests on three counted passes — foundational count 3 after triage (16 reports: 4 standing, merged into 2; 7 sent down; 5 rejected; 1 refining report raised), all Kind A: State 8, State 9 and Check 3.2 kept every record for good where Non-goal 19 sends a retention bound to Retention Window, whose purge destroys the record; Check 6.2 compared each record with a creation instant no record carries; and [Record]'s refusals answered in pairwise ONLY IF rules, Operation 8 read alone forbidding what Operation 9 obliges; 17 refining reports, 6 rhetorical reports; not clean; every foundational finding cured in place; 2026-06-23 — Final Critique 5, fresh reader — clean
 
 open:
 - 2026-10-05-a · refining · Composition note 9 · read to the letter it forbids a pattern that reads the disclosure records from writing to them at all, where the atom's own account of Resolve a Person's Data Rights has that composition read and record through the atom's surfaces → say no write beside [Record]; reported by that composition's gate
-- 2026-10-05-b · refining · Non-goal 19; Composition note 5, 6; Invariant 6.1 · a retention bound is to be composed over a database the atom must never remove a record from, and the owner of the seal and the retention is a composing pattern the notes do not let pass the duty down → say who guarantees persistence; reported by the same gate
+- 2026-10-21-a · refining · Correction 4; Term correction narrative; Term scope; Term authority reference · a correcting record's narrative rides its scope or its authority reference, whose Terms name the subset disclosed and the authority; one string can name both, but no rule says which field carries the pointer to the corrected record or that the field keeps its own content beside it → pin the carrier, or say the field carries both
+- 2026-10-21-b · refining · Operation 7; Operation 22 through 26; Term authority · no rule answers a malformed input: a disclosed_at no build can read as an instant, a disclosure instant range carrying one bound, and an authority carrying a field beyond its two, which the guards admit and the record keeps without → say each answer
+- 2026-10-21-c · refining · Operation 22; Term filter axes · no line gives the keys a caller sends: the rules name the axes in English, no Projection line projects a filter, and the examples spell the authority type filter authority_type where the Authority Type field projects as authority.type → give each axis its key
+- 2026-10-21-d · refining · String 7 · the rule obliges the deployment to canonicalize an opaque reference, a phrase no Term declares (Term subject reference alone calls itself one), so which inputs it covers is left to the reader → name them
+- 2026-10-21-e · refining · Invariant 5.1; Composition note 8; External check 2 · the invariant's subject is a transmission, and no rule names the party that records each one: Composition note 8 binds only a composing pattern that closes it, and External check 2 reads an egress record no rule requires → name the owner, as the owners NOTE names the calling system for Non-goal 4 through 6
+- 2026-10-21-f · refining · State 1; Invariant 3.1; Term disclosure instant; Term resolved disclosure instant · one proposition stated twice: State 1 and Invariant 3.1 both require a disclosure instant on every record, and Term disclosure instant's never later than now restates Invariant 4.1 beside a second Term for the instant the record carries → one owner each
+- 2026-10-21-g · refining · Identity 6; Term database instance · the rule reads as each call routed to one instance or as every call routed to the same instance, and under the first a subject reference query answers only its own instance's records → say which
+- 2026-10-21-h · refining · Generation acceptance; Check 4.1; Check 6.1 · the bar says an external auditor clears the atom from the disclosure records, and Check 4.1 and Check 6.1 find [Record]'s answers to calls, which no record carries → say where those checks run
 ```
 
 ## Decisions
@@ -574,5 +585,7 @@ open:
 Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- atoms/selective-disclosure.md`; the migration and the repairs that got it here are in [its history](./selective-disclosure.hist.md).
 
 - **2026-10-19 — The store's guarantees cited, not restated.** *Chose:* the disclosure store supplied under Execution Contract Store 1, Store 3 and Store 4 (Capability requirement 5), and the three rules that restated them, or stood in for them, tombstoned to their owner — Invariant 6.2, no partial record left by a storage-failure, to Store 1; Invariant 6.3, an answered disclosure id naming a durably persisted record, and External check 4, the recorded answers captured to find an issued disclosure id the store is missing, to Store 3; rules 130 to 128. *Over:* the atom restating, for its own store, what every deployment's store guarantees, and a deployment capturing its record answers against a store that might lose a disclosure. *Because:* the maintainer ruled 2026-10-12 that the corpus takes a store's specification, never the store, and `execution-contract.md` writes it once as the Store contract. The atom's own no-removal rules stay (State 5, State 8, State 9, Invariant 6.1), since Store 4 alone does not keep the atom from removing a record or the count from falling; a refused [Record] still records nothing and leaves the store as the call found the store, guard refusals included (Operation 16, Operation 17). [Record]'s guards read no store state and each record is written once under a fresh host-allocated id, so the atom cites no Store 2; Check 3.1 and Check 3.2 rest on the auditor's own two reads, and [Read] orders by disclosure instant and disclosure id, so the atom cites neither History 1 nor Order 1. What the atom does for its domain is unchanged.
+
+- **2026-10-21 — A composed retention may purge what the atom never removes; [Record]'s refusals answer in one stated order.** *Chose:* State 8 and State 9, which held the record count and every unfiltered read's records for good, tombstoned to the rules that hold what is true — the atom removes no record (Invariant 6.1), the database removes none but by an action a specification declares (Execution Contract Database 4), and an unfiltered read answers what the database holds (Operation 21); Check 3.2 moved to External check 5, which reads the composing pattern's purge records beside two reads; Check 6.2 tombstoned to Check 6.1, which tests the guard that keeps Invariant 4.1; and one record refusal order over [Record]'s guard refusals (Operation 35), with Operation 8 and Operation 15 kept as its pairs. *Over:* a record count that may never fall beside Non-goal 19, which sends a deployment needing a retention bound to Retention Window, whose purge destroys the record, so a conforming deployment broke State 8 and State 9 and failed Check 3.2 at its first purge; a check comparing each record with a creation instant no record carries; and pairwise ONLY IF rules, Operation 8 read alone forbidding what Operation 9 obliges on a call carrying a blank field and an unknown type. *Because:* Final Critique 6 found each two rules no build could both obey, or a check a conforming deployment fails or a violating one passes; Final Critique 5's text already put the purge with Retention Window (*when (if ever) they may be purged — is a composing Retention Window concept*), so the method's entry of 2026-10-08 tombstones the broken rules to the rules that hold the lawful states rather than qualifying them, and Approval Step's sixth round gave the refusal order its form. What the atom does for its domain is unchanged: it records and reads as it did, refuses the same calls with the same codes, and never removes a record.
 
 NOTE: End of Selective Disclosure.
