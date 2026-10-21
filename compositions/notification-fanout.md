@@ -56,11 +56,6 @@ Term composition: this pattern's wiring of [Subscription](../atoms/subscription.
 
 Term constituents: [Subscription](../atoms/subscription.md), [Notification](../atoms/notification.md).
 
-WHY:
-Composes 7 is one rule where the prose carried two. The prose named the two deleted invariants *preservation claims* and distinguished them from the six that emerge — which is the right distinction and the reason the migration could act on it cleanly. Execution Contract Conformance 8 settles both: conformance extends recursively and no composing layer is obligated to re-verify what a constituent's own conformance establishes, so asserting it twice more was a citing spec restating a rule it cites (Authority 6, council read 53, council read 55).
-
-Composes 5 and Composes 6 are what the preservation claims carried *beyond* the blanket, and none of it is inherited: the read-only posture toward the subscription store and the refusal to reach past `create` are this composition's own restraint, not a guarantee either atom makes about a caller.
-
 ---
 
 ## Composition logic
@@ -76,9 +71,6 @@ Composition state 5: A deployment composing Duplicate Prevention MUST supply a c
 Composition state 6: EVERY notification record of a fanout MUST name EXACTLY ONE subscriber reference.
 Composition state 7: A subscriber reference the subscribers_for answer carried MAY carry no notification record of the fanout.
 ```
-
-WHY:
-The contract classification is *conforming, no stored composition state* (the section titled Composition state in `execution-contract.md`). The subscription store owns who subscribes and the notification store owns what was created; the composition is a stateless interpreter over both. Composition state 3 is the Contract's record-coordination rule applied by name — a composition that must record that its own sequences occurred composes [Event Log](../atoms/event-log.md) rather than growing a store of its own — and this composition routes the concept out rather than holding it. Composition state 5 says where Duplicate Prevention's key comes from, since `fanout(event_scope, payload)` carries no event identity of its own. Composition state 6 and Composition state 7 are the relation's two sides: one subscriber per record, and a subscriber whose create failed holding none.
 
 ### Capability requirement
 
@@ -106,13 +98,6 @@ Term create bound: the deployment's bound on one Notification create call, past 
 
 Term read latency bound: the deployment's disclosed bound on the interval between the composition dispatching subscribers_for and the subscription store executing it — a [Read Latency Bound].
 
-WHY:
-Capability requirement 3 is a floor neither constituent supplies. [Subscription](../atoms/subscription.md) declares the same floor for its own record ids and [Notification](../atoms/notification.md) declares none, so the requirement is this composition's dependency on its host and is attributed to neither atom — which is what makes it a `Capability requirement` rather than an inherited guarantee.
-
-Capability requirement 10 is what *EXACTLY ONE time* in Action wiring 7 means below the composition: a transport that resent a create on its own would make two calls the composition counted as one.
-
-Capability requirement 6 and Capability requirement 7 are the two halves of the boundary window Check 1 needs. Neither is a record, both are operating facts a deployment states, and without them the window is not computable and the audit degrades to a caveat.
-
 ### Primitive policy
 
 ```
@@ -124,12 +109,6 @@ Primitive policy 5: The composition MUST compare an event scope byte-exact.
 Primitive policy 6: [Fanout] MUST NOT normalize an event scope.
 Primitive policy 7: [Fanout] MUST NOT bound a payload's length.
 ```
-
-
-WHY:
-invalid-request here is the composition's own and nothing is inherited. The event scope check is *consistent* with [Subscription](../atoms/subscription.md)'s write surface, which refuses a blank event scope; the payload check refuses only an absent payload, because [Notification](../atoms/notification.md)'s `create` accepts an empty one (Notification Operation 5), so an empty payload is a payload — but this composition never calls `subscribe`, so no constituent contract governs the check and no constituent is consulted when it fires (Ledger 2026-08-27-k: the provenance is stated once, here).
-
-Primitive policy 7 is a deliberate absence. A payload cap is the composing system's before [Fanout] is called; what the composition does carry is the consequence — an oversized payload is refused by every `create` and lands every subscriber in the failed list, which is the shape Indeterminate outcome 5 tells a caller to read.
 
 ### Action wiring
 
@@ -170,13 +149,6 @@ Term failed list: the subscriber reference of EVERY create the composition saw a
 
 Term unrecordable create: a create answering neither a notification id nor one of [Notification](../atoms/notification.md)'s declared refusals — a call that timed out, or came back unacknowledged; the outcome the composition names at the boundary. Notification's own storage-failure is declared, and records nothing (Notification Operation 7).
 
-WHY:
-Action wiring 11 and Action wiring 12 are the load-bearing decision stated as rules: the fan-out continues and names its failures rather than aborting. Action wiring 15 is what makes that honest — parallel composition carries no rollback guarantee, so each create commits independently and there is no transaction to abort into.
-
-Action wiring 18 is the reason the failed list carries a `subscriber_ref` and not a reason. Three failures collapse into it — the structural invalid-request and the storage-failure [Notification](../atoms/notification.md) declares, each recording nothing, and the unrecordable create the boundary named, which may have — and the composition cannot tell them apart without retrying and watching. A caller needing reason-level diagnostics composes [Event Log](../atoms/event-log.md) at the call site, which Composition state 3 already routes.
-
-Action wiring 5 says the rejection carries no id because the invocation did not happen. An id on a rejection would give a caller a correlation handle for an invocation that produced nothing to correlate.
-
 ### Wiring decision
 
 ```
@@ -187,8 +159,6 @@ Wiring decision 3: The composition MUST account for EVERY subscriber the subscri
 
 WHY:
 The alternative is all-or-nothing, and it fails the case it exists for: a store briefly unavailable for one subscriber would deny delivery to every reachable subscriber, trading guaranteed delivery to the reachable majority for consistency with the unreachable minority. The failed list is the pressure valve — it makes the trade explicit rather than silent, and the caller applies the policy the event's stakes deserve, which is the mechanism-versus-policy split the composition rests on.
-
-Wiring decision 3 is bounded by what a completed call can claim. A crash inside the fan-out produces no result and therefore no account of anybody — the coverage claim is over an invocation that answered, and Invariant 1 carries the same bound (Ledger 2026-08-27-g).
 
 ---
 
@@ -202,7 +172,6 @@ Invariant 1 through 5 and Invariant 8 emerge from the composition; neither const
   Invariant 1.2: EVERY subscriber reference the subscribers_for answer carried MUST stand in EXACTLY ONE OF the created list, the failed list.
   Invariant 1.3: The composition MUST NOT call Notification's create for a subscriber reference outside the subscribers_for answer.
   ```
-  WHY: the claim is over an invocation that answered. A crash inside the fan-out produces no result and no account of anybody, which is the bound Wiring decision 3 carries and the Summary states.
 - **Invariant 2 — Payload consistency.**
   ```
   Invariant 2.1: EVERY notification record of one admitted fanout MUST carry one payload.
@@ -218,21 +187,18 @@ Invariant 1 through 5 and Invariant 8 emerge from the composition; neither const
   Invariant 4.1: An admitted fanout MUST NOT record two notification ids for one subscriber reference.
   Invariant 4.2: The composition MUST NOT claim a record the composition did not observe.
   ```
-  WHY: Invariant 4.2 is the scope and it is deliberate. An indeterminate create may have committed a record whose id never came back, nothing in [Notification](../atoms/notification.md)'s declared surface lets anyone find it afterwards, and a retry can therefore produce a second record. That residual is the caller's (Indeterminate outcome 4) and is not a breach of an invariant that never claimed to see the unseen.
 - **Invariant 5 — The subscription store is read-only.**
   ```
   Invariant 5.1: The composition MUST NOT write to the subscription store.
   Deleted: Invariant 6. Composes 7 owns it.
   Deleted: Invariant 7. Composes 7 owns it.
   ```
-  WHY: the two deleted invariants asserted that [Notification](../atoms/notification.md)'s and [Subscription](../atoms/subscription.md)'s own invariants hold over this composition's instances. The prose named them *preservation claims* and set them apart from the six that emerge, which is the right distinction and the reason they could be collapsed cleanly: Execution Contract Conformance 8 already establishes recursive conformance, so restating it twice was a citing spec restating a rule it cites (Authority 6). What they carried beyond the blanket is Composes 5 and Composes 6.
 - **Invariant 8 — Fanout invocation uniqueness.**
   ```
   Invariant 8.1: Two admitted fanouts answering a result MUST NOT share a fanout id.
   Invariant 8.2: The composition MUST call a constituent ONLY AFTER taking a fanout id.
   Invariant 8.3: An admitted fanout answering a result MUST answer a fanout id.
   ```
-  WHY: the uniqueness rests on `Capability requirement 3`'s entropy floor, which is the composition's own dependency on its host because neither constituent supplies it — Subscription declares the same floor for its own ids and Notification declares none.
 
 ---
 
@@ -302,7 +268,7 @@ An auditor later asks: *was every subscribed compliance officer notified of poli
 
 ## Generation acceptance
 
-A derived implementation is acceptable when an external auditor, given the subscription store and the notification store, can clear the checks below without recourse to source code, runbooks or developer narration. **Check 1 and Check 2 are clearable only where [Event Log](../atoms/event-log.md) is composed in**, and the preamble says so rather than opening universally: the composition persists no fanout id, so nothing in the bare stores groups a fanout (Ledger 2026-08-27-h).
+A derived implementation is acceptable when an external auditor, given the subscription store and the notification store, can clear the checks below without recourse to source code, runbooks or developer narration. **Check 1 and Check 2 are clearable only where [Event Log](../atoms/event-log.md) is composed in**: the composition persists no fanout id, so nothing in the bare stores groups a fanout.
 
 ### Conformance checks
 
@@ -337,11 +303,7 @@ External check 5: An auditor needing a notification record verified MUST read No
 ```
 
 WHY:
-The split is the record-versus-attempt line the epoch keeps finding. What *stands* clears from the stores — a record's payload, its status, its recipient, the absence of a subscription write. What was *attempted* does not: a create that did not record leaves nothing to inspect, so Invariant 3.1's create-time clause is answered from the deployment's transaction configuration or a fault-injection test and is an external check rather than a record-clearable one (Ledger 2026-08-27-i, which had [Notification](../atoms/notification.md)'s own acceptance classified both ways — it is classified once here, as External check 5, because it is the constituent's acceptance and not this composition's).
-
 Check 1.3 pairs each created notification id with its subscriber at a cost: the created list carries ids and the failed list carries subscriber references, so an auditor makes one `status_of` call per created id to read its recipient.
-
-Check 1.5 and Check 1.6 are the boundary window doing real work. A subscribe or a cancel stamped inside the window can move the reconstructed count by one, and an auditor who read that as a violation would be filing against a correct implementation; an auditor who read every mismatch as boundary-adjacent would never file at all. The window is computable only from the two disclosed bounds, which is why they are capability requirements rather than advice.
 
 ---
 
@@ -364,12 +326,7 @@ Non-goal 13: The composition MUST NOT validate a payload's schema.
 Non-goal 14: The composition MUST NOT bound the fan-out's cost.
 ```
 
-WHY:
-Non-goal 5 and Non-goal 6 are one decision seen from two sides: the subscriber set is the active set at the instant the store executed the query, and the composition neither re-reads it nor filters it afterwards. A subscriber who cancels between the query and their create still receives a record, and one who subscribes after does not — both correct, both consequences of reading once.
-
-Non-goal 3 is the crash bound. A fan-out that dies mid-flight answers nothing, so there is no result to carry an account and no entry for a composed Event Log to hold; the coverage claim is over invocations that answered and says nothing about the ones that did not.
-
-Non-goal 10 is the boundary with the delivery layer. This composition creates records; a transport reads [Notification](../atoms/notification.md)'s `pending_for` and calls `deliver`, `fail` or `expire`. That the two are separate is why an indeterminate create cannot be reconciled from `pending_for` alone (Indeterminate outcome 8).
+NOTE: the owners — the delivery layer, a transport reading [Notification](../atoms/notification.md)'s `pending_for` and calling `deliver`, `fail` or `expire` (Non-goal 10).
 
 ---
 
@@ -384,9 +341,6 @@ Clock semantics 3: The composition MUST NOT claim the firing instant equal to a 
 Clock semantics 4: The composition MUST answer the firing instant to the caller.
 ```
 
-WHY:
-The set is fixed when the subscription store executes the read, which the composition never observes — `subscribers_for` takes and returns no instant — and validation, dispatch and read latency stand between the seam reading and that execution. An earlier draft called firing instant *the instant the subscriber set is fixed*, which named a moment nothing on this page can see. Clock semantics 4 is why the field is returned at all: the caller cannot observe that instant either, so asking a caller to log its own invocation time would pin the wrong one and silently widen the very window Check 1 bounds.
-
 ### Indeterminate outcome
 
 ```
@@ -400,13 +354,6 @@ Indeterminate outcome 7: A caller needing at-most-once across an indeterminate c
 Indeterminate outcome 8: A caller MUST NOT read Notification's pending_for as finding an indeterminate create's record.
 ```
 
-WHY:
-A create that times out or comes back unacknowledged may have committed a record whose id never returned, and **no reconciliation from the bare atoms can find it.** `pending_for` answers only records still pending, so one the delivery layer already moved is invisible to it (Indeterminate outcome 8); a payload is not a fanout identity, since [Notification](../atoms/notification.md) permits any number of records over one `(recipient_ref, payload)` pair and concurrent fanouts legitimately share a payload; and `create` declares no idempotency key by which a retry could name the record it means. A guard composed around the *retry* alone sees nothing of the original create and admits the retry.
-
-So a retry of an indeterminate entry is at-least-once and a second record is a residual the caller accepts, which is why Invariant 4 is scoped to the records the composition observed. Indeterminate outcome 7 names the cure rather than promising it: closing this needs an idempotency key at a store that can honor one, which is outside this composition's surface.
-
-Indeterminate outcome 5 and Indeterminate outcome 6 are the discriminator the composition can offer without a reason field. Every subscriber failing identically is the payload outside [Notification](../atoms/notification.md)'s acceptance; one subscriber failing alone is that `subscriber_ref` outside it — [Subscription](../atoms/subscription.md) imposes no length cap where Notification does, and that enumerable divergence is where a single structural failure comes from (Ledger 2026-08-27-l). Both are heuristics, which is why they are MAY: a notification store down for every create fails every subscriber alike too, and a fan-out of one cannot tell the two readings apart.
-
 ---
 
 ## Composition notes
@@ -418,9 +365,6 @@ Composition note 3: A deployment MUST own a payload's schema and size.
 Composition note 4: A deployment MUST own the disposition of a failed list.
 Composition note 5: A deployment MUST own the fan-out's throughput strategy.
 ```
-
-WHY:
-Composition note 4 is the mechanism-versus-policy split written as an obligation. The composition cannot know whether a missed delivery matters — an activity feed accepts the loss and a regulated broadcast escalates — so it names the gap and hands the decision to the layer that knows the event's stakes.
 
 ---
 
@@ -563,17 +507,9 @@ open: none
 
 ## Decisions
 
-Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/notification-fanout.md`.
+Directional changes only — the turns a future reader must know the pattern took, and why. Everything smaller lives in the commit that made it: `git log -- compositions/notification-fanout.md`; the migration, the council read's collapse, the two readings of the gate's open lines and the regeneration that got it here are in [its history](./notification-fanout.hist.md).
 
 - **2026-08-28 — A retry of an indeterminate create is at-least-once, and the page says so.** *Chose:* withdraw the `pending_for` reconciliation and the retry-side Duplicate Prevention claim; scope Invariant 4 to observed records; name Idempotent Reservation over `Notification.create` as the deployment's route to at-most-once. *Over:* keeping a reconciliation that read Pending-only ids and matched on payload. *Because:* `pending_for` cannot see a record the delivery layer has moved on, a payload is not a fanout identity, and a guard first consulted at retry never saw the original create — the reconciliation promised what no read of the bare atoms can deliver.
 - **2026-08-28 — firing instant is a lower bound on the instant the set was fixed.** *Chose:* the seam reading the invocation began under, with check 1's window widened by a disclosed `max_read_latency`. *Over:* a stamp "taken immediately before the query" described as the instant the set was fixed. *Because:* the store fixes the set when it executes the read, an instant the composition never observes; the earlier wording named a moment nothing on the page can see and let check 1 convict a subscribe that landed inside the read's latency.
-
-- **2026-09-14 — Rewritten in GRACE lang v0.40; nothing but language changed except two invariants the Execution Contract already owns.** *Chose:* `Composes`, `Composition state`, `Capability requirement`, `Primitive policy`, `Action wiring`, `Wiring decision`, `Clock semantics` and `Indeterminate outcome` as the wiring surfaces, the six surviving invariant numbers unchanged, and the acceptance section's own two-tier split carried across as `Check` and `External check`. *Over:* the prose spec. *Because:* the migration plan; nothing in the corpus cites this composition by label. Two families are worth naming: the *Retry semantics* section is `Indeterminate outcome` — the family [Approval Step](../atoms/approval-step.md), [Medication Order](../atoms/medication-order.md) and [Party Identity](../atoms/party-identity.md) already carry — so it was taken rather than minted, which puts that family at four specs and makes this the first composition to hold it. And *Logic confinement* is `Capability requirement`, the standard family, because what the section states is what the host must supply.
-- **2026-09-14 — Two preservation claims are one citation.** *Chose:* `Composes 7`, with `Invariant 6` and `Invariant 7` tombstoned to it. *Over:* keeping them. *Because:* the prose already drew the line the ruling needs — *Invariant 1 through 5 and 8 emerge from the composition; Invariants 6 and 7 are preservation claims* — and Execution Contract Conformance 8 settles a preservation claim by reference, so restating it twice was a citing spec restating a rule it cites (Authority 6, council read 53, council read 55). What the two carried beyond the blanket survives as `Composes 5` and `Composes 6`: reading the subscription store only through `subscribers_for` and refusing to reach past `create` are this composition's own restraint and are not guarantees either atom makes about a caller.
-- **2026-09-14 — Five of the Ledger's six open lines are closed by the migration.** *Chose:* to close `2026-08-27-g`, `-h`, `-i`, `-k` and `-l` in the rewrite and strike them from the Ledger's open list, leaving `-j`. *Over:* migrating the language and leaving six known defects standing behind it. *Because:* all five were language or ownership defects a rewrite is the natural moment to fix — an unconditional coverage claim that needed the crash bound (`Wiring decision 3`, `Non-goal 3`, `Invariant 1`'s WHY), an acceptance preamble opening universally where two checks need a composed Event Log (now conditional, and stated in the preamble), Notification's own acceptance classified both record-clearable and external (classified once, as `External check 5`), invalid-request's provenance stated two ways (stated once, in `Primitive policy`'s WHY), and the two constituents' divergent non-empty definitions left unnamed (named in `Indeterminate outcome`'s WHY — Subscription admits a whitespace-only ref and caps nothing, Notification refuses both). `-j` stays open because it is a design choice rather than a defect: an Event Log entry carrying the full created and failed lists is unbounded in N against Event Log's payload cap, and bounding, chunking or digesting it is the maintainer's to pick. The `status:`, `formal:` and `last gate:` lines are untouched (council read 56).
-
-- **2026-09-28 — The 2026-08 gate's open lines, read against the rewritten page.** *Chose:* of 28 open lines, 9 were already closed by the rewrite and are removed; 19 were live and are cured here — the create bound, its disclosure and no transport retry (Capability requirement 8 through 10); Duplicate Prevention keyed by a caller-supplied event identity and the fanout-to-record relation's two sides (Composition state 5 through 7); the failure discriminator as a caller's heuristic (Indeterminate outcome 5, 6, now MAY); the cost of pairing a created id with its subscriber stated; and the summary, examples, Fanout Id entry and standards brought to the rules, including two references to sections that no longer exist. *Over:* carrying lines whose anchors — step 4, *Retry semantics*, the externally-clearable list — the rewrite removed. *Because:* a Ledger that names sections the page no longer has cannot be read against the page.
-
-- **2026-09-28 — The page brought to its constituents as they now stand.** *Chose:* the unrecordable create named by what it is — no id and none of Notification's declared refusals — with Notification's storage-failure counted as the declared, recordless refusal it now is; the payload check narrowed to an absent payload (Primitive policy 2), which is what the prose checked, since Notification accepts an empty one; Check 1.2 reading the subscription store's stored instants rather than a filter Subscription does not declare; and the one-subscriber-failing reading narrowed to the length cap, since Subscription now refuses a whitespace-only ref. *Over:* the page's claims about Notification and Subscription as they stood before 2026-09-15. *Because:* the cold regeneration of 2026-09-28 built against the constituents and met each claim false.
 
 NOTE: End of Notification Fanout.
